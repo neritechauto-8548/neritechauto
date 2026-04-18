@@ -1,0 +1,33 @@
+<p-panel [toggleable]="true" [collapsed]="false">
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <span class="title">Relatório de estoque</span>
+    </div>
+  </ng-template>
+
+  <div class="row mb-3">
+    <div class="col col-md-3">
+      <label class="block mb-1">Ordenar por</label>
+      <select [(ngModel)]="ordenarPor" class="w-full p-inputtext">
+        <option *ngFor="let o of ordenarOptions" [value]="o.value">{{ o.label }}</option>
+      </select>
+    </div>
+    <div class="col col-md-3">
+      <label class="block mb-1">Situação</label>
+      <select [(ngModel)]="situacao" class="w-full p-inputtext">
+        <option *ngFor="let s of situacaoOptions" [value]="s.value">{{ s.label }}</option>
+      </select>
+    </div>
+    <div class="col col-md-3">
+      <label class="block mb-1 invisible">Filtro</label>
+      <input pInputText [(ngModel)]="filtro" placeholder="Filtro..." />
+    </div>
+  </div>
+
+  <hr />
+
+  <div class="actions">
+    <button pButton type="button" class="p-button-secondary mr-2" label="Fechar"></button>
+    <button pButton type="button" class="p-button-primary" icon="pi pi-chart-bar" label="Gerar relatorio" (click)="gerarRelatorio()"></button>
+  </div>
+</p-panel>

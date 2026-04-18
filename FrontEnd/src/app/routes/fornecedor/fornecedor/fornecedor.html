@@ -1,0 +1,157 @@
+<page-header />
+
+<div class="flex flex-col h-full gap-6">
+
+  <!-- Actions Bar (Padrão Cliente/Veículo) -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+       <!-- Search -->
+       <div class="relative w-full sm:max-w-md group flex items-center">
+            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none !text-[18px] !w-[18px] !h-[18px]">search</mat-icon>
+
+            <p-select [options]="filterOptions" [(ngModel)]="filterType" styleClass="w-36 border-0 shadow-none !bg-transparent text-sm text-slate-600 border-r border-slate-200 rounded-none ml-10"></p-select>
+
+            <input
+                pInputText
+                [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()"
+                placeholder="Buscar fornecedor..."
+                class="w-full pl-3 pr-12 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+            />
+            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">Enter</div>
+       </div>
+
+       <!-- New Fornecedor Button -->
+       <div class="flex items-center gap-2">
+           <button (click)="imprimir()" class="hidden sm:flex px-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-sm items-center gap-2">
+               <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon> <span class="hidden md:inline">Imprimir</span>
+           </button>
+           <button (click)="cadastrarFornecedor()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
+              <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+              <span>Novo Fornecedor</span>
+           </button>
+       </div>
+   </div>
+
+  <!-- Data Table -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Fornecedor</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Documento</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Contato</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Classificação</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <tr *ngFor="let row of items" class="group hover:bg-gray-50 transition-colors duration-200">
+
+                    <!-- Fornecedor -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <div class="flex items-center gap-4">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 border border-slate-200 text-slate-500 ring-4 ring-white shadow-sm shrink-0">
+                                <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">{{ row.classificacao === 'A' ? 'verified' : (row.classificacao === 'E' ? 'warning' : 'local_shipping') }}</mat-icon>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer truncate" (click)="goEditarFornecedor(row)">{{ row.nomeFantasia }}</span>
+                                <span class="text-[11px] text-slate-500 truncate" *ngIf="row.razaoSocial !== row.nomeFantasia">{{ row.razaoSocial }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Documento -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <span class="font-mono text-xs text-slate-700 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+                            {{ row.documento }}
+                        </span>
+                    </td>
+
+                    <!-- Contato -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <div class="flex flex-col min-w-0">
+                            <div class="flex items-center gap-1.5 text-sm text-slate-600">
+                                <mat-icon class="!text-[14px] !w-[14px] !h-[14px] text-slate-400">phone</mat-icon>
+                                <span>{{ row.telefone }}</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 truncate ml-5" *ngIf="row.email && row.email !== '-'">{{ row.email }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Classificacao -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <span *ngIf="row.classificacao === 'A'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            CLASSE A - EXCELENTE
+                        </span>
+                        <span *ngIf="row.classificacao === 'B'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-blue-50 text-blue-700 border border-blue-200">
+                            CLASSE B - ÓTIMO
+                        </span>
+                        <span *ngIf="row.classificacao === 'C'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-slate-50 text-slate-700 border border-slate-200">
+                            CLASSE C - BOM
+                        </span>
+                        <span *ngIf="row.classificacao === 'D'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-orange-50 text-orange-700 border border-orange-200">
+                            CLASSE D - REGULAR
+                        </span>
+                        <span *ngIf="row.classificacao === 'E'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-rose-50 text-rose-700 border border-rose-200">
+                            CLASSE E - RUIM
+                        </span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="py-2.5 px-6 align-middle text-right">
+                        <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors w-8 h-8 flex items-center justify-center">
+                            <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">more_vert</mat-icon>
+                        </button>
+                        <mat-menu #actionsMenu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white">
+                            <button mat-menu-item (click)="goEditarFornecedor(row)" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+                                <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">edit</mat-icon>
+                                <span class="text-[13px] font-medium text-slate-700 group-hover:text-blue-700">Editar Fornecedor</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr *ngIf="items.length === 0">
+                    <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+                        <div class="flex flex-col items-center gap-3 text-slate-400">
+                          <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                             <mat-icon class="!text-2xl text-slate-400">search_off</mat-icon>
+                          </div>
+                          <p class="text-sm font-medium text-slate-500">Nenhum fornecedor encontrado</p>
+                          <button (click)="cadastrarFornecedor()" class="text-xs text-blue-600 font-bold hover:underline">
+                              Cadastrar novo fornecedor
+                          </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10" *ngIf="totalRecords > 0">
+        <div class="text-xs text-slate-500">
+            Mostrando <span class="font-medium">{{ first + 1 }}</span> a <span class="font-medium">{{ (first + rows > totalRecords) ? totalRecords : (first + rows) }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
+        </div>
+        <div class="flex gap-2">
+            <button
+                [disabled]="first === 0"
+                (click)="goPrev()"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
+            >
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
+            </button>
+            <button
+                [disabled]="first + rows >= totalRecords"
+                (click)="goNext()"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
+            >
+                Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
+            </button>
+        </div>
+      </div>
+  </div>
+
+</div>

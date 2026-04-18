@@ -1,0 +1,82 @@
+/* Stripe UX Tab Overrides */
+:host ::ng-deep {
+  .p-tabs {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .p-tablist {
+    background: transparent !important;
+    border-bottom: 1px solid var(--slate-200) !important;
+  }
+
+  .p-tablist-content {
+    background: transparent !important;
+  }
+
+  .p-tab {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    color: var(--slate-500) !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    transition: all 0.2s ease !important;
+    border-radius: 0 !important;
+    padding: 1rem 1.5rem !important;
+
+    &:hover {
+      color: var(--slate-800) !important;
+    }
+
+    &.aria-selected,
+    &[aria-selected="true"] {
+      color: #635bff !important; /* Stripe Blue */
+      border-bottom-color: #635bff !important;
+    }
+  }
+
+  .p-tabpanels {
+    background: transparent !important;
+    padding: 1rem 0 !important;
+  }
+
+  .p-tabpanel {
+    background: transparent !important;
+  }
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cat-id {
+  justify-self: start;
+  background: #ff9800;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.cat-desc {
+  color: #444;
+}

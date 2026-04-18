@@ -1,0 +1,17 @@
+.header-bar { background:#3b82f6; color:#fff; padding:.6rem .8rem; border-radius:.5rem .5rem 0 0; display:flex; align-items:center; gap:.5rem; font-weight:600; }
+.filters-row { display:flex; flex-wrap:wrap; gap:.75rem; background:#e6efff; padding:.75rem; border:1px solid #dbeafe; border-top:none; border-radius:0 0 .5rem .5rem; align-items:flex-end; }
+.filters-row .field { display:flex; flex-direction:column; gap:.25rem; }
+.filters-row input, .filters-row select { background:#fff; border:1px solid #cbd5e1; border-radius:.375rem; padding:.4rem .5rem; min-width:180px; }
+.filters-row .actions { margin-left:auto; }
+
+.table-wrapper { margin-top:1rem; border:1px solid #e5e7eb; border-radius:.5rem; background:#fff; }
+.log-table { width:100%; border-collapse:collapse; }
+.log-table th, .log-table td { border-bottom:1px solid #e5e7eb; padding:.6rem .75rem; vertical-align:top; }
+.log-table thead th { background:#f3f4f6; font-weight:600; }
+.log-table .date { font-weight:600; color:#111827; }
+.log-table .time { color:#6b7280; font-size:.85rem; }
+.log-table .employee { font-weight:500; color:#1f2937; }
+.log-table .desc { color:#374151; }
+
+.pagination { display:flex; align-items:center; gap:.75rem; padding:.5rem .75rem; }
+.pagination .count { color:#6b7280; }

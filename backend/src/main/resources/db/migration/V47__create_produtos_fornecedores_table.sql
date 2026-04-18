@@ -1,0 +1,22 @@
+CREATE TABLE produtos_fornecedores (
+    id BIGSERIAL PRIMARY KEY,
+    produto_id BIGINT NOT NULL,
+    fornecedor_id BIGINT NOT NULL,
+    codigo_fornecedor VARCHAR(50),
+    descricao_fornecedor VARCHAR(255),
+    preco_custo DECIMAL(10,4) NOT NULL,
+    preco_custo_anterior DECIMAL(10,4),
+    data_ultimo_preco DATE,
+    prazo_entrega_dias INT DEFAULT 7,
+    quantidade_minima DECIMAL(10,2) DEFAULT 1,
+    desconto_quantidade JSON,
+    moeda VARCHAR(3) DEFAULT 'BRL',
+    principal BOOLEAN DEFAULT FALSE,
+    ativo BOOLEAN DEFAULT TRUE,
+    observacoes TEXT,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    versao INT DEFAULT 0,
+    CONSTRAINT fk_produto_fornecedor_produto FOREIGN KEY (produto_id) REFERENCES produtos(id),
+    CONSTRAINT fk_produto_fornecedor_fornecedor FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id)
+);

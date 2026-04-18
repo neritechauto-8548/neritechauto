@@ -1,0 +1,33 @@
+CREATE TABLE fin_itens_fatura (
+    id BIGSERIAL PRIMARY KEY,
+    fatura_id BIGINT NOT NULL,
+    tipo_item VARCHAR(30),
+    servico_id BIGINT,
+    produto_id BIGINT,
+    descricao TEXT NOT NULL,
+    quantidade DECIMAL(10,2) NOT NULL,
+    valor_unitario DECIMAL(10,4) NOT NULL,
+    valor_total DECIMAL(10,2) NOT NULL,
+    desconto_percentual DECIMAL(5,2) DEFAULT 0,
+    desconto_valor DECIMAL(8,2) DEFAULT 0,
+    valor_liquido DECIMAL(10,2) NOT NULL,
+    ncm VARCHAR(8),
+    cfop VARCHAR(4),
+    cst_icms VARCHAR(3),
+    cst_pis VARCHAR(2),
+    cst_cofins VARCHAR(2),
+    aliquota_icms DECIMAL(5,2),
+    aliquota_pis DECIMAL(5,2),
+    aliquota_cofins DECIMAL(5,2),
+    valor_icms DECIMAL(8,2) DEFAULT 0,
+    valor_pis DECIMAL(8,2) DEFAULT 0,
+    valor_cofins DECIMAL(8,2) DEFAULT 0,
+    observacoes TEXT,
+    ordem_item INT DEFAULT 0,
+    versao INTEGER DEFAULT 0,
+    data_atualizacao TIMESTAMP,
+    atualizado_por BIGINT,
+    CONSTRAINT fk_fin_itens_fatura_fatura FOREIGN KEY (fatura_id) REFERENCES fin_faturas(id)
+);
+
+CREATE INDEX idx_fin_itens_fatura_fatura ON fin_itens_fatura(fatura_id);

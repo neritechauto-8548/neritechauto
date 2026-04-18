@@ -1,0 +1,23 @@
+CREATE TABLE categorias_produtos (
+    id BIGSERIAL PRIMARY KEY,
+    empresa_id BIGINT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    categoria_pai_id BIGINT,
+    codigo VARCHAR(20) UNIQUE,
+    cor_identificacao VARCHAR(7),
+    icone VARCHAR(50),
+    margem_lucro_padrao DECIMAL(5,2),
+    comissao_venda_padrao DECIMAL(5,2),
+    controla_estoque BOOLEAN DEFAULT TRUE,
+    permite_venda_estoque_negativo BOOLEAN DEFAULT FALSE,
+    ordem_exibicao INT DEFAULT 0,
+    ativo BOOLEAN DEFAULT TRUE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_por BIGINT,
+    atualizado_por BIGINT,
+    versao INT DEFAULT 0,
+    CONSTRAINT fk_categoria_produto_empresa FOREIGN KEY (empresa_id) REFERENCES empresa(id),
+    CONSTRAINT fk_categoria_produto_pai FOREIGN KEY (categoria_pai_id) REFERENCES categorias_produtos(id)
+);

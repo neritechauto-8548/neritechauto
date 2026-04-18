@@ -1,0 +1,20 @@
+.dlg-title {
+  font-weight: 600;
+}
+
+.transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.transfer-grid .col { display: flex; flex-direction: column; }
+.transfer-grid .span-3 { grid-column: 1 / span 3; }
+label { font-size: 12px; color: #666; margin-bottom: 4px; }
+input[pInputText] { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+
+.dlg-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}

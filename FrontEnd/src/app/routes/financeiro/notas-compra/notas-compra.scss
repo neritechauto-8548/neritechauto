@@ -1,0 +1,8 @@
+.toolbar { display:flex; gap:8px; margin-bottom:10px; }
+.panel-header { display:flex; justify-content:space-between; align-items:center; }
+.panel-header .title { font-weight:600; }
+.panel-header .icons { display:flex; gap:8px; color:#6b7280; }
+
+.filters { display:flex; gap:10px; align-items:center; padding:10px; }
+.campo-select { width:280px; }
+input[pInputText] { width:260px; }

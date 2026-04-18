@@ -1,0 +1,231 @@
+<div class="flex flex-col h-full gap-6">
+  <p-toast />
+
+  <!-- Actions Bar -->
+  <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+       <!-- Filtro -->
+       <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="relative w-full sm:w-64">
+             <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 !text-[18px] !w-[18px] !h-[18px] pointer-events-none">calendar_month</mat-icon>
+             <select
+                [(ngModel)]="mesSelecionado"
+                (change)="buscar()"
+                class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow transition-colors appearance-none cursor-pointer">
+                <option *ngFor="let m of meses" [ngValue]="m.value">{{ m.label }}</option>
+             </select>
+             <mat-icon class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 !text-[18px] !w-[18px] !h-[18px] pointer-events-none">expand_more</mat-icon>
+          </div>
+       </div>
+
+       <!-- Action Buttons -->
+       <div class="flex items-center gap-3 w-full sm:w-auto overflow-x-auto">
+         <button (click)="imprimir()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
+            <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-500">print</mat-icon>
+            <span class="hidden sm:inline">Imprimir</span>
+         </button>
+         <button (click)="enviarAlerta()" [disabled]="selecionados.length === 0" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+            <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">campaign</mat-icon>
+            <span>Felicitar Selecionados</span>
+         </button>
+       </div>
+   </div>
+
+  <!-- Data Table -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full relative">
+      <!-- Loading Overlay -->
+      <div *ngIf="loading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
+         <div class="flex flex-col items-center gap-3">
+            <mat-icon class="animate-spin text-indigo-600 !w-8 !h-8 !text-[32px]">autorenew</mat-icon>
+            <span class="text-sm font-medium text-slate-600">Buscando aniversariantes...</span>
+         </div>
+      </div>
+
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center w-[60px] align-middle">
+                      <input type="checkbox"
+                             class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                             (change)="toggleAll($any($event.target).checked)" />
+                    </th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Cliente</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Contato</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Nascimento</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[15%] align-middle">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <tr *ngFor="let c of clientes" class="group hover:bg-gray-50 transition-colors duration-200">
+                    <td class="py-3 px-6 align-middle text-center">
+                      <input type="checkbox" [(ngModel)]="c.selecionado" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                    </td>
+                    <!-- Nome -->
+                    <td class="py-3 px-6 align-middle">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600 shrink-0">
+                                <span class="font-bold text-xs">{{ (c.nomeCompleto || c.razaoSocial || 'C').charAt(0).toUpperCase() }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-slate-800 text-sm whitespace-nowrap">{{ c.nomeCompleto || c.razaoSocial || 'Desconhecido' }}</span>
+                                <span *ngIf="c.cpf" class="text-[11px] text-slate-500 mt-0.5">{{ c.cpf }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Contatos -->
+                    <td class="py-3 px-6 align-middle">
+                        <div class="flex flex-col gap-1.5">
+                             <div class="flex items-center gap-1.5 text-xs transition-colors" [ngClass]="c.temEmail ? 'text-slate-600' : 'text-slate-400 line-through'">
+                                <mat-icon class="!text-[14px] !w-[14px] !h-[14px] text-slate-400">mail</mat-icon>
+                                <span class="truncate max-w-[150px]">{{ c.email || 'Sem E-mail' }}</span>
+                             </div>
+                             <div class="flex items-center gap-1.5 text-xs transition-colors" [ngClass]="c.temCelular ? 'text-slate-600' : 'text-slate-400 line-through'">
+                                <mat-icon class="!text-[14px] !w-[14px] !h-[14px] text-slate-400">phone_iphone</mat-icon>
+                                <span>{{ c.temCelular ? 'Celular Válido' : 'Sem Celular' }}</span>
+                             </div>
+                        </div>
+                    </td>
+
+                    <!-- Nascimento -->
+                    <td class="py-3 px-6 align-middle">
+                         <div class="flex flex-col gap-1.5">
+                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium w-fit border"
+                                   [ngClass]="c.isHoje ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                               <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ c.isHoje ? 'celebration' : 'cake' }}</mat-icon>
+                               {{ c.nascimentoFormatado }}
+                               <span *ngIf="c.isHoje" class="ml-1 font-bold animate-pulse">(Hoje)</span>
+                             </span>
+                             <span class="text-[11px] text-slate-500 font-medium">Fazendo {{ c.idadeACompletar }} anos</span>
+                         </div>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="py-3 px-6 align-middle text-right">
+                        <button mat-icon-button [matMenuTriggerFor]="menu" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+                            <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu" xPosition="before" class="!rounded-xl !min-w-[200px] !py-1 shadow-lg">
+                            <button mat-menu-item (click)="verFicha(c)" class="!text-sm !text-slate-700 hover:!bg-slate-50">
+                                <mat-icon class="!text-slate-400 mr-2">person</mat-icon>
+                                <span>Ver Ficha do Cliente</span>
+                            </button>
+                            <button mat-menu-item (click)="enviarAlertaUnico(c)" class="!text-sm !text-indigo-600 hover:!bg-indigo-50">
+                                <mat-icon class="!text-indigo-500 mr-2">celebration</mat-icon>
+                                <span class="font-medium">Enviar Felicitação</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </tr>
+                 <!-- Empty State -->
+                <tr *ngIf="clientes.length === 0 && !loading">
+                     <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+                        <div class="flex flex-col items-center gap-3 text-slate-400">
+                           <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                              <mat-icon class="!text-2xl text-amber-400">sentiment_dissatisfied</mat-icon>
+                           </div>
+                           <p class="text-sm font-medium text-slate-500">Nenhum aniversariante cadastrado neste mês.</p>
+                        </div>
+                     </td>
+                 </tr>
+            </tbody>
+        </table>
+      </div>
+  </div>
+
+  <!-- Diálogo de Disparo de Alertas -->
+  <p-dialog [(visible)]="mostrarDialogo" [modal]="true" [style]="{ width: '700px' }" [breakpoints]="{'768px': '95vw'}" [draggable]="false" [resizable]="false">
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+             <mat-icon class="text-indigo-600">celebration</mat-icon>
+          </div>
+          <div>
+             <h2 class="text-lg font-bold text-slate-800 leading-tight">Enviar Mensagem</h2>
+             <p class="text-xs text-slate-500 font-medium">Você selecionou {{ selecionados.length }} cliente(s) para ser parabenizado(s).</p>
+          </div>
+      </div>
+    </ng-template>
+
+    <div class="py-2 space-y-6">
+
+      <!-- Seletor de Canal de Envio -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+         <div class="space-y-1">
+             <label class="text-xs font-bold text-slate-700">Canal de Disparo</label>
+             <div class="relative">
+                <select [(ngModel)]="modoEnvio" class="w-full pl-3 pr-10 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow appearance-none">
+                    <option value="WHATSAPP">WhatsApp</option>
+                    <option value="EMAIL">E-mail Seguro</option>
+                    <option value="SMS">SMS Direto</option>
+                </select>
+                <mat-icon class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 !text-[18px] !w-[18px] !h-[18px] pointer-events-none">expand_more</mat-icon>
+             </div>
+         </div>
+         <div class="space-y-1" *ngIf="modoEnvio === 'EMAIL'">
+             <label class="text-xs font-bold text-slate-700">Assunto do E-mail</label>
+             <input type="text" [(ngModel)]="assuntoEmail" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow" />
+         </div>
+
+         <!-- Regra de Negócio: Agendamento -->
+         <div class="col-span-1 md:col-span-2 pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center gap-4">
+             <label class="flex items-center gap-2 cursor-pointer group">
+                 <input type="checkbox" [(ngModel)]="mudarDataEnvio" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 transition-colors cursor-pointer" />
+                 <span class="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">Programar Envio Futuro</span>
+             </label>
+
+             <div class="relative flex-1 max-w-[240px]" *ngIf="mudarDataEnvio">
+                 <input type="datetime-local" [(ngModel)]="dataReagendamento" class="w-full pl-3 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow" />
+             </div>
+         </div>
+      </div>
+
+      <!-- Editor da Mensagem -->
+      <div class="space-y-4">
+          <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-700 flex items-center gap-2">
+                 Conteúdo da Mensagem
+                 <div class="group relative flex items-center justify-center">
+                    <mat-icon class="!text-[14px] !w-[14px] !h-[14px] text-slate-400 cursor-help">info</mat-icon>
+                    <div class="absolute bottom-full mb-2 hidden group-hover:block w-48 bg-slate-800 text-white text-[10px] p-2 rounded shadow-lg z-50 text-center">
+                      Mensagens para WhatApp devem ser simples e diretas.
+                    </div>
+                 </div>
+              </label>
+              <div class="relative w-48">
+                 <select [(ngModel)]="modeloEmail" (ngModelChange)="onModeloMensagemChange($event)" class="w-full pl-2 pr-8 py-1 bg-slate-50 border border-slate-200 rounded-md text-[11px] text-slate-600 outline-none focus:border-indigo-500 appearance-none font-medium">
+                     <option *ngFor="let m of modelosMensagens" [value]="m.nome">{{ m.nome }}</option>
+                 </select>
+                 <mat-icon class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 !text-[14px] !w-[14px] !h-[14px] pointer-events-none">arrow_drop_down</mat-icon>
+              </div>
+          </div>
+
+          <textarea
+             [(ngModel)]="mensagemTexto"
+             rows="5"
+             placeholder="Escreva sua mensagem de parabéns..."
+             class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-shadow resize-none">
+          </textarea>
+
+          <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-500" *ngIf="modoEnvio === 'SMS'">Caracteres SMS: {{ 160 - mensagemTexto.length }} restantes</span>
+              <span class="text-slate-500" *ngIf="modoEnvio !== 'SMS'">Pré-visualização disponível no campo de texto</span>
+          </div>
+      </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+         <button (click)="mostrarDialogo = false" class="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 border border-transparent transition-colors">
+            Cancelar
+         </button>
+         <button (click)="confirmarEnvio()" [disabled]="submitLoad || !mensagemTexto" class="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            <mat-icon *ngIf="submitLoad" class="animate-spin !text-[16px] !w-[16px] !h-[16px]">autorenew</mat-icon>
+            <mat-icon *ngIf="!submitLoad" class="!text-[16px] !w-[16px] !h-[16px]">send</mat-icon>
+            {{ submitLoad ? 'Enviando...' : 'Realizar Disparos' }}
+         </button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

@@ -1,0 +1,227 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1046{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil Calibri;}{\f2\fnil\fcharset2 Symbol;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\qc\b\f0\fs24\lang22 ANALISE DE REQUSITOS \par
+
+\pard\sl276\slmult1\par
+\f1\bullet\f0\lang1046  \f1\lang22 Cadastro de empresa\f0\lang1046  \lang22 (Ger\'eancia o sistema)\f1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Ao cadastrar um nova empresa, gerar o usu\f0\'e1rio padr\'e3o para ela e enviar por e-mail.\par
+{\pntext\f2\'B7\tab}O cadastro inicial do usu\'e1rio para empresa tem acesso full/admin\par
+{\pntext\f2\'B7\tab}Ao cadastrar empresa tem que validar o CNPJ e validar se j\'e1 existe no banco e n\'e3o gravar duplicado.\par
+{\pntext\f2\'B7\tab}Deve ser informado todos os dados basicos fiscais como: CNPJ, raz\'e3o soccial, nome fantasia, respons\'e1vel, e-email, endere\'e7o completo, Inscri\'e7\'e3o estadual, categoria.\par
+{\pntext\f2\'B7\tab}Validar inscri\'e7\'e3o estadual n\'e3o gravar duplicado.\par
+
+\pard\sl276\slmult1\b\f1\par
+
+\pard\sl276\slmult1\bullet\f0\lang1046  \f1\lang22 Gerenciamento de acesso para usu\f0\'e1rio e cadastro \par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Usuario adm pode cadastrar usuarios.\par
+{\pntext\f2\'B7\tab}Deve ser poss\'edvel adicionar v\'e1rios acessos/papel/role para o usu\'e1rio (Acesso a relat\'f3rio, acesso a cadastros, acesso a nota)\par
+{\pntext\f2\'B7\tab}Os usu\'e1rios devem ficar amarrados a empresa que trabalham.\par
+{\pntext\f2\'B7\tab}Os usu\'e1rios devem acessar com login e senha\par
+{\pntext\f2\'B7\tab}A senha deve ser criptografada no banco.\par
+{\pntext\f2\'B7\tab}N\'e3o pode cadastrar usu\'e1rio com mesmo CPF e mesmo login e mesmo e-mail.\par
+{\pntext\f2\'B7\tab}Senhas devem trocadas a cada 90 dias.\par
+
+\pard\sl276\slmult1\b\f1\par
+\bullet\f0\lang1046  \f1\lang22 Cadastro de categorias de produtos\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Cadastrar a descri\f0\'e7\'e3o da categoria\par
+{\pntext\f2\'B7\tab}Ter definido no banco categorias padr\'f5es.\par
+{\pntext\f2\'B7\tab}Nao permitir cadastrar categoria com mesma descri\'e7\'e3o\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-284\li284\sl276\slmult1\b Cadastro de fornecedor\b0\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1 Deve-se cadastrar o fornecedos com seus dados fiscais, CNPJ, Insricao estadual, dados de endereco, dados de contado.\par
+{\pntext\f2\'B7\tab}Nao cadastrar fornecedor com mesmo CNPJ e mesmo nome.\par
+{\pntext\f2\'B7\tab}Os dados de endere\'e7o e dados fiscais devem ser buscado em API externas.\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-284\li284\sl276\slmult1\b Cadastro de marca\b0\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1 Deve-se cadastrar a marca com seus dados fiscais, CNPJ, Insricao estadual, dados de endereco, dados de contado.\par
+{\pntext\f2\'B7\tab}Nao cadastrar fornecedor com mesmo CNPJ e mesmo nome.\par
+{\pntext\f2\'B7\tab}Os dados de endere\'e7o e dados fiscais devem ser buscado em API externas.\par
+
+\pard\sl276\slmult1\b\f1\par
+\bullet\f0\lang1046  \f1\lang22 Cadastro de produto\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Nome do produto de forma correta.\par
+{\pntext\f2\'B7\tab}Deve ser informado o tipo da unidade (UN, Pe\f0\'e7a, Kilo, CX, Litro)\par
+{\pntext\f2\'B7\tab}Nao deixar cadastrar produto com nome igual.\par
+{\pntext\f2\'B7\tab}Ao cadastrar o produto \'e9 obrigat\'f3rio associar a uma categoria.\par
+{\pntext\f2\'B7\tab}Nao permitir cadastrar o produto com menos de 10 letras.\par
+{\pntext\f2\'B7\tab}Cadastrar uma lista de imagens para o produto\par
+{\pntext\f2\'B7\tab}Cadastrar descri\'e7\'e3o completa que pode ser mais de 2000 mil caracteres.\par
+{\pntext\f2\'B7\tab}Ao cadastrar as fotos para o produto, deve ser feito o redimensionamento da imagem para ficar com tamanho de 600x800\par
+{\pntext\f2\'B7\tab}Validar a imagem deve ter no m\'e1ximo 1MB para fazer o upload.\par
+{\pntext\f2\'B7\tab}O produto deve ser associado ao fornecedor na hora do cadastro.\par
+{\pntext\f2\'B7\tab}Tamb\'e9m deve ser associado a uma marca\par
+{\pntext\f2\'B7\tab}Cadastrar a imagem em tamanho real e tamb\'e9m em tamanho miniatura.\par
+{\pntext\f2\'B7\tab}Limite m\'e1ximo 6.\par
+{\pntext\f2\'B7\tab}Informar a quantidade em estoque.\par
+{\pntext\f2\'B7\tab}Informar os gerentes/usu\'e1rio do sistema que o produto est\'e1 com estoque baixo.\par
+{\pntext\f2\'B7\tab}Poder cadastrar um quantidade de estoque baixo e/ou esgotado para dar alerta.\par
+{\pntext\f2\'B7\tab}Validar o estoque antes da venda para ver se poss\'edvel vender. (Na Venda)\b\f1\par
+
+\pard\sl276\slmult1\par
+
+\pard\sl276\slmult1\bullet\f0\lang1046  \f1\lang22 Cadastro de \f0\lang1046 Servi\'e7o\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0\f1\lang22 Nome do \f0\lang1046 servi\'e7o\f1\lang22  de forma correta.\par
+{\pntext\f2\'B7\tab}\f0 Nao deixar cadastrar servi\'e7o com nome igual.\par
+{\pntext\f2\'B7\tab}Nao permitir cadastrar o produto com menos de 10 letras.\par
+{\pntext\f2\'B7\tab}\f1 Deve ser informado o \f0\lang1046 valor do servi\'e7o\lang22\par
+
+\pard\sl276\slmult1\lang1046\par
+\b\f1\lang22\bullet\f0\lang1046  \f1\lang22 Cadastro de \f0\lang1046 funcionario\f1\lang22  \par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Dados de endere\f0\'e7o completo, podemos usar o para facilitar a pesquisa de CEP.\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1 Nome, cpf, telefone, e-mail \par
+{\pntext\f2\'B7\tab}Pode ter acesso ao sistema\par
+{\pntext\f2\'B7\tab}fun\'e7\'e3o na empresa\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li360\sl276\slmult1\b\lang1046 Cadastro de Veiculo \b0\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1 Nome do modelo do veiculo\par
+{\pntext\f2\'B7\tab}Marca do veiculo (Marca)\par
+{\pntext\f2\'B7\tab}Cor do veiculo\par
+{\pntext\f2\'B7\tab}Descri\'e7\'e3o do veiculo\par
+
+\pard\sl276\slmult1\lang22\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li360\sl276\slmult1\b\lang1046 Cadastro de Veiculo cliente\b0\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1 LIgado ao cliente\par
+{\pntext\f2\'B7\tab}Veiculo\par
+{\pntext\f2\'B7\tab}chassi\par
+{\pntext\f2\'B7\tab}placa\par
+
+\pard\sl276\slmult1\par
+
+\pard\sl276\slmult1\b\f1\lang22\bullet\f0\lang1046  \f1\lang22 Cadastro de cliente \par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Dados de endere\f0\'e7o completo, podemos usar o para facilitar a pesquisa de CEP.\par
+{\pntext\f2\'B7\tab}Nome, cpf, telefone, e-mail , placa do veiculo.\par
+{\pntext\f2\'B7\tab}Informar veiculo cliente.\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-284\li284\sl276\slmult1\b\lang1046 Ordem de servi\'e7o\f1\lang22\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Ligado com o produto\par
+{\pntext\f2\'B7\tab}Ligado com o \f0\lang1046 servi\'e7o\f1\lang22\par
+{\pntext\f2\'B7\tab}\f0\lang1046 Ligado com o Cliente \f1\lang22\par
+{\pntext\f2\'B7\tab}Ser\f0\'e1 salvo no banco a quantidade que foi vendida.\par
+{\pntext\f2\'B7\tab}Enviar ordem de servi\'e7o por whatsapp ou email\par
+{\pntext\f2\'B7\tab}Ser aprovado pelo cliente\par
+{\pntext\f2\'B7\tab}evolu\'e7\'e3o do servi\'e7o\par
+{\pntext\f2\'B7\tab}funcionario responsaveis pelo servi\'e7o\par
+{\pntext\f2\'B7\tab}Status pagamento\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-284\li284\sl276\slmult1\b\f1 Realizar Vendas\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0\f0\lang1046 I\f1\lang22 nformar \f0\lang1046 a ordem de servi\'e7o\lang22 .\par
+{\pntext\f2\'B7\tab}verificar se ordem se servi\'e7o foi aprovada\par
+{\pntext\f2\'B7\tab}Pode ter a op\'e7\'e3o de infromar o cupom de desconto.\par
+{\pntext\f2\'B7\tab}Seleciona a forma de pagamento (Cartao, Boleto, PIX)\par
+{\pntext\f2\'B7\tab}Finaliza a venda.\par
+{\pntext\f2\'B7\tab}Dar baixo no estoque de todos os produtos comprados., ap\'f3s a autoriza\'e7\'e3o de cobran\'e7a do cartao de credito.\par
+{\pntext\f2\'B7\tab}Se a venda for por boleto ent\'e3o o estoque deve ser baixado quando o sistema receber o pagamento do boleto.\par
+
+\pard\sl276\slmult1\b\f1\par
+\bullet\f0\lang1046  \f1\lang22 Contas a receber\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-284\li426\sl276\slmult1\tx284\b0 Clientes que geraram boleto\f0\lang1046 .\f1\lang22\par
+{\pntext\f2\'B7\tab}Entra todas as vendas e valores de produtor \f0\lang1046 e servi\'e7o \f1\lang22 vendidos\f0\lang1046 .\f1\lang22\par
+
+\pard\sl276\slmult1\tx284\par
+
+\pard\sl276\slmult1\b\bullet\f0\lang1046  \f1\lang22 Contas a pagar\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Ex: Pagar os fornecedores de produtos.\par
+{\pntext\f2\'B7\tab}Entra com os dados da nota fiscal do produtos.\par
+{\pntext\f2\'B7\tab}Associar o fornecedor.\par
+{\pntext\f2\'B7\tab}Campo para informar um valor total.\par
+{\pntext\f2\'B7\tab}Campo para informar descontos.\par
+{\pntext\f2\'B7\tab}Campo para informar a data de vencimento.\par
+{\pntext\f2\'B7\tab}Campo para informar a forma de pagamento (Cheque, pix, cartao, boleto.)\par
+
+\pard\sl276\slmult1\b\par
+\bullet\f0\lang1046  \f1\lang22 Gerenciamento/Controle de estoque\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-350\li710\sl276\slmult1\b0 Atualizar o estoque do produto de forma manual pela tela do cadastro de produto.\par
+{\pntext\f2\'B7\tab}Atualizar a quantidade de produto quando cadastrar uma nota fiscal de compra de produtos para a loja.\par
+
+\pard\sl276\slmult1\b\par
+\bullet\f0\lang1046  \f1\lang22 Cadastro de formas de pagamento\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Cadastrar a forma em texto (Cheque, boleto, cartao, PIX, transferencia.)\par
+
+\pard\sl276\slmult1\b\par
+\bullet\f0\lang1046  \f1\lang22 Envio de ofertas da loja por e-mail\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 (GetResponse e-mail marketing \endash  At\f0\'e9 2000 e-mail \'e9 gratis.)\b\par
+
+\pard\sl276\slmult1\f1\par
+\bullet\f0\lang1046  \f1\lang22 Castrado de cupons de descontos\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 No cadastro de cupom deve ser informado a descricao do cupom e o valor de desconto.\b\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-426\li426\sl276\slmult1 Relat\f0\'f3rios de produtos vendidos\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Relatorio de produto vendidos.\par
+{\pntext\f2\'B7\tab}Ter a op\'e7\'e3o de intervalo de datas.\par
+{\pntext\f2\'B7\tab}Poder informar um descricao de produto.\par
+
+\pard\sl276\slmult1\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-426\li426\sl276\slmult1\b\f1 Relat\f0\'f3rios de servi\'e7o realizado\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Relatorio de servi\'e7os realizado.\par
+{\pntext\f2\'B7\tab}Ter a op\'e7\'e3o de intervalo de datas.\par
+{\pntext\f2\'B7\tab}Poder filtrar por cliente e funcionario.\par
+
+\pard\sl276\slmult1\b\f1\par
+\bullet\f0\lang1046  \f1\lang22 Nota fiscal do cliente\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Enviar a nota fiscal do cliente para o e-mail dele, ap\f0\'f3s ter recebido o pagamento da venda\b .\par
+
+\pard\sl276\slmult1\f1\par
+\bullet\f0\lang1046  \f1\lang22 Recupera\f0\'e7\'e3o de senha\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 O usario deve informar o e-mail e a senha deve ser enviada para ele no e-mail\b\par
+
+\pard\sl276\slmult1\par
+\f1\bullet\f0\lang1046  \f1\lang22 Chat do cliente com o suporte.\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Para ter um chat profissional vamos usar o JivoChat\b\par
+
+\pard\sl276\slmult1\par
+\bullet\f0\lang1046  \f1\lang22 Relat\f0\'f3rios de estoque baixo (Reposi\'e7\'e3o)\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Poder ter o relat\'f3rio por intervalo de datas\par
+{\pntext\f2\'B7\tab}Poder selecionar o produto para imprimir relat\'f3rio\par
+
+\pard\sl276\slmult1\b\f1\par
+\bullet\f0\lang1046  \f1\lang22 Parte de SAC\par
+
+\pard{\pntext\f2\'B7\tab}{\*\pn\pnlvlblt\pnf2\pnindent0{\pntxtb\'B7}}\fi-360\li720\sl276\slmult1\b0 Temo que mostrar os dados de contato no site para oferecer o antendimento ao CLiente\b\par
+
+\pard\sl276\slmult1\bullet\f0\lang1046  \f1\lang22 Fluxo de caixa\par
+\bullet\f0\lang1046  \f1\lang22 Abertura e fechamento de caixa\par
+\bullet\f0\lang1046  \f1\lang22 Relat\f0\'f3rios por marcas\par
+\f1\bullet\f0\lang1046  \f1\lang22 B\f0\'f4nus para fidelidade\par
+\b0\fs22\par
+}
+ 

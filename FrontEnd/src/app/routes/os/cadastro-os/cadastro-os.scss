@@ -1,0 +1,46 @@
+.grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem 1rem;
+}
+
+/* Linha 2: Funcionário, Situação, Km, Reserviço, Reboque */
+.grid-row:nth-of-type(2) {
+  grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+}
+
+/* Linha 3: Localização, Data prev., Hora prev., Data Entrada, Hora Entrada */
+.grid-row:nth-of-type(3) {
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+}
+
+.col label { display: block; font-weight: 500; margin-bottom: .25rem; }
+.inline { display: flex; align-items: center; }
+.ml-1 { margin-left: .25rem; }
+.field-icon { color: #9ca3af; margin-right: .5rem; }
+
+.bloco { margin-top: .75rem; }
+.bloco label { display: block; font-weight: 500; margin-bottom: .25rem; }
+.bloco textarea { width: 100%; min-height: 160px; }
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+  margin-top: .75rem;
+  padding-top: .75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Barra azul do cabeçalho */
+.panel-azul .p-panel-header { background: #3b82f6; color: #fff; }
+
+/* Diferenciação visual para campos desabilitados */
+.p-inputtext:disabled,
+.p-inputmask:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+.p-select.p-disabled .p-select-label {
+  color: #9ca3af;
+}

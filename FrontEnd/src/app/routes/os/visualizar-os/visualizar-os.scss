@@ -1,0 +1,216 @@
+/* Stripe Pattern Refresh for Visualizar OS */
+
+:host {
+  display: block;
+  background: #f8fafc; /* Very light slate for good contrast */
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+/* Base Form Styling Overrides */
+input.p-inputtext, textarea.p-textarea {
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+}
+
+/* Section Panels (Stripe Cards) */
+.section, .p-panel {
+  margin-bottom: 1.5rem;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff;
+}
+
+/* Panel Header Override to look sleek */
+:host ::ng-deep .p-panel-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 1.25rem 1.5rem !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  font-size: 16px !important;
+  border: none !important;
+}
+
+:host ::ng-deep .p-panel-content {
+  padding: 1.5rem !important;
+  border: none !important;
+}
+
+/* Custom Primary/Action Buttons */
+.btn-stripe {
+  background: #635BFF !important;
+  border-color: #635BFF !important;
+  color: #fff !important;
+}
+.btn-stripe:hover { background: #5851E5 !important; }
+
+.btn-stripe-orange {
+  background: #ffb31a !important;
+  border-color: #ffb31a !important;
+  color: #fff !important;
+}
+.btn-stripe-orange:hover { background: #e6a117 !important; }
+
+.btn-stripe-blue {
+  background: #0070f3 !important;
+  border-color: #0070f3 !important;
+  color: #fff !important;
+}
+.btn-stripe-blue:hover { background: #0061d1 !important; }
+
+.btn-stripe-purple {
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  color: #fff !important;
+}
+.btn-stripe-purple:hover { background: #7e22ce !important; }
+
+.btn-success { background: #00d66f !important; border-color: #00d66f !important; color: #fff !important; }
+.btn-success:hover { background: #00c265 !important; }
+
+.btn-secondary { background: #fff !important; border: 1px solid #cbd5e1 !important; color: #334155 !important; }
+
+/* Subtle shadow on all top actions */
+.btn-soft {
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  transition: all .2s ease;
+}
+.btn-soft:hover {
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+
+/* Toolbar logic */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.toolbar .spacer { flex: 1; }
+
+.row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.col label { display:block; font-weight:600; margin-bottom:.5rem; }
+.with-icon { display:flex; align-items:center; gap:.5rem; }
+.ml-1 { margin-left:.25rem; }
+.status-row .col { display:flex; align-items:center; gap:.5rem; }
+.inline { display:flex; align-items:center; gap:.5rem; }
+
+/* Table styling for a cleaner look */
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  padding: 0.875rem 1rem;
+  color: #334155;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.totais {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #475569;
+}
+.totais .spacer { flex: 1; }
+.totais strong { color: #0f172a; font-size: 16px; }
+
+.checklist-vazio { text-align:center; color:#64748b; padding:2rem 0; font-size: 14px; font-weight: 500; }
+
+.tabs { display:flex; gap:.5rem; align-items:center; }
+textarea { width: 100%; min-height: 120px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0.75rem; font-size: 14px; }
+textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+
+.comentarios { display:flex; flex-direction:column; gap:1rem; margin-top: 1rem; }
+.comentario { display:flex; gap:1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #f1f5f9; }
+.comentario .pi-user { background: #e2e8f0; color: #64748b; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+.comentario .conteudo .meta { font-size:.75rem; color:#64748b; font-weight: 500; margin-bottom: 0.25rem; }
+.comentario .conteudo .texto { color: #334155; font-size: 14px; line-height: 1.5; }
+
+.novo-comentario { display:flex; gap:.75rem; align-items:center; margin-top:1.5rem; }
+.novo-comentario input { flex: 1; }
+
+.author { color:#3b82f6; text-decoration:none; font-weight: 600; }
+.text-red { color:#ef4444; }
+
+/* Custom Dialog/Popup styling for Stripe feeling */
+:host ::ng-deep .p-dialog-mask {
+}
+:host ::ng-deep .p-dialog {
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden; /* For rounded corners */
+}
+:host ::ng-deep .p-dialog .p-dialog-header {
+  border-bottom: 1px solid #f1f5f9 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  padding: 1.25rem 1.5rem !important;
+}
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  letter-spacing: -0.01em;
+}
+:host ::ng-deep .p-dialog .p-dialog-content {
+  padding: 0 1.5rem 1.5rem 1.5rem !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+:host ::ng-deep .p-dialog .p-dialog-footer {
+  border-top: 1px solid #f1f5f9 !important;
+  background: #f8fafc !important;
+  padding: 1rem 1.5rem !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.75rem !important;
+}
+:host ::ng-deep .p-dialog .p-dialog-footer button {
+  margin: 0 !important; /* Reset margin because of flex gap */
+}
+
+/* Style inputs inside dialogs too */
+:host ::ng-deep .p-dialog .p-inputtext,
+:host ::ng-deep .p-dialog .p-inputnumber-input {
+  border-radius: 6px !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 14px !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+}
+:host ::ng-deep .p-dialog .p-inputtext:focus,
+:host ::ng-deep .p-dialog .p-inputnumber-input:focus {
+  border-color: #635BFF !important;
+  box-shadow: 0 0 0 1px #635BFF !important;
+  outline: none !important;
+}
+:host ::ng-deep .p-dialog .p-select {
+  border-radius: 6px !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+}
+:host ::ng-deep .p-dialog label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  margin-bottom: 0.375rem !important;
+  display: block;
+}

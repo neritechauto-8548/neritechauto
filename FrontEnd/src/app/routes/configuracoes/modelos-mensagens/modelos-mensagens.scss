@@ -1,0 +1,89 @@
+:host {
+  display: block;
+}
+
+/* Custom Premium Paginator V2 */
+:deep(.custom-paginator-v2) {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+
+  .p-paginator-pages .p-paginator-page {
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 13px;
+    min-width: 40px;
+    height: 40px;
+    color: #94a3b8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+
+    &.p-highlight {
+      background: white !important;
+      color: #635bff !important;
+      border-color: #e0e7ff !important;
+      box-shadow: 0 10px 15px -3px rgba(99, 91, 255, 0.1), 0 4px 6px -2px rgba(99, 91, 255, 0.05);
+    }
+
+    &:hover:not(.p-highlight) {
+      background: #f8fafc;
+      color: #635bff;
+      transform: translateY(-1px);
+    }
+  }
+
+  .p-paginator-first, .p-paginator-prev, .p-paginator-next, .p-paginator-last {
+    border-radius: 12px;
+    min-width: 40px;
+    height: 40px;
+    color: #cbd5e1;
+    transition: all 0.2s;
+
+    &:hover:not(.p-disabled) {
+      background: #f8fafc;
+      color: #635bff;
+    }
+  }
+}
+
+/* Custom Split Button Premium V2 */
+:deep(.custom-split-premium-v2) {
+  .p-button {
+    background: #f8fafc !important;
+    border: 1px solid #f1f5f9 !important;
+    color: #94a3b8 !important;
+    padding: 0.5rem !important;
+    border-radius: 12px !important;
+    transition: all 0.3s;
+
+    &:hover {
+      background: #ffffff !important;
+      color: #635bff !important;
+      border-color: #e0e7ff !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .p-button-icon {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+/* Animations */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

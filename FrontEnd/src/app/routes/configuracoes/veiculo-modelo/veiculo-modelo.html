@@ -1,0 +1,42 @@
+<page-header>
+  <div page-title>Veículos - Marcas e Modelos</div>
+</page-header>
+
+<div class="actions">
+  <button pButton type="button" class="p-button-success" icon="pi pi-plus" label="Nova Marca" (click)="novaMarca()"></button>
+</div>
+
+<p-accordion [multiple]="true">
+  <p-accordion-panel *ngFor="let marca of marcas; index as i" [value]="i.toString()">
+    <p-accordion-header>
+      <div class="tab-header">
+        <span class="tab-title">{{ marca.nome }}</span>
+        <div class="tab-actions">
+          <button pButton type="button" class="p-button-success p-button-sm" icon="pi pi-plus" (click)="novoModelo(i)" title="Adicionar modelo"></button>
+          <button pButton type="button" class="p-button-primary p-button-sm" icon="pi pi-pencil" (click)="editarMarca(i)" title="Editar marca" style="margin-left:.25rem"></button>
+          <button pButton type="button" class="p-button-danger p-button-sm" icon="pi pi-trash" (click)="removerMarca(i)" title="Remover marca" style="margin-left:.25rem"></button>
+        </div>
+      </div>
+    </p-accordion-header>
+    
+    <p-accordion-content>
+      <div class="accordion-content">
+        <div class="modelo-item" *ngFor="let modelo of marca.modelos; index as j">
+          <span class="modelo-text">{{ modelo.nome }}</span>
+          <div class="modelo-actions">
+            <button pButton type="button" class="p-button-primary p-button-sm" icon="pi pi-pencil" (click)="editarModelo(i, j)" title="Editar modelo"></button>
+            <button pButton type="button" class="p-button-danger p-button-sm" icon="pi pi-trash" (click)="removerModelo(i, j)" title="Remover modelo" style="margin-left:.25rem"></button>
+          </div>
+        </div>
+        <div *ngIf="marca.modelos.length === 0" class="empty-message">
+          Nenhum modelo cadastrado para esta marca
+        </div>
+      </div>
+    </p-accordion-content>
+  </p-accordion-panel>
+</p-accordion>
+
+<div *ngIf="marcas.length === 0" class="empty-state">
+  <p>Nenhuma marca cadastrada</p>
+  <button pButton type="button" class="p-button-success" icon="pi pi-plus" label="Cadastrar primeira marca" (click)="novaMarca()"></button>
+</div>

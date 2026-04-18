@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="comissoes" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="abcdef12-3456-7890-abcd-ef1234567890">
+    <parameter name="NOME_EMPRESA" class="java.lang.String"/>
+    <field name="funcionario" class="java.lang.String"/>
+    <field name="data" class="java.lang.String"/>
+    <field name="valorBase" class="java.math.BigDecimal"/>
+    <field name="valorComissao" class="java.math.BigDecimal"/>
+    <background>
+        <band splitType="Stretch"/>
+    </background>
+    <title>
+        <band height="79" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="30" uuid="12345678-1234-1234-1234-123456789012"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{NOME_EMPRESA}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="40" width="555" height="30" uuid="87654321-4321-4321-4321-210987654321"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="14"/>
+                </textElement>
+                <text><![CDATA[Relatório de Comissões]]></text>
+            </staticText>
+        </band>
+    </title>
+    <columnHeader>
+        <band height="30" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="150" height="30" uuid="col1-uuid"/>
+                <text><![CDATA[Funcionário]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="150" y="0" width="100" height="30" uuid="col2-uuid"/>
+                <text><![CDATA[Data]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="250" y="0" width="100" height="30" uuid="col3-uuid"/>
+                <text><![CDATA[Valor Base]]></text>
+            </staticText>
+             <staticText>
+                <reportElement x="350" y="0" width="100" height="30" uuid="col4-uuid"/>
+                <text><![CDATA[Comissão]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="30" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="150" height="30" uuid="det1-uuid"/>
+                <textFieldExpression><![CDATA[$F{funcionario}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="150" y="0" width="100" height="30" uuid="det2-uuid"/>
+                <textFieldExpression><![CDATA[$F{data}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="250" y="0" width="100" height="30" uuid="det3-uuid"/>
+                <textFieldExpression><![CDATA[$F{valorBase}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="350" y="0" width="100" height="30" uuid="det4-uuid"/>
+                <textFieldExpression><![CDATA[$F{valorComissao}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

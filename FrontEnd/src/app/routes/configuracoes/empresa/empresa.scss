@@ -1,0 +1,50 @@
+/* Utility classes used by empresa.html */
+
+.card-section {
+  @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col gap-5;
+}
+
+.section-header {
+  @apply border-b border-slate-100 pb-3;
+}
+
+.section-title {
+  @apply text-sm font-black text-slate-700 uppercase tracking-widest;
+}
+
+.section-sub {
+  @apply text-xs text-slate-400 mt-0.5;
+}
+
+.field-label {
+  @apply block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1;
+}
+
+.sub-group {
+  @apply bg-slate-50/70 rounded-lg border border-slate-100 p-4 flex flex-col gap-3;
+}
+
+.sub-group-label {
+  @apply text-xs font-bold text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-1.5;
+}
+
+.toggle-label {
+  @apply flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer;
+  span { @apply text-sm font-semibold text-slate-700; }
+}
+
+.toggle-wrap {
+  @apply relative ml-4 flex-shrink-0;
+}
+
+.toggle-bg {
+  @apply w-9 h-5 bg-slate-200 peer-checked:bg-[#635bff] rounded-full transition-colors;
+}
+
+.toggle-dot {
+  @apply absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4;
+}
+
+.info-box {
+  @apply bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700;
+}

@@ -1,0 +1,122 @@
+<div class="toolbar">
+  <button class="p-button p-button-danger" (click)="excluir()"><i class="pi pi-trash"></i> Excluir</button>
+  <button class="p-button p-button-info" (click)="imprimir()"><i class="pi pi-print"></i> Imprimir</button>
+  <button class="p-button p-button-info" (click)="formatoCupom()"><i class="pi pi-ticket"></i> Formato Cupom</button>
+  <p-splitButton [model]="menuEnviarItems" label="Enviar" icon="pi pi-send" class="p-button-warning" />
+  <button class="p-button p-button-success" (click)="abrirIncluirItem()"><i class="pi pi-plus"></i> Incluir itens</button>
+</div>
+
+<p-panel>
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <div class="title">Itens Orçamento n° {{ numero }}</div>
+      <div class="icons"><i class="pi pi-check"></i><i class="pi pi-refresh"></i><i class="pi pi-cog"></i></div>
+    </div>
+  </ng-template>
+
+  <div class="tabela">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:80px"></th>
+          <th style="width:60px">QUANT</th>
+          <th>DESCRIÇÃO</th>
+          <th class="text-right">VALOR</th>
+          <th class="text-right">VALOR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of itens; let idx = index">
+          <td class="icons-col">
+            <button class="icon-button success" title="Confirmar" (click)="confirmarItem(idx)"><i class="pi pi-check"></i></button>
+            <button class="icon-button warning" title="Duplicar" (click)="duplicarItem(idx)"><i class="pi pi-copy"></i></button>
+            <button class="icon-button danger" title="Remover" (click)="removerItem(idx)"><i class="pi pi-minus"></i></button>
+          </td>
+          <td>{{ i.quant }}</td>
+          <td>{{ i.descricao }}</td>
+          <td class="text-right">{{ formatBRL(i.valor) }}</td>
+          <td class="text-right">{{ formatBRL(i.valorTotal) }}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="text-right"><b>Total:</b></td>
+          <td class="text-right"><b>{{ formatBRL(total) }}</b></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</p-panel>
+
+<p-panel>
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <div class="title">Orcamento</div>
+      <div class="icons"><i class="pi pi-check"></i><i class="pi pi-window-minimize"></i><i class="pi pi-times"></i></div>
+    </div>
+  </ng-template>
+
+  <form class="form-grid" (ngSubmit)="salvar()">
+    <div class="col">
+      <label>Funcionario</label>
+      <div class="input-prefix"><i class="pi pi-user"></i><p-select [options]="funcionarios" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="form.funcionario" name="funcionario" /></div>
+    </div>
+    <div class="col">
+      <label>Veiculo</label>
+      <div class="input-prefix"><i class="pi pi-car"></i><input pInputText [(ngModel)]="form.veiculo" name="veiculo" /></div>
+    </div>
+    <div class="col">
+      <label>Email</label>
+      <div class="input-prefix"><i class="pi pi-envelope"></i><input pInputText [(ngModel)]="form.email" name="email" /></div>
+    </div>
+    <div class="col">
+      <label>Celular com DDD</label>
+      <div class="input-prefix"><i class="pi pi-phone"></i><input pInputText [(ngModel)]="form.celular" name="celular" /></div>
+    </div>
+
+    <div class="col">
+      <label>Emissão</label>
+      <div class="input-prefix"><i class="pi pi-calendar"></i><input pInputText type="date" [(ngModel)]="form.emissao" name="emissao" /></div>
+    </div>
+    <div class="col">
+      <label>Validade</label>
+      <div class="input-prefix"><i class="pi pi-calendar"></i><input pInputText type="date" [(ngModel)]="form.validade" name="validade" /></div>
+    </div>
+    <div class="col span-2">
+      <label>Cliente</label>
+      <div class="input-prefix"><i class="pi pi-id-card"></i><input pInputText [(ngModel)]="form.cliente" name="cliente" /></div>
+    </div>
+
+    <div class="col span-4">
+      <label>Descrição</label>
+      <textarea [(ngModel)]="form.descricao" name="descricao" rows="4">Aqui pode-se adicionar uma descrição deste orcamento ou alguma informação relevante para o cliente.</textarea>
+    </div>
+
+    <div class="form-footer">
+      <button type="button" class="p-button p-button-secondary" (click)="cancelar()">Cancelar</button>
+      <button type="submit" class="p-button p-button-primary"><i class="pi pi-check"></i> Salvar</button>
+    </div>
+  </form>
+</p-panel>
+
+<!-- Modal Incluir Itens -->
+<p-dialog [(visible)]="incluirItemVisible" [modal]="true" [closable]="true" header="Incluir itens" [style]="{ width: '720px' }" styleClass="dialog-teal">
+  <div class="incluir-grid">
+    <label>Descrição</label>
+    <input pInputText [(ngModel)]="novoItem.descricao" />
+    <div class="row-two">
+      <div>
+        <label>Quant</label>
+        <input pInputText type="number" [(ngModel)]="novoItem.quant" />
+      </div>
+      <div>
+        <label>Valor</label>
+        <input pInputText type="number" [(ngModel)]="novoItem.valor" />
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="p-button p-button-secondary" (click)="incluirItemVisible=false">Fechar</button>
+      <button class="p-button p-button-primary" (click)="confirmarIncluirItem()"><i class="pi pi-plus"></i> Incluir Item</button>
+    </div>
+  </div>
+</p-dialog>

@@ -1,0 +1,45 @@
+<div class="flex flex-col h-full gap-6">
+  <p-toast />
+
+  <!-- Header -->
+  <div class="flex flex-col gap-1">
+    <h1 class="text-xl font-semibold text-slate-900">Administrador</h1>
+    <p class="text-sm text-slate-500">Ferramentas administrativas e cargas de dados do sistema.</p>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+    <!-- FIPE Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+          <mat-icon class="text-blue-600 !text-[22px]">directions_car</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-slate-900">Tabela FIPE</h2>
+          <p class="text-xs text-slate-500">Marcas, modelos e anos de veículos</p>
+        </div>
+      </div>
+      <div class="p-5 space-y-3">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Importa marcas, modelos e anos/modelo da tabela FIPE pública, além dos
+          tipos de combustível padrão. A carga pode levar alguns minutos.
+        </p>
+        <div *ngIf="resultadoFipe" class="text-xs px-3 py-2 rounded-lg"
+          [class]="(resultadoFipe.includes('sucesso') || resultadoFipe.includes('iniciada') || resultadoFipe.includes('iniciado')) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'">
+          {{ resultadoFipe }}
+        </div>
+        <button
+          (click)="carregarFipe()"
+          [disabled]="carregandoFipe"
+          class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm">
+          <i *ngIf="!carregandoFipe" class="pi pi-download text-sm"></i>
+          <i *ngIf="carregandoFipe" class="pi pi-spin pi-spinner text-sm"></i>
+          {{ carregandoFipe ? 'Carregando FIPE...' : 'Iniciar Carga FIPE' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

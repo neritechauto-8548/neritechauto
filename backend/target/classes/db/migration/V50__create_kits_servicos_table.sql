@@ -1,0 +1,22 @@
+CREATE TABLE kits_servicos (
+    id BIGSERIAL PRIMARY KEY,
+    empresa_id BIGINT NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    preco_kit DECIMAL(10,2) NOT NULL,
+    preco_original DECIMAL(10,2),
+    desconto_percentual DECIMAL(5,2),
+    tempo_execucao_total INT,
+    garantia_dias INT DEFAULT 90,
+    categoria_principal_id BIGINT,
+    aplicavel_tipos_veiculo JSON,
+    observacoes TEXT,
+    ativo BOOLEAN DEFAULT TRUE,
+    destaque BOOLEAN DEFAULT FALSE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_por BIGINT,
+    versao INT DEFAULT 0,
+    CONSTRAINT fk_kit_servico_empresa FOREIGN KEY (empresa_id) REFERENCES empresa(id),
+    CONSTRAINT fk_kit_servico_categoria FOREIGN KEY (categoria_principal_id) REFERENCES categorias_servicos(id)
+);

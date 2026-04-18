@@ -1,0 +1,22 @@
+// Estilo do PageHeader: fundo branco, texto preto e linhas/sombras laterais e inferior
+.matero-page-header {
+  display: block;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #111827; // texto preto (gray-900)
+  background-color: #ffffff; // fundo branco
+  border-radius: 0; // sem borda arredondada
+  // sombras: esquerda, direita e abaixo
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);  // sombra abaixo
+
+  .matero-breadcrumb {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+  }
+}
+
+.matero-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 400;
+}

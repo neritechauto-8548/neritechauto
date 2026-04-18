@@ -1,0 +1,20 @@
+CREATE TABLE assinaturas_empresas (
+    id BIGSERIAL PRIMARY KEY,
+    empresa_id BIGINT NOT NULL,
+    plano_id BIGINT NOT NULL,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    data_vencimento_mensal INT DEFAULT 5,
+    valor_mensal DECIMAL(10,2) NOT NULL,
+    valor_anual DECIMAL(10,2),
+    desconto_percentual DECIMAL(5,2) DEFAULT 0,
+    status VARCHAR(20),
+    forma_pagamento VARCHAR(20),
+    renovacao_automatica BOOLEAN DEFAULT TRUE,
+    data_cancelamento DATE,
+    motivo_cancelamento TEXT,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_assinatura_empresa FOREIGN KEY (empresa_id) REFERENCES empresa(id),
+    CONSTRAINT fk_assinatura_plano FOREIGN KEY (plano_id) REFERENCES planos_assinatura(id)
+);

@@ -1,0 +1,24 @@
+.page-actions { margin-bottom: 12px; }
+
+.panel-header { display: flex; align-items: center; justify-content: space-between; }
+.panel-header .title { font-weight: 600; }
+.panel-header .icons { display: flex; gap: 8px; color: #6b7280; }
+
+.filters { margin-bottom: 12px; }
+.filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.w-200 { width: 200px; }
+.flex-1 { flex: 1; }
+
+.options-bar { margin: 8px 0; }
+
+.tabela table { width: 100%; border-collapse: collapse; }
+.tabela th, .tabela td { border-bottom: 1px solid #eee; padding: 6px; }
+.tabela tbody tr { cursor: pointer; }
+.tabela tbody tr.selected { background: #f1f5f9; }
+
+.actions-inline { margin: 8px 0; }
+
+.paginacao { display:flex; align-items:center; gap:10px; margin-top: 8px; font-size: 13px; }
+.paginacao .items { background:#e0f2fe; color:#2563eb; padding:2px 8px; border-radius: 10px; }
+.w-40 { width: 40px; }
+.text-right { text-align: right; }

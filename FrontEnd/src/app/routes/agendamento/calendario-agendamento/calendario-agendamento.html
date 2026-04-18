@@ -1,0 +1,165 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+
+  <!-- Action Bar (Sticky Top) -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm" *ngIf="!embed">
+      <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+             <i class="pi pi-calendar text-indigo-600 text-lg"></i>
+          </div>
+          <div>
+              <h1 class="text-base font-semibold text-slate-900 leading-tight">Calendário da Oficina</h1>
+              <span class="text-xs text-slate-500 font-normal">Acompanhe Ordens de Serviço e Meus Agendamentos</span>
+          </div>
+      </div>
+
+      <div class="flex gap-3 items-center">
+          <div class="relative w-48 hidden md:block">
+            <i class="pi pi-filter absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <select [(ngModel)]="funcionarioSelecionado" class="w-full modern-select pl-9 py-2 bg-white !text-sm appearance-none cursor-pointer">
+              <option *ngFor="let f of funcionarioOptions" [value]="f">Responsável: {{ f }}</option>
+            </select>
+          </div>
+
+          <button (click)="calendarioGeral()" class="px-3.5 py-2 rounded-md border border-slate-200 text-slate-600 bg-white font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm flex items-center gap-2">
+            <i class="pi pi-refresh text-xs"></i> Atualizar
+          </button>
+
+          <button (click)="criarAgendamento()" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
+              <i class="pi pi-plus text-xs"></i>
+              Novo Agendamento
+          </button>
+      </div>
+  </div>
+
+  <div class="p-6 w-full max-w-[1400px] mx-auto space-y-4">
+
+    <!-- Calendario Header Nav -->
+    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white px-5 py-4 border border-slate-200 rounded-xl shadow-sm" *ngIf="!embed">
+      <div class="flex items-center gap-2">
+        <button (click)="anterior()" class="w-8 h-8 rounded-md flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+          <i class="pi pi-chevron-left text-xs"></i>
+        </button>
+        <button (click)="proxima()" class="w-8 h-8 rounded-md flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+          <i class="pi pi-chevron-right text-xs"></i>
+        </button>
+        <button (click)="hojeClick()" class="ml-2 px-3 py-1.5 text-sm font-medium border border-slate-200 rounded-md text-slate-700 hover:bg-slate-50 transition-colors">
+          Hoje
+        </button>
+      </div>
+
+      <div class="text-base font-bold text-slate-800 capitalize flex items-center gap-2">
+        <i class="pi pi-calendar text-indigo-500"></i>
+        {{ tituloMes }}
+      </div>
+
+      <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60">
+        <button class="px-4 py-1.5 text-sm font-medium rounded-md bg-white text-slate-800 shadow-sm border border-slate-200/50">Mês</button>
+        <button class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors">Semana</button>
+        <button class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors">Dia</button>
+      </div>
+    </div>
+
+    <!-- Grid Custom (Mated Tailwind) -->
+    <div class="cal-grid shadow-sm">
+      <div class="header">
+        <div>Domingo</div>
+        <div>Segunda</div>
+        <div>Terça</div>
+        <div>Quarta</div>
+        <div>Quinta</div>
+        <div>Sexta</div>
+        <div>Sábado</div>
+      </div>
+      <div class="body">
+        <!-- Loop de Dias -->
+        <div class="cell"
+             *ngFor="let d of diasDoMes()"
+             [class.outside]="d.getMonth() !== corrente.getMonth()"
+             [class.is-today]="d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()">
+
+          <div class="day">{{ d.getDate() }}</div>
+
+          <div class="events">
+            <div class="event" *ngFor="let e of eventosDoDia(d)" (click)="abrirEvento(e)">
+              <div class="w-1 h-3 rounded-full shrink-0 bg-blue-500"></div>
+              <span class="time">{{ e.inicio | date:'HH:mm' }}</span>
+              <span class="title">{{ e.titulo }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog Ver/Editar Visual (Read Only visual mode for now) -->
+  <p-dialog [(visible)]="mostrarDialogEvento" [modal]="true" [dismissableMask]="true" [closable]="true" [style]="{ width: '650px' }" header="Detalhes do Agendamento" styleClass="modern-dialog">
+    <div class="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+
+      <div class="space-y-1 sm:col-span-2">
+          <label class="text-xs font-bold text-slate-700">Responsável / Cliente</label>
+          <div class="relative">
+              <i class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" [value]="rawEventoSelecionado?.clienteNome || 'Desconhecido'" disabled class="w-full modern-input bg-slate-50 pl-10" />
+          </div>
+      </div>
+
+      <div class="space-y-1 w-full">
+         <label class="text-xs font-bold text-slate-700">Horário Início</label>
+         <div class="relative">
+            <i class="pi pi-clock absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500"></i>
+            <input type="text" [value]="eventoSelecionado?.inicio | date:'dd/MM/yyyy às HH:mm'" disabled class="w-full modern-input bg-slate-50 pl-10 text-emerald-700 font-medium" />
+        </div>
+      </div>
+
+      <div class="space-y-1 w-full">
+         <label class="text-xs font-bold text-slate-700">Horário Previsto (Fim)</label>
+         <div class="relative">
+            <i class="pi pi-check-circle absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" [value]="eventoSelecionado?.termino | date:'dd/MM/yyyy às HH:mm'" disabled class="w-full modern-input bg-slate-50 pl-10" />
+        </div>
+      </div>
+
+      <!-- Fake fields that existed in original but as modern boxes -->
+      <div class="space-y-1 w-full">
+        <label class="text-xs font-bold text-slate-700">Canal Acionado</label>
+        <div class="relative">
+            <i class="pi pi-send absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" [value]="rawEventoSelecionado?.canalAgendamento || 'Padrão / Não Informado'" disabled class="w-full modern-input bg-slate-50 pl-10" />
+        </div>
+      </div>
+
+      <div class="space-y-1 w-full">
+        <label class="text-xs font-bold text-slate-700">Serviço/Status</label>
+         <div class="relative">
+            <i class="pi pi-briefcase absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" [value]="rawEventoSelecionado?.status || 'PENDENTE'" disabled class="w-full modern-input bg-slate-50 pl-10" />
+        </div>
+      </div>
+
+      <div class="space-y-1 sm:col-span-2">
+          <label class="text-xs font-bold text-slate-700">Instruções / Relato</label>
+          <textarea rows="3" disabled class="w-full modern-input bg-slate-50 resize-none">{{ rawEventoSelecionado?.problemaRelatado || 'Nenhum detalhe foi preenchido junto a este agendamento até o momento.' }}</textarea>
+      </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-between items-center mt-6 border-t border-slate-100 pt-4 pb-2">
+            <button (click)="excluir()" class="px-3 py-2 text-sm font-medium text-red-600 bg-transparent hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2">
+                <i class="pi pi-trash text-xs"></i> Cancelar Agendamento
+            </button>
+            <div class="flex gap-2">
+                <button (click)="mostrarDialogEvento=false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+                    Fechar
+                </button>
+                <button (click)="gravarAlteracoes()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
+                    <i class="pi pi-external-link text-xs"></i> Editar Ficha Completa
+                </button>
+            </div>
+        </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Global Confirm Dialog Component for Calendar -->
+  <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+</div>

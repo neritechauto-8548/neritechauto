@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  /* Stripe Identity Colors */
+  --color-stripe-indigo: #635bff;
+  --color-midnight-navy: #0a2540;
+  --color-slate-blue: #425466;
+  
+  /* Text & Background Nuances */
+  --color-text-main: #32325d;
+  --color-text-muted: #6b7c93;
+  --color-text-light: #8792a2;
+  --color-bg-page: #f6f9fc;
+  --color-light-bg: #f7fafc;
+  
+  /* Accent & Alert Colors */
+  --color-accent-blue: #00d4ff;
+  --color-accent-emerald: #00d924;
+  --color-accent-red: #ff2449;
+  --color-accent-amber: #ff8c00;
+
+  /* Borders / Dividers */
+  --color-border-default: #e6ebf1;
+
+  /* Shadows (Stripe-like depth) */
+  --shadow-stripe-sm: 0 2px 5px -1px rgba(50, 50, 93, 0.05), 0 1px 3px -1px rgba(0, 0, 0, 0.03);
+  --shadow-premium: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+
+  /* Fonts */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  /* Letter Tracking Settings */
+  --tracking-tight-stripe: -0.02em;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-bg-page text-text-main antialiased selection:bg-stripe-indigo/20 selection:text-stripe-indigo;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Headings inherit sleek letter spacing */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight-stripe text-midnight-navy;
+  }
+}
+
+@layer components {
+  /* Input Fields (Stripe Checkout style) */
+  .form-input-stripe {
+    @apply w-full border border-border-default rounded-lg px-4 py-3 bg-white text-midnight-navy font-semibold text-sm transition-all duration-200 outline-none focus:ring-4 focus:ring-stripe-indigo/10 focus:border-stripe-indigo placeholder-text-light shadow-sm;
+  }
+
+  /* Primary Button (Gradient + Pop) */
+  .btn-stripe-primary {
+    @apply inline-flex items-center justify-center font-bold text-white bg-stripe-indigo rounded-lg px-6 py-3 transition-all duration-200 shadow-lg shadow-stripe-indigo/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-stripe-indigo/40 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Secondary Button */
+  .btn-stripe-secondary {
+    @apply inline-flex items-center justify-center font-bold text-slate-blue bg-white border border-border-default rounded-lg px-6 py-3 transition-all duration-200 shadow-sm hover:text-midnight-navy hover:bg-gray-50 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none;
+  }
+}
+
+/* Fallback utilities if class name generator skips */
+.badge-stripe {
+  @apply inline-flex items-center font-bold;
+}

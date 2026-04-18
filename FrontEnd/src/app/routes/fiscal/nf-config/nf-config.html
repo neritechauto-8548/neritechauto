@@ -1,0 +1,327 @@
+<div class="flex flex-col h-full gap-6 max-w-5xl mx-auto mt-6 pb-12">
+  <!-- Page Header -->
+  <div class="flex flex-row gap-4 justify-between items-start">
+    <div class="flex items-center gap-3">
+       <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-700 shadow-sm">
+           <mat-icon class="!text-3xl !w-8 !h-8 drop-shadow-sm">settings</mat-icon>
+       </div>
+       <div>
+           <div class="flex items-center gap-3">
+               <h2 class="text-slate-800 font-bold text-2xl tracking-tight m-0 p-0">Configurações Fiscais</h2>
+               <span class="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full border"
+                     [ngClass]="ambiente === 'producao' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                   {{ ambiente === 'producao' ? 'Ambiente de Produção' : 'Ambiente de Homologação' }}
+               </span>
+           </div>
+           <p class="text-sm text-slate-500 font-medium tracking-wide mt-1">Gerencie certificados, numeração de notas e dados do emitente configurados no sistema.</p>
+       </div>
+    </div>
+    <div class="flex gap-2">
+       <button (click)="testarCertificado()" class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+           <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">verified_user</mat-icon>
+           Testar Certificado
+       </button>
+       <button (click)="salvarConfiguracoes()" class="px-4 py-2 text-sm font-semibold rounded-lg border border-transparent bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
+           <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">save</mat-icon>
+           Salvar Alterações
+       </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
+
+    <div class="col-span-12 flex flex-col gap-6">
+
+        <!-- Card: Ambiente e Certificado Digital -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">security</mat-icon> Ambiente e Certificado Digital</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">Ambiente Sefaz</label>
+                        <p-select [options]="[{label:'Produção', value:'producao'},{label:'Homologação (Testes)', value:'homologacao'}]" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="ambiente" styleClass="w-full"></p-select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">Arquivo do Certificado (.pfx)</label>
+                        <input type="file" (change)="onSelectCertificado($event)" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors border border-slate-300 rounded-lg p-1"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">Senha do Certificado</label>
+                        <input pInputText type="password" [(ngModel)]="certificadoSenha" class="w-full" placeholder="••••••••" />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">Validade Atual</label>
+                        <input pInputText type="text" [value]="certificadoValidade || 'Não identificado'" readonly class="w-full bg-slate-50 text-slate-500" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Dados do Emitente -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">storefront</mat-icon> Dados do Emitente Fiscal</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="flex flex-col gap-1.5 md:col-span-2">
+                        <label class="text-xs font-semibold text-slate-600">Razão Social</label>
+                        <input pInputText [(ngModel)]="emitenteRazao" class="w-full" placeholder="Nome da sua Empresa LTDA" />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">CNPJ</label>
+                        <input pInputText [(ngModel)]="emitenteCnpj" class="w-full" placeholder="00.000.000/0001-00" />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">Inscrição Estadual (IE)</label>
+                        <input pInputText [(ngModel)]="emitenteIe" class="w-full" placeholder="Isento ou Número" />
+                    </div>
+
+                    <div class="flex flex-col gap-1.5 md:col-span-2">
+                        <label class="text-xs font-semibold text-slate-600">Regime Tributário (CRT)</label>
+                        <p-select [options]="[
+                          {label:'1 - Simples Nacional', value:'Simples Nacional'},
+                          {label:'2 - Simples Nacional (Excesso sublimite)', value:'Simples Nacional – excesso sublimite'},
+                          {label:'3 - Regime Normal (Lucro Presumido/Real)', value:'Regime Normal'}
+                        ]" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="emitenteCrt" styleClass="w-full"></p-select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">CNAE Principal</label>
+                        <input pInputText [(ngModel)]="emitenteCnae" class="w-full" placeholder="Ex: 6204000" />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">Município / Cidade</label>
+                        <input pInputText [(ngModel)]="emitenteCidade" class="w-full" placeholder="Nome da Cidade" />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold text-slate-600">UF</label>
+                        <input pInputText [(ngModel)]="emitenteUf" class="w-full" placeholder="Ex: SP" maxlength="2" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two columns for smaller cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Card: Numeração -->
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">pin</mat-icon> Numeração e Série</h3>
+                </div>
+                <div class="p-6 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5 md:col-span-2">
+                            <label class="text-xs font-semibold text-slate-600">Tipo de Documento</label>
+                            <p-select [options]="[{label:'Nota Fiscal Eletrônica (NF-e)', value:'NFE'}, {label:'Nota Fiscal de Consumidor (NFC-e)', value:'NFCE'}, {label:'Nota Fiscal de Serviço (NFS-e)', value:'NFSE'}]" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="docTipo" styleClass="w-full"></p-select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600">Série Atual</label>
+                            <input pInputText [(ngModel)]="numeracaoSerie" class="w-full" placeholder="Ex: 1" />
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600">Próximo Número</label>
+                            <input pInputText [(ngModel)]="numeracaoProximo" class="w-full font-mono" placeholder="Ex: 1540" />
+                        </div>
+                        <div class="flex items-center gap-2 mt-2 md:col-span-2">
+                            <p-checkbox [(ngModel)]="numeracaoReiniciarAno" binary="true" inputId="reiniciarAno"></p-checkbox>
+                            <label for="reiniciarAno" class="text-sm font-medium text-slate-700 cursor-pointer">Reiniciar numeração automaticamente a cada ano</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Padrões Fiscais e NFS-e -->
+            <div class="flex flex-col gap-6">
+                <!-- Padrões Fiscais -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                        <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">rule</mat-icon> Padrões de Operação</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">CFOP Padrão</label>
+                                <input pInputText [(ngModel)]="cfopPadrao" class="w-full font-mono" placeholder="Ex: 5102" />
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">CSOSN Padrão</label>
+                                <input pInputText [(ngModel)]="csosnPadrao" class="w-full font-mono" placeholder="Ex: 102" />
+                            </div>
+                            <div class="flex flex-col gap-1.5 md:col-span-2">
+                                <label class="text-xs font-semibold text-slate-600">Natureza da Operação Padrão</label>
+                                <input pInputText [(ngModel)]="naturezaOperacao" class="w-full" placeholder="Venda de Mercadorias" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NFS-e -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                        <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">receipt_long</mat-icon> Configurações de Serviço (NFS-e)</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">Cód. IBGE Município</label>
+                                <input pInputText [(ngModel)]="nfseCodigoIbge" class="w-full" placeholder="Ex: 3550308" />
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">Série RPS</label>
+                                <input pInputText [(ngModel)]="nfseRpsSerie" class="w-full" placeholder="Ex: RPS" />
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">Próm. RPS</label>
+                                <input pInputText [(ngModel)]="nfseRpsProximo" class="w-full font-mono" placeholder="Ex: 1" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Another 2 columns -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Card: Servidor de Email SMTP -->
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">mail</mat-icon> Disparo de Notas por Email (SMTP)</h3>
+                    <button (click)="testarEmail()" class="text-indigo-600 hover:text-indigo-800 text-xs font-semibold flex items-center gap-1"><mat-icon class="!text-[16px]">send</mat-icon> Testar Conexão</button>
+                </div>
+                <div class="p-6 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="flex flex-col gap-1.5 md:col-span-3">
+                            <label class="text-xs font-semibold text-slate-600">Servidor SMTP (Host)</label>
+                            <input pInputText [(ngModel)]="smtpHost" class="w-full" placeholder="smtp.gmail.com" />
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-semibold text-slate-600">Porta</label>
+                            <input pInputText type="number" [(ngModel)]="smtpPorta" class="w-full" placeholder="587" />
+                        </div>
+                        <div class="flex flex-col gap-1.5 md:col-span-2">
+                            <label class="text-xs font-semibold text-slate-600">Usuário</label>
+                            <input pInputText [(ngModel)]="smtpUsuario" class="w-full" placeholder="nfe@suaempresa.com" />
+                        </div>
+                        <div class="flex flex-col gap-1.5 md:col-span-2">
+                            <label class="text-xs font-semibold text-slate-600">Senha</label>
+                            <input pInputText type="password" [(ngModel)]="smtpSenha" class="w-full" placeholder="••••••••" />
+                        </div>
+                        <div class="flex flex-col gap-1.5 md:col-span-4">
+                            <label class="text-xs font-semibold text-slate-600">Email do Remetente (De:)</label>
+                            <input pInputText [(ngModel)]="smtpRemetente" class="w-full" placeholder="NeriTech <nfe@suaempresa.com.br>" />
+                        </div>
+                        <div class="flex items-center gap-2 mt-1 md:col-span-4">
+                            <p-checkbox [(ngModel)]="smtpTlsSsl" binary="true" inputId="usarTls"></p-checkbox>
+                            <label for="usarTls" class="text-sm font-medium text-slate-700 cursor-pointer">Requerer conexão segura (TLS/SSL)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: DANFE / Contingência -->
+            <div class="flex flex-col gap-6">
+
+                <!-- DANFE -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                        <h3 class="text-base font-semibold text-slate-800 flex items-center gap-2"><mat-icon class="text-slate-500 !text-xl">print</mat-icon> Impressão DANFE</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">Layout</label>
+                                <p-select [options]="[{label:'Retrato (Normal)', value:'Retrato'},{label:'Paisagem (Deitado)', value:'Paisagem'}]" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="danfeLayout" styleClass="w-full"></p-select>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">Logotipo (Opcional)</label>
+                                <input type="file" (change)="onSelectLogo($event)" class="w-full text-sm text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition-colors border border-slate-300 rounded-lg p-1"/>
+                            </div>
+                            <div class="flex flex-col gap-1.5 md:col-span-2">
+                                <label class="text-xs font-semibold text-slate-600">Mensagem Fixa no Rodapé da Nota</label>
+                                <textarea pInputTextarea rows="2" [(ngModel)]="danfeMensagem" class="w-full resize-none" placeholder="Obrigado pela preferência..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contingência -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden border-orange-200">
+                    <div class="px-6 py-4 border-b border-orange-100 bg-orange-50/50">
+                        <h3 class="text-base font-semibold text-orange-800 flex items-center gap-2"><mat-icon class="text-orange-500 !text-xl">warning</mat-icon> Servidor de Contingência</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="flex gap-4">
+                                <div class="flex items-center gap-2">
+                                    <p-checkbox [(ngModel)]="contingenciaSvcan" binary="true" inputId="svcan"></p-checkbox>
+                                    <label for="svcan" class="text-sm font-medium text-slate-700 cursor-pointer">SVC-AN</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <p-checkbox [(ngModel)]="contingenciaSvcrs" binary="true" inputId="svcrs"></p-checkbox>
+                                    <label for="svcrs" class="text-sm font-medium text-slate-700 cursor-pointer">SVC-RS</label>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-semibold text-slate-600">Justificativa para Contingência</label>
+                                <textarea pInputTextarea rows="2" [(ngModel)]="contingenciaJustificativa" class="w-full resize-none" placeholder="Instabilidade nos servidores principais da Sefaz..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+  </div>
+
+  <!-- Diálogos de feedback -->
+  <p-dialog [(visible)]="sucessoVisible" [modal]="true" [dismissableMask]="true" header="Configurações Salvas" [style]="{width: '400px'}">
+     <div class="flex flex-col items-center text-center gap-3 my-4">
+         <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+             <mat-icon class="!text-3xl">check_circle</mat-icon>
+         </div>
+         <p class="text-sm font-medium text-slate-700">Todas as configurações fiscais foram armazenadas com sucesso. A integração com Sefaz utilizará estes novos parâmetros.</p>
+     </div>
+     <ng-template pTemplate="footer">
+         <div class="flex justify-center w-full">
+             <button pButton label="Entendido" class="p-button-success" (click)="sucessoVisible=false"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <p-dialog [(visible)]="testeCertificadoVisible" [modal]="true" [dismissableMask]="true" header="Validação de Certificado" [style]="{width: '400px'}">
+     <div class="flex flex-col items-center text-center gap-3 my-4">
+         <div class="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
+             <mat-icon class="!text-3xl">security</mat-icon>
+         </div>
+         <p class="text-sm font-medium text-slate-700">O Certificado Digital informado foi analisado pela cadeia Raiz Brasileira (ICP-Br) localmente. Ele está íntegro e dentro da validade.</p>
+     </div>
+     <ng-template pTemplate="footer">
+         <div class="flex justify-center w-full">
+             <button pButton label="Confirmar" class="p-button-secondary" (click)="testeCertificadoVisible=false"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <p-dialog [(visible)]="testeEmailVisible" [modal]="true" [dismissableMask]="true" header="Teste de Conectividade SMTP" [style]="{width: '400px'}">
+    <div class="flex flex-col items-center text-center gap-3 my-4">
+         <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+             <mat-icon class="!text-3xl">mark_email_read</mat-icon>
+         </div>
+         <p class="text-sm font-medium text-slate-700">Um email de teste da NeriTech foi disparado para {{ smtpUsuario || 'seu usuário' }}. Verifique a caixa de entrada para garantir o envio correto das Notas Fiscais ao Cliente.</p>
+     </div>
+     <ng-template pTemplate="footer">
+         <div class="flex justify-center w-full">
+             <button pButton label="Fechar" class="p-button-secondary" (click)="testeEmailVisible=false"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+</div>

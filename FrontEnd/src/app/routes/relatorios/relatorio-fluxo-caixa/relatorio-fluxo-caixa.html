@@ -1,0 +1,148 @@
+<div class="toolbar">
+  <button pButton type="button" class="p-button-success p-button-sm" icon="pi pi-file-excel" label="Exportar tabela"></button>
+</div>
+
+<div class="filters">
+  <div class="title">Fluxo caixa</div>
+  <div class="controls">
+    <div class="segmented">
+      <button pButton type="button" [class.active]="isDaily" (click)="setPeriod('Diário')" label="Diário"></button>
+      <button pButton type="button" [class.active]="!isDaily" (click)="setPeriod('Mensal')" label="Mensal"></button>
+    </div>
+
+    <select *ngIf="!isDaily" [(ngModel)]="year">
+      <option [value]="2024">2024</option>
+      <option [value]="2025">2025</option>
+      <option [value]="2026">2026</option>
+    </select>
+
+    <select *ngIf="isDaily" [(ngModel)]="monthIndex" (ngModelChange)="setMonth($event)">
+      <option [value]="0">Janeiro</option>
+      <option [value]="1">Fevereiro</option>
+      <option [value]="2">Março</option>
+      <option [value]="3">Abril</option>
+      <option [value]="4">Maio</option>
+      <option [value]="5">Junho</option>
+      <option [value]="6">Julho</option>
+      <option [value]="7">Agosto</option>
+      <option [value]="8">Setembro</option>
+      <option [value]="9">Outubro</option>
+      <option [value]="10">Novembro</option>
+      <option [value]="11">Dezembro</option>
+    </select>
+
+    <select [(ngModel)]="account">
+      <option>TODAS AS CONTAS</option>
+      <option>Conta corrente</option>
+      <option>Cartão</option>
+    </select>
+
+    <select [(ngModel)]="mode">
+      <option>PREVISTO E REALIZADO</option>
+      <option>Somente previsto</option>
+      <option>Somente realizado</option>
+    </select>
+
+    <button pButton type="button" class="p-button-primary" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
+  </div>
+</div>
+
+<p-panel [toggleable]="true" [collapsed]="false">
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <div class="header-left">
+        <span class="material-icons icon-success">insights</span>
+        <span class="title">FLUXO CAIXA <small class="muted">últimos 12 meses</small></span>
+      </div>
+      <div class="header-actions">
+        <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text" (click)="menu.toggle($event)" aria-label="Menu de download"></button>
+        <p-menu #menu [popup]="true" [model]="menuItems" />
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="chart-area">
+    <div class="zero-line"></div>
+
+    <div class="bar bar-receita" title="Recebimentos realizados">
+      <div class="value-label top">100,00</div>
+    </div>
+
+    <div class="bar bar-despesa" title="Pagamentos realizados">
+      <div class="value-label bottom">-5.000,00</div>
+    </div>
+
+    <svg class="result-line-svg" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-label="Saldo">
+      <polyline points="0,200 820,200 950,380" stroke="#22c55e" stroke-width="3" fill="none" />
+      <circle cx="950" cy="380" r="6" fill="#22c55e" />
+    </svg>
+
+    <div class="months" *ngIf="!isDaily">
+      <span>Janeiro</span><span>Fevereiro</span><span>Março</span><span>Abril</span><span>Maio</span><span>Junho</span><span>Julho</span><span>Agosto</span><span>Setembro</span><span>Outubro</span><span>Novembro</span><span>Dezembro</span>
+    </div>
+    <div class="days" *ngIf="isDaily">
+      <span *ngFor="let d of days">{{ d }}</span>
+    </div>
+  </div>
+
+  <div class="legend multi">
+    <div class="legend-item"><span class="marker red"></span>Pagamentos realizados</div>
+    <div class="legend-item"><span class="marker red-soft"></span>Pagamentos previstos</div>
+    <div class="legend-item"><span class="marker blue"></span>Recebimentos realizados</div>
+    <div class="legend-item"><span class="marker blue-soft"></span>Recebimentos previstos</div>
+    <div class="legend-item"><span class="marker green-line"></span>Saldo realizado</div>
+    <div class="legend-item"><span class="marker green-line soft"></span>Saldo previsto</div>
+  </div>
+</p-panel>
+
+<div class="table-box">
+  <div class="table-scroll">
+    <table class="fc-table">
+      <thead *ngIf="!isDaily">
+        <tr>
+          <th>Categorias de Lançamentos</th>
+          <th>Agosto</th>
+          <th>Setembro</th>
+          <th>Outubro</th>
+          <th>Novembro</th>
+          <th>Dezembro</th>
+        </tr>
+      </thead>
+      <thead *ngIf="isDaily">
+        <tr>
+          <th>Categorias de Lançamentos</th>
+          <ng-container *ngFor="let d of days">
+            <th [attr.colspan]="2">{{ d }}</th>
+          </ng-container>
+        </tr>
+        <tr>
+          <th></th>
+          <ng-container *ngFor="let d of days">
+            <th>Previsto</th>
+            <th>Realizado</th>
+          </ng-container>
+        </tr>
+      </thead>
+      <tbody *ngIf="!isDaily">
+        <tr><td>Saldo do mês anterior</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Outras receitas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 100,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Receitas de vendas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Receitas de serviços</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Total de receitas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 100,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Outras despesas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>-R$ 4.900,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Despesas com comissões</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Total de despesas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>-R$ 4.900,00</td><td>R$ 0,00</td></tr>
+        <tr><td>Saldo</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>-R$ 4.900,00</td><td>R$ 0,00</td></tr>
+      </tbody>
+      <tbody *ngIf="isDaily">
+        <tr *ngFor="let cat of categories">
+          <td>{{ cat }}</td>
+          <ng-container *ngFor="let d of days">
+            <td>{{ formatBR(value(cat, d, 'previsto')) }}</td>
+            <td>{{ formatBR(value(cat, d, 'realizado')) }}</td>
+          </ng-container>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

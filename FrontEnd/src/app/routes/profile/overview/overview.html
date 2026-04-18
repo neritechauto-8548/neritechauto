@@ -1,0 +1,160 @@
+<p-toast />
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-[20px] font-bold text-slate-800 tracking-tight">Configurações da Conta</h1>
+    <p class="text-slate-500 text-[14px] mt-1">Gerencie suas informações pessoais, segurança e preferências do sistema.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Coluna Esquerda: Informações e Senha -->
+    <div class="lg:col-span-2 space-y-8">
+      
+      <!-- Informações Pessoais -->
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1 h-full bg-[#635BFF]"></div>
+        <h2 class="text-[16px] font-bold text-slate-800 mb-6">Informações Pessoais</h2>
+        
+        <form *ngIf="profileForm" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="col-span-1 md:col-span-2">
+              <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Foto de Perfil</label>
+              <div class="flex items-center gap-6">
+                <img [src]="user.avatar || 'images/avatar-default.jpg'" alt="Avatar" class="w-16 h-16 rounded-full border border-slate-200 shadow-sm object-cover" />
+                <div>
+                  <p-fileUpload mode="basic" chooseLabel="Alterar Foto" accept="image/*" maxFileSize="1000000" (onSelect)="onPhotoUpload($event)" [auto]="false" styleClass="p-button-sm btn-stripe-blue p-button-outlined"></p-fileUpload>
+                  <p class="text-xs text-slate-500 mt-2">JPG, GIF ou PNG. Tamanho máximo de 1MB.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-span-1">
+              <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Nome Completo</label>
+              <input pInputText formControlName="name" class="w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-[14px] text-slate-800 focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-sm outline-none transition-all" />
+            </div>
+            
+            <div class="col-span-1">
+              <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">E-mail</label>
+              <input pInputText formControlName="email" type="email" class="w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-[14px] text-slate-800 focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-sm outline-none transition-all" />
+            </div>
+          </div>
+          
+          <div class="flex justify-end pt-4 border-t border-slate-100">
+            <button pButton type="submit" label="Salvar Alterações" class="btn-stripe-blue p-button-sm btn-soft font-semibold"></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Senha -->
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1 h-full bg-slate-400"></div>
+        <h2 class="text-[16px] font-bold text-slate-800 mb-6">Segurança e Senha</h2>
+        
+        <form *ngIf="passwordForm" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="col-span-1 md:col-span-2">
+              <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Senha Atual</label>
+              <p-password formControlName="currentPassword" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-[14px] text-slate-800 focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-sm outline-none transition-all" [feedback]="false"></p-password>
+            </div>
+            
+            <div class="col-span-1">
+              <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Nova Senha</label>
+              <p-password formControlName="newPassword" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-[14px] text-slate-800 focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-sm outline-none transition-all" [feedback]="true" promptLabel="Digite a senha" weakLabel="Fraca" mediumLabel="Média" strongLabel="Forte"></p-password>
+            </div>
+            
+            <div class="col-span-1">
+              <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Confirmar Nova Senha</label>
+              <p-password formControlName="confirmPassword" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full h-9 px-3 bg-white border border-slate-300 rounded-md text-[14px] text-slate-800 focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-sm outline-none transition-all" [feedback]="false"></p-password>
+            </div>
+          </div>
+          
+          <div class="flex justify-end pt-4 border-t border-slate-100">
+            <button pButton type="submit" label="Atualizar Senha" class="p-button-secondary p-button-sm btn-soft font-semibold" [disabled]="!passwordForm.valid"></button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Coluna Direita: Preferências do Sistema -->
+    <div class="lg:col-span-1">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl shadow-sm p-6 sticky top-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 shadow-sm shrink-0">
+            <i class="pi pi-desktop text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-[16px] font-bold text-slate-800">Aparência do Sistema</h2>
+            <p class="text-[12px] text-slate-500">Personalize a navegação</p>
+          </div>
+        </div>
+
+        <form [formGroup]="settingsForm">
+          <!-- Tema -->
+          <div class="mb-6">
+            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Tema</h3>
+            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+              <mat-radio-group formControlName="theme" class="flex flex-col gap-3">
+                <mat-radio-button value="light" class="text-[14px] font-medium text-slate-700">Claro</mat-radio-button>
+                <mat-radio-button value="dark" class="text-[14px] font-medium text-slate-700">Escuro</mat-radio-button>
+                <mat-radio-button value="auto" class="text-[14px] font-medium text-slate-700">Automático (Sistema)</mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </div>
+
+          <!-- Cabeçalho -->
+          <div class="mb-6">
+            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Cabeçalho (Header)</h3>
+            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-[14px] font-medium text-slate-700">Visível</span>
+                <mat-slide-toggle formControlName="showHeader" [disabled]="isHeaderPosAbove || isNavPosTop"></mat-slide-toggle>
+              </div>
+              
+              <div class="pt-3 border-t border-slate-100">
+                <span class="text-[12px] font-medium text-slate-500 mb-2 block">Posição</span>
+                <mat-radio-group formControlName="headerPos" class="flex flex-col gap-2">
+                  <mat-radio-button value="above" class="text-[14px] font-medium text-slate-700" [disabled]="!isShowHeader || isNavPosTop">Acima</mat-radio-button>
+                  <mat-radio-button value="fixed" class="text-[14px] font-medium text-slate-700">Fixo</mat-radio-button>
+                  <mat-radio-button value="static" class="text-[14px] font-medium text-slate-700">Estático</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navegação -->
+          <div class="mb-6">
+            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Menu Lateral</h3>
+            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-[14px] font-medium text-slate-700">Painel do Usuário</span>
+                <mat-slide-toggle formControlName="showUserPanel"></mat-slide-toggle>
+              </div>
+              
+              <div class="pt-3 border-t border-slate-100">
+                <span class="text-[12px] font-medium text-slate-500 mb-2 block">Posição</span>
+                <mat-radio-group formControlName="navPos" class="flex gap-4">
+                  <mat-radio-button value="side" class="text-[14px] font-medium text-slate-700">Lateral</mat-radio-button>
+                  <mat-radio-button value="top" class="text-[14px] font-medium text-slate-700" [disabled]="isHeaderPosAbove || !isShowHeader">Topo</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Direção -->
+          <div>
+            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Direção do Texto</h3>
+            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+              <mat-radio-group formControlName="dir" class="flex gap-4">
+                <mat-radio-button value="ltr" class="text-[14px] font-medium text-slate-700">LTR</mat-radio-button>
+                <mat-radio-button value="rtl" class="text-[14px] font-medium text-slate-700">RTL</mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>

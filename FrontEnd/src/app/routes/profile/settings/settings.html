@@ -1,0 +1,105 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-[20px] font-bold text-slate-800 tracking-tight">Editar Perfil</h1>
+    <p class="text-slate-500 text-[14px] mt-1">Atualize suas informações de contato e preferências.</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-1 h-full bg-[#635BFF]"></div>
+    
+    <form [formGroup]="reactiveForm" class="flex flex-col gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Username -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Nome de Usuário</label>
+          <input pInputText formControlName="username" placeholder="Seu nome" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('username')?.invalid && reactiveForm.get('username')?.touched}" />
+          <p *ngIf="reactiveForm.get('username')?.invalid && reactiveForm.get('username')?.touched" class="text-xs text-red-500 font-medium mt-1">Por favor insira seu nome</p>
+        </div>
+
+        <!-- Email -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Email</label>
+          <input pInputText formControlName="email" type="email" placeholder="seu.email@exemplo.com" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('email')?.invalid && reactiveForm.get('email')?.touched}" />
+          <p *ngIf="reactiveForm.get('email')?.invalid && reactiveForm.get('email')?.touched" class="text-xs text-red-500 font-medium mt-1">{{ getErrorMessage(reactiveForm) }}</p>
+        </div>
+
+        <!-- Gender -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Gênero</label>
+          <select formControlName="gender" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-700 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all appearance-none cursor-pointer" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('gender')?.invalid && reactiveForm.get('gender')?.touched}">
+            <option value="">-- Selecione --</option>
+            <option value="1">Masculino</option>
+            <option value="2">Feminino</option>
+          </select>
+          <p *ngIf="reactiveForm.get('gender')?.invalid && reactiveForm.get('gender')?.touched" class="text-xs text-red-500 font-medium mt-1">Por favor, selecione um gênero</p>
+        </div>
+
+        <!-- City -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Cidade</label>
+          <input pInputText formControlName="city" placeholder="Sua cidade" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('city')?.invalid && reactiveForm.get('city')?.touched}" />
+          <p *ngIf="reactiveForm.get('city')?.invalid && reactiveForm.get('city')?.touched" class="text-xs text-red-500 font-medium mt-1">Por favor insira sua cidade</p>
+        </div>
+
+        <!-- Address -->
+        <div class="col-span-1 lg:col-span-2">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Endereço Completo</label>
+          <input pInputText formControlName="address" placeholder="Av. Principal, 123" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('address')?.invalid && reactiveForm.get('address')?.touched}" />
+          <p *ngIf="reactiveForm.get('address')?.invalid && reactiveForm.get('address')?.touched" class="text-xs text-red-500 font-medium mt-1">Por favor informe seu endereço</p>
+        </div>
+
+        <!-- Company -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Empresa</label>
+          <input pInputText formControlName="company" placeholder="Nome da empresa" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('company')?.invalid && reactiveForm.get('company')?.touched}" />
+          <p *ngIf="reactiveForm.get('company')?.invalid && reactiveForm.get('company')?.touched" class="text-xs text-red-500 font-medium mt-1">Insira a sua empresa</p>
+        </div>
+
+        <!-- Mobile -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Celular</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="pi pi-mobile"></i></span>
+            <input pInputText type="number" formControlName="mobile" placeholder="(11) 90000-0000" class="w-full h-[38px] pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('mobile')?.invalid && reactiveForm.get('mobile')?.touched}" />
+          </div>
+          <p *ngIf="reactiveForm.get('mobile')?.invalid && reactiveForm.get('mobile')?.touched" class="text-xs text-red-500 font-medium mt-1">Informe um número de celular</p>
+        </div>
+
+        <!-- Tele -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Telefone Fixo</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="pi pi-phone"></i></span>
+            <input pInputText type="number" formControlName="tele" placeholder="(11) 3000-0000" class="w-full h-[38px] pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('tele')?.invalid && reactiveForm.get('tele')?.touched}" />
+          </div>
+          <p *ngIf="reactiveForm.get('tele')?.invalid && reactiveForm.get('tele')?.touched" class="text-xs text-red-500 font-medium mt-1">Informe um telefone fixo</p>
+        </div>
+
+        <!-- Website -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Website</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="pi pi-globe"></i></span>
+            <input pInputText formControlName="website" placeholder="https://..." class="w-full h-[38px] pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('website')?.invalid && reactiveForm.get('website')?.touched}" />
+          </div>
+          <p *ngIf="reactiveForm.get('website')?.invalid && reactiveForm.get('website')?.touched" class="text-xs text-red-500 font-medium mt-1">Website é obrigatório</p>
+        </div>
+
+        <!-- Date -->
+        <div class="col-span-1">
+          <label class="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Data de Nascimento</label>
+          <div class="relative">
+            <input pInputText type="date" formControlName="date" class="w-full h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-md text-[14px] text-slate-800 focus:bg-white focus:border-[#635BFF] focus:ring-1 focus:ring-[#635BFF] shadow-none outline-none transition-all" [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': reactiveForm.get('date')?.invalid && reactiveForm.get('date')?.touched}" />
+          </div>
+          <p *ngIf="reactiveForm.get('date')?.invalid && reactiveForm.get('date')?.touched" class="text-xs text-red-500 font-medium mt-1">Insira uma data válida</p>
+        </div>
+
+      </div>
+
+      <div class="flex justify-end pt-5 mt-2 border-t border-slate-100">
+        <button pButton type="submit" label="Salvar Perfil" icon="pi pi-check" class="btn-stripe-blue p-button-sm btn-soft font-semibold px-6 shadow-sm" [disabled]="reactiveForm.invalid"></button>
+      </div>
+    </form>
+  </div>
+</div>

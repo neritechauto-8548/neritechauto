@@ -1,0 +1,19 @@
+<div class="dialog-content">
+  <div class="field">
+    <label for="nome">Nome da Marca</label>
+    <input 
+      pInputText 
+      id="nome" 
+      [(ngModel)]="nome" 
+      placeholder="Digite o nome da marca"
+      class="w-full"
+      (keyup.enter)="incluir()"
+     
+    />
+  </div>
+</div>
+
+<div class="dialog-footer">
+  <button pButton type="button" label="Fechar" class="p-button-secondary" (click)="fechar()"></button>
+  <button pButton type="button" label="Incluir" class="p-button-primary" (click)="incluir()" [disabled]="!nome.trim()"></button>
+</div>

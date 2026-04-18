@@ -1,0 +1,38 @@
+.page-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.setores-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setor-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--surface-200, #e5e7eb);
+}
+
+.setor-id {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-weight: 600;
+  color: #fff;
+  background: #f05a2b; /* laranja semelhante ao da imagem */
+  border-radius: 4px;
+}
+
+.setor-desc {
+  font-weight: 600;
+}
+
+::ng-deep .p-dialog .p-dialog-header {
+  border-bottom: 3px solid var(--primary-color, #3f51b5);
+}

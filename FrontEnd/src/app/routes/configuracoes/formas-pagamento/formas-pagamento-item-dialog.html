@@ -1,0 +1,92 @@
+<div class="p-4">
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+
+    <!-- Row 1: Basic Info -->
+    <div class="md:col-span-8 flex flex-col gap-1">
+      <label for="nome" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome <span class="text-red-500">*</span></label>
+      <input id="nome" type="text" pInputText [(ngModel)]="nome" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="Ex: Cartão de Crédito Visa" />
+    </div>
+
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="tipo" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tipo <span class="text-red-500">*</span></label>
+      <p-select id="tipo" name="tipo" [options]="tipoOptions" [(ngModel)]="tipo" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" />
+    </div>
+
+    <!-- Row 2: Parcelamento -->
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="aceitaParcelamento" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Parcelamento</label>
+      <p-select id="aceitaParcelamento" name="aceitaParcelamento" [options]="[{label:'Sim',value:true},{label:'Não',value:false}]" [(ngModel)]="aceitaParcelamento" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" />
+    </div>
+
+    <div class="md:col-span-8 flex flex-col gap-1">
+      <label for="parcelasMaximas" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Máx. Parcelas</label>
+      <input id="parcelasMaximas" type="number" pInputText [(ngModel)]="parcelasMaximas" [disabled]="!aceitaParcelamento" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none disabled:bg-slate-50/50" placeholder="12" />
+    </div>
+
+    <!-- Row 3: Taxas e Prazos -->
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="taxaAdministracao" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Taxa (%)</label>
+      <div class="relative">
+         <input id="taxaAdministracao" type="number" step="0.01" pInputText [(ngModel)]="taxaAdministracao" class="w-full text-sm pl-3 pr-8 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="0.00" />
+         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">%</span>
+      </div>
+    </div>
+
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="prazoRecebimentoDias" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Prazo (Dias)</label>
+      <div class="relative">
+         <input id="prazoRecebimentoDias" type="number" pInputText [(ngModel)]="prazoRecebimentoDias" class="w-full text-sm pl-3 pr-10 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="0" />
+         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-slate-400 tracking-widest">Dias</span>
+      </div>
+    </div>
+
+    <!-- Row 4: Configuração de Conta e Limites -->
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="limiteDiario" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Limite Diário (R$)</label>
+      <input id="limiteDiario" type="number" step="100" pInputText [(ngModel)]="limiteDiario" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-blue-700 font-semibold" placeholder="0.00" />
+    </div>
+
+    <div class="md:col-span-12 flex flex-col gap-1">
+      <label for="contaBancariaId" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ID Da Conta Bancária</label>
+      <input id="contaBancariaId" type="number" pInputText [(ngModel)]="contaBancariaId" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="Opcional" />
+    </div>
+
+    <!-- Row 5: Switches / Checkboxes -->
+    <div class="md:col-span-12 flex items-center pt-2 gap-6">
+      <div class="flex items-center gap-2 group cursor-pointer">
+        <p-checkbox [(ngModel)]="ativo" [binary]="true" inputId="ativo" />
+        <label for="ativo" class="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-blue-600 transition-colors">Ativo</label>
+      </div>
+
+      <div class="flex items-center gap-2 group cursor-pointer">
+        <p-checkbox [(ngModel)]="padrao" [binary]="true" inputId="padrao" />
+        <label for="padrao" class="text-xs font-bold text-amber-600 cursor-pointer group-hover:text-amber-700 transition-colors">Padrão</label>
+      </div>
+
+      <div class="flex items-center gap-2 group cursor-pointer">
+        <p-checkbox [(ngModel)]="exigeAutorizacao" [binary]="true" inputId="exigeAutorizacao" />
+        <label for="exigeAutorizacao" class="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-blue-600 transition-colors">Exige Autorização</label>
+      </div>
+    </div>
+
+    <!-- Row 6: Observações -->
+    <div class="md:col-span-12 flex flex-col gap-1 mt-2">
+      <label for="observacoes" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Observações</label>
+      <input id="observacoes" type="text" pInputText [(ngModel)]="observacoes" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="Instruções ou notas internas..." />
+    </div>
+
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+    <button (click)="fechar()"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors">
+      Cancelar
+    </button>
+    <button (click)="incluirItem()"
+            class="px-5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#635bff] hover:bg-[#5851eb] transition-colors shadow-sm flex items-center gap-2 active:scale-95">
+      <i class="pi pi-check text-[10px]"></i> Salvar
+    </button>
+  </div>
+</div>
+

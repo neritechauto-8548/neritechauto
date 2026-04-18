@@ -1,0 +1,18 @@
+.toolbar {
+  display: flex;
+  gap: .5rem;
+}
+
+.muted {
+  color: var(--text-color-secondary);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-header .title {
+  font-weight: 600;
+}
+// Styles are now handled by Tailwind CSS classes in the HTML template.

@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Incluindo Perfil</h2>
+
+<div mat-dialog-content class="space-y-3">
+  <label class="block text-sm">Nome do perfil</label>
+  <input [(ngModel)]="nome" class="w-full p-2 border rounded" placeholder="Digite o nome" />
+</div>
+
+<div mat-dialog-actions class="flex items-center justify-end gap-2">
+  <button pButton type="button" label="Fechar" severity="secondary" mat-dialog-close></button>
+  <button pButton type="button" label="Incluir Item" icon="pi pi-plus" [mat-dialog-close]="nome" severity="primary"></button>
+  
+</div>

@@ -1,0 +1,217 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- Action Bar (Sticky Top) -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+      <div class="flex items-center gap-4">
+          <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+              <i class="pi pi-arrow-left text-sm"></i>
+          </button>
+          <div>
+              <h1 class="text-base font-semibold text-slate-900 leading-tight">
+                  {{ id ? 'Editar Veículo' : 'Novo Veículo' }}
+              </h1>
+              <span class="text-xs text-slate-500 font-normal">
+                  {{ id ? 'Editando registro #' + id : 'Preencha os dados abaixo' }}
+              </span>
+          </div>
+      </div>
+
+      <div class="flex gap-3 items-center">
+          <button *ngIf="id" (click)="excluirVeiculo()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+             <i class="pi pi-trash text-[13px]"></i> Excluir
+          </button>
+          <div *ngIf="id" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+              Cancelar
+          </button>
+          <button (click)="salvar()" [disabled]="saving" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+              <i class="pi pi-check text-xs" *ngIf="!saving"></i>
+              <i class="pi pi-spin pi-spinner text-xs" *ngIf="saving"></i>
+              {{ saving ? 'Salvando...' : 'Salvar' }}
+          </button>
+      </div>
+  </div>
+
+  <div class="p-6 w-full space-y-8 mx-auto">
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-12">
+        <i class="pi pi-spin pi-spinner text-3xl text-blue-500 mb-3"></i>
+        <p class="text-slate-500 text-sm">Carregando dados do veículo...</p>
+    </div>
+
+    <ng-container *ngIf="!loading">
+        <!-- Content Area -->
+        <div class="animate-fade-in-up space-y-6">
+
+                <!-- Section: Cliente & Identificação -->
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm">Identificação</h3>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Cliente Search -->
+                        <div class="md:col-span-2 space-y-1">
+                            <label class="text-xs font-bold text-slate-700">Cliente *
+                                <span *ngIf="id" class="ml-1 text-slate-400 font-normal">(não editável)</span>
+                            </label>
+                            <p-autoComplete
+                                [(ngModel)]="selectedCliente"
+                                [suggestions]="filteredClientes"
+                                (completeMethod)="searchCliente($event)"
+                                optionLabel="nome"
+                                dataKey="id"
+                                placeholder="Busque por Nome ou CPF/CNPJ..."
+                                styleClass="w-full modern-autocomplete"
+                                inputStyleClass="w-full modern-input"
+                                [disabled]="!!id"
+                                [forceSelection]="true"
+                                [dropdown]="true">
+                                <ng-template let-cliente pTemplate="item">
+                                    <div class="flex flex-col py-1">
+                                        <span class="font-bold text-sm text-slate-900">{{ cliente.nome }}</span>
+                                        <span class="text-xs text-slate-500">{{ cliente.cpfCnpj }}</span>
+                                    </div>
+                                </ng-template>
+                            </p-autoComplete>
+                        </div>
+
+                        <!-- Placa & Marca/Modelo -->
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Placa *</label>
+                                    <input type="text" pInputText [(ngModel)]="form.placa" class="w-full modern-input uppercase" placeholder="ABC-1234" maxlength="8" />
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Status</label>
+                                    <p-select [options]="statusOptions" [(ngModel)]="form.status" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." />
+                                </div>
+                            </div>
+                             <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700">Marca</label>
+                                <p-select
+                                    [options]="marcaOptions"
+                                    [(ngModel)]="form.marcaId"
+                                    (onChange)="onMarcaChange()"
+                                    [loading]="loadingMarcas"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    styleClass="w-full modern-select"
+                                    appendTo="body"
+                                    placeholder="Selecione..." />
+                            </div>
+                        </div>
+
+                        <!-- Col 2 -->
+                        <div class="space-y-4">
+                             <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Modelo</label>
+                                    <p-select
+                                        [options]="modeloOptions"
+                                        [(ngModel)]="form.modeloId"
+                                        (onChange)="onModeloChange()"
+                                        [loading]="loadingModelos"
+                                        [disabled]="!form.marcaId"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        styleClass="w-full modern-select"
+                                        appendTo="body"
+                                        placeholder="Selecione..." />
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Ano</label>
+                                    <p-select
+                                        [options]="anoModeloOptions"
+                                        [(ngModel)]="form.anoModeloId"
+                                        [loading]="loadingAnosModelos"
+                                        [disabled]="!form.modeloId"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        styleClass="w-full modern-select"
+                                        appendTo="body"
+                                        placeholder="Selecione o Ano..." />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Cor</label>
+                                    <input type="text" pInputText [(ngModel)]="form.corExterna" class="w-full modern-input" />
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Renavam</label>
+                                    <input type="text" pInputText [(ngModel)]="form.renavam" class="w-full modern-input" />
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Nº Motor</label>
+                                    <input type="text" pInputText [(ngModel)]="form.numeroMotor" class="w-full modern-input uppercase" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Detalhes Técnicos -->
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm">Detalhes Técnicos</h3>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-700">Chassi</label>
+                            <input type="text" pInputText [(ngModel)]="form.chassi" class="w-full modern-input" />
+                        </div>
+                         <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-700">Combustível</label>
+                            <p-select
+                                [options]="combustivelOptions"
+                                [(ngModel)]="form.combustivelId"
+                                [loading]="loadingCombustiveis"
+                                optionLabel="label"
+                                optionValue="value"
+                                styleClass="w-full modern-select"
+                                appendTo="body"
+                                placeholder="Selecione..." />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Manutenção -->
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm">Manutenção e Revisões</h3>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700">Km Atual</label>
+                                <input type="number" pInputText [(ngModel)]="form.quilometragemAtual" class="w-full modern-input" />
+                            </div>
+                             <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700">Km Cadastro</label>
+                                <input type="number" pInputText [(ngModel)]="form.quilometragemCadastro" class="w-full modern-input" />
+                            </div>
+                        </div>
+                         <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700">Última Revisão</label>
+                                <input type="date" pInputText [(ngModel)]="form.dataUltimaRevisao" class="w-full modern-input" />
+                            </div>
+                             <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-700">Próxima Revisão</label>
+                                <input type="date" pInputText [(ngModel)]="form.proximaRevisaoData" class="w-full modern-input" />
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 space-y-1">
+                             <label class="text-xs font-bold text-slate-700">Observações Gerais</label>
+                            <textarea pTextarea [(ngModel)]="form.observacoes" rows="3" class="w-full modern-input" placeholder="Notas sobre o veículo..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+    </ng-container>
+  </div>
+</div>

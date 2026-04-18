@@ -1,0 +1,6 @@
+package com.neritech.saas.produtoServico.domain.enums;
+
+
+public enum OrigemProduto {
+    _0, _1, _2, _3, _4, _5, _6, _7, _8
+}

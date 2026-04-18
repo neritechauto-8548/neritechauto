@@ -1,0 +1,17 @@
+.contas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conta-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.conta-nome {
+  padding: 0.25rem 0.5rem;
+}

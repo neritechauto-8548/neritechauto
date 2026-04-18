@@ -1,0 +1,33 @@
+@if (showHeader) {
+  <div class="matero-sidebar-header">
+    <mat-toolbar>
+      <app-branding [showName]="!toggleChecked" />
+
+      <span class="flex-fill"></span>
+
+      @if (showToggle) {
+        <button
+          mat-icon-button
+          (click)="toggleCollapsed.emit()"
+          [attr.aria-label]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
+          [matTooltip]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
+          matTooltipPosition="below"
+        >
+          <mat-icon>{{ toggleChecked ? 'chevron_right' : 'menu' }}</mat-icon>
+        </button>
+      } @else {
+        <button mat-icon-button (click)="closeSidenav.emit()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-toolbar>
+  </div>
+}
+
+<div class="matero-sidebar-main">
+  <app-sidemenu [ripple]="showToggle" />
+</div>
+
+<div class="matero-sidebar-footer">
+  <app-user-panel [collapsed]="toggleChecked" />
+</div>

@@ -1,0 +1,30 @@
+<p-card>
+  <ng-template pTemplate="header">
+    <div class="flex items-center justify-between px-4 py-2 bg-primary-500 text-white rounded-t-md">
+      <span class="font-semibold">Cadastrando Nota de importação</span>
+      <span class="bg-green-500 text-white rounded px-2 py-0.5 text-xs">Ambiente de Produção</span>
+    </div>
+  </ng-template>
+
+  <div class="p-4 space-y-6">
+    <h2 class="text-2xl font-semibold text-gray-800">Selecione o XML da NFe que será importada.</h2>
+
+    <div class="text-sm text-gray-600">
+      <p>Atenção: Apenas o .XML da NFe.</p>
+      <p>
+        O XML de nota fiscal normalmente é assim:
+        <span class="font-mono text-gray-700">( 7466352545436344234235632423426nfe.xml )</span>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <input #fileInput type="file" accept=".xml" (change)="onFileSelected($event)" class="hidden" />
+      <p-button label="Escolher arquivo" severity="success" (onClick)="abrirSeletorArquivo()" />
+      <span class="px-3 py-1 bg-green-500 text-white rounded text-sm">{{ selectedFileName }}</span>
+    </div>
+
+    <div>
+      <p-button label="Enviar dados" [disabled]="!selectedFile" styleClass="w-full" (onClick)="enviarDados()" />
+    </div>
+  </div>
+</p-card>

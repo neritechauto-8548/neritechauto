@@ -1,0 +1,77 @@
+<div class="p-4">
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+
+    <!-- Row 1 -->
+    <div class="md:col-span-2 flex flex-col gap-1">
+      <label for="bancoCodigo" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cód. Banco <span class="text-red-500">*</span></label>
+      <input id="bancoCodigo" type="text" pInputText [(ngModel)]="bancoCodigo" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="001" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-6 flex flex-col gap-1">
+      <label for="bancoNome" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome do Banco <span class="text-red-500">*</span></label>
+      <input id="bancoNome" type="text" pInputText [(ngModel)]="bancoNome" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="Banco do Brasil" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="tipoConta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tipo de Conta <span class="text-red-500">*</span></label>
+      <p-select id="tipoConta" name="tipoConta" [options]="tipos" [(ngModel)]="tipoConta" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" [disabled]="readonly" />
+    </div>
+
+    <!-- Row 2 -->
+    <div class="md:col-span-3 flex flex-col gap-1">
+      <label for="agencia" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Agência <span class="text-red-500">*</span></label>
+      <input id="agencia" type="text" pInputText [(ngModel)]="agencia" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="1234" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-6 flex flex-col gap-1">
+      <label for="conta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Conta <span class="text-red-500">*</span></label>
+      <input id="conta" type="text" pInputText [(ngModel)]="conta" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="56789" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-3 flex flex-col gap-1">
+      <label for="digitoConta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Digito</label>
+      <input id="digitoConta" type="text" pInputText [(ngModel)]="digitoConta" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="0" [disabled]="readonly" />
+    </div>
+
+    <!-- Row 3 -->
+    <div class="md:col-span-8 flex flex-col gap-1">
+      <label for="titularConta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Titular <span class="text-red-500">*</span></label>
+      <input id="titularConta" type="text" pInputText [(ngModel)]="titularConta" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="Nome completo" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="cpfCnpjTitular" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">CPF/CNPJ <span class="text-red-500">*</span></label>
+      <input id="cpfCnpjTitular" type="text" pInputText [(ngModel)]="cpfCnpjTitular" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="000.000.000-00" [disabled]="readonly" />
+    </div>
+
+    <!-- Row 4 -->
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="valorSaldoInicial" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Saldo Atual</label>
+      <input id="valorSaldoInicial" type="number" pInputText [(ngModel)]="valorSaldoInicial" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none text-emerald-700 font-semibold" placeholder="0,00" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-4 flex flex-col gap-1">
+      <label for="limiteChequeEspecial" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Limite Cheque Especial</label>
+      <input id="limiteChequeEspecial" type="number" pInputText [(ngModel)]="limiteChequeEspecial" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="0,00" [disabled]="readonly" />
+    </div>
+
+    <div class="md:col-span-4 flex items-center pt-4">
+      <div class="flex items-center gap-2 group cursor-pointer">
+        <p-checkbox [(ngModel)]="snAtivo" [binary]="true" inputId="snAtivo" [disabled]="readonly" />
+        <label for="snAtivo" class="text-xs font-bold text-slate-700 cursor-pointer group-hover:text-blue-600 transition-colors">Conta Ativa</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+    <button (click)="cancelar()"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors">
+      Cancelar
+    </button>
+    <button *ngIf="!readonly" (click)="salvar()"
+            class="px-5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#635bff] hover:bg-[#5851eb] transition-colors shadow-sm flex items-center gap-2 active:scale-95">
+      <i class="pi pi-check text-[10px]"></i> Salvar
+    </button>
+  </div>
+</div>

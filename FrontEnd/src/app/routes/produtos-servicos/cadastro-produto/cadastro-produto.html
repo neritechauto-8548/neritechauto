@@ -1,0 +1,223 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- Action Bar (Sticky Top) -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+      <div class="flex items-center gap-4">
+          <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+              <i class="pi pi-arrow-left text-sm"></i>
+          </button>
+          <div>
+              <h1 class="text-base font-semibold text-slate-900 leading-tight">
+                  {{ editingId ? 'Editar Produto' : 'Novo Produto' }}
+              </h1>
+              <span class="text-xs text-slate-500 font-normal">
+                  {{ editingId ? 'Editando registro #' + editingId : 'Preencha os dados abaixo' }}
+              </span>
+          </div>
+      </div>
+
+      <div class="flex gap-3 items-center">
+          <button *ngIf="!!editingId" (click)="excluirProduto()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+             <i class="pi pi-trash text-[13px]"></i> Excluir
+          </button>
+          <div *ngIf="!!editingId" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+              Cancelar
+          </button>
+          <button (click)="salvar()" [disabled]="loading" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+              <i class="pi pi-check text-xs" *ngIf="!loading"></i>
+              <i class="pi pi-spin pi-spinner text-xs" *ngIf="loading"></i>
+              {{ loading ? 'Salvando...' : 'Salvar Produto' }}
+          </button>
+      </div>
+  </div>
+
+  <div class="p-6 w-full space-y-8" [ngClass]="{'w-full': !modalMode}">
+
+    <!-- Loading State -->
+    <div *ngIf="loading && !form.value.nome" class="flex flex-col items-center justify-center py-12">
+        <i class="pi pi-spin pi-spinner text-3xl text-blue-500 mb-3"></i>
+        <p class="text-slate-500 text-sm">Carregando dados do produto...</p>
+    </div>
+
+    <ng-container *ngIf="(!loading && form) || form.value.nome">
+        <!-- Content Area -->
+        <div class="animate-fade-in-up space-y-6" [formGroup]="form">
+
+            <!-- Section: Dados Gerais -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-sm">Identificação e Detalhes</h3>
+                    <div class="flex items-center gap-2">
+                        <p-checkbox formControlName="ativo" [binary]="true" inputId="ativo" />
+                        <label for="ativo" class="text-sm font-bold text-slate-700 cursor-pointer">Produto Ativo</label>
+                    </div>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <!-- Linha 1: Códigos -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Código Interno *</label>
+                        <input pInputText formControlName="codigoInterno" class="w-full modern-input" maxlength="50" placeholder="Ex: PRD-001" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Código de Barras (EAN)</label>
+                        <input pInputText formControlName="codigoBarras" class="w-full modern-input" maxlength="50" placeholder="789..." />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Cód. Fabricante (Referência)</label>
+                        <input pInputText formControlName="codigoFabricante" class="w-full modern-input" maxlength="50" />
+                    </div>
+
+                    <!-- Linha 2: Nome -->
+                    <div class="md:col-span-3 space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Nome do Produto *</label>
+                        <input pInputText formControlName="nome" class="w-full modern-input text-base font-medium" maxlength="255" placeholder="Nome principal do produto" />
+                    </div>
+
+                    <!-- Linha 3: Marca e Modelo -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Marca</label>
+                        <input pInputText formControlName="marca" class="w-full modern-input" maxlength="100" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Modelo</label>
+                        <input pInputText formControlName="modelo" class="w-full modern-input" maxlength="100" />
+                    </div>
+                    <div class="hidden md:block"></div><!-- Spacer -->
+
+                    <!-- Linha 4: Categoria e UM -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Categoria</label>
+                        <p-select formControlName="categoriaId" [options]="categoriaOptions"
+                            optionLabel="label" optionValue="value"
+                            placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Unidade de Medida</label>
+                        <p-select formControlName="unidadeMedidaId" [options]="unidadeOptions"
+                            optionLabel="label" optionValue="value"
+                            placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body" />
+                    </div>
+                    <div class="hidden md:block"></div><!-- Spacer -->
+
+                    <!-- Linha 5: Descrição -->
+                    <div class="md:col-span-3 space-y-1 mt-2">
+                        <label class="text-xs font-bold text-slate-700">Descrição Detalhada / Aplicação</label>
+                        <textarea pTextarea formControlName="descricao" rows="3" class="w-full modern-input" placeholder="Detalhes adicionais, aplicação em veículos, especificações técnicas..."></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Section: Preços -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm">Precificação</h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Preço de Custo *</label>
+                        <p-inputnumber formControlName="precoCusto" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Margem de Lucro (%)</label>
+                        <p-inputnumber formControlName="margemLucroPercentual" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Preço de Venda Final *</label>
+                        <p-inputnumber formControlName="precoVenda" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" [ngClass]="{'ring-2 ring-blue-500/50 shadow-sm': form.get('precoVenda')?.dirty}" styleClass="w-full modern-input bg-blue-50/30" inputStyleClass="w-full border-0 focus:ring-0 shadow-none font-bold text-blue-800 !bg-transparent px-0" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Estoque -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm">Gestão de Estoque</h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Estoque Atual</label>
+                        <p-inputnumber formControlName="quantidadeEstoque" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Estoque Mínimo (Alerta)</label>
+                        <p-inputnumber formControlName="estoqueMinimo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Estoque Máximo</label>
+                        <p-inputnumber formControlName="estoqueMaximo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                    </div>
+
+                    <div class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 md:pt-6">
+                        <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <p-checkbox formControlName="controlaLote" [binary]="true" inputId="controlaLote" class="mt-0.5" />
+                            <div>
+                                <label for="controlaLote" class="text-sm font-bold text-slate-700 cursor-pointer block mb-0.5">Controla Lote</label>
+                                <span class="text-xs text-slate-500 block">Exige o preenchimento do número do lote nas entradas e saídas de estoque.</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <p-checkbox formControlName="controlaValidade" [binary]="true" inputId="controlaValidade" class="mt-0.5" />
+                            <div>
+                                <label for="controlaValidade" class="text-sm font-bold text-slate-700 cursor-pointer block mb-0.5">Controla Validade</label>
+                                <span class="text-xs text-slate-500 block">Exige o preenchimento da data de validade de cada lote recebido ou produzido.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Fiscal -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                    <h3 class="font-bold text-slate-800 text-sm">Classificação Tributária</h3>
+                </div>
+
+                <div class="px-6 pt-4">
+                     <div class="bg-amber-50 border border-amber-200/50 p-3 rounded-lg text-sm text-amber-800 flex items-start gap-2 shadow-sm">
+                        <i class="pi pi-info-circle mt-0.5 text-amber-500"></i>
+                        <p>A tributação detalhada de NF-e (ICMS, IPI, PIS, COFINS) é gerenciada pelas Regras Fiscais vinculadas ao Perfil da Empresa ou Regras de CFOP. Classifique aqui apenas os dados base do produto.</p>
+                    </div>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">NCM</label>
+                        <input pInputText formControlName="ncm" class="w-full modern-input font-mono text-sm" placeholder="0000.00.00" maxlength="8" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">CEST</label>
+                        <input pInputText formControlName="cest" class="w-full modern-input font-mono text-sm" placeholder="00.000.00" maxlength="7" />
+                    </div>
+                     <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Origem da Mercadoria</label>
+                        <p-select formControlName="origemProduto" [options]="origemOptions"
+                            optionLabel="label" optionValue="value"
+                            placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Extras -->
+             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm">Outras Informações</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Observações Internas</label>
+                        <textarea pTextarea formControlName="observacoes" rows="3" class="w-full modern-input" placeholder="Anotações para controle interno e equipe..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </ng-container>
+  </div>
+
+  <p-confirmDialog [style]="{width: '450px'}" />
+</div>

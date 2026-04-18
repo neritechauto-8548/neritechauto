@@ -1,0 +1,21 @@
+CREATE TABLE tabelas_precos (
+    id BIGSERIAL PRIMARY KEY,
+    empresa_id BIGINT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    tipo_tabela VARCHAR(20),
+    grupo_cliente_id BIGINT,
+    margem_lucro_padrao DECIMAL(5,2),
+    desconto_maximo_permitido DECIMAL(5,2) DEFAULT 0,
+    data_inicio DATE,
+    data_fim DATE,
+    ativo BOOLEAN DEFAULT TRUE,
+    padrao BOOLEAN DEFAULT FALSE,
+    observacoes TEXT,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_por BIGINT,
+    atualizado_por BIGINT,
+    versao INT DEFAULT 0,
+    CONSTRAINT fk_tabela_preco_empresa FOREIGN KEY (empresa_id) REFERENCES empresa(id)
+);

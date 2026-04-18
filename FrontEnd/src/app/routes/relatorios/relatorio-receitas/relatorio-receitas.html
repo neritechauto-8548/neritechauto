@@ -1,0 +1,29 @@
+<p-panel [toggleable]="true" [collapsed]="false">
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <div class="header-left">
+        <span class="material-icons icon-success">insights</span>
+        <span class="title">RECEBIMENTO <small class="muted">últimos 12 meses</small></span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" type="button" aria-label="Expandir">
+          <span class="material-icons">fullscreen</span>
+        </button>
+        <button class="icon-btn" type="button" aria-label="Fixar">
+          <span class="material-icons">push_pin</span>
+        </button>
+
+        <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text" (click)="menu.toggle($event)" aria-label="Menu de download"></button>
+        <p-menu #menu [popup]="true" [model]="menuItems" />
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="chart-box">
+    <div class="bar-placeholder">
+      <div class="bar-label">100,00</div>
+      <div class="bar-bottom">novembro</div>
+    </div>
+    <div class="foot-note">Exibindo somente os meses com receita</div>
+  </div>
+</p-panel>

@@ -1,0 +1,13 @@
+.panel-header { display:flex; align-items:center; justify-content:space-between; }
+.header-left { display:flex; align-items:center; gap:.5rem; }
+.icon-success { color:#2ecc71; }
+.panel-header .title { font-weight:600; }
+.panel-header .muted { color: var(--text-muted, #6b7280); font-weight:400; }
+.header-actions { display:flex; align-items:center; gap:.25rem; }
+.icon-btn { background:transparent; border:none; padding:.25rem; cursor:pointer; border-radius:.375rem; }
+.icon-btn:hover { background:#f3f4f6; }
+.chart-box { border:1px solid #e5e7eb; border-radius:.5rem; padding:1rem; position:relative; }
+.bar-placeholder { height:360px; background:rgba(0,153,255,.08); border:2px dashed #8ec5ff; position:relative; }
+.bar-label { position:absolute; top:8px; left:50%; transform:translateX(-50%); color:#6b7280; font-size:.85rem; }
+.bar-bottom { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); color:#6b7280; font-size:.85rem; }
+.foot-note { margin-top:.5rem; font-size:.85rem; color:#6b7280; }

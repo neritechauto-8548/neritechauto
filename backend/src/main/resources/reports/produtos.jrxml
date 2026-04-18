@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="produtos" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abcd">
+    <queryString>
+        <![CDATA[]]>
+    </queryString>
+    <field name="nome" class="java.lang.String"/>
+    <field name="precoVenda" class="java.math.BigDecimal"/>
+    <background>
+        <band splitType="Stretch"/>
+    </background>
+    <title>
+        <band height="79" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="79" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abce"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="24" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Relatório de Produtos]]></text>
+            </staticText>
+        </band>
+    </title>
+    <detail>
+        <band height="30" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="300" height="30" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abcf"/>
+                <textFieldExpression><![CDATA[$F{nome}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="300" y="0" width="100" height="30" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abd0"/>
+                <textFieldExpression><![CDATA[$F{precoVenda}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

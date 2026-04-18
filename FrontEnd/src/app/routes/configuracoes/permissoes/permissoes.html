@@ -1,0 +1,146 @@
+<div class="min-h-screen bg-slate-50">
+
+  <!-- Sticky top bar -->
+  <div class="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+    <div class="flex items-center justify-between px-6 py-3">
+      <div>
+        <h1 class="text-base font-bold text-slate-900">Permissões & Funções</h1>
+        <p class="text-xs text-slate-500">Gerencie as funções (roles) e suas permissões de acesso</p>
+      </div>
+      <button (click)="abrirDialog()"
+        class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+        <span class="material-icons text-base">add</span>
+        Nova Função
+      </button>
+    </div>
+  </div>
+
+  <div class="px-6 py-6 space-y-6">
+
+    <!-- Funcoes list -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm">Funções Cadastradas</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Cada função agrupa um conjunto de permissões atribuídas aos usuários</p>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-100">
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Função</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Descrição</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Permissões</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of funcoes" class="border-b border-slate-100 hover:bg-slate-50/50">
+            <td class="px-4 py-3">
+              <div class="font-semibold text-slate-900">{{ f.nome }}</div>
+              <div *ngIf="f.sistema" class="text-xs text-amber-600 font-medium">Sistema</div>
+            </td>
+            <td class="px-4 py-3 text-slate-600 text-xs">{{ f.descricao || '—' }}</td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                <span *ngFor="let p of f.permissoes.slice(0, 5)"
+                  class="inline-flex px-1.5 py-0.5 rounded text-xs bg-purple-50 text-purple-700 font-medium border border-purple-100">
+                  {{ p.nome }}
+                </span>
+                <span *ngIf="f.permissoes.length > 5"
+                  class="inline-flex px-1.5 py-0.5 rounded text-xs bg-slate-100 text-slate-500">
+                  +{{ f.permissoes.length - 5 }}
+                </span>
+                <span *ngIf="f.permissoes.length === 0" class="text-xs text-slate-400">Nenhuma</span>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <span [class]="f.ativo
+                ? 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700'
+                : 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600'">
+                {{ f.ativo ? 'Ativa' : 'Inativa' }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="funcoes.length === 0">
+            <td colspan="4" class="px-4 py-12 text-center text-sm text-slate-500">
+              <span class="material-icons text-4xl text-slate-300 block mb-2">manage_accounts</span>
+              Nenhuma função cadastrada.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Permissoes reference grouped by module -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm">Permissões Disponíveis</h3>
+        <p class="text-xs text-slate-500 mt-0.5">Todas as permissões do sistema, agrupadas por módulo</p>
+      </div>
+      <div class="p-6 space-y-6">
+        <div *ngFor="let mod of modulosPermissoes">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">{{ mod.modulo || 'Geral' }}</h4>
+          <div class="flex flex-wrap gap-2">
+            <div *ngFor="let p of mod.permissoes"
+              class="flex flex-col px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs min-w-24">
+              <span class="font-bold text-slate-700">{{ p.nome }}</span>
+              <span *ngIf="p.descricao" class="text-slate-400 mt-0.5 text-[10px]">{{ p.descricao }}</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="modulosPermissoes.length === 0" class="text-center py-6 text-sm text-slate-400">
+          Nenhuma permissão encontrada no sistema.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Dialog: Nova Função -->
+<div *ngIf="dialogOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <h2 class="font-bold text-slate-900">Nova Função</h2>
+      <button (click)="fecharDialog()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100">
+        <span class="material-icons text-slate-500">close</span>
+      </button>
+    </div>
+    <div class="p-6 space-y-5 overflow-y-auto">
+      <div class="space-y-1">
+        <label class="text-xs font-bold text-slate-700">Nome da Função *</label>
+        <input [(ngModel)]="novaFuncao.nome" class="w-full modern-input" placeholder="Ex: GERENTE_FINANCEIRO" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs font-bold text-slate-700">Descrição</label>
+        <input [(ngModel)]="novaFuncao.descricao" class="w-full modern-input" placeholder="Descreva as responsabilidades" />
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs font-bold text-slate-700">Permissões</label>
+        <div class="max-h-56 overflow-y-auto space-y-4 border border-slate-200 rounded-lg p-3 bg-slate-50">
+          <div *ngFor="let mod of modulosPermissoes" class="space-y-1.5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{{ mod.modulo || 'Geral' }}</p>
+            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+              <label *ngFor="let p of mod.permissoes" class="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox"
+                  [checked]="novaFuncao.permissoesIds.includes(p.id)"
+                  (change)="togglePermissao(p.id, $any($event.target).checked)"
+                  class="w-4 h-4 accent-[#635bff]" />
+                <span class="text-xs text-slate-700">{{ p.nome }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 px-6 py-4 border-t border-slate-100 flex-shrink-0">
+      <button (click)="fecharDialog()"
+        class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+        Cancelar
+      </button>
+      <button (click)="salvarFuncao()" [disabled]="salvando"
+        class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition-colors">
+        {{ salvando ? 'Salvando...' : 'Criar Função' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+.panel-header { display:flex; align-items:center; justify-content:space-between; }
+.header-left { display:flex; align-items:center; gap:.5rem; }
+.icon-success { color:#2ecc71; }
+.panel-header .title { font-weight:600; }
+.panel-header .muted { color: var(--text-muted, #6b7280); font-weight:400; }
+
+.chart-area { position:relative; height:420px; border:1px solid #e5e7eb; border-radius:.5rem; background-image: linear-gradient(to bottom, #eef2f7 1px, transparent 1px); background-size: 100% 40px; margin-bottom: .5rem; }
+.floating-download { position:absolute; top:12px; right:12px; background:#fff; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+.zero-line { position:absolute; left:0; right:0; top:200px; height:2px; background:#22c55e; }
+
+.bar { position:absolute; right:64px; width:44px; border-radius:4px; }
+.bar-receita { top:120px; height:32px; background:#8ec5ff; }
+.bar-despesa { top:210px; bottom:18px; background:#f28b82; }
+.value-label { position:absolute; left:50%; transform:translateX(-50%); color:#374151; font-size:.8rem; }
+.value-label.top { top:-22px; }
+.value-label.bottom { bottom:-22px; }
+
+.result-line-svg { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
+
+.months { position:absolute; left:24px; right:24px; bottom:-24px; display:flex; justify-content:space-between; color:#6b7280; font-size:.8rem; }
+
+.legend { display:flex; gap:2rem; align-items:center; padding:.5rem 0 .25rem; color:#6b7280; }
+.legend-item { display:flex; align-items:center; gap:.5rem; }
+.marker { display:inline-block; width:18px; height:12px; border-radius:2px; }
+.marker.red { background:#f28b82; }
+.marker.blue { background:#8ec5ff; }
+.marker.green-line { width:24px; height:2px; border-radius:0; background:#22c55e; }

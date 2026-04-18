@@ -1,0 +1,236 @@
+<div class="min-h-screen bg-slate-50 p-4 md:p-6 font-sans">
+  <p-toast />
+
+  <!-- Cabeçalho Principal -->
+  <div class="max-w-7xl mx-auto flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <mat-icon class="!text-[28px] !w-[28px] !h-[28px] text-indigo-600">storefront</mat-icon>
+            Caixa Rápido (PDV)
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">Registre suas vendas presenciais de forma ágil e descomplicada.</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <button pButton icon="pi pi-times" label="Sair do PDV" class="p-button-text p-button-secondary" (click)="fechar()"></button>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LADO ESQUERDO: Formulários e Buscar -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+
+        <!-- Informações do Cliente -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+             <div class="flex items-center gap-2 mb-4">
+                 <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                     <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">person</mat-icon>
+                 </div>
+                 <h2 class="text-lg font-semibold text-slate-800">Identificação (Opcional)</h2>
+             </div>
+
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="flex flex-col gap-2">
+                     <label class="text-xs font-semibold text-slate-600 ml-1">Cliente Vinculado</label>
+                     <p-autoComplete
+                         [(ngModel)]="clienteSelecionado"
+                         [suggestions]="clienteFiltrados"
+                         (completeMethod)="pesquisarCliente($event)"
+                         field="label"
+                         placeholder="Buscar por nome, CPF/CNPJ..."
+                         [dropdown]="true"
+                         styleClass="w-full"
+                         inputStyleClass="w-full !px-3 !py-2.5 !bg-slate-50 !border-slate-200 !rounded-lg text-sm focus:!border-indigo-500 hover:!bg-white transition-all">
+                         <ng-template let-c pTemplate="item">
+                             <div class="flex flex-col">
+                                 <span class="font-medium text-slate-700 text-sm">{{ c.label }}</span>
+                                 <span class="text-[11px] text-slate-400 font-mono" *ngIf="c.cpf || c.cnpj">{{ c.cpf || c.cnpj }}</span>
+                             </div>
+                         </ng-template>
+                     </p-autoComplete>
+                 </div>
+
+                 <div class="flex flex-col gap-2">
+                     <label class="text-xs font-semibold text-slate-600 ml-1">Operador de Caixa / Vendedor *</label>
+                     <p-select
+                         [options]="vendedores"
+                         [(ngModel)]="vendedorSelecionado"
+                         optionLabel="nome"
+                         class="w-full"
+                         styleClass="w-full border shadow-none !bg-slate-50 !border-slate-200 !rounded-lg text-sm font-medium text-slate-700 hover:!bg-white focus:!border-indigo-500 transition-all">
+                     </p-select>
+                 </div>
+             </div>
+        </div>
+
+        <!-- Adição de Produtos -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+             <div class="flex items-center gap-2 mb-4">
+                 <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                     <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">shopping_cart</mat-icon>
+                 </div>
+                 <h2 class="text-lg font-semibold text-slate-800">Lançar Produtos / Serviços</h2>
+             </div>
+
+             <div class="flex flex-col gap-4">
+                 <div class="flex flex-col gap-2">
+                    <label class="text-xs font-semibold text-slate-600 ml-1">Buscar no Catálogo *</label>
+                    <p-autoComplete
+                        [(ngModel)]="produtoSelecionado"
+                        [suggestions]="produtoFiltrados"
+                        (completeMethod)="pesquisarProduto($event)"
+                        (onSelect)="onProdutoSelect($event)"
+                        field="label"
+                        placeholder="Nome do produto ou código barras..."
+                        [dropdown]="true"
+                        styleClass="w-full"
+                        inputStyleClass="w-full !px-3 !py-2.5 !bg-slate-50 !border-slate-200 !rounded-lg text-sm focus:!border-indigo-500 hover:!bg-white transition-all">
+                        <ng-template let-p pTemplate="item">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-slate-700 text-sm">{{ p.label }}</span>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[10px] text-slate-500 font-mono bg-slate-100 px-1 py-0.5 rounded">{{ p.codigoInterno || 'S/C' }}</span>
+                                    <span class="text-[11px] font-semibold text-emerald-600">R$ {{ p.precoVenda | number:'1.2-2' }}</span>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </p-autoComplete>
+                 </div>
+
+                 <!-- Valores e Inclusao -->
+                 <div class="grid grid-cols-12 gap-3 items-end">
+                     <div class="col-span-4 sm:col-span-3">
+                         <label class="block text-xs font-semibold text-slate-600 ml-1 mb-1.5">Qtd.</label>
+                         <input pInputText type="number" [(ngModel)]="qtd" min="1" class="w-full !px-3 !py-2 !bg-slate-50 !border-slate-200 !rounded-lg text-center font-bold text-slate-700 outline-none focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 transition-all"/>
+                     </div>
+                     <div class="col-span-4 sm:col-span-3">
+                         <label class="block text-xs font-semibold text-slate-600 ml-1 mb-1.5">R$ Unit</label>
+                         <input pInputText type="number" [(ngModel)]="valorUnit" class="w-full !px-3 !py-2 !bg-slate-50 !border-slate-200 !rounded-lg text-right font-medium text-slate-700 outline-none focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 transition-all"/>
+                     </div>
+                     <div class="col-span-4 sm:col-span-3">
+                         <label class="block text-xs font-semibold text-slate-600 ml-1 mb-1.5">Desc %</label>
+                         <input pInputText type="number" [(ngModel)]="descPercent" class="w-full !px-3 !py-2 !bg-slate-50 !border-slate-200 !rounded-lg text-center text-slate-700 outline-none focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500 transition-all"/>
+                     </div>
+                     <div class="col-span-12 sm:col-span-3 mt-3 sm:mt-0">
+                         <button (click)="incluirItem()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-slate-300 outline-none flex items-center justify-center gap-2">
+                             <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+                             Incluir
+                         </button>
+                     </div>
+                 </div>
+             </div>
+        </div>
+
+    </div>
+
+    <!-- LADO DIREITO: Cupom / Finalização -->
+    <div class="lg:col-span-5 flex flex-col h-full gap-4">
+
+        <!-- Extrato Cartão Branco -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+
+            <!-- Cupom Header -->
+            <div class="bg-slate-800 text-white px-5 py-4 flex items-center justify-between border-b border-slate-700">
+               <div class="flex items-center gap-2">
+                  <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-slate-300">receipt_long</mat-icon>
+                  <span class="font-bold tracking-wide">CUPOM FISCAL / VENDA</span>
+               </div>
+               <span class="text-xs text-slate-400">{{ dataHoje }}</span>
+            </div>
+
+            <!-- Caixa Livre View -->
+            <div *ngIf="caixaLivre" class="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50">
+                <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mb-4 border-4 border-white shadow-sm">
+                   <mat-icon class="!text-4xl text-indigo-500">point_of_sale</mat-icon>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 tracking-tight">CAIXA LIVRE</h3>
+                <p class="text-sm text-slate-500 text-center mt-2 max-w-[250px]">Adicione produtos no painel ao lado para iniciar uma nova venda.</p>
+            </div>
+
+            <!-- Carrinho View -->
+            <div *ngIf="!caixaLivre" class="flex-1 flex flex-col border-b border-slate-100 bg-white">
+                <div class="max-h-[350px] overflow-y-auto w-full">
+                    <table class="w-full text-left border-collapse">
+                      <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm border-b border-slate-200">
+                        <tr>
+                            <th class="py-2.5 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[15%]">Cód</th>
+                            <th class="py-2.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[45%]">Item</th>
+                            <th class="py-2.5 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right w-[15%]">Qtd</th>
+                            <th class="py-2.5 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right w-[20%]">R$ Tot</th>
+                            <th class="py-2.5 px-2 w-[5%]"></th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        <tr *ngFor="let it of itens; let i = index" class="hover:bg-slate-50 transition-colors group">
+                             <td class="py-3 px-4 align-middle">
+                                 <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-1 py-0.5 rounded">{{ it.codigo }}</span>
+                             </td>
+                             <td class="py-3 px-2 align-middle">
+                                 <span class="text-xs font-semibold text-slate-700 truncate block max-w-[150px]" [title]="it.descricao">{{ it.descricao }}</span>
+                                 <span class="text-[10px] text-slate-400 block mt-0.5" *ngIf="it.descontoPercent > 0">Desc: {{it.descontoPercent}}%</span>
+                             </td>
+                             <td class="py-3 px-2 align-middle text-right text-xs text-slate-600 font-medium">{{ it.qtd }}x</td>
+                             <td class="py-3 px-4 align-middle text-right text-xs font-bold text-slate-800">{{ it.total | number:'1.2-2' }}</td>
+                             <td class="py-3 px-2 align-middle text-center">
+                                 <button (click)="removerItem(i)" class="w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                                     <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">delete</mat-icon>
+                                 </button>
+                             </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer Total -->
+                <div class="mt-auto px-6 py-5 bg-indigo-50/50 flex flex-col gap-1 border-t border-indigo-100 shadow-[inset_0_2px_10px_-10px_rgba(0,0,0,0.1)]">
+                    <div class="flex justify-between items-center text-slate-500 text-sm">
+                        <span>Total de Itens</span>
+                        <span class="font-medium">{{ itens.length }}</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <span class="text-sm font-bold text-slate-700 uppercase tracking-widest">Valor Pagar</span>
+                        <span class="text-3xl font-black text-indigo-700 tracking-tight">
+                            <span class="text-lg font-bold text-indigo-500 mr-1">R$</span>{{ totalGeral | number:'1.2-2' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forma de Pagamento -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-all" [ngClass]="{'opacity-50 pointer-events-none grayscale': caixaLivre}">
+             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+                 <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-emerald-500">payments</mat-icon>
+                 Forma de Recebimento
+             </label>
+             <p-select
+                 [options]="formasPagamento"
+                 [(ngModel)]="formaPagamentoSelecionada"
+                 optionLabel="nome"
+                 class="w-full"
+                 styleClass="w-full border shadow-none !px-1 !py-0.5 !bg-indigo-50/30 !border-indigo-100 !rounded-lg text-sm font-bold text-indigo-700 focus:!border-indigo-500 hover:!bg-indigo-50/60 transition-colors">
+             </p-select>
+        </div>
+
+        <!-- Botão Finalizar Gigante -->
+        <button
+           (click)="guardarVenda()"
+           [disabled]="caixaLivre || salvando"
+           class="w-full py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-white font-bold text-lg shadow-lg shadow-indigo-200 transition-all focus:outline-none focus:ring-4 focus:ring-indigo-200 overflow-hidden relative"
+           [ngClass]="(caixaLivre || salvando) ? 'bg-slate-300 cursor-not-allowed shadow-none border border-slate-200 text-slate-500' : 'bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md cursor-pointer'">
+
+           <ng-container *ngIf="!salvando">
+               <mat-icon *ngIf="!caixaLivre" class="!w-6 !h-6 !text-[24px]">check_circle</mat-icon>
+               <span>{{ caixaLivre ? 'Caixa Aguardando...' : 'Finalizar Venda (F2)' }}</span>
+           </ng-container>
+
+           <ng-container *ngIf="salvando">
+               <i class="pi pi-spin pi-spinner text-xl"></i>
+               <span>Emitindo Cupom...</span>
+           </ng-container>
+        </button>
+
+    </div>
+
+  </div>
+</div>

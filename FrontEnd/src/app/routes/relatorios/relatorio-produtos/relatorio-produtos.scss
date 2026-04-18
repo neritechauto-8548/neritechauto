@@ -1,0 +1,97 @@
+.relatorio-produtos {
+  font-size: 14px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+}
+
+.btn:hover { background: #f5f5f5; }
+.btn-primary { background: #1976d2; color: #fff; border-color: #1976d2; }
+.btn-primary:hover { background: #1565c0; }
+.btn-print { background: #e3f2fd; color: #1565c0; border-color: #bbdefb; }
+
+.material-icons { font-size: 18px; }
+
+.panel {
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #287ae6;
+  color: #fff;
+  padding: 10px 12px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.panel-header .title { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.panel-header .actions { display: inline-flex; gap: 12px; opacity: 0.85; }
+
+.filters {
+  display: grid;
+  grid-template-columns: 160px 180px 160px 160px 1fr 140px;
+  gap: 12px;
+  padding: 12px;
+  align-items: end;
+}
+
+.filter-group label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
+.filter-group select,
+.filter-group input { width: 100%; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
+.filter-group.grow { grid-column: 5 / span 1; }
+
+.hint { padding: 0 12px 8px; color: #666; font-size: 12px; }
+
+.table-wrapper { padding: 12px; }
+.table { width: 100%; border-collapse: collapse; }
+.table thead th { background: #f6f8fb; border-bottom: 1px solid #e0e0e0; text-align: left; padding: 8px; }
+.table tbody td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: middle; }
+
+.options summary { cursor: pointer; display: inline-block; padding: 4px 8px; background: #f4f4f4; border: 1px solid #ccc; border-radius: 4px; }
+.options ul { list-style: none; margin: 6px 0 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; background: #fff; width: 180px; }
+.options li { display: flex; align-items: center; gap: 6px; padding: 4px 2px; }
+
+.estoque .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+.badge-blue { background: #e3f2fd; color: #0d47a1; }
+.badge-red { background: #ffebee; color: #b71c1c; }
+.stock-minmax { font-size: 11px; color: #666; }
+
+.pagination { display: flex; gap: 12px; align-items: center; padding: 12px; }
+.page-info { color: #333; }
+.itens { color: #666; font-size: 12px; }
+
+/* Impressão */
+.print-actions { display: flex; gap: 12px; padding: 12px; }
+.reduce { display: block; padding: 0 12px 12px; color: #333; }
+
+.print-header { display: flex; gap: 16px; align-items: center; padding: 12px; border-bottom: 1px solid #ddd; }
+.print-header img { width: 64px; height: 64px; object-fit: contain; }
+.company { font-size: 13px; color: #333; }
+.print-title { text-align: center; font-size: 18px; font-weight: 600; padding: 12px; }
+
+.print-table thead th { background: #eee; }
+.totals { padding: 12px; font-weight: 600; }
+
+@media print {
+  .toolbar, .filters, .pagination, .hint, .panel-header .actions, .print-actions, .reduce { display: none !important; }
+  .panel { border: none; }
+}

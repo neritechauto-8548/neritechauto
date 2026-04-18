@@ -1,0 +1,105 @@
+<div class="flex flex-col h-full gap-6">
+
+  <!-- Header Section -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3">
+         <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center border border-rose-100 text-rose-600">
+             <mat-icon>block</mat-icon>
+         </div>
+         <div>
+             <h2 class="text-slate-800 font-semibold text-lg leading-tight w-full m-0 p-0">Inutilização de Numeração NFe</h2>
+             <span class="text-xs text-slate-500 font-medium tracking-wide">Comunique à SEFAZ quebras de sequência na numeração das Notas Fiscais</span>
+         </div>
+      </div>
+      <button (click)="abrirFormulario()" class="px-4 py-2 text-sm font-medium rounded-lg border border-transparent bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow-sm flex items-center gap-2">
+           <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+           Nova Inutilização
+      </button>
+  </div>
+
+  <!-- Data Table (Empty State) -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[10%]">Série</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%]">Faixa Numérica</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%]">Protocolo SEFAZ</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[35%]">Justificativa</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%] text-right">Data Inutilização</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[10%] text-center">Situação</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <tr *ngFor="let i of solicitacoes" class="group hover:bg-gray-50 transition-colors">
+                    <!-- Iteracao futura -->
+                </tr>
+                <tr *ngIf="solicitacoes.length === 0">
+                    <td colspan="6" class="py-16 text-center text-slate-500 text-sm">
+                        <div class="flex flex-col items-center gap-3 text-slate-400">
+                          <div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                             <mat-icon class="!text-3xl text-slate-400">receipt_long</mat-icon>
+                          </div>
+                          <p class="text-sm font-medium text-slate-500">Nenhum registro de inutilização de sequência numérica efetuado.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+  </div>
+
+  <!-- Dialog Form Inutilização -->
+  <p-dialog [(visible)]="formVisible" [modal]="true" [dismissableMask]="true" header="Solicitar Inutilização" [style]="{width:'650px', borderRadius:'12px'}">
+     <div class="flex flex-col gap-4 pt-4">
+         <p class="text-sm text-slate-500 mb-2">Informe a série e as numerações (inicial e final) que não puderam e não serão utilizadas em decorrência de quebras de sequenciamento lógico.</p>
+
+         <div class="flex flex-row gap-4">
+             <div class="flex flex-col gap-1.5 w-1/4">
+                 <label class="text-xs font-semibold text-slate-600">Série</label>
+                 <input pInputText [(ngModel)]="serie" placeholder="Ex: 1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center" />
+             </div>
+             <div class="flex flex-col gap-1.5 flex-1">
+                 <label class="text-xs font-semibold text-slate-600">Nº Inicial Descartado</label>
+                 <input pInputText type="number" [(ngModel)]="numeroInicial" placeholder="Ex: 100" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+             </div>
+             <div class="flex flex-col gap-1.5 flex-1">
+                 <label class="text-xs font-semibold text-slate-600">Nº Final Descartado</label>
+                 <input pInputText type="number" [(ngModel)]="numeroFinal" placeholder="Ex: 105" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+             </div>
+         </div>
+
+         <div class="flex flex-col gap-1.5 mt-2">
+             <label class="text-xs font-semibold text-slate-600">Motivo (Justificativa legal)</label>
+             <textarea [(ngModel)]="justificativa" rows="3" placeholder="Por que essa numeração foi pulada ou perdida? Descreva com o mínimo de 15 caracteres..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow"></textarea>
+         </div>
+     </div>
+
+     <ng-template pTemplate="footer">
+         <div class="flex justify-end gap-3 mt-4">
+             <button pButton label="Cancelar" class="p-button-text p-button-secondary text-slate-600" (click)="fecharFormulario()"></button>
+             <button pButton label="Inutilizar Intervalo" class="p-button-danger !bg-rose-600 !border-rose-600 hover:!bg-rose-700" icon="pi pi-check" (click)="solicitarInutilizacao()"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <!-- Confirm -->
+  <p-dialog [(visible)]="confirmVisible" [modal]="true" header="Confirmação de Integridade" [style]="{width:'450px'}">
+     <div class="text-sm text-slate-600 my-4 text-center">Você está declarando na SEFAZ que os números <b class="text-rose-600">{{numeroInicial}} até {{numeroFinal}}</b> JAMAIS serão emitidos sob hipótese alguma. Este procedimento é <b class="text-rose-600">IRREVERSÍVEL</b>.</div>
+     <ng-template pTemplate="footer">
+         <div class="flex justify-center gap-3">
+             <button pButton label="Revisar" class="p-button-text" (click)="confirmVisible=false"></button>
+             <button pButton label="SIM, CONFIRMO INUTILIZAR" class="p-button-danger" (click)="confirmarInutilizacao()"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <!-- Loading -->
+  <p-dialog [(visible)]="loadingVisible" [modal]="true" [closable]="false" [dismissableMask]="false" [style]="{width:'300px'}">
+      <div class="flex flex-col items-center justify-center gap-4 py-6">
+          <i class="pi pi-spin pi-spinner text-3xl text-rose-600"></i>
+          <span class="text-sm font-medium text-slate-700">Comunhão c/ SEFAZ estabelecida...</span>
+      </div>
+  </p-dialog>
+</div>

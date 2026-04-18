@@ -1,0 +1,57 @@
+<div class="toolbar">
+  <button pButton type="button" icon="pi pi-print" class="p-button-secondary" label="Imprimir" (click)="imprimir()"></button>
+  <button pButton type="button" icon="pi pi-send" class="p-button-warning" label="Enviar alerta" (click)="enviarAlerta()"></button>
+</div>
+
+<div class="header-bar">
+  <span class="material-icons">groups</span>
+  <span class="title">Clientes</span>
+  <div class="header-actions">
+    <span class="material-icons">done</span>
+    <span class="material-icons">edit</span>
+    <span class="material-icons">close</span>
+  </div>
+</div>
+
+<div class="filter-row">
+  <div class="field">
+    <select [(ngModel)]="mesSelecionado">
+      <option *ngFor="let m of meses" [value]="m.value">{{ m.label }}</option>
+    </select>
+  </div>
+  <button pButton type="button" class="p-button-primary" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
+</div>
+
+<div class="table-wrapper">
+  <table class="clients-table">
+    <thead>
+      <tr>
+        <th style="width:110px">Opções</th>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Celular</th>
+        <th>Data nascimento</th>
+        <th style="width:48px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of pageItems">
+        <td>
+          <button pButton type="button" class="p-button-secondary p-button-sm" label="Opções"></button>
+        </td>
+        <td>{{ c.nome }}</td>
+        <td>{{ c.email }}</td>
+        <td>{{ c.celular }}</td>
+        <td>{{ c.nascimento }}</td>
+        <td><input type="checkbox" /></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <button pButton type="button" class="p-button-text" icon="pi pi-angle-left" label="Anterior" (click)="anterior()"></button>
+    <span> Página {{ page }} de {{ totalPages }} </span>
+    <button pButton type="button" class="p-button-text" label="Proxima" iconPos="right" icon="pi pi-angle-right" (click)="proxima()"></button>
+    <span class="count">{{ total }} itens</span>
+  </div>
+</div>

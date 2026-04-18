@@ -1,0 +1,103 @@
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.panel-header .title { font-weight: 600; display:flex; align-items:center; gap:6px; }
+.panel-header .currency { background:#2e6ae6; color:#fff; font-weight:700; padding:2px 6px; border-radius:4px; }
+.panel-header .actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.icon-button.toggle { border:1px solid #cbd5e1; background:#f8fafc; padding:6px; border-radius:4px; cursor:pointer; }
+
+.filters .row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+.filters .col {
+  display: flex;
+  flex-direction: column;
+}
+.filters .btn {
+  align-items: end;
+}
+label { font-size: 12px; color: #666; margin-bottom: 4px; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { border-bottom: 1px solid #e5e7eb; padding: 8px; font-size: 13px; }
+.table thead th { background: #f8fafc; font-weight: 600; }
+
+.chip { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #fff; }
+.chip-blue { background: #60a5fa; }
+.chip-green { background: #22c55e; }
+.chip i { margin-right:6px; }
+.icon-chip { border:1px solid #cbd5e1; background:#f8fafc; padding:4px 6px; border-radius:4px; }
+
+.tipo-receita { color: #16a34a; font-weight: 700; }
+.tipo-despesa { color: #dc2626; font-weight: 700; }
+
+.totais { display: flex; gap: 16px; margin-top: 8px; font-size: 13px; }
+.totais .total-transferido { margin-left:auto; color:#1f2937; }
+.paginacao { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.registros { background: #e5efff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; }
+.goto-input { width: 42px; }
+
+/* Dialog Incluir Conta */
+.dialog-tabs {
+  border-bottom: 1px solid #e5e7eb;
+  margin: -8px -16px 12px;
+  padding: 0 16px 8px;
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+.dialog-tabs a {
+  color: #6b7280;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+.dialog-tabs a.active {
+  color: #1f2937;
+  font-weight: 600;
+  background: #f3f4f6;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+}
+.dados-grid {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.mais-grid {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.form-grid .span-2 { grid-column: 1 / span 2; }
+.form-grid .span-3 { grid-column: 1 / span 3; }
+.form-grid label { font-size: 12px; color: #666; margin-bottom: 4px; display:block; }
+.form-grid input[type='text'],
+.form-grid input[type='number'],
+.form-grid input[type='date'],
+.form-grid textarea { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+
+.dialog-footer { display:flex; justify-content:flex-end; gap:8px; }
+
+.fornecedor-row .fornecedor-input { display:flex; align-items:center; gap:8px; }
+.icon-button { border:1px solid #cbd5e1; background:#f8fafc; padding:8px; border-radius:4px; cursor:pointer; }
+.page-tabs { display:flex; gap:8px; margin:8px 0 12px; }
+.tab-button { padding:6px 10px; border:1px solid #cbd5e1; background:#f8fafc; border-radius:4px; cursor:pointer; }
+.tab-button.active { background:#e3f2fd; border-color:#90caf9; }
+.config-wrapper { margin-top: 8px; }
+.config-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+.config-grid .checks { display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; }
+.config-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }

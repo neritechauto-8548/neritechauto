@@ -1,0 +1,22 @@
+CREATE TABLE modelos_documentos (
+    id BIGSERIAL PRIMARY KEY,
+    empresa_id BIGINT NOT NULL,
+    tipo_documento VARCHAR(20),
+    nome VARCHAR(100) NOT NULL,
+    template_html TEXT NOT NULL,
+    template_css TEXT,
+    variaveis_disponiveis TEXT,
+    orientacao VARCHAR(20) DEFAULT 'RETRATO',
+    tamanho_papel VARCHAR(20) DEFAULT 'A4',
+    margens_cm VARCHAR(20) DEFAULT '2,2,2,2',
+    cabecalho_padrao BOOLEAN DEFAULT TRUE,
+    rodape_padrao BOOLEAN DEFAULT TRUE,
+    numeracao_automatica BOOLEAN DEFAULT TRUE,
+    padrao BOOLEAN DEFAULT FALSE,
+    ativo BOOLEAN DEFAULT TRUE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_por BIGINT,
+    atualizado_por BIGINT,
+    CONSTRAINT fk_modelo_doc_empresa FOREIGN KEY (empresa_id) REFERENCES empresa(id)
+);

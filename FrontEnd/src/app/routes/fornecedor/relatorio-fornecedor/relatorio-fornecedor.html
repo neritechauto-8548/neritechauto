@@ -1,0 +1,53 @@
+<div class="p-3 print-toolbar">
+  <div class="flex items-center gap-2">
+    <p-button label="Voltar" icon="pi pi-arrow-left" severity="secondary" (onClick)="voltar()" />
+    <p-button label="Imprimir" icon="pi pi-print" severity="primary" (onClick)="imprimir()" />
+  </div>
+  <hr class="my-3" />
+</div>
+
+<div class="report-container">
+  <!-- Cabeçalho com logo e dados da empresa -->
+  <div class="header">
+    <div class="logo">
+      <i class="pi pi-car text-rose-600 text-3xl"></i>
+      <span class="brand">{{ empresa.nome }}</span>
+    </div>
+    <div class="company">
+      <div class="strong">{{ empresa.fantasia }}</div>
+      <div>{{ empresa.telefone }}</div>
+      <div>{{ empresa.email }}</div>
+      <div>{{ empresa.site }}</div>
+      <div class="muted">{{ empresa.endereco }}</div>
+    </div>
+  </div>
+
+  <hr />
+
+  <h2 class="title">RELATÓRIO DE FORNECEDORES</h2>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Codigo</th>
+        <th>CNPJ/CPF</th>
+        <th>Nome</th>
+        <th>Telefone 1</th>
+        <th>Telefone 2</th>
+        <th>Telefone 3</th>
+        <th>Telefone 4</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let f of fornecedores">
+        <td>{{ f.codigo }}</td>
+        <td>{{ f.documento }}</td>
+        <td>{{ f.nome }}</td>
+        <td>{{ f.telefones[0] || '' }}</td>
+        <td>{{ f.telefones[1] || '' }}</td>
+        <td>{{ f.telefones[2] || '' }}</td>
+        <td>{{ f.telefones[3] || '' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

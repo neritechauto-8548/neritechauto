@@ -1,0 +1,105 @@
+<p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+<app-confirmation-dialog />
+
+<div class="flex flex-col h-full gap-4">
+   <!-- Actions Bar -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl mb-4 border border-slate-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-100">
+     <!-- Search -->
+     <div class="relative w-full sm:max-w-md group">
+          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+          <input
+              pInputText
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearch()"
+              placeholder="Buscar departamentos..."
+              class="w-full !pl-12 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+          />
+     </div>
+
+     <button (click)="incluir()" class="bg-[#635bff] hover:bg-[#5851eb] text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap active:scale-95">
+       <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+       <span>Novo Departamento</span>
+     </button>
+  </div>
+
+  <!-- Data Table -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full ring-1 ring-slate-100">
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-gray-50/80 border-b border-gray-200">
+          <tr>
+            <th class="py-2.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest w-[85%] align-middle">Descrição</th>
+            <th class="py-2.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest w-[15%] align-middle text-right"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+          <tr *ngFor="let item of pagedItens" class="group hover:bg-slate-50/50 transition-colors duration-200">
+            <td class="py-2 px-6 align-middle">
+              <div class="flex items-center gap-4">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shadow-sm group-hover:bg-slate-200 group-hover:text-slate-900 transition-all duration-300">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">book</mat-icon>
+                </div>
+                <span class="font-semibold text-slate-800 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="editar(item)">
+                  {{ item.descricao }}
+                </span>
+              </div>
+            </td>
+            <td class="py-2 px-6 align-middle text-right">
+              <div class="flex items-center justify-end gap-1 transition-opacity duration-300">
+                <button (click)="editar(item)" title="Editar" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-white hover:border-slate-200 shadow-sm transition-all active:scale-90 border border-transparent">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">edit</mat-icon>
+                </button>
+                <button (click)="remover(item)" title="Excluir" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-white hover:border-slate-200 shadow-sm transition-all active:scale-90 border border-transparent">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="pagedItens.length === 0 && !loading">
+            <td colspan="3" class="py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner">
+                  <mat-icon class="text-3xl text-slate-300">book</mat-icon>
+                </div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhum departamento encontrado</p>
+                <button (click)="incluir()" class="text-xs text-blue-600 font-bold hover:text-blue-800 transition-colors uppercase tracking-tight">Começar cadastrando um agora</button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Loading State -->
+          <tr *ngIf="loading">
+             <td colspan="3" class="py-16 text-center">
+                <i class="pi pi-spin pi-spinner text-blue-500 text-xl"></i>
+             </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="border-t border-slate-200 px-6 py-4 flex items-center justify-between bg-white text-slate-500 sticky bottom-0 z-10" *ngIf="catTotalRecords > 0">
+      <div class="text-[11px] font-medium tracking-tight">
+        Mostrando <span class="text-slate-900 font-bold">{{ catRangeStart }}</span> a <span class="text-slate-900 font-bold">{{ catRangeEnd }}</span> de <span class="text-slate-900 font-bold">{{ catTotalRecords }}</span> resultados
+      </div>
+      <div class="flex gap-2">
+        <button
+          [disabled]="catFirst === 0"
+          (click)="goCatPrev()"
+          class="px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2 active:scale-95"
+        >
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
+        </button>
+        <button
+          [disabled]="catFirst + catRows >= catTotalRecords"
+          (click)="goCatNext()"
+          class="px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2 active:scale-95"
+        >
+          Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

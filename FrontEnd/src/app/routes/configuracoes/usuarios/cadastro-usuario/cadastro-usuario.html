@@ -1,0 +1,67 @@
+<div class="page-container p-6 max-w-4xl mx-auto">
+    <p-panel [header]="id ? 'Editar Usuário' : 'Novo Usuário'">
+        <form [formGroup]="form" (ngSubmit)="salvar()" class="space-y-4">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="field">
+                    <label class="block font-medium mb-1">Nome Completo *</label>
+                    <input pInputText formControlName="nomeCompleto" class="w-full"/>
+                </div>
+                <div class="field">
+                     <label class="block font-medium mb-1">Email *</label>
+                     <input pInputText formControlName="email" type="email" class="w-full"/>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <div class="field">
+                    <label class="block font-medium mb-1">Cargo</label>
+                    <input pInputText formControlName="cargo" class="w-full"/>
+                </div>
+                <div class="field">
+                     <label class="block font-medium mb-1">Departamento</label>
+                     <input pInputText formControlName="departamento" class="w-full"/>
+                </div>
+                <div class="field">
+                     <label class="block font-medium mb-1">Telefone</label>
+                     <input pInputText formControlName="telefone" class="w-full"/>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="block font-medium mb-1">Funções (Roles)</label>
+                <p-multiSelect [options]="roles" formControlName="funcoesIds" defaultLabel="Selecione as funções" styleClass="w-full" />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="!id">
+                 <div class="field">
+                     <label class="block font-medium mb-1">Senha *</label>
+                     <p-password formControlName="senha" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+                 </div>
+            </div>
+
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="id">
+                 <div class="field">
+                     <label class="block font-medium mb-1">Nova Senha (Opcional)</label>
+                     <p-password formControlName="senha" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" placeholder="Deixe em branco para manter" />
+                 </div>
+            </div>
+
+            <div class="flex gap-4 items-center mt-4">
+                <div class="flex items-center gap-2">
+                    <p-checkbox formControlName="ativo" [binary]="true" inputId="ativo" />
+                    <label for="ativo">Ativo</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <p-checkbox formControlName="bloqueado" [binary]="true" inputId="bloqueado" />
+                    <label for="bloqueado">Bloqueado</label>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button pButton type="button" label="Cancelar" class="p-button-outlined" (click)="cancelar()"></button>
+                <button pButton type="submit" label="Salvar" icon="pi pi-check" [loading]="loading" [disabled]="form.invalid"></button>
+            </div>
+        </form>
+    </p-panel>
+</div>

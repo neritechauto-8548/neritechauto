@@ -1,0 +1,178 @@
+<div class="relatorio-produtos" [class.impressao]="modoImpressao">
+  <!-- Barra de ações topo -->
+  <div class="toolbar" *ngIf="!modoImpressao">
+    <button class="btn btn-print" (click)="abrirImpressao()">
+      <span class="material-icons">print</span>
+      Imprimir
+    </button>
+  </div>
+
+  <!-- Cabeçalho azul -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="title">
+        <span class="material-icons">inventory_2</span>
+        Listar estoque ocioso
+      </div>
+      <div class="actions">
+        <span class="material-icons">done</span>
+        <span class="material-icons">close</span>
+        <span class="material-icons">push_pin</span>
+      </div>
+    </div>
+
+    <!-- Modo LISTA -->
+    <ng-container *ngIf="!modoImpressao; else impressaoTpl">
+      <!-- Filtros -->
+      <div class="filters">
+        <div class="filter-group">
+          <label>Ordenar por</label>
+          <select [(ngModel)]="ordenarPor">
+            <option *ngFor="let o of ordenarPorOptions" [value]="o">{{ o }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <select [(ngModel)]="criterio">
+            <option *ngFor="let o of criterioOptions" [value]="o">{{ o }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Data inicial</label>
+          <input type="date" [(ngModel)]="dataInicial" />
+        </div>
+        <div class="filter-group">
+          <label>Data final</label>
+          <input type="date" [(ngModel)]="dataFinal" />
+        </div>
+        <div class="filter-group grow">
+          <label>&nbsp;</label>
+          <input type="text" [(ngModel)]="busca" placeholder="Buscar..." />
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" (click)="buscar()">
+            <span class="material-icons">search</span>
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <div class="hint">Para visualizar a Descrição completa passe o mouse sobre o campo.</div>
+
+      <!-- Tabela de produtos -->
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:110px">Opções</th>
+              <th style="width:90px">Codigo</th>
+              <th>Produto / Descricao</th>
+              <th style="width:60px">--</th>
+              <th style="width:150px">Codigo original</th>
+              <th style="width:120px">Preço</th>
+              <th style="width:80px">End</th>
+              <th style="width:160px">Estoque</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of pageItems">
+              <td>
+                <details class="options">
+                  <summary>Opcoes</summary>
+                  <ul>
+                    <li><span class="material-icons">visibility</span> Visualizar Produto</li>
+                    <li><span class="material-icons">local_printshop</span> Imprimir Etiquetas</li>
+                    <li><span class="material-icons">inventory_2</span> Produto</li>
+                  </ul>
+                </details>
+              </td>
+              <td>{{ item.codigo }}</td>
+              <td title="{{ item.descricao }}">{{ item.descricao }}</td>
+              <td>--</td>
+              <td>{{ item.codigoOriginal || '' }}</td>
+              <td>R$ {{ item.preco | number:'1.2-2' }}</td>
+              <td>{{ item.endereco || '-' }}</td>
+              <td class="estoque">
+                <span class="badge" [class.badge-blue]="item.estoqueAtual > 0" [class.badge-red]="item.estoqueAtual === 0">
+                  Atual: {{ item.estoqueAtual }}
+                </span>
+                <div class="stock-minmax">Min: {{ item.estoqueMinimo }}</div>
+                <div class="stock-minmax">Max: 0</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginação -->
+      <div class="pagination">
+        <button class="btn" (click)="anterior()" [disabled]="page === 1">
+          <span class="material-icons">arrow_back</span>
+          Anterior
+        </button>
+        <div class="page-info">Página {{ page }} de {{ totalPages }}</div>
+        <button class="btn" (click)="proxima()" [disabled]="page === totalPages">
+          Próxima
+          <span class="material-icons">arrow_forward</span>
+        </button>
+        <span class="itens">{{ total }} itens</span>
+      </div>
+    </ng-container>
+
+    <!-- Modo IMPRESSÃO -->
+    <ng-template #impressaoTpl>
+      <div class="print-actions">
+        <button class="btn" (click)="voltarLista()"><span class="material-icons">arrow_back</span> Voltar</button>
+        <button class="btn btn-print" (click)="imprimir()"><span class="material-icons">print</span> Imprimir</button>
+      </div>
+      <label class="reduce"><input type="checkbox" [(ngModel)]="reduzirDescricao" /> Reduzir Descrição</label>
+
+      <div class="print-header">
+        <img src="/public/images/matero.png" alt="Logo" />
+        <div class="company">
+          <div>Oficina Exemplo</div>
+          <div>099999 0000</div>
+          <div>alexandre944@gmail.com</div>
+          <div>AV ENDEREÇO COMPLETO, N 1000, BAIRRO, CIDADE - SP</div>
+        </div>
+      </div>
+
+      <div class="print-title">RELATÓRIO DE PRODUTOS</div>
+
+      <table class="table print-table">
+        <thead>
+          <tr>
+            <th>Cod</th>
+            <th>Descrição</th>
+            <th>Setor</th>
+            <th>Cod Original</th>
+            <th>Cod Fab</th>
+            <th>Preço Custo</th>
+            <th>Preço</th>
+            <th>Estoque Minimo</th>
+            <th>Estoque Atual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filtered">
+            <td>{{ item.codigo }}</td>
+            <td>{{ reduzirDescricao ? (item.descricao | slice:0:30) : item.descricao }}</td>
+            <td>{{ item.setor }}</td>
+            <td>{{ item.codigoOriginal || '' }}</td>
+            <td>{{ item.codigoFab || '' }}</td>
+            <td>R$ {{ item.precoCusto | number:'1.2-2' }}</td>
+            <td>R$ {{ item.preco | number:'1.2-2' }}</td>
+            <td>{{ item.estoqueMinimo }}</td>
+            <td>{{ item.estoqueAtual }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="totals">
+        <div>Valor total de compra das peças em estoque: R$ {{ totalCompraEstoque | number:'1.2-2' }}</div>
+        <div>Valor total de venda das peças em estoque: R$ {{ totalVendaEstoque | number:'1.2-2' }}</div>
+      </div>
+    </ng-template>
+  </div>
+</div>

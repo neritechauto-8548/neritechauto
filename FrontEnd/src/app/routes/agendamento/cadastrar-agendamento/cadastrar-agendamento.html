@@ -1,0 +1,142 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- Action Bar (Sticky Top) - Igual Veiculo / Cliente -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+      <div class="flex items-center gap-4">
+          <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+              <i class="pi pi-arrow-left text-sm"></i>
+          </button>
+          <div>
+              <h1 class="text-base font-semibold text-slate-900 leading-tight">
+                  {{ idAgendamento ? 'Editar Agendamento' : 'Novo Agendamento' }}
+              </h1>
+              <span class="text-xs text-slate-500 font-normal">
+                  {{ idAgendamento ? 'Editando registro #' + idAgendamento : 'Preencha os dados abaixo' }}
+              </span>
+          </div>
+      </div>
+
+      <div class="flex gap-3 items-center">
+          <button *ngIf="idAgendamento" (click)="excluirAgendamento()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+             <i class="pi pi-trash text-[13px]"></i> Excluir
+          </button>
+          <div *ngIf="idAgendamento" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+              Cancelar
+          </button>
+          <button (click)="salvar()" [disabled]="submitLoad || loading" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+              <i class="pi pi-check text-xs" *ngIf="!submitLoad"></i>
+              <i class="pi pi-spin pi-spinner text-xs" *ngIf="submitLoad"></i>
+              {{ submitLoad ? 'Salvando...' : 'Salvar' }}
+          </button>
+      </div>
+  </div>
+
+  <div class="p-6 w-full space-y-8 mx-auto">
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="flex flex-col items-center justify-center py-12">
+          <i class="pi pi-spin pi-spinner text-3xl text-blue-500 mb-3"></i>
+          <p class="text-slate-500 text-sm">Carregando dados...</p>
+      </div>
+
+      <ng-container *ngIf="!loading">
+          <!-- Content Area -->
+          <div class="animate-fade-in-up space-y-6">
+
+             <!-- Section 1: Cliente & Identificação -->
+             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                 <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                     <h3 class="font-bold text-slate-800 text-sm">Vínculos Principais</h3>
+                 </div>
+                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <!-- Col 1: Cliente e Veiculo no Grid -->
+                     <div class="space-y-4 md:col-span-2">
+                         <div class="space-y-1">
+                             <label class="text-xs font-bold text-slate-700">Cliente *</label>
+                             <select
+                                [(ngModel)]="agendamento.clienteId"
+                                (change)="onClienteSelecionado()"
+                                class="w-full modern-select bg-white">
+                                <option [ngValue]="null">Selecione ou busque um cliente</option>
+                                <option *ngFor="let c of clientes" [ngValue]="c.value">{{ c.label }}</option>
+                              </select>
+                         </div>
+                         <div class="space-y-1">
+                             <label class="text-xs font-bold text-slate-700">Veículo</label>
+                             <select
+                                [(ngModel)]="agendamento.veiculoId"
+                                [disabled]="!agendamento.clienteId || veiculosFiltrados.length === 0"
+                                class="w-full modern-select bg-white disabled:bg-slate-50 disabled:text-slate-400">
+                                <option [ngValue]="null">Selecione um veículo cadastrado</option>
+                                <option *ngFor="let v of veiculosFiltrados" [ngValue]="v.value">{{ v.label }}</option>
+                              </select>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+
+             <!-- Section 2: Datas e Horários -->
+             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                 <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                     <h3 class="font-bold text-slate-800 text-sm">Datas e Horários</h3>
+                 </div>
+                 <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div class="space-y-1">
+                         <label class="text-xs font-bold text-slate-700">Data do Serviço *</label>
+                         <input type="date" [(ngModel)]="dataSelecionada" class="w-full modern-input text-slate-700" />
+                     </div>
+                     <div class="space-y-1">
+                         <label class="text-xs font-bold text-slate-700">Início *</label>
+                         <input type="time" [(ngModel)]="horaInicioSelecionada" class="w-full modern-input text-slate-700" />
+                     </div>
+                     <div class="space-y-1">
+                         <label class="text-xs font-bold text-slate-700">Término <span class="text-slate-400 font-normal lowercase">(Previsto)</span></label>
+                         <input type="time" [(ngModel)]="horaFimSelecionada" class="w-full modern-input text-slate-700" />
+                     </div>
+                 </div>
+             </div>
+
+             <!-- Section 3: Detalhes do Agendamento -->
+             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                 <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                     <h3 class="font-bold text-slate-800 text-sm">Detalhes do Agendamento</h3>
+                 </div>
+                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div class="grid grid-cols-2 gap-4 md:col-span-2">
+                         <div class="space-y-1">
+                             <label class="text-xs font-bold text-slate-700">Canal / Origem</label>
+                             <select [(ngModel)]="agendamento.canalAgendamento" class="w-full modern-select bg-white">
+                                <option *ngFor="let opt of canaisOptions" [value]="opt.value">{{ opt.label }}</option>
+                             </select>
+                         </div>
+                         <div class="space-y-1">
+                             <label class="text-xs font-bold text-slate-700">Status Atual</label>
+                             <select [(ngModel)]="agendamento.status" class="w-full modern-select bg-white">
+                                <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+                             </select>
+                         </div>
+                     </div>
+
+                     <div class="md:col-span-2 space-y-1">
+                         <label class="text-xs font-bold text-slate-700">Problema Relatado / Serviço a Fazer</label>
+                         <textarea rows="3" [(ngModel)]="agendamento.problemaRelatado" placeholder="O veículo está falhando ou cliente pediu troca de óleo..." class="w-full modern-input resize-none"></textarea>
+                     </div>
+
+                     <div class="md:col-span-2 space-y-1">
+                         <label class="text-xs font-bold text-slate-700">Obs. Cliente (Visíveis na O.S)</label>
+                         <textarea rows="3" [(ngModel)]="agendamento.observacoesCliente" class="w-full modern-input resize-none"></textarea>
+                     </div>
+
+                     <div class="md:col-span-2 space-y-1">
+                         <label class="text-xs font-bold text-slate-700">Anotações Internas (Oficina)</label>
+                         <textarea rows="3" [(ngModel)]="agendamento.observacoesInternas" class="w-full modern-input bg-amber-50/50 resize-none"></textarea>
+                     </div>
+                 </div>
+             </div>
+
+          </div>
+      </ng-container>
+  </div>
+</div>

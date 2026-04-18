@@ -1,0 +1,125 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+  <p-confirmDialog />
+
+  <!-- Action Bar -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+      <div class="flex items-center gap-4">
+          <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+              <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">arrow_back</mat-icon>
+          </button>
+          <div>
+              <h1 class="text-base font-semibold text-slate-900 leading-tight">
+                  {{ tituloPagina }}
+              </h1>
+              <span class="text-xs text-slate-500 font-normal">
+                  {{ subtitulo }}
+              </span>
+          </div>
+      </div>
+      <div class="flex gap-3 items-center">
+          <!-- Botão Excluir — apenas no modo editar -->
+          <button *ngIf="modoEdicao" (click)="excluir()" [disabled]="excluindo" class="px-3.5 py-2 rounded-md border border-red-300 text-red-600 font-medium hover:bg-red-50 transition-colors text-sm shadow-sm flex items-center gap-1.5 disabled:opacity-50">
+              <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">delete</mat-icon>
+              {{ excluindo ? 'Excluindo...' : 'Excluir' }}
+          </button>
+          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+              {{ somenteLeitura ? 'Voltar' : 'Cancelar' }}
+          </button>
+          <button *ngIf="!somenteLeitura" (click)="salvar()" [disabled]="salvando" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-50">
+              <mat-icon class="!text-[16px] !w-[16px] !h-[16px] leading-[16px]">check</mat-icon>
+              {{ salvando ? 'Salvando...' : 'Salvar' }}
+          </button>
+      </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="p-6 w-full space-y-8 animate-fade-in-up">
+
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+              <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">receipt_long</mat-icon>
+              <h3 class="font-bold text-slate-800 text-sm">Dados do Pedido</h3>
+          </div>
+          <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+
+              <!-- Fornecedor -->
+              <div class="flex flex-col gap-1.5 md:col-span-8">
+                  <label class="text-xs font-bold text-slate-700">Fornecedor <span class="text-rose-500">*</span></label>
+                  <div class="flex items-center gap-2">
+                      <p-autoComplete
+                          [(ngModel)]="fornecedorNome"
+                          [suggestions]="fornecedoresFiltrados"
+                          (completeMethod)="filtrarFornecedores($event)"
+                          (onSelect)="onFornecedorSelect($event)"
+                          (onClear)="onFornecedorClear()"
+                          field="nomeFantasia"
+                          dataKey="id"
+                          placeholder="Digite o nome do fornecedor..."
+                          [dropdown]="true"
+                          [disabled]="somenteLeitura"
+                          styleClass="w-full modern-input-container bg-white flex-1"
+                          inputStyleClass="w-full text-sm py-2 px-3 shadow-none border border-slate-300 rounded-md ring-0 hover:border-slate-400 focus:border-blue-500 transition-colors bg-white">
+                          <!-- Template da lista de sugestões -->
+                          <ng-template let-forn pTemplate="item">
+                              <div class="flex flex-col">
+                                  <span class="font-medium text-slate-800 text-sm">{{ forn.nomeFantasia }}</span>
+                                  <span *ngIf="forn.cnpj" class="text-xs text-slate-400">{{ forn.cnpj }}</span>
+                              </div>
+                          </ng-template>
+                      </p-autoComplete>
+                      <button *ngIf="!somenteLeitura" (click)="buscarFornecedor()" class="h-[38px] px-3 bg-blue-50 border border-blue-200 text-blue-600 rounded-md hover:bg-blue-100 transition-colors flex items-center justify-center shrink-0" title="Cadastrar novo Fornecedor rápido">
+                          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+                      </button>
+                  </div>
+              </div>
+
+              <!-- Responsável -->
+              <div class="flex flex-col gap-1.5 md:col-span-4">
+                  <label class="text-xs font-bold text-slate-700">Responsável <span class="text-rose-500">*</span></label>
+                  <p-select [options]="funcionarios" [(ngModel)]="form.funcionario" [disabled]="somenteLeitura" styleClass="w-full modern-select"></p-select>
+              </div>
+
+              <!-- Data Previsão — DatePicker -->
+              <div class="flex flex-col gap-1.5 md:col-span-4">
+                  <label class="text-xs font-bold text-slate-700">Previsão</label>
+                  <p-datepicker
+                      [(ngModel)]="form.previsao"
+                      [disabled]="somenteLeitura"
+                      dateFormat="dd/mm/yy"
+                      placeholder="dd/mm/aaaa"
+                      [showIcon]="true"
+                      [showButtonBar]="true"
+                      todayButtonStyleClass="p-button-text"
+                      clearButtonStyleClass="p-button-text p-button-secondary"
+                      inputStyleClass="w-full text-sm py-2 px-3 border border-slate-300 rounded-md focus:border-blue-500 transition-colors bg-white"
+                      styleClass="w-full">
+                  </p-datepicker>
+              </div>
+
+              <!-- Número NF -->
+              <div class="flex flex-col gap-1.5 md:col-span-8">
+                  <label class="text-xs font-bold text-slate-700">Número da Nota Fiscal (NF)</label>
+                  <input pInputText [(ngModel)]="form.numeroNf" [disabled]="somenteLeitura" class="w-full modern-input font-medium" placeholder="Opcional" />
+              </div>
+
+              <!-- Observações -->
+              <div class="flex flex-col gap-1.5 md:col-span-12">
+                  <label class="text-xs font-bold text-slate-700">Observações Gerais</label>
+                  <textarea pTextarea [(ngModel)]="form.observacao" [disabled]="somenteLeitura" rows="3" class="w-full modern-input resize-y min-h-[80px]" placeholder="Instruções para o fornecedor..."></textarea>
+              </div>
+
+              <!-- Descrição Interna -->
+              <div class="flex flex-col gap-1.5 md:col-span-12">
+                  <label class="text-xs font-bold text-slate-700">Descrição Interna</label>
+                  <textarea pTextarea [(ngModel)]="form.descricaoInterna" [disabled]="somenteLeitura" rows="3" class="w-full modern-input resize-y bg-amber-50/50" placeholder="Anotações visíveis apenas para a equipe..."></textarea>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal de cadastro de fornecedor -->
+  <p-dialog [(visible)]="showFornecedorDialog" [modal]="true" [closable]="true" [dismissableMask]="true" [header]="'Buscar / Cadastrar Fornecedor'" [style]="{ width: '75vw' }" styleClass="p-0">
+    <cadastro-fornecedor [modalMode]="true" (saved)="onFornecedorSaved($event)" (canceled)="onFornecedorCanceled()" />
+  </p-dialog>
+</div>

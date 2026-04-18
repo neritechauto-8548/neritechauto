@@ -1,0 +1,134 @@
+<p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+<app-confirmation-dialog />
+
+<div class="flex flex-col h-full gap-4">
+
+
+
+  <!-- Actions Bar -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-100">
+    <!-- Search -->
+    <div class="relative w-full sm:max-w-md group">
+      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+      <input
+        pInputText
+        [(ngModel)]="searchTerm"
+        placeholder="Buscar por nome do modelo..."
+        class="w-full !pl-12 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+      />
+    </div>
+
+    <button (click)="incluirModelo()" class="bg-[#635bff] hover:bg-[#5851eb] text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap active:scale-95">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+      <span>Novo Questionário</span>
+    </button>
+  </div>
+
+  <!-- Loading Main -->
+  <div *ngIf="loading" class="flex justify-center p-20 bg-white rounded-3xl border border-slate-100">
+    <i class="pi pi-spin pi-spinner text-blue-500 text-4xl"></i>
+  </div>
+
+  <!-- Items List (Stripe Accordion / Card Pattern) -->
+  <div class="flex flex-col gap-3" *ngIf="!loading">
+    <div *ngFor="let m of filteredModelos" class="group/item bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 overflow-hidden ring-1 ring-slate-100">
+
+      <!-- Card Header -->
+      <div class="p-4 flex items-center justify-between cursor-pointer" (click)="toggle(m)">
+        <div class="flex items-center gap-4">
+          <!-- State Icon -->
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+               [ngClass]="m.expanded ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'bg-slate-50 text-slate-400 border border-slate-100 group-hover/item:text-blue-500 group-hover/item:bg-blue-50'">
+            <mat-icon class="transition-transform duration-300" [class.rotate-90]="m.expanded">{{ m.expanded ? 'expand_more' : 'assignment' }}</mat-icon>
+          </div>
+
+          <div class="flex flex-col">
+            <span class="font-bold text-slate-800 text-sm md:text-base group-hover/item:text-blue-600 transition-colors leading-none">{{ m.titulo }}</span>
+            <div class="flex items-center gap-2 mt-1.5">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">ID: #{{ m.id }}</span>
+              <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ m.perguntas.length || 0 }} Perguntas</span>
+              <div (click)="$event.stopPropagation(); toggleAtivo(m)" class="ml-2 py-0.5 px-2 rounded-full border text-[9px] font-black uppercase tracking-tighter cursor-pointer flex items-center gap-1 transition-all"
+                   [ngClass]="m.ativo ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'">
+                <div [class]="m.ativo ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'" class="w-1.5 h-1.5 rounded-full"></div>
+                {{ m.ativo ? 'Ativo' : 'Inativo' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1" (click)="$event.stopPropagation()">
+          <button (click)="incluirPergunta(m)" title="Adicionar Pergunta" class="w-8 h-8 flex items-center justify-center rounded-lg text-emerald-500 hover:bg-emerald-50 transition-all active:scale-90">
+             <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">add_circle_outline</mat-icon>
+          </button>
+          <button (click)="duplicarModelo(m)" title="Duplicar" class="w-8 h-8 flex items-center justify-center rounded-lg text-amber-500 hover:bg-amber-50 transition-all active:scale-90">
+             <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">content_copy</mat-icon>
+          </button>
+          <button (click)="editarModelo(m)" title="Editar" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-all active:scale-90">
+             <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">edit</mat-icon>
+          </button>
+          <button (click)="removerModelo(m)" title="Remover" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90">
+             <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expanded Questions Content -->
+      <div *ngIf="m.expanded" class="border-t border-slate-50 bg-slate-50/10 p-4">
+        <div class="flex flex-col gap-2">
+          <!-- Question Row -->
+          <div *ngFor="let p of m.perguntas; index as i" class="group/quest flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 hover:border-blue-100 transition-all shadow-sm">
+            <div class="flex items-center gap-4">
+              <!-- Type Indicator -->
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border border-slate-100"
+                   [ngClass]="p.tipo === 'avaliacao' ? 'bg-indigo-50 text-indigo-600' : 'bg-violet-50 text-violet-600'">
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">
+                  {{ p.tipo === 'avaliacao' ? 'star' : 'thumbs_up_down' }}
+                </mat-icon>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-slate-700 leading-tight">{{ p.texto }}</span>
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest mt-0.5">{{ p.tipo === 'avaliacao' ? 'Nota 1-10' : 'Sim ou Não' }}</span>
+              </div>
+            </div>
+
+            <div class="flex gap-1 opacity-0 group-hover/quest:opacity-100 transition-opacity">
+              <button (click)="editarPergunta(m, i)" title="Editar Pergunta" class="w-8 h-8 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-50 flex items-center justify-center transition-all">
+                <mat-icon class="!text-sm">edit</mat-icon>
+              </button>
+              <button (click)="removerPergunta(m, i)" title="Excluir Pergunta" class="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all">
+                <mat-icon class="!text-sm">close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State within Modelo -->
+          <div *ngIf="m.perguntas.length === 0 && !m.loading" class="py-8 text-center flex flex-col items-center gap-2">
+            <mat-icon class="text-slate-200 !text-3xl">playlist_add</mat-icon>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Nenhuma pergunta cadastrada</p>
+            <button (click)="incluirPergunta(m)" class="text-xs text-blue-600 font-bold hover:underline transition-all">Adicione a primeira pergunta</button>
+          </div>
+
+          <!-- Loading Questions -->
+          <div *ngIf="m.loading" class="py-8 text-center">
+            <i class="pi pi-spin pi-spinner text-blue-400"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Global State -->
+    <div *ngIf="filteredModelos.length === 0 && !loading" class="py-20 flex flex-col items-center justify-center bg-white border border-dashed border-slate-300 rounded-3xl gap-4">
+      <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner">
+         <mat-icon class="!text-[32px] !w-[32px] !h-[32px] text-slate-300">quiz</mat-icon>
+      </div>
+      <div class="text-center">
+        <h4 class="text-slate-800 font-bold m-0">Nenhum questionário encontrado</h4>
+        <p class="text-xs text-slate-500 mt-1 max-w-[240px] leading-relaxed">Não encontramos questionários com este nome. Tente buscar por outro termo.</p>
+      </div>
+      <button (click)="incluirModelo()" class="bg-[#635bff] hover:bg-[#5851eb] text-white font-semibold py-2 px-6 rounded-lg shadow-sm transition-all flex items-center gap-2 text-xs active:scale-95 border-0">
+        <mat-icon>add</mat-icon> Criar Primeiro Questionário
+      </button>
+    </div>
+  </div>
+</div>

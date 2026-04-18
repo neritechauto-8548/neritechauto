@@ -1,0 +1,170 @@
+<div class="flex flex-col h-full gap-6">
+
+  <!-- Actions Bar — padrão Stripe/Veículo -->
+  <div class="flex flex-row gap-3 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex-wrap">
+
+    <!-- Search -->
+    <div class="relative w-full sm:max-w-md group">
+      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+      <input pInputText [(ngModel)]="search" (keyup.enter)="onBuscar()"
+        placeholder="Buscar por OS, cliente, placa..."
+        class="w-full pl-12 pr-4 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none" />
+    </div>
+
+    <!-- Right buttons -->
+    <div class="flex gap-2 items-center">
+      <button (click)="onBuscar()"
+        class="px-3.5 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">refresh</mat-icon>
+        <span class="hidden sm:inline">Atualizar</span>
+      </button>
+      <button (click)="onCadastrar()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+        <span>Nova OS</span>
+      </button>
+      <button (click)="onCadastrarOrcamento()"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">request_quote</mat-icon>
+        <span class="hidden sm:inline">Novo Orçamento</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">OS / Tipo</th>
+            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Cliente</th>
+            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Veículo</th>
+            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Data</th>
+            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Status</th>
+            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[5%] align-middle"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+
+          <!-- Rows -->
+          <tr *ngFor="let row of orders" class="group hover:bg-gray-50 transition-colors duration-200">
+
+            <!-- OS / Tipo -->
+            <td class="py-2.5 px-6 align-middle">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 ring-4 ring-white shadow-sm shrink-0">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">assignment</mat-icon>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer"
+                    (click)="visualizarOS(row)">{{ row.numeroOS || '#' + row.os }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Cliente -->
+            <td class="py-2.5 px-6 align-middle">
+              <div class="flex items-center gap-2 text-sm text-slate-700 font-medium">
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-400 shrink-0">person</mat-icon>
+                <span class="truncate max-w-[160px]">{{ row.cliente || 'Sem cliente' }}</span>
+              </div>
+            </td>
+
+            <!-- Veículo -->
+            <td class="py-2.5 px-6 align-middle">
+              <div class="flex flex-col">
+                <span class="font-mono text-xs font-semibold text-slate-700">{{ row.placa || '—' }}</span>
+                <span *ngIf="row.veiculo" class="text-[11px] text-slate-500">{{ row.veiculo }}</span>
+              </div>
+            </td>
+
+            <!-- Data -->
+            <td class="py-2.5 px-6 align-middle">
+              <div class="flex flex-col text-sm text-slate-600">
+                <span>{{ row.data || '—' }}</span>
+                <span class="text-[11px] text-slate-400">{{ row.hora }}</span>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="py-2.5 px-6 align-middle">
+              <span *ngIf="row.statusNome"
+                class="font-medium text-[10px] px-2.5 py-1 rounded-full border"
+                [ngClass]="row.statusCor ? '' : getStatusClass(row.statusNome, '')"
+                [style.background-color]="row.statusCor ? row.statusCor + '20' : null"
+                [style.color]="row.statusCor ? row.statusCor : null"
+                [style.border-color]="row.statusCor ? row.statusCor + '50' : null">
+                {{ row.statusNome }}
+              </span>
+              <span *ngIf="!row.statusNome" class="text-slate-400 text-xs">—</span>
+            </td>
+
+            <!-- Actions -->
+            <td class="py-2.5 px-6 align-middle text-right pr-4">
+              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" (click)="setCurrent(row)"
+                class="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors w-8 h-8 flex items-center justify-center">
+                <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">more_vert</mat-icon>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="orders.length === 0 && !loading">
+            <td colspan="6" class="py-12 text-center">
+              <div class="flex flex-col items-center gap-3 text-slate-400">
+                <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                  <mat-icon class="!text-2xl text-slate-400">assignment</mat-icon>
+                </div>
+                <p class="text-sm font-medium text-slate-500">Nenhuma ordem de serviço encontrada</p>
+                <button (click)="onCadastrar()" class="text-xs text-blue-600 font-bold hover:underline">
+                  Criar nova OS
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Loading -->
+          <tr *ngIf="loading">
+            <td colspan="6" class="py-12 text-center text-slate-500 text-sm">
+              <i class="pi pi-spin pi-spinner mr-2 text-blue-600"></i> Carregando...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10" *ngIf="totalItems > 0">
+      <div class="text-xs text-slate-500">
+        Mostrando <span class="font-medium">{{ first + 1 }}</span> a
+        <span class="font-medium">{{ [first + rows, totalItems] | min }}</span> de
+        <span class="font-medium">{{ totalItems }}</span> resultados
+      </div>
+      <div class="flex gap-2">
+        <button [disabled]="first === 0 || loading" (click)="goPrev()"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5">
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
+        </button>
+        <button [disabled]="first + rows >= totalItems || loading" (click)="goNext()"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5">
+          Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions Menu -->
+<mat-menu #actionsMenu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white" xPosition="before">
+  <button mat-menu-item (click)="currentRow && visualizarOS(currentRow)"
+    class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">visibility</mat-icon>
+    <span class="text-[13px] font-medium text-slate-700 group-hover:text-blue-700">Visualizar OS</span>
+  </button>
+  <button mat-menu-item (click)="currentRow && editarOS(currentRow)"
+    class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-indigo-600 transition-colors">edit</mat-icon>
+    <span class="text-[13px] font-medium text-slate-700 group-hover:text-indigo-700">Editar OS</span>
+  </button>
+</mat-menu>

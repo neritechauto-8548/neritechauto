@@ -1,0 +1,55 @@
+<div class="report-container">
+  <div class="toolbar">
+    <button pButton type="button" class="p-button-secondary" (click)="voltar()">
+      <span class="pi pi-arrow-left"></span>
+      Voltar
+    </button>
+    <button pButton type="button" class="p-button-success" (click)="imprimir()">
+      <span class="pi pi-print"></span>
+      Imprimir
+    </button>
+  </div>
+
+  <div class="header">
+    <div class="logo">
+      <img src="assets/logo.png" alt="Logo" />
+    </div>
+    <div class="company">
+      <div class="fantasia">{{ empresa.fantasia }}</div>
+      <div>{{ empresa.telefone }}</div>
+      <div>{{ empresa.email }}</div>
+      <div>{{ empresa.site }}</div>
+      <div>{{ empresa.endereco }}</div>
+    </div>
+  </div>
+
+  <div class="title">Relatorio De Pedidos Para Fornecedores</div>
+
+  <table class="report-table">
+    <thead>
+      <tr>
+        <th>Pedido</th>
+        <th>Fornecedor</th>
+        <th>Funcionario</th>
+        <th>Data</th>
+        <th>Status</th>
+        <th>Descricao</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of pedidos">
+        <td>{{ p.pedido }}</td>
+        <td>{{ p.fornecedor }}</td>
+        <td>{{ p.funcionario }}</td>
+        <td>Previsao: {{ p.previsao }}</td>
+        <td>{{ p.status }}</td>
+        <td>{{ p.descricao }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div>Total: R$ {{ total | number:'1.2-2' }}</div>
+    <div>R$ {{ total | number:'1.2-2' }}</div>
+  </div>
+</div>

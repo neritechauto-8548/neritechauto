@@ -1,0 +1,137 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- Action Bar (Cadastro Cliente Style) -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+      <div class="flex items-center gap-4">
+          <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+              <i class="pi pi-arrow-left text-sm"></i>
+          </button>
+          <div>
+              <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ isEditing ? 'Editar Modelo' : 'Novo Modelo' }}</h1>
+              <span class="text-xs text-slate-500 font-normal">{{ isEditing ? 'Atualizando registro' : 'Novo registro' }}</span>
+          </div>
+      </div>
+
+      <div class="flex gap-3 items-center">
+          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+              Cancelar
+          </button>
+          <button (click)="salvar()" class="px-3.5 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
+              <i class="pi pi-check text-xs"></i> Salvar
+          </button>
+      </div>
+  </div>
+
+  <div class="p-6 w-full space-y-8 animate-fade-in-up">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Main Form Section -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+
+            <!-- Section: Identificação -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-sm">Identificação do Modelo</h3>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nome -->
+                    <div class="md:col-span-1 space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Nome identificador *</label>
+                        <input pInputText [(ngModel)]="form.nome" name="nome"
+                               class="w-full modern-input"
+                               placeholder="Ex: Confirmação de Orçamento" />
+                    </div>
+
+                    <!-- Tipo -->
+                    <div class="md:col-span-1 space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Canal de Envio *</label>
+                        <p-select [options]="tipoOptions" [(ngModel)]="form.tipoTemplate" name="tipoTemplate"
+                                 styleClass="w-full modern-select"
+                                 appendTo="body"
+                                 placeholder="Selecione o canal" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Conteúdo -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-sm">Configuração da Mensagem</h3>
+                </div>
+
+                <div class="p-6">
+                    <!-- Assunto -->
+                    <div class="space-y-1 mb-6">
+                        <label class="text-xs font-bold text-slate-700">
+                          {{ form.tipoTemplate === 'EMAIL' ? 'Assunto do E-mail (Obrigatório)*' : 'Título de Referência / Template' }}
+                        </label>
+                        <input pInputText [(ngModel)]="form.assunto" name="assunto"
+                               class="w-full modern-input"
+                               placeholder="Digite o assunto principal" />
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Corpo da Mensagem</label>
+                        <div class="rounded-lg overflow-hidden border border-slate-300 shadow-sm bg-white">
+                            <p-editor [(ngModel)]="form.conteudo" name="conteudo" [style]="{ height: '350px' }" styleClass="border-0">
+                                <ng-template pTemplate="header">
+                                    <span class="ql-formats">
+                                        <button type="button" class="ql-bold"></button>
+                                        <button type="button" class="ql-italic"></button>
+                                        <button type="button" class="ql-underline"></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button type="button" class="ql-list" value="ordered"></button>
+                                        <button type="button" class="ql-list" value="bullet"></button>
+                                    </span>
+                                    <span class="ql-formats">
+                                        <button type="button" class="ql-link"></button>
+                                    </span>
+                                </ng-template>
+                            </p-editor>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Variables and Information -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+
+            <!-- Cards de Variáveis -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm sticky top-28">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                    <h3 class="font-bold text-slate-800 text-sm">Variáveis Inteligentes</h3>
+                </div>
+
+                <div class="p-6">
+                  <p class="text-xs text-slate-500 font-medium mb-4">Clique para inserir na mensagem:</p>
+
+                  <div class="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      <button *ngFor="let variavel of variaveis"
+                              (click)="inserirVariavel(variavel)"
+                              class="px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-colors shadow-sm cursor-pointer whitespace-nowrap">
+                          {{ variavel }}
+                      </button>
+                  </div>
+
+                  <div class="mt-8 border-t border-slate-100 pt-6">
+                      <div class="bg-indigo-50/50 rounded-lg p-4 border border-indigo-100">
+                            <div class="flex items-center gap-2 text-indigo-700 mb-2">
+                                <i class="pi pi-bolt text-sm"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider">Dica de Conversão</span>
+                            </div>
+                            <p class="text-xs text-indigo-900/70 font-medium leading-relaxed m-0">
+                                Personalizar suas mensagens com o nome do cliente pode aumentar as respostas e conversões.
+                            </p>
+                      </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+  </div>
+</div>

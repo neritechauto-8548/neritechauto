@@ -1,0 +1,139 @@
+/* Modern Table Styles (2026) */
+
+/* PrimeNG DataTable */
+.p-datatable {
+  .p-datatable-header {
+    background: transparent;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .p-datatable-thead > tr > th {
+    background-color: var(--slate-50);
+    color: var(--slate-500);
+    font-size: 0.75rem; /* 12px */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--slate-200);
+    border-top: none;
+    outline: none;
+
+    .dark & {
+      background-color: var(--slate-800);
+      color: var(--slate-400);
+      border-bottom-color: var(--slate-700);
+    }
+  }
+
+  .p-datatable-tbody > tr {
+    background: transparent;
+    transition: background-color 0.2s;
+
+    > td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--slate-100);
+      font-size: 0.875rem; /* 14px */
+      color: var(--slate-700);
+
+      .dark & {
+        border-bottom-color: var(--slate-800);
+        color: var(--slate-300);
+      }
+    }
+
+    &:hover {
+      background-color: var(--slate-50);
+
+      .dark & {
+        background-color: rgba(30, 41, 59, 0.5); /* slate-800 with opacity */
+      }
+    }
+  }
+
+  /* Rounded styling for the container */
+  &.p-shadow-sm, &.card {
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid var(--slate-100);
+
+    .dark & {
+      border-color: var(--slate-700);
+    }
+  }
+
+  /* Paginator */
+  .p-paginator {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+
+    .p-paginator-pages .p-paginator-page,
+    .p-paginator-first, .p-paginator-prev, .p-paginator-next, .p-paginator-last {
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      margin: 0 0.25rem;
+      color: var(--slate-500);
+      transition: all 0.2s;
+
+      &:not(.p-highlight):hover {
+        background: var(--slate-100);
+        color: var(--slate-800);
+
+        .dark & {
+          background: var(--slate-800);
+          color: var(--slate-200);
+        }
+      }
+
+      &.p-highlight {
+        background: var(--primary-500);
+        color: white;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+}
+
+/* Material Table Overrides */
+.mat-mdc-table {
+  background: transparent !important;
+
+  .mat-mdc-header-cell {
+    background-color: var(--slate-50);
+    color: var(--slate-500);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--slate-200);
+
+    .dark & {
+      background-color: var(--slate-800);
+      color: var(--slate-400);
+      border-bottom-color: var(--slate-700);
+    }
+  }
+
+  .mat-mdc-cell {
+    border-bottom: 1px solid var(--slate-100);
+    font-size: 0.875rem;
+    color: var(--slate-700);
+
+    .dark & {
+      border-bottom-color: var(--slate-800);
+      color: var(--slate-300);
+    }
+  }
+
+  .mat-mdc-row:hover {
+    background-color: var(--slate-50);
+
+    .dark & {
+      background-color: rgba(30, 41, 59, 0.5);
+    }
+  }
+}

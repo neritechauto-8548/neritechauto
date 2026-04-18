@@ -1,0 +1,19 @@
+.panel-header { display:flex; align-items:center; justify-content:space-between; }
+.panel-header .title { font-weight:600; }
+.panel-header .icons { display:flex; gap:8px; color:#6b7280; }
+
+.form-grid { padding: 8px; }
+.form-grid .col { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+.form-grid .span-2 { grid-column: span 2; }
+.form-grid .span-4 { grid-column: span 4; }
+
+/* Responsive 4 columns */
+.form-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+.input-prefix { display:flex; align-items:center; gap:8px; }
+.input-prefix > i { color:#9ca3af; }
+.input-prefix input[pInputText], .input-prefix p-select { flex:1; }
+
+textarea { width:100%; resize:vertical; }
+
+.form-footer { display:flex; justify-content:flex-end; align-items:center; gap:8px; padding: 12px; background:#f3f4f6; border-top:1px solid #e5e7eb; }

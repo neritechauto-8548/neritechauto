@@ -1,0 +1,64 @@
+<div class="nfce-inutilizar">
+  <div class="actions">
+    <button pButton label="+ Inutilizar numeração" severity="success" (click)="openForm()"></button>
+  </div>
+
+  <p-panel>
+    <ng-template pTemplate="header">
+      <div class="panel-header">
+        <span>Solicitações para inutilização de números de NFCe</span>
+        <span class="env-badge">Ambiente de Produção</span>
+      </div>
+    </ng-template>
+
+    <div class="panel-body">
+      <!-- Lista futura de solicitações -->
+    </div>
+  </p-panel>
+
+  <!-- Formulário -->
+  <p-dialog [(visible)]="formVisible" [modal]="true" header="Inutilizar numeração de nota fiscal" [style]="{width:'680px'}">
+    <div class="form-grid">
+      <label>
+        Série:
+        <input type="text" [(ngModel)]="serie" placeholder="2">
+      </label>
+      <label>
+        Nº inicial:
+        <input type="number" [(ngModel)]="numeroInicial" placeholder="1">
+      </label>
+      <label>
+        Nº final:
+        <input type="number" [(ngModel)]="numeroFinal" placeholder="1">
+      </label>
+      <label class="grow">
+        Justificativa:
+        <input type="text" [(ngModel)]="justificativa" placeholder="Informe a justificativa">
+      </label>
+    </div>
+    <div class="confirm-actions">
+      <button pButton label="Fechar janela" severity="secondary" (click)="closeForm()"></button>
+      <button pButton label="Inutilizar" severity="primary" (click)="solicitarInutilizacao()"></button>
+    </div>
+  </p-dialog>
+
+  <!-- Confirmação -->
+  <p-dialog [(visible)]="confirmVisible" [modal]="true" header="Atenção!" [style]="{width:'460px'}">
+    <p>
+      Você realmente deseja inutilizar da numeração {{ numeroInicial || '?' }} até {{ numeroFinal || '?' }}?
+    </p>
+    <div class="confirm-actions">
+      <button pButton label="Não" severity="secondary" (click)="cancelarConfirmacao()"></button>
+      <button pButton label="Sim" severity="primary" (click)="confirmar()"></button>
+    </div>
+  </p-dialog>
+
+  <!-- Loading -->
+  <p-dialog [(visible)]="loadingVisible" [modal]="true" [closable]="false" [dismissableMask]="false" [style]="{width:'420px'}">
+    <div class="loading">
+      <h3>Inutilizando numeração...</h3>
+      <p>Por favor, aguarde</p>
+      <i class="pi pi-spinner pi-spin"></i>
+    </div>
+  </p-dialog>
+</div>

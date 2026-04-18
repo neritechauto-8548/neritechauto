@@ -1,0 +1,66 @@
+<p-panel [toggleable]="true" [collapsed]="false">
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <span class="title">Relatório de contas</span>
+    </div>
+  </ng-template>
+
+  <!-- Linha 1: Data de / Data inicial / Data final -->
+  <div class="row mb-3">
+    <div class="col col-md-4">
+      <label class="block mb-1">Data de</label>
+      <p-select [(ngModel)]="dataDe" [options]="dataDeOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-4">
+      <label class="block mb-1">Data inicial</label>
+      <input pInputText [(ngModel)]="dataInicial" placeholder="dd/mm/aaaa" />
+    </div>
+    <div class="col col-md-4">
+      <label class="block mb-1">Data final</label>
+      <input pInputText [(ngModel)]="dataFinal" placeholder="dd/mm/aaaa" />
+    </div>
+  </div>
+
+  <!-- Linha 2: Situação e tipo / Departamento -->
+  <div class="row mb-3">
+    <div class="col col-md-3">
+      <label class="block mb-1">Situação e tipo</label>
+      <p-select [(ngModel)]="situacaoTipo" [options]="situacaoTipoOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-6">
+      <label class="block mb-1">Departamento</label>
+      <p-select [(ngModel)]="departamento" [options]="departamentoOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+  </div>
+
+  <!-- Linha 3: Ordenar por / Filtro avançado -->
+  <div class="row mb-3">
+    <div class="col col-md-3">
+      <label class="block mb-1">Ordenar por</label>
+      <p-select [(ngModel)]="ordenarPor" [options]="ordenarOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-3 d-flex align-items-end">
+      <div class="mt-1">
+        <p-checkbox [(ngModel)]="filtroAvancado" binary="true" inputId="filtro-avancado" />
+        <label for="filtro-avancado" class="ml-2">Filtro avançado</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Linha 4: Filtrar por / Filtro -->
+  <div class="row mb-3">
+    <div class="col col-md-4">
+      <label class="block mb-1">Filtrar por</label>
+      <p-select [(ngModel)]="filtrarPor" [options]="filtrarPorOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-4">
+      <label class="block mb-1">Filtro</label>
+      <input pInputText [(ngModel)]="filtro" [disabled]="!filtroAvancado" />
+    </div>
+  </div>
+
+  <div class="actions">
+    <button pButton type="button" class="p-button-secondary mr-2" label="Fechar"></button>
+    <button pButton type="button" class="p-button-primary" icon="pi pi-chart-bar" label="Gerar relatorio" (click)="gerarRelatorio()"></button>
+  </div>
+</p-panel>

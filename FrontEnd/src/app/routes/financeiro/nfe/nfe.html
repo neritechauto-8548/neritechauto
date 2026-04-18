@@ -1,0 +1,89 @@
+<div class="p-6 page-container">
+
+    <p-panel header="Notas Fiscais Eletrônicas (NFe)" styleClass="mb-4">
+        <div class="flex justify-between items-center">
+             <div class="flex gap-2">
+                 <!-- Filtros futuros -->
+             </div>
+             <button pButton label="Atualizar" icon="pi pi-refresh" (click)="carregarNotas()" [loading]="loading"></button>
+        </div>
+    </p-panel>
+
+    <div class="card bg-white p-2 rounded shadow">
+        <p-table [value]="notas" [loading]="loading" [rowHover]="true" styleClass="p-datatable-sm p-datatable-gridlines">
+            <ng-template pTemplate="header">
+                 <tr>
+                    <th>Número</th>
+                    <th>Série</th>
+                    <th>Emissão</th>
+                    <th>Tipo</th>
+                    <th class="text-right">Valor Total</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Ações</th>
+                 </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-nota>
+                <tr>
+                    <td class="font-bold">{{ nota.numeroNfe || 'Em geração' }}</td>
+                    <td>{{ nota.serieNfe || '1' }}</td>
+                    <td>{{ nota.dataEmissao | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ nota.tipoOperacao }}</td>
+                    <td class="text-right font-bold">{{ nota.valorTotalNota | currency:'BRL' }}</td>
+                    <td class="text-center">
+                        <p-tag [value]="nota.status" [severity]="getStatusSeverity(nota.status)" />
+                    </td>
+                    <td class="text-center">
+                         <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text" (click)="visualizar(nota)" pTooltip="Ver Detalhes"></button>
+                         <button pButton icon="pi pi-print" class="p-button-rounded p-button-text" (click)="imprimir(nota)" pTooltip="Imprimir DANFE"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7" class="text-center p-4">Nenhuma NFe encontrada.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <p-dialog [(visible)]="detalheVisible" header="Detalhes da NFe" [modal]="true" [style]="{width:'600px'}">
+        <div *ngIf="notaSelecionada" class="flex flex-col gap-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold">Chave de Acesso</label>
+                    <div class="p-2 bg-gray-100 rounded text-xs break-all">{{ notaSelecionada.chaveNfe || 'Não gerada' }}</div>
+                </div>
+                <div>
+                     <label class="block text-sm font-bold">Protocolo</label>
+                     <div>{{ notaSelecionada.protocoloAutorizacao || '-' }}</div>
+                </div>
+            </div>
+
+             <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold">Valor Produtos</label>
+                    <div>{{ notaSelecionada.valorTotalProdutos | currency:'BRL' }}</div>
+                </div>
+                 <div>
+                    <label class="block text-sm font-bold">Valor Serviços</label>
+                    <div>{{ notaSelecionada.valorTotalServicos | currency:'BRL' }}</div>
+                </div>
+                 <div>
+                    <label class="block text-sm font-bold text-blue-600">Total Nota</label>
+                    <div class="text-lg font-bold text-blue-800">{{ notaSelecionada.valorTotalNota | currency:'BRL' }}</div>
+                </div>
+            </div>
+
+            <div *ngIf="notaSelecionada.mensagemRetorno">
+                 <label class="block text-sm font-bold text-red-600">Mensagem da SEFAZ</label>
+                 <div class="p-2 border border-red-200 bg-red-50 rounded text-red-800 text-sm">
+                     {{ notaSelecionada.mensagemRetorno }}
+                 </div>
+            </div>
+        </div>
+        <ng-template pTemplate="footer">
+            <button pButton label="Fechar" (click)="detalheVisible = false" class="p-button-text"></button>
+        </ng-template>
+    </p-dialog>
+
+</div>

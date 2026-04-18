@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+/* Custom Scrollbar Premium */
+.custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+}
+
+/* Premium Editor Refinement */
+:host ::ng-deep {
+  .p-editor-container {
+    border: none !important;
+
+    .p-editor-toolbar {
+      background: #ffffff !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+      padding: 0.75rem 1rem !important;
+
+      .ql-formats {
+        margin-right: 1.5rem !important;
+      }
+
+      button {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 8px !important;
+        transition: all 0.2s !important;
+        margin-right: 4px !important;
+        color: #64748b !important;
+
+        &:hover {
+          background: #f8fafc !important;
+          color: #635bff !important;
+        }
+
+        &.ql-active {
+            color: #635bff !important;
+            background: #eff6ff !important;
+        }
+      }
+    }
+
+    .p-editor-content {
+      border: none !important;
+      background: transparent !important;
+
+      .ql-editor {
+        padding: 2rem !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        color: #334155 !important;
+        line-height: 1.8 !important;
+
+        &.ql-blank::before {
+            left: 2rem !important;
+            font-style: italic !important;
+            color: #94a3b8 !important;
+            font-weight: 500 !important;
+        }
+      }
+    }
+  }
+}

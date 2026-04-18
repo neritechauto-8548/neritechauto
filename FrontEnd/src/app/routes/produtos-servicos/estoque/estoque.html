@@ -1,0 +1,226 @@
+<div class="flex flex-col h-full gap-6">
+  <p-toast />
+  <!-- Actions Bar -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+       <!-- Search -->
+       <div class="relative w-full sm:max-w-md group">
+            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+            <input
+                pInputText
+                [(ngModel)]="termo"
+                (ngModelChange)="onSearch()"
+                placeholder="Buscar produto ou código..."
+                class="w-full pl-12 pr-16 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+            />
+            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">Ctrl+K</div>
+       </div>
+
+       <!-- Action Buttons -->
+       <div class="flex items-center gap-2">
+           <button mat-button [matMenuTriggerFor]="importExportMenu" class="text-slate-600 hover:bg-slate-50 font-medium py-2 px-3 rounded-lg border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap bg-white">
+              <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-500">swap_vert</mat-icon>
+              <span class="hidden md:inline">Importar / Exportar</span>
+           </button>
+           <button mat-button [matMenuTriggerFor]="printMenu" class="text-slate-600 hover:bg-slate-50 font-medium py-2 px-3 rounded-lg border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap bg-white">
+              <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-500">print</mat-icon>
+              <span class="hidden sm:inline">Imprimir</span>
+           </button>
+           <!-- New Button -->
+           <button (click)="cadastrarNovoProduto()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap h-[42px]">
+              <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+              <span>Novo Produto</span>
+           </button>
+       </div>
+   </div>
+
+  <!-- Data Table -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Produto / Descrição</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Código</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Preço</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Estoque</th>
+                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <tr *ngFor="let row of items" class="group hover:bg-gray-50 transition-colors duration-200">
+                    <!-- Produto / Descricao -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <div class="flex items-center gap-4">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500 ring-1 ring-slate-200 shadow-sm">
+                                <mat-icon class="!text-[18px] !w-[18px] !h-[18px] opacity-70">inventory_2</mat-icon>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer truncate" pTooltip="{{ row.descricao }}" tooltipPosition="top" (click)="editarItem(row.codigo)">{{ row.descricao }}</span>
+                                <span class="text-[11px] text-slate-500 truncate" *ngIf="row.codOriginal || row.codFab">
+                                    <span *ngIf="row.codOriginal">Ref: {{ row.codOriginal }}</span>
+                                    <span *ngIf="row.codOriginal && row.codFab"> • </span>
+                                    <span *ngIf="row.codFab">Fab: {{ row.codFab }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Codigo -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded-md border border-slate-200">
+                            {{ row.codigo }}
+                        </span>
+                    </td>
+
+                    <!-- Preco -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <div class="flex flex-col">
+                           <span class="text-sm font-medium text-slate-700">R$ {{ row.preco | number:'1.2-2' }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Estoque -->
+                    <td class="py-2.5 px-6 align-middle">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-[13px] px-3 py-1.5 rounded-lg whitespace-nowrap flex items-center gap-1.5 shadow-sm border"
+                                  [ngClass]="{
+                                      'bg-emerald-600 border-emerald-700': row.estoqueAtual > row.estoqueMin,
+                                      'bg-amber-600 border-amber-500': row.estoqueAtual <= row.estoqueMin && row.estoqueAtual > 0,
+                                      'bg-rose-600 border-rose-700': row.estoqueAtual === 0
+                                  }" style="color: #ffffff;">
+                                <i class="pi pi-box text-xs opacity-70"></i>
+                                {{ row.estoqueAtual }} unid.
+                            </span>
+                            <div class="flex flex-col text-[11px] font-medium leading-tight">
+                                <span class="text-slate-500 flex items-center gap-1"><i class="pi pi-arrow-down text-[10px] text-rose-400"></i> Min: {{ row.estoqueMin }}</span>
+                                <span class="text-slate-500 flex items-center gap-1"><i class="pi pi-arrow-up text-[10px] text-emerald-400"></i> Max: {{ row.estoqueMax }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="py-2.5 px-6 align-middle text-right pr-4">
+                        <button mat-icon-button [matMenuTriggerFor]="actionsMenu" (click)="setItem(row)" class="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors w-8 h-8 flex items-center justify-center">
+                            <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">more_vert</mat-icon>
+                        </button>
+                    </td>
+                </tr>
+                 <!-- Empty State -->
+                <tr *ngIf="items.length === 0 && !loading">
+                     <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+                        <div class="flex flex-col items-center gap-3 text-slate-400">
+                          <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                             <mat-icon class="!text-2xl text-slate-400">search</mat-icon>
+                          </div>
+                          <p class="text-sm font-medium text-slate-500">Nenhum produto encontrado</p>
+                          <button (click)="cadastrarNovoProduto()" class="text-xs text-blue-600 font-bold hover:underline">
+                              Cadastrar novo produto
+                          </button>
+                        </div>
+                    </td>
+                </tr>
+                 <!-- Loading -->
+                <tr *ngIf="loading">
+                    <td colspan="5" class="py-12 text-center text-slate-500 text-sm">
+                        <i class="pi pi-spin pi-spinner mr-2 text-blue-600"></i> Carregando...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+
+       <!-- Pagination -->
+      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10" *ngIf="totalRecords > 0">
+        <div class="text-xs text-slate-500">
+            Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
+        </div>
+        <div class="flex gap-2">
+            <button
+                [disabled]="first === 0 || loading"
+                (click)="goPrev()"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
+            >
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
+            </button>
+            <button
+                [disabled]="first + rows >= totalRecords || loading"
+                (click)="goNext()"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
+            >
+                Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
+            </button>
+        </div>
+      </div>
+  </div>
+
+</div>
+
+<!-- Menus Base -->
+<mat-menu #importExportMenu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white">
+  <button mat-menu-item (click)="onExport('CSV')" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">file_download</mat-icon>
+      <span class="text-[13px] font-medium text-slate-700 group-hover:text-blue-700">Exportar para CSV</span>
+  </button>
+  <button mat-menu-item (click)="onExport('XML')" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-amber-600 transition-colors">file_download</mat-icon>
+      <span class="text-[13px] font-medium text-slate-700 group-hover:text-amber-700">Exportar para XML</span>
+  </button>
+  <hr class="border-slate-100 my-1">
+  <button mat-menu-item (click)="openImportXmlDialog()" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-pink-600 transition-colors">file_upload</mat-icon>
+      <span class="text-[13px] font-medium text-slate-700 group-hover:text-pink-700">Importar Produto pelo XML da Nota</span>
+  </button>
+</mat-menu>
+
+<mat-menu #printMenu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white">
+  <button mat-menu-item (click)="onImprimir()" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-indigo-600 transition-colors">print</mat-icon>
+      <span class="text-[13px] font-medium text-slate-700 group-hover:text-indigo-700">Imprimir Lista</span>
+  </button>
+  <button mat-menu-item (click)="onImprimirEtiquetas()" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-violet-600 transition-colors">qr_code_2</mat-icon>
+      <span class="text-[13px] font-medium text-slate-700 group-hover:text-violet-700">Imprimir Etiquetas</span>
+  </button>
+</mat-menu>
+
+<!-- Context Menu -->
+<mat-menu #actionsMenu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white" xPosition="before">
+  <button mat-menu-item (click)="currentItem && editarItem(currentItem.codigo)" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">edit</mat-icon>
+    <span class="text-[13px] font-medium text-slate-700 group-hover:text-blue-700">Ver Produto</span>
+  </button>
+  <button mat-menu-item (click)="onImprimirEtiquetas()" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-violet-600 transition-colors">local_offer</mat-icon>
+    <span class="text-[13px] font-medium text-slate-700 group-hover:text-violet-700">Imprimir Etiquetas</span>
+  </button>
+  <hr class="border-slate-100 my-1">
+  <button mat-menu-item class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-teal-600 transition-colors">content_copy</mat-icon>
+    <span class="text-[13px] font-medium text-slate-700 group-hover:text-teal-700">Duplicar Produto</span>
+  </button>
+  <button mat-menu-item class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
+    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-amber-600 transition-colors">history</mat-icon>
+    <span class="text-[13px] font-medium text-slate-700 group-hover:text-amber-700">Histórico Produto</span>
+  </button>
+</mat-menu>
+
+<!-- XML Import Dialog (replicated from incluir-xml) -->
+<p-dialog [(visible)]="displayImportXmlDialog" [modal]="true" [style]="{width: '500px'}" header="Cadastrando Nota de importação" styleClass="p-fluid">
+    <div class="space-y-6 pt-2">
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md text-sm">
+            <span class="font-bold">Atenção:</span> Selecione o XML da NFe que será importada.
+            <div class="mt-1 font-mono text-xs opacity-80">( ex: 7466352545436344234235632423426nfe.xml )</div>
+        </div>
+
+        <div class="flex items-center gap-3 w-full bg-slate-50 border border-slate-200 p-4 rounded-lg">
+            <input id="importXmlFileInput" type="file" accept=".xml" (change)="onFileSelectedXml($event)" class="hidden" />
+            <p-button label="Escolher arquivo" severity="secondary" icon="pi pi-search" size="small" (onClick)="abrirSeletorArquivoXml()" />
+            <span class="text-sm font-medium text-slate-600 truncate flex-1" [class.text-green-600]="selectedFile">{{ selectedFileName }}</span>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="displayImportXmlDialog = false" />
+        <p-button label="Enviar dados" icon="pi pi-check" [disabled]="!selectedFile" (onClick)="submitXmlImport()" />
+    </ng-template>
+</p-dialog>

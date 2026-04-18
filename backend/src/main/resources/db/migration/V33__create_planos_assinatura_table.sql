@@ -1,0 +1,23 @@
+CREATE TABLE planos_assinatura (
+    id BIGSERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    preco_mensal DECIMAL(10,2) NOT NULL,
+    preco_anual DECIMAL(10,2),
+    max_usuarios INT DEFAULT 5,
+    max_clientes INT DEFAULT 1000,
+    max_veiculos INT DEFAULT 5000,
+    max_os_mes INT DEFAULT 500,
+    max_produtos INT DEFAULT 10000,
+    max_fornecedores INT DEFAULT 100,
+    possui_app_mobile BOOLEAN DEFAULT FALSE,
+    possui_api BOOLEAN DEFAULT FALSE,
+    possui_integracao_nfe BOOLEAN DEFAULT FALSE,
+    possui_backup_automatico BOOLEAN DEFAULT TRUE,
+    storage_gb INT DEFAULT 5,
+    suporte_tecnico VARCHAR(20),
+    periodo_teste_dias INT DEFAULT 15,
+    ativo BOOLEAN DEFAULT TRUE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

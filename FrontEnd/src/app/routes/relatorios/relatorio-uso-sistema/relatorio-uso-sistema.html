@@ -1,0 +1,66 @@
+<div class="header-bar">
+  <span class="material-icons">computer</span>
+  <span class="title">Uso do sistema</span>
+</div>
+
+<div class="filters-row">
+  <div class="field">
+    <label>Data inicial</label>
+    <input type="date" [(ngModel)]="dataInicial" />
+  </div>
+  <div class="field">
+    <label>Data final</label>
+    <input type="date" [(ngModel)]="dataFinal" />
+  </div>
+  <div class="field">
+    <label>Funcionario</label>
+    <select [(ngModel)]="funcionario">
+      <option>Todos</option>
+      <option>ALEXANDRE ROMULO ALBUQUERQUE NERI</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Descricao</label>
+    <input type="text" [(ngModel)]="descricao" />
+  </div>
+  <div class="field">
+    <label>Ordem de serviço</label>
+    <input type="text" [(ngModel)]="ordemServico" />
+  </div>
+  <div class="actions">
+    <button pButton type="button" class="p-button-primary" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Funcionario</th>
+        <th>Descricao</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of pageItems">
+        <td>
+          <div class="date">{{ item.date }}</div>
+          <div class="time">{{ item.time }}</div>
+        </td>
+        <td>
+          <div class="employee">{{ item.employee }}</div>
+        </td>
+        <td>
+          <div class="desc">{{ item.description }}</div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <button pButton type="button" class="p-button-text" icon="pi pi-angle-left" label="Anterior" (click)="anterior()"></button>
+    <span>Pagina {{ page }} de {{ totalPages }}</span>
+    <button pButton type="button" class="p-button-text" label="Proxima" iconPos="right" icon="pi pi-angle-right" (click)="proxima()"></button>
+    <span class="count">{{ total }} registros</span>
+  </div>
+</div>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="nfe_interna" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e1e3f9f3-1e8d-4c59-9b8a-0c9c9a9af001">
+    <parameter name="empresaRazao" class="java.lang.String"/>
+    <parameter name="empresaCnpj" class="java.lang.String"/>
+    <parameter name="empresaIE" class="java.lang.String"/>
+    <parameter name="empresaIM" class="java.lang.String"/>
+    <parameter name="osNumero" class="java.lang.String"/>
+    <parameter name="dataEmissao" class="java.time.LocalDateTime"/>
+    <parameter name="nfNumero" class="java.lang.Long"/>
+    <parameter name="nfSerie" class="java.lang.String"/>
+    <parameter name="nfStatus" class="java.lang.String"/>
+    <parameter name="clienteNome" class="java.lang.String"/>
+    <parameter name="clienteCpfCnpj" class="java.lang.String"/>
+    <parameter name="valorServicos" class="java.math.BigDecimal"/>
+    <parameter name="valorProdutos" class="java.math.BigDecimal"/>
+    <parameter name="desconto" class="java.math.BigDecimal"/>
+    <parameter name="acrescimo" class="java.math.BigDecimal"/>
+    <parameter name="valorTotal" class="java.math.BigDecimal"/>
+
+    <field name="descricao" class="java.lang.String"/>
+    <field name="qtde" class="java.lang.Number"/>
+    <field name="unidade" class="java.lang.String"/>
+    <field name="valorUnit" class="java.math.BigDecimal"/>
+    <field name="valorTotal" class="java.math.BigDecimal"/>
+    <field name="cfop" class="java.lang.String"/>
+
+    <title>
+        <band height="120">
+            <staticText>
+                <reportElement x="0" y="0" width="300" height="20"/>
+                <textElement>
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[DANFE - Documento Auxiliar da Nota Fiscal (Interna)]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="25" width="300" height="18"/>
+                <textElement>
+                    <font size="11"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{empresaRazao}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="45" width="300" height="16"/>
+                <textFieldExpression><![CDATA["CNPJ: " + $P{empresaCnpj} + "  IE: " + $P{empresaIE} + "  IM: " + $P{empresaIM}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="310" y="25" width="245" height="18"/>
+                <textElement>
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["NF Nº " + ($P{nfNumero} == null ? "-" : String.valueOf($P{nfNumero})) + "  Série " + $P{nfSerie}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="310" y="45" width="245" height="16"/>
+                <textFieldExpression><![CDATA["Emissão: " + java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format($P{dataEmissao}) + "  Status: " + $P{nfStatus}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="70" width="555" height="1"/>
+            </line>
+            <textField>
+                <reportElement x="0" y="80" width="555" height="18"/>
+                <textElement>
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Destinatário: " + $P{clienteNome} + "  CPF/CNPJ: " + $P{clienteCpfCnpj}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="100" width="555" height="18"/>
+                <textFieldExpression><![CDATA["OS: " + $P{osNumero}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="22">
+            <staticText><reportElement x="0" y="0" width="245" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[Descrição]]></text></staticText>
+            <staticText><reportElement x="250" y="0" width="60" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[CFOP]]></text></staticText>
+            <staticText><reportElement x="315" y="0" width="60" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[Unid.]]></text></staticText>
+            <staticText><reportElement x="380" y="0" width="55" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[Qtde]]></text></staticText>
+            <staticText><reportElement x="440" y="0" width="55" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[Vlr Unit]]></text></staticText>
+            <staticText><reportElement x="500" y="0" width="55" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[Vlr Total]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="20">
+            <textField><reportElement x="0" y="0" width="245" height="18"/><textFieldExpression><![CDATA[$F{descricao}]]></textFieldExpression></textField>
+            <textField><reportElement x="250" y="0" width="60" height="18"/><textFieldExpression><![CDATA[$F{cfop}]]></textFieldExpression></textField>
+            <textField><reportElement x="315" y="0" width="60" height="18"/><textFieldExpression><![CDATA[$F{unidade}]]></textFieldExpression></textField>
+            <textField><reportElement x="380" y="0" width="55" height="18"/><textFieldExpression><![CDATA[String.valueOf($F{qtde})]]></textFieldExpression></textField>
+            <textField><reportElement x="440" y="0" width="55" height="18"/><textFieldExpression><![CDATA[$F{valorUnit}]]></textFieldExpression></textField>
+            <textField><reportElement x="500" y="0" width="55" height="18"/><textFieldExpression><![CDATA[$F{valorTotal}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="100">
+            <line><reportElement x="0" y="0" width="555" height="1"/></line>
+            <staticText><reportElement x="0" y="5" width="180" height="18"/><textElement><font isBold="true"/></textElement><text><![CDATA[Totais]]></text></staticText>
+            <textField><reportElement x="0" y="28" width="180" height="18"/><textFieldExpression><![CDATA["Serviços: R$ " + $P{valorServicos}]]></textFieldExpression></textField>
+            <textField><reportElement x="190" y="28" width="180" height="18"/><textFieldExpression><![CDATA["Produtos: R$ " + $P{valorProdutos}]]></textFieldExpression></textField>
+            <textField><reportElement x="0" y="48" width="180" height="18"/><textFieldExpression><![CDATA["Desconto: R$ " + $P{desconto}]]></textFieldExpression></textField>
+            <textField><reportElement x="190" y="48" width="180" height="18"/><textFieldExpression><![CDATA["Acréscimo: R$ " + $P{acrescimo}]]></textFieldExpression></textField>
+            <textField><reportElement x="380" y="28" width="175" height="18"/><textElement><font size="12" isBold="true"/></textElement><textFieldExpression><![CDATA["Total da Nota: R$ " + $P{valorTotal}]]></textFieldExpression></textField>
+        </band>
+    </summary>
+</jasperReport>

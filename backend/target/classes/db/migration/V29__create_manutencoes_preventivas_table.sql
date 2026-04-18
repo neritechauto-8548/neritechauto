@@ -1,0 +1,22 @@
+CREATE TABLE manutencoes_preventivas (
+    id BIGSERIAL PRIMARY KEY,
+    veiculo_id BIGINT,
+    tipo_manutencao VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    quilometragem_recomendada INT,
+    tempo_recomendado_meses INT,
+    ultima_execucao_km INT,
+    ultima_execucao_data DATE,
+    proxima_execucao_km INT,
+    proxima_execucao_data DATE,
+    status VARCHAR(20),
+    prioridade VARCHAR(20),
+    custo_estimado DECIMAL(10,2),
+    observacoes TEXT,
+    lembrete_ativo BOOLEAN DEFAULT TRUE,
+    dias_antecedencia_lembrete INT DEFAULT 15,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    versao INT DEFAULT 0,
+    CONSTRAINT fk_manutencao_veiculo FOREIGN KEY (veiculo_id) REFERENCES veiculos(id)
+);

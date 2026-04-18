@@ -1,0 +1,22 @@
+// Header moderno com efeitos especiais
+.matero-header {
+  position: relative;
+  z-index: 1000;
+  display: block;
+}
+
+.matero-header {
+  position: relative;
+  z-index: 1000;
+  display: block;
+}
+
+// Ensure MatToolbar has correct z-index and positioning if needed
+mat-toolbar {
+  @apply transition-colors duration-300 ease-in-out;
+}
+
+// Icon Button Hover Effects
+button[mat-icon-button] {
+  @apply rounded-lg;
+}

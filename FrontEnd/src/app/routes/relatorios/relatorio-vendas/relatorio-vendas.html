@@ -1,0 +1,50 @@
+<p-panel [toggleable]="true" [collapsed]="false">
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <span class="title">Relatório de vendas</span>
+    </div>
+  </ng-template>
+
+  <div class="row mb-3">
+    <div class="col col-md-4">
+      <label class="block mb-1">Setor</label>
+      <p-select [(ngModel)]="setor" [options]="setores" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-4">
+      <label class="block mb-1">Data inicial</label>
+      <input pInputText [(ngModel)]="dataInicial" placeholder="dd/mm/aaaa" />
+    </div>
+    <div class="col col-md-4">
+      <label class="block mb-1">Data final</label>
+      <input pInputText [(ngModel)]="dataFinal" placeholder="dd/mm/aaaa" />
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col col-md-3">
+      <label class="block mb-1">Tipo</label>
+      <p-select [(ngModel)]="tipo" [options]="tipos" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-3">
+      <label class="block mb-1">PDV / OS</label>
+      <p-select [(ngModel)]="pdvos" [options]="pdvosOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+      <div class="mt-2">
+        <p-checkbox [(ngModel)]="filtroAvancado" binary="true" />
+        <span class="ml-2">Filtro avançado</span>
+      </div>
+    </div>
+    <div class="col col-md-3">
+      <label class="block mb-1">Filtrar por</label>
+      <p-select [(ngModel)]="filtrarPor" [options]="filtrarPorOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
+    </div>
+    <div class="col col-md-3">
+      <label class="block mb-1">Filtro</label>
+      <input pInputText [(ngModel)]="filtro" [disabled]="!filtroAvancado" />
+    </div>
+  </div>
+
+  <div class="actions">
+    <button pButton type="button" class="p-button-secondary mr-2" label="Fechar"></button>
+    <button pButton type="button" class="p-button-primary" icon="pi pi-chart-bar" label="Gerar relatorio" (click)="gerarRelatorio()"></button>
+  </div>
+</p-panel>

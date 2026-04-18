@@ -1,0 +1,134 @@
+<div class="filters">
+  <div class="header-left">
+    <span class="material-icons">quiz</span>
+    <span class="title">Relatório de respostas de questionários</span>
+  </div>
+  <div class="controls">
+    <div class="field">
+      <label>Data inicio</label>
+      <input type="date" [(ngModel)]="dataInicial" />
+    </div>
+    <div class="field">
+      <label>Data fim</label>
+      <input type="date" [(ngModel)]="dataFinal" />
+    </div>
+    <div class="field">
+      <label>Questionários</label>
+      <select [(ngModel)]="questionarioId">
+        <option value="1">1 - Pesquisa de Satisfação</option>
+        <option value="2">2 - Pesquisa de Avaliação Serviço</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tipo de relatorio</label>
+      <select [(ngModel)]="tipoRelatorio">
+        <option>Grafico geral</option>
+        <option>Detalhado</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button pButton type="button" class="p-button-primary" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">Os problemas do seu veículo foram reparados completamente?</div>
+  <div class="yn-row">
+    <div class="yn-left">
+      <div class="yn-item">
+        <div class="icon ok">🙂</div>
+        <div class="label">Sim</div>
+        <div class="value">{{ q1.sim }} ({{ percentYesNo(q1,'sim') }})</div>
+      </div>
+      <div class="yn-item">
+        <div class="icon bad">🙁</div>
+        <div class="label">Não</div>
+        <div class="value">{{ q1.nao }} ({{ percentYesNo(q1,'nao') }})</div>
+      </div>
+    </div>
+    <div class="yn-right">
+      <div class="bar-wrap">
+        <span>Sim</span>
+        <div class="bar"><div class="fill" [style.width.%]="q1.sim + q1.nao === 0 ? 0 : (q1.sim/(q1.sim+q1.nao))*100"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <span>Não</span>
+        <div class="bar"><div class="fill bad" [style.width.%]="q1.sim + q1.nao === 0 ? 0 : (q1.nao/(q1.sim+q1.nao))*100"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">O Serviço foi finalizado no tempo prometido?</div>
+  <div class="yn-row">
+    <div class="yn-left">
+      <div class="yn-item">
+        <div class="icon ok">🙂</div>
+        <div class="label">Sim</div>
+        <div class="value">{{ q2.sim }} ({{ percentYesNo(q2,'sim') }})</div>
+      </div>
+      <div class="yn-item">
+        <div class="icon bad">🙁</div>
+        <div class="label">Não</div>
+        <div class="value">{{ q2.nao }} ({{ percentYesNo(q2,'nao') }})</div>
+      </div>
+    </div>
+    <div class="yn-right">
+      <div class="bar-wrap">
+        <span>Sim</span>
+        <div class="bar"><div class="fill" [style.width.%]="q2.sim + q2.nao === 0 ? 0 : (q2.sim/(q2.sim+q2.nao))*100"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <span>Não</span>
+        <div class="bar"><div class="fill bad" [style.width.%]="q2.sim + q2.nao === 0 ? 0 : (q2.nao/(q2.sim+q2.nao))*100"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">Em que grau você nos recomendaria a um amigo ou parente?</div>
+  <div class="nps-scale">
+    <div class="score" *ngFor="let c of nps.counts; let i = index" [class]="'score s' + (i+1)">
+      <div class="num">{{ i+1 }}</div>
+      <div class="count">{{ c }}</div>
+      <div class="pct">({{ nps.total === 0 ? '0.0' : ((c/nps.total)*100).toFixed(1) }}%)</div>
+    </div>
+  </div>
+  <div class="nps-groups">
+    <div class="group detratores">
+      <div class="icon">👥</div>
+      <div class="title">Detratores</div>
+      <div class="value">{{ nps.detratores }} ({{ nps.total === 0 ? '0.0' : ((nps.detratores/nps.total)*100).toFixed(1) }}%)</div>
+      <div class="range">1 - 6</div>
+    </div>
+    <div class="group passivos">
+      <div class="icon">👥</div>
+      <div class="title">Passivos</div>
+      <div class="value">{{ nps.passivos }} ({{ nps.total === 0 ? '0.0' : ((nps.passivos/nps.total)*100).toFixed(1) }}%)</div>
+      <div class="range">7 - 8</div>
+    </div>
+    <div class="group promotores">
+      <div class="icon">👥</div>
+      <div class="title">Promotores</div>
+      <div class="value">{{ nps.promotores }} ({{ nps.total === 0 ? '0.0' : ((nps.promotores/nps.total)*100).toFixed(1) }}%)</div>
+      <div class="range">9 - 10</div>
+    </div>
+    <div class="group nps-value">
+      <div class="value">{{ nps.nps.toFixed(1) }}%</div>
+      <div class="label">Net Promoter Score<br/>(NPS)</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">O que podemos fazer ainda para melhorar?</div>
+  <div class="comments-box">
+    <div *ngIf="comentarios.length === 0" class="empty">Sem respostas no período selecionado.</div>
+    <ul *ngIf="comentarios.length > 0">
+      <li *ngFor="let c of comentarios">{{ c }}</li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,377 @@
+<div class="flex flex-col min-h-screen bg-slate-50">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+  <app-confirmation-dialog />
+
+  <!-- Header Stripe -->
+  <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 sticky top-0 z-20 shadow-sm">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h1 class="text-lg font-bold text-slate-900">Notas de Compra</h1>
+        <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Gerencie as notas fiscais de entrada</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="imprimir()"
+          class="hidden sm:flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors">
+          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">print</mat-icon>
+          <span class="hidden sm:inline">Imprimir</span>
+        </button>
+        <button (click)="abrirNovo()"
+          class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+          Nova Nota
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cards de Totais -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 sm:px-6 py-4">
+
+    <!-- Total de Notas -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Notas</span>
+        <span class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-blue-500">receipt</mat-icon>
+        </span>
+      </div>
+      <p class="text-lg font-bold text-slate-800">{{ totalNotas }}</p>
+      <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wide">Emitidas</p>
+    </div>
+
+    <!-- Total de Itens -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Itens</span>
+        <span class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-indigo-500">inventory_2</mat-icon>
+        </span>
+      </div>
+      <p class="text-lg font-bold text-slate-800">{{ totalItens }}</p>
+      <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wide">Produtos</p>
+    </div>
+
+    <!-- Volume Comprado -->
+    <div class="bg-white border border-amber-100 rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Volume</span>
+        <span class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-amber-500">shopping_cart</mat-icon>
+        </span>
+      </div>
+      <p class="text-lg font-bold text-slate-800">{{ formatCurrency(totalComprado) }}</p>
+      <p class="text-[10px] text-amber-400 mt-0.5 uppercase tracking-wide">Valor total</p>
+    </div>
+
+    <!-- Fornecedores -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fornecedores</span>
+        <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-500">business</mat-icon>
+        </span>
+      </div>
+      <p class="text-lg font-bold text-slate-800">{{ totalFornecedores }}</p>
+      <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wide">Distintos</p>
+    </div>
+  </div>
+
+  <!-- Barra de Busca + Filtros -->
+  <div class="px-4 sm:px-6 pb-3">
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-row items-center gap-3">
+      <div class="flex-shrink-0 w-44">
+        <p-select [options]="campoOptions" [(ngModel)]="filtroCampo" styleClass="w-full font-medium" placeholder="Filtrar por..." />
+      </div>
+      <div class="relative flex-1">
+        <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 !text-[18px] !w-[18px] !h-[18px] text-slate-400">search</mat-icon>
+        <input [(ngModel)]="filtroTexto" type="text" placeholder="Buscar por número, fornecedor ou produto..."
+          class="w-full pl-10 pr-4 py-2 text-sm font-medium border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors placeholder:font-normal placeholder:text-slate-400" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela Stripe -->
+  <div class="px-4 sm:px-6 pb-8 flex-1">
+    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="py-16 flex flex-col items-center gap-3 text-slate-400">
+        <mat-icon class="animate-spin !text-2xl">refresh</mat-icon>
+        <span class="text-sm">Carregando...</span>
+      </div>
+
+      <!-- Empty -->
+      <div *ngIf="!loading && notasFiltradas.length === 0" class="py-16 flex flex-col items-center gap-3 text-slate-400">
+        <mat-icon class="!text-4xl text-slate-300">receipt_long</mat-icon>
+        <p class="text-sm font-semibold text-slate-500">Nenhuma nota de compra encontrada</p>
+        <button (click)="abrirNovo()" class="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+          Incluir primeira nota
+        </button>
+      </div>
+
+      <!-- Table -->
+      <table *ngIf="!loading && notasFiltradas.length > 0" class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-100 bg-slate-50">
+            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Nº Nota Fiscal</th>
+            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Fornecedor</th>
+            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Data Emissão</th>
+            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Data Entrada</th>
+            <th class="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Valor Total</th>
+            <th class="text-center py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+            <th class="text-center py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let nota of notasFiltradas"
+              class="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition-colors group">
+
+            <!-- Número NF -->
+            <td class="py-3 px-4">
+              <span class="font-mono text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                {{ nota.numeroNota || '#' + nota.id }}
+              </span>
+            </td>
+
+            <!-- Fornecedor -->
+            <td class="py-3 px-4">
+              <p class="font-semibold text-slate-800 text-sm truncate max-w-[200px]">{{ nota.fornecedorNome }}</p>
+              <p *ngIf="nota.fornecedorCnpj" class="text-xs font-mono text-slate-400 mt-0.5">{{ nota.fornecedorCnpj }}</p>
+            </td>
+
+            <!-- Data Emissão -->
+            <td class="py-3 px-4">
+              <span class="text-xs font-medium text-slate-600">{{ formatDate(nota.dataEmissao) }}</span>
+            </td>
+
+            <!-- Data Entrada -->
+            <td class="py-3 px-4">
+              <span class="text-xs font-medium text-slate-600">{{ formatDate(nota.dataEntrada) }}</span>
+            </td>
+
+            <!-- Valor -->
+            <td class="py-3 px-4 text-right">
+              <p class="font-bold text-slate-800">{{ formatCurrency(nota.valorTotal) }}</p>
+            </td>
+
+            <!-- Status -->
+            <td class="py-3 px-4 text-center">
+              <span [ngClass]="{
+                'bg-emerald-500 text-white': nota.status === 'ATIVO',
+                'bg-slate-200 text-slate-700 border border-slate-300': nota.status === 'CANCELADO',
+                'bg-amber-400 text-amber-950': nota.status === 'PENDENTE'
+              }" class="inline-flex items-center justify-center px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                {{ nota.status || 'Ativo' }}
+              </span>
+            </td>
+
+            <!-- Ações -->
+            <td class="py-3 px-4 text-center">
+              <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="verDetalhe(nota)" title="Ver Detalhes"
+                  class="w-7 h-7 rounded-lg flex items-center justify-center text-blue-500 hover:bg-blue-100 transition-colors">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">visibility</mat-icon>
+                </button>
+                <button (click)="imprimirNota(nota)" title="Imprimir Nota"
+                  class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon>
+                </button>
+                <button (click)="excluir(nota)" title="Excluir"
+                  class="w-7 h-7 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-100 transition-colors">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Dialog: Nova Nota de Compra                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="dialogVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '600px', maxHeight: '90vh' }"
+  [contentStyle]="{'padding':'0','overflow':'hidden'}"
+  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
+
+  <ng-container>
+    <!-- Header Stripe -->
+    <div class="bg-slate-900 px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
+          <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">receipt_long</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white">Nova Nota de Compra</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Insira os dados da nota fiscal</p>
+        </div>
+      </div>
+      <button (click)="dialogVisible = false" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-5 py-5 bg-white space-y-4 overflow-y-auto" style="max-height: calc(90vh - 140px)">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Número NF -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-700">Nº Nota Fiscal <span class="text-rose-500">*</span></label>
+          <input pInputText [(ngModel)]="form.numeroNota" placeholder="Ex: 00012345" class="w-full text-sm font-medium border-slate-300" />
+        </div>
+        <!-- Série -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-700">Série</label>
+          <input pInputText [(ngModel)]="form.serie" placeholder="Ex: 001" class="w-full text-sm font-medium border-slate-300" />
+        </div>
+      </div>
+
+      <!-- Fornecedor -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-slate-700">Fornecedor <span class="text-rose-500">*</span></label>
+        <p-autoComplete [(ngModel)]="fornecedorNome" [suggestions]="fornecedoresFiltrados"
+          (completeMethod)="filtrarFornecedores($event)"
+          field="nomeFantasia" dataKey="id"
+          placeholder="Digite o nome do fornecedor..."
+          [dropdown]="true" styleClass="w-full"
+          inputStyleClass="w-full text-sm font-medium border-slate-300">
+          <ng-template let-f pTemplate="item">
+            <div>
+              <span class="font-medium text-sm text-slate-800">{{ f.nomeFantasia }}</span>
+              <span *ngIf="f.cnpj" class="text-xs text-slate-400 ml-2 font-mono">{{ f.cnpj }}</span>
+            </div>
+          </ng-template>
+        </p-autoComplete>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Data Emissão -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-700">Data Emissão <span class="text-rose-500">*</span></label>
+          <p-datepicker [(ngModel)]="form.dataEmissao" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300" />
+        </div>
+        <!-- Data Entrada -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-700">Data Entrada <span class="text-rose-500">*</span></label>
+          <p-datepicker [(ngModel)]="form.dataEntrada" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Valor Total -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-700">Valor Total <span class="text-rose-500">*</span></label>
+          <p-inputnumber [(ngModel)]="form.valorTotal" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-bold border-slate-300 text-slate-800" />
+        </div>
+        <!-- Chave NFe -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-700">Chave NFe</label>
+          <input pInputText [(ngModel)]="form.chaveNfe" placeholder="Opcional (44 dígitos)" class="w-full text-sm font-medium border-slate-300 font-mono" />
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-slate-700">Observações</label>
+        <textarea pTextarea [(ngModel)]="form.observacoes" rows="2" class="w-full text-sm font-medium resize-none border-slate-300" placeholder="Opcional..."></textarea>
+      </div>
+    </div>
+
+    <!-- Footer Stripe -->
+    <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex gap-3 justify-end items-center">
+      <button (click)="dialogVisible = false"
+        class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-bold flex items-center justify-center transition-colors shadow-sm">
+        Cancelar
+      </button>
+      <button (click)="salvar()" [disabled]="salvando"
+        class="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">check</mat-icon>
+        {{ salvando ? 'Salvando...' : 'Salvar' }}
+      </button>
+    </div>
+  </ng-container>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Dialog: Detalhe da Nota                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="detalheVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '640px', maxHeight: '90vh' }"
+  [contentStyle]="{'padding':'0','overflow':'hidden'}"
+  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
+
+  <ng-container *ngIf="notaSelecionada">
+    <!-- Header Stripe -->
+    <div class="bg-slate-900 px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
+          <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">receipt</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white">NF {{ notaSelecionada.numeroNota }}</h2>
+          <p class="text-xs text-slate-400 mt-0.5">{{ notaSelecionada.fornecedorNome }}</p>
+        </div>
+      </div>
+      <button (click)="detalheVisible = false" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Body detalhe -->
+    <div class="px-5 py-5 bg-white overflow-y-auto space-y-4" style="max-height: calc(90vh - 140px)">
+      <!-- Info grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nº Nota</span>
+          <span class="font-mono text-sm font-bold text-slate-700">{{ notaSelecionada.numeroNota }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Emissão</span>
+          <span class="text-sm font-semibold text-slate-700">{{ formatDate(notaSelecionada.dataEmissao) }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Entrada</span>
+          <span class="text-sm font-semibold text-slate-700">{{ formatDate(notaSelecionada.dataEntrada) }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fornecedor</span>
+          <span class="text-sm font-semibold text-slate-700">{{ notaSelecionada.fornecedorNome }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Valor Total</span>
+          <span class="text-sm font-bold text-emerald-700">{{ formatCurrency(notaSelecionada.valorTotal) }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5" *ngIf="notaSelecionada.chaveNfe">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Chave NFe</span>
+          <span class="text-[10px] font-mono text-slate-600 break-all">{{ notaSelecionada.chaveNfe }}</span>
+        </div>
+      </div>
+
+      <!-- Divisor -->
+      <div class="border-t border-slate-100"></div>
+
+      <!-- Observações -->
+      <div *ngIf="notaSelecionada.observacoes" class="flex flex-col gap-1">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Observações</span>
+        <p class="text-sm text-slate-600">{{ notaSelecionada.observacoes }}</p>
+      </div>
+    </div>
+
+    <!-- Footer detalhe -->
+    <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex gap-3 justify-end items-center">
+      <button (click)="imprimirNota(notaSelecionada)"
+        class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm">
+        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon>
+        Imprimir
+      </button>
+      <button (click)="detalheVisible = false"
+        class="px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold flex items-center justify-center transition-colors shadow-sm">
+        Fechar
+      </button>
+    </div>
+  </ng-container>
+</p-dialog>

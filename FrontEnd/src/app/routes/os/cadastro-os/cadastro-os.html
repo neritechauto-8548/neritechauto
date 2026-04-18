@@ -1,0 +1,311 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+
+  <p-confirmDialog [style]="{width: '450px'}" />
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- Action Bar (Sticky Top) — padrão cadastro-veiculo -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+    <div class="flex items-center gap-4">
+      <button (click)="voltar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+        <i class="pi pi-arrow-left text-sm"></i>
+      </button>
+      <div>
+        <h1 class="text-base font-semibold text-slate-900 leading-tight">
+          {{ osId ? ('Editando OS #' + (osData?.numeroOS || '')) : (isCriarOrcamento ? 'Novo Orçamento' : 'Nova Ordem de Serviço') }}
+        </h1>
+        <span class="text-xs text-slate-500 font-normal">
+          {{ osId ? 'Editando registro #' + osId : 'Preencha os dados abaixo' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex gap-3 items-center">
+      <!-- Excluir (apenas edição) -->
+      <button *ngIf="osId" (click)="excluirOS()"
+        class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+        <i class="pi pi-trash text-[13px]"></i> Excluir
+      </button>
+      <!-- Imprimir / Orçamento (apenas edição) -->
+      <button *ngIf="osId && isOrcamento" (click)="abrirDialogOrcamento()"
+        class="px-3.5 py-1.5 rounded-md border border-indigo-200 bg-white text-indigo-600 font-medium hover:bg-indigo-50 hover:border-indigo-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+        <i class="pi pi-file-pdf text-[13px]"></i> Gerar Proposta
+      </button>
+      <button *ngIf="osId" (click)="imprimirOS()"
+        class="px-3.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+        <i class="pi pi-print text-[13px]"></i> Imprimir
+      </button>
+      <div *ngIf="osId" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+      <button (click)="voltar()"
+        class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+        Cancelar
+      </button>
+      <button (click)="salvarHeader()" [disabled]="loading"
+        class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+        <i class="pi pi-check text-xs" *ngIf="!loading"></i>
+        <i class="pi pi-spin pi-spinner text-xs" *ngIf="loading"></i>
+        {{ loading ? 'Salvando...' : (osId ? 'Salvar Alterações' : (isCriarOrcamento ? 'Criar Orçamento' : 'Criar OS e Avançar')) }}
+      </button>
+    </div>
+  </div>
+
+  <div [formGroup]="osForm" class="p-6 w-full space-y-6 mx-auto">
+
+    <!-- Seção: Identificação -->
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm">Identificação da OS</h3>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+
+        <!-- Número OS -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Número OS</label>
+          <input pInputText formControlName="numeroOS" class="w-full modern-input" readonly />
+        </div>
+
+        <!-- Tipo OS -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Tipo OS *</label>
+          <p-select formControlName="tipoOS" [options]="tipoOSOptions"
+            placeholder="Selecione..." styleClass="w-full modern-select"
+            appendTo="body" [disabled]="!!osId || lockTipoOS" />
+        </div>
+
+        <!-- Status -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Status</label>
+          <p-select formControlName="statusId" [options]="statusOptions"
+            optionLabel="label" optionValue="value"
+            styleClass="w-full modern-select" appendTo="body" />
+        </div>
+
+        <!-- Responsável -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Responsável</label>
+          <p-select formControlName="funcionario" [options]="funcionarios"
+            styleClass="w-full modern-select" appendTo="body" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Cliente e Veículo -->
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm">Cliente e Veículo</h3>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Cliente -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Cliente *</label>
+          <p-autoComplete formControlName="cliente"
+            [suggestions]="clientesFiltrados"
+            (completeMethod)="filtrarClientes($event)"
+            (onSelect)="onClienteSelect($event)"
+            optionLabel="displayName"
+            placeholder="Busca de cliente..."
+            [forceSelection]="true"
+            inputStyleClass="w-full modern-input"
+            styleClass="w-full"
+            [dropdown]="true"
+            appendTo="body"
+            [disabled]="!!osId">
+            <ng-template let-cli pTemplate="item">
+              <div class="flex flex-col py-1">
+                <span class="font-bold text-sm text-slate-900">{{ cli.displayName || cli.razaoSocial || cli.nomeFantasia || cli.nomeCompleto }}</span>
+                <span class="text-xs text-slate-500">{{ cli.cpf || cli.cnpj }}</span>
+              </div>
+            </ng-template>
+          </p-autoComplete>
+        </div>
+
+        <!-- Veículo -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Veículo</label>
+          <p-select formControlName="veiculoId" [options]="veiculos"
+            placeholder="Selecione o veículo"
+            styleClass="w-full modern-select"
+            appendTo="body"
+            [disabled]="!osForm.get('cliente')?.value" />
+        </div>
+
+        <!-- KM Entrada -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">KM Entrada</label>
+          <p-inputNumber formControlName="km" styleClass="w-full" inputStyleClass="modern-input w-full" />
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="flex items-center gap-6 pt-5">
+          <div class="flex items-center gap-2">
+            <p-checkbox formControlName="reservico" [binary]="true" inputId="reservico" />
+            <label for="reservico" class="text-sm font-medium text-slate-700 cursor-pointer">Retorno/Garantia</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <p-checkbox formControlName="reboque" [binary]="true" inputId="reboque" />
+            <label for="reboque" class="text-sm font-medium text-slate-700 cursor-pointer">Veio de Reboque</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Datas -->
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm">Datas e Horários</h3>
+      </div>
+      <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+
+        <!-- Data Entrada -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Data Entrada</label>
+          <p-datepicker formControlName="dataEntrada" dateFormat="dd/mm/yy"
+            styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+
+        <!-- Hora Entrada -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Hora Entrada</label>
+          <p-inputMask mask="99:99" formControlName="horaEntrada"
+            styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+
+        <!-- Previsão Entrega -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Previsão Entrega</label>
+          <p-datepicker formControlName="dataPrevisao" dateFormat="dd/mm/yy"
+            styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+
+        <!-- Hora Previsão -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Hora</label>
+          <p-inputMask mask="99:99" formControlName="horaPrevisao"
+            styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Observações -->
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm">Observações</h3>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Defeito Relatado / Observação Interna</label>
+          <textarea pTextarea formControlName="observacaoInterna" rows="4"
+            class="w-full modern-input"></textarea>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Observações para o Cliente (impresso na OS)</label>
+          <textarea pTextarea formControlName="descricaoCliente" rows="4"
+            class="w-full modern-input"></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DIALOGS — mantidos inalterados -->
+
+  <!-- Add Produto -->
+  <p-dialog [(visible)]="dialogProdutoVisible" header="Adicionar Produto" [modal]="true" [style]="{width: '500px'}">
+    <form [formGroup]="produtoForm" class="flex flex-col gap-4 pt-2">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Produto</label>
+        <p-autoComplete formControlName="produto" [suggestions]="produtosFiltrados"
+          (completeMethod)="filtrarProdutos($event)" (onSelect)="onProdutoSelect($event)"
+          field="nome" [dropdown]="true" placeholder="Busque..." appendTo="body"
+          styleClass="w-full" inputStyleClass="w-full">
+          <ng-template let-prod pTemplate="item">
+            <div class="flex justify-between">
+              <span>{{prod.nome}}</span>
+              <span class="text-sm text-gray-500">Est: {{prod.estoqueAtual | number}}</span>
+            </div>
+          </ng-template>
+        </p-autoComplete>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Quantidade</label>
+          <p-inputNumber formControlName="quantidade" [min]="0.1" [maxFractionDigits]="2" styleClass="w-full" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Preço Unitário</label>
+          <p-inputNumber formControlName="precoUnitario" mode="currency" currency="BRL" styleClass="w-full" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Desconto (R$)</label>
+        <p-inputNumber formControlName="desconto" mode="currency" currency="BRL" styleClass="w-full" />
+      </div>
+    </form>
+    <ng-template pTemplate="footer">
+      <button pButton label="Cancelar" (click)="dialogProdutoVisible = false" class="p-button-text"></button>
+      <button pButton label="Adicionar" (click)="adicionarProduto()" [disabled]="produtoForm.invalid"></button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Add Serviço -->
+  <p-dialog [(visible)]="dialogServicoVisible" header="Adicionar Serviço" [modal]="true" [style]="{width: '500px'}">
+    <form [formGroup]="servicoForm" class="flex flex-col gap-4 pt-2">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Serviço</label>
+        <p-autoComplete formControlName="servico" [suggestions]="servicosFiltrados"
+          (completeMethod)="filtrarServicos($event)" (onSelect)="onServicoSelect($event)"
+          field="nome" [dropdown]="true" placeholder="Busque..." appendTo="body"
+          styleClass="w-full" inputStyleClass="w-full" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Quantidade</label>
+          <p-inputNumber formControlName="quantidade" [min]="0.1" styleClass="w-full" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Preço Unitário</label>
+          <p-inputNumber formControlName="precoUnitario" mode="currency" currency="BRL" styleClass="w-full" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Desconto (R$)</label>
+        <p-inputNumber formControlName="desconto" mode="currency" currency="BRL" styleClass="w-full" />
+      </div>
+    </form>
+    <ng-template pTemplate="footer">
+      <button pButton label="Cancelar" (click)="dialogServicoVisible = false" class="p-button-text"></button>
+      <button pButton label="Adicionar" (click)="adicionarServico()" [disabled]="servicoForm.invalid"></button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Formalizar Orçamento -->
+  <p-dialog [(visible)]="dialogOrcamentoVisible" header="Formalizar Proposta" [modal]="true" [style]="{width: '600px'}">
+    <form [formGroup]="orcamentoForm" class="flex flex-col gap-4 pt-2">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Validade (Dias)</label>
+          <p-inputNumber formControlName="prazoValidade" styleClass="w-full" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Vencimento</label>
+          <p-datepicker formControlName="dataVencimento" dateFormat="dd/mm/yy" styleClass="w-full" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Condições de Pagamento</label>
+        <input pInputText formControlName="condicoesPagamento" class="w-full modern-input" />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Observações Comerciais</label>
+        <textarea pTextarea formControlName="observacoes" rows="3" class="w-full modern-input"></textarea>
+      </div>
+    </form>
+    <ng-template pTemplate="footer">
+      <button pButton label="Cancelar" (click)="dialogOrcamentoVisible = false" class="p-button-text"></button>
+      <button pButton label="Gerar Proposta PDF" icon="pi pi-file-pdf" (click)="gerarProposta()" [disabled]="orcamentoForm.invalid"></button>
+    </ng-template>
+  </p-dialog>
+
+</div>

@@ -1,0 +1,50 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a84ff;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#63b4ff;stop-opacity:0.25" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0a84ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#63b4ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#0f1c2e"/>
+  <rect width="800" height="600" fill="url(#bgGrad)"/>
+  
+  <!-- Header -->
+  <rect x="40" y="40" width="720" height="60" rx="12" fill="rgba(255,255,255,0.05)"/>
+  <text x="70" y="78" font-family="Arial, sans-serif" font-size="20" fill="#0a84ff" font-weight="bold">💰 Gestão Financeira</text>
+  
+  <!-- Cards Row -->
+  <rect x="40" y="130" width="220" height="120" rx="12" fill="url(#cardGrad)"/>
+  <text x="150" y="175" font-family="Arial, sans-serif" font-size="32" fill="#fff" font-weight="bold" text-anchor="middle">R$ 45.2K</text>
+  <text x="150" y="205" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" text-anchor="middle">Receita Mensal</text>
+  
+  <rect x="290" y="130" width="220" height="120" rx="12" fill="rgba(10,132,255,0.2)"/>
+  <text x="400" y="175" font-family="Arial, sans-serif" font-size="32" fill="#0a84ff" font-weight="bold" text-anchor="middle">R$ 12.8K</text>
+  <text x="400" y="205" font-family="Arial, sans-serif" font-size="14" fill="#8b9dc3" text-anchor="middle">Despesas</text>
+  
+  <rect x="540" y="130" width="220" height="120" rx="12" fill="rgba(99,180,255,0.2)"/>
+  <text x="650" y="175" font-family="Arial, sans-serif" font-size="32" fill="#63b4ff" font-weight="bold" text-anchor="middle">R$ 32.4K</text>
+  <text x="650" y="205" font-family="Arial, sans-serif" font-size="14" fill="#8b9dc3" text-anchor="middle">Lucro Líquido</text>
+  
+  <!-- Chart Area -->
+  <rect x="40" y="280" width="720" height="280" rx="12" fill="rgba(255,255,255,0.03)"/>
+  <text x="70" y="315" font-family="Arial, sans-serif" font-size="16" fill="#fff" font-weight="600">Fluxo de Caixa</text>
+  
+  <!-- Simple Chart Lines -->
+  <polyline points="80,480 150,420 220,440 290,380 360,400 430,350 500,370 570,320 640,340 710,300" 
+            fill="none" stroke="url(#cardGrad)" stroke-width="3" opacity="0.8"/>
+  <polyline points="80,500 150,490 220,510 290,485 360,495 430,475 500,490 570,470 640,480 710,460" 
+            fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="5,5"/>
+  
+  <!-- Legend -->
+  <circle cx="80" cy="540" r="4" fill="#0a84ff"/>
+  <text x="95" y="545" font-family="Arial, sans-serif" font-size="12" fill="#8b9dc3">Receitas</text>
+  
+  <circle cx="180" cy="540" r="4" fill="rgba(255,255,255,0.5)"/>
+  <text x="195" y="545" font-family="Arial, sans-serif" font-size="12" fill="#8b9dc3">Despesas</text>
+</svg>

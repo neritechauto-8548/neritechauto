@@ -1,0 +1,264 @@
+<div class="dashboard-container p-6 md:p-8 font-sans bg-slate-50 dark:bg-slate-900 min-h-full transition-colors duration-300">
+
+  <!-- Top KPI Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+    <!-- Card 1: Ticket Médio Geral -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between hover:shadow-md transition-all">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <i class="pi pi-dollar text-lg"></i>
+            </div>
+            <div class="flex flex-col items-end">
+                 <span class="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
+                    <i class="pi pi-arrow-up-right text-[10px]"></i> {{ kpiGeral }}
+                 </span>
+            </div>
+        </div>
+        <div>
+            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Ticket Médio Geral</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">R$ {{ ticketMedioGeral | number:'1.2-2' }}</h3>
+        </div>
+    </div>
+
+    <!-- Card 2: Ticket Médio do Mês -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between hover:shadow-md transition-all">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <i class="pi pi-chart-line text-lg"></i>
+            </div>
+            <div class="flex flex-col items-end">
+                 <span class="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
+                    <i class="pi pi-arrow-up-right text-[10px]"></i> {{ kpiMes }}
+                 </span>
+            </div>
+        </div>
+        <div>
+            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Ticket Médio do Mês</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">R$ {{ ticketMedioMes | number:'1.2-2' }}</h3>
+        </div>
+    </div>
+
+    <!-- Card 3: Veículos Entregues -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between hover:shadow-md transition-all">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                <i class="pi pi-car text-lg"></i>
+            </div>
+            <div class="flex flex-col items-end">
+                 <span class="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
+                    <i class="pi pi-arrow-up-right text-[10px]"></i> {{ kpiEntregas }}
+                 </span>
+            </div>
+        </div>
+        <div class="mb-4">
+            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Veículos Entregues</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">{{ veiculosEntregues }}</h3>
+        </div>
+
+        <!-- Progress Bar -->
+        <div>
+            <div class="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                <span>Meta do mês</span>
+                <span>{{ metaMesPercentual }}%</span>
+            </div>
+            <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500 rounded-full" [style.width.%]="metaMesPercentual"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Veículos em Atraso -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between hover:shadow-md transition-all">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                <i class="pi pi-exclamation-triangle text-lg"></i>
+            </div>
+            <div class="flex flex-col items-end">
+                 <span class="text-xs font-bold text-rose-500 flex items-center gap-1 bg-rose-50 dark:bg-rose-900/20 px-2 py-0.5 rounded-full">
+                    <i class="pi pi-arrow-down-right text-[10px]"></i> {{ kpiAtraso }}
+                 </span>
+            </div>
+        </div>
+        <div>
+            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Veículos em Atraso</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">{{ veiculosEmAtraso }}</h3>
+        </div>
+    </div>
+
+  </div>
+
+  <!-- Action Cards Row (Quick Links) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+     <!-- Action 1 -->
+     <button class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all text-left flex items-center gap-4 group">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+             <i class="pi pi-calendar"></i>
+        </div>
+        <div>
+             <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Novo Agendamento</h4>
+             <p class="text-slate-500 dark:text-slate-400 text-xs">Agendar serviço</p>
+        </div>
+     </button>
+
+     <!-- Action 2 -->
+     <button class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 transition-all text-left flex items-center gap-4 group">
+        <div class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+             <i class="pi pi-wrench"></i>
+        </div>
+        <div>
+             <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Consultar Peças</h4>
+             <p class="text-slate-500 dark:text-slate-400 text-xs">Estoque rápido</p>
+        </div>
+     </button>
+
+     <!-- Action 3 -->
+     <button class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all text-left flex items-center gap-4 group">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+             <i class="pi pi-file"></i>
+        </div>
+        <div>
+             <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Criar Orçamento</h4>
+             <p class="text-slate-500 dark:text-slate-400 text-xs">Nova proposta</p>
+        </div>
+     </button>
+
+     <!-- Action 4 -->
+     <button class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500 transition-all text-left flex items-center gap-4 group">
+        <div class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+             <i class="pi pi-chart-bar"></i>
+        </div>
+        <div>
+             <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Relatórios</h4>
+             <p class="text-slate-500 dark:text-slate-400 text-xs">Visualizar dados</p>
+        </div>
+     </button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <!-- Main Chart (2/3 width) -->
+      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 dark:border-slate-700">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Faturamento</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Comparativo Peças vs Serviços</p>
+            </div>
+            <div class="flex gap-4">
+                <span class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                    <i class="pi pi-arrow-up-right text-[10px]"></i> +18.2%
+                </span>
+            </div>
+        </div>
+        <div id="chart" class="text-slate-800 dark:text-slate-100">
+            <apx-chart
+              [series]="chartOptions.series!"
+              [chart]="chartOptions.chart!"
+              [xaxis]="chartOptions.xaxis!"
+              [yaxis]="chartOptions.yaxis!"
+              [stroke]="chartOptions.stroke!"
+              [tooltip]="chartOptions.tooltip!"
+              [dataLabels]="chartOptions.dataLabels!"
+              [legend]="chartOptions.legend!"
+              [colors]="chartOptions.colors!"
+              [grid]="chartOptions.grid!"
+            />
+        </div>
+      </div>
+
+      <!-- Pipeline (1/3 width) -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col">
+         <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Pipeline</h3>
+         <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Orçamentos em aberto</p>
+
+         <div class="space-y-4 flex-1">
+            <div *ngFor="let item of pipelineStats" class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer group">
+                <div class="flex items-center gap-3">
+                    <div [class]="'w-2 h-2 rounded-full ' + item.statusColor"></div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-primary-500 transition-colors">{{ item.title }}</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ item.count }} orçamentos</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-100">R$ {{ item.value }}k</p>
+                </div>
+            </div>
+         </div>
+         <button class="w-full mt-6 py-2 text-primary-500 text-sm font-semibold hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors">
+            Ver Pipeline Completo
+         </button>
+      </div>
+  </div>
+
+  <!-- Bottom Grid: Activity & Finance -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+      <!-- Indicadores / Activity -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 h-full">
+          <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Atividade Recente</h3>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Últimas atualizações da oficina</p>
+
+          <div class="space-y-4">
+              <div *ngFor="let item of indicadoresOperacionais" class="flex items-center p-4 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-transparent hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                  <div [class]="'w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm ' + item.color">
+                      <i [class]="'pi text-lg ' + item.icon"></i>
+                  </div>
+                  <div class="ml-4 flex-1">
+                      <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide mb-0.5">{{ item.title }}</p>
+                      <h4 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-0.5">{{ item.value }}</h4>
+                      <p class="text-xs text-slate-400 dark:text-slate-500 font-medium">{{ item.subtext }}</p>
+                  </div>
+                  <button *ngIf="item.action" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                      {{ item.action }}
+                  </button>
+              </div>
+          </div>
+      </div>
+
+      <!-- Visão Financeira -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 h-full">
+        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Resumo Financeiro</h3>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Status de caixa deste mês</p>
+
+        <div class="space-y-3">
+             <!-- Receber -->
+             <div class="flex items-center p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30">
+                 <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+                     <i class="pi pi-arrow-up-right"></i>
+                 </div>
+                 <div class="ml-4 flex-1">
+                     <p class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 mb-0.5">{{ financeiro.contasReceber.label }}</p>
+                     <h4 class="text-lg font-black text-slate-800 dark:text-slate-100">R$ {{ financeiro.contasReceber.value | number:'1.2-2' }}</h4>
+                 </div>
+                 <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium hidden sm:block">{{ financeiro.contasReceber.sub }}</p>
+             </div>
+
+             <!-- Pagar -->
+             <div class="flex items-center p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                <div class="w-10 h-10 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
+                    <i class="pi pi-arrow-down-left"></i>
+                </div>
+                <div class="ml-4 flex-1">
+                    <p class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 mb-0.5">{{ financeiro.contasPagar.label }}</p>
+                    <h4 class="text-lg font-black text-slate-800 dark:text-slate-100">R$ {{ financeiro.contasPagar.value | number:'1.2-2' }}</h4>
+                </div>
+                <p class="text-xs text-blue-600 dark:text-blue-400 font-medium hidden sm:block">{{ financeiro.contasPagar.sub }}</p>
+            </div>
+
+            <!-- Vencidos -->
+            <div class="flex items-center p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30">
+                <div class="w-10 h-10 rounded-lg bg-rose-500 text-white flex items-center justify-center shadow-sm">
+                    <i class="pi pi-exclamation-circle"></i>
+                </div>
+                <div class="ml-4 flex-1">
+                    <p class="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400 mb-0.5">{{ financeiro.vencidos.label }}</p>
+                    <h4 class="text-lg font-black text-slate-800 dark:text-slate-100">R$ {{ financeiro.vencidos.value | number:'1.2-2' }}</h4>
+                </div>
+                <p class="text-xs text-rose-600 dark:text-rose-400 font-medium hidden sm:block">{{ financeiro.vencidos.sub }}</p>
+            </div>
+        </div>
+    </div>
+
+  </div>
+
+</div>

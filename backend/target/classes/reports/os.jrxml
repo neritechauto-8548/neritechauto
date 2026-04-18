@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61d56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="OrdemServico" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="4c3b0185-3536-46c6-94e3-47528187889f">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="NOME_EMPRESA" class="java.lang.String"/>
+	<parameter name="NUMERO_OS" class="java.lang.String"/>
+	<parameter name="NOME_CLIENTE" class="java.lang.String"/>
+	<parameter name="PLACA_VEICULO" class="java.lang.String"/>
+	<parameter name="TOTAL_OS" class="java.math.BigDecimal"/>
+	
+    <!-- FIELDS -->
+    <field name="descricao" class="java.lang.String"/>
+    <field name="quantidade" class="java.math.BigDecimal"/>
+    <field name="valorUnitario" class="java.math.BigDecimal"/>
+    <field name="valorTotal" class="java.math.BigDecimal"/>
+    <field name="tipo" class="java.lang.String"/>
+
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="10" width="555" height="30" uuid="6f08226e-41e9-467b-b02f-38290e447545"/>
+				<textElement textAlignment="Center">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NOME_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="50" width="555" height="20" uuid="6a7e025f-04db-4029-8472-3539c3647352"/>
+				<textElement textAlignment="Center">
+					<font size="14"/>
+				</textElement>
+				<text><![CDATA[Ordem de Serviço / Orçamento]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="70" splitType="Stretch">
+            <rectangle>
+				<reportElement x="0" y="0" width="555" height="60" uuid="rect-uuid"/>
+			</rectangle>
+			<textField>
+				<reportElement x="100" y="10" width="180" height="20" uuid="a1b2c3d4-e5f6-4789-8901-234567890abc"/>
+				<textFieldExpression><![CDATA[$P{NUMERO_OS}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="10" y="10" width="90" height="20" uuid="b2c3d4e5-f678-9012-3456-789012345678"/>
+				<textElement isBold="true"/>
+				<text><![CDATA[Número OS:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="10" y="35" width="90" height="20" uuid="c3d4e5f6-7890-1234-5678-901234567890"/>
+				<textElement isBold="true"/>
+				<text><![CDATA[Cliente:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="100" y="35" width="280" height="20" uuid="d4e5f678-9012-3456-7890-123456789012"/>
+				<textFieldExpression><![CDATA[$P{NOME_CLIENTE}]]></textFieldExpression>
+			</textField>
+            <staticText>
+				<reportElement x="380" y="35" width="60" height="20" uuid="e5f67890-1234-5678-9012-345678901234"/>
+				<textElement isBold="true"/>
+				<text><![CDATA[Veículo:]]></text>
+			</staticText>
+            <textField>
+				<reportElement x="440" y="35" width="105" height="20" uuid="f6789012-3456-7890-1234-567890123456"/>
+				<textFieldExpression><![CDATA[$P{PLACA_VEICULO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	
+    <columnHeader>
+		<band height="25" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="280" height="20" uuid="col1"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Descrição]]></text>
+			</staticText>
+            <staticText>
+				<reportElement x="280" y="0" width="50" height="20" uuid="col2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qtd]]></text>
+			</staticText>
+            <staticText>
+				<reportElement x="330" y="0" width="100" height="20" uuid="col3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Valor Unit.]]></text>
+			</staticText>
+            <staticText>
+				<reportElement x="430" y="0" width="125" height="20" uuid="col4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+            <line>
+				<reportElement x="0" y="22" width="555" height="1" uuid="line1"/>
+			</line>
+		</band>
+	</columnHeader>
+
+	<detail>
+		<band height="20" splitType="Stretch">
+            <textField>
+				<reportElement x="0" y="0" width="280" height="20" uuid="det1"/>
+				<textFieldExpression><![CDATA[$F{descricao}]]></textFieldExpression>
+			</textField>
+            <textField>
+				<reportElement x="280" y="0" width="50" height="20" uuid="det2"/>
+                <textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression>
+			</textField>
+            <textField pattern="¤ #,##0.00">
+				<reportElement x="330" y="0" width="100" height="20" uuid="det3"/>
+                <textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{valorUnitario}]]></textFieldExpression>
+			</textField>
+             <textField pattern="¤ #,##0.00">
+				<reportElement x="430" y="0" width="125" height="20" uuid="det4"/>
+                <textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{valorTotal}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+    
+	<summary>
+		<band height="50" splitType="Stretch">
+            <line>
+				<reportElement x="0" y="5" width="555" height="1" uuid="line2"/>
+			</line>
+			<staticText>
+				<reportElement x="355" y="10" width="100" height="30" uuid="h8901234-5678-9012-3456-789012345678"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Geral:]]></text>
+			</staticText>
+			<textField pattern="¤ #,##0.00;¤ -#,##0.00">
+				<reportElement x="455" y="10" width="100" height="30" uuid="i9012345-6789-0123-4567-890123456789"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TOTAL_OS}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

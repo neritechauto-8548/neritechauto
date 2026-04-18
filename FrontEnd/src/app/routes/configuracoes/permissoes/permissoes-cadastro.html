@@ -1,0 +1,145 @@
+<page-header />
+
+<div class="p-4 space-y-4" [formGroup]="form">
+  <div class="flex items-center justify-between">
+    <button mat-raised-button color="primary" (click)="salvar()">
+      <mat-icon>save</mat-icon>
+      Salvar
+    </button>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm">
+    <div class="flex items-center justify-between px-4 py-3 border-b">
+      <h3 class="text-lg font-medium">Permissões do perfil</h3>
+      <div class="text-gray-400 flex items-center gap-2">
+        <mat-icon>check</mat-icon>
+        <mat-icon>refresh</mat-icon>
+        <mat-icon>settings</mat-icon>
+      </div>
+    </div>
+
+    <div class="p-4 space-y-4">
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Nome do perfil</mat-label>
+        <input matInput formControlName="nomePerfil" />
+      </mat-form-field>
+
+      <div *ngIf="isAdmin" class="text-red-600 text-xs">
+        PERFIL ADMINISTRADOR NÃO PODE SER ALTERADO. CRIE UM OUTRO PERFIL PARA ALTERAR AS PERMISSÕES.
+      </div>
+
+      <div class="text-xs text-gray-600">Os usuários que possuam este perfil poderão ter acesso a:</div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <!-- Permissões gerais -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões gerais</div>
+          <mat-checkbox formControlName="geralUsuarios">Usuários</mat-checkbox><br />
+          <mat-checkbox formControlName="geralConfigSistema">Configuração geral do sistema</mat-checkbox><br />
+          <mat-checkbox formControlName="geralNovoCadastro">Novo cadastro</mat-checkbox><br />
+          <mat-checkbox formControlName="geralAtualizarCadastro">Atualizações de cadastros (editar/excluir)</mat-checkbox><br />
+          <mat-checkbox formControlName="geralRelatorios">Relatórios</mat-checkbox>
+        </div>
+
+        <!-- Clientes -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Clientes</div>
+          <mat-checkbox formControlName="clientesListar">Listar clientes</mat-checkbox><br />
+          <mat-checkbox formControlName="clientesEditar">Editar clientes</mat-checkbox><br />
+          <mat-checkbox formControlName="clientesExcluir">Excluir clientes</mat-checkbox>
+        </div>
+
+        <!-- Veículos -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Veículos</div>
+          <mat-checkbox formControlName="veiculosListar">Listar veículos</mat-checkbox><br />
+          <mat-checkbox formControlName="veiculosEditar">Editar veículos</mat-checkbox><br />
+          <mat-checkbox formControlName="veiculosExcluir">Excluir veículos</mat-checkbox>
+        </div>
+
+        <!-- Alertas -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Alertas</div>
+          <mat-checkbox formControlName="alertasCriar">Criar alertas</mat-checkbox><br />
+          <mat-checkbox formControlName="alertasEditarSMS">Editar alertas (SMS)</mat-checkbox><br />
+          <mat-checkbox formControlName="alertasEditarEmail">Editar alertas (email)</mat-checkbox><br />
+          <mat-checkbox formControlName="alertasExcluir">Excluir alertas</mat-checkbox>
+        </div>
+
+        <!-- Ordem de serviço -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Ordem de serviço</div>
+          <mat-checkbox formControlName="osAbrir">Abrir OS</mat-checkbox><br />
+          <mat-checkbox formControlName="osLocalizar">Localizar OS</mat-checkbox><br />
+          <mat-checkbox formControlName="osBaixar">Baixar OS</mat-checkbox><br />
+          <mat-checkbox formControlName="osCancelar">Cancelar OS</mat-checkbox><br />
+          <mat-checkbox formControlName="osEmitirNota">Emitir nota</mat-checkbox><br />
+          <mat-checkbox formControlName="osConsultar">Consultar</mat-checkbox>
+        </div>
+
+        <!-- Produtos e serviços -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de produtos e serviços</div>
+          <mat-checkbox formControlName="psListarProdutos">Listar produtos</mat-checkbox><br />
+          <mat-checkbox formControlName="psEditarProdutos">Editar produtos</mat-checkbox><br />
+          <mat-checkbox formControlName="psCriarProdutos">Criar produtos</mat-checkbox><br />
+          <mat-checkbox formControlName="psListarServicos">Listar serviços</mat-checkbox><br />
+          <mat-checkbox formControlName="psEditarServicos">Editar serviços</mat-checkbox><br />
+          <mat-checkbox formControlName="psCriarServicos">Criar serviços</mat-checkbox>
+        </div>
+
+        <!-- Financeiro -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Financeiro</div>
+          <mat-checkbox formControlName="finAbrirRecebimentos">Abrir recebimentos</mat-checkbox><br />
+          <mat-checkbox formControlName="finEditarConta">Editar conta</mat-checkbox><br />
+          <mat-checkbox formControlName="finEstornarPagamento">Estornar pagamento</mat-checkbox><br />
+          <mat-checkbox formControlName="finBaixaConta">Baixa de conta</mat-checkbox><br />
+          <mat-checkbox formControlName="finGerarBoletos">Gerar boletos</mat-checkbox><br />
+          <mat-checkbox formControlName="finBaixaTransferencia">Baixa por transferência</mat-checkbox>
+        </div>
+
+        <!-- Vendas -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Vendas</div>
+          <mat-checkbox formControlName="vendasListar">Listar vendas</mat-checkbox><br />
+          <mat-checkbox formControlName="vendasEmitirNFCe">Emitir NFC-e</mat-checkbox><br />
+          <mat-checkbox formControlName="vendasGerarNotaFiscal">Gerar Nota Fiscal</mat-checkbox><br />
+          <mat-checkbox formControlName="vendasAlterarValor">Alterar valor de venda</mat-checkbox>
+        </div>
+
+        <!-- Retornos -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de Retornos</div>
+          <mat-checkbox formControlName="retornosListar">Listar retornos</mat-checkbox><br />
+          <mat-checkbox formControlName="retornosEditar">Editar retornos</mat-checkbox><br />
+          <mat-checkbox formControlName="retornosExcluir">Excluir retornos</mat-checkbox><br />
+          <mat-checkbox formControlName="retornosImportar">Importar</mat-checkbox>
+        </div>
+
+        <!-- Materiais -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões de materiais</div>
+          <mat-checkbox formControlName="materiaisCadastrar">Cadastrar materiais</mat-checkbox><br />
+          <mat-checkbox formControlName="materiaisBaixar">Baixar materiais</mat-checkbox><br />
+          <mat-checkbox formControlName="materiaisExcluir">Excluir materiais</mat-checkbox><br />
+          <mat-checkbox formControlName="materiaisDesfazerBaixa">Desfazer baixa</mat-checkbox>
+        </div>
+
+        <!-- Módulo Consulta Veicular -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões do Módulo Consulta Veicular</div>
+          <mat-checkbox formControlName="moduloVeicularRealizarConsulta">Realizar consulta veicular</mat-checkbox><br />
+          <mat-checkbox formControlName="moduloVeicularAbrirHistorico">Abrir histórico de consulta</mat-checkbox>
+        </div>
+
+        <!-- Módulo Consulta CPF/CNPJ -->
+        <div class="border rounded p-3">
+          <div class="font-medium mb-2">Permissões do Módulo Consulta CPF/CNPJ</div>
+          <mat-checkbox formControlName="moduloCpfCnpjRealizarConsulta">Realizar consulta CPF/CNPJ</mat-checkbox><br />
+          <mat-checkbox formControlName="moduloCpfCnpjAbrirHistorico">Abrir histórico de consulta</mat-checkbox>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

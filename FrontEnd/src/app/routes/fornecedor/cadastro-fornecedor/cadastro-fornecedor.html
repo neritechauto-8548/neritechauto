@@ -1,0 +1,237 @@
+<ng-container *ngIf="!modalMode">
+  <div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+      <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+      <p-confirmDialog [style]="{width: '450px'}" rejectButtonStyleClass="p-button-text" />
+
+      <!-- Action Bar (Sticky Top) -->
+      <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+          <div class="flex items-center gap-4">
+              <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+                  <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">arrow_back</mat-icon>
+              </button>
+              <div>
+                  <h1 class="text-base font-semibold text-slate-900 leading-tight">
+                      {{ editingId ? 'Editar Fornecedor' : 'Novo Fornecedor' }}
+                  </h1>
+                  <span class="text-xs text-slate-500 font-normal">
+                      {{ editingId ? 'Editando registro #' + editingId : 'Preencha os dados do parceiro' }}
+                  </span>
+              </div>
+          </div>
+
+          <div class="flex gap-3 items-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide mr-2 shadow-sm"
+                    [ngClass]="model.ativo ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-rose-50 text-rose-700 border border-rose-200'">
+                  {{ model.ativo ? 'ATIVO' : 'INATIVO' }}
+              </span>
+
+              <button *ngIf="editingId" (click)="excluir()" class="px-3.5 py-2 rounded-md border border-rose-200 text-rose-600 font-medium hover:bg-rose-50 transition-colors text-sm shadow-sm flex items-center gap-1.5">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px] leading-[16px]">delete</mat-icon> Excluir
+              </button>
+
+              <div *ngIf="editingId" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+
+              <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+                  Cancelar
+              </button>
+              <button (click)="salvar()" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px] leading-[16px]">check</mat-icon> Salvar
+              </button>
+          </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="p-6 w-full space-y-8 animate-fade-in-up">
+
+          <!-- SECTION: Identificação Fiscal -->
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                  <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">badge</mat-icon>
+                  <h3 class="font-bold text-slate-800 text-sm">Identificação Fiscal</h3>
+              </div>
+              <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+                  <!-- Col 1: Tipos -->
+                  <div class="flex flex-col gap-1.5 md:col-span-4">
+                      <label class="text-xs font-bold text-slate-700">Tipo de Entidade <span class="text-rose-500">*</span></label>
+                      <p-select [options]="tiposPessoa" [(ngModel)]="model.tipoPessoa" (onChange)="onTipoPessoaChange()" styleClass="w-full modern-select"></p-select>
+                  </div>
+                  <div class="flex flex-col gap-1.5 md:col-span-4">
+                      <label class="text-xs font-bold text-slate-700">Classificação <span class="text-rose-500">*</span></label>
+                      <p-select [options]="classificacoes" [(ngModel)]="model.classificacao" styleClass="w-full modern-select"></p-select>
+                  </div>
+                  <div class="flex flex-col gap-1.5 md:col-span-4">
+                      <label class="text-xs font-bold text-slate-700">Documento {{ isFisica ? '(CPF)' : '(CNPJ)' }} <span class="text-rose-500">*</span></label>
+                      <input *ngIf="isFisica" pInputText [(ngModel)]="model.cpf" class="w-full modern-input" placeholder="000.000.000-00" maxlength="14" />
+                      <input *ngIf="isJuridica" pInputText [(ngModel)]="model.cnpj" class="w-full modern-input" placeholder="00.000.000/0001-00" maxlength="18" />
+                  </div>
+
+                  <!-- Nomes -->
+                  <div class="flex flex-col gap-1.5 md:col-span-12">
+                      <label class="text-xs font-bold text-slate-700">{{ isFisica ? 'Nome Completo' : 'Razão Social' }} <span class="text-rose-500">*</span></label>
+                      <input pInputText [(ngModel)]="model.razaoSocial" class="w-full modern-input font-medium" placeholder="Nome legal do Fornecedor" />
+                  </div>
+
+                  <ng-container *ngIf="isJuridica">
+                      <div class="flex flex-col gap-1.5 md:col-span-6">
+                          <label class="text-xs font-bold text-slate-700">Nome Fantasia / Marca</label>
+                          <input pInputText [(ngModel)]="model.nomeFantasia" class="w-full modern-input" placeholder="Como a empresa é conhecida" />
+                      </div>
+                      <div class="flex flex-col gap-1.5 md:col-span-3">
+                          <label class="text-xs font-bold text-slate-700">Inscrição Estadual</label>
+                          <input pInputText [(ngModel)]="model.inscricaoEstadual" class="w-full modern-input" placeholder="Ex: Isento" />
+                      </div>
+                      <div class="flex flex-col gap-1.5 md:col-span-3">
+                          <label class="text-xs font-bold text-slate-700">Inscrição Municipal</label>
+                          <input pInputText [(ngModel)]="model.inscricaoMunicipal" class="w-full modern-input" />
+                      </div>
+                  </ng-container>
+              </div>
+          </div>
+
+          <!-- SECTION: Contatos -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Empresa -->
+              <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+                  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                       <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">domain</mat-icon>
+                       <h3 class="font-bold text-slate-800 text-sm">Contatos da Empresa</h3>
+                  </div>
+                  <div class="p-6 flex-1 space-y-4">
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Email Corporativo / NFe</label>
+                          <input pInputText [(ngModel)]="model.emailPrincipal" class="w-full modern-input" placeholder="financeiro@empresa.com" />
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                          <div class="space-y-1">
+                              <label class="text-xs font-bold text-slate-700">Telefone Fixo</label>
+                              <input pInputText [(ngModel)]="model.telefonePrincipal" class="w-full modern-input" />
+                          </div>
+                          <div class="space-y-1">
+                              <label class="text-xs font-bold text-slate-700">WhatsApp Oficial</label>
+                              <input pInputText [(ngModel)]="model.celularPrincipal" class="w-full modern-input" />
+                          </div>
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Website Oficial</label>
+                          <input pInputText [(ngModel)]="model.website" class="w-full modern-input text-blue-600" placeholder="https://" />
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Representante -->
+              <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+                  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                      <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">person</mat-icon>
+                      <h3 class="font-bold text-slate-800 text-sm">Representante Comercial</h3>
+                  </div>
+                  <div class="p-6 flex-1 space-y-4">
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Nome do Contato</label>
+                          <input pInputText [(ngModel)]="model.nomeContato" class="w-full modern-input" placeholder="João da Silva" />
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Cargo / Departamento</label>
+                          <input pInputText [(ngModel)]="model.cargoContato" class="w-full modern-input" placeholder="Vendedor Externo" />
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Email Direto</label>
+                          <input pInputText [(ngModel)]="model.emailContato" class="w-full modern-input" />
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Celular do Contato</label>
+                          <input pInputText [(ngModel)]="model.telefoneContato" class="w-full modern-input" />
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- SECTION: Endereço -->
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                  <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">place</mat-icon>
+                  <h3 class="font-bold text-slate-800 text-sm">Endereço Fiscal</h3>
+              </div>
+              <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+                  <div class="space-y-1 md:col-span-3">
+                      <label class="text-xs font-bold text-slate-700">CEP</label>
+                      <input pInputText [(ngModel)]="model.cep" class="w-full modern-input" placeholder="00000-000" />
+                  </div>
+                  <div class="space-y-1 md:col-span-9">
+                      <label class="text-xs font-bold text-slate-700">Logradouro, Número, Bairro</label>
+                      <input pInputText [(ngModel)]="model.enderecoCompleto" class="w-full modern-input" placeholder="Rua do Comércio, 120, Centro - Complemento..." />
+                  </div>
+                  <div class="space-y-1 md:col-span-8">
+                      <label class="text-xs font-bold text-slate-700">Cidade</label>
+                      <input pInputText [(ngModel)]="model.cidade" class="w-full modern-input" />
+                  </div>
+                  <div class="space-y-1 md:col-span-4">
+                      <label class="text-xs font-bold text-slate-700">UF / Estado</label>
+                      <input pInputText [(ngModel)]="model.estado" class="w-full modern-input uppercase" maxlength="2" placeholder="Ex: SP" />
+                  </div>
+              </div>
+          </div>
+
+          <!-- SECTION: Financeiro e Bancário -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Financeiro -->
+              <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                      <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">payments</mat-icon>
+                      <h3 class="font-bold text-slate-800 text-sm">Perfil Financeiro</h3>
+                  </div>
+                  <div class="p-6 space-y-4">
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Prazo de Pagto Médio (Dias)</label>
+                          <input pInputText type="number" [(ngModel)]="model.prazoPagamentoDias" class="w-full modern-input" placeholder="Ex: 30" />
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Limite de Crédito Aprovado (R$)</label>
+                          <input pInputText type="number" [(ngModel)]="model.limiteCredito" class="w-full modern-input" placeholder="R$ 0,00" />
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Desconto Padrão (%)</label>
+                          <input pInputText type="number" [(ngModel)]="model.descontoPadrao" class="w-full modern-input" placeholder="Ex: 5" />
+                      </div>
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Condições Especiais</label>
+                          <textarea pTextarea [(ngModel)]="model.condicoesEspeciais" class="w-full modern-input resize-none" rows="2" placeholder="Acordo de Frete..."></textarea>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Banco -->
+              <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+                  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                       <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">account_balance</mat-icon>
+                       <h3 class="font-bold text-slate-800 text-sm">Liquidação Bancária</h3>
+                  </div>
+                  <div class="p-6 flex-1 space-y-4 flex flex-col">
+                      <div class="space-y-1">
+                          <label class="text-xs font-bold text-slate-700">Instituição (Banco)</label>
+                          <input pInputText [(ngModel)]="model.bancoNome" class="w-full modern-input" placeholder="001 - Banco do Brasil" />
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                          <div class="space-y-1">
+                              <label class="text-xs font-bold text-slate-700">Agência</label>
+                              <input pInputText [(ngModel)]="model.bancoAgencia" class="w-full modern-input" placeholder="Ex: 1234-X"/>
+                          </div>
+                          <div class="space-y-1">
+                              <label class="text-xs font-bold text-slate-700">Conta e Dígito</label>
+                              <input pInputText [(ngModel)]="model.bancoConta" class="w-full modern-input" placeholder="Ex: 100055-9"/>
+                          </div>
+                      </div>
+                      <div class="space-y-1 pt-4 border-t border-slate-100 flex-1">
+                          <label class="text-xs font-bold text-slate-700">Chave PIX</label>
+                          <input pInputText [(ngModel)]="model.bancoPix" class="w-full modern-input" />
+                      </div>
+                      <div class="space-y-1 pt-2">
+                          <label class="text-xs font-bold text-slate-700">Anotações Internas NeriTech</label>
+                          <textarea pTextarea [(ngModel)]="model.observacoes" class="w-full modern-input resize-none text-sm" rows="3" placeholder="Restrições ao recebimento..."></textarea>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+      </div>
+  </div>
+</ng-container>

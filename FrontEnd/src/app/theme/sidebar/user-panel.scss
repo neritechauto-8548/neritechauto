@@ -1,0 +1,71 @@
+@use '@angular/material' as mat;
+
+.matero-user-panel {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  cursor: pointer;
+  outline: none;
+  background-color: transparent; // Clean modern look
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+
+  &:hover,
+  &:focus {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &.collapsed {
+    justify-content: center;
+    padding: 0.5rem;
+
+    .matero-user-panel-avatar {
+      margin: 0;
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
+}
+
+.matero-user-panel-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%; // Modern circle
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.matero-user-panel-info {
+  flex: 1;
+  width: 0;
+  margin-left: 0.75rem;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+
+  [dir='rtl'] & {
+    margin-right: 0.75rem;
+    margin-left: 0;
+  }
+
+  h4,
+  h5 {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  h4 {
+    margin-bottom: 2px;
+    font-size: 0.875rem; // 14px
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  h5 {
+    font-size: 0.75rem; // 12px
+    font-weight: normal;
+    color: var(--text-secondary, #64748b);
+  }
+}

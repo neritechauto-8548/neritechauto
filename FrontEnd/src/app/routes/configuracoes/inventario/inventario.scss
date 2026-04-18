@@ -1,0 +1,8 @@
+.page-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+::ng-deep .p-dialog .p-dialog-header {
+  border-bottom: 3px solid var(--primary-color, #3f51b5);
+}

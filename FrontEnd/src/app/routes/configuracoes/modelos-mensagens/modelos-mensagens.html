@@ -1,0 +1,132 @@
+<p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+<div class="flex flex-col h-full gap-5">
+
+  <!-- Actions Bar (Categoria Pattern) -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-100">
+     <!-- Search -->
+     <div class="relative w-full sm:max-w-md group">
+          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#635bff] transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+          <input
+              pInputText
+              [(ngModel)]="termoBusca"
+              (ngModelChange)="onBuscar()"
+              placeholder="Buscar modelos de mensagem..."
+              class="w-full !pl-12 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+          />
+     </div>
+
+     <div class="flex items-center gap-3">
+        <p-select [options]="tipoOptions" [(ngModel)]="filtroTipo" (ngModelChange)="onBuscar()"
+                  class="!border-none !bg-slate-50 !rounded-lg !shadow-inner min-w-[140px] text-[11px] font-black uppercase tracking-widest"
+                  styleClass="!border-none !bg-transparent"
+                  appendTo="body"
+                  placeholder="Canal" />
+
+        <button (click)="onCadastrarNovoModelo()" class="bg-[#635bff] hover:bg-[#5851eb] text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap active:scale-95">
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+          <span>Novo Modelo</span>
+        </button>
+     </div>
+  </div>
+
+  <!-- Unified Data Table (Categoria Pattern) -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full ring-1 ring-slate-100">
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-gray-50/80 border-b border-gray-200">
+          <tr>
+            <th class="py-2.5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] w-[50%] align-middle">Modelo</th>
+            <th class="py-2.5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] w-[25%] align-middle">Canal de Envio</th>
+            <th class="py-2.5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] w-[25%] align-middle text-right"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+          <tr *ngFor="let row of paginatedTemplates" class="group hover:bg-slate-50/50 transition-colors duration-200">
+            <td class="py-2.5 px-6 align-middle">
+              <div class="flex items-center gap-4">
+                <!-- Circular Icon Box (Categoria Style) -->
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] font-bold shadow-sm group-hover:scale-105 transition-transform"
+                     [ngClass]="{
+                        'bg-emerald-50 text-emerald-600 border border-emerald-100': row.tipoTemplate === 'PUSH_NOTIFICATION',
+                        'bg-blue-50 text-blue-600 border border-blue-100': row.tipoTemplate === 'EMAIL',
+                        'bg-indigo-50 text-indigo-600 border border-indigo-100': row.tipoTemplate === 'SMS' || row.tipoTemplate === 'WHATSAPP'
+                     }">
+                  <mat-icon>{{ row.tipoTemplate === 'PUSH_NOTIFICATION' || row.tipoTemplate === 'WHATSAPP' ? 'forum' : (row.tipoTemplate === 'EMAIL' ? 'alternate_email' : 'sms') }}</mat-icon>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-bold text-slate-800 text-sm group-hover:text-[#635bff] transition-colors cursor-pointer" (click)="editar(row)">
+                    {{ row.nome }}
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">ID: #{{ row.id }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="py-2.5 px-6 align-middle">
+              <span class="inline-flex items-center gap-1.5 text-[9px] font-black px-2.5 py-1 rounded-full border uppercase tracking-widest shadow-sm"
+                    [ngClass]="{
+                      'bg-emerald-50 text-emerald-600 border-emerald-100': row.tipoTemplate === 'PUSH_NOTIFICATION',
+                      'bg-blue-50 text-blue-600 border-blue-100': row.tipoTemplate === 'EMAIL',
+                      'bg-indigo-50 text-indigo-600 border-indigo-100': row.tipoTemplate === 'SMS' || row.tipoTemplate === 'WHATSAPP'
+                    }">
+                <div class="w-1 h-1 rounded-full animate-pulse" [ngClass]="{
+                    'bg-emerald-500': row.tipoTemplate === 'PUSH_NOTIFICATION',
+                    'bg-blue-500': row.tipoTemplate === 'EMAIL',
+                    'bg-indigo-500': row.tipoTemplate === 'SMS' || row.tipoTemplate === 'WHATSAPP'
+                }"></div>
+                {{ row.tipoTemplate === 'PUSH_NOTIFICATION' ? 'APP' : row.tipoTemplate }}
+              </span>
+            </td>
+            <td class="py-2.5 px-6 align-middle text-right">
+              <div class="flex items-center justify-end gap-1 transition-opacity duration-300">
+                <button (click)="editar(row)" title="Editar" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-[#635bff] hover:bg-white hover:border-slate-200 shadow-sm transition-all active:scale-90 border border-transparent">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">edit</mat-icon>
+                </button>
+                <button (click)="remover(row)" title="Excluir" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-white hover:border-slate-200 shadow-sm transition-all active:scale-90 border border-transparent">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty State (Categoria Style) -->
+          <tr *ngIf="paginatedTemplates.length === 0">
+            <td colspan="3" class="py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 shadow-inner">
+                  <mat-icon class="text-3xl text-slate-200">mail_lock</mat-icon>
+                </div>
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] m-0">Nenhum modelo encontrado</p>
+                <button (click)="termoBusca = ''; onBuscar()" class="text-xs text-[#635bff] font-black hover:text-[#5851eb] transition-colors uppercase tracking-widest border-b-2 border-transparent hover:border-[#635bff] pb-0.5">Limpar filtros de busca</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer (Categoria Pattern) -->
+    <div class="border-t border-slate-200 px-6 py-4 flex items-center justify-between bg-white text-slate-500 sticky bottom-0 z-10" *ngIf="totalRecords > 0">
+      <div class="text-[11px] font-black uppercase tracking-widest">
+        Exibindo <span class="text-slate-900">{{ rangeStart }}</span> - <span class="text-slate-900">{{ rangeEnd }}</span> de <span class="text-slate-900">{{ totalRecords }}</span>
+      </div>
+      <div class="flex gap-2">
+        <button
+          [disabled]="first === 0"
+          (click)="goPrev()"
+          class="px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2 active:scale-95"
+        >
+          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
+        </button>
+        <button
+          [disabled]="first + rows >= totalRecords"
+          (click)="goNext()"
+          class="px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2 active:scale-95"
+        >
+          Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,130 @@
+/* Stripe-like Button Styles (2026) */
+
+/* Base Button Overrides */
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-flat-button,
+.mat-mdc-stroked-button {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  letter-spacing: 0 !important; /* Stripe uses normal spacing */
+  border-radius: 8px !important;
+  padding: 0 16px !important; /* 10px vertical handled by height usually, or flex */
+  height: 40px !important; /* Standard height */
+  transition: all 150ms ease !important;
+  text-transform: none !important;
+
+  /* Micro-interaction: Scale on press */
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+/* Primary Button (Flat) */
+.mat-mdc-flat-button.mat-primary {
+  background-color: var(--primary-500) !important;
+  color: white !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Very subtle shadow */
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-600) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--primary-700) !important;
+    box-shadow: none;
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+/* Secondary Button (Stroked) */
+.mat-mdc-stroked-button {
+  background-color: white !important;
+  border: 1px solid var(--slate-300) !important;
+  color: var(--slate-700) !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  .dark & {
+    background-color: var(--slate-800) !important;
+    border-color: var(--slate-600) !important;
+    color: var(--slate-200) !important;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--slate-50) !important;
+    border-color: var(--slate-300) !important;
+    color: var(--slate-900) !important;
+
+    .dark & {
+      background-color: var(--slate-700) !important;
+      color: white !important;
+    }
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--slate-100) !important;
+  }
+}
+
+/* Ghost Button (Basic) */
+.mat-mdc-button {
+  color: var(--primary-500) !important;
+  background-color: transparent !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-50) !important; /* Primary Light BG */
+
+    .dark & {
+      background-color: rgba(37, 99, 235, 0.1) !important;
+    }
+  }
+}
+
+/* Danger Button (Custom Class or Warn Palette) */
+.mat-mdc-flat-button.mat-warn,
+.btn-danger {
+  background-color: var(--danger-500) !important;
+  color: white !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--danger-600) !important;
+    box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--danger-600) !important;
+  }
+}
+
+/* Icon Buttons */
+.mat-mdc-icon-button {
+  border-radius: 8px !important; /* Consistent with other buttons */
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--slate-100) !important;
+
+    .dark & {
+      background-color: var(--slate-800) !important;
+    }
+  }
+
+  /* Icon size fix */
+  .mat-icon, i {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+  }
+}

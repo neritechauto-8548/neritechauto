@@ -1,0 +1,65 @@
+package com.neritech.saas.rh.dto;
+
+import com.neritech.saas.financeiro.domain.enums.TipoConta;
+import com.neritech.saas.rh.domain.*;
+import com.neritech.saas.rh.domain.enums.Escolaridade;
+import com.neritech.saas.rh.domain.enums.EstadoCivil;
+import com.neritech.saas.rh.domain.enums.Sexo;
+import com.neritech.saas.rh.domain.enums.StatusFuncionario;
+import com.neritech.saas.rh.domain.enums.TipoContrato;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+public record FuncionarioResponse(
+        Long id,
+        Long empresaId,
+        Long usuarioId,
+        String matricula,
+        String nomeCompleto,
+        String cpf,
+        String rg,
+        LocalDate dataNascimento,
+        Sexo sexo,
+        EstadoCivil estadoCivil,
+        String nacionalidade,
+        String naturalidade,
+        String nomeMae,
+        String nomePai,
+        Escolaridade escolaridade,
+        String profissao,
+        Long cargoId,
+        Long departamentoId,
+        LocalDate dataAdmissao,
+        LocalDate dataDemissao,
+        TipoContrato tipoContrato,
+        BigDecimal salarioBase,
+        BigDecimal comissaoPercentual,
+        BigDecimal valeTransporte,
+        BigDecimal valeAlimentacao,
+        Boolean planoSaude,
+        Boolean planoOdontologico,
+        StatusFuncionario status,
+        String motivoInativacao,
+        String enderecoCompleto,
+        String telefonePrincipal,
+        String telefoneEmergencia,
+        String contatoEmergenciaNome,
+        String contatoEmergenciaParentesco,
+        String emailPessoal,
+        String bancoCodigo,
+        String bancoAgencia,
+        String bancoConta,
+        TipoConta bancoTipoConta,
+        String pisPasep,
+        String tituloEleitor,
+        String carteiraTrabalho,
+        String certificadoReservista,
+        String cnhNumero,
+        String cnhCategoria,
+        LocalDate cnhValidade,
+        String fotoFuncionarioUrl,
+        String observacoes,
+        LocalDateTime dataCadastro,
+        LocalDateTime dataAtualizacao) {
+}

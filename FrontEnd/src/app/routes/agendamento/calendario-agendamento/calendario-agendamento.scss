@@ -1,0 +1,39 @@
+/* Stripe UX - Tailwind Responsibilities
+   O CSS estático foi removido para priorizar classes utilitárias do Tailwind no HTML.
+*/
+
+.cal-grid {
+  @apply border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm;
+
+  .header {
+    @apply grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs tracking-wider uppercase;
+    > div { @apply py-3 px-2 text-center; }
+  }
+
+  .body {
+    @apply grid grid-cols-7;
+    grid-auto-rows: 120px;
+  }
+
+  .cell {
+    @apply relative border-r border-b border-slate-100 bg-white hover:bg-slate-50/50 transition-colors;
+
+    // Tirar borda direita do 7º item
+    &:nth-child(7n) { @apply border-r-0; }
+
+    &.outside { @apply bg-slate-50 text-slate-400; }
+    &.is-today { @apply bg-indigo-50/10; .day { @apply bg-indigo-600 justify-center w-6 h-6 flex items-center text-white rounded-full translate-x-1 translate-y-1 !top-1 !left-1; } }
+
+    .day { @apply absolute top-2 left-2 text-sm font-medium text-slate-700; }
+    .events { @apply absolute top-8 left-1 right-1 flex flex-col gap-1 overflow-y-auto max-h-[85px];
+        &::-webkit-scrollbar { width: 3px; }
+        &::-webkit-scrollbar-thumb { @apply bg-slate-200 rounded-full; }
+    }
+  }
+}
+
+.event {
+    @apply bg-blue-50 border border-blue-200 text-blue-700 rounded-md px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer hover:bg-blue-100 transition-colors flex items-start gap-1 truncate shadow-[0_1px_2px_rgba(0,0,0,0.02)];
+    .time { @apply font-bold text-[10px] shrink-0; }
+    .title { @apply truncate; }
+}

@@ -1,0 +1,112 @@
+<div class="flex flex-col h-full gap-6">
+
+  <!-- Header Section -->
+  <div class="flex flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3">
+         <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center border border-amber-100 text-amber-600">
+             <mat-icon>edit_note</mat-icon>
+         </div>
+         <div>
+             <h2 class="text-slate-800 font-semibold text-lg leading-tight w-full m-0 p-0">Carta de Correção Eletrônica (CC-e)</h2>
+             <span class="text-xs text-slate-500 font-medium tracking-wide">Gerenciamento de retificações de NF-e na SEFAZ</span>
+         </div>
+      </div>
+      <button (click)="abrirFormulario()" class="px-4 py-2 text-sm font-medium rounded-lg border border-transparent bg-amber-600 text-white hover:bg-amber-700 transition-colors shadow-sm flex items-center gap-2">
+           <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+           Emitir CC-e
+      </button>
+  </div>
+
+  <!-- Data Table (Empty State) -->
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%]">Protocolo</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%]">Num. Nota Referência</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[40%]">Descritivo da Correção</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%] text-right">Data/Hora Resp.</th>
+                    <th class="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%] text-center">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <tr *ngFor="let c of cartasEmitidas" class="group hover:bg-gray-50 transition-colors">
+                    <!-- Iteracao futura caso exista -->
+                </tr>
+                <tr *ngIf="cartasEmitidas.length === 0">
+                    <td colspan="5" class="py-16 text-center text-slate-500 text-sm">
+                        <div class="flex flex-col items-center gap-3 text-slate-400">
+                          <div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                             <mat-icon class="!text-3xl text-slate-400">assignment_turned_in</mat-icon>
+                          </div>
+                          <p class="text-sm font-medium text-slate-500">Ainda não há Cartas de Correção emitidas no período.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+  </div>
+
+  <!-- Dialog Form CC-e -->
+  <p-dialog [(visible)]="formVisible" [modal]="true" [dismissableMask]="true" header="Nova Carta de Correção" [style]="{width:'600px', borderRadius:'12px'}">
+     <div class="flex flex-col gap-4 pt-4">
+         <p class="text-sm text-slate-500 mb-2">A CC-e só deve conter alterações de informações que não influenciam no valor do imposto e nos dados do remetente/destinatário.</p>
+
+         <div class="flex flex-row gap-4">
+             <div class="flex flex-col gap-1.5 flex-1">
+                 <label class="text-xs font-semibold text-slate-600">NF-e Alvo</label>
+                 <select [(ngModel)]="numeroNota" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow">
+                    <option *ngFor="let n of notasOptions" [value]="n">Nota Fiscal Nº {{n}}</option>
+                 </select>
+             </div>
+             <div class="flex flex-col gap-1.5 flex-1">
+                 <label class="text-xs font-semibold text-slate-600">Sequencial Carta</label>
+                 <input pInputText [(ngModel)]="numeroCarta" placeholder="Ex: 01" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+             </div>
+         </div>
+
+         <div class="flex flex-col gap-1.5 mt-2">
+             <label class="text-xs font-semibold text-slate-600">Descrição Detalhada da Correção</label>
+             <textarea [(ngModel)]="descricao" rows="4" placeholder="Descreva sem acentuação e não use caracteres especiais..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow"></textarea>
+             <span class="text-[10px] text-slate-400 text-right">Mínimo de 15 caracteres. Mantenha objetividade.</span>
+         </div>
+     </div>
+
+     <ng-template pTemplate="footer">
+         <div class="flex justify-end gap-3 mt-4">
+             <button pButton label="Cancelar" class="p-button-text p-button-secondary text-slate-600" (click)="fecharFormulario()"></button>
+             <button pButton label="Transmitir à SEFAZ" class="p-button-success !bg-emerald-600 !border-emerald-600 hover:!bg-emerald-700" icon="pi pi-send" (click)="enviar()"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <!-- Confirm -->
+  <p-dialog [(visible)]="confirmVisible" [modal]="true" header="Deseja prosseguir?" [style]="{width:'400px'}">
+     <div class="text-sm text-slate-600 my-4 text-center">A Carta de Correção será conectada eletronicamente na base de dados da SEFAZ desta NF-e. Confirma o envio?</div>
+     <ng-template pTemplate="footer">
+         <div class="flex justify-center gap-3">
+             <button pButton label="Cancelar" class="p-button-text" (click)="confirmVisible=false"></button>
+             <button pButton label="Confirmar Envio" class="p-button-warning" (click)="confirmarEnvio()"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <p-dialog [(visible)]="errorVisible" [modal]="true" header="Correção Inválida" [style]="{width:'400px'}">
+     <div class="text-sm text-red-600 font-medium my-4 text-center">A justificativa da correção precisa conter ao menos 15 caracteres contínuos explicando o motivo.</div>
+     <ng-template pTemplate="footer">
+         <div class="flex justify-center">
+             <button pButton label="Entendi" class="p-button-secondary" (click)="errorVisible=false"></button>
+         </div>
+     </ng-template>
+  </p-dialog>
+
+  <!-- Loading -->
+  <p-dialog [(visible)]="loadingVisible" [modal]="true" [closable]="false" [dismissableMask]="false" [style]="{width:'300px'}">
+      <div class="flex flex-col items-center justify-center gap-4 py-6">
+          <i class="pi pi-spin pi-spinner text-3xl text-emerald-600"></i>
+          <span class="text-sm font-medium text-slate-700">Comunicação c/ SEFAZ em andamento...</span>
+      </div>
+  </p-dialog>
+</div>

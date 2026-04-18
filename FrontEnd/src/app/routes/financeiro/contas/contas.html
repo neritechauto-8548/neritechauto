@@ -1,0 +1,205 @@
+<div class="p-6 page-container">
+
+    <!-- HEADER / FILTROS -->
+    <p-panel header="Financeiro: Contas a Pagar e Receber" styleClass="mb-4">
+        <div class="flex flex-col md:flex-row gap-4 items-end justify-between">
+            <div class="flex gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-bold mb-1">Tipo</label>
+                    <p-select [options]="tiposFiltro" [(ngModel)]="filtroTipo" optionLabel="label" optionValue="value" class="w-40" />
+                </div>
+                <div>
+                     <button pButton label="Buscar" icon="pi pi-search" (click)="carregarDados()" [loading]="loading"></button>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                 <button pButton label="Nova Conta" icon="pi pi-plus" class="p-button-success" (click)="incluirConta()"></button>
+                 <button pButton label="Quitar Selecionados" icon="pi pi-check-circle" class="p-button-warning" (click)="quitarContas()"></button>
+            </div>
+        </div>
+    </p-panel>
+
+    <!-- TOTAIS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="bg-blue-100 p-4 rounded border-blue-200 border flex flex-col items-center">
+            <span class="text-xs text-blue-600 font-bold uppercase">A Receber</span>
+            <span class="text-xl font-bold text-blue-800">{{ totalReceber | currency:'BRL' }}</span>
+        </div>
+        <div class="bg-red-100 p-4 rounded border-red-200 border flex flex-col items-center">
+            <span class="text-xs text-red-600 font-bold uppercase">A Pagar</span>
+            <span class="text-xl font-bold text-red-800">{{ totalPagar | currency:'BRL' }}</span>
+        </div>
+        <div class="bg-green-100 p-4 rounded border-green-200 border flex flex-col items-center">
+            <span class="text-xs text-green-600 font-bold uppercase">Recebido (Total)</span>
+            <span class="text-xl font-bold text-green-800">{{ totalRecebido | currency:'BRL' }}</span>
+        </div>
+         <div class="bg-neutral-100 p-4 rounded border-neutral-200 border flex flex-col items-center">
+            <span class="text-xs text-neutral-600 font-bold uppercase">Pago (Total)</span>
+            <span class="text-xl font-bold text-neutral-800">{{ totalPago | currency:'BRL' }}</span>
+        </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="card bg-white p-2 rounded shadow">
+        <p-table [value]="filteredRows" [(selection)]="selectedRows" dataKey="id"
+                 [loading]="loading" [rowHover]="true" styleClass="p-datatable-sm p-datatable-gridlines">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+                    <th pSortableColumn="venc">Vencimento <p-sortIcon field="venc" /></th>
+                    <th style="width: 130px">Tipo</th>
+                    <th>Descrição</th>
+                    <th>Ref</th>
+                    <th class="text-right">Valor</th>
+                    <th class="text-right">Pago/Recebido</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center" style="width: 100px">Ações</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+                <tr>
+                    <td><p-tableCheckbox [value]="row" /></td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <i *ngIf="isVencido(row)" class="pi pi-exclamation-triangle text-red-500" pTooltip="Vencido!"></i>
+                            {{ formatDate(row.venc) }}
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag [value]="row.tipo" [severity]="row.tipo === 'Receita' ? 'info' : 'warn'" />
+                    </td>
+                    <td class="font-bold">{{ row.descricao }}</td>
+                    <td>{{ row.ref }}</td>
+                    <td class="text-right font-bold" [ngClass]="{'text-red-600': row.tipo === 'Despesa', 'text-blue-600': row.tipo === 'Receita'}">
+                        {{ row.valor | currency:'BRL' }}
+                    </td>
+                     <td class="text-right text-gray-500">
+                        {{ row.valorPg | currency:'BRL' }}
+                    </td>
+                    <td class="text-center">
+                         <p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" />
+                    </td>
+                    <td class="text-center">
+                        <div class="flex gap-1 justify-center">
+                            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-info" pTooltip="Editar"></button>
+                            <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" pTooltip="Excluir" (click)="excluirConta(row)"></button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+             <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="9" class="text-center p-4">Nenhum lançamento encontrado.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <!-- DIALOG QUITAR -->
+    <p-dialog [(visible)]="quitarConfirmVisible" header="Confirmar Baixa" [modal]="true" [style]="{width:'400px'}">
+        <div class="flex items-center gap-4 mb-4">
+             <i class="pi pi-exclamation-triangle text-warning text-4xl"></i>
+             <span>Deseja realmente baixar/quitar as <b>{{ selectedRows.length }}</b> contas selecionadas?</span>
+        </div>
+        <ng-template pTemplate="footer">
+            <button pButton label="Não" (click)="quitarConfirmVisible = false" class="p-button-text"></button>
+            <button pButton label="Sim, Baixar" (click)="confirmarQuitar()" class="p-button-success" autoFocus></button>
+        </ng-template>
+    </p-dialog>
+
+    <!-- DIALOG NOVA CONTA -->
+    <p-dialog [(visible)]="incluirDialogVisible" header="Novo Lançamento" [modal]="true" [style]="{width:'600px'}">
+
+        <div class="flex flex-col gap-4 pt-2">
+            <!-- Tipo: Receita / Despesa -->
+            <div class="flex justify-center mb-2">
+                <p-selectButton [options]="[{label:'A Pagar (Despesa)', value:'Despesa'}, {label:'A Receber (Receita)', value:'Receita'}]"
+                                [(ngModel)]="novaConta.tipo" optionLabel="label" optionValue="value" />
+            </div>
+
+            <!-- Descrição e Valor -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium mb-1">Descrição *</label>
+                    <input pInputText [(ngModel)]="novaConta.descricao" class="w-full" placeholder="Ex: Conta de Luz" />
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-sm font-medium mb-1">Valor *</label>
+                    <p-inputNumber [(ngModel)]="novaConta.valor" mode="currency" currency="BRL" class="w-full" styleClass="w-full" />
+                </div>
+            </div>
+
+            <!-- Entidade (Cliente/Fornecedor) -->
+            <div class="w-full">
+                <label class="block text-sm font-medium mb-1">{{ novaConta.tipo === 'Receita' ? 'Cliente *' : 'Fornecedor *' }}</label>
+                <p-autoComplete
+                    [(ngModel)]="entidadeSelecionada"
+                    [suggestions]="novaConta.tipo === 'Receita' ? suggestionsClientes : suggestionsFornecedores"
+                    (completeMethod)="searchEntidade($event)"
+                    [dropdown]="true"
+                    placeholder="Digite para buscar..."
+                    [forceSelection]="true"
+                    dataKey="id"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                    appendTo="body">
+                    <ng-template let-item pTemplate="item">
+                        <div>{{ getDisplayName(item) }}</div>
+                    </ng-template>
+                    <ng-template let-item pTemplate="selectedItem">
+                        <div>{{ getDisplayName(item) }}</div>
+                    </ng-template>
+                </p-autoComplete>
+            </div>
+
+             <!-- Datas -->
+             <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Data Emissão</label>
+                    <p-datepicker [(ngModel)]="novaConta.dataEmissao" dateFormat="dd/mm/yy" class="w-full" styleClass="w-full" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Vencimento *</label>
+                    <p-datepicker [(ngModel)]="novaConta.vencimento" dateFormat="dd/mm/yy" class="w-full" styleClass="w-full" />
+                </div>
+            </div>
+
+            <!-- Categorização -->
+            <div class="grid grid-cols-2 gap-4">
+                 <div>
+                    <label class="block text-sm font-medium mb-1">Plano de Contas</label>
+                    <p-select [(ngModel)]="novaConta.planoContaId" [options]="planosConta" placeholder="Selecione..." class="w-full" styleClass="w-full" appendTo="body" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Centro de Custo</label>
+                    <p-select [(ngModel)]="novaConta.centroCustoId" [options]="centrosCusto" placeholder="Selecione..." class="w-full" styleClass="w-full" appendTo="body" />
+                </div>
+            </div>
+
+            <!-- Detalhes Pagamento -->
+             <div class="grid grid-cols-2 gap-4">
+                 <div>
+                    <label class="block text-sm font-medium mb-1">Conta Bancária</label>
+                    <p-select [(ngModel)]="novaConta.contaBancariaId" [options]="contasBancarias" placeholder="Selecione..." class="w-full" styleClass="w-full" appendTo="body" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Forma Pagamento</label>
+                    <p-select [(ngModel)]="novaConta.formaPagamentoId" [options]="formasPagamento" placeholder="Selecione..." class="w-full" styleClass="w-full" appendTo="body" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Observações</label>
+                <textarea pTextarea [(ngModel)]="novaConta.observacoes" rows="2" class="w-full"></textarea>
+            </div>
+
+        </div>
+
+        <ng-template pTemplate="footer">
+             <button pButton label="Cancelar" (click)="incluirDialogVisible = false" class="p-button-text"></button>
+             <button pButton label="Salvar Lançamento" icon="pi pi-check" (click)="salvarConta()"></button>
+        </ng-template>
+    </p-dialog>
+
+</div>

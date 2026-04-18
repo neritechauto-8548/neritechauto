@@ -1,0 +1,40 @@
+<p-panel [toggleable]="true" [collapsed]="false">
+  <ng-template pTemplate="header">
+    <div class="panel-header">
+      <div class="header-left">
+        <span class="material-icons icon-success">insights</span>
+        <span class="title">RECEITAS X DESPESAS <small class="muted">últimos 12 meses</small></span>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="chart-area">
+    <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text floating-download" (click)="menu.toggle($event)" aria-label="Menu de download"></button>
+    <p-menu #menu [popup]="true" [model]="menuItems" />
+
+    <div class="zero-line"></div>
+
+    <div class="bar bar-receita" title="Receita">
+      <div class="value-label top">100,00</div>
+    </div>
+
+    <div class="bar bar-despesa" title="Despesa">
+      <div class="value-label bottom">-5.000,00</div>
+    </div>
+
+    <svg class="result-line-svg" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-label="Resultado">
+      <polyline points="0,200 820,200 950,380" stroke="#22c55e" stroke-width="3" fill="none" />
+      <circle cx="950" cy="380" r="6" fill="#22c55e" />
+    </svg>
+
+    <div class="months">
+      <span>dezembro</span><span>janeiro</span><span>fevereiro</span><span>março</span><span>abril</span><span>maio</span><span>junho</span><span>julho</span><span>agosto</span><span>setembro</span><span>outubro</span><span>novembro</span>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="marker red"></span>Despesa</div>
+    <div class="legend-item"><span class="marker blue"></span>Receita</div>
+    <div class="legend-item"><span class="marker green-line"></span>Resultado</div>
+  </div>
+</p-panel>

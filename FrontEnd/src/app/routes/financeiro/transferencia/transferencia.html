@@ -1,0 +1,43 @@
+<p-card>
+  <ng-template pTemplate="header">
+    <div class="dlg-title">Transferência entre contas</div>
+  </ng-template>
+
+  <div class="transfer-grid">
+    <div class="col">
+      <label>Conta origem</label>
+      <p-select [options]="contas" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="origem" />
+    </div>
+    <div class="col">
+      <label>Valor atual</label>
+      <input pInputText type="text" [value]="valorAtualOrigem | number:'1.2-2'" readonly />
+    </div>
+    <div class="col">
+      <label>Valor final <i class="pi pi-info-circle"></i></label>
+      <input pInputText type="text" [value]="valorFinalOrigem | number:'1.2-2'" readonly />
+    </div>
+
+    <div class="col">
+      <label>Conta destino</label>
+      <p-select [options]="contas" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="destino" />
+    </div>
+    <div class="col">
+      <label>Valor atual</label>
+      <input pInputText type="text" [value]="valorAtualDestino | number:'1.2-2'" readonly />
+    </div>
+    <div class="col">
+      <label>Valor final <i class="pi pi-info-circle"></i></label>
+      <input pInputText type="text" [value]="valorFinalDestino | number:'1.2-2'" readonly />
+    </div>
+
+    <div class="span-3">
+      <label>Valor da Transferência</label>
+      <input pInputText type="number" [(ngModel)]="valorTransferencia" />
+    </div>
+  </div>
+
+  <div class="dlg-actions">
+    <button class="p-button p-button-secondary">Fechar</button>
+    <button class="p-button p-button-primary" (click)="fazerTransferencia()"><i class="pi pi-refresh"></i> Fazer transferência</button>
+  </div>
+</p-card>
