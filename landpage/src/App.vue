@@ -3,12 +3,14 @@
     <CabecalhoNav />
     <router-view />
     <ToastContainer />
+    <BotaoWhatsApp />
   </div>
 </template>
 
 <script setup>
 import CabecalhoNav from './components/CabecalhoNav.vue';
 import ToastContainer from './components/ToastContainer.vue';
+import BotaoWhatsApp from './components/BotaoWhatsApp.vue';
 </script>
 
 <style>

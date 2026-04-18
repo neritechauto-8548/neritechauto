@@ -35,11 +35,13 @@
         </div>
       </div>
 
-      <!-- Logos -->
+      <!-- Logos Marquee -->
       <div class="logos-row aos-init">
         <p class="logos-label">Empresas que confiam na NeriTech</p>
-        <div class="logos-list">
-          <div class="logo-pill" v-for="l in logos" :key="l">{{ l }}</div>
+        <div class="marquee-wrapper logos-marquee">
+          <div class="marquee-track">
+            <div class="logo-pill" v-for="l in [...logos, ...logos]" :key="l + Math.random()">{{ l }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -259,11 +261,8 @@ const logos = [
   margin-bottom: 1.25rem;
 }
 
-.logos-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
+.logos-marquee {
+  margin-top: 0.5rem;
 }
 
 .logo-pill {
@@ -275,6 +274,8 @@ const logos = [
   font-weight: 600;
   color: var(--text-muted);
   box-shadow: var(--shadow-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Responsive ── */

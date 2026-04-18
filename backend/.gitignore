@@ -1,0 +1,52 @@
+# ── Build (Maven) ──
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ── Logs ──
+*.log
+logs/
+build.log
+compile_errors.log
+out*.txt
+out*-utf8.txt
+out_*.txt
+
+# ── IDE — IntelliJ / IDEA ──
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ── IDE — VSCode ──
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# ── Environment (nunca versionar segredos!) ──
+.env
+.env.local
+.env.*.local
+
+# ── Docker ──
+# .dockerignore é mantido; ignorar apenas artefatos locais
+docker-compose.override.yml
+
+# ── Uploads e arquivos gerados ──
+uploads/
+*.tmp
+*.bak
+
+# ── Scripts de uso temporário ──
+*.ps1
+
+# ── Sistema (macOS / Windows) ──
+.DS_Store
+Thumbs.db
+
+# ── Documentação gerada automaticamente ──
+documentacao_api.md
+EQUIPAMENTO_ERROR_INVESTIGATION.md

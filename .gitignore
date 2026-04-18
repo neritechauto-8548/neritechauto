@@ -1,0 +1,112 @@
+# ==============================================
+#  NeriTech — Monorepo .gitignore
+#  Cobre: Angular | Vue/Vite | Spring Boot/Maven
+# ==============================================
+
+
+# ── Environment (NUNCA versionar segredos!) ──
+.env
+.env.local
+.env.*.local
+
+
+# ── Node / JavaScript ──
+node_modules/
+.pnp
+.pnp.js
+
+
+# ── Build / Compiled output ──
+dist/
+dist-ssr/
+/out-tsc
+/tmp
+/bazel-out
+*.local
+build_output.txt
+
+
+# ── Java / Maven (backend) ──
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+
+# ── Angular ──
+/.angular/cache
+/.nx/cache
+/coverage
+/typings
+/.sass-cache
+/connect.lock
+/libpeerconnection.log
+testem.log
+chrome-profiler-events*.json
+speed-measure-plugin*.json
+
+
+# ── Vite ──
+.vite/
+
+
+# ── Logs ──
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+output.log
+temp_output.txt
+compile_errors.log
+build.log
+out*.txt
+out*-utf8.txt
+out_*.txt
+
+
+# ── Uploads e arquivos temporários ──
+uploads/
+*.tmp
+*.bak
+
+
+# ── Scripts PowerShell temporários ──
+*.ps1
+
+
+# ── IDE — VSCode ──
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+
+# ── IDE — IntelliJ / IDEA ──
+.idea/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+
+# ── Docker ──
+docker-compose.override.yml
+
+
+# ── Sistema (macOS / Windows) ──
+.DS_Store
+Thumbs.db

@@ -15,19 +15,20 @@
         <!-- Badge -->
         <div class="hero-badge" style="animation-delay: 0s">
           <span class="badge-dot"></span>
-          Novo · Checklist Digital com IA →
+          Novo · Checklist Digital com IA
+          <span class="badge-arrow">→</span>
         </div>
 
         <!-- Headline -->
         <h1 class="hero-title" style="animation-delay: 0.08s">
-          A gestão que sua<br>
-          oficina precisava<br>
-          <span class="text-gradient-vibrant">desde sempre.</span>
+          O sistema #1 para<br>
+          oficinas que querem<br>
+          <span class="text-gradient-vibrant">lucrar de verdade.</span>
         </h1>
 
         <!-- Sub -->
         <p class="hero-subtitle" style="animation-delay: 0.16s">
-          OS digital, financeiro completo, NF-e e CRM — tudo em um sistema que seus mecânicos realmente vão usar.
+          OS digital, financeiro completo, NF-e, CRM e estoque — tudo em um sistema cloud que seus mecânicos realmente vão usar. Teste grátis por 7 dias.
         </p>
 
         <!-- CTAs -->
@@ -49,21 +50,28 @@
               <img src="https://i.pravatar.cc/80?u=202" alt="Cliente NeriTech" loading="lazy" />
               <img src="https://i.pravatar.cc/80?u=303" alt="Cliente NeriTech" loading="lazy" />
               <img src="https://i.pravatar.cc/80?u=404" alt="Cliente NeriTech" loading="lazy" />
+              <img src="https://i.pravatar.cc/80?u=505" alt="Cliente NeriTech" loading="lazy" />
             </div>
             <div class="trust-copy">
               <div class="trust-stars">★★★★★</div>
-              <span><strong>+500 oficinas</strong> transformadas</span>
+              <span><strong>+500 oficinas</strong> já transformaram seus resultados</span>
             </div>
           </div>
-          <div class="trust-badges">
-            <span class="trust-badge">
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              Sem cartão de crédito
-            </span>
-            <span class="trust-badge">
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-              Cancele quando quiser
-            </span>
+          <div class="hero-counters">
+            <div class="hero-counter">
+              <span class="hc-value">142.350+</span>
+              <span class="hc-label">OS criadas</span>
+            </div>
+            <div class="hero-counter-divider"></div>
+            <div class="hero-counter">
+              <span class="hc-value">R$ 28M+</span>
+              <span class="hc-label">Faturados</span>
+            </div>
+            <div class="hero-counter-divider"></div>
+            <div class="hero-counter">
+              <span class="hc-value">99.9%</span>
+              <span class="hc-label">Uptime</span>
+            </div>
           </div>
         </div>
       </div>
@@ -71,6 +79,7 @@
       <!-- Visual Column -->
       <div class="hero-visual">
         <div class="mockup-wrapper">
+          <div class="mockup-glow"></div>
           <div class="mockup-browser">
             <div class="browser-bar">
               <div class="browser-dots">
@@ -123,6 +132,13 @@
   padding: 130px 0 160px;
   overflow: hidden;
   background-color: var(--slate-navy);
+}
+
+.badge-arrow {
+  transition: transform 0.2s;
+}
+.hero-badge:hover .badge-arrow {
+  transform: translateX(3px);
 }
 
 .hero-container {
@@ -256,19 +272,39 @@
 
 .trust-copy strong { color: white; }
 
-.trust-badges {
-  display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.trust-badge {
+.hero-counters {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.6);
+  gap: 1.25rem;
+}
+
+.hero-counter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hc-value {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.hc-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hero-counter-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.15);
 }
 
 /* ── Visual ── */
@@ -282,6 +318,19 @@
 .mockup-wrapper {
   position: relative;
   width: 110%;
+}
+
+.mockup-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  height: 70%;
+  background: radial-gradient(ellipse, rgba(99,91,255,0.25) 0%, transparent 70%);
+  filter: blur(60px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .mockup-browser {

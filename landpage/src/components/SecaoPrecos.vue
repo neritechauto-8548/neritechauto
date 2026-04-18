@@ -32,7 +32,7 @@
           :class="{ featured: plan.featured }"
         >
           <!-- Popular badge -->
-          <div v-if="plan.featured" class="popular-tag">
+          <div v-if="plan.featured" class="popular-tag shimmer-badge">
             ⭐ Mais Popular
           </div>
 

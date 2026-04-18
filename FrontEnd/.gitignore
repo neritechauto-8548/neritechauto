@@ -1,20 +1,45 @@
-# See http://help.github.com/ignore-files/ for more about ignoring files.
-
-# compiled output
+# ── Compiled output ──
 /dist
 /tmp
 /out-tsc
-# Only exists if Bazel was run
 /bazel-out
 
-# dependencies
+# ── Dependencies ──
 /node_modules
+.pnp
+.pnp.js
 
-# profiling files
-chrome-profiler-events*.json
-speed-measure-plugin*.json
+# ── Angular cache ──
+/.angular/cache
+/.nx/cache
 
-# IDEs and editors
+# ── Build artifacts ──
+/coverage
+/typings
+
+# ── Logs ──
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+output.log
+temp_output.txt
+
+# ── Environment (nunca versionar segredos!) ──
+.env
+.env.local
+.env.*.local
+
+# ── IDE — VSCode ──
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# ── IDE — JetBrains / IntelliJ ──
 /.idea
 .project
 .classpath
@@ -23,26 +48,18 @@ speed-measure-plugin*.json
 .settings/
 *.sublime-workspace
 
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
+# ── Profiling ──
+chrome-profiler-events*.json
+speed-measure-plugin*.json
 
-# misc
-/.angular/cache
-/.nx/cache
+# ── Sass ──
 /.sass-cache
-/connect.lock
-/coverage
-/libpeerconnection.log
-npm-debug.log
-yarn-error.log
-testem.log
-/typings
 
-# System Files
+# ── Sistema (macOS / Windows) ──
 .DS_Store
 Thumbs.db
+
+# ── Outros ──
+/connect.lock
+/libpeerconnection.log
+testem.log

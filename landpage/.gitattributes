@@ -1,0 +1,4 @@
+# Preserve execute permissions on vite and other CLI binaries
+node_modules/.bin/* text eol=lf
+node_modules/.bin/vite eol=lf
+*.sh text eol=lf

@@ -56,11 +56,39 @@
       </div>
     </div>
 
+    <!-- Newsletter -->
+    <div class="container footer-newsletter">
+      <div class="newsletter-inner">
+        <div class="newsletter-text">
+          <h3>Receba dicas de gestão para oficinas</h3>
+          <p>Conteúdo exclusivo sobre gestão automotiva, tendências do setor e atualizações da NeriTech.</p>
+        </div>
+        <form class="newsletter-form" @submit.prevent="subscribeNewsletter">
+          <input type="email" placeholder="Seu melhor e-mail" required v-model="newsletterEmail" />
+          <button type="submit" class="btn btn-primary">Inscrever-se →</button>
+        </form>
+      </div>
+    </div>
+
     <div class="container footer-bottom">
-      <p class="copyright">© {{ currentYear }} NeriTech Sistemas. Todos os direitos reservados.</p>
+      <p class="copyright">© {{ currentYear }} NeriTech Sistemas. Todos os direitos reservados. CNPJ: 00.000.000/0001-00</p>
       <div class="footer-badges">
-        <span class="badge-trust">🔒 SSL Seguro</span>
-        <span class="badge-trust">💳 Pagamentos via Stripe</span>
+        <span class="badge-trust">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          SSL 256-bit
+        </span>
+        <span class="badge-trust">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          Stripe Payments
+        </span>
+        <span class="badge-trust">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          LGPD Compliant
+        </span>
+        <span class="badge-trust">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          99.9% Uptime
+        </span>
         <span class="badge-trust">🇧🇷 Feito no Brasil</span>
       </div>
     </div>
@@ -70,6 +98,10 @@
 <script setup>
 import { ref } from 'vue';
 const currentYear = ref(new Date().getFullYear());
+const newsletterEmail = ref('');
+const subscribeNewsletter = () => {
+  newsletterEmail.value = '';
+};
 </script>
 
 <style scoped>
@@ -203,18 +235,84 @@ const currentYear = ref(new Date().getFullYear());
 .badge-trust {
   font-size: 0.75rem;
   font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-trust svg {
   color: rgba(255,255,255,0.35);
+}
+
+/* ── Newsletter ── */
+.footer-newsletter {
+  border-top: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 2.5rem 0;
+}
+
+.newsletter-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3rem;
+}
+
+.newsletter-text h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.375rem;
+  font-family: var(--font-body);
+}
+
+.newsletter-text p {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.newsletter-form input {
+  width: 280px;
+  padding: 0.6875rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: white;
+  font-size: 0.875rem;
+  font-family: var(--font-body);
+}
+
+.newsletter-form input::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+
+.newsletter-form input:focus {
+  border-color: var(--primary-indigo);
+  box-shadow: 0 0 0 3px rgba(99,91,255,0.15);
+  outline: none;
 }
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .footer-top { grid-template-columns: 1fr; gap: 3rem; }
   .footer-links-grid { grid-template-columns: repeat(2, 1fr); }
+  .newsletter-inner { flex-direction: column; text-align: center; }
+  .newsletter-form { width: 100%; }
+  .newsletter-form input { flex: 1; width: auto; }
 }
 
 @media (max-width: 640px) {
   .footer-links-grid { grid-template-columns: 1fr 1fr; }
   .footer-bottom { flex-direction: column; text-align: center; }
-  .footer-badges { justify-content: center; }
+  .footer-badges { justify-content: center; flex-wrap: wrap; }
+  .newsletter-form { flex-direction: column; }
+  .newsletter-form input { width: 100%; }
 }
 </style>
