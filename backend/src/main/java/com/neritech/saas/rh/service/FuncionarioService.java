@@ -58,8 +58,14 @@ public class FuncionarioService {
     @Transactional
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("FuncionÃƒÂ¡rio nÃƒÂ£o encontrado");
+            throw new EntityNotFoundException("Funcionário não encontrado");
         }
         repository.deleteById(id);
+    }
+
+    public FuncionarioResponse findByUsuarioId(Long empresaId, Long usuarioId) {
+        return repository.findByEmpresaIdAndUsuarioId(empresaId, usuarioId)
+                .map(mapper::toResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Funcionário não vinculado a este usuário"));
     }
 }

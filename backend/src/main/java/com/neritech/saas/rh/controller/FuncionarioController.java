@@ -35,6 +35,14 @@ public class FuncionarioController {
         return ResponseEntity.ok(service.findById(id));
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    @Operation(summary = "Buscar funcionário por ID de usuário")
+    public ResponseEntity<FuncionarioResponse> findByUsuarioId(
+            @PathVariable Long usuarioId,
+            @RequestParam Long empresaId) {
+        return ResponseEntity.ok(service.findByUsuarioId(empresaId, usuarioId));
+    }
+
     @PostMapping
     @Operation(summary = "Criar funcionÃ¡rio")
     public ResponseEntity<FuncionarioResponse> create(@Valid @RequestBody FuncionarioRequest request) {

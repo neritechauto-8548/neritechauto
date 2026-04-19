@@ -29,7 +29,7 @@ import { AboutSystemDialog } from './about-system';
       <div class="px-1 flex flex-col gap-0.5 min-w-[220px]">
 
 
-        <button [routerLink]="['/configuracoes/colaboradores/cadastro', user.id]" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
+        <button [routerLink]="['/configuracoes/colaboradores/cadastro', user.id]" [queryParams]="{ byUsuario: true }" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
           <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">account_circle</mat-icon>
           <span class="!text-[13px] !font-semibold !text-slate-700">Meus Dados</span>
         </button>

@@ -31,5 +31,7 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
     List<Funcionario> findByCargoId(Long cargoId);
 
     List<Funcionario> findByDepartamentoId(Long departamentoId);
+
+    Optional<Funcionario> findByEmpresaIdAndUsuarioId(Long empresaId, Long usuarioId);
 }
 

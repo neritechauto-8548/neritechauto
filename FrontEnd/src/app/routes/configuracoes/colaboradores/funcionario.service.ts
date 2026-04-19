@@ -138,6 +138,11 @@ export class FuncionarioService {
     return this.http.get<FuncionarioResponse>(`${this.base}/${id}`, { headers: this.headers });
   }
 
+  getByUsuarioId(usuarioId: number): Observable<FuncionarioResponse> {
+    const params = new HttpParams().set('empresaId', this.tenantId);
+    return this.http.get<FuncionarioResponse>(`${this.base}/usuario/${usuarioId}`, { params, headers: this.headers });
+  }
+
   create(dto: FuncionarioRequest): Observable<FuncionarioResponse> {
     return this.http.post<FuncionarioResponse>(this.base, dto, { headers: this.headers });
   }

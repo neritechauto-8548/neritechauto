@@ -166,10 +166,18 @@ export class CadastroColaborador implements OnInit {
   ngOnInit() {
     this.loadOptions();
     const id = this.route.snapshot.paramMap.get('id');
+    const byUsuario = this.route.snapshot.queryParamMap.get('byUsuario') === 'true';
+
     if (id) {
-      this.isEditMode    = true;
-      this.funcionarioId = Number(id);
-      this.loadData();
+      if (byUsuario) {
+        this.isEditMode = true;
+        this.usuarioId = Number(id);
+        this.loadData(true);
+      } else {
+        this.isEditMode    = true;
+        this.funcionarioId = Number(id);
+        this.loadData(false);
+      }
     }
   }
 
@@ -193,10 +201,14 @@ export class CadastroColaborador implements OnInit {
     });
   }
 
-  loadData() {
-    if (!this.funcionarioId) return;
-    this.funcionarioService.getById(this.funcionarioId).subscribe({
+  loadData(byUsuario = false) {
+    const request = byUsuario && this.usuarioId
+      ? this.funcionarioService.getByUsuarioId(this.usuarioId)
+      : this.funcionarioService.getById(this.funcionarioId!);
+
+    request.subscribe({
       next: (data) => {
+        this.funcionarioId = data.id; // Garante que temos o ID real do funcionario para updates subsequentes
         // carrega usuarioId do funcionario
         if (data.usuarioId) {
           this.usuarioId = data.usuarioId;

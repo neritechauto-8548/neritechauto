@@ -80,7 +80,7 @@ export class SidebarMenuComponent {
            ]
        },
        {
-           label: 'Financeiro', icon: 'pi pi-dollar', expanded: true,
+           label: 'Financeiro', icon: 'pi pi-wallet', expanded: true,
            children: [
                { label: 'Contas a Pagar', icon: 'pi pi-minus-circle', route: '/financeiro/pagar' },
                { label: 'Contas a Receber', icon: 'pi pi-plus-circle', route: '/financeiro/receber' },
@@ -91,8 +91,8 @@ export class SidebarMenuComponent {
            label: 'Fornecedores', icon: 'pi pi-truck', expanded: false,
            children: [
                { label: 'Gestão', icon: 'pi pi-list', route: '/fornecedor' },
-               { label: 'Pedidos', icon: 'pi pi-file-o', route: '/fornecedor/pedidos' },
-               { label: 'Nova Compra', icon: 'pi pi-cart-plus', route: '/fornecedor/compras' }
+               { label: 'Pedidos', icon: 'pi pi-file-edit', route: '/fornecedor/pedidos' },
+               { label: 'Nova Compra', icon: 'pi pi-shopping-bag', route: '/fornecedor/compras' }
            ]
        },
        {
