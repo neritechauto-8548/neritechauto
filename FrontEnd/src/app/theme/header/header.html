@@ -11,25 +11,14 @@
 
     <!-- Logo (Visible on Mobile or when Branding hidden in Sidebar) -->
     <div class="flex items-center gap-2" [class.hidden]="!showBranding">
-       <svg width="120" height="32" viewBox="0 0 140 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-         <!-- Icon/Symbol -->
-         <rect x="0" y="0" width="36" height="36" rx="8" fill="url(#headerGradient)" />
-         <path d="M18 10L26 18L18 26L10 18L18 10Z" fill="white" opacity="0.9"/>
-         <circle cx="18" cy="18" r="3" fill="white"/>
-
-         <!-- Gradient Definition -->
-         <defs>
-           <linearGradient id="headerGradient" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-             <stop offset="0%" stop-color="#2563EB"/>
-             <stop offset="100%" stop-color="#1d4ed8"/>
-           </linearGradient>
-         </defs>
-
-         <!-- Text "NeriTech" -->
-         <text x="44" y="24" font-family="Inter, sans-serif" font-size="18" font-weight="700" letter-spacing="-0.02em" fill="currentColor" class="text-slate-900 dark:text-white">
-           Neri<tspan fill="#2563EB">Tech</tspan>
-         </text>
-       </svg>
+        <div class="flex items-center gap-2 font-inter scale-90 origin-left">
+          <div class="w-6 h-6 rounded-[6px] bg-[#6366f1] flex items-center justify-center text-white font-black text-xs shadow-sm">
+            N
+          </div>
+          <span class="font-black text-[16px] tracking-tighter text-slate-900 dark:text-white leading-none mt-0.5">
+            Neri<span class="text-[#00e5ff]">TechAuto</span>
+          </span>
+        </div>
     </div>
   </div>
 

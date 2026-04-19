@@ -12,7 +12,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "funcionarios")
+@Table(name = "funcionarios", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"empresa_id", "cpf"}, name = "uk_funcionarios_empresa_cpf"))
 public class Funcionario extends BaseEntity {
 
     @Column(name = "empresa_id", nullable = false)
@@ -27,7 +28,7 @@ public class Funcionario extends BaseEntity {
     @Column(name = "nome_completo", nullable = false, length = 255)
     private String nomeCompleto;
 
-    @Column(name = "cpf", nullable = false, length = 14)
+    @Column(name = "cpf", length = 14)
     private String cpf;
 
     @Column(name = "rg", length = 20)

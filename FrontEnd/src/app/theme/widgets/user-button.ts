@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { debounceTime, tap } from 'rxjs';
 
 import { AuthService, SettingsService, User } from '@core';
+import { AboutSystemDialog } from './about-system';
 
 @Component({
   selector: 'app-user',
@@ -26,39 +27,42 @@ import { AuthService, SettingsService, User } from '@core';
 
     <mat-menu #menu="matMenu" backdropClass="stripe-menu-backdrop" class="!rounded-xl !border !border-slate-100 !shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] !py-2 !px-1">
       <div class="px-1 flex flex-col gap-0.5 min-w-[220px]">
-        
-        <div class="px-3 py-3 mb-1 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg flex items-center gap-3">
-          <div [class]="'w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ' + getAvatarColor()">
-            {{ getInitials() }}
-          </div>
-          <div class="flex flex-col min-w-0">
-            <p class="text-[13px] font-extrabold text-slate-900 dark:text-white truncate leading-tight">{{ user.name || 'Administrador' }}</p>
-            <p class="text-[11px] font-medium text-slate-500 truncate">{{ user.email || 'master@empresa.com' }}</p>
-          </div>
-        </div>
 
-        <p class="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Navegação</p>
 
-        <button routerLink="/profile/overview" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
+        <button [routerLink]="['/configuracoes/colaboradores/cadastro', user.id]" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
           <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">account_circle</mat-icon>
-          <span class="!text-[13px] !font-semibold !text-slate-700">{{ 'profile' | translate }}</span>
+          <span class="!text-[13px] !font-semibold !text-slate-700">Meus Dados</span>
         </button>
-        
-        <button routerLink="/profile/settings" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
-          <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">settings</mat-icon>
-          <span class="!text-[13px] !font-semibold !text-slate-700">{{ 'edit_profile' | translate }}</span>
+
+        <button routerLink="/configuracoes/assinatura" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
+          <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">credit_card</mat-icon>
+          <span class="!text-[13px] !font-semibold !text-slate-700">Minha Assinatura</span>
         </button>
-        
+
+        <button routerLink="/agendamento/calendario" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
+          <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">calendar_month</mat-icon>
+          <span class="!text-[13px] !font-semibold !text-slate-700">Agenda</span>
+        </button>
+
+
+        <button mat-menu-item (click)="showAbout = true" class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
+          <mat-icon class="!text-blue-400 !mr-2 !text-[18px]">info</mat-icon>
+          <span class="!text-[13px] !font-semibold !text-slate-700">Sobre o Sistema</span>
+        </button>
+
         <div class="h-px w-full bg-slate-100 my-1"></div>
-        
+
         <button mat-menu-item (click)="logout()" class="!rounded-md hover:!bg-red-50 !h-10 !leading-10 transition-colors group">
           <mat-icon class="!text-red-400 !mr-2 !text-[18px] group-hover:!text-red-600">exit_to_app</mat-icon>
-          <span class="!text-[13px] !font-bold !text-red-500 group-hover:!text-red-700">{{ 'logout' | translate }}</span>
+          <span class="!text-[13px] !font-bold !text-red-500 group-hover:!text-red-700">{{ 'Sair' | translate }}</span>
         </button>
       </div>
     </mat-menu>
+
+    <!-- Dialog Sobre o Sistema -->
+    <app-about-system [(visible)]="showAbout" />
   `,
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, TranslateModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, TranslateModule, AboutSystemDialog],
 })
 export class UserButton implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
@@ -66,6 +70,7 @@ export class UserButton implements OnInit {
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
 
+  showAbout = false;
   user!: User;
 
   ngOnInit(): void {
@@ -90,11 +95,11 @@ export class UserButton implements OnInit {
   getAvatarColor(): string {
     // Retorna uma cor baseada no nome para consistência
     const colors = [
-      'bg-indigo-500', 
-      'bg-emerald-500', 
-      'bg-blue-500', 
-      'bg-purple-500', 
-      'bg-rose-500', 
+      'bg-indigo-500',
+      'bg-emerald-500',
+      'bg-blue-500',
+      'bg-purple-500',
+      'bg-rose-500',
       'bg-amber-500'
     ];
     const index = (this.user?.name?.length || 0) % colors.length;

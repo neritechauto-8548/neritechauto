@@ -34,10 +34,10 @@ public class FuncionarioService {
     @Transactional
     public FuncionarioResponse create(FuncionarioRequest request) {
         if (repository.existsByEmpresaIdAndMatricula(request.empresaId(), request.matricula())) {
-            throw new IllegalArgumentException("MatrÃ­cula jÃ¡ existe para esta empresa");
+            throw new IllegalArgumentException("Matrícula já existe para esta empresa");
         }
-        if (repository.existsByCpf(request.cpf())) {
-            throw new IllegalArgumentException("CPF jÃƒÂ¡ cadastrado");
+        if (request.cpf() != null && !request.cpf().isBlank() && repository.existsByEmpresaIdAndCpf(request.empresaId(), request.cpf())) {
+            throw new IllegalArgumentException("CPF já cadastrado para esta empresa");
         }
 
         Funcionario entity = mapper.toEntity(request);

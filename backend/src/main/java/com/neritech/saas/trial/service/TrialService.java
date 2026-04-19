@@ -11,6 +11,9 @@ import com.neritech.saas.trial.dto.TrialRegisterResponse;
 import com.stripe.model.Customer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.neritech.saas.rh.domain.Funcionario;
+import com.neritech.saas.rh.domain.enums.StatusFuncionario;
+import com.neritech.saas.rh.repository.FuncionarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,7 @@ public class TrialService {
     private final PasswordEncoder passwordEncoder;
     private final StripeService stripeService;
     private final EmailService emailService;
+    private final FuncionarioRepository funcionarioRepository;
 
     @Transactional
     public TrialRegisterResponse registerTrial(TrialRegisterRequest request) {
@@ -74,9 +78,25 @@ public class TrialService {
                 .ativo(true)
                 .bloqueado(false)
                 .build();
-        usuarioRepository.save(usuario);
+        Usuario savedUsuario = usuarioRepository.save(usuario);
 
-        // 5. Enviar e-mail de boas-vindas com a senha
+        // 5. Criar Registro de Funcionário
+        Funcionario funcionario = new Funcionario();
+        funcionario.setEmpresaId(savedEmpresa.getId());
+        funcionario.setUsuarioId(savedUsuario.getId());
+        funcionario.setNomeCompleto(request.getNomeCompleto());
+        funcionario.setMatricula("adm-01");
+        funcionario.setDataAdmissao(LocalDate.now());
+        funcionario.setStatus(StatusFuncionario.ATIVO);
+        
+        // Se o valor informado no registro for um CPF, alimentamos o funcionário, caso contrário fica em branco
+        if (request.getCnpjOuCpf() != null && request.getCnpjOuCpf().replaceAll("\\D", "").length() == 11) {
+            funcionario.setCpf(request.getCnpjOuCpf());
+        }
+        
+        funcionarioRepository.save(funcionario);
+
+        // 6. Enviar e-mail de boas-vindas com a senha
         emailService.sendTrialCredentials(request.getEmail(), request.getNomeCompleto(), rawPassword);
 
         return TrialRegisterResponse.builder()

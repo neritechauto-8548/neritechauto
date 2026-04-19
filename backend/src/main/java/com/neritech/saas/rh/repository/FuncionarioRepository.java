@@ -17,10 +17,14 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
     List<Funcionario> findByEmpresaIdAndStatus(Long empresaId, StatusFuncionario status);
 
     Optional<Funcionario> findByEmpresaIdAndMatricula(Long empresaId, String matricula);
+    
+    Optional<Funcionario> findByEmpresaIdAndCpf(Long empresaId, String cpf);
 
     Optional<Funcionario> findByCpf(String cpf);
 
     boolean existsByEmpresaIdAndMatricula(Long empresaId, String matricula);
+
+    boolean existsByEmpresaIdAndCpf(Long empresaId, String cpf);
 
     boolean existsByCpf(String cpf);
 

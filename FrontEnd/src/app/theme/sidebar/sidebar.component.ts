@@ -16,11 +16,11 @@ interface MenuItem {
   selector: 'app-sidebar-menu',
   template: `
     <div class="flex flex-col h-full bg-slate-900 text-white w-64">
-        <div class="p-4 flex items-center justify-center gap-3 border-b border-gray-700">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20">
-                <div class="w-3.5 h-3.5 bg-blue-50 rounded-[3px] transform rotate-45"></div>
+        <div class="p-4 flex items-center justify-center gap-2.5 border-b border-gray-800">
+            <div class="w-7 h-7 rounded-[7px] bg-[#6366f1] flex items-center justify-center text-white font-black text-xs shadow-sm">
+                N
             </div>
-            <div class="font-bold text-xl tracking-tight text-white">NeriTech<span class="text-blue-500">auto</span></div>
+            <div class="font-black text-[18px] tracking-tighter text-white leading-none mt-0.5">Neri<span class="text-[#00e5ff]">TechAuto</span></div>
         </div>
         <div class="flex-1 overflow-y-auto py-4">
              <nav class="space-y-1">

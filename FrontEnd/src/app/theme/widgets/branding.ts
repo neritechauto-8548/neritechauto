@@ -5,11 +5,11 @@ import { Component, Input } from '@angular/core';
   template: `
     <a class="branding" href="/">
       <div class="logo-box">
-        <div class="diamond"></div>
+        <span class="logo-mark">N</span>
       </div>
       @if (showName) {
         <span class="logo-text">
-          NeriTech<span class="logo-accent">auto</span>
+          Neri<span class="logo-accent">TechAuto</span>
         </span>
       }
     </a>
@@ -18,41 +18,42 @@ import { Component, Input } from '@angular/core';
     .branding {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       margin: 0 0.5rem;
       text-decoration: none;
       transition: all 0.2s ease;
+      transform: scale(0.9);
+      transform-origin: left;
     }
 
     .branding:hover {
-      transform: translateY(-1px);
+      opacity: 0.9;
     }
 
     .logo-box {
-      width: 32px;
-      height: 32px;
-      background: #2563eb;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      background: #6366f1;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .diamond {
-      width: 14px;
-      height: 14px;
-      background: #eff6ff;
-      border-radius: 3px;
-      transform: rotate(45deg);
+    .logo-mark {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: 0.85rem;
+      color: white;
     }
 
     .logo-text {
       font-family: 'Inter', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 800;
+      font-size: 1.15rem;
+      font-weight: 900;
       color: #1e293b;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.05em;
     }
 
     .dark .logo-text {
@@ -60,7 +61,7 @@ import { Component, Input } from '@angular/core';
     }
 
     .logo-accent {
-      color: #2563eb;
+      color: #00e5ff;
     }
   `,
 })
