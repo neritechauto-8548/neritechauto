@@ -12,23 +12,17 @@
     <div class="container hero-container">
       <!-- Content Column -->
       <div class="hero-content">
-        <!-- Badge -->
-        <div class="hero-badge" style="animation-delay: 0s">
-          <span class="badge-dot"></span>
-          Novo · Checklist Digital com IA
-          <span class="badge-arrow">→</span>
-        </div>
+
 
         <!-- Headline -->
         <h1 class="hero-title" style="animation-delay: 0.08s">
-          O sistema #1 para<br>
-          oficinas que querem<br>
-          <span class="text-gradient-vibrant">lucrar de verdade.</span>
+          Acelere seus atendimentos e<br>
+          dobre a <span class="text-gradient-vibrant">lucratividade da sua oficina.</span>
         </h1>
 
         <!-- Sub -->
         <p class="hero-subtitle" style="animation-delay: 0.16s">
-          OS digital, financeiro completo, NF-e, CRM e estoque — tudo em um sistema cloud que seus mecânicos realmente vão usar. Teste grátis por 7 dias.
+          Pare de perder tempo com burocracia. A NeriTechAuto integra OS, estoque, aprovação de clientes e financeiro em uma única tela. Sistema 100% em nuvem. Configure hoje e veja a diferença amanhã.
         </p>
 
         <!-- CTAs -->
@@ -60,7 +54,7 @@
             </div>
             <img
               src="../assets/gen/dashboard_mockup.png"
-              alt="neritechauto Dashboard — Sistema de Gestão para Oficinas"
+              alt="NeriTechAuto Dashboard — Sistema de Gestão para Oficinas"
               class="mockup-img"
               loading="eager"
             />
@@ -103,12 +97,7 @@
   background-color: var(--slate-navy);
 }
 
-.badge-arrow {
-  transition: transform 0.2s;
-}
-.hero-badge:hover .badge-arrow {
-  transform: translateX(3px);
-}
+
 
 .hero-container {
   display: grid;
@@ -125,35 +114,7 @@
   flex-direction: column;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(99, 91, 255, 0.15);
-  border: 1px solid rgba(99, 91, 255, 0.3);
-  padding: 7px 16px;
-  border-radius: var(--radius-full);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 1.5rem;
-  width: fit-content;
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
 
-.badge-dot {
-  width: 7px;
-  height: 7px;
-  background: var(--primary-cyan);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--primary-cyan);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.3); }
-}
 
 .hero-title {
   font-size: clamp(2.75rem, 5vw, 4.5rem);

@@ -60,9 +60,9 @@ public class TenantInterceptor implements HandlerInterceptor {
                 tenantSource = "jwt";
                 log.info("Resolved tenant from JWT claims for request: {}", requestURI);
             } else {
-                // Permitir requisições públicas ou de erro sem tenantId
-                if (requestURI.contains("/public/") || requestURI.contains("/error")) {
-                    log.info("Public or Error request detected, skipping mandatory tenant check: {}", requestURI);
+                // Permitir requisições públicas, de autenticação ou de erro sem tenantId
+                if (requestURI.contains("/public/") || requestURI.contains("/error") || requestURI.contains("/auth/")) {
+                    log.info("Public, Auth or Error request detected, skipping mandatory tenant check: {}", requestURI);
                     return true;
                 }
                 

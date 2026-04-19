@@ -13,27 +13,27 @@
     <template #content>
       <section id="aceitacao">
         <h2>1. Aceitação dos Termos</h2>
-        <p>Ao acessar ou usar a plataforma neritechauto, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não deverá utilizar nossos serviços.</p>
+        <p>Ao acessar ou usar a plataforma NeriTechAuto, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não concordar com qualquer parte destes termos, não deverá utilizar nossos serviços.</p>
       </section>
 
       <section id="servicos">
         <h2>2. Descrição dos Serviços</h2>
-        <p>A neritechauto oferece um software como serviço (SaaS) focado na gestão de oficinas mecânicas e estabelecimentos automotivos. Os recursos incluem, mas não se limitam a: abertura de O.S., gestão financeira, controle de estoque e emissão de notas fiscais.</p>
+        <p>A NeriTechAuto oferece um software como serviço (SaaS) focado na gestão de oficinas mecânicas e estabelecimentos automotivos. Os recursos incluem, mas não se limitam a: abertura de O.S., gestão financeira, controle de estoque e emissão de notas fiscais.</p>
       </section>
 
       <section id="contas">
         <h2>3. Cadastro e Segurança das Contas</h2>
-        <p>Para utilizar a neritechauto, você deve criar uma conta fornecendo informações precisas e completas. Você é o único responsável por:</p>
+        <p>Para utilizar a NeriTechAuto, você deve criar uma conta fornecendo informações precisas e completas. Você é o único responsável por:</p>
         <ul>
           <li>Manter a confidencialidade de sua senha e conta;</li>
           <li>Todas as atividades que ocorrem sob sua conta;</li>
-          <li>Notificar a neritechauto imediatamente sobre qualquer uso não autorizado ou violação de segurança.</li>
+          <li>Notificar a NeriTechAuto imediatamente sobre qualquer uso não autorizado ou violação de segurança.</li>
         </ul>
       </section>
 
       <section id="assinaturas">
         <h2>4. Assinaturas e Pagamentos</h2>
-        <p>A neritechauto funciona sob o modelo de assinatura mensal. Os pagamentos são processados via Stripe.</p>
+        <p>A NeriTechAuto funciona sob o modelo de assinatura mensal. Os pagamentos são processados via Stripe.</p>
         <ul>
           <li><strong>Cobrança:</strong> As faturas são geradas no início de cada período de faturamento mensal.</li>
           <li><strong>Preços:</strong> Reservamo-nos o direito de alterar nossos planos de preços, notificando os usuários com pelo menos 30 dias de antecedência.</li>

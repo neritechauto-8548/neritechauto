@@ -15,6 +15,7 @@ import { AuthService } from '@core/authentication';
 import { LocalStorageService } from '@shared/services/storage.service';
 
 import { CommonModule } from '@angular/common';
+import { HotToastService } from '@ngxpert/hot-toast';
 
 @Component({
   selector: 'app-login',
@@ -33,12 +34,13 @@ export class Login {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly storage = inject(LocalStorageService);
+  private readonly toast = inject(HotToastService);
 
   isSubmitting = false;
 
   loginForm = this.fb.nonNullable.group({
-    username: ['master@empresa.com', [Validators.required]],
-    password: ['master', [Validators.required]],
+    username: ['', [Validators.required]],
+    password: ['', [Validators.required]],
     rememberMe: [true],
   });
 
@@ -54,13 +56,7 @@ export class Login {
     return this.loginForm.get('rememberMe')!;
   }
 
-  constructor() {
-    const saved = this.storage.has('loginDefaults') ? this.storage.get('loginDefaults') : {};
-    const username = saved.username || 'master@empresa.com';
-    const password = saved.password || 'master';
-    this.loginForm.setValue({ username, password, rememberMe: true });
-    this.storage.set('loginDefaults', { username, password });
-  }
+  constructor() {}
 
   login() {
     this.isSubmitting = true;
@@ -73,6 +69,7 @@ export class Login {
           if (this.rememberMe.value) {
             this.storage.set('loginDefaults', { username: this.username.value, password: this.password.value });
           }
+          this.toast.success('Login realizado com sucesso!', { duration: 3000 });
           this.router.navigateByUrl('/');
         },
         error: (errorRes: HttpErrorResponse) => {

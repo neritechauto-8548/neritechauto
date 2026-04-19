@@ -4,7 +4,7 @@
       <div class="seg-header aos-init">
         <span class="section-label">Para quem é</span>
         <h2 class="seg-title">Independente do seu <span class="text-gradient">segmento automotivo.</span></h2>
-        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a neritechauto se adapta ao seu fluxo e escala com o crescimento da sua empresa.</p>
+        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a NeriTechAuto se adapta ao seu fluxo e escala com o crescimento da sua empresa.</p>
       </div>
 
       <!-- Tabs -->
@@ -136,26 +136,6 @@ const segments = [
       { value: '8', label: 'Em Reparo' },
       { value: 'R$ 32k', label: 'Faturamento' },
       { value: '4.8★', label: 'Avaliação' },
-    ]
-  },
-  {
-    id: 'autopecas',
-    icon: '📦',
-    title: 'Auto Peças',
-    route: 'autopecas',
-    description: 'Gestão completa de estoque com curva ABC, alertas de reposição e integração com fornecedores. Nunca mais perca uma venda por falta de peça.',
-    benefits: [
-      'Estoque com curva ABC inteligente',
-      'Cotação automática com fornecedores',
-      'PDV integrado ao financeiro',
-      'Relatórios de giro e margem por peça',
-    ],
-    screenTitle: 'Dashboard — Auto Peças Prime',
-    menuItems: ['Dashboard', 'Estoque', 'Vendas', 'Fornecedores', 'PDV'],
-    stats: [
-      { value: '4.200', label: 'SKUs' },
-      { value: 'R$ 89k', label: 'Vendas/mês' },
-      { value: '18%', label: 'Margem' },
     ]
   },
 ];

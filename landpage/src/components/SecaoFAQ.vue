@@ -62,7 +62,7 @@ const faqs = [
   },
   {
     q: 'Preciso instalar algo no meu computador?',
-    a: 'Não! A neritechauto é 100% na nuvem. Você acessa de qualquer navegador, em qualquer dispositivo — computador, tablet ou celular. Sem instalações, sem atualizações manuais.',
+    a: 'Não! A NeriTechAuto é 100% na nuvem. Você acessa de qualquer navegador, em qualquer dispositivo — computador, tablet ou celular. Sem instalações, sem atualizações manuais.',
   },
   {
     q: 'E se eu já uso outro sistema? Vocês migram meus dados?',
@@ -77,11 +77,11 @@ const faqs = [
     a: 'Nosso suporte é humano e real — respondemos via WhatsApp em tempo médio de menos de 2 minutos durante o horário comercial. Nos planos neri pro e neri elite, o suporte é prioritário com canal dedicado.',
   },
   {
-    q: 'O neritechauto serve para qualquer tipo de oficina?',
-    a: 'Sim! O neritechauto foi desenhado para ser flexível e atender diferentes perfis de centros automotivos, desde oficinas mecânicas gerais até funilaria e pintura.',
+    q: 'O NeriTechAuto serve para qualquer tipo de oficina?',
+    a: 'Sim! O NeriTechAuto foi desenhado para ser flexível e atender diferentes perfis de centros automotivos, desde oficinas mecânicas gerais até funilaria e pintura.',
   },
   {
-    q: 'Meus dados estão seguros no neritechauto?',
+    q: 'Meus dados estão seguros no NeriTechAuto?',
     a: 'Totalmente. Utilizamos a infraestrutura da AWS (Amazon Web Services), a mesma utilizada pelos maiores bancos do mundo. Seus dados contam com backup diário automático e criptografia de ponta a ponta, em total conformidade com a LGPD. Seus dados são seus — sempre.',
   },
 ];

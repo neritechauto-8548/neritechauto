@@ -4,32 +4,21 @@ import { Component, Input } from '@angular/core';
   selector: 'app-branding',
   template: `
     <a class="branding" href="/">
-      <!-- SVG Logo -->
-      <svg width="140" height="36" viewBox="0 0 140 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="branding-logo">
-        <!-- Icon/Symbol -->
-        <rect x="0" y="0" width="36" height="36" rx="8" fill="url(#gradient)" />
-        <path d="M18 10L26 18L18 26L10 18L18 10Z" fill="white" opacity="0.9"/>
-        <circle cx="18" cy="18" r="3" fill="white"/>
-
-        <!-- Gradient Definition -->
-        <defs>
-          <linearGradient id="gradient" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#2563EB"/>
-            <stop offset="100%" stop-color="#1d4ed8"/>
-          </linearGradient>
-        </defs>
-
-        <!-- Text "NeriTech" -->
-        <text x="44" y="24" font-family="Inter, sans-serif" font-size="18" font-weight="700" letter-spacing="-0.02em" class="logo-text">
-          Neri<tspan class="logo-accent">Tech</tspan>
-        </text>
-      </svg>
+      <div class="logo-box">
+        <span class="logo-mark">N</span>
+      </div>
+      @if (showName) {
+        <span class="logo-text">
+          NeriTech<span class="logo-accent">Auto</span>
+        </span>
+      }
     </a>
   `,
   styles: `
     .branding {
       display: flex;
       align-items: center;
+      gap: 12px;
       margin: 0 0.5rem;
       text-decoration: none;
       transition: all 0.2s ease;
@@ -39,21 +28,38 @@ import { Component, Input } from '@angular/core';
       transform: translateY(-1px);
     }
 
-    .branding-logo {
-      height: 36px;
-      width: auto;
+    .logo-box {
+      width: 32px;
+      height: 32px;
+      background: #6366f1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+    }
+
+    .logo-mark {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: white;
     }
 
     .logo-text {
-      fill: var(--slate-900);
+      font-family: 'Inter', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #1e293b;
+      letter-spacing: -0.04em;
     }
 
     .dark .logo-text {
-      fill: white;
+      color: white;
     }
 
     .logo-accent {
-      fill: #2563EB;
+      color: #6366f1;
     }
   `,
 })

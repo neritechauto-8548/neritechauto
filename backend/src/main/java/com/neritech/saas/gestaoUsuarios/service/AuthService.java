@@ -11,7 +11,13 @@ import com.neritech.saas.gestaoUsuarios.dto.RefreshTokenRequest;
 import com.neritech.saas.gestaoUsuarios.repository.LogAcessoRepository;
 import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.repository.TentativaLoginRepository;
+import com.neritech.saas.gestaoUsuarios.repository.TokenRecuperacaoSenhaRepository;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import com.neritech.saas.gestaoUsuarios.domain.TokenRecuperacaoSenha;
+import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
+import com.neritech.saas.common.mail.EmailService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.UUID;
 import com.neritech.saas.security.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +46,9 @@ public class AuthService {
     private final TentativaLoginRepository tentativaLoginRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final TokenRecuperacaoSenhaRepository tokenRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
@@ -214,6 +223,63 @@ public class AuthService {
         }
     }
 
+    @Transactional
+    public void recoverPassword(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+        
+        // Se o usuário não existir, por segurança, não revelamos isso
+        if (usuario != null) {
+            // Definir o contexto do tenant para permitir gravação de logs e tokens
+            TenantContext.setCurrentTenant(usuario.getEmpresaId());
+
+            // Gerar token único
+            String token = UUID.randomUUID().toString();
+            
+            TokenRecuperacaoSenha tokenEntity = TokenRecuperacaoSenha.builder()
+                    .token(token)
+                    .usuario(usuario)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(30))
+                    .build();
+            
+            tokenRepository.saveAndFlush(tokenEntity);
+            
+            // Enviar e-mail assíncrono
+            emailService.sendPasswordResetLink(usuario.getEmail(), usuario.getNomeCompleto(), token);
+            
+            logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RECOVERY_REQUEST, "Solicitação de recuperação de senha iniciada", null, null);
+        }
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        TokenRecuperacaoSenha tokenEntity = tokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Token de recuperação inválido ou inexistente"));
+
+        if (tokenEntity.getUsado()) {
+            throw new RuntimeException("Este link de recuperação já foi utilizado");
+        }
+
+        if (tokenEntity.getDataExpiracao().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("O link de recuperação expirou. Por favor, solicite um novo");
+        }
+
+        Usuario usuario = tokenEntity.getUsuario();
+        
+        // Definir o contexto do tenant para permitir atualização da senha
+        TenantContext.setCurrentTenant(usuario.getEmpresaId());
+
+        // Atualizar senha do usuário
+        usuario.setSenha(passwordEncoder.encode(request.getNovaSenha()));
+        usuario.setDeveTrocarSenha(false);
+        usuarioRepository.saveAndFlush(usuario);
+
+        // Marcar token como usado
+        tokenEntity.setUsado(true);
+        tokenRepository.saveAndFlush(tokenEntity);
+
+        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS, "Senha redefinida com sucesso via link de e-mail", null, null);
+    }
+
     private void createSession(Usuario usuario, String accessToken, String refreshToken, LoginRequest request) {
         SessaoUsuario sessao = SessaoUsuario.builder()
                 .usuario(usuario)
@@ -222,11 +288,12 @@ public class AuthService {
                 .ipAddress(request.getIpAddress())
                 .userAgent(request.getUserAgent())
                 .dataInicio(LocalDateTime.now())
+
                 .ultimoAcesso(LocalDateTime.now())
                 .ativo(true)
                 .empresaId(usuario.getEmpresaId()) // Explicitly set if needed, but TenantEntity handles it if context is set
                 .build();
-        sessaoUsuarioRepository.save(sessao);
+        sessaoUsuarioRepository.saveAndFlush(sessao);
     }
 
     private void checkLoginAttempts(String email) {
@@ -245,7 +312,7 @@ public class AuthService {
                 .dataTentativa(LocalDateTime.now())
                 .empresaId(TenantContext.getCurrentTenant()) // Might be null if not provided
                 .build();
-        tentativaLoginRepository.save(tentativa);
+        tentativaLoginRepository.saveAndFlush(tentativa);
     }
 
     private void logAccess(Usuario usuario, LogAcesso.TipoEvento evento, String detalhes, String ip, String userAgent) {
@@ -260,7 +327,7 @@ public class AuthService {
                 .empresaId(usuario != null ? usuario.getEmpresaId() : TenantContext.getCurrentTenant())
                 .build();
         if (log.getEmpresaId() != null) {
-            logAcessoRepository.save(log);
+            logAcessoRepository.saveAndFlush(log);
         }
     }
 }

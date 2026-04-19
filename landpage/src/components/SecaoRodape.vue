@@ -5,7 +5,7 @@
       <div class="footer-brand">
         <div class="footer-logo">
           <div class="logo-mark">N</div>
-          <span class="logo-wordmark">neri<span class="logo-accent">techauto</span></span>
+          <span class="logo-wordmark">Neri<span class="logo-accent">TechAuto</span></span>
         </div>
         <p class="brand-desc">
           A infraestrutura financeira e operacional completa para oficinas mecânicas de alto desempenho.
@@ -34,7 +34,7 @@
         </div>
         <div class="footer-col">
           <h4>Empresa</h4>
-          <a href="#">Sobre a neritechauto</a>
+          <a href="#">Sobre a NeriTechAuto</a>
           <a href="#">Blog</a>
           <a href="#">Carreiras</a>
           <a href="#">Parceiros</a>
@@ -61,7 +61,7 @@
       <div class="newsletter-inner">
         <div class="newsletter-text">
           <h3>Receba dicas de gestão para oficinas</h3>
-          <p>Conteúdo exclusivo sobre gestão automotiva, tendências do setor e atualizações da neritechauto.</p>
+          <p>Conteúdo exclusivo sobre gestão automotiva, tendências do setor e atualizações da NeriTechAuto.</p>
         </div>
         <form class="newsletter-form" @submit.prevent="subscribeNewsletter">
           <input type="email" placeholder="Seu melhor e-mail" required v-model="newsletterEmail" />
@@ -71,7 +71,7 @@
     </div>
 
     <div class="container footer-bottom">
-      <p class="copyright">© {{ currentYear }} neritechauto Sistemas. Todos os direitos reservados. CNPJ: 00.000.000/0001-00</p>
+      <p class="copyright">© {{ currentYear }} NeriTechAuto Sistemas. Todos os direitos reservados. CNPJ: 00.000.000/0001-00</p>
       <div class="footer-badges">
         <span class="badge-trust">
           <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>

@@ -44,6 +44,8 @@ public class LogAcesso extends TenantEntity {
         LOGIN_FAIL,
         LOGOUT,
         REFRESH_TOKEN,
-        FORCE_LOGOUT
+        FORCE_LOGOUT,
+        PASSWORD_RECOVERY_REQUEST,
+        PASSWORD_RESET_SUCCESS
     }
 }

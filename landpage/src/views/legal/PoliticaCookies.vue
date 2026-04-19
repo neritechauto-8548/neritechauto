@@ -37,7 +37,7 @@
       <section id="controle">
         <h2>4. Como você pode controlar os Cookies?</h2>
         <p>Você pode controlar e/ou excluir cookies como desejar através das configurações do seu navegador. Você pode excluir todos os cookies já instalados no seu computador e configurar a maioria dos navegadores para impedir sua instalação.</p>
-        <p><strong>Atenção:</strong> Se você desativar todos os cookies, algumas funcionalidades da plataforma neritechauto (como o login automático) podem ser afetadas ou deixar de funcionar completamente.</p>
+        <p><strong>Atenção:</strong> Se você desativar todos os cookies, algumas funcionalidades da plataforma NeriTechAuto (como o login automático) podem ser afetadas ou deixar de funcionar completamente.</p>
       </section>
     </template>
   </LayoutLegal>

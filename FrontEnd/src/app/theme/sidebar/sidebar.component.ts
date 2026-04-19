@@ -16,7 +16,7 @@ interface MenuItem {
   selector: 'app-sidebar-menu',
   template: `
     <div class="flex flex-col h-full bg-slate-900 text-white w-64">
-        <div class="p-4 text-center font-bold text-xl border-b border-gray-700">NeriTech SaaS</div>
+        <div class="p-4 text-center font-bold text-xl border-b border-gray-700">NeriTechAuto</div>
         <div class="flex-1 overflow-y-auto py-4">
              <nav class="space-y-1">
                  <ng-container *ngFor="let item of menu">

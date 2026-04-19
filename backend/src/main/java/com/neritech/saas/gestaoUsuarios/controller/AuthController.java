@@ -3,6 +3,8 @@ package com.neritech.saas.gestaoUsuarios.controller;
 import com.neritech.saas.gestaoUsuarios.dto.LoginRequest;
 import com.neritech.saas.gestaoUsuarios.dto.LoginResponse;
 import com.neritech.saas.gestaoUsuarios.dto.RefreshTokenRequest;
+import com.neritech.saas.gestaoUsuarios.dto.RecoverPasswordRequest;
+import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
 import com.neritech.saas.gestaoUsuarios.service.AuthService;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,5 +76,19 @@ public class AuthController {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    @PostMapping("/recover-password")
+    @Operation(summary = "Solicitar recuperação de senha", description = "Envia um link de recuperação por e-mail")
+    public ResponseEntity<Void> recoverPassword(@RequestBody @Valid RecoverPasswordRequest request) {
+        authService.recoverPassword(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha", description = "Atualiza a senha do usuário usando o token enviado por e-mail")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok().build();
     }
 }

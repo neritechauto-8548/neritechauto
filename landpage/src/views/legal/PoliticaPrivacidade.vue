@@ -12,7 +12,7 @@
     <template #content>
       <section id="introducao">
         <h2>1. Introdução</h2>
-        <p>A neritechauto Sistemas ("nós", "nosso" ou "neritechauto") valoriza a sua privacidade. Esta Política de Privacidade descreve como coletamos, usamos e protegemos suas informações pessoais quando você utiliza nossa plataforma de gestão para oficinas mecânicas.</p>
+        <p>A NeriTechAuto Sistemas ("nós", "nosso" ou "NeriTechAuto") valoriza a sua privacidade. Esta Política de Privacidade descreve como coletamos, usamos e protegemos suas informações pessoais quando você utiliza nossa plataforma de gestão para oficinas mecânicas.</p>
         <p>Ao utilizar nossos serviços, você concorda com a coleta e o uso de informações de acordo com esta política, em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).</p>
       </section>
 

@@ -40,6 +40,26 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendPasswordResetLink(String to, String name, String token) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("Recuperação de Acesso - NeriTechAuto");
+
+            String htmlContent = buildResetEmailTemplate(name, token);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Password reset email sent successfully to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {}", to, e);
+        }
+    }
+
     private String buildTrialEmailTemplate(String name, String email, String password) {
         String loginUrl = "http://localhost:4200/login"; // URL do sistema cliente
         
@@ -93,6 +113,48 @@ public class EmailService {
                 "  <div style='background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #f1f5f9;'>" +
                 "    <p style='margin: 0; font-size: 12px; color: #94a3b8;'>NeriTech &copy; " + java.time.Year.now().getValue() + " | Todos os direitos reservados.</p>" +
                 "    <p style='margin: 5px 0 0 0; font-size: 11px; color: #cbd5e1;'>Você está recebendo este e-mail porque solicitou um teste em neritech.com.br</p>" +
+                "  </div>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
+    }
+
+    private String buildResetEmailTemplate(String name, String token) {
+        String resetUrl = "http://localhost:4200/auth/reset-password?token=" + token;
+        
+        return "<html>" +
+                "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +
+                "<div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);'>" +
+                "  <div style='background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); padding: 40px; text-align: center;'>" +
+                "    <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;'>Recuperação de Senha</h1>" +
+                "    <p style='color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;'>NeriTechAuto - Sempre com você.</p>" +
+                "  </div>" +
+                "  " +
+                "  <div style='padding: 40px;'>" +
+                "    <p style='color: #1e293b; font-size: 18px; font-weight: 600; margin-bottom: 16px;'>Olá " + name + ",</p>" +
+                "    <p style='color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 30px;'>" +
+                "      Recebemos uma solicitação para redefinir a senha da sua conta NeriTechAuto. " +
+                "      Se você não solicitou essa alteração, pode ignorar este e-mail com segurança." +
+                "    </p>" +
+                "    " +
+                "    <div style='text-align: center; margin: 40px 0;'>" +
+                "      <a href='" + resetUrl + "' style='display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 18px 36px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);'>Redefinir Minha Senha</a>" +
+                "    </div>" +
+                "    " +
+                "    <p style='color: #64748b; font-size: 14px; text-align: center;'>" +
+                "      Este link é válido por 30 minutos. Após esse período, você precisará solicitar uma nova recuperação." +
+                "    </p>" +
+                "    " +
+                "    <hr style='border: 0; border-top: 1px solid #f1f5f9; margin: 40px 0 30px 0;' />" +
+                "    " +
+                "    <p style='color: #94a3b8; font-size: 12px; line-height: 1.5; text-align: center;'>" +
+                "      Se o botão acima não funcionar, copie e cole o seguinte link no seu navegador:<br>" +
+                "      <span style='color: #6366f1; word-break: break-all;'>" + resetUrl + "</span>" +
+                "    </p>" +
+                "  </div>" +
+                "  " +
+                "  <div style='background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #f1f5f9;'>" +
+                "    <p style='margin: 0; font-size: 12px; color: #94a3b8;'>NeriTechAuto &copy; " + java.time.Year.now().getValue() + " | Todos os direitos reservados.</p>" +
                 "  </div>" +
                 "</div>" +
                 "</body>" +

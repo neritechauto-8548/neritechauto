@@ -4,7 +4,7 @@
       <!-- Logo -->
       <router-link to="/" class="logo" @click="menuMobileAberto = false">
         <span class="logo-mark">N</span>
-        <span class="logo-wordmark">neri<span class="logo-accent">techauto</span></span>
+        <span class="logo-wordmark">Neri<span class="logo-accent">TechAuto</span></span>
       </router-link>
 
       <!-- Desktop Nav -->

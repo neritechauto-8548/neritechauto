@@ -12,13 +12,13 @@
     <template #content>
       <section id="objeto">
         <h2>1. Objeto e Escopo</h2>
-        <p>Este Acordo de Processamento de Dados (DPA) aplica-se sempre que a neritechauto atua como "Operador" (Processor) de dados pessoais em nome do Cliente, que atua como "Controlador" (Controller) nos termos da LGPD.</p>
+        <p>Este Acordo de Processamento de Dados (DPA) aplica-se sempre que a NeriTechAuto atua como "Operador" (Processor) de dados pessoais em nome do Cliente, que atua como "Controlador" (Controller) nos termos da LGPD.</p>
         <p>Este documento regula as condições de segurança e proteção dos dados dos clientes da sua oficina que são inseridos em nossa plataforma.</p>
       </section>
 
       <section id="obrigacoes">
-        <h2>2. Obrigações da neritechauto (Operador)</h2>
-        <p>A neritechauto compromete-se a:</p>
+        <h2>2. Obrigações da NeriTechAuto (Operador)</h2>
+        <p>A NeriTechAuto compromete-se a:</p>
         <ul>
           <li>Processar dados pessoais apenas conforme as instruções documentadas do Cliente (através do uso do sistema);</li>
           <li>Garantir que as pessoas autorizadas a processar os dados pessoais tenham se comprometido com a confidencialidade;</li>

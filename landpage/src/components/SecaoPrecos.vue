@@ -97,7 +97,7 @@ const plans = ref([
     description: 'A gestão completa para oficinas que buscam performance.',
     featured: true,
     features: [
-      'Tudo do neritechauto Start',
+      'Tudo do NeriTechAuto Start',
       'Conciliação Bancária Automática',
       'Emissão de NF-e e NFS-e',
       'Controle de Estoque Inteligente',
@@ -113,7 +113,7 @@ const plans = ref([
     description: 'O nível máximo de controle e inteligência de dados.',
     featured: false,
     features: [
-      'Tudo do neritechauto Pro',
+      'Tudo do NeriTechAuto Pro',
       'Dashboards BI Customizados',
       'API para Integrações Externas',
       'Consultoria Mensal de Processos',

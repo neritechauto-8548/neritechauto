@@ -43,6 +43,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/auth/login",
                     "/auth/refresh",
+                    "/auth/recover-password",
+                    "/auth/reset-password",
                     "/public/**",
                     "/v1/assinatura/webhook/**",
                     "/v3/api-docs/**",
@@ -96,8 +98,8 @@ public class SecurityConfig {
             "http://localhost:5174"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Tenant-Id", "X-Tenant-Header"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "X-Tenant-Id"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

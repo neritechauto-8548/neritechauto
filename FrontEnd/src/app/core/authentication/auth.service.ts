@@ -80,10 +80,18 @@ export class AuthService {
     }
 
     return this.loginService.user().pipe(
+      catchError(() => {
+        this.tokenService.clear();
+        return of({});
+      }),
       tap(user => {
         this.user$.next(user);
+        if (isEmptyObject(user)) {
+          return;
+        }
         // Salva o tenantId (empresaId) no LocalStorage
-        const tenantId = user['empresaId'] || user['tenantId'] || user['idEmpresa'];
+        const u = user as any;
+        const tenantId = u.empresaId || u.tenantId || u.idEmpresa;
         if (tenantId) {
           console.log('🏢 Setting Tenant ID from user profile:', tenantId);
           this.storage.set('tenantId', tenantId);

@@ -8,6 +8,7 @@ import { Error404 } from './routes/sessions/error-404';
 import { Error500 } from './routes/sessions/error-500';
 import { Login } from './routes/sessions/login/login';
 import { Recover } from './routes/sessions/recover/recover';
+import { ResetPassword } from './routes/sessions/reset-password/reset-password';
 
 export const routes: Routes = [
   {
@@ -109,6 +110,7 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: Login },
       { path: 'recover', component: Recover },
+      { path: 'reset-password', component: ResetPassword },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

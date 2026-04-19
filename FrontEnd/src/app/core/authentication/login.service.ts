@@ -50,6 +50,14 @@ export class LoginService {
     return this.http.post<any>('/api/auth/logout', {});
   }
 
+  recoverPassword(email: string) {
+    return this.http.post<any>('/api/auth/recover-password', { email });
+  }
+
+  resetPassword(params: any) {
+    return this.http.post<any>('/api/auth/reset-password', params);
+  }
+
   user() {
     return this.http.get<User>('/api/usuarios/me');
   }

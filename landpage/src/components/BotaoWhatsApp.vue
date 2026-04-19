@@ -4,7 +4,7 @@
       <!-- Tooltip -->
       <Transition name="tooltip-fade">
         <div v-if="showTooltip" class="wpp-tooltip" @click="showTooltip = false">
-          <span class="wa-tooltip">Falar com a neritechauto</span>
+          <span class="wa-tooltip">Falar com a NeriTechAuto</span>
           <button class="wpp-tooltip-close" aria-label="Fechar tooltip">✕</button>
         </div>
       </Transition>

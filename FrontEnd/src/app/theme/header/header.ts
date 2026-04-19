@@ -53,7 +53,7 @@ export class Header {
         mergeMap(route => route.data)
       )
       .subscribe(event => {
-        this.pageTitle = event['title'] || 'NeriTech';
+        this.pageTitle = event['title'] || 'NeriTechAuto';
       });
   }
 
