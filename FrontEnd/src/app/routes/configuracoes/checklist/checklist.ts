@@ -30,7 +30,6 @@ import { ItChecklistOsService, ItChecklistOsRequest, ItChecklistOsResponse } fro
     DynamicDialogModule,
     ToastModule,
     MatIconModule,
-    PageHeader,
     ConfirmationDialogComponent
   ],
   providers: [DialogService, MessageService, ConfirmationService],

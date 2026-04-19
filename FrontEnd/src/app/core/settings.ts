@@ -17,7 +17,7 @@ export const defaults: AppSettings = {
   dir: 'ltr',
   theme: 'light',
   showHeader: true,
-  headerPos: 'fixed',
+  headerPos: 'above',
   showUserPanel: true,
   sidenavOpened: true,
   sidenavCollapsed: true,

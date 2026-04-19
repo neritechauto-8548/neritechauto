@@ -21,15 +21,15 @@ public class OpenAPIConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Neritech Oficina Mecânica API")
-                        .description("API para o sistema SaaS de gestão de oficinas mecânicas")
+                        .title("NeriTech API")
+                        .description("API do sistema NeriTech para gestão de oficinas")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("Suporte Neritech")
+                                .name("Suporte NeriTech")
                                 .email("suporte@neritech.com.br")
                                 .url("https://neritech.com.br"))
                         .license(new License()
-                                .name("Licença Proprietária")
+                                .name("Proprietário")
                                 .url("https://neritech.com.br/licenca")))
                 .servers(Arrays.asList(
                         new Server().url("/api").description("Servidor de Produção"),

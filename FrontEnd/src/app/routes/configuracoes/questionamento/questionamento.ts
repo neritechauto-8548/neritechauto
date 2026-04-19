@@ -46,7 +46,6 @@ export interface ModeloQuestionamento {
     MatIconModule,
     ToastModule,
     TooltipModule,
-    PageHeader,
     ConfirmationDialogComponent
   ],
   providers: [DialogService, MessageService, ConfirmationService],

@@ -28,7 +28,6 @@ import { Page } from '../categoria/categoria-produto.service';
     ToastModule,
     ConfirmDialogModule,
     MatIconModule,
-    PageHeader,
     ConfirmationDialogComponent
   ],
   providers: [

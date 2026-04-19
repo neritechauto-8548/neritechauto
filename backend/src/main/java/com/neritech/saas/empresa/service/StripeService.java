@@ -66,6 +66,10 @@ public class StripeService {
         }
     }
 
+    public boolean isConfigured() {
+        return stripeApiKey != null && !stripeApiKey.isBlank();
+    }
+
     /**
      * Creates a new customer in Stripe.
      */

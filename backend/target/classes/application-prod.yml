@@ -111,4 +111,7 @@ management:
 
 stripe:
   api:
-    key: ${STRIPE_API_KEY:}
+    key: ${STRIPE_SECRET_KEY:}
+  default:
+    price:
+      id: ${STRIPE_TRIAL_PRICE_ID:}

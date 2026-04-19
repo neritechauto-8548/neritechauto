@@ -35,7 +35,7 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Trial credentials email sent successfully to: {}", to);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Failed to send trial credentials email to: {}", to, e);
         }
     }

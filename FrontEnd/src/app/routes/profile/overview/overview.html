@@ -102,56 +102,17 @@
             </div>
           </div>
 
-          <!-- Cabeçalho -->
-          <div class="mb-6">
-            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Cabeçalho (Header)</h3>
-            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-[14px] font-medium text-slate-700">Visível</span>
-                <mat-slide-toggle formControlName="showHeader" [disabled]="isHeaderPosAbove || isNavPosTop"></mat-slide-toggle>
-              </div>
-              
-              <div class="pt-3 border-t border-slate-100">
-                <span class="text-[12px] font-medium text-slate-500 mb-2 block">Posição</span>
-                <mat-radio-group formControlName="headerPos" class="flex flex-col gap-2">
-                  <mat-radio-button value="above" class="text-[14px] font-medium text-slate-700" [disabled]="!isShowHeader || isNavPosTop">Acima</mat-radio-button>
-                  <mat-radio-button value="fixed" class="text-[14px] font-medium text-slate-700">Fixo</mat-radio-button>
-                  <mat-radio-button value="static" class="text-[14px] font-medium text-slate-700">Estático</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-          </div>
-
-          <!-- Navegação -->
-          <div class="mb-6">
-            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Menu Lateral</h3>
-            <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-[14px] font-medium text-slate-700">Painel do Usuário</span>
-                <mat-slide-toggle formControlName="showUserPanel"></mat-slide-toggle>
-              </div>
-              
-              <div class="pt-3 border-t border-slate-100">
-                <span class="text-[12px] font-medium text-slate-500 mb-2 block">Posição</span>
-                <mat-radio-group formControlName="navPos" class="flex gap-4">
-                  <mat-radio-button value="side" class="text-[14px] font-medium text-slate-700">Lateral</mat-radio-button>
-                  <mat-radio-button value="top" class="text-[14px] font-medium text-slate-700" [disabled]="isHeaderPosAbove || !isShowHeader">Topo</mat-radio-button>
-                </mat-radio-group>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Direção -->
-          <div>
-            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Direção do Texto</h3>
+          <!-- Tema -->
+          <div class="mb-2">
+            <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-3">Tema</h3>
             <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-              <mat-radio-group formControlName="dir" class="flex gap-4">
-                <mat-radio-button value="ltr" class="text-[14px] font-medium text-slate-700">LTR</mat-radio-button>
-                <mat-radio-button value="rtl" class="text-[14px] font-medium text-slate-700">RTL</mat-radio-button>
+              <mat-radio-group formControlName="theme" class="flex flex-col gap-3">
+                <mat-radio-button value="light" class="text-[14px] font-medium text-slate-700">Claro</mat-radio-button>
+                <mat-radio-button value="dark" class="text-[14px] font-medium text-slate-700">Escuro</mat-radio-button>
+                <mat-radio-button value="auto" class="text-[14px] font-medium text-slate-700">Automático (Sistema)</mat-radio-button>
               </mat-radio-group>
             </div>
           </div>
-
         </form>
       </div>
     </div>

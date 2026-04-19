@@ -8,9 +8,7 @@ import { AuthService } from '@core/authentication/auth.service';
 import { User } from '@core/authentication/interface';
 
 // Customizer Imports
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
 
 // PrimeNG Imports
@@ -29,9 +27,7 @@ import { FileUploadModule } from 'primeng/fileupload';
     CommonModule, 
     ReactiveFormsModule, 
     FormsModule, 
-    MatSlideToggleModule, 
     MatRadioModule, 
-    MatDividerModule,
     MatButtonModule,
     ToastModule,
     InputTextModule,
@@ -106,18 +102,6 @@ export class ProfileOverview implements OnInit, OnDestroy {
 
   onPhotoUpload(event: any) {
     this.messageService.add({severity:'success', summary:'Sucesso', detail:'Foto de perfil atualizada!'});
-  }
-
-  get isHeaderPosAbove() {
-    return this.settingsForm.get('headerPos')?.value === 'above';
-  }
-
-  get isNavPosTop() {
-    return this.settingsForm.get('navPos')?.value === 'top';
-  }
-
-  get isShowHeader() {
-    return this.settingsForm.get('showHeader')?.value === true;
   }
 }
 

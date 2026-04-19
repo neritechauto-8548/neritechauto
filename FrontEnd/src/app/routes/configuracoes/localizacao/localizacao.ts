@@ -36,7 +36,6 @@ interface LocalizacaoItem {
     ConfirmDialogModule,
     InputTextModule,
     MatIconModule,
-    PageHeader,
     ConfirmationDialogComponent
   ],
   providers: [DialogService, MessageService, ConfirmationService, { provide: PrimeNGConfirmationService, useClass: PrimeNGConfirmationService }],

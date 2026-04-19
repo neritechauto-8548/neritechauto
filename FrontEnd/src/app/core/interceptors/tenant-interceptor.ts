@@ -7,20 +7,18 @@ export function tenantInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn
   const storage = inject(LocalStorageService);
   let tenantId: any =
     storage.has('empresaId') ? storage.get('empresaId') :
-    storage.has('tenantId') ? storage.get('tenantId') : '1';
+    storage.has('tenantId') ? storage.get('tenantId') : null;
 
   if (tenantId && typeof tenantId === 'object') {
-    tenantId = tenantId.id || tenantId.tenantId || tenantId.empresaId || '1';
+    tenantId = tenantId.id || tenantId.tenantId || tenantId.empresaId || null;
   }
 
   const cleanId = String(tenantId);
-  if (!tenantId || cleanId === '' || cleanId.includes('[object') || cleanId === 'undefined') {
-    tenantId = '1';
+  let headers = req.headers;
+  
+  if (tenantId && cleanId !== '' && !cleanId.includes('[object') && cleanId !== 'undefined') {
+    headers = req.headers.set('X-Tenant-Id', cleanId);
   }
-
-  // Ensure both common header names are present for multi-tenant backends
-  const headers = req.headers
-    .set('X-Tenant-Id', String(tenantId));
 
   return next(
     req.clone({

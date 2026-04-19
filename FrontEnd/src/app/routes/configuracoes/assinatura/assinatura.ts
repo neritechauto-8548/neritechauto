@@ -22,7 +22,7 @@ interface Plano {
   selector: 'app-assinatura',
   standalone: true,
   templateUrl: './assinatura.html',
-  imports: [CommonModule, PageHeader, MatIconModule, ToastModule],
+  imports: [CommonModule, MatIconModule, ToastModule],
   providers: [MessageService]
 })
 export class AssinaturaComponent implements OnInit {
@@ -121,7 +121,7 @@ export class AssinaturaComponent implements OnInit {
       .subscribe({
         next: (res) => {
           if (res.url) {
-            window.location.href = res.url;
+            window.open(res.url, '_blank');
           }
         },
         error: () => this.toast.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível abrir o portal de faturamento.' })

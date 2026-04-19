@@ -26,7 +26,6 @@ import { Page } from '../categoria/categoria-produto.service';
     ToastModule,
     InputTextModule,
     MatIconModule,
-    PageHeader,
     ConfirmationDialogComponent
   ],
   providers: [DialogService, MessageService, ConfirmationService, { provide: PrimeConfirmationService, useClass: PrimeConfirmationService }],

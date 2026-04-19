@@ -76,20 +76,25 @@
           </div>
           <div class="space-y-1" *ngIf="assinatura.trial">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Início Trial</span>
-            <p class="text-sm font-bold text-blue-700">{{ assinatura.inicioTrial || '—' }}</p>
+            <p class="text-sm font-bold text-slate-700">{{ assinatura.inicioTrial || '—' }}</p>
           </div>
           <div class="space-y-1" *ngIf="assinatura.trial">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fim Trial</span>
-            <p class="text-sm font-bold text-blue-700">{{ assinatura.fimTrial || '—' }}</p>
+            <p class="text-sm font-bold text-slate-700">{{ assinatura.fimTrial || '—' }}</p>
           </div>
         </div>
 
         <!-- Trial Banner -->
-        <div *ngIf="assinatura.trial" class="mx-6 mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-          <mat-icon class="text-blue-600 !text-[18px]">info</mat-icon>
-          <span class="text-xs text-blue-700 font-semibold">
-            Você está no período de teste gratuito. Seu plano será cobrado automaticamente em {{ assinatura.fimTrial }}.
-          </span>
+        <div *ngIf="assinatura.trial" class="mx-6 mb-4 px-4 py-3 bg-[#635bff]/5 border border-[#635bff]/10 rounded-lg flex items-center gap-3">
+          <mat-icon class="text-[#635bff] !text-[20px]">info</mat-icon>
+          <div class="flex flex-col">
+            <span class="text-xs text-slate-900 font-bold">
+              Período de teste gratuito ativo
+            </span>
+            <span class="text-[11px] text-slate-600 mt-0.5">
+              Seu plano será cobrado automaticamente em {{ assinatura.fimTrial }}. Você pode cancelar a qualquer momento sem custos.
+            </span>
+          </div>
         </div>
       </div>
 

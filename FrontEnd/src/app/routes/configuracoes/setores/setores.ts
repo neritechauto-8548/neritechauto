@@ -30,7 +30,6 @@ import { PageHeader, ConfirmationDialogComponent } from '@shared/components';
     MatIconModule,
     InputTextModule,
     ToastModule,
-    PageHeader,
     ConfirmationDialogComponent
   ],
   providers: [DialogService, MessageService, PrimeNGConfirmationService],

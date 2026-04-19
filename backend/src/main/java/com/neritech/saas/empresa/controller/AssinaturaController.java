@@ -34,6 +34,15 @@ public class AssinaturaController {
     @Operation(summary = "Status da assinatura", description = "Retorna o status da assinatura da empresa")
     public ResponseEntity<AssinaturaDTO> getStatus(@PathVariable Long empresaId) {
         try {
+            if (!stripeService.isConfigured()) {
+                return ResponseEntity.ok(AssinaturaDTO.builder()
+                        .plano("Ambiente Local (Sem Stripe Key)")
+                        .status("inactive")
+                        .precoFormatado("R$ 0,00")
+                        .proximaCobranca("N/A")
+                        .build());
+            }
+
             Empresa empresa = empresaService.findById(empresaId);
             String customerId = empresa.getStripeCustomerId();
 
@@ -109,6 +118,12 @@ public class AssinaturaController {
             @PathVariable Long empresaId,
             @RequestBody(required = false) Map<String, String> body) {
         try {
+            if (!stripeService.isConfigured()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "A API do Stripe não está configurada neste ambiente local."
+                ));
+            }
+
             Empresa empresa = empresaService.findById(empresaId);
             String customerId = empresa.getStripeCustomerId();
 

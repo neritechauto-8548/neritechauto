@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface AssinaturaStatus {
   plano: string;
@@ -22,12 +23,13 @@ export interface PortalResponse {
 @Injectable({ providedIn: 'root' })
 export class AssinaturaService {
   private http = inject(HttpClient);
+  private readonly apiUrl = `${environment.baseUrl}/v1/assinatura`;
 
   getStatus(empresaId: number): Observable<AssinaturaStatus> {
-    return this.http.get<AssinaturaStatus>(`/api/v1/assinatura/status/${empresaId}`);
+    return this.http.get<AssinaturaStatus>(`${this.apiUrl}/status/${empresaId}`);
   }
 
   getPortalUrl(empresaId: number, returnUrl: string): Observable<PortalResponse> {
-    return this.http.post<PortalResponse>(`/api/v1/assinatura/portal/${empresaId}`, { returnUrl });
+    return this.http.post<PortalResponse>(`${this.apiUrl}/portal/${empresaId}`, { returnUrl });
   }
 }

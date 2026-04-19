@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { PageHeader } from '@shared';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
@@ -25,7 +24,6 @@ import { ItemInventarioDialog } from '../item-inventario-dialog';
     CommonModule,
     FormsModule,
     RouterModule,
-    PageHeader,
     ButtonModule,
     InputTextModule,
     ToastModule,

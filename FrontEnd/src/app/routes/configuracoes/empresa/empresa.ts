@@ -1,7 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PageHeader } from '@shared';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -20,7 +19,7 @@ interface NavTab { id: string; label: string; icon: string; }
   selector: 'empresa-config',
   standalone: true,
   templateUrl: './empresa.html',
-  imports: [CommonModule, FormsModule, PageHeader, MatIconModule, ToastModule],
+  imports: [CommonModule, FormsModule, MatIconModule, ToastModule],
   providers: [MessageService]
 })
 export class EmpresaConfig implements OnInit {
