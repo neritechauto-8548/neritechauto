@@ -5,11 +5,11 @@ import { Component, Input } from '@angular/core';
   template: `
     <a class="branding" href="/">
       <div class="logo-box">
-        <span class="logo-mark">N</span>
+        <div class="diamond"></div>
       </div>
       @if (showName) {
         <span class="logo-text">
-          NeriTech<span class="logo-accent">Auto</span>
+          NeriTech<span class="logo-accent">auto</span>
         </span>
       }
     </a>
@@ -31,19 +31,20 @@ import { Component, Input } from '@angular/core';
     .logo-box {
       width: 32px;
       height: 32px;
-      background: #6366f1;
+      background: #2563eb;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
     }
 
-    .logo-mark {
-      font-family: 'Inter', sans-serif;
-      font-weight: 800;
-      font-size: 1.1rem;
-      color: white;
+    .diamond {
+      width: 14px;
+      height: 14px;
+      background: #eff6ff;
+      border-radius: 3px;
+      transform: rotate(45deg);
     }
 
     .logo-text {
@@ -59,7 +60,7 @@ import { Component, Input } from '@angular/core';
     }
 
     .logo-accent {
-      color: #6366f1;
+      color: #2563eb;
     }
   `,
 })

@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 
 /**
@@ -24,7 +25,10 @@ import java.time.LocalDate;
  * @see TenantEntity
  */
 @Entity
-@Table(name = "cliente")
+@Table(name = "cliente", uniqueConstraints = {
+    @UniqueConstraint(name = "uc_cliente_cpf_empresa", columnNames = {"cpf", "empresa_id"}),
+    @UniqueConstraint(name = "uc_cliente_cnpj_empresa", columnNames = {"cnpj", "empresa_id"})
+})
 public class Cliente extends TenantEntity {
 
     @Enumerated(EnumType.STRING)
@@ -43,10 +47,10 @@ public class Cliente extends TenantEntity {
     @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "cpf", length = 14, unique = true)
+    @Column(name = "cpf", length = 14)
     private String cpf;
 
-    @Column(name = "cnpj", length = 18, unique = true)
+    @Column(name = "cnpj", length = 18)
     private String cnpj;
 
     @Column(name = "inscricao_estadual", length = 20)
