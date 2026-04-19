@@ -1,7 +1,7 @@
 <template>
   <section class="logos-section">
-    <div class="container">
-      <p class="logos-headline">Mais de <strong>500 oficinas</strong> confiam na NeriTech para gerenciar suas operações</p>
+    <div class="container marquee-title-wrap">
+      <p class="logos-headline">Confiança de quem busca <strong>excelência técnica</strong> e performance</p>
     </div>
 
     <div class="marquee-wrapper">
@@ -13,14 +13,7 @@
       </div>
     </div>
 
-    <div class="container">
-      <div class="trust-metrics">
-        <div class="tm-item" v-for="tm in trustMetrics" :key="tm.label">
-          <span class="tm-value">{{ tm.value }}</span>
-          <span class="tm-label">{{ tm.label }}</span>
-        </div>
-      </div>
-    </div>
+
   </section>
 </template>
 
@@ -38,12 +31,7 @@ const logos = [
   { icon: '🏗️', name: 'Rede MasterFix' },
 ]
 
-const trustMetrics = [
-  { value: '142.350+', label: 'Ordens de serviço criadas' },
-  { value: 'R$ 28M+', label: 'Faturados pela plataforma' },
-  { value: '99.9%', label: 'Uptime garantido' },
-  { value: '< 2min', label: 'Tempo médio de resposta' },
-]
+
 </script>
 
 <style scoped>

@@ -28,7 +28,7 @@
           <span class="text-gradient-vibrant">sua oficina?</span>
         </h2>
         <p class="cta-desc">
-          Junte-se a mais de 500 oficinas que modernizaram sua gestão com a NeriTech.
+          Junte-se a mais de 500 oficinas que modernizaram sua gestão com a neritechauto.
           7 dias grátis, sem cartão de crédito.
         </p>
         <div class="cta-actions">

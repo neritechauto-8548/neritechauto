@@ -42,38 +42,7 @@
           </a>
         </div>
 
-        <!-- Social Proof -->
-        <div class="hero-social-proof" style="animation-delay: 0.32s">
-          <div class="trust-avatars">
-            <div class="avatar-stack">
-              <img src="https://i.pravatar.cc/80?u=101" alt="Cliente NeriTech" loading="lazy" />
-              <img src="https://i.pravatar.cc/80?u=202" alt="Cliente NeriTech" loading="lazy" />
-              <img src="https://i.pravatar.cc/80?u=303" alt="Cliente NeriTech" loading="lazy" />
-              <img src="https://i.pravatar.cc/80?u=404" alt="Cliente NeriTech" loading="lazy" />
-              <img src="https://i.pravatar.cc/80?u=505" alt="Cliente NeriTech" loading="lazy" />
-            </div>
-            <div class="trust-copy">
-              <div class="trust-stars">★★★★★</div>
-              <span><strong>+500 oficinas</strong> já transformaram seus resultados</span>
-            </div>
-          </div>
-          <div class="hero-counters">
-            <div class="hero-counter">
-              <span class="hc-value">142.350+</span>
-              <span class="hc-label">OS criadas</span>
-            </div>
-            <div class="hero-counter-divider"></div>
-            <div class="hero-counter">
-              <span class="hc-value">R$ 28M+</span>
-              <span class="hc-label">Faturados</span>
-            </div>
-            <div class="hero-counter-divider"></div>
-            <div class="hero-counter">
-              <span class="hc-value">99.9%</span>
-              <span class="hc-label">Uptime</span>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <!-- Visual Column -->
@@ -87,11 +56,11 @@
                 <span class="dot dot-yellow"></span>
                 <span class="dot dot-green"></span>
               </div>
-              <div class="browser-url">app.neritech.com.br/dashboard</div>
+              <div class="browser-url">app.neritechauto.com.br/dashboard</div>
             </div>
             <img
               src="../assets/gen/dashboard_mockup.png"
-              alt="NeriTech Dashboard — Sistema de Gestão para Oficinas"
+              alt="neritechauto Dashboard — Sistema de Gestão para Oficinas"
               class="mockup-img"
               loading="eager"
             />

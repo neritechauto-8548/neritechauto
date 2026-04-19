@@ -2,9 +2,9 @@
   <section class="advantages">
     <div class="container">
       <div class="adv-header aos-init">
-        <span class="section-label">Por que a NeriTech?</span>
+        <span class="section-label">Por que a neritechauto?</span>
         <h2 class="adv-title">Mais do que um sistema — <span class="text-gradient-vibrant">um parceiro de negócio.</span></h2>
-        <p class="adv-subtitle">Diferente dos softwares genéricos, a NeriTech foi construída do zero para o setor automotivo brasileiro.</p>
+        <p class="adv-subtitle">Diferente dos softwares genéricos, a neritechauto foi construída do zero para o setor automotivo brasileiro.</p>
       </div>
 
       <div class="adv-grid">

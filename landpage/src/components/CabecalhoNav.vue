@@ -4,7 +4,7 @@
       <!-- Logo -->
       <router-link to="/" class="logo" @click="menuMobileAberto = false">
         <span class="logo-mark">N</span>
-        <span class="logo-wordmark">neri<span class="logo-accent">tech</span></span>
+        <span class="logo-wordmark">neri<span class="logo-accent">techauto</span></span>
       </router-link>
 
       <!-- Desktop Nav -->
@@ -69,7 +69,7 @@
 
       <!-- Actions -->
       <div class="nav-actions">
-        <a href="/login" class="link-login">Entrar</a>
+        <a :href="urlSistemaCliente" class="link-login">Entrar</a>
         <router-link to="/teste-gratis" class="btn btn-primary btn-sm" id="nav-cta-btn">
           Teste Grátis
         </router-link>
@@ -101,7 +101,7 @@
           <a href="/#contato" class="mobile-link" @click="menuMobileAberto = false">Suporte</a>
         </div>
         <div class="mobile-actions">
-          <a href="/login" class="btn btn-outline-dark btn-lg mobile-btn">Entrar</a>
+          <a :href="urlSistemaCliente" class="btn btn-outline-dark btn-lg mobile-btn">Entrar</a>
           <router-link to="/teste-gratis" class="btn btn-primary btn-lg mobile-btn" @click="menuMobileAberto = false">
             Começar Grátis →
           </router-link>
@@ -114,6 +114,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 
+const urlSistemaCliente = import.meta.env.VITE_URL_SISTEMA_CLIENTE || '/login';
 const estaRolar = ref(false);
 const menuMobileAberto = ref(false);
 

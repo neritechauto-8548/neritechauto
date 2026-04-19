@@ -4,7 +4,7 @@
       <div class="test-header aos-init">
         <span class="section-label">Depoimentos</span>
         <h2 class="test-title">O que dizem os líderes <span class="text-gradient">do setor.</span></h2>
-        <p class="test-subtitle">A NeriTech sustenta a operação das oficinas que mais crescem no Brasil.</p>
+        <p class="test-subtitle">A neritechauto sustenta a operação das oficinas que mais crescem no Brasil.</p>
       </div>
 
       <!-- Stars row -->
@@ -37,7 +37,7 @@
 
       <!-- Logos Marquee -->
       <div class="logos-row aos-init">
-        <p class="logos-label">Empresas que confiam na NeriTech</p>
+        <p class="logos-label">Empresas que confiam na neritechauto</p>
         <div class="marquee-wrapper logos-marquee">
           <div class="marquee-track">
             <div class="logo-pill" v-for="l in [...logos, ...logos]" :key="l + Math.random()">{{ l }}</div>
@@ -72,7 +72,7 @@ const testimonials = [
     company: 'Elite Motors',
     initials: 'AS',
     avatarBg: 'linear-gradient(135deg, #ec4899, #f43f5e)',
-    text: 'O controle financeiro do NeriTech é o mais preciso que já usei. Tenho visão real do meu lucro, ticket médio e margem — tudo em tempo real.',
+    text: 'O controle financeiro do neritechauto é o mais preciso que já usei. Tenho visão real do meu lucro, ticket médio e margem — tudo em tempo real.',
   },
   {
     name: 'Marcos Teixeira',
@@ -88,7 +88,7 @@ const testimonials = [
     company: 'FC Auto Service',
     initials: 'FC',
     avatarBg: 'linear-gradient(135deg, #d97706, #f59e0b)',
-    text: 'Em 3 meses usando o NeriTech, aumentei minha receita em 28%. O controle de estoque evitou que eu perdesse serviços por falta de peça.',
+    text: 'Em 3 meses usando o neritechauto, aumentei minha receita em 28%. O controle de estoque evitou que eu perdesse serviços por falta de peça.',
   },
   {
     name: 'Paulo Rodrigues',
@@ -96,7 +96,7 @@ const testimonials = [
     company: 'Garage PR',
     initials: 'PR',
     avatarBg: 'linear-gradient(135deg, #7c3aed, #8b5cf6)',
-    text: 'O suporte da NeriTech é impecável. Qualquer dúvida, resposta em minutos via WhatsApp. Sinto que tenho um parceiro de negócio, não só um software.',
+    text: 'O suporte da neritechauto é impecável. Qualquer dúvida, resposta em minutos via WhatsApp. Sinto que tenho um parceiro de negócio, não só um software.',
   },
 ]
 

@@ -75,12 +75,6 @@ const features = [
     title: 'Relatórios Gerenciais',
     desc: 'DRE, CMV, produtividade por técnico e ranking de serviços — tomada de decisão baseada em dados reais.',
   },
-  {
-    icon: '🔄',
-    iconBg: 'rgba(0,216,255,0.1)',
-    title: 'Multi-empresa',
-    desc: 'Gerencie várias unidades ou franquias em uma única conta com visão consolidada e separada por CNPJ.',
-  },
 ]
 </script>
 

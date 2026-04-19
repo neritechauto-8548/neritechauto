@@ -7,7 +7,7 @@
           <span class="section-label">Ecossistema</span>
           <h2 class="int-title">Conectado com o que <span class="text-gradient">seu negócio precisa.</span></h2>
           <p class="int-desc">
-            A NeriTech não é uma ilha. Integramos nativamente com as ferramentas que você já usa, automatizando o fluxo do banco até o WhatsApp do seu cliente.
+            A neritechauto não é uma ilha. Integramos nativamente com as ferramentas que você já usa, automatizando o fluxo do banco até o WhatsApp do seu cliente.
           </p>
 
           <div class="int-list">
@@ -29,7 +29,7 @@
             <!-- Center node -->
             <div class="hub-center">
               <span class="hub-logo">N</span>
-              <small>NeriTech</small>
+              <small>neritechauto</small>
             </div>
 
             <!-- Orbit nodes -->

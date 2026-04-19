@@ -95,10 +95,10 @@
 
 <script setup>
 const metrics = [
-  { value: '+32%',   label: 'Aumento de Receita',   sub: 'média entre clientes ativos' },
-  { value: '2h/dia', label: 'Tempo Economizado',     sub: 'em tarefas administrativas' },
-  { value: '84%',    label: 'Taxa de Conversão',     sub: 'de orçamentos aprovados' },
-  { value: '+500',   label: 'Oficinas Atendidas',    sub: 'e crescendo todo mês' },
+  { value: '100%',   label: 'Nuvem AWS',            sub: 'Infraestrutura global segura' },
+  { value: '2h/dia', label: 'Tempo Economizado',     sub: 'Em tarefas administrativas' },
+  { value: '84%',    label: 'Taxa de Conversão',     sub: 'De orçamentos aprovados' },
+  { value: '24/7',   label: 'Disponibilidade',       sub: 'Acesse de qualquer dispositivo' },
 ]
 
 const widgets = [

@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import PaginaHome from '../views/PaginaHome.vue';
 import PaginaTeste from '../views/PaginaTeste.vue';
+import PoliticaPrivacidade from '../views/legal/PoliticaPrivacidade.vue';
+import TermosUso from '../views/legal/TermosUso.vue';
+import PoliticaCookies from '../views/legal/PoliticaCookies.vue';
+import DPA from '../views/legal/DPA.vue';
 
 const routes = [
   {
@@ -12,6 +16,26 @@ const routes = [
     path: '/teste-gratis',
     name: 'trial',
     component: PaginaTeste
+  },
+  {
+    path: '/politica-de-privacidade',
+    name: 'privacidade',
+    component: PoliticaPrivacidade
+  },
+  {
+    path: '/termos-de-uso',
+    name: 'termos',
+    component: TermosUso
+  },
+  {
+    path: '/politica-de-cookies',
+    name: 'cookies',
+    component: PoliticaCookies
+  },
+  {
+    path: '/dpa',
+    name: 'dpa',
+    component: DPA
   }
 ];
 

@@ -4,7 +4,7 @@
       <div class="seg-header aos-init">
         <span class="section-label">Para quem é</span>
         <h2 class="seg-title">Independente do seu <span class="text-gradient">segmento automotivo.</span></h2>
-        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a NeriTech se adapta ao seu fluxo e escala com o crescimento da sua empresa.</p>
+        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a neritechauto se adapta ao seu fluxo e escala com o crescimento da sua empresa.</p>
       </div>
 
       <!-- Tabs -->
@@ -44,7 +44,7 @@
                   <span class="sm-dot sm-red"></span>
                   <span class="sm-dot sm-yellow"></span>
                   <span class="sm-dot sm-green"></span>
-                  <span class="sm-url">app.neritech.com.br/{{ segments[activeTab].route }}</span>
+                  <span class="sm-url">app.neritechauto.com.br/{{ segments[activeTab].route }}</span>
                 </div>
                 <div class="seg-mockup-body">
                   <div class="smb-sidebar">
@@ -105,7 +105,7 @@ const segments = [
     route: 'centro-automotivo',
     description: 'Para operações maiores que precisam de controle rigoroso de estoque, múltiplas baias e gestão financeira avançada. Visão 360° do seu negócio.',
     benefits: [
-      'Multilojas com visão consolidada',
+      'Backup automático e seguro na nuvem',
       'Gestão avançada de estoque com curva ABC',
       'DRE e fluxo de caixa em tempo real',
       'Emissão de NF-e e NFS-e integrada',
@@ -113,7 +113,7 @@ const segments = [
     screenTitle: 'Dashboard — Centro Automotivo',
     menuItems: ['Dashboard', 'Veículos', 'Estoque', 'NF-e', 'Relatórios'],
     stats: [
-      { value: '5', label: 'Unidades' },
+      { value: '5', label: 'Usuários Ilimitados' },
       { value: 'R$ 142k', label: 'Receita/mês' },
       { value: '12', label: 'Técnicos' },
     ]
@@ -156,26 +156,6 @@ const segments = [
       { value: '4.200', label: 'SKUs' },
       { value: 'R$ 89k', label: 'Vendas/mês' },
       { value: '18%', label: 'Margem' },
-    ]
-  },
-  {
-    id: 'lavajato',
-    icon: '💧',
-    title: 'Lava-Jato',
-    route: 'lavajato',
-    description: 'Gestão ágil para alto volume de atendimentos. Controle de filas, produtos de limpeza e fidelização de clientes recorrentes.',
-    benefits: [
-      'Gestão de filas e agendamento online',
-      'Pacotes e planos de fidelidade',
-      'Controle de produtos de limpeza',
-      'Relatórios de frequência por cliente',
-    ],
-    screenTitle: 'Dashboard — Lava-Jato Premium',
-    menuItems: ['Dashboard', 'Fila', 'Pacotes', 'Produtos', 'Clientes'],
-    stats: [
-      { value: '48', label: 'Hoje' },
-      { value: 'R$ 2.4k', label: 'Faturamento' },
-      { value: '85%', label: 'Retorno' },
     ]
   },
 ];

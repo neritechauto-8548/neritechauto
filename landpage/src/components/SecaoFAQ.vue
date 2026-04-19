@@ -15,10 +15,10 @@
         <!-- Right: Accordion -->
         <div class="faq-accordion">
           <div
-            class="faq-item aos-init"
-            :class="[`aos-delay-${(i % 5) + 1}`, { open: openIndex === i }]"
+            class="faq-item"
+            :class="{ open: openIndex === i }"
             v-for="(item, i) in faqs"
-            :key="item.q"
+            :key="i"
           >
             <button class="faq-question" @click="toggle(i)" :aria-expanded="openIndex === i">
               <span>{{ item.q }}</span>
@@ -28,7 +28,15 @@
                 </svg>
               </span>
             </button>
-            <div class="faq-answer" :style="{ maxHeight: openIndex === i ? '400px' : '0', padding: openIndex === i ? '0 1.5rem 1.5rem' : '0 1.5rem' }">
+            <div 
+              class="faq-answer" 
+              :style="{ 
+                maxHeight: openIndex === i ? '1000px' : '0', 
+                opacity: openIndex === i ? '1' : '0',
+                paddingTop: openIndex === i ? '1rem' : '0',
+                paddingBottom: openIndex === i ? '1.5rem' : '0'
+              }"
+            >
               <p>{{ item.a }}</p>
             </div>
           </div>
@@ -54,7 +62,7 @@ const faqs = [
   },
   {
     q: 'Preciso instalar algo no meu computador?',
-    a: 'Não! A NeriTech é 100% na nuvem. Você acessa de qualquer navegador, em qualquer dispositivo — computador, tablet ou celular. Sem instalações, sem atualizações manuais.',
+    a: 'Não! A neritechauto é 100% na nuvem. Você acessa de qualquer navegador, em qualquer dispositivo — computador, tablet ou celular. Sem instalações, sem atualizações manuais.',
   },
   {
     q: 'E se eu já uso outro sistema? Vocês migram meus dados?',
@@ -62,23 +70,19 @@ const faqs = [
   },
   {
     q: 'Posso emitir nota fiscal pelo sistema?',
-    a: 'Sim! Emitimos NF-e (produtos) e NFS-e (serviços) integrado diretamente à SEFAZ. Tudo com poucos cliques, sem precisar acessar outro sistema. Disponível nos planos Neri Pro e Neri Elite.',
-  },
-  {
-    q: 'O sistema funciona para mais de uma loja?',
-    a: 'Sim. O plano Neri Elite oferece o módulo Multilojas, que permite gerenciar várias unidades ou franquias em uma única conta, com visão consolidada ou separada por CNPJ.',
+    a: 'Sim! Emitimos NF-e (produtos) e NFS-e (serviços) integrado diretamente à SEFAZ. Tudo com poucos cliques, sem precisar acessar outro sistema. Disponível nos planos neri pro e neri elite.',
   },
   {
     q: 'Como funciona o suporte?',
-    a: 'Nosso suporte é humano e real — respondemos via WhatsApp em tempo médio de menos de 2 minutos durante o horário comercial. Nos planos Pro e Elite, o suporte é prioritário com canal dedicado.',
+    a: 'Nosso suporte é humano e real — respondemos via WhatsApp em tempo médio de menos de 2 minutos durante o horário comercial. Nos planos neri pro e neri elite, o suporte é prioritário com canal dedicado.',
   },
   {
-    q: 'Qual o compromisso de contrato?',
-    a: 'Nenhum! A NeriTech não exige fidelidade. Você pode cancelar a qualquer momento, sem multa e sem burocracia. Oferecemos ainda garantia de satisfação de 30 dias com reembolso total.',
+    q: 'O neritechauto serve para qualquer tipo de oficina?',
+    a: 'Sim! O neritechauto foi desenhado para ser flexível e atender diferentes perfis de centros automotivos, desde oficinas mecânicas gerais até funilaria e pintura.',
   },
   {
-    q: 'Meus dados estão seguros?',
-    a: 'Absolutamente. Usamos criptografia SSL de ponta a ponta, servidores na AWS com backups diários automáticos, e estamos em total conformidade com a LGPD. Seus dados são seus — sempre.',
+    q: 'Meus dados estão seguros no neritechauto?',
+    a: 'Totalmente. Utilizamos a infraestrutura da AWS (Amazon Web Services), a mesma utilizada pelos maiores bancos do mundo. Seus dados contam com backup diário automático e criptografia de ponta a ponta, em total conformidade com a LGPD. Seus dados são seus — sempre.',
   },
 ];
 </script>
@@ -174,7 +178,9 @@ const faqs = [
 
 .faq-answer {
   overflow: hidden;
+  padding: 0 1.5rem;
   transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s ease,
               padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

@@ -15,8 +15,8 @@
         <!-- Main Form Card -->
         <div class="stripe-card registration-card">
           <div class="card-glow"></div>
-          <h2 class="form-title">Comece sua jornada <span class="text-gradient">inteligente.</span></h2>
-          <p class="form-intro">Preencha os dados abaixo para receber sua chave de acesso VIP por e-mail.</p>
+          <h2 class="form-title">Comece 7 dias grátis na <span class="text-gradient">neritechauto.</span></h2>
+          <p class="form-subtitle">Configuramos sua oficina em segundos. Sem cartão, sem compromisso.</p>
           
           <form @submit.prevent="lidarRegistro" class="stripe-form">
             <div class="form-row">
@@ -148,7 +148,7 @@ const lidarRegistro = async () => {
   loading.value = true;
   
   try {
-    const response = await fetch('http://localhost:8080/api/public/trial/register', {
+    const response = await fetch(`${import.meta.env.VITE_URL_API_BACKEND}/api/public/trial/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

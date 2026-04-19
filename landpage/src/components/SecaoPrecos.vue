@@ -6,29 +6,14 @@
         <h2 class="pricing-title">Preço justo para <span class="text-gradient">escalar seu negócio.</span></h2>
         <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece grátis por 7 dias.</p>
 
-        <!-- Toggle -->
-        <div class="billing-toggle" role="group" aria-label="Frequência de cobrança">
-          <button
-            class="toggle-opt"
-            :class="{ active: billing === 'mensal' }"
-            @click="billing = 'mensal'"
-          >Mensal</button>
-          <button
-            class="toggle-opt"
-            :class="{ active: billing === 'anual' }"
-            @click="billing = 'anual'"
-          >
-            Anual
-            <span class="save-badge">-20%</span>
-          </button>
-        </div>
+
       </div>
 
       <div class="pricing-grid">
         <div
           v-for="plan in plans"
           :key="plan.id"
-          class="pricing-card aos-init"
+          class="pricing-card"
           :class="{ featured: plan.featured }"
         >
           <!-- Popular badge -->
@@ -44,10 +29,9 @@
           <div class="plan-price-block">
             <div class="plan-price">
               <span class="currency">R$</span>
-              <span class="amount">{{ billing === 'mensal' ? plan.price : plan.priceAnual }}</span>
+              <span class="amount">{{ plan.price }}</span>
               <span class="period">/mês</span>
             </div>
-            <p v-if="billing === 'anual'" class="annual-note">Cobrado anualmente · Economia de R$ {{ plan.economy }}/ano</p>
           </div>
 
           <button
@@ -88,15 +72,13 @@
 <script setup>
 import { ref } from 'vue';
 
-const billing = ref('mensal');
+
 
 const plans = ref([
   {
-    id: 'price_starter',
-    name: 'Neri Start',
-    price: '97',
-    priceAnual: '78',
-    economy: '228',
+    id: 'price_start',
+    name: 'neri start',
+    price: '90',
     description: 'Essencial para organizar o fluxo de entrada e saída.',
     featured: false,
     features: [
@@ -110,14 +92,12 @@ const plans = ref([
   },
   {
     id: 'price_pro',
-    name: 'Neri Pro',
-    price: '197',
-    priceAnual: '158',
-    economy: '468',
+    name: 'neri pro',
+    price: '140',
     description: 'A gestão completa para oficinas que buscam performance.',
     featured: true,
     features: [
-      'Tudo do Neri Start',
+      'Tudo do neritechauto Start',
       'Conciliação Bancária Automática',
       'Emissão de NF-e e NFS-e',
       'Controle de Estoque Inteligente',
@@ -128,18 +108,14 @@ const plans = ref([
   },
   {
     id: 'price_elite',
-    name: 'Neri Elite',
-    price: '347',
-    priceAnual: '278',
-    economy: '828',
+    name: 'neri elite',
+    price: '230',
     description: 'O nível máximo de controle e inteligência de dados.',
     featured: false,
     features: [
-      'Tudo do Neri Pro',
-      'Módulo Multilojas / Franquias',
+      'Tudo do neritechauto Pro',
       'Dashboards BI Customizados',
       'API para Integrações Externas',
-      'Gerenciamento de Rede',
       'Consultoria Mensal de Processos',
     ],
   },
@@ -147,17 +123,17 @@ const plans = ref([
 
 const initiateCheckout = async (planId) => {
   try {
-    const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    const publishableKey = import.meta.env.VITE_STRIPE_CHAVE_PUBLICA;
     const priceMap = {
-      'price_starter': import.meta.env.VITE_STRIPE_PRICE_STARTER,
-      'price_pro':     import.meta.env.VITE_STRIPE_PRICE_PRO,
-      'price_elite':   import.meta.env.VITE_STRIPE_PRICE_ELITE,
+      'price_start': import.meta.env.VITE_STRIPE_PRECO_START,
+      'price_pro':   import.meta.env.VITE_STRIPE_PRECO_PRO,
+      'price_elite': import.meta.env.VITE_STRIPE_PRECO_ELITE,
     };
 
     const targetPriceId = priceMap[planId];
 
     if (!publishableKey || publishableKey.includes('sua_chave_aqui')) {
-      alert('Configuração necessária: adicione sua VITE_STRIPE_PUBLISHABLE_KEY no arquivo .env');
+      alert('Configuração necessária: adicione sua VITE_STRIPE_CHAVE_PUBLICA no arquivo .env');
       return;
     }
 
@@ -218,47 +194,7 @@ const initiateCheckout = async (planId) => {
   margin-bottom: 2rem;
 }
 
-/* ── Toggle ── */
-.billing-toggle {
-  display: inline-flex;
-  background: var(--light-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  padding: 4px;
-  gap: 4px;
-}
 
-.toggle-opt {
-  padding: 8px 20px;
-  border-radius: var(--radius-full);
-  border: none;
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.toggle-opt.active {
-  background: white;
-  color: var(--midnight-navy);
-  box-shadow: var(--shadow-sm);
-}
-
-.save-badge {
-  display: inline-block;
-  padding: 1px 7px;
-  background: rgba(0,200,83,0.12);
-  color: #059669;
-  border-radius: 99px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-}
 
 /* ── Grid ── */
 .pricing-grid {

@@ -24,11 +24,11 @@
               <span class="channel-arrow">→</span>
             </a>
 
-            <a href="mailto:contato@neritech.com.br" class="channel-card channel-email">
+            <a href="mailto:contato@neritechauto.com.br" class="channel-card channel-email">
               <div class="channel-icon">📧</div>
               <div class="channel-text">
                 <strong>E-mail</strong>
-                <span>contato@neritech.com.br</span>
+                <span>contato@neritechauto.com.br</span>
               </div>
               <span class="channel-arrow">→</span>
             </a>

@@ -4,13 +4,13 @@
       <!-- Tooltip -->
       <Transition name="tooltip-fade">
         <div v-if="showTooltip" class="wpp-tooltip" @click="showTooltip = false">
-          <span>Precisa de ajuda? Fale com a gente!</span>
+          <span class="wa-tooltip">Falar com a neritechauto</span>
           <button class="wpp-tooltip-close" aria-label="Fechar tooltip">✕</button>
         </div>
       </Transition>
 
       <a
-        href="https://wa.me/5511987654321?text=Ol%C3%A1!%20Vim%20do%20site%20e%20quero%20saber%20mais%20sobre%20a%20NeriTech!"
+        href="https://wa.me/5511987654321?text=Ol%C3%A1!%20Vim%20do%20site%20e%20quero%20saber%20mais%20sobre%20a%20neritechauto!"
         target="_blank"
         rel="noopener"
         class="wpp-btn"
