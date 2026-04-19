@@ -43,3 +43,12 @@ spring:
 stripe:
   api:
     key: '' # TODO: Your Stripe Secret Key (sk_test_...)
+  default:
+    price:
+      id: '' # TODO: Default Price ID for trial subscriptions
+  products:
+    start: 'prod_UMeQq4ASz2Tm5h'
+    pro: 'prod_UMeRIYKOYS5enM'
+    elite: 'prod_UMeS5gEJzxET8x'
+  webhook:
+    secret: '' # TODO: Your Stripe Webhook Signing Secret (whsec_...)

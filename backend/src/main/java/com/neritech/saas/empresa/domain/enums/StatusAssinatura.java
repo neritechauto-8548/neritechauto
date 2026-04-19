@@ -5,5 +5,7 @@ public enum StatusAssinatura {
     VENCIDO,
     CANCELADO,
     SUSPENSO,
-    TESTE
+    TESTE,
+    INADIMPLENTE,
+    INATIVO
 }

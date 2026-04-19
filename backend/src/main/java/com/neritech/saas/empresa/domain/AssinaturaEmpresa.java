@@ -61,6 +61,12 @@ public class AssinaturaEmpresa extends BaseEntity {
     @Column(name = "motivo_cancelamento", columnDefinition = "TEXT")
     private String motivoCancelamento;
 
+    @Column(name = "stripe_subscription_id", length = 255)
+    private String stripeSubscriptionId;
+
+    @Column(name = "stripe_product_id", length = 255)
+    private String stripeProductId;
+
     public AssinaturaEmpresa() {
     }
 
@@ -167,5 +173,21 @@ public class AssinaturaEmpresa extends BaseEntity {
 
     public void setMotivoCancelamento(String motivoCancelamento) {
         this.motivoCancelamento = motivoCancelamento;
+    }
+
+    public String getStripeSubscriptionId() {
+        return stripeSubscriptionId;
+    }
+
+    public void setStripeSubscriptionId(String stripeSubscriptionId) {
+        this.stripeSubscriptionId = stripeSubscriptionId;
+    }
+
+    public String getStripeProductId() {
+        return stripeProductId;
+    }
+
+    public void setStripeProductId(String stripeProductId) {
+        this.stripeProductId = stripeProductId;
     }
 }

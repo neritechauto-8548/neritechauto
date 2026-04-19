@@ -35,12 +35,14 @@ public class TrialService {
             throw new IllegalArgumentException("O e-mail informado já está em uso.");
         }
 
+        String customerId = null;
         try {
             // 1. Criar cliente na Stripe
             Customer stripeCustomer = stripeService.createCustomer(request.getEmail(), request.getNomeCompleto(), request.getTelefone());
             if (stripeCustomer != null) {
+                customerId = stripeCustomer.getId();
                 // Inicia assinatura com 7 dias de trial se tiver configurado preço padrão
-                stripeService.createTrialSubscription(stripeCustomer.getId());
+                stripeService.createTrialSubscription(customerId);
             }
         } catch (Exception e) {
             log.error("Erro ao integrar com a Stripe", e);
@@ -55,6 +57,7 @@ public class TrialService {
         empresa.setTelefone(request.getTelefone());
         empresa.setDataAbertura(LocalDate.now());
         empresa.setSegmento(request.getSegmento());
+        empresa.setStripeCustomerId(customerId);
         
         empresa.setCnpj(request.getCnpjOuCpf());        
         Empresa savedEmpresa = empresaService.create(empresa);

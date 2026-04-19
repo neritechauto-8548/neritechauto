@@ -22,6 +22,11 @@ export const routes: Routes = [
     data: { title: 'Empresa' }
   },
   {
+    path: 'assinatura',
+    loadComponent: () => import('./assinatura/assinatura').then(m => m.AssinaturaComponent),
+    data: { title: 'Assinatura' }
+  },
+  {
     path: 'checklist',
     loadComponent: () => import('./checklist/checklist').then(m => m.Checklist),
     data: { title: 'Checklist' }

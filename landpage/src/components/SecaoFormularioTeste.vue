@@ -64,7 +64,7 @@
                     <option value="oficina">Oficina Mecânica</option>
                     <option value="autocenter">Auto Center</option>
                     <option value="funilaria">Funilaria e Pintura</option>
-                    <option value="moto">Oficina de Motos</option>
+                    <option value="autopecas">Auto Peças</option>
                   </select>
                 </div>
               </div>

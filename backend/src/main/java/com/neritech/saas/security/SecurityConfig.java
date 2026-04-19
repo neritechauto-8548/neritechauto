@@ -44,6 +44,7 @@ public class SecurityConfig {
                     "/auth/login",
                     "/auth/refresh",
                     "/public/**",
+                    "/v1/assinatura/webhook/**",
                     "/v3/api-docs/**",
                     "/api-docs/**",
                     "/swagger-ui/**",

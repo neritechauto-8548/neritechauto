@@ -1,0 +1,182 @@
+<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- ===== Sticky Action Bar ===== -->
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-md bg-[#635bff]/10 border border-[#635bff]/20 flex items-center justify-center">
+        <mat-icon class="text-[#635bff] !text-[16px]">credit_card</mat-icon>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-slate-900 leading-tight">Gerenciar Assinatura</h1>
+        <span class="text-xs text-slate-500">Plano atual, faturamento e upgrades</span>
+      </div>
+    </div>
+    <div class="flex gap-2 items-center">
+      <button (click)="loadStatus()" [disabled]="loading"
+        class="px-3 py-1.5 rounded-md border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors text-xs flex items-center gap-1.5 disabled:opacity-50">
+        <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">refresh</mat-icon>
+        Atualizar
+      </button>
+    </div>
+  </div>
+
+  <div class="p-6 w-full space-y-6">
+
+    <!-- ===== Loading State ===== -->
+    <div *ngIf="loading" class="flex items-center justify-center py-20">
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-8 h-8 border-3 border-[#635bff]/30 border-t-[#635bff] rounded-full animate-spin"></div>
+        <span class="text-sm text-slate-500 font-medium">Carregando assinatura...</span>
+      </div>
+    </div>
+
+    <!-- ===== Main Content ===== -->
+    <div *ngIf="!loading" class="space-y-6">
+
+      <!-- ===== Status Card ===== -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="bg-gradient-to-r from-[#635bff]/5 to-transparent px-6 py-5 border-b border-slate-100">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-[#635bff] flex items-center justify-center shadow-lg shadow-[#635bff]/25">
+                <mat-icon class="text-white !text-[24px]">workspace_premium</mat-icon>
+              </div>
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">{{ assinatura.plano || 'Carregando...' }}</h2>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-xs font-bold px-2 py-0.5 rounded-full border" [ngClass]="getStatusColor()">
+                    {{ getStatusLabel() }}
+                  </span>
+                  <span *ngIf="assinatura.precoFormatado" class="text-xs text-slate-500">
+                    · {{ assinatura.precoFormatado }}/mês
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button (click)="abrirPortal()" [disabled]="portalLoading || !assinatura.stripeCustomerId"
+                class="px-4 py-2 rounded-md bg-[#635bff] text-white font-semibold hover:bg-[#5147e5] shadow-sm transition-all text-sm flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">open_in_new</mat-icon>
+                {{ portalLoading ? 'Abrindo...' : 'Gerenciar no Stripe' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Row -->
+        <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</span>
+            <p class="text-sm font-bold text-slate-800">{{ getStatusLabel() }}</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Próxima Cobrança</span>
+            <p class="text-sm font-bold text-slate-800">{{ assinatura.proximaCobranca || '—' }}</p>
+          </div>
+          <div class="space-y-1" *ngIf="assinatura.trial">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Início Trial</span>
+            <p class="text-sm font-bold text-blue-700">{{ assinatura.inicioTrial || '—' }}</p>
+          </div>
+          <div class="space-y-1" *ngIf="assinatura.trial">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fim Trial</span>
+            <p class="text-sm font-bold text-blue-700">{{ assinatura.fimTrial || '—' }}</p>
+          </div>
+        </div>
+
+        <!-- Trial Banner -->
+        <div *ngIf="assinatura.trial" class="mx-6 mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+          <mat-icon class="text-blue-600 !text-[18px]">info</mat-icon>
+          <span class="text-xs text-blue-700 font-semibold">
+            Você está no período de teste gratuito. Seu plano será cobrado automaticamente em {{ assinatura.fimTrial }}.
+          </span>
+        </div>
+      </div>
+
+      <!-- ===== Plans Grid ===== -->
+      <div>
+        <h3 class="text-sm font-bold text-slate-700 mb-4">Planos Disponíveis</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          <div *ngFor="let plano of planos"
+            class="bg-white rounded-xl border overflow-hidden shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg relative"
+            [ngClass]="isPlanoAtual(plano) ? 'border-[#635bff] ring-1 ring-[#635bff]/20' : 'border-slate-200'">
+
+            <!-- Current Plan Badge -->
+            <div *ngIf="isPlanoAtual(plano)"
+              class="absolute -top-px left-1/2 -translate-x-1/2 bg-[#635bff] text-white text-[10px] font-bold px-3 py-0.5 rounded-b-md shadow-sm">
+              PLANO ATUAL
+            </div>
+
+            <!-- Popular Badge -->
+            <div *ngIf="plano.destaque && !isPlanoAtual(plano)"
+              class="absolute -top-px left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-b-md shadow-sm">
+              MAIS POPULAR
+            </div>
+
+            <div class="p-5 pt-6">
+              <!-- Plan Name -->
+              <h4 class="text-base font-extrabold text-slate-900 tracking-tight">{{ plano.nome }}</h4>
+              <p class="text-xs text-slate-500 mt-0.5 mb-4 leading-relaxed">{{ plano.descricao }}</p>
+
+              <!-- Price -->
+              <div class="flex items-baseline gap-1 mb-5">
+                <span class="text-xs font-bold text-slate-400">R$</span>
+                <span class="text-3xl font-extrabold text-slate-900 tracking-tighter">{{ plano.preco }}</span>
+                <span class="text-xs text-slate-400">/mês</span>
+              </div>
+
+              <!-- Action Button -->
+              <button (click)="abrirPortal()" [disabled]="portalLoading || !assinatura.stripeCustomerId"
+                class="w-full py-2 rounded-md font-bold text-sm transition-all flex items-center justify-center gap-1.5"
+                [ngClass]="isPlanoAtual(plano)
+                  ? 'bg-slate-100 text-slate-500 cursor-default'
+                  : plano.destaque
+                    ? 'bg-[#635bff] text-white hover:bg-[#5147e5] shadow-sm'
+                    : 'border border-slate-200 text-slate-700 hover:border-[#635bff] hover:text-[#635bff]'">
+                {{ isPlanoAtual(plano) ? 'Seu plano atual' : 'Alterar para este plano' }}
+              </button>
+
+              <!-- Divider -->
+              <div class="border-t border-slate-100 my-4"></div>
+
+              <!-- Features -->
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">O que está incluído:</p>
+              <ul class="space-y-2">
+                <li *ngFor="let f of plano.features" class="flex items-start gap-2 text-xs text-slate-700 leading-relaxed">
+                  <span class="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                    [ngClass]="isPlanoAtual(plano) ? 'bg-[#635bff] text-white' : 'bg-[#635bff]/10 text-[#635bff]'">
+                    <mat-icon class="!text-[10px] !w-[10px] !h-[10px]">check</mat-icon>
+                  </span>
+                  {{ f }}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== Help Footer ===== -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+              <mat-icon class="text-emerald-600 !text-[16px]">support_agent</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Precisa de ajuda com sua assinatura?</p>
+              <p class="text-[11px] text-slate-500">Nosso time está disponível via WhatsApp de Seg. a Sex. das 8:30 às 18:00</p>
+            </div>
+          </div>
+          <a href="https://wa.me/5511987654321" target="_blank" rel="noopener"
+            class="px-3 py-1.5 rounded-md border border-emerald-200 text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors text-xs flex items-center gap-1.5">
+            <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">chat</mat-icon>
+            Falar no WhatsApp
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

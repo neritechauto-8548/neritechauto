@@ -99,6 +99,8 @@ export class SidebarMenuComponent {
        {
            label: 'Configurações', icon: 'pi pi-cog', expanded: false,
            children: [
+               { label: 'Empresa', icon: 'pi pi-building', route: '/configuracoes/empresa' },
+               { label: 'Assinatura', icon: 'pi pi-credit-card', route: '/configuracoes/assinatura' },
                { label: 'Usuários', icon: 'pi pi-user', route: '/configuracoes/usuarios' },
                { label: 'Permissões', icon: 'pi pi-lock', route: '/configuracoes/permissoes' },
                { label: 'Administrador', icon: 'pi pi-shield', route: '/configuracoes/administrador' }
