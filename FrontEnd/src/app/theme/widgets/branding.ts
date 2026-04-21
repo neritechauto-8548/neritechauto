@@ -31,29 +31,29 @@ import { Component, Input } from '@angular/core';
     }
 
     .logo-box {
-      width: 28px;
-      height: 28px;
-      background: #6366f1;
-      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #3f5efb 100%);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px -1px rgba(63, 94, 251, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     .logo-mark {
       font-family: 'Inter', sans-serif;
-      font-weight: 900;
-      font-size: 0.85rem;
+      font-weight: 800;
+      font-size: 0.9rem;
       color: white;
     }
 
     .logo-text {
       font-family: 'Inter', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 900;
-      color: #1e293b;
-      letter-spacing: -0.05em;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.04em;
     }
 
     .dark .logo-text {
@@ -61,7 +61,7 @@ import { Component, Input } from '@angular/core';
     }
 
     .logo-accent {
-      color: #00e5ff;
+      color: #6366f1;
     }
   `,
 })

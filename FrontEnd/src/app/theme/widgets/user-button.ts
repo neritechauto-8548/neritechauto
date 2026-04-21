@@ -12,16 +12,16 @@ import { AboutSystemDialog } from './about-system';
 @Component({
   selector: 'app-user',
   template: `
-    <button [matMenuTriggerFor]="menu" class="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
+    <button [matMenuTriggerFor]="menu" class="group flex items-center p-1 rounded-xl hover:bg-slate-100/50 transition-all duration-200">
       <div class="relative">
         @if (user.avatar) {
-          <img [src]="user.avatar" class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm" [alt]="user.name">
+          <img [src]="user.avatar" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-sm" [alt]="user.name">
         } @else {
-          <div [class]="'w-8 h-8 rounded-full flex items-center justify-center border border-white/20 shadow-sm ' + getAvatarColor()">
-            <span class="text-[11px] font-bold text-white uppercase tracking-tighter">{{ getInitials() }}</span>
+          <div [class]="'w-9 h-9 rounded-lg flex items-center justify-center border border-white/20 shadow-sm ' + getAvatarColor()">
+            <span class="text-[12px] font-bold text-white uppercase tracking-tighter">{{ getInitials() }}</span>
           </div>
         }
-        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></span>
       </div>
     </button>
 

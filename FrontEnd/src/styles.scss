@@ -92,14 +92,19 @@ mat-icon {
   font-family: 'Material Icons' !important;
 }
 
-/* Card Styles (Stripe-like) */
+/* Card Styles (Stripe-UX) */
 .card,
 .mat-mdc-card {
   background-color: white;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05); /* Soft shadow */
-  border: 1px solid var(--slate-200);
+  box-shadow: theme('boxShadow.soft');
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: theme('boxShadow.soft-lg');
+  }
 
   .dark & {
     background-color: var(--slate-800);
@@ -108,12 +113,17 @@ mat-icon {
   }
 }
 
-/* Toast Customization (if utilizing generic classes) */
+/* Global Background refine */
+html, body {
+  @apply bg-[#f6f9fc] dark:bg-slate-950;
+}
+
+/* Toast Customization */
 .hot-toast-bar-base {
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     font-family: 'Inter', sans-serif !important;
     font-size: 14px !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: theme('boxShadow.soft-xl') !important;
 }
 
 /* Animations */

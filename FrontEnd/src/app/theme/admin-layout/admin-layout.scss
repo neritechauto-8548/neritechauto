@@ -37,25 +37,25 @@
   }
 }
 
-// Layout control - Menu Colapsado com Ícones Centralizados
+// Layout control - Menu Colapsado
 .matero-sidenav-collapsed,
 .matero-sidenav-collapsed-fix {
   .matero-sidenav {
     width: var(--sidenav-collapsed-width);
-    transition: width 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 
     // Centralizar ícones quando colapsado
     .menu-heading {
       justify-content: center;
       padding: 0.75rem 0.5rem;
-      transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .menu-icon {
       margin-right: 0;
       margin-left: 0;
       font-size: 1.5rem;
-      transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 
       &:not(.submenu-icon) {
         opacity: 1;
@@ -79,46 +79,6 @@
 
     .matero-user-panel-avatar {
       transform: scale(0.5);
-    }
-
-    // Expandir ao hover
-    &:hover {
-      width: var(--sidenav-width);
-      box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
-
-      .menu-heading {
-        justify-content: flex-start;
-        padding: 0.75rem;
-      }
-
-      .menu-icon {
-        margin-right: 0.75rem;
-        font-size: 1.25rem;
-
-        [dir='rtl'] & {
-          margin-right: 0;
-          margin-left: 0.75rem;
-        }
-      }
-
-      .menu-name,
-      .menu-label,
-      .menu-badge,
-      .menu-caret,
-      .matero-user-panel-info {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .menu-icon.submenu-icon {
-        opacity: 0;
-        left: 0.75rem;
-        transform: translateX(0);
-      }
-
-      .matero-user-panel-avatar {
-        transform: scale(1);
-      }
     }
   }
 }

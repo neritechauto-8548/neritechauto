@@ -36,38 +36,59 @@ module.exports = {
           800: '#1E293B', // Dark Bg
           900: '#0F172A', // Darker Bg
         },
+        // Indigo Scale (Stripe-like Sidebar)
+        indigo: {
+          50: '#f5f7ff',
+          100: '#ebf0fe',
+          200: '#ced9fb',
+          300: '#9db4f7',
+          400: '#6283f0',
+          500: '#3f5efb',
+          600: '#2c44e8',
+          700: '#2334ca',
+          800: '#1d2ca3',
+          900: '#1e2882',
+          950: '#12174d', // Deep Navy/Indigo
+        },
+        violet: {
+          50: '#f5f3ff',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+        },
         // Semantic
         success: {
-          DEFAULT: '#16A34A',
-          50: '#F0FDF4',
-          500: '#16A34A',
-          600: '#15803D',
+          DEFAULT: '#10b981',
+          50: '#ecfdf5',
+          500: '#10b981',
+          600: '#059669',
         },
         warning: {
-          DEFAULT: '#F59E0B',
-          50: '#FFFBEB',
-          500: '#F59E0B',
-          600: '#D97706',
+          DEFAULT: '#f59e0b',
+          50: '#fffbeb',
+          500: '#f59e0b',
+          600: '#d97706',
         },
         danger: {
-          DEFAULT: '#DC2626',
-          50: '#FEF2F2',
-          500: '#DC2626',
-          600: '#B91C1C',
+          DEFAULT: '#ef4444',
+          50: '#fef2f2',
+          500: '#ef4444',
+          600: '#dc2626',
         },
         info: {
-          DEFAULT: '#0284C7',
-          50: '#F0F9FF',
-          500: '#0284C7',
-          600: '#0369A1',
+          DEFAULT: '#3b82f6',
+          50: '#eff6ff',
+          500: '#3b82f6',
+          600: '#2563eb',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'soft': '0px 4px 12px rgba(0, 0, 0, 0.05)',
+        'soft': '0px 2px 4px rgba(0, 0, 0, 0.02), 0px 4px 12px rgba(0, 0, 0, 0.05)',
+        'soft-md': '0px 4px 6px -1px rgba(0, 0, 0, 0.05), 0px 2px 4px -1px rgba(0, 0, 0, 0.03)',
         'soft-lg': '0px 10px 25px -5px rgba(0, 0, 0, 0.05), 0px 8px 10px -6px rgba(0, 0, 0, 0.01)',
+        'soft-xl': '0px 20px 25px -5px rgba(0, 0, 0, 0.05), 0px 10px 10px -5px rgba(0, 0, 0, 0.02)',
       }
     },
   },

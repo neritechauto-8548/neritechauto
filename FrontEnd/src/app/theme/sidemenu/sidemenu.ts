@@ -1,4 +1,4 @@
-import { AsyncPipe, NgTemplateOutlet, SlicePipe } from '@angular/common';
+import { AsyncPipe, NgClass, NgTemplateOutlet, SlicePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -26,6 +26,7 @@ import { NavAccordionToggle } from './nav-accordion-toggle';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
+    NgClass,
     SlicePipe,
     NgTemplateOutlet,
     RouterLink,

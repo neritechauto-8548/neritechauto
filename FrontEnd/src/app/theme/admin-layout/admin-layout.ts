@@ -85,6 +85,9 @@ export class AdminLayout implements OnDestroy {
 
   private layoutChangesSubscription = Subscription.EMPTY;
 
+  private hoverTimer: any;
+  private isHovering = false;
+
   constructor() {
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_MEDIAQUERY, TABLET_MEDIAQUERY, MONITOR_MEDIAQUERY])
@@ -113,9 +116,34 @@ export class AdminLayout implements OnDestroy {
   }
 
   toggleCollapsed() {
+    this.isHovering = false; // Reset hovering state if user manually toggles
     this.isContentWidthFixed = false;
     this.options.sidenavCollapsed = !this.options.sidenavCollapsed;
     this.resetCollapsedState();
+  }
+
+  onMouseEnter() {
+    // Only expand on hover if it's currently collapsed and NOT in mobile mode
+    if (this.options.sidenavCollapsed && !this.isOver) {
+      clearTimeout(this.hoverTimer);
+      this.hoverTimer = setTimeout(() => {
+        this.isHovering = true;
+        this.options.sidenavCollapsed = false;
+        this.settings.setOptions(this.options);
+      }, 150); // Intent delay to avoid accidental expansion
+    }
+  }
+
+  onMouseLeave() {
+    // Only collapse back if it was expanded via hover
+    if (this.isHovering && !this.isOver) {
+      clearTimeout(this.hoverTimer);
+      this.hoverTimer = setTimeout(() => {
+        this.isHovering = false;
+        this.options.sidenavCollapsed = true;
+        this.settings.setOptions(this.options);
+      }, 200); // Leave delay buffer
+    }
   }
 
   onSidenavToggle() {

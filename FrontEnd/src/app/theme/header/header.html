@@ -11,30 +11,32 @@
 
     <!-- Logo (Visible on Mobile or when Branding hidden in Sidebar) -->
     <div class="flex items-center gap-2" [class.hidden]="!showBranding">
-        <div class="flex items-center gap-2 font-inter scale-90 origin-left">
-          <div class="w-6 h-6 rounded-[6px] bg-[#6366f1] flex items-center justify-center text-white font-black text-xs shadow-sm">
+        <div class="flex items-center gap-2 font-inter scale-95 origin-left">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center text-white font-black text-xs shadow-md shadow-indigo-500/10">
             N
           </div>
-          <span class="font-black text-[16px] tracking-tighter text-slate-900 dark:text-white leading-none mt-0.5">
-            Neri<span class="text-[#00e5ff]">TechAuto</span>
+          <span class="font-bold text-[18px] tracking-tight text-slate-900 dark:text-white leading-none">
+            NeriTech<span class="text-indigo-500">Auto</span>
           </span>
         </div>
     </div>
   </div>
 
-  <!-- Center: Global Search -->
-  <div class="flex-1 px-8 max-w-3xl hidden md:block">
+  <!-- Center: Global Search (Command Bar Style) -->
+  <div class="flex-1 px-4 max-w-xl hidden md:block">
     <div class="relative group">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <mat-icon class="text-slate-400 text-[20px] w-[20px] h-[20px]">search</mat-icon>
+        <mat-icon class="text-slate-400 text-[18px] w-[18px] h-[18px]">search</mat-icon>
       </div>
       <input
         type="text"
-        class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition duration-150 ease-in-out"
-        placeholder="Buscar ordens, clientes, veículos... (Ctrl+K)"
+        class="block w-full pl-9 pr-12 py-1.5 border border-slate-200 rounded-lg leading-5 bg-white/50 text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200"
+        placeholder="Buscar e navegar... (Ctrl+K)"
       />
-      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-        <span class="text-slate-400 text-xs border border-slate-300 dark:border-slate-600 rounded px-1.5 py-0.5">⌘K</span>
+      <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+        <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 font-sans text-[10px] font-medium text-slate-400 shadow-sm">
+          ⌘K
+        </kbd>
       </div>
     </div>
   </div>

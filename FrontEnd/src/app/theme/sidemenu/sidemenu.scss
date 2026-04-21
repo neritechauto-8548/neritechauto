@@ -1,90 +1,102 @@
 @use '@angular/material' as mat;
 
 .matero-sidemenu {
-  padding: 0.5rem;
+  padding: 0.75rem 0.75rem;
   margin: 0;
   list-style: none;
 
+  /* Section Heading Style */
+  .menu-item-heading {
+    margin-top: 1rem; /* Reduzido de 1.5rem */
+    margin-bottom: 0.25rem; /* Reduzido de 0.5rem */
+    
+    &:first-child {
+      margin-top: 0.5rem;
+    }
+
+    .menu-heading-label {
+      padding: 0 16px; /* Aumentado de 14 para 16 */
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569; /* Slate 600 - Melhor Contraste */
+      letter-spacing: 0.08em; /* Aumentado de 0.05 para 0.08 */
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+  }
+
   .menu-item {
     overflow: visible;
-    border-radius: 6px; /* Slightly tighter radius for menu items */
-    transition: all 150ms ease-in-out;
+    border-radius: 6px;
+    transition: all 200ms ease;
     margin-bottom: 2px;
 
-    >.submenu {
-      height: 0;
-      transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
+    &:not(.menu-item-heading) {
+        >.submenu {
+          height: 0;
+          transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden;
+          margin-left: 20px; /* Indentação otimizada */
+          border-left: 1px solid #f1f5f9;
+        }
     }
 
     >.menu-heading {
-      transition: all 150ms ease-in-out;
+      transition: all 250ms ease;
       position: relative;
-      overflow: hidden;
       display: flex;
       align-items: center;
+      justify-content: flex-start; /* Alinhamento à esquerda garantido */
       width: 100%;
-      padding: 8px 12px; /* Consistent padding */
-      font-size: 14px;
-      color: var(--slate-600);
+      padding: 8px 16px;
+      min-height: 38px;
+      font-size: 13.5px;
+      color: #475569; /* Slate 600 */
       text-decoration: none;
       cursor: pointer;
       outline: none;
       background-color: transparent;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 500;
       font-family: 'Inter', sans-serif;
 
-      .dark & {
-          color: var(--slate-400);
-      }
-
       &:hover {
-        background-color: var(--slate-100);
-        color: var(--slate-900);
-
-        .dark & {
-            background-color: var(--slate-800);
-            color: var(--slate-200);
-        }
+        background-color: #f1f5f9; /* Slate 100 */
+        color: #0f172a; /* Slate 900 */
       }
     }
 
-    /* Active State - Stripe Style (Light Blue BG, Primary Text) */
+    /* Active State - Stripe Light (Indigo Pop) */
     &.active {
       >.menu-heading {
-        color: var(--primary-600);
-        background-color: var(--primary-50);
+        color: #4f46e5; /* Indigo 600 */
+        background-color: #eef2ff; /* Indigo 50 */
         font-weight: 600;
 
-        .dark & {
-            background-color: rgba(37, 99, 235, 0.15); /* Primary-500 with opacity */
-            color: var(--primary-400);
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 20%;
+          height: 60%;
+          width: 4px; /* Indicador levemente mais robusto */
+          background-color: #6366f1; /* Indigo 500 indicator */
+          border-radius: 0 8px 8px 0;
         }
 
         .menu-icon {
-          color: var(--primary-600);
-
-          .dark & {
-              color: var(--primary-400);
-          }
-        }
-
-        &:hover {
-           background-color: var(--primary-100);
-
-           .dark & {
-               background-color: rgba(37, 99, 235, 0.25);
-           }
+          color: #6366f1 !important;
+          opacity: 1 !important;
         }
       }
     }
 
-    /* Submenu Parent Active State */
     &.expanded {
       > .submenu {
         height: auto;
+        padding-top: 2px;
+        padding-bottom: 2px;
       }
     }
   }
@@ -93,14 +105,22 @@
     width: 20px;
     height: 20px;
     margin-right: 12px;
-    font-size: 20px;
+    font-size: 16px;
     line-height: 20px;
     text-align: center;
     flex-shrink: 0;
-    color: var(--slate-400); /* Inactive icon color */
+    color: #000000 !important; /* Cor Preta Absoluta */
+    opacity: 1; /* Aumentando opacidade conforme pedido de ícones pretos */
+    transition: all 0.2s ease;
 
-    .dark & {
-        color: var(--slate-500);
+    &.pi {
+        color: #000000 !important;
+    }
+
+    &.submenu-icon {
+        font-size: 12px; /* Aumentado significativamente para visibilidade */
+        opacity: 0.8;
+        margin-right: 12px;
     }
   }
 
@@ -109,23 +129,65 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    letter-spacing: -0.01em;
+    padding-right: 4px; /* Previne que o texto encoste no caret */
   }
 
-  /* Submenu Indentation */
-  &.level-1 > li > .menu-heading { padding-left: 20px; }
-  &.level-2 > li > .menu-heading { padding-left: 44px; } /* +24px indent */
-  &.level-3 > li > .menu-heading { padding-left: 68px; }
-
   .menu-caret {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      line-height: 18px;
-      opacity: 0.5;
+      font-size: 10px;
+      width: 12px;
+      height: 12px;
+      line-height: 12px;
+      opacity: 0.4;
       transition: transform 0.2s;
   }
 
   .expanded > .menu-heading .menu-caret {
       transform: rotate(180deg);
+  }
+}
+
+/* Sidebar Container - Stripe Ice Gray */
+.matero-sidebar {
+    background: #f6f9fc !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+/* Collapsed Sidebar Refinements (Stripe UX) */
+.matero-sidenav-collapsed {
+  .matero-sidemenu {
+    padding: 0.75rem 0;
+
+    .menu-item-heading {
+      display: none !important; /* Hide headings in mini mode */
+    }
+
+    .menu-item {
+      .menu-heading {
+        padding: 8px 0;
+        justify-content: center;
+
+        .menu-icon {
+          margin-right: 0;
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+
+        .menu-name,
+        .menu-caret {
+          display: none !important;
+        }
+
+        &::before {
+          top: 15%;
+          height: 70%;
+        }
+      }
+
+      .submenu {
+        display: none !important; /* Matero usually handles this via popover, but hiding ensures no leakage */
+      }
+    }
   }
 }

@@ -101,7 +101,12 @@
     "permissions": "Permissions",
     "permissions.role-switching": "Role Switching",
     "permissions.route-guard": "Route Guard",
-    "permissions.test": "Permission Test"
+    "permissions.test": "Permission Test",
+    "geral": "GENERAL",
+    "operacional": "OPERATIONAL",
+    "gestao-e-fiscal": "MANAGEMENT & FISCAL",
+    "estoque-e-analise": "STOCK & ANALYSIS",
+    "configuracoes-header": "SETTINGS"
   },
   "validation": {
     "required": "This field is required",

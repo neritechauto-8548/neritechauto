@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UsuarioService } from '../../routes/configuracoes/usuario.service';
+import { AuthService } from '@core/authentication/auth.service';
+import { map } from 'rxjs/operators';
 
 interface MenuItem {
     label: string;
@@ -58,6 +60,10 @@ interface MenuItem {
   imports: [CommonModule, RouterModule]
 })
 export class SidebarMenuComponent {
+   private readonly auth = inject(AuthService);
+   
+   userEmail$ = this.auth.user().pipe(map(u => u.email));
+
    menu: MenuItem[] = [
        { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
        {

@@ -1,22 +1,29 @@
-// Header moderno com efeitos especiais
+// Header moderno com efeitos especiais (Stripe Style)
 .matero-header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 1000;
   display: block;
+  background: rgba(246, 249, 252, 0.8) !important; /* Ice Gray com Transparência */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease;
 }
 
-.matero-header {
-  position: relative;
-  z-index: 1000;
-  display: block;
-}
-
-// Ensure MatToolbar has correct z-index and positioning if needed
 mat-toolbar {
-  @apply transition-colors duration-300 ease-in-out;
+  background: transparent !important; /* Deixa o fundo do .matero-header brilhar */
+  height: 64px !important;
+  padding: 0 1.5rem !important;
 }
 
 // Icon Button Hover Effects
 button[mat-icon-button] {
   @apply rounded-lg;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
 }

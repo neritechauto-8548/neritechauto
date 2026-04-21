@@ -119,7 +119,12 @@
     "veiculo-modelo": "Modelos de Veículo",
     "menu.configuracoes.opcoes-envio": "Opções de Envio",
     "menu.configuracoes.questionario-envio": "Questionários",
-    "menu.configuracoes.administrador": "Administrador"
+    "menu.configuracoes.administrador": "Administrador",
+    "geral": "GERAL",
+    "operacional": "OPERACIONAL",
+    "gestao-e-fiscal": "GESTÃO E FISCAL",
+    "estoque-e-analise": "ESTOQUE E ANÁLISE",
+    "configuracoes-header": "CONFIGURAÇÕES"
   },
 
   "pt_br": "Português (Brasil)",
