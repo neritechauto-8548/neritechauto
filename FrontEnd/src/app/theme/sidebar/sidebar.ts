@@ -6,7 +6,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Sidemenu } from '../sidemenu/sidemenu';
-import { UserPanel } from './user-panel';
 import { Branding } from '../widgets/branding';
 
 @Component({
@@ -22,7 +21,6 @@ import { Branding } from '../widgets/branding';
     MatTooltipModule,
     Branding,
     Sidemenu,
-    UserPanel,
   ],
 })
 export class Sidebar {

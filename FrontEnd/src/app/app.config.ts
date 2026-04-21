@@ -60,6 +60,19 @@ export const appConfig: ApplicationConfig = {
       position: 'top-right',
       dismissible: true,
       role: 'status',
+      className: 'stripe-toast',
+      success: {
+        className: 'stripe-toast-success',
+        duration: 3000,
+      },
+      error: {
+        className: 'stripe-toast-error',
+        duration: 5000,
+      },
+      info: {
+        className: 'stripe-toast-info',
+        duration: 4000,
+      }
     }),
     provideTranslateService({
       loader: provideTranslateHttpLoader({ prefix: 'i18n/', suffix: '.json' }),

@@ -17,5 +17,14 @@ public interface ContasReceberRepository
     Optional<ContasReceber> findByIdAndEmpresaId(Long id, Long empresaId);
 
     Optional<ContasReceber> findByEmpresaIdAndNumeroTitulo(Long empresaId, String numeroTitulo);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(c.valorPago) FROM ContasReceber c WHERE c.empresaId = :empresaId AND c.dataVencimento BETWEEN :inicio AND :fim")
+    java.math.BigDecimal calculateFaturamentoMes(@org.springframework.data.repository.query.Param("empresaId") Long empresaId, @org.springframework.data.repository.query.Param("inicio") java.time.LocalDate inicio, @org.springframework.data.repository.query.Param("fim") java.time.LocalDate fim);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(c.valorPendente) FROM ContasReceber c WHERE c.empresaId = :empresaId AND c.status <> 'PAGO' AND c.status <> 'CANCELADO'")
+    java.math.BigDecimal calculateTotalPendentes(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(c.valorPendente) FROM ContasReceber c WHERE c.empresaId = :empresaId AND c.dataVencimento < :hoje AND c.status <> 'PAGO' AND c.status <> 'CANCELADO'")
+    java.math.BigDecimal calculateTotalVencidos(@org.springframework.data.repository.query.Param("empresaId") Long empresaId, @org.springframework.data.repository.query.Param("hoje") java.time.LocalDate hoje);
 }
 

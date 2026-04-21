@@ -1,0 +1,80 @@
+/* Stripe Style Toast Notifications */
+.stripe-toast {
+  position: relative;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  min-width: 320px !important;
+  max-width: 450px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  font-family: 'Inter', sans-serif !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  
+  /* Success Variant */
+  &.stripe-toast-success {
+    background-color: #f0fdf4 !important; /* Emerald 50 */
+    border: 1px solid #bbf7d0 !important; /* Emerald 200 */
+    
+    .hot-toast-bar-icon {
+      color: #15803d !important; /* Emerald 700 */
+    }
+  }
+
+  /* Error Variant */
+  &.stripe-toast-error {
+    background-color: #fef2f2 !important; /* Rose 50 */
+    border: 1px solid #fecdd3 !important; /* Rose 200 */
+    
+    .hot-toast-bar-icon {
+      color: #be123c !important; /* Rose 700 */
+    }
+  }
+
+  /* Info Variant */
+  &.stripe-toast-info {
+    background-color: #eff6ff !important; /* Blue 50 */
+    border: 1px solid #bfdbfe !important; /* Blue 200 */
+    
+    .hot-toast-bar-icon {
+      color: #1d4ed8 !important; /* Blue 700 */
+    }
+  }
+
+  .hot-toast-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    margin: 0 !important;
+    
+    /* Title Style */
+    b, strong, .toast-title {
+      display: block !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      color: inherit !important;
+      line-height: 1.4 !important;
+    }
+    
+    /* Message Style */
+    span, .toast-message {
+      font-size: 13px !important;
+      font-weight: 450 !important;
+      color: #475569 !important; /* Slate 600 */
+      line-height: 1.5 !important;
+    }
+  }
+
+  /* Close Button */
+  .hot-toast-close {
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    margin-left: auto !important;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

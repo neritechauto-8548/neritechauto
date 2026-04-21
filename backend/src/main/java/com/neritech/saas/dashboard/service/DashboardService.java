@@ -30,31 +30,63 @@ public class DashboardService {
         LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
 
         // Clientes Ativos
-        // Clientes Ativos
-        Long totalClientes = clienteRepository
-                .countByStatus(com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO);
+        Long totalClientes = clienteRepository.countByStatus(com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO);
 
-        // OS - Preciso verificar os status IDs ou Enums. Assumindo counts simples por
-        // enquanto ou countAll
-        Long osAbertas = ordemServicoRepository.countByEmpresaId(empresaId); // TODO: Filtrar por status 'ABERTA' quando
-                                                                             // souber o ID/Enum exato
-        Long osEmAndamento = 0L; // Placeholder
+        // Ordens de Serviço
+        long osAbertas = ordemServicoRepository.countAtivas(empresaId);
+        long osConcluidas = ordemServicoRepository.countConcluidas(empresaId);
+        long osCanceladas = ordemServicoRepository.countCanceladas(empresaId);
+        long osEmAndamento = osAbertas; // No momento tratamos ativas como em andamento/abertas
 
-        // Financeiro - Receitas
-        // Assumindo que ContasReceber tem dataVencimento ou dataPagamento
-        // Usarei um valor dummy se o método específico não existir no repository,
-        // depois corrijo com o repository real
-        BigDecimal faturamentoMes = BigDecimal.ZERO;
+        // Financeiro - Faturamento e Despesas
+        BigDecimal faturamentoMes = contasReceberRepository.calculateFaturamentoMes(empresaId, startOfMonth, endOfMonth);
+        if (faturamentoMes == null) faturamentoMes = BigDecimal.ZERO;
 
-        // Financeiro - Despesas
-        BigDecimal despesasMes = BigDecimal.ZERO;
+        BigDecimal despesasMes = contasPagarRepository.calculateDespesasMes(empresaId, startOfMonth, endOfMonth);
+        if (despesasMes == null) despesasMes = BigDecimal.ZERO;
+
+        BigDecimal lucroMes = faturamentoMes.subtract(despesasMes);
+
+        // Métricas Pro
+        BigDecimal ticketMedio = ordemServicoRepository.calculateTicketMedio(empresaId);
+        if (ticketMedio == null) ticketMedio = BigDecimal.ZERO;
+
+        BigDecimal contasReceber = contasReceberRepository.calculateTotalPendentes(empresaId);
+        if (contasReceber == null) contasReceber = BigDecimal.ZERO;
+
+        BigDecimal contasPagar = contasPagarRepository.calculateTotalPendentes(empresaId);
+        if (contasPagar == null) contasPagar = BigDecimal.ZERO;
+
+        BigDecimal valoresVencidos = contasReceberRepository.calculateTotalVencidos(empresaId, now);
+        if (valoresVencidos == null) valoresVencidos = BigDecimal.ZERO;
+
+        long veiculosEmAtraso = ordemServicoRepository.countAtrasadas(empresaId);
+
+        // Dados do Gráfico (Mock estruturado para evoluir para real)
+        List<BigDecimal> historicoFaturamento = List.of(
+                new BigDecimal("2800"), new BigDecimal("2900"), new BigDecimal("3300"),
+                new BigDecimal("3600"), new BigDecimal("4200"), faturamentoMes);
+        List<BigDecimal> historicoServicos = List.of(
+                new BigDecimal("4500"), new BigDecimal("5200"), new BigDecimal("5300"),
+                new BigDecimal("4900"), new BigDecimal("6200"), faturamentoMes.multiply(new BigDecimal("0.6")));
+        List<String> historicoMeses = List.of("Jan", "Fev", "Mar", "Abr", "Mai", "Jun");
 
         return new DashboardDTO(
                 totalClientes != null ? totalClientes : 0L,
-                osAbertas != null ? osAbertas : 0L,
+                osAbertas,
                 osEmAndamento,
+                osConcluidas,
+                osCanceladas,
                 faturamentoMes,
                 despesasMes,
-                faturamentoMes.subtract(despesasMes));
+                lucroMes,
+                ticketMedio,
+                contasReceber,
+                contasPagar,
+                valoresVencidos,
+                veiculosEmAtraso,
+                historicoFaturamento,
+                historicoServicos,
+                historicoMeses);
     }
 }

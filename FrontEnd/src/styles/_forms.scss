@@ -69,7 +69,9 @@
     color: var(--slate-900) !important;
 
     &::placeholder {
-      color: var(--slate-400) !important;
+      color: #94a3b8 !important; /* Slate 400 - Explicit hex for reliability */
+      opacity: 0.8 !important;
+      font-weight: 400 !important;
     }
   }
 
@@ -103,17 +105,17 @@ select.modern-input,
 textarea.modern-input {
   display: block;
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
+  height: 42px; /* Aumentado levemente para 42px */
+  padding: 0 14px;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  line-height: 40px; /* Vertically center text */
-  color: var(--slate-900);
-  background-color: white;
+  line-height: 42px;
+  color: #0f172a; /* Slate 900 */
+  background-color: #f8fafc; /* Slate 50 para contraste superior */
   background-clip: padding-box;
-  border: 1px solid var(--slate-300);
-  border-radius: 8px;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  border: 1px solid #e2e8f0; /* Slate 200 */
+  border-radius: 10px; /* Arredondamento soft 10px */
+  transition: all 0.2s ease;
 
   /* Textarea exception */
   &[rows] {
@@ -131,8 +133,9 @@ textarea.modern-input {
   }
 
   &::placeholder {
-    color: var(--slate-400);
-    opacity: 1;
+    color: #94a3b8; /* Slate 400 */
+    opacity: 0.7;
+    font-weight: 400;
   }
 
   &:disabled,
@@ -186,8 +189,9 @@ textarea.modern-input-sm {
   }
 
   &::placeholder {
-    color: var(--slate-400);
-    opacity: 1;
+    color: #94a3b8; /* Slate 400 */
+    opacity: 0.7;
+    font-weight: 400;
   }
 
   &:disabled,

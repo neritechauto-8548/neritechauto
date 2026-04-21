@@ -25,37 +25,44 @@ import { AboutSystemDialog } from './about-system';
       </div>
     </button>
 
-    <mat-menu #menu="matMenu" backdropClass="stripe-menu-backdrop" class="!rounded-xl !border !border-slate-100 !shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] !py-2 !px-1">
-      <div class="px-1 flex flex-col gap-0.5 min-w-[220px]">
+    <mat-menu #menu="matMenu" backdropClass="stripe-menu-backdrop" class="!rounded-2xl !border !border-slate-200 !shadow-[0_20px_50px_rgba(0,0,0,0.1)] !py-0 !overflow-hidden">
+      <div class="min-w-[200px] flex flex-col bg-white">
+        <!-- Menu Header (User Info) -->
+        <div class="px-3 py-2.5 bg-slate-50/50 border-b border-slate-100 flex flex-col">
+          <span class="text-xs font-bold text-slate-900 leading-tight">{{ user.name }}</span>
+          <span class="text-[10px] text-slate-500 font-medium. mt-0.5 uppercase tracking-wider">Administrador</span>
+        </div>
 
+        <div class="p-1 flex flex-col">
+          <button [routerLink]="['/configuracoes/colaboradores/cadastro', user.id]" [queryParams]="{ byUsuario: true }" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
+            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">account_circle</mat-icon>
+            <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Meus Dados</span>
+          </button>
 
-        <button [routerLink]="['/configuracoes/colaboradores/cadastro', user.id]" [queryParams]="{ byUsuario: true }" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
-          <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">account_circle</mat-icon>
-          <span class="!text-[13px] !font-semibold !text-slate-700">Meus Dados</span>
-        </button>
+          <button routerLink="/configuracoes/assinatura" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
+            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">credit_card</mat-icon>
+            <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Minha Assinatura</span>
+          </button>
 
-        <button routerLink="/configuracoes/assinatura" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
-          <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">credit_card</mat-icon>
-          <span class="!text-[13px] !font-semibold !text-slate-700">Minha Assinatura</span>
-        </button>
+          <button routerLink="/agendamento/calendario" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
+            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">event</mat-icon>
+            <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Minha Agenda</span>
+          </button>
 
-        <button routerLink="/agendamento/calendario" mat-menu-item class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
-          <mat-icon class="!text-slate-400 !mr-2 !text-[18px]">calendar_month</mat-icon>
-          <span class="!text-[13px] !font-semibold !text-slate-700">Agenda</span>
-        </button>
+          <button mat-menu-item (click)="showAbout = true" class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
+            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-indigo-500 transition-colors">info</mat-icon>
+            <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Sobre o Sistema</span>
+          </button>
+        </div>
 
+        <div class="h-px w-full bg-slate-100"></div>
 
-        <button mat-menu-item (click)="showAbout = true" class="!rounded-md hover:!bg-slate-50 !h-10 !leading-10 transition-colors">
-          <mat-icon class="!text-blue-400 !mr-2 !text-[18px]">info</mat-icon>
-          <span class="!text-[13px] !font-semibold !text-slate-700">Sobre o Sistema</span>
-        </button>
-
-        <div class="h-px w-full bg-slate-100 my-1"></div>
-
-        <button mat-menu-item (click)="logout()" class="!rounded-md hover:!bg-red-50 !h-10 !leading-10 transition-colors group">
-          <mat-icon class="!text-red-400 !mr-2 !text-[18px] group-hover:!text-red-600">exit_to_app</mat-icon>
-          <span class="!text-[13px] !font-bold !text-red-500 group-hover:!text-red-700">{{ 'Sair' | translate }}</span>
-        </button>
+        <div class="p-1">
+          <button mat-menu-item (click)="logout()" class="!rounded-lg hover:!bg-rose-50 !h-9 !leading-9 transition-all group">
+            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-rose-500 transition-colors">logout</mat-icon>
+            <span class="!text-[13px] !font-bold !text-slate-700 group-hover:!text-rose-600">Sair da Conta</span>
+          </button>
+        </div>
       </div>
     </mat-menu>
 

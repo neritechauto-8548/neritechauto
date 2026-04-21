@@ -7,9 +7,19 @@ export interface DashboardDTO {
   totalClientes: number;
   osAbertas: number;
   osEmAndamento: number;
+  osConcluidas: number;
+  osCanceladas: number;
   faturamentoMes: number;
   despesasMes: number;
   lucroMes: number;
+  ticketMedio: number;
+  contasReceber: number;
+  contasPagar: number;
+  valoresVencidos: number;
+  veiculosEmAtraso: number;
+  historicoFaturamento: number[];
+  historicoServicos: number[];
+  historicoMeses: string[];
 }
 
 @Injectable({ providedIn: 'root' })

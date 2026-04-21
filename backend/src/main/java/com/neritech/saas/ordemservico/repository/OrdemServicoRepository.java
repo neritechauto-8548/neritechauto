@@ -23,4 +23,18 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
     boolean existsByEmpresaIdAndNumeroOS(Long empresaId, String numeroOS);
 
     long countByEmpresaId(Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(o) FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.status.finalizaOS = true")
+    long countConcluidas(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(o) FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.status.cancelaOS = true")
+    long countCanceladas(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(o) FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.status.finalizaOS = false AND o.status.cancelaOS = false")
+    long countAtivas(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT AVG(o.valorTotal) FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.status.finalizaOS = true")
+    java.math.BigDecimal calculateTicketMedio(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(o) FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.status.finalizaOS = false AND o.status.cancelaOS = false AND o.dataPromessa < CURRENT_TIMESTAMP")
+    long countAtrasadas(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 }
