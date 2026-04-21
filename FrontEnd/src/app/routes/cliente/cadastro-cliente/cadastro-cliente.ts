@@ -62,7 +62,6 @@ interface DocumentoExtra {
     Dialog,
     TagModule
   ],
-  providers: [MessageService],
 })
 export class CadastroCliente implements OnInit {
   private readonly router = inject(Router);

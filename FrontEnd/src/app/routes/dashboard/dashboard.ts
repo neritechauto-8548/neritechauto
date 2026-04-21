@@ -197,10 +197,10 @@ export class Dashboard implements OnInit {
 
     // Pipeline
     this.pipelineStats = [
-      { title: 'Abertas', count: data.osAbertas, value: 0, color: 'bg-slate-50', iconColor: 'text-slate-500', statusColor: 'bg-slate-500', tag: 'aberto' },
-      { title: 'Em Andamento', count: data.osEmAndamento, value: 0, color: 'bg-orange-50', iconColor: 'text-orange-500', statusColor: 'bg-orange-500', tag: 'aguardando' },
-      { title: 'Concluídas', count: data.osConcluidas, value: 100, color: 'bg-emerald-50', iconColor: 'text-emerald-500', statusColor: 'bg-emerald-500', tag: 'realizado' },
-      { title: 'Canceladas', count: data.osCanceladas, value: 0, color: 'bg-rose-50', iconColor: 'text-rose-500', statusColor: 'bg-rose-500', tag: 'cancelado' }
+      { title: 'Abertas', count: data.osAbertas, value: 0, color: 'bg-slate-50', iconColor: 'text-slate-500', statusColor: 'bg-slate-500', tag: 'ABERTA' },
+      { title: 'Em Andamento', count: data.osEmAndamento, value: 0, color: 'bg-orange-50', iconColor: 'text-orange-500', statusColor: 'bg-orange-500', tag: 'EM ANDAMENTO' },
+      { title: 'Concluídas', count: data.osConcluidas, value: 100, color: 'bg-emerald-50', iconColor: 'text-emerald-500', statusColor: 'bg-emerald-500', tag: 'CONCLUIDA' },
+      { title: 'Canceladas', count: data.osCanceladas, value: 0, color: 'bg-rose-50', iconColor: 'text-rose-500', statusColor: 'bg-rose-500', tag: 'CANCELADA' }
     ];
 
     // Financeiro
@@ -208,13 +208,13 @@ export class Dashboard implements OnInit {
       contasReceber: { value: data.contasReceber, label: 'Contas a Receber', sub: 'Carteira atualizada', color: 'text-emerald-600', iconBg: 'bg-emerald-500', rota: '/financeiro/receber' },
       contasPagar: { value: data.contasPagar, label: 'Contas a Pagar', sub: 'A vencer este mês', color: 'text-blue-600', iconBg: 'bg-blue-500', rota: '/financeiro/pagar' },
       vencidos: { value: data.valoresVencidos, label: 'Valores Vencidos', sub: 'Cobrança necessária', color: 'text-rose-600', iconBg: 'bg-rose-600', rota: '/financeiro/receber?status=VENCIDO' },
-      saldo: { value: data.lucroMes, label: 'Lucro Líquido', sub: 'Projeção do mês', color: 'text-indigo-600', iconBg: 'bg-indigo-600', rota: '/financeiro' }
+      saldo: { value: data.lucroMes, label: 'Lucro Líquido', sub: 'Projeção do mês', color: 'text-indigo-600', iconBg: 'bg-indigo-600', rota: '/financeiro/receber' }
     };
 
     // Operacionais
     this.indicadoresOperacionais = [
-      { title: 'OS Abertas', value: data.osAbertas, subtext: 'Em atendimento', action: 'Atuar agora', icon: 'pi-box', color: 'bg-orange-500', lightColor: 'bg-orange-100', rota: '/os' },
-      { title: 'Faturamento', value: `R$ ${data.faturamentoMes.toLocaleString('pt-BR')}`, subtext: 'Referente ao mês', trend: '+12.1%', icon: 'pi-money-bill', color: 'bg-sky-500', lightColor: 'bg-sky-100', rota: '/financeiro' },
+      { title: 'OS Abertas', value: data.osAbertas, subtext: 'Em atendimento', action: 'Atuar agora', icon: 'pi-box', color: 'bg-orange-500', lightColor: 'bg-orange-100', rota: '/os?status=ABERTA' },
+      { title: 'Faturamento', value: `R$ ${data.faturamentoMes.toLocaleString('pt-BR')}`, subtext: 'Referente ao mês', trend: '+12.1%', icon: 'pi-money-bill', color: 'bg-sky-500', lightColor: 'bg-sky-100', rota: '/financeiro/receber' },
       { title: 'Clientes Ativos', value: data.totalClientes, subtext: 'Base cadastral', trend: '+5.2%', icon: 'pi-users', color: 'bg-blue-500', lightColor: 'bg-blue-100', rota: '/cliente' }
     ];
   }

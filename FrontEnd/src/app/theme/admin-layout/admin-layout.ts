@@ -6,6 +6,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NgProgressbar } from 'ngx-progressbar';
 import { NgProgressRouter } from 'ngx-progressbar/router';
 import { Subscription, filter } from 'rxjs';
+import { ToastModule } from 'primeng/toast';
 
 import { AppSettings, SettingsService } from '@core';
 import { Header } from '../header/header';
@@ -36,6 +37,7 @@ const MONITOR_MEDIAQUERY = 'screen and (min-width: 960px)';
     SidebarNotice,
     BreadcrumbComponent,
     ConfirmationDialogComponent,
+    ToastModule,
   ],
   host: {
     '[class.matero-content-width-fix]': 'contentWidthFix',

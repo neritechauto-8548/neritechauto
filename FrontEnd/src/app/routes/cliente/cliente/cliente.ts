@@ -51,7 +51,6 @@ import {
     MatMenuModule,
     RouterModule,
   ],
-  providers: [MessageService]
 })
 export class Cliente implements OnInit {
   private readonly router = inject(Router);

@@ -1,46 +1,92 @@
-/* Stripe Style Toast Notifications */
-.stripe-toast {
+/* Stripe Style Toast Notifications (HotToast & PrimeNG Universal) */
+.stripe-toast, .p-toast-message {
   position: relative;
   background: #ffffff !important;
   color: #1e293b !important;
-  border-radius: 12px !important;
-  padding: 12px 16px !important;
+  border-radius: 9999px !important; /* Pill shape for premium look */
+  padding: 8px 20px !important;
   min-width: 320px !important;
-  max-width: 450px !important;
+  max-width: 500px !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
   font-family: 'Inter', sans-serif !important;
   display: flex !important;
-  align-items: flex-start !important;
+  align-items: center !important;
   gap: 12px !important;
-  
+  margin-bottom: 8px !important;
+  border: none !important;
+
+  /* Common Icon Style */
+  .hot-toast-bar-icon, .p-toast-message-icon {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px !important;
+    flex-shrink: 0;
+  }
+
   /* Success Variant */
-  &.stripe-toast-success {
+  &.stripe-toast-success, &.p-toast-message-success {
     background-color: #f0fdf4 !important; /* Emerald 50 */
     border: 1px solid #bbf7d0 !important; /* Emerald 200 */
     
-    .hot-toast-bar-icon {
+    .hot-toast-bar-icon, .p-toast-message-icon {
+      background-color: #dcfce7 !important;
       color: #15803d !important; /* Emerald 700 */
     }
   }
 
   /* Error Variant */
-  &.stripe-toast-error {
+  &.stripe-toast-error, &.p-toast-message-error {
     background-color: #fef2f2 !important; /* Rose 50 */
     border: 1px solid #fecdd3 !important; /* Rose 200 */
     
-    .hot-toast-bar-icon {
+    .hot-toast-bar-icon, .p-toast-message-icon {
+      background-color: #fee2e2 !important;
       color: #be123c !important; /* Rose 700 */
     }
   }
 
   /* Info Variant */
-  &.stripe-toast-info {
+  &.stripe-toast-info, &.p-toast-message-info {
     background-color: #eff6ff !important; /* Blue 50 */
     border: 1px solid #bfdbfe !important; /* Blue 200 */
     
-    .hot-toast-bar-icon {
+    .hot-toast-bar-icon, .p-toast-message-icon {
+      background-color: #dbeafe !important;
       color: #1d4ed8 !important; /* Blue 700 */
     }
+  }
+
+  /* PrimeNG Specific overrides */
+  .p-toast-message-content {
+      padding: 0 !important;
+      border: none !important;
+      display: flex !important;
+      align-items: center !important;
+      width: 100%;
+      background: transparent !important;
+  }
+
+  .p-toast-message-text {
+      margin: 0 10px !important;
+      display: flex !important;
+      flex-direction: column;
+  }
+
+  .p-toast-summary {
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      color: #1e293b !important;
+  }
+
+  .p-toast-detail {
+      font-size: 13px !important;
+      font-weight: 450 !important;
+      color: #475569 !important;
+      margin-top: 0 !important;
   }
 
   .hot-toast-content {
@@ -68,13 +114,19 @@
   }
 
   /* Close Button */
-  .hot-toast-close {
+  .hot-toast-close, .p-toast-icon-close {
     opacity: 0.5;
     transition: opacity 0.2s;
     margin-left: auto !important;
+    outline: none !important;
     
     &:hover {
       opacity: 1;
     }
+  }
+
+  /* Hide PrimeNG internal padding/icons if they conflict */
+  .p-toast-message-icon {
+      margin-right: 0 !important;
   }
 }
