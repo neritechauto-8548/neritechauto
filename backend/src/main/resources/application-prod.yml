@@ -2,9 +2,9 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     # Parâmetros para desabilitar cache de prepared statements e evitar erro "prepared statement already exists"
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5434/nerisys?prepareThreshold=0&preparedStatementCacheQueries=0&preparedStatementCacheSizeMiB=0}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:94573730}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     hikari:
       maximum-pool-size: 4
       minimum-idle: 2
@@ -40,20 +40,20 @@ spring:
     validate-on-migrate: true
     out-of-order: false
     clean-disabled: true
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5434/nerisys}
-    user: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:94573730}
+    url: ${DATABASE_URL}
+    user: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
 
   security:
     jwt:
-      secret: ${JWT_SECRET:}
-      expiration: 86400000 # 24 hours in milliseconds
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION:86400000}
 
   mail:
-    host: ${SMTP_HOST:smtp.gmail.com}
-    port: ${SMTP_PORT:587}
-    username: ${SMTP_USERNAME:neritechauto@gmail.com}
-    password: ${SMTP_PASSWORD:evpcmqdrkbzqymdn}
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -111,7 +111,7 @@ management:
 
 stripe:
   api:
-    key: ${STRIPE_SECRET_KEY:}
+    key: ${STRIPE_SECRET_KEY}
   default:
     price:
-      id: ${STRIPE_TRIAL_PRICE_ID:}
+      id: ${STRIPE_TRIAL_PRICE_ID}

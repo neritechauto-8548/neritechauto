@@ -17,8 +17,11 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:neritechauto@gmail.com}")
+    @Value("${spring.mail.username}")
     private String fromEmail;
+
+    @Value("${frontend.url:http://localhost:4200}")
+    private String frontendUrl;
 
     @Async
     public void sendTrialCredentials(String to, String name, String password) {
@@ -61,7 +64,7 @@ public class EmailService {
     }
 
     private String buildTrialEmailTemplate(String name, String email, String password) {
-        String loginUrl = "http://localhost:4200/login"; // URL do sistema cliente
+        String loginUrl = frontendUrl + "/login"; // URL do sistema cliente
         
         return "<html>" +
                 "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +
@@ -120,7 +123,7 @@ public class EmailService {
     }
 
     private String buildResetEmailTemplate(String name, String token) {
-        String resetUrl = "http://localhost:4200/auth/reset-password?token=" + token;
+        String resetUrl = frontendUrl + "/auth/reset-password?token=" + token;
         
         return "<html>" +
                 "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +

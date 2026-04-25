@@ -3,9 +3,9 @@ spring:
     active: prod
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5434/nerisys
-    username: postgres
-    password: 94573730
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -29,10 +29,10 @@ spring:
     validate-on-migrate: false
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: '' # TODO: Your SMTP Email
-    password: '' # TODO: Your SMTP App Password
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -42,13 +42,13 @@ spring:
 
 stripe:
   api:
-    key: ${STRIPE_SECRET_KEY:}
+    key: ${STRIPE_SECRET_KEY}
   default:
     price:
-      id: '' # TODO: Default Price ID for trial subscriptions
+      id: ${STRIPE_TRIAL_PRICE_ID}
   products:
-    start: ${STRIPE_PRODUCT_START:}
-    pro: ${STRIPE_PRODUCT_PRO:}
-    elite: ${STRIPE_PRODUCT_ELITE:}
+    start: ${STRIPE_PRODUCT_START}
+    pro: ${STRIPE_PRODUCT_PRO}
+    elite: ${STRIPE_PRODUCT_ELITE}
   webhook:
-    secret: '' # TODO: Your Stripe Webhook Signing Secret (whsec_...)
+    secret: ${STRIPE_WEBHOOK_SECRET}
