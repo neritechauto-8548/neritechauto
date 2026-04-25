@@ -37,6 +37,11 @@ export class Login {
   private readonly toast = inject(HotToastService);
 
   isSubmitting = false;
+  showPassword = false;
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
 
   loginForm = this.fb.nonNullable.group({
     username: ['', [Validators.required]],

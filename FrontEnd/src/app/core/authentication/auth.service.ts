@@ -91,7 +91,12 @@ export class AuthService {
         }
         // Salva o tenantId (empresaId) no LocalStorage
         const u = user as any;
-        const tenantId = u.empresaId || u.tenantId || u.idEmpresa;
+        let tenantId = u.empresaId || u.tenantId || u.idEmpresa;
+        
+        if (tenantId && typeof tenantId === 'object' && tenantId.id) {
+          tenantId = tenantId.id;
+        }
+
         if (tenantId) {
           console.log('🏢 Setting Tenant ID from user profile:', tenantId);
           this.storage.set('tenantId', tenantId);

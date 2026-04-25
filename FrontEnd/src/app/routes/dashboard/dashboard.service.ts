@@ -29,12 +29,27 @@ export class DashboardService {
   private apiUrl = environment.baseUrl || '/api';        
 
   getDashboardData() {
-    const empresaId = this.storage.get('tenantId') ?? this.storage.get('empresaId');
+    let empresaId = this.storage.get('tenantId');
+    
+    // Se tenantId for um objeto vazio (default do storage.get) ou não existir, tenta empresaId
+    if (!empresaId || (typeof empresaId === 'object' && Object.keys(empresaId).length === 0)) {
+      empresaId = this.storage.get('empresaId');
+    }
+
+    // Se ainda for um objeto, tenta extrair o id
+    if (empresaId && typeof empresaId === 'object') {
+      if (empresaId.id) {
+        empresaId = empresaId.id;
+      } else if (Object.keys(empresaId).length === 0) {
+        empresaId = null;
+      }
+    }
+
     const params: any = {};
-    if (empresaId !== undefined && empresaId !== null && 
-`${empresaId}` !== '') {
+    if (empresaId && `${empresaId}` !== '' && `${empresaId}` !== '[object Object]') {
       params.empresaId = empresaId;
     }
+    
     return this.http.get<DashboardDTO>(`${this.apiUrl}/dashboard`, { params });
   }
 }

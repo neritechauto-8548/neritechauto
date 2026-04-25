@@ -13,12 +13,26 @@ export class RelatoriosService {
    * @param params Filtros adicionais
    */
   gerarRelatorio(tipo: string, params: any = {}) {
-    const empresaId = this.storage.get('tenantId');
+    let empresaId = this.storage.get('tenantId');
+    
+    // Se empresaId for um objeto vazio ou inválido, tenta um fallback
+    if (!empresaId || (typeof empresaId === 'object' && Object.keys(empresaId).length === 0)) {
+        empresaId = this.storage.get('empresaId');
+    }
+    
+    // Se ainda for um objeto, tenta extrair o ID
+    if (empresaId && typeof empresaId === 'object' && empresaId.id) {
+        empresaId = empresaId.id;
+    }
+
     // Tratamento especial para OS que tem ID na URL
     const url = tipo.startsWith('os/') ? `/v1/relatorios/${tipo}` : `/v1/relatorios/${tipo}`;
 
-    // Params sempre inclui empresaId
-    const queryParams = { ...params, empresaId };
+    // Constrói os parâmetros limpando valores inválidos
+    const queryParams: any = { ...params };
+    if (empresaId && `${empresaId}` !== '[object Object]') {
+        queryParams.empresaId = empresaId;
+    }
 
     return this.http.get(url, {
       params: queryParams,
