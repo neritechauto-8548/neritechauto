@@ -3,30 +3,27 @@
 
   <!-- ===== Sticky Action Bar ===== -->
   <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-md bg-[#635bff]/10 border border-[#635bff]/20 flex items-center justify-center">
-        <mat-icon class="text-[#635bff] !text-[16px]">badge</mat-icon>
-      </div>
+    <div class="flex items-center gap-4">
+      <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
+        <i class="pi pi-arrow-left text-sm"></i>
+      </button>
       <div>
-        <h1 class="text-sm font-bold text-slate-900 leading-tight">{{ isEditMode ? 'Editar Colaborador' : 'Cadastro de Colaborador' }}</h1>
-        <span class="text-xs text-slate-500">Dados pessoais, vínculo, contato, documentos e acesso ao sistema</span>
+        <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ isEditMode ? 'Editar Colaborador' : 'Cadastro de Colaborador' }}</h1>
+        <span class="text-xs text-slate-500 font-normal">Dados pessoais, vínculo e acesso ao sistema</span>
       </div>
     </div>
-    <div class="flex gap-2 items-center">
+    <div class="flex gap-3 items-center">
       <button *ngIf="isEditMode" (click)="excluir()" [disabled]="loading"
-        class="px-3 py-2 rounded-md border border-rose-200 bg-white text-rose-600 font-semibold hover:bg-rose-50 transition-colors text-xs flex items-center gap-1">
-        <mat-icon class="!text-[14px]">delete_outline</mat-icon>
-        Excluir
+        class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
+        <i class="pi pi-trash text-[13px]"></i> Excluir
       </button>
-      <div *ngIf="isEditMode" class="h-6 w-px bg-slate-200 mx-1"></div>
-      <button (click)="cancelar()" class="px-3 py-2 rounded-md hover:bg-slate-100 text-slate-500 transition-colors text-xs font-semibold flex items-center gap-1">
-        <mat-icon class="!text-[14px]">arrow_back</mat-icon>
-        Voltar
+      <div *ngIf="isEditMode" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+      <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+        Cancelar
       </button>
       <button (click)="salvar()" [disabled]="loading"
-        class="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-50">
-        <i class="pi pi-check text-xs"></i>
-        {{ loading ? 'Salvando...' : 'Salvar' }}
+        class="px-3.5 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-50">
+        <i class="pi pi-check text-xs"></i> {{ loading ? 'Salvando...' : 'Salvar' }}
       </button>
     </div>
   </div>
@@ -35,13 +32,12 @@
 
     <!-- ===== Pill Tab Navigation ===== -->
     <div class="flex justify-center">
-      <div class="bg-slate-100 p-1 rounded-lg inline-flex flex-wrap gap-0.5 border border-slate-200">
+      <div class="bg-slate-100 p-1 rounded-lg inline-flex border border-slate-200">
         <button *ngFor="let tab of navTabs"
           (click)="activeTab = tab.id"
           [class]="activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-          class="px-3.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5">
-          <mat-icon class="!text-[13px] !w-[13px] !h-[13px]">{{ tab.icon }}</mat-icon>
-          {{ tab.label }}
+          class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
+          <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ tab.icon }}</mat-icon> {{ tab.label }}
         </button>
       </div>
     </div>
@@ -56,51 +52,51 @@
           <h3 class="font-bold text-slate-800 text-sm">Identificação</h3>
           <p class="text-xs text-slate-500 mt-0.5">Informações pessoais básicas</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="md:col-span-2 space-y-1">
             <label class="text-xs font-bold text-slate-700">Nome Completo *</label>
-            <input [(ngModel)]="form.nomeCompleto" class="w-full modern-input-sm" placeholder="Nome completo" />
+            <input [(ngModel)]="form.nomeCompleto" class="w-full modern-input" placeholder="Nome completo" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Matrícula *</label>
-            <input [(ngModel)]="form.matricula" class="w-full modern-input-sm font-mono" placeholder="Ex: 001" />
+            <input [(ngModel)]="form.matricula" class="w-full modern-input font-mono" placeholder="Ex: 001" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">CPF *</label>
-            <input [(ngModel)]="form.cpf" class="w-full modern-input-sm font-mono" placeholder="000.000.000-00" />
+            <p-inputmask mask="999.999.999-99" [(ngModel)]="form.cpf" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="000.000.000-00" [unmask]="false"></p-inputmask>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">RG</label>
-            <input [(ngModel)]="form.rg" class="w-full modern-input-sm font-mono" />
+            <input [(ngModel)]="form.rg" class="w-full modern-input font-mono" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Data de Nascimento</label>
-            <p-datepicker [(ngModel)]="form.dataNascimento" dateFormat="yy-mm-dd" [showIcon]="true" class="w-full" />
+            <p-datepicker [(ngModel)]="form.dataNascimento" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Sexo</label>
-            <select [(ngModel)]="form.sexo" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
+            <select [(ngModel)]="form.sexo" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let o of sexoOptions" [value]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Estado Civil</label>
-            <select [(ngModel)]="form.estadoCivil" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
+            <select [(ngModel)]="form.estadoCivil" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let o of estadoCivilOptions" [value]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Escolaridade</label>
-            <select [(ngModel)]="form.escolaridade" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
+            <select [(ngModel)]="form.escolaridade" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let o of escolaridadeOptions" [value]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Profissão</label>
-            <input [(ngModel)]="form.profissao" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.profissao" class="w-full modern-input" />
           </div>
         </div>
       </div>
@@ -110,22 +106,22 @@
           <h3 class="font-bold text-slate-800 text-sm">Filiação e Naturalidade</h3>
           <p class="text-xs text-slate-500 mt-0.5">Origem e informações familiares</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Nacionalidade</label>
-            <input [(ngModel)]="form.nacionalidade" class="w-full modern-input-sm" placeholder="Brasileira" />
+            <input [(ngModel)]="form.nacionalidade" class="w-full modern-input" placeholder="Brasileira" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Naturalidade</label>
-            <input [(ngModel)]="form.naturalidade" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.naturalidade" class="w-full modern-input" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Nome da Mãe</label>
-            <input [(ngModel)]="form.nomeMae" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.nomeMae" class="w-full modern-input" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Nome do Pai</label>
-            <input [(ngModel)]="form.nomePai" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.nomePai" class="w-full modern-input" />
           </div>
         </div>
       </div>
@@ -138,57 +134,57 @@
           <h3 class="font-bold text-slate-800 text-sm">Vínculo Empregatício</h3>
           <p class="text-xs text-slate-500 mt-0.5">Cargo, departamento e tipo de contrato</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Departamento</label>
-            <select [(ngModel)]="form.departamentoId" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
-              <option *ngFor="let o of departamentoOptions" [value]="o.value">{{ o.label }}</option>
+            <select [(ngModel)]="form.departamentoId" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
+              <option *ngFor="let o of departamentoOptions" [ngValue]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Cargo</label>
-            <select [(ngModel)]="form.cargoId" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
-              <option *ngFor="let o of cargoOptions" [value]="o.value">{{ o.label }}</option>
+            <select [(ngModel)]="form.cargoId" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
+              <option *ngFor="let o of cargoOptions" [ngValue]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Tipo de Contrato</label>
-            <select [(ngModel)]="form.tipoContrato" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
+            <select [(ngModel)]="form.tipoContrato" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let o of tipoContratoOptions" [value]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Data de Admissão *</label>
-            <p-datepicker [(ngModel)]="form.dataAdmissao" dateFormat="yy-mm-dd" [showIcon]="true" class="w-full" />
+            <p-datepicker [(ngModel)]="form.dataAdmissao" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Data de Demissão</label>
-            <p-datepicker [(ngModel)]="form.dataDemissao" dateFormat="yy-mm-dd" [showIcon]="true" class="w-full" />
+            <p-datepicker [(ngModel)]="form.dataDemissao" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Status</label>
-            <select [(ngModel)]="form.status" class="w-full modern-input-sm">
+            <select [(ngModel)]="form.status" class="w-full modern-input modern-select">
               <option *ngFor="let o of statusOptions" [value]="o.value">{{ o.label }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Salário Base (R$)</label>
-            <input [(ngModel)]="form.salarioBase" type="number" step="0.01" class="w-full modern-input-sm" placeholder="0.00" />
+            <input [(ngModel)]="form.salarioBase" type="number" step="0.01" class="w-full modern-input" placeholder="0.00" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Comissão (%)</label>
-            <input [(ngModel)]="form.comissaoPercentual" type="number" step="0.01" class="w-full modern-input-sm" placeholder="0.00" />
+            <input [(ngModel)]="form.comissaoPercentual" type="number" step="0.01" class="w-full modern-input" placeholder="0.00" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Vale Transporte (R$)</label>
-            <input [(ngModel)]="form.valeTransporte" type="number" step="0.01" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.valeTransporte" type="number" step="0.01" class="w-full modern-input" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Vale Alimentação (R$)</label>
-            <input [(ngModel)]="form.valeAlimentacao" type="number" step="0.01" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.valeAlimentacao" type="number" step="0.01" class="w-full modern-input" />
           </div>
           <div class="md:col-span-3 flex gap-6 pt-2 border-t border-slate-100">
             <label class="flex items-center gap-2 cursor-pointer">
@@ -202,11 +198,11 @@
           </div>
           <div class="md:col-span-3 space-y-1">
             <label class="text-xs font-bold text-slate-700">Motivo de Inativação</label>
-            <input [(ngModel)]="form.motivoInativacao" class="w-full modern-input-sm" placeholder="Preencher apenas se inativo/demitido" />
+            <input [(ngModel)]="form.motivoInativacao" class="w-full modern-input" placeholder="Preencher apenas se inativo/demitido" />
           </div>
           <div class="md:col-span-3 space-y-1">
             <label class="text-xs font-bold text-slate-700">Observações</label>
-            <textarea [(ngModel)]="form.observacoes" rows="3" class="w-full modern-input-sm resize-none"></textarea>
+            <textarea [(ngModel)]="form.observacoes" rows="3" class="w-full modern-input resize-none"></textarea>
           </div>
         </div>
       </div>
@@ -219,18 +215,18 @@
           <h3 class="font-bold text-slate-800 text-sm">Contato Principal</h3>
           <p class="text-xs text-slate-500 mt-0.5">Telefone, e-mail e endereço de residência</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Telefone Principal</label>
-            <input [(ngModel)]="form.telefonePrincipal" class="w-full modern-input-sm" placeholder="(11) 99999-9999" />
+            <p-inputmask mask="(99) 99999-9999" [(ngModel)]="form.telefonePrincipal" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="(00) 00000-0000" [unmask]="false"></p-inputmask>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">E-mail Pessoal</label>
-            <input [(ngModel)]="form.emailPessoal" type="email" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.emailPessoal" type="email" class="w-full modern-input" placeholder="email@exemplo.com" />
           </div>
           <div class="md:col-span-2 space-y-1">
             <label class="text-xs font-bold text-slate-700">Endereço Completo</label>
-            <textarea [(ngModel)]="form.enderecoCompleto" rows="3" class="w-full modern-input-sm resize-none" placeholder="Rua, número, bairro, cidade – UF" ></textarea>
+            <textarea [(ngModel)]="form.enderecoCompleto" rows="3" class="w-full modern-input resize-none" placeholder="Rua, número, bairro, cidade – UF" ></textarea>
           </div>
         </div>
       </div>
@@ -240,18 +236,18 @@
           <h3 class="font-bold text-slate-800 text-sm">Contato de Emergência</h3>
           <p class="text-xs text-slate-500 mt-0.5">Pessoas para contato em caso de necessidade</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Telefone de Emergência</label>
-            <input [(ngModel)]="form.telefoneEmergencia" class="w-full modern-input-sm" placeholder="(11) 99999-9999" />
+            <p-inputmask mask="(99) 99999-9999" [(ngModel)]="form.telefoneEmergencia" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="(00) 00000-0000" [unmask]="false"></p-inputmask>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Nome do Contato</label>
-            <input [(ngModel)]="form.contatoEmergenciaNome" class="w-full modern-input-sm" />
+            <input [(ngModel)]="form.contatoEmergenciaNome" class="w-full modern-input" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Parentesco</label>
-            <input [(ngModel)]="form.contatoEmergenciaParentesco" class="w-full modern-input-sm" placeholder="Ex: Cônjuge, Pai" />
+            <input [(ngModel)]="form.contatoEmergenciaParentesco" class="w-full modern-input" placeholder="Ex: Cônjuge, Pai" />
           </div>
         </div>
       </div>
@@ -264,22 +260,22 @@
           <h3 class="font-bold text-slate-800 text-sm">Documentos Trabalhistas</h3>
           <p class="text-xs text-slate-500 mt-0.5">PIS/PASEP, Carteira de Trabalho e Reservista</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">PIS/PASEP</label>
-            <input [(ngModel)]="form.pisPasep" class="w-full modern-input-sm font-mono" />
+            <input [(ngModel)]="form.pisPasep" class="w-full modern-input font-mono" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Título de Eleitor</label>
-            <input [(ngModel)]="form.tituloEleitor" class="w-full modern-input-sm font-mono" />
+            <input [(ngModel)]="form.tituloEleitor" class="w-full modern-input font-mono" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Carteira de Trabalho</label>
-            <input [(ngModel)]="form.carteiraTrabalho" class="w-full modern-input-sm font-mono" />
+            <input [(ngModel)]="form.carteiraTrabalho" class="w-full modern-input font-mono" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Cert. Reservista</label>
-            <input [(ngModel)]="form.certificadoReservista" class="w-full modern-input-sm font-mono" />
+            <input [(ngModel)]="form.certificadoReservista" class="w-full modern-input font-mono" />
           </div>
         </div>
       </div>
@@ -289,21 +285,21 @@
           <h3 class="font-bold text-slate-800 text-sm">Habilitação (CNH)</h3>
           <p class="text-xs text-slate-500 mt-0.5">Dados da carteira nacional de habilitação</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Número da CNH</label>
-            <input [(ngModel)]="form.cnhNumero" class="w-full modern-input-sm font-mono" />
+            <input [(ngModel)]="form.cnhNumero" class="w-full modern-input font-mono" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Categoria</label>
-            <select [(ngModel)]="form.cnhCategoria" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
+            <select [(ngModel)]="form.cnhCategoria" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let c of cnhCategoriaOptions" [value]="c">{{ c }}</option>
             </select>
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Validade</label>
-            <p-datepicker [(ngModel)]="form.cnhValidade" dateFormat="yy-mm-dd" [showIcon]="true" class="w-full" />
+            <p-datepicker [(ngModel)]="form.cnhValidade" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
           </div>
         </div>
       </div>
@@ -316,23 +312,23 @@
           <h3 class="font-bold text-slate-800 text-sm">Dados Bancários</h3>
           <p class="text-xs text-slate-500 mt-0.5">Para pagamento de salário</p>
         </div>
-        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Código do Banco</label>
-            <input [(ngModel)]="form.bancoCodigo" class="w-full modern-input-sm font-mono" placeholder="Ex: 033" />
+            <input [(ngModel)]="form.bancoCodigo" class="w-full modern-input font-mono" placeholder="Ex: 033" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Agência</label>
-            <input [(ngModel)]="form.bancoAgencia" class="w-full modern-input-sm font-mono" placeholder="Ex: 0001" />
+            <input [(ngModel)]="form.bancoAgencia" class="w-full modern-input font-mono" placeholder="Ex: 0001" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Conta</label>
-            <input [(ngModel)]="form.bancoConta" class="w-full modern-input-sm font-mono" placeholder="00000000-0" />
+            <input [(ngModel)]="form.bancoConta" class="w-full modern-input font-mono" placeholder="00000000-0" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Tipo de Conta</label>
-            <select [(ngModel)]="form.bancoTipoConta" class="w-full modern-input-sm">
-              <option [ngValue]="undefined">Selecione</option>
+            <select [(ngModel)]="form.bancoTipoConta" class="w-full modern-input modern-select">
+              <option value="" disabled selected hidden>Selecione</option>
               <option *ngFor="let o of tipoContaOptions" [value]="o.value">{{ o.label }}</option>
             </select>
           </div>
@@ -384,20 +380,20 @@
             <h3 class="font-bold text-slate-800 text-sm">Credenciais de Login</h3>
             <p class="text-xs text-slate-500 mt-0.5">E-mail e senha para acesso ao sistema</p>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">E-mail de Login *</label>
+              <label class="text-xs font-bold text-slate-700">E-mail de Login</label>
               <input [(ngModel)]="usuarioForm.email" type="email"
-                class="w-full modern-input-sm"
+                class="w-full modern-input"
                 placeholder="colaborador@empresa.com" />
               <p class="text-[10px] text-slate-400">Será usado para autenticação no sistema</p>
             </div>
             <div class="space-y-1">
               <label class="text-xs font-bold text-slate-700">
-                {{ usuarioId ? 'Nova Senha (deixe em branco para manter)' : 'Senha *' }}
+                {{ usuarioId ? 'Nova Senha (deixe em branco para manter)' : 'Senha' }}
               </label>
               <input [(ngModel)]="usuarioForm.senha" type="password"
-                class="w-full modern-input-sm"
+                class="w-full modern-input"
                 [placeholder]="usuarioId ? 'Deixe em branco para não alterar' : 'Mínimo 6 caracteres'" />
             </div>
           </div>
@@ -419,7 +415,7 @@
               [filter]="true"
               filterPlaceholder="Buscar função..."
               display="chip"
-              styleClass="w-full" />
+              styleClass="w-full modern-multiselect" />
             <p class="text-[10px] text-slate-400 mt-2">
               Para criar ou editar funções acesse
               <a routerLink="/configuracoes/permissoes" class="text-[#635bff] underline">Permissões & Funções</a>

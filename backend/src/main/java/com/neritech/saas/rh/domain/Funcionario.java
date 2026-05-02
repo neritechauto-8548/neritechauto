@@ -163,11 +163,7 @@ public class Funcionario extends BaseEntity {
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 
-    @Column(name = "criado_por")
-    private Long criadoPor;
 
-    @Column(name = "atualizado_por")
-    private Long atualizadoPor;
 
     // Getters and Setters
     public Long getEmpresaId() {
@@ -544,21 +540,5 @@ public class Funcionario extends BaseEntity {
 
     public void setObservacoes(String observacoes) {
         this.observacoes = observacoes;
-    }
-
-    public Long getCriadoPor() {
-        return criadoPor;
-    }
-
-    public void setCriadoPor(Long criadoPor) {
-        this.criadoPor = criadoPor;
-    }
-
-    public Long getAtualizadoPor() {
-        return atualizadoPor;
-    }
-
-    public void setAtualizadoPor(Long atualizadoPor) {
-        this.atualizadoPor = atualizadoPor;
     }
 }

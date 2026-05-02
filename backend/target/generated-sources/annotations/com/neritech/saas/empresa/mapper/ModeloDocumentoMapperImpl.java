@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-02T14:08:29-0300",
+    date = "2026-05-02T17:31:00-0300",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -27,6 +27,8 @@ public class ModeloDocumentoMapperImpl implements ModeloDocumentoMapper {
 
         ModeloDocumento modeloDocumento = new ModeloDocumento();
 
+        modeloDocumento.setCriadoPor( request.criadoPor() );
+        modeloDocumento.setAtualizadoPor( request.atualizadoPor() );
         modeloDocumento.setTipoDocumento( request.tipoDocumento() );
         modeloDocumento.setNome( request.nome() );
         modeloDocumento.setTemplateHtml( request.templateHtml() );
@@ -40,8 +42,6 @@ public class ModeloDocumentoMapperImpl implements ModeloDocumentoMapper {
         modeloDocumento.setNumeracaoAutomatica( request.numeracaoAutomatica() );
         modeloDocumento.setPadrao( request.padrao() );
         modeloDocumento.setAtivo( request.ativo() );
-        modeloDocumento.setCriadoPor( request.criadoPor() );
-        modeloDocumento.setAtualizadoPor( request.atualizadoPor() );
 
         return modeloDocumento;
     }
@@ -105,6 +105,8 @@ public class ModeloDocumentoMapperImpl implements ModeloDocumentoMapper {
             return;
         }
 
+        entity.setCriadoPor( request.criadoPor() );
+        entity.setAtualizadoPor( request.atualizadoPor() );
         entity.setTipoDocumento( request.tipoDocumento() );
         entity.setNome( request.nome() );
         entity.setTemplateHtml( request.templateHtml() );
@@ -118,8 +120,6 @@ public class ModeloDocumentoMapperImpl implements ModeloDocumentoMapper {
         entity.setNumeracaoAutomatica( request.numeracaoAutomatica() );
         entity.setPadrao( request.padrao() );
         entity.setAtivo( request.ativo() );
-        entity.setCriadoPor( request.criadoPor() );
-        entity.setAtualizadoPor( request.atualizadoPor() );
     }
 
     private Long entityEmpresaId(ModeloDocumento modeloDocumento) {

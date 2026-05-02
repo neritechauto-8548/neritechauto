@@ -12,10 +12,11 @@ import { DatePicker } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
 import { PasswordModule } from 'primeng/password';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { InputMaskModule } from 'primeng/inputmask';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FuncionarioService, FuncionarioRequest } from '../funcionario.service';
-import { DepartamentoService } from '../../departamentos/departamento.service';
+import { RHDepartamentoService } from '../rh-departamento.service';
 import { CargoService } from '../../cargos/cargo.service';
 import { UsuarioService } from '../../usuario.service';
 import { PermissaoService } from '../../permissoes/permissao.service';
@@ -29,7 +30,7 @@ import { ConfirmationService } from '@shared/services/confirmation.service';
   imports: [
     CommonModule, FormsModule, MatIconModule,
     InputTextModule, SelectModule, ButtonModule, TextareaModule, DatePicker, CheckboxModule,
-    PasswordModule, MultiSelectModule, ToastModule
+    PasswordModule, MultiSelectModule, InputMaskModule, ToastModule
   ],
   providers: [MessageService]
 })
@@ -40,7 +41,7 @@ export class CadastroColaborador implements OnInit {
   private readonly storage  = inject(LocalStorageService);
   private readonly messageService = inject(MessageService);
   private readonly funcionarioService  = inject(FuncionarioService);
-  private readonly departamentoService = inject(DepartamentoService);
+  private readonly departamentoService = inject(RHDepartamentoService);
   private readonly cargoService        = inject(CargoService);
   private readonly usuarioService      = inject(UsuarioService);
   private readonly permissaoService    = inject(PermissaoService);
@@ -119,8 +120,8 @@ export class CadastroColaborador implements OnInit {
   departamentoOptions: { label: string; value: number }[] = [];
   cargoOptions:        { label: string; value: number }[] = [];
 
-  // ---- Form model (matches FuncionarioRequest keys exactly) ----
-  form: Partial<FuncionarioRequest> & { dataNascimento?: Date | string; dataAdmissao?: Date | string; dataDemissao?: Date | string; cnhValidade?: Date | string } = {
+  // ---- Form model (UI state supports Date objects for p-datepicker) ----
+  form: any = {
     nomeCompleto: '',
     cpf: '',
     rg: '',
@@ -182,15 +183,15 @@ export class CadastroColaborador implements OnInit {
   }
 
   loadOptions() {
-    this.departamentoService.list().subscribe({
+    this.departamentoService.list({ size: 1000 }).subscribe({
       next: (data: any) => {
-        const dep = Array.isArray(data) ? data : (data.content ?? []);
+        const dep = data.content ?? [];
         this.departamentoOptions = dep.map((d: any) => ({ label: d.nome, value: d.id }));
       },
     });
-    this.cargoService.list().subscribe({
+    this.cargoService.list({ size: 1000 }).subscribe({
       next: (data: any) => {
-        const c = Array.isArray(data) ? data : (data.content ?? []);
+        const c = data.content ?? [];
         this.cargoOptions = c.map((c: any) => ({ label: c.nome, value: c.id }));
       },
     });
@@ -218,6 +219,7 @@ export class CadastroColaborador implements OnInit {
               this.usuarioForm.email     = u.email;
               this.usuarioForm.ativo     = u.ativo;
               this.usuarioForm.bloqueado = u.bloqueado;
+              this.usuarioForm.funcoesIds = u.funcoesIds || [];
             },
           });
         }
@@ -225,7 +227,7 @@ export class CadastroColaborador implements OnInit {
         this.form.cpf                       = data.cpf;
         this.form.rg                        = data.rg;
         this.form.matricula                 = data.matricula;
-        this.form.dataNascimento            = data.dataNascimento as any;
+        this.form.dataNascimento            = data.dataNascimento ? new Date(data.dataNascimento + 'T00:00:00') : undefined;
         this.form.sexo                      = data.sexo as any;
         this.form.estadoCivil               = data.estadoCivil as any;
         this.form.nacionalidade             = data.nacionalidade;
@@ -236,8 +238,8 @@ export class CadastroColaborador implements OnInit {
         this.form.profissao                 = data.profissao;
         this.form.cargoId                   = data.cargoId;
         this.form.departamentoId            = data.departamentoId;
-        this.form.dataAdmissao              = data.dataAdmissao as any;
-        this.form.dataDemissao              = data.dataDemissao as any;
+        this.form.dataAdmissao              = data.dataAdmissao ? new Date(data.dataAdmissao + 'T00:00:00') : undefined;
+        this.form.dataDemissao              = data.dataDemissao ? new Date(data.dataDemissao + 'T00:00:00') : undefined;
         this.form.tipoContrato              = data.tipoContrato as any;
         this.form.status                    = data.status as any;
         this.form.salarioBase               = data.salarioBase as any;
@@ -263,7 +265,7 @@ export class CadastroColaborador implements OnInit {
         this.form.certificadoReservista     = data.certificadoReservista;
         this.form.cnhNumero                 = data.cnhNumero;
         this.form.cnhCategoria              = data.cnhCategoria;
-        this.form.cnhValidade               = data.cnhValidade as any;
+        this.form.cnhValidade               = data.cnhValidade ? new Date(data.cnhValidade + 'T00:00:00') : undefined;
         this.form.observacoes               = data.observacoes;
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar funcionário' }),
@@ -347,6 +349,9 @@ export class CadastroColaborador implements OnInit {
 
     op.subscribe({
       next: (funcionario: any) => {
+        const funcionarioId = funcionario.id;
+        this.funcionarioId = funcionarioId;
+        
         // Se tem acesso, cria/atualiza o usuario vinculado
         if (this.temAcesso && this.usuarioForm.email) {
           const usuReq = {
@@ -357,33 +362,44 @@ export class CadastroColaborador implements OnInit {
             bloqueado:     this.usuarioForm.bloqueado,
             funcoesIds:    this.usuarioForm.funcoesIds,
           };
+          
           const usuOp = this.usuarioId
             ? this.usuarioService.update(this.usuarioId, usuReq)
             : this.usuarioService.create(usuReq);
+            
           usuOp.subscribe({
             next: (u: any) => {
-              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário e acesso salvos!' });
-              this.loading = false;
-              if (!this.isEditMode && funcionario?.id) {
-                this.isEditMode = true;
-                this.funcionarioId = funcionario.id;
-                this.router.navigate(['/configuracoes/colaboradores/cadastro', funcionario.id], { replaceUrl: true });
+              const newUsuarioId = u.id;
+              
+              // Se o usuario foi criado agora (não tínhamos usuarioId antes), vinculamos ao funcionario
+              if (!this.usuarioId) {
+                this.usuarioId = newUsuarioId;
+                // Atualiza o funcionário com o novo usuarioId
+                this.funcionarioService.update(funcionarioId, { ...payload, usuarioId: newUsuarioId }).subscribe({
+                  next: () => {
+                    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário e acesso salvos!' });
+                    this.finishSave(funcionarioId);
+                  },
+                  error: (err) => {
+                    console.error('Erro ao vincular usuario ao funcionario', err);
+                    this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário e usuário criados, mas houve um erro ao vinculá-los.' });
+                    this.finishSave(funcionarioId);
+                  }
+                });
+              } else {
+                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário e acesso atualizados!' });
+                this.finishSave(funcionarioId);
               }
-              if (u?.id) this.usuarioId = u.id;
             },
             error: (err: any) => {
               this.loading = false;
               this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário salvo, mas erro ao salvar acesso: ' + (err?.error?.message || '') });
+              this.finishSave(funcionarioId);
             },
           });
         } else {
           this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário salvo com sucesso!' });
-          this.loading = false;
-          if (!this.isEditMode && funcionario?.id) {
-            this.isEditMode = true;
-            this.funcionarioId = funcionario.id;
-            this.router.navigate(['/configuracoes/colaboradores/cadastro', funcionario.id], { replaceUrl: true });
-          }
+          this.finishSave(funcionarioId);
         }
       },
       error: (err: any) => {
@@ -392,6 +408,14 @@ export class CadastroColaborador implements OnInit {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
       },
     });
+  }
+
+  private finishSave(id: number) {
+    this.loading = false;
+    if (!this.isEditMode) {
+      this.isEditMode = true;
+      this.router.navigate(['/configuracoes/colaboradores/cadastro', id], { replaceUrl: true });
+    }
   }
 
   excluir() {

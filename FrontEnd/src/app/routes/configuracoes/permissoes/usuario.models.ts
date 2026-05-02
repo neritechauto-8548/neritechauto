@@ -19,6 +19,7 @@ export interface UsuarioResponse {
   bloqueado: boolean;
   ultimoAcesso?: string;
   funcoes: string[];
+  funcoesIds: number[];
   cargo?: string;
   departamento?: string;
   telefone?: string;

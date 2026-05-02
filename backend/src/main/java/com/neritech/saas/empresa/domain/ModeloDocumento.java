@@ -61,11 +61,7 @@ public class ModeloDocumento extends BaseEntity {
     @Column(name = "ativo")
     private Boolean ativo = true;
 
-    @Column(name = "criado_por")
-    private Long criadoPor;
 
-    @Column(name = "atualizado_por")
-    private Long atualizadoPor;
 
     public ModeloDocumento() {
     }
@@ -183,19 +179,5 @@ public class ModeloDocumento extends BaseEntity {
         this.ativo = ativo;
     }
 
-    public Long getCriadoPor() {
-        return criadoPor;
-    }
 
-    public void setCriadoPor(Long criadoPor) {
-        this.criadoPor = criadoPor;
-    }
-
-    public Long getAtualizadoPor() {
-        return atualizadoPor;
-    }
-
-    public void setAtualizadoPor(Long atualizadoPor) {
-        this.atualizadoPor = atualizadoPor;
-    }
 }

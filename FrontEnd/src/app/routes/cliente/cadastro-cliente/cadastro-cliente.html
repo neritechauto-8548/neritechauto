@@ -105,6 +105,12 @@
                          </ng-container>
                      </div>
 
+                     <!-- Linha 3: Sexo (PF) -->
+                     <div class="space-y-1" *ngIf="model.tipoPessoa === 'Física'">
+                          <label class="text-xs font-bold text-slate-700">Sexo</label>
+                          <p-select [options]="sexoOptions" [(ngModel)]="model.sexo" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." />
+                     </div>
+
                      <!-- Linha 3: Inscrições (Apenas PJ) -->
                      <div class="md:col-span-2" *ngIf="model.tipoPessoa === 'Jurídica'">
                           <div class="grid grid-cols-2 gap-4">

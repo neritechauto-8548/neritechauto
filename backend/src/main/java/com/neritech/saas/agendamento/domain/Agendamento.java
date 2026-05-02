@@ -118,11 +118,7 @@ public class Agendamento extends BaseEntity {
     @Column(name = "canal_agendamento", length = 30, nullable = false)
     private CanalAgendamento canalAgendamento;
 
-    @Column(name = "agendado_por")
-    private Long agendadoPor;
 
-    @Column(name = "atualizado_por")
-    private Long atualizadoPor;
 
     public void setTipoAgendamento(TipoAgendamento tipoAgendamento) {
         this.tipoAgendamento = tipoAgendamento;
@@ -299,16 +295,5 @@ public class Agendamento extends BaseEntity {
     public void setCanalAgendamento(CanalAgendamento canalAgendamento) {
         this.canalAgendamento = canalAgendamento;
     }
-    public Long getAgendadoPor() {
-        return this.agendadoPor;
-    }
-    public void setAgendadoPor(Long agendadoPor) {
-        this.agendadoPor = agendadoPor;
-    }
-    public Long getAtualizadoPor() {
-        return this.atualizadoPor;
-    }
-    public void setAtualizadoPor(Long atualizadoPor) {
-        this.atualizadoPor = atualizadoPor;
-    }
+
 }

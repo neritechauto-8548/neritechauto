@@ -106,6 +106,12 @@ public class UsuarioService {
                 .ativo(usuario.getAtivo())
                 .bloqueado(usuario.getBloqueado())
                 .ultimoAcesso(usuario.getUltimoAcesso())
+                .funcoes(usuario.getFuncoes() != null 
+                    ? usuario.getFuncoes().stream().map(f -> f.getNome()).collect(Collectors.toSet()) 
+                    : Collections.emptySet())
+                .funcoesIds(usuario.getFuncoes() != null 
+                    ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(Collectors.toSet()) 
+                    : Collections.emptySet())
                 .build();
     }
 }

@@ -53,11 +53,7 @@ public class TemplateComunicacao extends BaseEntity {
     @Column(name = "tags", length = 255)
     private String tags;
 
-    @Column(name = "criado_por")
-    private Long criadoPor;
 
-    @Column(name = "atualizado_por")
-    private Long atualizadoPor;
 
     // Getters and Setters
     public Long getEmpresaId() {
@@ -172,19 +168,5 @@ public class TemplateComunicacao extends BaseEntity {
         this.tags = tags;
     }
 
-    public Long getCriadoPor() {
-        return criadoPor;
-    }
 
-    public void setCriadoPor(Long criadoPor) {
-        this.criadoPor = criadoPor;
-    }
-
-    public Long getAtualizadoPor() {
-        return atualizadoPor;
-    }
-
-    public void setAtualizadoPor(Long atualizadoPor) {
-        this.atualizadoPor = atualizadoPor;
-    }
 }

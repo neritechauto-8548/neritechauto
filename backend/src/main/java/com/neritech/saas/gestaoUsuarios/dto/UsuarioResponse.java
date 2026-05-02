@@ -23,6 +23,7 @@ public class UsuarioResponse {
     private LocalDateTime ultimoAcesso;
     
     private Set<String> funcoes;
+    private Set<Long> funcoesIds;
     
     // Perfil data
     private String cargo;

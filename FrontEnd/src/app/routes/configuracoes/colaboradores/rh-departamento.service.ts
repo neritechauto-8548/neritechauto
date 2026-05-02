@@ -3,24 +3,22 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../../environments/environment';
-
 import { Page } from '../categoria/categoria-produto.service';
 
-export interface CargoResponse {
+export interface DepartamentoRHResponse {
   id: number;
   empresaId: number;
   nome: string;
-  codigoCbo?: string;
-  salarioBaseMinimo?: number;
-  salarioBaseMaximo?: number;
-  temComissao?: boolean;
+  descricao?: string;
+  codigo?: string;
+  ativo?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
-export class CargoService {
+export class RHDepartamentoService {
   private readonly http = inject(HttpClient);
   private readonly storage = inject(LocalStorageService);
-  private readonly base = environment.baseUrl + '/v1/rh/cargos';
+  private readonly base = environment.baseUrl + '/v1/rh/departamentos';
 
   private get tenantId(): string {
     const v = this.storage.has('tenantId') ? (this.storage.get('tenantId') as any) : '1';
@@ -34,7 +32,7 @@ export class CargoService {
     });
   }
 
-  list(params?: any): Observable<Page<CargoResponse>> {
+  list(params?: any): Observable<Page<DepartamentoRHResponse>> {
     let httpParams = new HttpParams().set('empresaId', this.tenantId);
     if (params) {
       Object.keys(params).forEach(key => {
@@ -44,6 +42,6 @@ export class CargoService {
       });
     }
 
-    return this.http.get<Page<CargoResponse>>(this.base, { params: httpParams, headers: this.getHeaders() });
+    return this.http.get<Page<DepartamentoRHResponse>>(this.base, { params: httpParams, headers: this.getHeaders() });
   }
 }
