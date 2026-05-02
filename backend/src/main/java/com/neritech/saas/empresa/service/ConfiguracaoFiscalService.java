@@ -52,7 +52,8 @@ public class ConfiguracaoFiscalService {
     public ConfiguracaoFiscalResponse findByEmpresaId(Long empresaId) {
         return repository.findByEmpresaId(empresaId)
                 .map(mapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o fiscal nÃ£o encontrada para esta empresa"));
+                .orElseGet(() -> new ConfiguracaoFiscalResponse(
+                        null, empresaId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
     }
 
     @Transactional(readOnly = true)

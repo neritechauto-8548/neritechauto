@@ -101,7 +101,7 @@ export interface ConfiguracaoOficina {
 export interface ConfiguracaoEmail {
   id?: number;
   empresaId: number;
-  provedorServico: 'SMTP' | 'AWS_SES' | 'SENDGRID' | 'MAILGUN';
+  provedorServico: 'SMTP' | 'SMTP_CUSTOMIZADO' | 'AWS_SES' | 'SENDGRID' | 'MAILGUN';
   servidorSmtp?: string;
   portaSmtp?: number;
   usuarioSmtp?: string;

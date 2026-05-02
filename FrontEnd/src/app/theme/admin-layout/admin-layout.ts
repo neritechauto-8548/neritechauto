@@ -14,7 +14,6 @@ import { SidebarNotice } from '../sidebar-notice/sidebar-notice';
 import { Sidebar } from '../sidebar/sidebar';
 import { Topmenu } from '../topmenu/topmenu';
 import { BreadcrumbComponent } from '../widgets/breadcrumb';
-import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 
 const MOBILE_MEDIAQUERY = 'screen and (max-width: 599px)';
 const TABLET_MEDIAQUERY = 'screen and (min-width: 600px) and (max-width: 959px)';
@@ -36,7 +35,6 @@ const MONITOR_MEDIAQUERY = 'screen and (min-width: 960px)';
     Sidebar,
     SidebarNotice,
     BreadcrumbComponent,
-    ConfirmationDialogComponent,
     ToastModule,
   ],
   host: {

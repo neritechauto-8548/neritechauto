@@ -24,7 +24,7 @@ export class EmpresaService {
 
   // --- Empresa ---
   getEmpresa(id: number): Observable<Empresa> {
-    return this.http.get<Empresa>(`/api/v1/empresas/${id}`);
+    return this.http.get<Empresa>(`/api/v1/empresas/${id}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   updateEmpresa(id: number, data: Empresa): Observable<Empresa> {
     const payload = {
@@ -45,7 +45,7 @@ export class EmpresaService {
 
   // --- Endereço Empresa ---
   getEnderecos(empresaId: number): Observable<EnderecoEmpresa[]> {
-    return this.http.get<EnderecoEmpresa[]>(`/api/v1/enderecos-empresa/empresa/${empresaId}`);
+    return this.http.get<EnderecoEmpresa[]>(`/api/v1/enderecos-empresa/empresa/${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveEndereco(data: EnderecoEmpresa): Observable<EnderecoEmpresa> {
     const payload = {
@@ -69,7 +69,7 @@ export class EmpresaService {
 
   // --- Configuração Empresa (dados cadastrais) ---
   getConfigEmpresa(empresaId: number): Observable<ConfiguracaoEmpresa> {
-    return this.http.get<ConfiguracaoEmpresa>(`/api/v1/configuracoes-empresa/empresa/${empresaId}`);
+    return this.http.get<ConfiguracaoEmpresa>(`/api/v1/configuracoes-empresa/empresa/${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveConfigEmpresa(data: ConfiguracaoEmpresa): Observable<ConfiguracaoEmpresa> {
     const payload = {
@@ -93,7 +93,7 @@ export class EmpresaService {
 
   // --- Configuração Fiscal ---
   getConfigFiscal(empresaId: number): Observable<ConfiguracaoFiscal> {
-    return this.http.get<ConfiguracaoFiscal>(`/api/v1/configuracoes-fiscais/empresa/${empresaId}`);
+    return this.http.get<ConfiguracaoFiscal>(`/api/v1/configuracoes-fiscais/empresa/${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveConfigFiscal(data: ConfiguracaoFiscal): Observable<ConfiguracaoFiscal> {
     const payload = {
@@ -124,7 +124,7 @@ export class EmpresaService {
 
   // --- Configuração Oficina ---
   getConfigOficina(empresaId: number): Observable<ConfiguracaoOficina> {
-    return this.http.get<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina/empresa/${empresaId}`);
+    return this.http.get<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina/empresa/${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveConfigOficina(data: ConfiguracaoOficina): Observable<ConfiguracaoOficina> {
     const payload = {
@@ -155,7 +155,7 @@ export class EmpresaService {
 
   // --- Configuração Email ---
   getConfigEmail(empresaId: number): Observable<any> {
-    return this.http.get<any>(`/api/v1/comunicacao/config/email?empresaId=${empresaId}`);
+    return this.http.get<any>(`/api/v1/comunicacao/config/email?empresaId=${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveConfigEmail(data: ConfiguracaoEmail): Observable<ConfiguracaoEmail> {
     const payload = {
@@ -190,7 +190,7 @@ export class EmpresaService {
 
   // --- Configuração WhatsApp ---
   getConfigWhatsapp(empresaId: number): Observable<any> {
-    return this.http.get<any>(`/api/v1/comunicacao/config/whatsapp?empresaId=${empresaId}`);
+    return this.http.get<any>(`/api/v1/comunicacao/config/whatsapp?empresaId=${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveConfigWhatsapp(data: ConfiguracaoWhatsapp): Observable<ConfiguracaoWhatsapp> {
     const payload = {
@@ -221,7 +221,7 @@ export class EmpresaService {
 
   // --- Configuração SMS ---
   getConfigSms(empresaId: number): Observable<any> {
-    return this.http.get<any>(`/api/v1/comunicacao/config/sms?empresaId=${empresaId}`);
+    return this.http.get<any>(`/api/v1/comunicacao/config/sms?empresaId=${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
   saveConfigSms(data: ConfiguracaoSms): Observable<ConfiguracaoSms> {
     const payload = {

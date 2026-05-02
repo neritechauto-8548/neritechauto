@@ -12,6 +12,9 @@ import {
   ConfiguracaoEmail, ConfiguracaoWhatsapp, ConfiguracaoSms
 } from './models/empresa.models';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
+import { UtilService } from '@shared/services/util.service';
+import { ConfirmationService } from '@shared/services/confirmation.service';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 interface NavTab { id: string; label: string; icon: string; }
@@ -26,9 +29,11 @@ export class EmpresaConfig implements OnInit {
   private service = inject(EmpresaService);
   private toast   = inject(MessageService);
   private storage = inject(LocalStorageService);
+  private utilService = inject(UtilService);
+  private confirmationService = inject(ConfirmationService);
 
   loading   = false;
-  empresaId = 1;
+  empresaId = this.getTenantId();
   activeTab = 'dados';
 
   tabs: NavTab[] = [
@@ -47,11 +52,27 @@ export class EmpresaConfig implements OnInit {
   tipoPessoa: 'Física' | 'Jurídica' = 'Jurídica';
 
   get docMask(): string {
-    return this.tipoPessoa === 'Física' ? '999.999.999-99' : '99.999.999/9999-99';
+    return this.tipoPessoa === 'Física' ? '999.999.999-99' : '**.***.***/****-99';
   }
 
   get docPlaceholder(): string {
     return this.tipoPessoa === 'Física' ? '000.000.000-00' : '00.000.000/0000-00';
+  }
+
+  onPhoneInput(event: any) {
+    let val = event.target.value.replace(/\D/g, '');
+    if (val.length > 11) val = val.substring(0, 11);
+
+    if (val.length > 10) {
+      val = val.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+    } else if (val.length > 6) {
+      val = val.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+    } else if (val.length > 2) {
+      val = val.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+    } else if (val.length > 0) {
+      val = val.replace(/^(\d{0,2}).*/, '($1');
+    }
+    this.empresa.telefone = val;
   }
 
   endereco: EnderecoEmpresa = {
@@ -81,7 +102,7 @@ export class EmpresaConfig implements OnInit {
   };
 
   configEmail: ConfiguracaoEmail = {
-    empresaId: this.empresaId, provedorServico: 'SMTP',
+    empresaId: this.empresaId, provedorServico: 'SMTP_CUSTOMIZADO',
     criptografia: 'TLS', portaSmtp: 587, servidorSmtp: 'smtp.gmail.com', ativo: true
   };
 
@@ -104,7 +125,7 @@ export class EmpresaConfig implements OnInit {
   situacoesCadastrais  = ['ATIVA','SUSPENSA','INAPTA','BAIXADA','NULA'];
   anexosSimples        = ['I','II','III','IV','V'];
   ambientesNfe         = ['HOMOLOGACAO','PRODUCAO'];
-  provedoresEmail      = ['SMTP','AWS_SES','SENDGRID','MAILGUN'];
+  provedoresEmail      = ['SMTP_CUSTOMIZADO','AWS_SES','SENDGRID','MAILGUN'];
   criptografias        = ['NONE','SSL','TLS'];
   tiposIntegracao      = ['WHATSAPP_BUSINESS_API','WEBHOOK','CHATBOT','TERCEIROS'];
   provedoresSms        = ['TWILIO','ZENVIA','INFOBIP','SINCH','NEXMO','TOTALVOICE'];
@@ -127,6 +148,17 @@ export class EmpresaConfig implements OnInit {
     return Array.isArray(raw) ? null : raw as T;
   }
 
+  private getTenantId(): number {
+    try {
+      let tenantId = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
+      if (tenantId && typeof tenantId === 'object') {
+        tenantId = tenantId.id || tenantId.tenantId || tenantId.empresaId || null;
+      }
+      const num = Number(tenantId);
+      return isNaN(num) || num === 0 ? 1 : num;
+    } catch { return 1; }
+  }
+
   loadData() {
     this.loading = true;
     forkJoin({
@@ -140,7 +172,12 @@ export class EmpresaConfig implements OnInit {
       sms:          this.service.getConfigSms(this.empresaId)           .pipe(catchError(() => of(null))),
     }).pipe(finalize(() => this.loading = false))
       .subscribe(({ empresa, enderecos, configEmp, fiscal, oficina, email, whatsapp, sms }) => {
-        if (empresa)                     this.empresa       = empresa;
+        if (empresa) {
+          const clean = (empresa.cnpj || '').replace(/[^a-zA-Z0-9]/g, '');
+          this.tipoPessoa = clean.length > 11 ? 'Jurídica' : 'Física';
+          this.empresa = empresa;
+        }
+
         if (this.pick(enderecos))        this.endereco      = { ...this.endereco, ...this.pick<EnderecoEmpresa>(enderecos) };
         if (this.pick(configEmp))        this.configEmpresa = { ...this.configEmpresa, ...this.pick<ConfiguracaoEmpresa>(configEmp) };
         if (this.pick(fiscal))           this.configFiscal  = { ...this.configFiscal,  ...this.pick<ConfiguracaoFiscal>(fiscal) };
@@ -151,13 +188,65 @@ export class EmpresaConfig implements OnInit {
 
         // Ensure empresaId always set
         this.endereco.empresaId      = this.empresaId;
+      });
+  }
 
-        // Detect tipoPessoa based on CNPJ length or content if possible
-        if (this.empresa.cnpj) {
-          const digits = this.empresa.cnpj.replace(/\D/g, '');
-          this.tipoPessoa = digits.length > 11 ? 'Jurídica' : 'Física';
+  onBlurCnpj() {
+    const value = this.empresa.cnpj;
+    if (!value) return;
+
+    const isValid = this.tipoPessoa === 'Física' ? isValidCpf(value) : isValidCnpj(value);
+
+    if (!isValid) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Documento Inválido',
+        detail: `O ${this.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ'} informado não é válido.`
+      });
+    }
+  }
+
+  buscarCep() {
+    if (!this.endereco.cep || this.endereco.cep.length < 8) return;
+
+    const temDados = !!(this.endereco.logradouro || this.endereco.bairro || this.endereco.cidade || this.endereco.estado);
+
+    if (temDados) {
+      this.confirmationService.confirm({
+        title: 'Alterar Endereço?',
+        message: 'Os campos de endereço já estão preenchidos. Deseja sobrescrevê-los com os dados deste CEP?',
+        confirmText: 'Sim, sobrescrever',
+        cancelText: 'Não, manter atual',
+        type: 'warning',
+        icon: 'warning'
+      }).subscribe(confirmed => {
+        if (confirmed) {
+          this.executarBuscaCep(this.endereco.cep);
         }
       });
+    } else {
+      this.executarBuscaCep(this.endereco.cep);
+    }
+  }
+
+  private executarBuscaCep(cep: string) {
+    this.utilService.buscarCep(cep).subscribe({
+      next: (data) => {
+        if (data.erro) {
+          this.toast.add({ severity: 'error', summary: 'Erro', detail: 'CEP não encontrado.' });
+          return;
+        }
+        this.endereco.logradouro = data.logradouro || '';
+        this.endereco.bairro = data.bairro || '';
+        this.endereco.cidade = data.localidade || '';
+        this.endereco.estado = data.uf || '';
+
+        this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Endereço preenchido automaticamente.' });
+      },
+      error: (err) => {
+        console.error('Erro ao buscar CEP', err);
+      }
+    });
   }
 
   salvar() {

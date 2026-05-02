@@ -101,6 +101,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler({OptimisticLockException.class, OptimisticLockingFailureException.class})
     public ResponseEntity<ApiResponse<Object>> handleOptimisticLock(Exception ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

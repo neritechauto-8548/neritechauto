@@ -3,6 +3,7 @@ package com.neritech.saas.empresa.service;
 import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
+import com.neritech.saas.util.DocumentoValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,14 +46,23 @@ public class EmpresaService {
 
     @Transactional
     public Empresa create(Empresa empresa) {
+        validateDocumento(empresa.getCnpj());
         return empresaRepository.save(empresa);
     }
 
     @Transactional
     public Empresa update(Long id, Empresa empresa) {
+        validateDocumento(empresa.getCnpj());
         Empresa current = findById(id);
         empresa.setId(current.getId());
         return empresaRepository.save(empresa);
+    }
+
+    private void validateDocumento(String doc) {
+        if (doc == null || doc.isBlank()) return;
+        if (!DocumentoValidator.isValidCpf(doc) && !DocumentoValidator.isValidCnpj(doc)) {
+            throw new IllegalArgumentException("CPF ou CNPJ inválido");
+        }
     }
 
     @Transactional

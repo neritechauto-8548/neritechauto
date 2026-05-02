@@ -22,6 +22,7 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
   const router = inject(Router);
   const messageService = inject(MessageService);
   const errorPages = [STATUS.FORBIDDEN, STATUS.NOT_FOUND, STATUS.INTERNAL_SERVER_ERROR];
+  const skipToast = req.headers.has('X-Skip-Toast');
 
   const getMessage = (error: HttpErrorResponse): string => {
     if (error.error?.message) return error.error.message;
@@ -54,30 +55,30 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
 
         if (error.status === STATUS.UNAUTHORIZED) {
           if (req.url.includes('/api/auth/login')) {
-            messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
+            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
           } else {
             router.navigateByUrl('/auth/login');
           }
         } else if (error.status === STATUS.UNPROCESSABLE_ENTITY) {
           if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-            apiErrors.forEach((err: string) => {
+            if (!skipToast) apiErrors.forEach((err: string) => {
               messageService.add({ severity: 'error', summary: 'Validação', detail: err });
             });
           } else {
             const validationErrors = getValidationErrors(error);
             if (validationErrors.length > 0) {
-              validationErrors.forEach(err => {
+              if (!skipToast) validationErrors.forEach(err => {
                 messageService.add({ severity: 'error', summary: 'Validação', detail: `${err.field}: ${err.message}` });
               });
             } else {
-              messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+              if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
             }
           }
         } else {
           if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-            apiErrors.forEach((err: string) => messageService.add({ severity: 'error', summary: 'Erro', detail: err }));
+            if (!skipToast) apiErrors.forEach((err: string) => messageService.add({ severity: 'error', summary: 'Erro', detail: err }));
           } else {
-            messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
           }
         }
         return throwError(() => error);
@@ -87,7 +88,7 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
         router.navigateByUrl(`/${error.status}`, { skipLocationChange: true });
       } else {
         console.error('ERROR', error);
-        messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+        if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
         if (error.status === STATUS.UNAUTHORIZED) {
           router.navigateByUrl('/auth/login');
         }

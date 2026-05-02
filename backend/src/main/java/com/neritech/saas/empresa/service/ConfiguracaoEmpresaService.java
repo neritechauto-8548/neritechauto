@@ -56,10 +56,10 @@ public class ConfiguracaoEmpresaService {
 
     @Transactional(readOnly = true)
     public ConfiguracaoEmpresaResponse findByEmpresaId(Long empresaId) {
-        ConfiguracaoEmpresa configuracao = configuracaoEmpresaRepository.findByEmpresaId(empresaId)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("ConfiguraÃ§Ã£o nÃ£o encontrada para empresa id: " + empresaId));
-        return configuracaoEmpresaMapper.toResponse(configuracao);
+        return configuracaoEmpresaRepository.findByEmpresaId(empresaId)
+                .map(configuracaoEmpresaMapper::toResponse)
+                .orElseGet(() -> new ConfiguracaoEmpresaResponse(
+                        null, empresaId, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
     }
 
     @Transactional(readOnly = true)
