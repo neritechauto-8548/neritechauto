@@ -60,6 +60,17 @@
     }
   }
 
+  /* Warning Variant */
+  &.stripe-toast-warning, &.p-toast-message-warn {
+    background-color: #fffbeb !important; /* Amber 50 */
+    border: 1px solid #fde68a !important; /* Amber 200 */
+    
+    .hot-toast-bar-icon, .p-toast-message-icon {
+      background-color: #fef3c7 !important;
+      color: #b45309 !important; /* Amber 700 */
+    }
+  }
+
   /* PrimeNG Specific overrides */
   .p-toast-message-content {
       padding: 0 !important;

@@ -1,5 +1,4 @@
 <div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
-  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
 
   <!-- ===== Sticky Action Bar ===== -->
   <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
@@ -63,8 +62,14 @@
               <input [(ngModel)]="empresa.razaoSocial" class="w-full modern-input" placeholder="Razão social completa" />
             </div>
             <div class="space-y-1.5">
-              <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">CNPJ *</label>
-              <input [(ngModel)]="empresa.cnpj" class="w-full modern-input font-mono" placeholder="00.000.000/0001-00" />
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">{{ tipoPessoa === 'Física' ? 'CPF' : 'CNPJ' }} *</label>
+                <div class="flex gap-1 bg-slate-100 rounded-md p-0.5 scale-90 origin-right">
+                  <button type="button" (click)="tipoPessoa = 'Física'" [class.bg-white]="tipoPessoa === 'Física'" [class.text-indigo-600]="tipoPessoa === 'Física'" [class.shadow-sm]="tipoPessoa === 'Física'" class="px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 transition-all">PF</button>
+                  <button type="button" (click)="tipoPessoa = 'Jurídica'" [class.bg-white]="tipoPessoa === 'Jurídica'" [class.text-indigo-600]="tipoPessoa === 'Jurídica'" [class.shadow-sm]="tipoPessoa === 'Jurídica'" class="px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 transition-all">PJ</button>
+                </div>
+              </div>
+              <p-inputmask [(ngModel)]="empresa.cnpj" [mask]="docMask" [placeholder]="docPlaceholder" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" [unmask]="false"></p-inputmask>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-1.5">
@@ -138,7 +143,7 @@
         <div class="p-6 grid grid-cols-1 md:grid-cols-6 gap-x-6 gap-y-6">
           <div class="md:col-span-2 space-y-1.5">
             <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">CEP de Localização *</label>
-            <input [(ngModel)]="endereco.cep" class="w-full modern-input font-mono" placeholder="00000-000" />
+            <p-inputmask [(ngModel)]="endereco.cep" mask="99999-999" placeholder="00000-000" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" [unmask]="false"></p-inputmask>
           </div>
           <div class="md:col-span-4 space-y-1.5">
             <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Logradouro / Rua *</label>

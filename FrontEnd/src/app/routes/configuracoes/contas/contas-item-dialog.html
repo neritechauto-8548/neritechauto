@@ -4,7 +4,9 @@
     <!-- Row 1 -->
     <div class="md:col-span-2 flex flex-col gap-1">
       <label for="bancoCodigo" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cód. Banco <span class="text-red-500">*</span></label>
-      <input id="bancoCodigo" type="text" pInputText [(ngModel)]="bancoCodigo" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="001" [disabled]="readonly" />
+      <p-inputmask id="bancoCodigo" mask="999" [(ngModel)]="bancoCodigo" [unmask]="true"
+                   styleClass="w-full text-sm border-slate-300 rounded-lg h-[38px]" 
+                   placeholder="001" [disabled]="readonly" />
     </div>
 
     <div class="md:col-span-6 flex flex-col gap-1">
@@ -14,18 +16,22 @@
 
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="tipoConta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tipo de Conta <span class="text-red-500">*</span></label>
-      <p-select id="tipoConta" name="tipoConta" [options]="tipos" [(ngModel)]="tipoConta" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" [disabled]="readonly" />
+      <p-select id="tipoConta" name="tipoConta" [options]="tipos" [(ngModel)]="tipoConta" optionLabel="label" optionValue="value" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" [disabled]="readonly" />
     </div>
 
     <!-- Row 2 -->
     <div class="md:col-span-3 flex flex-col gap-1">
       <label for="agencia" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Agência <span class="text-red-500">*</span></label>
-      <input id="agencia" type="text" pInputText [(ngModel)]="agencia" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="1234" [disabled]="readonly" />
+      <p-inputmask id="agencia" mask="9999?9" [(ngModel)]="agencia" [unmask]="true"
+                   styleClass="w-full text-sm border-slate-300 rounded-lg h-[38px]" 
+                   placeholder="1234" [disabled]="readonly" />
     </div>
 
     <div class="md:col-span-6 flex flex-col gap-1">
       <label for="conta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Conta <span class="text-red-500">*</span></label>
-      <input id="conta" type="text" pInputText [(ngModel)]="conta" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="56789" [disabled]="readonly" />
+      <p-inputmask id="conta" mask="99999999?9" [(ngModel)]="conta" [unmask]="true"
+                   styleClass="w-full text-sm border-slate-300 rounded-lg h-[38px]" 
+                   placeholder="56789" [disabled]="readonly" />
     </div>
 
     <div class="md:col-span-3 flex flex-col gap-1">
@@ -41,7 +47,11 @@
 
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="cpfCnpjTitular" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">CPF/CNPJ <span class="text-red-500">*</span></label>
-      <input id="cpfCnpjTitular" type="text" pInputText [(ngModel)]="cpfCnpjTitular" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="000.000.000-00" [disabled]="readonly" />
+      <input id="cpfCnpjTitular" type="text" pInputText [value]="cpfCnpjTitular"
+             (input)="onCpfCnpjInput($event)"
+             (blur)="validarDocumento()"
+             class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" 
+             placeholder="000.000.000-00" [disabled]="readonly" />
     </div>
 
     <!-- Row 4 -->

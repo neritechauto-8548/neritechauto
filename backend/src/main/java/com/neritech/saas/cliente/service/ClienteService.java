@@ -11,6 +11,7 @@ import com.neritech.saas.cliente.repository.ContatoClienteRepository;
 import com.neritech.saas.cliente.repository.EnderecoClienteRepository;
 import com.neritech.saas.veiculo.repository.VeiculoRepository;
 import com.neritech.saas.common.exception.BusinessException;
+import com.neritech.saas.util.DocumentoValidator;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,7 +61,7 @@ public class ClienteService {
      */
     @Transactional
     public Cliente create(Cliente c) {
-        // ValidaÃ§Ãµes de negÃ³cio adicionais podem ser inseridas aqui
+        validateDocumento(c);
         return repository.save(c);
     }
 
@@ -75,6 +76,7 @@ public class ClienteService {
      */
     @Transactional
     public Cliente update(Long id, Cliente c) {
+        validateDocumento(c);
         Cliente current = findById(id);
         // Garante que o id e o empresaId do registro nÃ£o sejam alterados
         c.setId(current.getId());
@@ -98,7 +100,20 @@ public class ClienteService {
         ClienteMapper.updateEntity(current, request);
         // Garante que empresaId nÃ£o serÃ¡ modificado por payload
         current.setEmpresaId(current.getEmpresaId());
+        validateDocumento(current);
         return repository.save(current);
+    }
+
+    private void validateDocumento(Cliente c) {
+        if (c.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
+            if (c.getCpf() != null && !c.getCpf().isBlank() && !DocumentoValidator.isValidCpf(c.getCpf())) {
+                throw new BusinessException("O CPF informado (" + c.getCpf() + ") é inválido.");
+            }
+        } else if (c.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
+            if (c.getCnpj() != null && !c.getCnpj().isBlank() && !DocumentoValidator.isValidCnpj(c.getCnpj())) {
+                throw new BusinessException("O CNPJ informado (" + c.getCnpj() + ") é inválido.");
+            }
+        }
     }
 
     /**

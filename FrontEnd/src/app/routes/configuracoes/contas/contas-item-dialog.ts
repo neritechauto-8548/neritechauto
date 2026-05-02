@@ -6,11 +6,15 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { Checkbox } from 'primeng/checkbox';
+import { InputMaskModule } from 'primeng/inputmask';
+import { MessageService } from 'primeng/api';
+import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
+import { UtilService } from '@shared/services/util.service';
 
 @Component({
   selector: 'app-contas-item-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, Select, Checkbox],
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, Select, Checkbox, InputMaskModule],
   templateUrl: './contas-item-dialog.html',
 })
 export class ContasItemDialog {
@@ -34,7 +38,37 @@ export class ContasItemDialog {
     { label: 'Investimento', value: 'INVESTIMENTO' },
   ];
 
-  constructor(private ref: DynamicDialogRef, private config: DynamicDialogConfig) {
+  applyCpfCnpjMask(v: string): string {
+    const digits = v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    if (digits.length <= 11) {
+      // CPF: 999.999.999-99
+      let out = digits.slice(0, 11);
+      if (digits.length > 3) out = digits.slice(0, 3) + '.' + digits.slice(3);
+      if (digits.length > 6) out = out.slice(0, 7) + '.' + digits.slice(6);
+      if (digits.length > 9) out = out.slice(0, 11) + '-' + digits.slice(9);
+      return out;
+    } else {
+      // CNPJ: AA.AAA.AAA/AAAA-99
+      let out = digits.slice(0, 14);
+      if (digits.length > 2) out = digits.slice(0, 2) + '.' + digits.slice(2);
+      if (digits.length > 5) out = out.slice(0, 6) + '.' + digits.slice(5);
+      if (digits.length > 8) out = out.slice(0, 10) + '/' + digits.slice(8);
+      if (digits.length > 12) out = out.slice(0, 15) + '-' + digits.slice(12);
+      return out;
+    }
+  }
+
+  onCpfCnpjInput(event: any) {
+    const val = event.target.value;
+    this.cpfCnpjTitular = this.applyCpfCnpjMask(val);
+  }
+
+  constructor(
+    private ref: DynamicDialogRef, 
+    private config: DynamicDialogConfig,
+    private messageService: MessageService,
+    private utilService: UtilService
+  ) {
     const d = this.config.data || {};
     this.bancoCodigo = d.bancoCodigo || '';
     this.bancoNome = d.bancoNome || '';
@@ -50,6 +84,26 @@ export class ContasItemDialog {
     this.snAtivo = d.snAtivo !== false ? true : false;
     this.ativo = d.ativo !== false;
     this.readonly = !!d.readonly;
+  }
+
+  validarDocumento() {
+    if (!this.cpfCnpjTitular) return;
+    const digits = this.cpfCnpjTitular.replace(/[^a-zA-Z0-9]/g, '');
+    const tipo = digits.length > 11 ? 'Jurídica' : 'Física';
+    
+    // Chama a validação do backend
+    this.utilService.validarDocumento(digits, tipo).subscribe({
+      next: (isValid) => {
+        if (!isValid) {
+          this.messageService.add({ 
+            severity: 'warn', 
+            summary: 'Documento Inválido', 
+            detail: `O ${tipo === 'Física' ? 'CPF' : 'CNPJ'} informado não é válido.` 
+          });
+        }
+      },
+      error: (err) => console.error('Erro ao validar documento no backend', err)
+    });
   }
 
   cancelar() {

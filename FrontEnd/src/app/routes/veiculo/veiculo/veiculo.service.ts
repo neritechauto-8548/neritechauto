@@ -58,6 +58,11 @@ export class VeiculoService {
     return this.http.delete<void>(url);
   }
 
+  getByPlaca(placa: string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/placa/${placa}`;
+    return this.http.get<VeiculoResponse>(url);
+  }
+
   // ========== MARCAS ==========
 
   listMarcas(filters?: Record<string, any>): Observable<Page<MarcaVeiculoResponse>> {

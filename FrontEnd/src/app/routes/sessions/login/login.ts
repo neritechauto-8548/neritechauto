@@ -15,7 +15,8 @@ import { AuthService } from '@core/authentication';
 import { LocalStorageService } from '@shared/services/storage.service';
 
 import { CommonModule } from '@angular/common';
-import { HotToastService } from '@ngxpert/hot-toast';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-login',
@@ -27,6 +28,7 @@ import { HotToastService } from '@ngxpert/hot-toast';
     ReactiveFormsModule,
     RouterLink,
     TranslateModule,
+    ToastModule,
   ],
 })
 export class Login {
@@ -34,7 +36,7 @@ export class Login {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly storage = inject(LocalStorageService);
-  private readonly toast = inject(HotToastService);
+  private readonly messageService = inject(MessageService);
 
   isSubmitting = false;
   showPassword = false;
@@ -74,7 +76,7 @@ export class Login {
           if (this.rememberMe.value) {
             this.storage.set('loginDefaults', { username: this.username.value, password: this.password.value });
           }
-          this.toast.success('Login realizado com sucesso!', { duration: 3000 });
+          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Login realizado com sucesso!' });
           this.router.navigateByUrl('/');
         },
         error: (errorRes: HttpErrorResponse) => {
@@ -105,6 +107,17 @@ export class Login {
                 form.get(controlKey)?.setErrors({ remote: msg });
               });
             }
+            this.messageService.add({ 
+              severity: 'error', 
+              summary: 'Erro de validação', 
+              detail: 'Por favor, verifique os campos destacados.' 
+            });
+          } else {
+            this.messageService.add({ 
+              severity: 'error', 
+              summary: 'Erro de Login', 
+              detail: errorRes.error?.message || 'E-mail ou senha incorretos.' 
+            });
           }
           this.isSubmitting = false;
         },

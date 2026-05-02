@@ -5,6 +5,7 @@ import com.neritech.saas.ordemservico.dto.ChecklistRequest;
 import com.neritech.saas.ordemservico.dto.ChecklistResponse;
 import com.neritech.saas.ordemservico.mapper.ChecklistMapper;
 import com.neritech.saas.ordemservico.repository.ChecklistRepository;
+import com.neritech.saas.ordemservico.repository.ItChecklistRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,10 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChecklistService {
 
     private final ChecklistRepository repository;
+    private final ItChecklistRepository itChecklistRepository;
     private final ChecklistMapper mapper;
 
-    public ChecklistService(ChecklistRepository repository, ChecklistMapper mapper) {
+    public ChecklistService(ChecklistRepository repository, ItChecklistRepository itChecklistRepository, ChecklistMapper mapper) {
         this.repository = repository;
+        this.itChecklistRepository = itChecklistRepository;
         this.mapper = mapper;
     }
 
@@ -56,6 +59,7 @@ public class ChecklistService {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Checklist não encontrado com ID: " + id);
         }
+        itChecklistRepository.deleteByChecklist_Id(id);
         repository.deleteById(id);
     }
 }

@@ -9,4 +9,5 @@ import java.util.List;
 @Repository("comunicacaoItQuestionarioRepository")
 public interface ItQuestionarioRepository extends JpaRepository<ItQuestionario, Long>, JpaSpecificationExecutor<ItQuestionario> {
     List<ItQuestionario> findByQuestionarioId(Long questionarioId);
+    void deleteByQuestionarioId(Long questionarioId);
 }

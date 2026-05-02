@@ -9,12 +9,12 @@ import { ItemInventarioDialog } from './item-inventario-dialog';
 import { InventarioService, InventarioResponse, InventarioRequest } from './inventario.service';
 import { ItemInventarioService, ItemInventarioRequest } from './item-inventario.service';
 import { LocalStorageService } from '@shared/services/storage.service';
-import { HotToastService } from '@ngxpert/hot-toast';
 import { MatIconModule } from '@angular/material/icon';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { RouterModule } from '@angular/router';
+import { ConfirmationDialogComponent } from '@shared/components';
 
 @Component({
   selector: 'inventario',
@@ -29,9 +29,10 @@ import { RouterModule } from '@angular/router';
     DynamicDialogModule,
     MatIconModule,
     ToastModule,
-    RouterModule
+    RouterModule,
+    ConfirmationDialogComponent
   ],
-  providers: [DialogService, MessageService],
+  providers: [DialogService, MessageService, ConfirmationService],
 })
 export class Inventario implements OnInit {
   private readonly dialogService = inject(DialogService);
@@ -39,7 +40,7 @@ export class Inventario implements OnInit {
   private readonly itemService = inject(ItemInventarioService);
   private readonly storage = inject(LocalStorageService);
   private readonly confirmationService = inject(ConfirmationService);
-  private readonly toast = inject(HotToastService);
+  private readonly messageService = inject(MessageService);
 
   dialogRef: DynamicDialogRef | null = null;
 
@@ -75,7 +76,7 @@ export class Inventario implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.toast.error('Erro ao carregar inventários.');
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar inventários.' });
       }
     });
   }
@@ -178,7 +179,7 @@ export class Inventario implements OnInit {
           };
           this.inventarioService.create(payload).subscribe({
             next: (created) => {
-              this.toast.success('Inventário criado com sucesso');
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Inventário criado com sucesso' });
               this.load();
               if (created?.id) {
                 this.openAddItems(created.id);
@@ -187,7 +188,7 @@ export class Inventario implements OnInit {
             error: () => {}
           });
         } else if (result) {
-          this.toast.error('Preencha Código, Descrição e Data de Início');
+          this.messageService.add({ severity: 'error', summary: 'Aviso', detail: 'Preencha Código, Descrição e Data de Início' });
         }
       });
     }
@@ -221,7 +222,7 @@ export class Inventario implements OnInit {
           };
           this.itemService.create(dto).subscribe({
             next: () => {
-              this.toast.success('Item adicionado ao inventário');
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Item adicionado ao inventário' });
               if (result.continuar) {
                 setTimeout(() => this.openAddItems(inventarioId), 0);
               }
@@ -267,7 +268,7 @@ export class Inventario implements OnInit {
           };
           this.inventarioService.update(row.id, payload).subscribe({
             next: () => {
-              this.toast.success('Inventário atualizado com sucesso');
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Inventário atualizado com sucesso' });
               this.load();
             },
             error: () => {}
@@ -289,7 +290,7 @@ export class Inventario implements OnInit {
       if (confirmed) {
         this.inventarioService.delete(row.id).subscribe({
           next: () => {
-            this.toast.success('Inventário apagado com sucesso');
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Inventário apagado com sucesso' });
             this.load();
           },
           error: () => {}

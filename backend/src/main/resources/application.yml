@@ -27,6 +27,8 @@ spring:
     locations: classpath:db/migration
     ignore-missing-migrations: true
     validate-on-migrate: false
+    default-schema: public
+    schemas: public
 
   mail:
     host: ${SMTP_HOST}

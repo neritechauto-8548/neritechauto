@@ -2,18 +2,20 @@ import { Component, EventEmitter, Input, Output, OnInit, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-// PrimeNG v20 components
-import { Select } from 'primeng/select';
-import { InputText } from 'primeng/inputtext';
-import { Textarea } from 'primeng/textarea';
-import { DatePicker } from 'primeng/datepicker';
+// PrimeNG components
+import { SelectModule } from 'primeng/select';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { DatePickerModule } from 'primeng/datepicker';
 import { TableModule } from 'primeng/table';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
-import { Dialog } from 'primeng/dialog';
+import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { InputMaskModule } from 'primeng/inputmask';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ClientesService, ClienteRequestDTO, ClienteResponseDTO } from '../cliente/cliente.service';
 import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels,
   Sexo, EstadoCivil, OrigemCliente, getSexoOptions, getEstadoCivilOptions, getOrigemClienteOptions
@@ -22,6 +24,8 @@ import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
 import { VeiculoRequest, VeiculoResponse, MarcaVeiculoResponse, ModeloVeiculoResponse, StatusVeiculo } from '../../veiculo/models/veiculo.models';
 import { forkJoin } from 'rxjs';
 import { ConfirmationService } from '@shared/services/confirmation.service';
+import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
+import { UtilService } from '@shared/services/util.service';
 
 interface ContatoExtra {
   tipoContato: string;
@@ -51,16 +55,17 @@ interface DocumentoExtra {
   imports: [
     CommonModule,
     FormsModule,
-    // PrimeNG v20 standalone components
-    Select,
-    InputText,
-    Textarea,
-    DatePicker,
+    SelectModule,
+    InputTextModule,
+    TextareaModule,
+    DatePickerModule,
     TableModule,
     ToastModule,
     TooltipModule,
-    Dialog,
-    TagModule
+    DialogModule,
+    TagModule,
+    InputMaskModule,
+    AutoCompleteModule
   ],
 })
 export class CadastroCliente implements OnInit {
@@ -69,6 +74,7 @@ export class CadastroCliente implements OnInit {
   private readonly clientesService = inject(ClientesService);
   private readonly storage = inject(LocalStorageService);
   private readonly messageService = inject(MessageService);
+  private readonly utilService = inject(UtilService);
   private readonly veiculoService = inject(VeiculoService);
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -179,8 +185,8 @@ export class CadastroCliente implements OnInit {
         this.loadVeiculos(id);
       },
       error: (err) => {
-        console.error('Erro ao carregar cliente', err);
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os dados do cliente.' });
+        console.error('Erro ao carregars cliente', err);
+        // O interceptor global já mostrará o erro de rede.
       }
     });
   }
@@ -263,15 +269,31 @@ export class CadastroCliente implements OnInit {
     this.model.cpfCnpj = this.applyCpfCnpjMask(this.stripNonDigits(this.model.cpfCnpj));
   }
 
-  // Máscara dinâmica CPF/CNPJ
-  onCpfCnpjInput(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const digits = this.stripNonDigits(input.value);
-    this.model.cpfCnpj = this.applyCpfCnpjMask(digits);
+  onDocumentoBlur() {
+    if (!this.model.cpfCnpj) return;
+
+    this.utilService.validarDocumento(this.model.cpfCnpj, this.model.tipoPessoa).subscribe({
+      next: (isValid) => {
+        if (!isValid) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Atenção',
+            detail: `O ${this.model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ'} informado não parece ser válido.`
+          });
+        }
+      },
+      error: (err) => console.error('Erro ao validar documento no backend', err)
+    });
   }
+
+  // Máscara dinâmica CPF/CNPJ
 
   private stripNonDigits(v: string) {
     return (v || '').replace(/\D+/g, '');
+  }
+
+  private stripNonAlphanumeric(v: string) {
+    return (v || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   }
 
   private applyCpfCnpjMask(digits: string) {
@@ -284,8 +306,8 @@ export class CadastroCliente implements OnInit {
       if (d.length > 9) out = out.slice(0, 11) + '-' + d.slice(9);
       return out;
     } else {
-      // CNPJ: 00.000.000/0000-00
-      const d = digits.slice(0, 14);
+      // CNPJ: AA.AAA.AAA/AAAA-00 (Alfanumérico)
+      const d = digits.toUpperCase().slice(0, 14);
       let out = d;
       if (d.length > 2) out = d.slice(0, 2) + '.' + d.slice(2);
       if (d.length > 5) out = out.slice(0, 6) + '.' + d.slice(5);
@@ -317,6 +339,19 @@ export class CadastroCliente implements OnInit {
       return;
     }
 
+    // Validação de CPF/CNPJ (Frontend)
+    if (this.model.tipoPessoa === 'Física') {
+        if (this.model.cpfCnpj && !isValidCpf(this.model.cpfCnpj)) {
+            this.messageService.add({ severity: 'error', summary: 'CPF Inválido', detail: 'O número de CPF informado é matematicamente inválido.' });
+            return;
+        }
+    } else {
+        if (this.model.cpfCnpj && !isValidCnpj(this.model.cpfCnpj)) {
+            this.messageService.add({ severity: 'error', summary: 'CNPJ Inválido', detail: 'O número de CNPJ informado é matematicamente inválido.' });
+            return;
+        }
+    }
+
     // Validação Obrigatória de Endereço
     if (!this.validateEndereco()) {
         this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha todos os campos obrigatórios do endereço.' });
@@ -328,14 +363,13 @@ export class CadastroCliente implements OnInit {
     }
 
     // Preparar DTO (reaproveita lógica existente)
-    const stripDigits = (v: string) => (v || '').replace(/\D+/g, '');
     const dto: ClienteRequestDTO = {
       tipoCliente: this.model.tipoPessoa === 'Física' ? TipoCliente.PESSOA_FISICA : TipoCliente.PESSOA_JURIDICA,
       nomeCompleto: this.model.tipoPessoa === 'Física' ? (this.model.nomeRazao || undefined) : (this.model.razaoSocial || undefined),
       nomeFantasia: this.model.tipoPessoa === 'Jurídica' ? (this.model.nomeFantasia || undefined) : undefined,
       razaoSocial: this.model.tipoPessoa === 'Jurídica' ? (this.model.razaoSocial || undefined) : undefined,
-      cpf: this.model.tipoPessoa === 'Física' ? stripDigits(this.model.cpfCnpj) : undefined,
-      cnpj: this.model.tipoPessoa === 'Jurídica' ? stripDigits(this.model.cpfCnpj) : undefined,
+      cpf: this.model.tipoPessoa === 'Física' ? this.stripNonDigits(this.model.cpfCnpj) : undefined,
+      cnpj: this.model.tipoPessoa === 'Jurídica' ? this.stripNonAlphanumeric(this.model.cpfCnpj) : undefined,
       inscricaoEstadual: this.model.inscricaoEstadual || undefined,
       inscricaoMunicipal: this.model.inscricaoMunicipal || undefined,
       dataNascimento: this.model.tipoPessoa === 'Física' ? this.formatDate(this.model.dataNascimento) : undefined,
@@ -364,7 +398,7 @@ export class CadastroCliente implements OnInit {
         },
         error: (err) => {
              console.error('Erro ao atualizar', err);
-             this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar cliente.' });
+             // Interceptor trata o erro de rede
         }
       });
     } else {
@@ -400,7 +434,7 @@ export class CadastroCliente implements OnInit {
     // 1. Endereço Principal
     if (this.model.cep && this.model.logradouro) {
       const endereco: EnderecoClienteRequest = {
-        cep: this.model.cep,
+        cep: this.stripNonDigits(this.model.cep),
         logradouro: this.model.logradouro,
         numero: this.model.numero || 'S/N',
         complemento: this.model.complemento,
@@ -478,12 +512,11 @@ export class CadastroCliente implements OnInit {
   }
 
   salvarContatoLista() {
-    if (!this.contatoForm.valor) {
-        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Informe o valor do contato.' });
-        return;
-    }
+    const valorSalvar = this.isPhoneType(this.contatoForm.tipoContato) 
+      ? this.stripNonDigits(this.contatoForm.valor) 
+      : this.contatoForm.valor;
 
-    const payload = { tipoContato: this.contatoForm.tipoContato, contato: this.contatoForm.valor };
+    const payload = { tipoContato: this.contatoForm.tipoContato, contato: valorSalvar };
 
     if (this.savedClienteId) {
       // Auto-save logic (Edição remota)
@@ -503,7 +536,7 @@ export class CadastroCliente implements OnInit {
               },
               error: (err) => {
                   console.error(err);
-                  this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar contato.' });
+                  // Interceptor trata o erro de rede
               }
           });
       } else {
@@ -520,7 +553,7 @@ export class CadastroCliente implements OnInit {
             },
             error: (err) => {
               console.error(err);
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar contato.' });
+              // Interceptor trata o erro de rede
             }
           });
       }
@@ -553,7 +586,7 @@ export class CadastroCliente implements OnInit {
             },
             error: (err) => {
               console.error(err);
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir contato.' });
+              // Interceptor trata o erro de rede
             }
           });
        }
@@ -597,6 +630,41 @@ export class CadastroCliente implements OnInit {
   }
 
 
+
+  isPhoneType(tipo: any): boolean {
+    return ['TELEFONE_FIXO', 'CELULAR', 'WHATSAPP', 'TELEGRAM'].includes(tipo);
+  }
+
+  getContactMask(tipo: any): string {
+    if (tipo === 'TELEFONE_FIXO') return '(99) 9999-9999';
+    if (['CELULAR', 'WHATSAPP', 'TELEGRAM'].includes(tipo)) return '(99) 99999-9999';
+    return '';
+  }
+
+  getContactPlaceholder(tipo: any): string {
+    const mask = this.getContactMask(tipo);
+    if (!mask) return 'Digite o contato...';
+    return mask.replace(/9/g, '0');
+  }
+
+  formatarContato(contato: any): string {
+    const valor = contato.valor || (contato as any).contato || '';
+    if (this.isPhoneType(contato.tipoContato)) {
+       return this.applyPhoneMask(valor, contato.tipoContato);
+    }
+    return valor;
+  }
+
+  private applyPhoneMask(digits: string, tipo: any): string {
+    const d = this.stripNonDigits(digits);
+    if (tipo === 'TELEFONE_FIXO' && d.length >= 10) {
+       return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6, 10)}`;
+    }
+    if (d.length >= 11) {
+       return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+    }
+    return d; // Retorna apenas os dígitos se não bater com tamanho padrão
+  }
 
   validateEndereco(): boolean {
       const { cep, logradouro, numero, bairro, cidade, estado } = this.model;
@@ -643,7 +711,7 @@ export class CadastroCliente implements OnInit {
       },
       error: err => {
         console.error('Erro ao salvar endereços', err);
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar endereços.' });
+        // Interceptor trata o erro de rede
       }
     });
   }
@@ -671,7 +739,7 @@ export class CadastroCliente implements OnInit {
                   },
                   error: (err: unknown) => {
                       console.error('Erro ao excluir cliente:', err);
-                      this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir cliente.' });
+                      // Interceptor trata o erro de rede
                   }
               });
           }
@@ -727,20 +795,51 @@ export class CadastroCliente implements OnInit {
     }
   }
 
-  onCepInput(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const digits = this.stripNonDigits(input.value);
-    this.model.cep = digits;
-  }
 
   buscarCep() {
-    // Placeholder de busca de CEP; manter comportamento simples na restauração
-    const cep = (this.model.cep || '').replace(/\D+/g, '');
-    if (!cep || cep.length < 8) {
-      alert('Informe um CEP válido para buscar.');
-      return;
+    if (!this.model.cep || this.model.cep.length < 8) return;
+
+    // Verifica se algum dado relevante já está preenchido
+    const temDados = !!(this.model.logradouro || this.model.bairro || this.model.cidade || this.model.estado);
+
+    if (temDados) {
+        this.confirmationService.confirm({
+            title: 'Alterar Endereço?',
+            message: 'Os campos de endereço já estão preenchidos. Deseja sobrescrevê-los com os dados deste CEP?',
+            confirmText: 'Sim, sobrescrever',
+            cancelText: 'Não, manter atual',
+            type: 'warning',
+            icon: 'warning'
+        }).subscribe(confirmed => {
+            if (confirmed) {
+                this.executarBuscaCep(this.model.cep);
+            }
+        });
+    } else {
+        this.executarBuscaCep(this.model.cep);
     }
-    // Aqui poderíamos integrar com um serviço de CEP; por ora, não altera campos
+  }
+
+  private executarBuscaCep(cep: string) {
+    this.utilService.buscarCep(cep).subscribe({
+      next: (data) => {
+        if (data.erro) {
+          this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'CEP não encontrado.' });
+          return;
+        }
+        this.model.logradouro = data.logradouro || '';
+        this.model.bairro = data.bairro || '';
+        this.model.cidade = data.localidade || '';
+        this.model.estado = data.uf || '';
+        this.model.uf = data.uf || '';
+
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Endereço preenchido automaticamente.' });
+      },
+      error: (err) => {
+        console.error('Erro ao buscar CEP', err);
+        // O interceptor já mostrará o erro de rede
+      }
+    });
   }
 
   salvarDocumentosExtras() {
@@ -769,7 +868,7 @@ export class CadastroCliente implements OnInit {
       },
       error: err => {
         console.error('Erro ao enviar documentos', err);
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao enviar documentos.' });
+        // Interceptor trata o erro de rede
       }
     });
   }
@@ -845,7 +944,7 @@ export class CadastroCliente implements OnInit {
           },
           error: (err) => {
               console.error(err);
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar veículo.' });
+              // Interceptor trata o erro de rede
           }
       });
   }

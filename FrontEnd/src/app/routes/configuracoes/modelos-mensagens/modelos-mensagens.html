@@ -1,4 +1,5 @@
 <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+<app-confirmation-dialog />
 
 <div class="flex flex-col h-full gap-5">
 
@@ -48,11 +49,11 @@
                 <!-- Circular Icon Box (Categoria Style) -->
                 <div class="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] font-bold shadow-sm group-hover:scale-105 transition-transform"
                      [ngClass]="{
-                        'bg-emerald-50 text-emerald-600 border border-emerald-100': row.tipoTemplate === 'PUSH_NOTIFICATION',
-                        'bg-blue-50 text-blue-600 border border-blue-100': row.tipoTemplate === 'EMAIL',
-                        'bg-indigo-50 text-indigo-600 border border-indigo-100': row.tipoTemplate === 'SMS' || row.tipoTemplate === 'WHATSAPP'
+                        'bg-emerald-50 text-emerald-600 border border-emerald-200': row.tipoTemplate === 'PUSH_NOTIFICATION' || row.tipoTemplate === 'WHATSAPP',
+                        'bg-indigo-50 text-[#635bff] border border-indigo-200': row.tipoTemplate === 'EMAIL',
+                        'bg-slate-50 text-slate-600 border border-slate-200': row.tipoTemplate === 'SMS'
                      }">
-                  <mat-icon>{{ row.tipoTemplate === 'PUSH_NOTIFICATION' || row.tipoTemplate === 'WHATSAPP' ? 'forum' : (row.tipoTemplate === 'EMAIL' ? 'alternate_email' : 'sms') }}</mat-icon>
+                  <mat-icon class="!text-[20px]">{{ row.tipoTemplate === 'PUSH_NOTIFICATION' || row.tipoTemplate === 'WHATSAPP' ? 'forum' : (row.tipoTemplate === 'EMAIL' ? 'alternate_email' : 'sms') }}</mat-icon>
                 </div>
                 <div class="flex flex-col">
                   <span class="font-bold text-slate-800 text-sm group-hover:text-[#635bff] transition-colors cursor-pointer" (click)="editar(row)">
@@ -65,14 +66,14 @@
             <td class="py-2.5 px-6 align-middle">
               <span class="inline-flex items-center gap-1.5 text-[9px] font-black px-2.5 py-1 rounded-full border uppercase tracking-widest shadow-sm"
                     [ngClass]="{
-                      'bg-emerald-50 text-emerald-600 border-emerald-100': row.tipoTemplate === 'PUSH_NOTIFICATION',
-                      'bg-blue-50 text-blue-600 border-blue-100': row.tipoTemplate === 'EMAIL',
-                      'bg-indigo-50 text-indigo-600 border-indigo-100': row.tipoTemplate === 'SMS' || row.tipoTemplate === 'WHATSAPP'
+                      'bg-emerald-50 text-emerald-700 border-emerald-200': row.tipoTemplate === 'PUSH_NOTIFICATION' || row.tipoTemplate === 'WHATSAPP',
+                      'bg-indigo-50 text-[#635bff] border-indigo-200': row.tipoTemplate === 'EMAIL',
+                      'bg-slate-50 text-slate-700 border-slate-200': row.tipoTemplate === 'SMS'
                     }">
                 <div class="w-1 h-1 rounded-full animate-pulse" [ngClass]="{
-                    'bg-emerald-500': row.tipoTemplate === 'PUSH_NOTIFICATION',
-                    'bg-blue-500': row.tipoTemplate === 'EMAIL',
-                    'bg-indigo-500': row.tipoTemplate === 'SMS' || row.tipoTemplate === 'WHATSAPP'
+                    'bg-emerald-500': row.tipoTemplate === 'PUSH_NOTIFICATION' || row.tipoTemplate === 'WHATSAPP',
+                    'bg-[#635bff]': row.tipoTemplate === 'EMAIL',
+                    'bg-slate-500': row.tipoTemplate === 'SMS'
                 }"></div>
                 {{ row.tipoTemplate === 'PUSH_NOTIFICATION' ? 'APP' : row.tipoTemplate }}
               </span>

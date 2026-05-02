@@ -91,7 +91,7 @@ export class AuthService {
         }
         // Salva o tenantId (empresaId) no LocalStorage
         const u = user as any;
-        let tenantId = u.empresaId || u.tenantId || u.idEmpresa;
+        let tenantId = u.empresaId || u.tenantId || u.idEmpresa || u.id_empresa || u.companyId;
         
         if (tenantId && typeof tenantId === 'object' && tenantId.id) {
           tenantId = tenantId.id;
@@ -99,11 +99,10 @@ export class AuthService {
 
         if (tenantId) {
           console.log('🏢 Setting Tenant ID from user profile:', tenantId);
-          this.storage.set('tenantId', tenantId);
+          this.storage.set('tenantId', String(tenantId));
+          this.storage.set('empresaId', String(tenantId)); // Dual storage for compatibility
         } else {
-          console.warn('⚠️ No tenant ID found in user profile. Defaulting to 1 for testing.');
-          // Fallback temporário para resolver o problema imediato do usuário
-          this.storage.set('tenantId', '1');
+          console.warn('⚠️ No tenant ID found in user profile. Profile data:', u);
         }
       })
     );

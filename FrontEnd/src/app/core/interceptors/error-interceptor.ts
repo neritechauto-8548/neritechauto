@@ -1,7 +1,7 @@
 import { HttpErrorResponse, HttpHandlerFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { HotToastService } from '@ngxpert/hot-toast';
+import { MessageService } from 'primeng/api';
 import { catchError, throwError } from 'rxjs';
 
 export enum STATUS {
@@ -20,36 +20,26 @@ export interface ValidationError {
 
 export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
   const router = inject(Router);
-  const toast = inject(HotToastService);
+  const messageService = inject(MessageService);
   const errorPages = [STATUS.FORBIDDEN, STATUS.NOT_FOUND, STATUS.INTERNAL_SERVER_ERROR];
 
   const getMessage = (error: HttpErrorResponse): string => {
-    // Prioridade 1: Mensagem direta do backend
-    if (error.error?.message) {
-      return error.error.message;
-    }
-    // Prioridade 2: Mensagem alternativa
-    if (error.error?.msg) {
-      return error.error.msg;
-    }
-    // Prioridade 3: Erros de validação (422) - compilar mensagens dos campos
+    if (error.error?.message) return error.error.message;
+    if (error.error?.msg) return error.error.msg;
     if (error.status === STATUS.UNPROCESSABLE_ENTITY && error.error?.details) {
       const details = error.error.details as ValidationError[];
       if (Array.isArray(details) && details.length > 0) {
-        const messages = details.map(d => `${d.field}: ${d.message}`).join('; ');
-        return `Erros de validação: ${messages}`;
+        return details.map(d => `${d.field}: ${d.message}`).join('; ');
       }
     }
-    // Fallback: status e statusText
+    if (error.status === 0) return 'Servidor indisponível ou erro de conexão.';
     return `${error.status} ${error.statusText}`;
   };
 
   const getValidationErrors = (error: HttpErrorResponse): ValidationError[] => {
     if (error.status === STATUS.UNPROCESSABLE_ENTITY && error.error?.details) {
       const details = error.error.details;
-      if (Array.isArray(details)) {
-        return details as ValidationError[];
-      }
+      if (Array.isArray(details)) return details as ValidationError[];
     }
     return [];
   };
@@ -60,51 +50,44 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
 
       if (isApi) {
         console.error('API ERROR', error);
-
-        // Extrair erros do formato ApiResponse { errors: string[] }
         const apiErrors = error.error?.errors;
 
         if (error.status === STATUS.UNAUTHORIZED) {
-          const isLoginRequest = req.url.includes('/api/auth/login');
-          if (isLoginRequest) {
-            toast.error('Credenciais inválidas');
+          if (req.url.includes('/api/auth/login')) {
+            messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
           } else {
             router.navigateByUrl('/auth/login');
           }
         } else if (error.status === STATUS.UNPROCESSABLE_ENTITY) {
-          // Erros de validação
           if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-             // Backend novo retorna lista de strings "Campo: Erro"
-             apiErrors.forEach((err: string) => {
-                toast.error(err, { duration: 5000, position: 'top-right' });
-             });
+            apiErrors.forEach((err: string) => {
+              messageService.add({ severity: 'error', summary: 'Validação', detail: err });
+            });
           } else {
-             const validationErrors = getValidationErrors(error);
-             if (validationErrors.length > 0) {
-                validationErrors.forEach(err => {
-                  toast.error(`${err.field}: ${err.message}`, { duration: 5000, position: 'top-right' });
-                });
-             } else {
-                toast.error(getMessage(error));
-             }
+            const validationErrors = getValidationErrors(error);
+            if (validationErrors.length > 0) {
+              validationErrors.forEach(err => {
+                messageService.add({ severity: 'error', summary: 'Validação', detail: `${err.field}: ${err.message}` });
+              });
+            } else {
+              messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+            }
           }
         } else {
-           // Outros erros
-           if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-              apiErrors.forEach((err: string) => toast.error(err));
-           } else {
-              toast.error(getMessage(error));
-           }
+          if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+            apiErrors.forEach((err: string) => messageService.add({ severity: 'error', summary: 'Erro', detail: err }));
+          } else {
+            messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+          }
         }
         return throwError(() => error);
       }
 
-      // Para erros de navegação/rotas
       if (errorPages.includes(error.status)) {
         router.navigateByUrl(`/${error.status}`, { skipLocationChange: true });
       } else {
         console.error('ERROR', error);
-        toast.error(getMessage(error));
+        messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
         if (error.status === STATUS.UNAUTHORIZED) {
           router.navigateByUrl('/auth/login');
         }

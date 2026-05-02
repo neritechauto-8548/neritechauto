@@ -1,11 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PageHeader } from '@shared';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AssinaturaService, AssinaturaStatus } from './assinatura.service';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { AuthService } from '@core/authentication';
 import { finalize } from 'rxjs';
 
 interface Plano {
@@ -97,10 +97,25 @@ export class AssinaturaComponent implements OnInit {
     }
   ];
 
+  private auth = inject(AuthService);
+
   ngOnInit() {
-    const stored = this.storage.get('tenantId');
-    this.empresaId = stored ? Number(stored) : 1;
-    this.loadStatus();
+    this.auth.user().subscribe(user => {
+      const u = user as any;
+      const id = u.empresaId || u.tenantId || u.idEmpresa || u.id_empresa || u.companyId;
+      
+      if (id) {
+        this.empresaId = Number(id);
+        this.loadStatus();
+      } else {
+        // Fallback for LocalStorage if user profile is still loading or incomplete
+        const stored = this.storage.get('tenantId') || this.storage.get('empresaId');
+        if (stored) {
+          this.empresaId = Number(stored);
+          this.loadStatus();
+        }
+      }
+    });
   }
 
   loadStatus() {

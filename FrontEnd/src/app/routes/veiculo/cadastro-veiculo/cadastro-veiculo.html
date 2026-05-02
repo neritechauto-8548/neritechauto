@@ -77,34 +77,30 @@
                             </p-autoComplete>
                         </div>
 
-                        <!-- Placa & Marca/Modelo -->
+                        <!-- Placa & Marca -->
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1">
                                     <label class="text-xs font-bold text-slate-700">Placa *</label>
-                                    <input type="text" pInputText [(ngModel)]="form.placa" class="w-full modern-input uppercase" placeholder="ABC-1234" maxlength="8" />
+                                    <input type="text" pInputText [(ngModel)]="form.placa" (blur)="onPlacaBlur()" class="w-full modern-input uppercase" placeholder="ABC-1234" maxlength="8" />
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-xs font-bold text-slate-700">Status</label>
-                                    <p-select [options]="statusOptions" [(ngModel)]="form.status" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." />
+                                    <label class="text-xs font-bold text-slate-700">Marca</label>
+                                    <p-select
+                                        [options]="marcaOptions"
+                                        [(ngModel)]="form.marcaId"
+                                        (onChange)="onMarcaChange()"
+                                        [loading]="loadingMarcas"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        styleClass="w-full modern-select"
+                                        appendTo="body"
+                                        placeholder="Selecione..." />
                                 </div>
-                            </div>
-                             <div class="space-y-1">
-                                <label class="text-xs font-bold text-slate-700">Marca</label>
-                                <p-select
-                                    [options]="marcaOptions"
-                                    [(ngModel)]="form.marcaId"
-                                    (onChange)="onMarcaChange()"
-                                    [loading]="loadingMarcas"
-                                    optionLabel="label"
-                                    optionValue="value"
-                                    styleClass="w-full modern-select"
-                                    appendTo="body"
-                                    placeholder="Selecione..." />
                             </div>
                         </div>
 
-                        <!-- Col 2 -->
+                        <!-- Modelo & Ano -->
                         <div class="space-y-4">
                              <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1">
@@ -135,7 +131,11 @@
                                         placeholder="Selecione o Ano..." />
                                 </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-4">
+                        </div>
+
+                        <!-- Outros Detalhes & Ativo -->
+                        <div class="md:col-span-2 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="space-y-1">
                                     <label class="text-xs font-bold text-slate-700">Cor</label>
                                     <input type="text" pInputText [(ngModel)]="form.corExterna" class="w-full modern-input" />
@@ -147,6 +147,10 @@
                                 <div class="space-y-1">
                                     <label class="text-xs font-bold text-slate-700">Nº Motor</label>
                                     <input type="text" pInputText [(ngModel)]="form.numeroMotor" class="w-full modern-input uppercase" />
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-slate-700">Ativo</label>
+                                    <p-select [options]="statusOptions" [(ngModel)]="form.status" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." />
                                 </div>
                             </div>
                         </div>

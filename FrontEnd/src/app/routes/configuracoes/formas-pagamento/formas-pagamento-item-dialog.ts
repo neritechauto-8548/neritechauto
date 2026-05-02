@@ -30,16 +30,18 @@ export class FormasPagamentoItemDialog {
 
   tipoOptions = [
     { label: 'PIX', value: 'PIX' },
-    { label: 'Cartão', value: 'Cartão' },
-    { label: 'Dinheiro', value: 'Dinheiro' },
-    { label: 'Cheque', value: 'Cheque' },
-    { label: 'Boleto', value: 'Boleto' },
-    { label: 'Outros', value: 'Outros' },
+    { label: 'Cartão de Crédito', value: 'CARTAO_CREDITO' },
+    { label: 'Cartão de Débito', value: 'CARTAO_DEBITO' },
+    { label: 'Dinheiro', value: 'DINHEIRO' },
+    { label: 'Cheque', value: 'CHEQUE' },
+    { label: 'Boleto', value: 'BOLETO' },
+    { label: 'Outros', value: 'OUTROS' },
   ];
 
   constructor(private ref: DynamicDialogRef, private config: DynamicDialogConfig) {
-    this.nome = (config.data?.nome as string) || '';
-    this.tipo = (config.data?.tipo as string) || 'Outros';
+    const data = config.data || {};
+    this.nome = data.nome || '';
+    this.tipo = data.tipoEnum || data.tipo || 'OUTROS';
     this.aceitaParcelamento = !!config.data?.aceitaParcelamento;
     this.parcelasMaximas = config.data?.parcelasMaximas ?? null;
     this.taxaAdministracao = config.data?.taxaAdministracao ?? null;

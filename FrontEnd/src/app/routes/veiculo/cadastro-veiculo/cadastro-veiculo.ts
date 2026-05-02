@@ -199,6 +199,44 @@ export class CadastroVeiculo implements OnInit {
     this.form.anoModeloId = undefined;
   }
 
+  onPlacaBlur() {
+    if (this.id) return; // Não busca se já estamos editando um veículo existente
+    
+    const placa = this.form.placa?.trim();
+    if (!placa || placa.length < 7) return;
+
+    this.veiculoService.getByPlaca(placa).subscribe({
+      next: (res) => {
+        if (res) {
+          this.aplicarDadosVeiculo(res);
+        }
+      },
+      error: (err) => {
+          // 404 é esperado se for um veículo novo no sistema
+          if (err.status !== 404) {
+              console.error('Erro ao buscar placa no servidor', err);
+          }
+      }
+    });
+  }
+
+  private aplicarDadosVeiculo(res: VeiculoResponse) {
+      this.form.marcaId = res.marcaId;
+      this.form.modeloId = res.modeloId;
+      this.form.anoModeloId = res.anoModeloId;
+      this.form.combustivelId = res.combustivelId;
+      this.form.chassi = res.chassi || this.form.chassi;
+      this.form.renavam = res.renavam || this.form.renavam;
+      this.form.corExterna = res.corExterna || this.form.corExterna;
+      this.form.numeroMotor = res.numeroMotor || this.form.numeroMotor;
+      
+      // Carregar dependências (modelos e anos) para popular os selects
+      if (res.marcaId) this.loadModelos(res.marcaId);
+      if (res.modeloId) this.loadAnosModelos(res.modeloId);
+      
+      this.messageService.add({ severity: 'success', summary: 'Dados Carregados', detail: `Informações do veículo ${res.placa} foram preenchidas.` });
+  }
+
   loadModelos(marcaId: number) {
     this.loadingModelos = true;
     this.veiculoService.listModelos(marcaId).subscribe({

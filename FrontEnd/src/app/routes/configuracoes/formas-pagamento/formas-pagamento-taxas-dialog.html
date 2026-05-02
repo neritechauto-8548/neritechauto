@@ -6,11 +6,15 @@
     </div>
     <div class="p-field p-col-6 p-md-3">
       <label for="tipo">Tipo</label>
-      <p-select [(ngModel)]="tipoPagamento" [options]="tipoOptions" inputId="tipo" />
+      <p-select [(ngModel)]="tipoPagamento" [options]="tipoOptions" 
+                optionLabel="label" optionValue="value" inputId="tipo"
+                styleClass="w-full h-[38px] flex items-center" />
     </div>
     <div class="p-field p-col-6 p-md-3">
       <label for="lancar">Lancar Aut.</label>
-      <p-select [(ngModel)]="lancarAutomatico" [options]="simNaoOptions" inputId="lancar" />
+      <p-select [(ngModel)]="lancarAutomatico" [options]="simNaoOptions" 
+                optionLabel="label" optionValue="value" inputId="lancar"
+                styleClass="w-full h-[38px] flex items-center" />
     </div>
     <div class="p-field p-col-12 p-md-3">
       <label for="atualizacao">Atualizacao</label>

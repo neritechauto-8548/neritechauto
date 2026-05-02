@@ -9,13 +9,18 @@
 
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="tipo" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tipo <span class="text-red-500">*</span></label>
-      <p-select id="tipo" name="tipo" [options]="tipoOptions" [(ngModel)]="tipo" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" />
+      <p-select id="tipo" name="tipo" [options]="tipoOptions" [(ngModel)]="tipo" 
+                optionLabel="label" optionValue="value" 
+                placeholder="Selecione..."
+                styleClass="w-full text-sm border-slate-300 rounded-lg h-[38px] flex items-center" />
     </div>
 
     <!-- Row 2: Parcelamento -->
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="aceitaParcelamento" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Parcelamento</label>
-      <p-select id="aceitaParcelamento" name="aceitaParcelamento" [options]="[{label:'Sim',value:true},{label:'Não',value:false}]" [(ngModel)]="aceitaParcelamento" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full text-sm border-slate-300 rounded-lg !py-0" />
+      <p-select id="aceitaParcelamento" name="aceitaParcelamento" [options]="[{label:'Sim',value:true},{label:'Não',value:false}]" [(ngModel)]="aceitaParcelamento" 
+                optionLabel="label" optionValue="value"
+                styleClass="w-full text-sm border-slate-300 rounded-lg h-[38px] flex items-center" />
     </div>
 
     <div class="md:col-span-8 flex flex-col gap-1">

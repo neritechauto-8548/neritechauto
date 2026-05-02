@@ -1,6 +1,8 @@
 -- V69_1: Create status_os table
 -- Description: Service order status definitions (Renamed from V71 to fix dependency order)
 
+SET search_path TO public;
+
 -- Create sequence
 CREATE SEQUENCE IF NOT EXISTS seq_status_os START WITH 1 INCREMENT BY 1;
 
@@ -43,14 +45,20 @@ COMMENT ON COLUMN status_os.sistema IS 'Se TRUE, status é do sistema e não pod
 COMMENT ON COLUMN status_os.finaliza_os IS 'Se TRUE, ao aplicar este status a OS é finalizada';
 COMMENT ON COLUMN status_os.cancela_os IS 'Se TRUE, ao aplicar este status a OS é cancelada';
 
--- Insert default statuses
-INSERT INTO status_os (empresa_id, nome, codigo, cor_identificacao, ordem_exibicao, sistema, finaliza_os, cancela_os, criado_por) VALUES
-(1, 'Aberta', 'ABERTA', '#3B82F6', 1, TRUE, FALSE, FALSE, 1),
-(1, 'Em Diagnóstico', 'DIAGNOSTICO', '#F59E0B', 2, TRUE, FALSE, FALSE, 1),
-(1, 'Aguardando Aprovação', 'AGUARDANDO_APROVACAO', '#EF4444', 3, TRUE, FALSE, FALSE, 1),
-(1, 'Aprovada', 'APROVADA', '#10B981', 4, TRUE, FALSE, FALSE, 1),
-(1, 'Em Execução', 'EM_EXECUCAO', '#8B5CF6', 5, TRUE, FALSE, FALSE, 1),
-(1, 'Aguardando Peças', 'AGUARDANDO_PECAS', '#F97316', 6, TRUE, FALSE, FALSE, 1),
-(1, 'Concluída', 'CONCLUIDA', '#059669', 7, TRUE, TRUE, FALSE, 1),
-(1, 'Entregue', 'ENTREGUE', '#047857', 8, TRUE, TRUE, FALSE, 1),
-(1, 'Cancelada', 'CANCELADA', '#DC2626', 9, TRUE, FALSE, TRUE, 1);
+-- Insert default statuses for all existing companies
+INSERT INTO status_os (empresa_id, nome, codigo, cor_identificacao, ordem_exibicao, sistema, finaliza_os, cancela_os, criado_por)
+SELECT e.id, d.nome, d.codigo, d.cor, d.ordem, d.sistema, d.finaliza, d.cancela, 1
+FROM empresa e
+CROSS JOIN (
+    VALUES 
+    ('Aberta', 'ABERTA', '#3B82F6', 1, TRUE, FALSE, FALSE),
+    ('Em Diagnóstico', 'DIAGNOSTICO', '#F59E0B', 2, TRUE, FALSE, FALSE),
+    ('Aguardando Aprovação', 'AGUARDANDO_APROVACAO', '#EF4444', 3, TRUE, FALSE, FALSE),
+    ('Aprovada', 'APROVADA', '#10B981', 4, TRUE, FALSE, FALSE),
+    ('Em Execução', 'EM_EXECUCAO', '#8B5CF6', 5, TRUE, FALSE, FALSE),
+    ('Aguardando Peças', 'AGUARDANDO_PECAS', '#F97316', 6, TRUE, FALSE, FALSE),
+    ('Concluída', 'CONCLUIDA', '#059669', 7, TRUE, TRUE, FALSE),
+    ('Entregue', 'ENTREGUE', '#047857', 8, TRUE, TRUE, FALSE),
+    ('Cancelada', 'CANCELADA', '#DC2626', 9, TRUE, FALSE, TRUE)
+) AS d(nome, codigo, cor, ordem, sistema, finaliza, cancela)
+ON CONFLICT (empresa_id, codigo) DO NOTHING;

@@ -28,11 +28,12 @@ export class FormasPagamentoTaxasDialog {
 
   tipoOptions = [
     { label: 'PIX', value: 'PIX' },
-    { label: 'Cartão', value: 'Cartão' },
-    { label: 'Boleto', value: 'Boleto' },
-    { label: 'Cheque', value: 'Cheque' },
-    { label: 'Dinheiro', value: 'Dinheiro' },
-    { label: 'Outros', value: 'Outros' },
+    { label: 'Cartão de Crédito', value: 'CARTAO_CREDITO' },
+    { label: 'Cartão de Débito', value: 'CARTAO_DEBITO' },
+    { label: 'Boleto', value: 'BOLETO' },
+    { label: 'Cheque', value: 'CHEQUE' },
+    { label: 'Dinheiro', value: 'DINHEIRO' },
+    { label: 'Outros', value: 'OUTROS' },
   ];
 
   simNaoOptions = [

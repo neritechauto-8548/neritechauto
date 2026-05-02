@@ -53,10 +53,20 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: Aura,
         options: {
-          // Alterna para tokens dark quando o seletor existir no HTML
           darkModeSelector: '.theme-dark',
         },
       },
+      translation: {
+        dayNames: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
+        dayNamesShort: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+        dayNamesMin: ["Do", "Se", "Te", "Qu", "Qu", "Se", "Sa"],
+        monthNames: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+        monthNamesShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+        today: 'Hoje',
+        clear: 'Limpar',
+        dateFormat: 'dd/mm/yy',
+        weekHeader: 'Sm'
+      }
     }),
     provideHotToastConfig({
       position: 'top-right',
@@ -111,33 +121,33 @@ export const appConfig: ApplicationConfig = {
     },
     provideDateFnsAdapter({
       parse: {
-        dateInput: 'yyyy-MM-dd',
+        dateInput: 'dd/MM/yyyy',
       },
       display: {
-        dateInput: 'yyyy-MM-dd',
-        monthYearLabel: 'yyyy MMM',
+        dateInput: 'dd/MM/yyyy',
+        monthYearLabel: 'MMM yyyy',
         dateA11yLabel: 'LL',
-        monthYearA11yLabel: 'yyyy MMM',
+        monthYearA11yLabel: 'MMM yyyy',
       },
     }),
     provideDateFnsDatetimeAdapter({
       parse: {
-        dateInput: 'yyyy-MM-dd',
+        dateInput: 'dd/MM/yyyy',
         yearInput: 'yyyy',
         monthInput: 'MMMM',
-        datetimeInput: 'yyyy-MM-dd HH:mm',
+        datetimeInput: 'dd/MM/yyyy HH:mm',
         timeInput: 'HH:mm',
       },
       display: {
-        dateInput: 'yyyy-MM-dd',
+        dateInput: 'dd/MM/yyyy',
         yearInput: 'yyyy',
         monthInput: 'MMMM',
-        datetimeInput: 'yyyy-MM-dd HH:mm',
+        datetimeInput: 'dd/MM/yyyy HH:mm',
         timeInput: 'HH:mm',
-        monthYearLabel: 'yyyy MMMM',
+        monthYearLabel: 'MMMM yyyy',
         dateA11yLabel: 'LL',
         monthYearA11yLabel: 'MMMM yyyy',
-        popupHeaderDateLabel: 'MMM dd, E',
+        popupHeaderDateLabel: 'E, dd MMM',
       },
     }),
   ],

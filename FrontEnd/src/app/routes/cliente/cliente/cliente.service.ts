@@ -61,6 +61,7 @@ export class ClientesService {
     return this.delete(id);
   }
 
+
   // ========== ENDEREÇOS ==========
 
   listarEnderecos(clienteId: number | string): Observable<Page<EnderecoClienteResponse>> {
@@ -177,6 +178,7 @@ export class ClientesService {
     const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
     return this.http.delete<void>(url);
   }
+
 }
 
 // Re-export legacy interfaces for backward compatibility

@@ -16,11 +16,14 @@ import com.neritech.saas.veiculo.dto.VeiculoRequest;
 import com.neritech.saas.veiculo.dto.VeiculoResponse;
 import com.neritech.saas.veiculo.mapper.VeiculoMapper;
 import com.neritech.saas.veiculo.repository.VeiculoRepository;
+import com.neritech.saas.veiculo.domain.enums.StatusVeiculo;
+import com.neritech.saas.util.DocumentoValidator;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +36,7 @@ public class VeiculoService {
     private final ModeloVeiculoRepository modeloRepository;
     private final AnoModeloRepository anoModeloRepository;
     private final TipoCombustivelRepository tipoCombustivelRepository;
+    private final VehicleExternalLookupService externalLookupService;
     private final VeiculoMapper mapper;
 
     public VeiculoService(VeiculoRepository repository,
@@ -41,6 +45,7 @@ public class VeiculoService {
             ModeloVeiculoRepository modeloRepository,
             AnoModeloRepository anoModeloRepository,
             TipoCombustivelRepository tipoCombustivelRepository,
+            VehicleExternalLookupService externalLookupService,
             VeiculoMapper mapper) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
@@ -48,6 +53,7 @@ public class VeiculoService {
         this.modeloRepository = modeloRepository;
         this.anoModeloRepository = anoModeloRepository;
         this.tipoCombustivelRepository = tipoCombustivelRepository;
+        this.externalLookupService = externalLookupService;
         this.mapper = mapper;
     }
 
@@ -164,6 +170,55 @@ public class VeiculoService {
         return repository.findByClienteId(clienteId).stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<VeiculoResponse> findByPlaca(String placa) {
+        if (placa == null || placa.isBlank()) return Optional.empty();
+        
+        // Conforme pedido pelo usuário: Busca diretamente na API externa, ignorando o histórico interno do banco
+        return externalLookupService.lookup(placa).map(external -> {
+             // Tenta mapear Marca e Modelo para nossos IDs internos
+             Long marcaId = marcaRepository.findByNomeIgnoreCase(external.marca()).map(m -> m.getId()).orElse(null);
+             Long modeloId = null;
+             if (marcaId != null) {
+                 // Busca o modelo ignorando case (algumas APIs retornam tudo em maiúsculo)
+                 // Como o repositório não tem IgnoreCase para modelo ainda, fazemos um filtro simples ou usamos o nome bruto
+                 modeloId = modeloRepository.findByMarcaId(marcaId).stream()
+                         .filter(m -> m.getNome().equalsIgnoreCase(external.modelo()))
+                         .findFirst()
+                         .map(m -> m.getId())
+                         .orElse(null);
+             }
+             
+             // Retorna um response com os dados da API para preencher o formulário
+             return new VeiculoResponse(
+                 null, // id
+                 null, // clienteId
+                 null, // clienteNome
+                 marcaId,
+                 external.marca(),
+                 modeloId,
+                 external.modelo(),
+                 null, // anoModeloId
+                 external.ano() != null && !external.ano().isBlank() ? Integer.parseInt(external.ano()) : null,
+                 external.anoModelo() != null && !external.anoModelo().isBlank() ? Integer.parseInt(external.anoModelo()) : null,
+                 null, // combustivelId
+                 external.combustivel(),
+                 external.placa(),
+                 external.renavam(),
+                 external.chassi(),
+                 external.motor(),
+                 external.cor(),
+                 null, // quilometragemAtual
+                 null, // quilometragemCadastro
+                 null, // dataUltimaRevisao
+                 null, // proximaRevisaoKm
+                 null, // proximaRevisaoData
+                 StatusVeiculo.ATIVO,
+                 "Dados carregados via API externa"
+             );
+        });
     }
 
     public void delete(Long id) {

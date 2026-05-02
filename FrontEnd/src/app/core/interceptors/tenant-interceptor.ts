@@ -14,6 +14,13 @@ export function tenantInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn
   }
 
   const cleanId = String(tenantId);
+  
+  // Evita adicionar cabeçalhos em requisições externas (Ex: ViaCEP)
+  const isInternal = req.url.includes('/api/') || !req.url.startsWith('http');
+  if (!isInternal) {
+    return next(req);
+  }
+
   let headers = req.headers;
   
   if (tenantId && cleanId !== '' && !cleanId.includes('[object') && cleanId !== 'undefined') {

@@ -8,4 +8,5 @@ import java.util.List;
 @Repository("ordemServicoItChecklistRepository")
 public interface ItChecklistRepository extends JpaRepository<ItChecklist, Long> {
     List<ItChecklist> findByChecklist_Id(Long checklistId);
+    void deleteByChecklist_Id(Long checklistId);
 }

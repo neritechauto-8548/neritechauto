@@ -1,4 +1,4 @@
-<p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+<app-confirmation-dialog />
 
 <div class="flex flex-col h-full gap-6">
 
@@ -18,13 +18,13 @@
         <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl mb-4 border border-slate-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-100">
            <!-- Search -->
            <div class="relative w-full sm:max-w-md group">
-                <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+                <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10"></i>
                 <input
                     pInputText
                     [(ngModel)]="searchTerm"
                     (ngModelChange)="onSearch()"
                     placeholder="Buscar categorias..."
-                    class="w-full !pl-12 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+                    class="w-full !pl-11 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
                 />
            </div>
 
@@ -134,13 +134,13 @@
         <!-- Actions Bar -->
         <div class="flex flex-row gap-4 justify-between items-center bg-white mb-4 p-2 rounded-xl border border-slate-200 shadow-sm transition-all focus-within:ring-2 focus-within:ring-indigo-100">
           <div class="relative w-full sm:max-w-md group">
-            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+            <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10"></i>
             <input
                 pInputText
                 [(ngModel)]="searchUnidadeTerm"
                 (ngModelChange)="onSearchUnidade()"
                 placeholder="Buscar unidades ou siglas..."
-                class="w-full pl-12 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+                class="w-full !pl-11 pr-4 py-2 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
             />
           </div>
           <button (click)="openAddUnidadeDialog()" class="bg-[#635bff] hover:bg-[#5851eb] text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap active:scale-95">

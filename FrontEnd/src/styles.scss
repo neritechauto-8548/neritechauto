@@ -131,6 +131,11 @@ html, body {
   z-index: 9998 !important;
 }
 
+// ColorPicker Z-Index Global Fix
+.p-colorpicker-panel {
+  z-index: 10000 !important;
+}
+
 // Stripe Menu Override (MatMenu)
 .stripe-menu-backdrop + .cdk-overlay-connected-position-bounding-box .mat-mdc-menu-content {
   padding: 0 !important;

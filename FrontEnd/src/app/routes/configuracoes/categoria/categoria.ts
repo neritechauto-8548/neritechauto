@@ -17,6 +17,7 @@ import { CategoriaProdutoService, CategoriaProdutoResponse } from './categoria-p
 import { UnidadeMedidaService, UnidadeMedidaResponse } from './unidade-medida.service';
 import { MatIconModule } from '@angular/material/icon';
 import { InputTextModule } from 'primeng/inputtext';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'categoria',
@@ -36,7 +37,8 @@ import { InputTextModule } from 'primeng/inputtext';
     TabPanel,
     MatIconModule,
     InputTextModule,
-    ToastModule
+    ToastModule,
+    ConfirmationDialogComponent
   ],
   providers: [DialogService, MessageService],
 })

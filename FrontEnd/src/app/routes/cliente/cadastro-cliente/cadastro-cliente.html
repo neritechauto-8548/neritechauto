@@ -58,58 +58,65 @@
                 </div>
 
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <!-- Col 1 -->
-                     <div class="space-y-4">
-                         <div class="space-y-1">
-                             <label class="text-xs font-bold text-slate-700">
-                                 {{ model.tipoPessoa === 'Física' ? 'Nome Completo' : 'Razão Social' }}
-                             </label>
-
-                             <input *ngIf="model.tipoPessoa === 'Física'" type="text" pInputText
-                                 [(ngModel)]="model.nomeRazao"
-                                 class="w-full modern-input"
-                                 placeholder="Ex: João Silva" />
-
-                             <input *ngIf="model.tipoPessoa !== 'Física'" type="text" pInputText
-                                 [(ngModel)]="model.razaoSocial"
-                                 class="w-full modern-input"
-                                 placeholder="Ex: NeriTech Ltda" />
-                         </div>
-
-                         <div class="space-y-1" *ngIf="model.tipoPessoa === 'Jurídica'">
-                             <label class="text-xs font-bold text-slate-700">Nome Fantasia</label>
-                             <input type="text" pInputText [(ngModel)]="model.nomeFantasia" class="w-full modern-input" placeholder="Ex: NeriTech" />
-                         </div>
-
-                         <div class="space-y-1">
-                             <label class="text-xs font-bold text-slate-700">Email (Opcional)</label>
-                             <input type="email" pInputText [(ngModel)]="model.email" class="w-full modern-input" placeholder="cliente@email.com" />
-                         </div>
+                     <!-- Linha 1: Nome & Documento -->
+                     <div class="space-y-1">
+                         <label class="text-xs font-bold text-slate-700">
+                             {{ model.tipoPessoa === 'Física' ? 'Nome Completo' : 'Razão Social' }}
+                         </label>
+                         <input *ngIf="model.tipoPessoa === 'Física'" type="text" pInputText
+                             [(ngModel)]="model.nomeRazao"
+                             class="w-full modern-input"
+                             placeholder="Ex: João Silva" />
+                         <input *ngIf="model.tipoPessoa !== 'Física'" type="text" pInputText
+                             [(ngModel)]="model.razaoSocial"
+                             class="w-full modern-input"
+                             placeholder="Ex: NeriTech Ltda" />
                      </div>
 
-                     <!-- Col 2 -->
-                     <div class="space-y-4">
-                         <div class="space-y-1">
-                             <label class="text-xs font-bold text-slate-700">
-                                 {{ model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ' }}
-                             </label>
-                             <input type="text" pInputText [(ngModel)]="model.cpfCnpj" (input)="onCpfCnpjInput($event)" class="w-full modern-input font-mono text-sm" placeholder="000.000.000-00" />
-                         </div>
+                     <div class="space-y-1">
+                         <label class="text-xs font-bold text-slate-700">
+                             {{ model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ' }}
+                         </label>
+                         <p-inputmask *ngIf="model.tipoPessoa === 'Física'" mask="999.999.999-99" [(ngModel)]="model.cpfCnpj" (onBlur)="onDocumentoBlur()" styleClass="w-full" inputStyleClass="w-full modern-input font-mono text-sm" placeholder="000.000.000-00" [unmask]="false"></p-inputmask>
+                         <p-inputmask *ngIf="model.tipoPessoa === 'Jurídica'" mask="**.***.***/****-99" [(ngModel)]="model.cpfCnpj" (onBlur)="onDocumentoBlur()" styleClass="w-full" inputStyleClass="w-full modern-input font-mono text-sm" placeholder="AA.AAA.AAA/AAAA-00" [unmask]="false"></p-inputmask>
+                     </div>
 
-                         <div class="grid grid-cols-2 gap-4">
-                              <div class="space-y-1" *ngIf="model.tipoPessoa === 'Jurídica'">
-                                  <label class="text-xs font-bold text-slate-700">Inscr. Municipal</label>
-                                  <input type="text" pInputText [(ngModel)]="model.inscricaoMunicipal" class="w-full modern-input" />
-                              </div>
-                              <div class="space-y-1" *ngIf="model.tipoPessoa === 'Física'">
-                                  <label class="text-xs font-bold text-slate-700">Data Nasc.</label>
-                                  <p-datepicker [(ngModel)]="model.dataNascimento" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" />
-                              </div>
-                              <div class="space-y-1" *ngIf="model.tipoPessoa === 'Jurídica'">
-                                  <label class="text-xs font-bold text-slate-700">Inscr. Estadual</label>
-                                  <input type="text" pInputText [(ngModel)]="model.inscricaoEstadual" class="w-full modern-input" />
-                              </div>
-                         </div>
+                     <!-- Linha 2: Fantasia (PJ) ou Email (PF) -->
+                     <div class="space-y-1">
+                         <ng-container *ngIf="model.tipoPessoa === 'Jurídica'">
+                             <label class="text-xs font-bold text-slate-700">Nome Fantasia</label>
+                             <input type="text" pInputText [(ngModel)]="model.nomeFantasia" class="w-full modern-input" placeholder="Ex: NeriTech" />
+                         </ng-container>
+                         <ng-container *ngIf="model.tipoPessoa === 'Física'">
+                             <label class="text-xs font-bold text-slate-700">Email (Opcional)</label>
+                             <input type="email" pInputText [(ngModel)]="model.email" class="w-full modern-input" placeholder="cliente@email.com" />
+                         </ng-container>
+                     </div>
+
+                     <!-- Linha 2/3: Email (PJ) ou Data Nasc (PF) -->
+                     <div class="space-y-1">
+                         <ng-container *ngIf="model.tipoPessoa === 'Jurídica'">
+                             <label class="text-xs font-bold text-slate-700">Email (Opcional)</label>
+                             <input type="email" pInputText [(ngModel)]="model.email" class="w-full modern-input" placeholder="cliente@email.com" />
+                         </ng-container>
+                         <ng-container *ngIf="model.tipoPessoa === 'Física'">
+                              <label class="text-xs font-bold text-slate-700">Data Nasc.</label>
+                              <p-datepicker [(ngModel)]="model.dataNascimento" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
+                         </ng-container>
+                     </div>
+
+                     <!-- Linha 3: Inscrições (Apenas PJ) -->
+                     <div class="md:col-span-2" *ngIf="model.tipoPessoa === 'Jurídica'">
+                          <div class="grid grid-cols-2 gap-4">
+                               <div class="space-y-1">
+                                   <label class="text-xs font-bold text-slate-700">Inscr. Municipal</label>
+                                   <input type="text" pInputText [(ngModel)]="model.inscricaoMunicipal" class="w-full modern-input" />
+                               </div>
+                               <div class="space-y-1">
+                                   <label class="text-xs font-bold text-slate-700">Inscr. Estadual</label>
+                                   <input type="text" pInputText [(ngModel)]="model.inscricaoEstadual" class="w-full modern-input" />
+                               </div>
+                          </div>
                      </div>
                 </div>
             </div>
@@ -135,13 +142,13 @@
         <!-- Tab 1: Endereço (Single Section Grid) -->
         <div *ngIf="activeIndex === 1" class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
              <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
-                 <div class="md:col-span-2 space-y-1">
-                     <label class="text-xs font-bold text-slate-700">CEP</label>
-                     <div class="flex gap-2">
-                         <input type="text" pInputText [(ngModel)]="model.cep" (input)="onCepInput($event)" class="w-full modern-input" placeholder="00000-000" />
-                         <button class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 border border-slate-200"><i class="pi pi-search"></i></button>
-                     </div>
-                 </div>
+                  <div class="md:col-span-2 space-y-1">
+                      <label class="text-xs font-bold text-slate-700">CEP</label>
+                      <div class="flex gap-2">
+                          <p-inputmask mask="99999-999" [(ngModel)]="model.cep" (onBlur)="buscarCep()" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="00000-000" [unmask]="false"></p-inputmask>
+                          <button (click)="buscarCep()" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 border border-slate-200"><i class="pi pi-search"></i></button>
+                      </div>
+                  </div>
                  <div class="md:col-span-4 space-y-1">
                      <label class="text-xs font-bold text-slate-700">Rua / Avenida</label>
                      <input type="text" pInputText [(ngModel)]="model.logradouro" class="w-full modern-input" />
@@ -191,9 +198,9 @@
                      <tbody class="divide-y divide-slate-100">
                          <tr *ngFor="let cont of contatosList; let i = index" class="hover:bg-slate-50/50">
                              <td class="px-6 py-3">
-                                 <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded textxs border border-slate-200">{{ getTipoContatoLabel(cont.tipoContato) }}</span>
+                                 <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs border border-slate-200">{{ getTipoContatoLabel(cont.tipoContato) }}</span>
                              </td>
-                             <td class="px-6 py-3 font-medium text-slate-800">{{ cont.valor }}</td>
+                             <td class="px-6 py-3 font-medium text-slate-800">{{ formatarContato(cont) }}</td>
                              <td class="px-6 py-3 text-right">
                                  <button (click)="editarContatoLista(i)" class="text-slate-400 hover:text-blue-500 transition-colors mr-3" title="Editar Contato"><i class="pi pi-pencil"></i></button>
                                  <button (click)="removerContatoLista(i)" class="text-slate-400 hover:text-rose-500 transition-colors" title="Excluir Contato"><i class="pi pi-trash"></i></button>
@@ -220,7 +227,21 @@
         </div>
         <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Valor</label>
-            <input type="text" pInputText [(ngModel)]="contatoForm.valor" class="w-full modern-input" placeholder="(00) 00000-0000" />
+            <p-inputmask 
+                *ngIf="isPhoneType(contatoForm.tipoContato)"
+                [mask]="getContactMask(contatoForm.tipoContato)" 
+                [(ngModel)]="contatoForm.valor" 
+                styleClass="w-full"
+                inputStyleClass="w-full modern-input"
+                [placeholder]="getContactPlaceholder(contatoForm.tipoContato)"
+                [unmask]="false">
+            </p-inputmask>
+            <input 
+                *ngIf="!isPhoneType(contatoForm.tipoContato)"
+                type="text" pInputText 
+                [(ngModel)]="contatoForm.valor" 
+                class="w-full modern-input" 
+                placeholder="Digite o contato..." />
         </div>
     </div>
     <div class="flex justify-end gap-2 mt-6">

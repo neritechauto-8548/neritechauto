@@ -1,5 +1,6 @@
 package com.neritech.saas.empresa.controller;
 
+import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.dto.AssinaturaDTO;
 import com.neritech.saas.empresa.service.EmpresaService;
@@ -14,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -34,7 +34,13 @@ public class AssinaturaController {
     @Operation(summary = "Status da assinatura", description = "Retorna o status da assinatura da empresa")
     public ResponseEntity<AssinaturaDTO> getStatus(@PathVariable Long empresaId) {
         try {
-            if (!stripeService.isConfigured()) {
+            Long currentTenant = TenantContext.getCurrentTenant();
+            if (currentTenant != null && !currentTenant.equals(empresaId)) {
+                log.warn("Tentativa de acesso a assinatura de outra empresa. User Tenant: {}, Requested: {}", currentTenant, empresaId);
+                empresaId = currentTenant;
+            }
+
+            if (!this.stripeService.isConfigured()) {
                 return ResponseEntity.ok(AssinaturaDTO.builder()
                         .plano("Ambiente Local (Sem Stripe Key)")
                         .status("inactive")
@@ -43,16 +49,16 @@ public class AssinaturaController {
                         .build());
             }
 
-            Empresa empresa = empresaService.findById(empresaId);
+            Empresa empresa = this.empresaService.findById(empresaId);
             String customerId = empresa.getStripeCustomerId();
 
             // If no Stripe customer linked yet, try to find by email
             if (customerId == null || customerId.isBlank()) {
-                Customer customer = stripeService.findCustomerByEmail(empresa.getEmail());
+                Customer customer = this.stripeService.findCustomerByEmail(empresa.getEmail());
                 if (customer != null) {
                     customerId = customer.getId();
                     empresa.setStripeCustomerId(customerId);
-                    empresaService.update(empresa.getId(), empresa);
+                    this.empresaService.update(empresa.getId(), empresa);
                 } else {
                     return ResponseEntity.ok(AssinaturaDTO.builder()
                             .plano("Sem assinatura")
@@ -62,7 +68,7 @@ public class AssinaturaController {
             }
 
             // Get subscriptions from Stripe
-            List<Subscription> subs = stripeService.getSubscriptions(customerId);
+            List<Subscription> subs = this.stripeService.getSubscriptions(customerId);
             if (subs.isEmpty()) {
                 return ResponseEntity.ok(AssinaturaDTO.builder()
                         .plano("Sem assinatura")
@@ -73,7 +79,7 @@ public class AssinaturaController {
 
             Subscription sub = subs.get(0); // Most recent
             String productId = sub.getItems().getData().get(0).getPrice().getProduct();
-            String planName = stripeService.resolvePlanName(productId);
+            String planName = this.stripeService.resolvePlanName(productId);
             Long amount = sub.getItems().getData().get(0).getPrice().getUnitAmount();
             String preco = amount != null ? String.format("R$ %,.2f", amount / 100.0) : "—";
 
@@ -118,13 +124,19 @@ public class AssinaturaController {
             @PathVariable Long empresaId,
             @RequestBody(required = false) Map<String, String> body) {
         try {
-            if (!stripeService.isConfigured()) {
+            Long currentTenant = TenantContext.getCurrentTenant();
+            if (currentTenant != null && !currentTenant.equals(empresaId)) {
+                log.warn("Tentativa de abrir portal de outra empresa. User Tenant: {}, Requested: {}", currentTenant, empresaId);
+                empresaId = currentTenant;
+            }
+
+            if (!this.stripeService.isConfigured()) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "error", "A API do Stripe não está configurada neste ambiente local."
                 ));
             }
 
-            Empresa empresa = empresaService.findById(empresaId);
+            Empresa empresa = this.empresaService.findById(empresaId);
             String customerId = empresa.getStripeCustomerId();
 
             if (customerId == null || customerId.isBlank()) {
@@ -137,7 +149,7 @@ public class AssinaturaController {
                     ? body.get("returnUrl")
                     : "http://localhost:4200/configuracoes/assinatura";
 
-            String portalUrl = stripeService.createBillingPortalSession(customerId, returnUrl);
+            String portalUrl = this.stripeService.createBillingPortalSession(customerId, returnUrl);
 
             return ResponseEntity.ok(Map.of("url", portalUrl));
 

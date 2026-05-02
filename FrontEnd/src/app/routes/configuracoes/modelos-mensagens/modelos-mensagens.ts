@@ -16,6 +16,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { TemplateComunicacaoService, TemplateComunicacaoResponse, TipoTemplate } from './template-comunicacao.service';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'modelos-mensagens',
@@ -33,9 +34,10 @@ import { LocalStorageService } from '@shared/services/storage.service';
     PaginatorModule,
     MatIconModule,
     TooltipModule,
-    ToastModule
+    ToastModule,
+    ConfirmationDialogComponent
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
 })
 export class ModelosMensagens {
   private readonly router = inject(Router);

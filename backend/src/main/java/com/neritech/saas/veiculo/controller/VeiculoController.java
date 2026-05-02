@@ -43,6 +43,13 @@ public class VeiculoController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @GetMapping("/placa/{placa}")
+    public ResponseEntity<VeiculoResponse> findByPlaca(@PathVariable String placa) {
+        return service.findByPlaca(placa)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

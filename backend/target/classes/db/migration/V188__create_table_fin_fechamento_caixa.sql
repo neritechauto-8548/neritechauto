@@ -15,7 +15,7 @@ CREATE TABLE fin_fechamento_caixa (
     total_saidas NUMERIC(19, 2),
     observacoes TEXT,
     usuario_responsavel BIGINT NOT NULL,
-    CONSTRAINT fk_fechamento_caixa_empresa FOREIGN KEY (empresa_id) REFERENCES empresas (id)
+    CONSTRAINT fk_fechamento_caixa_empresa FOREIGN KEY (empresa_id) REFERENCES empresa (id)
 );
 
 CREATE INDEX idx_fin_fechamento_caixa_empresa ON fin_fechamento_caixa(empresa_id);

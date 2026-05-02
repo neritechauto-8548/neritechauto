@@ -336,7 +336,31 @@ export class Cliente implements OnInit {
 
     const chosen = ordered[0] || contatos[0];
     const value = (chosen as any)?.valor ?? (chosen as any)?.contato ?? '';
+    
+    if (this.isPhoneType(chosen.tipoContato)) {
+      return this.applyPhoneMask(value, chosen.tipoContato) || emailFallback;
+    }
+
     return value || emailFallback;
+  }
+
+  private isPhoneType(tipo: any): boolean {
+    return [TipoContato.TELEFONE_FIXO, TipoContato.CELULAR, TipoContato.WHATSAPP, TipoContato.TELEGRAM].includes(tipo);
+  }
+
+  private applyPhoneMask(digits: string, tipo: any): string {
+    const d = this.stripNonDigits(digits);
+    if (tipo === TipoContato.TELEFONE_FIXO && d.length >= 10) {
+       return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6, 10)}`;
+    }
+    if (d.length >= 11) {
+       return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+    }
+    return d; // Retorna apenas os dígitos se não bater com tamanho padrão
+  }
+
+  private stripNonDigits(v: string) {
+    return (v || '').replace(/\D+/g, '');
   }
 
   // Helper para obter classe de severidade do badge de status
@@ -371,11 +395,11 @@ export class Cliente implements OnInit {
   // Helper para formatar CPF/CNPJ
   formatCpfCnpj(value: string): string {
     if (!value) return '';
-    const clean = value.replace(/\D/g, '');
+    const clean = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     if (clean.length === 11) {
-      return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      return clean.replace(/(.{3})(.{3})(.{3})(.{2})/, '$1.$2.$3-$4');
     } else if (clean.length === 14) {
-      return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+      return clean.replace(/(.{2})(.{3})(.{3})(.{4})(.{2})/, '$1.$2.$3/$4-$5');
     }
     return value;
   }

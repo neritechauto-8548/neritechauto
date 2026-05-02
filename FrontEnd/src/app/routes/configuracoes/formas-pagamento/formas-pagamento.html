@@ -49,7 +49,7 @@
                         'bg-indigo-50 text-indigo-600 border border-indigo-100 ring-indigo-50': f.tipoEnum === 'CARTAO_CREDITO' || f.tipoEnum === 'CARTAO_DEBITO',
                         'bg-slate-50 text-slate-600 border border-slate-200': f.tipoEnum === 'CHEQUE' || f.tipoEnum === 'OUTROS'
                      }">
-                  <mat-icon>{{ f.tipoEnum === 'PIX' ? 'pix' : (f.tipoEnum === 'CARTAO_CREDITO' || f.tipoEnum === 'CARTAO_DEBITO' ? 'credit_card' : (f.tipoEnum === 'BOLETO' ? 'receipt' : (f.tipoEnum === 'DINHEIRO' ? 'payments' : (f.tipoEnum === 'CHEQUE' ? 'account_balance' : 'wallet')))) }}</mat-icon>
+                  <mat-icon>{{ f.tipoEnum === 'PIX' ? 'payments' : (f.tipoEnum === 'CARTAO_CREDITO' || f.tipoEnum === 'CARTAO_DEBITO' ? 'credit_card' : (f.tipoEnum === 'BOLETO' ? 'receipt' : (f.tipoEnum === 'DINHEIRO' ? 'payments' : (f.tipoEnum === 'CHEQUE' ? 'account_balance' : 'wallet')))) }}</mat-icon>
                 </div>
                 <div class="flex flex-col">
                   <div class="flex items-center gap-2">

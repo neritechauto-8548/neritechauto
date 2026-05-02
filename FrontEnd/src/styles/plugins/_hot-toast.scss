@@ -1,13 +1,16 @@
 @use '@ngxpert/hot-toast/styles';
 
 .hot-toast-theme-toast {
-  --hot-toast-padding: 6px 10px;
-  --hot-toast-border-radius: 8px;
-  --hot-toast-line: 1.25;
-  --hot-toast-message-margin: 4px 8px;
-  --hot-toast-icon-padding-top: 4px;
-  --hot-toast-close-btn-width: 12px;
-  --hot-toast-close-btn-height: 12px;
-  --hot-toast-close-btn-padding: 4px;
-  --hot-toast-close-btn-margin-top: 4px;
+  --hot-toast-padding: 8px 16px;
+  --hot-toast-border-radius: 9999px; /* Pill shape */
+  --hot-toast-line: 1.4;
+  --hot-toast-message-margin: 4px 12px;
+  --hot-toast-icon-padding-top: 0px;
+  --hot-toast-close-btn-width: 16px;
+  --hot-toast-close-btn-height: 16px;
+  --hot-toast-close-btn-padding: 2px;
+  --hot-toast-close-btn-margin-top: 0px;
+  
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
 }

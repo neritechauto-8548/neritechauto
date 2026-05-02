@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { InputMaskModule } from 'primeng/inputmask';
 import { EmpresaService } from './services/empresa.service';
 import {
   Empresa, EnderecoEmpresa, ConfiguracaoEmpresa,
@@ -19,8 +20,7 @@ interface NavTab { id: string; label: string; icon: string; }
   selector: 'empresa-config',
   standalone: true,
   templateUrl: './empresa.html',
-  imports: [CommonModule, FormsModule, MatIconModule, ToastModule],
-  providers: [MessageService]
+  imports: [CommonModule, FormsModule, MatIconModule, ToastModule, InputMaskModule],
 })
 export class EmpresaConfig implements OnInit {
   private service = inject(EmpresaService);
@@ -44,6 +44,15 @@ export class EmpresaConfig implements OnInit {
   ];
 
   empresa: Empresa = { nomeFantasia: '', razaoSocial: '', cnpj: '' };
+  tipoPessoa: 'Física' | 'Jurídica' = 'Jurídica';
+
+  get docMask(): string {
+    return this.tipoPessoa === 'Física' ? '999.999.999-99' : '99.999.999/9999-99';
+  }
+
+  get docPlaceholder(): string {
+    return this.tipoPessoa === 'Física' ? '000.000.000-00' : '00.000.000/0000-00';
+  }
 
   endereco: EnderecoEmpresa = {
     empresaId: this.empresaId, cep: '', logradouro: '', numero: '',
@@ -141,10 +150,13 @@ export class EmpresaConfig implements OnInit {
         if (this.pick<ConfiguracaoSms>(sms))         this.configSms      = { ...this.configSms,      ...this.pick<ConfiguracaoSms>(sms) };
 
         // Ensure empresaId always set
-        this.configFiscal.empresaId  = this.configOficina.empresaId =
-        this.configEmail.empresaId   = this.configWhatsapp.empresaId =
-        this.configSms.empresaId     = this.configEmpresa.empresaId =
         this.endereco.empresaId      = this.empresaId;
+
+        // Detect tipoPessoa based on CNPJ length or content if possible
+        if (this.empresa.cnpj) {
+          const digits = this.empresa.cnpj.replace(/\D/g, '');
+          this.tipoPessoa = digits.length > 11 ? 'Jurídica' : 'Física';
+        }
       });
   }
 

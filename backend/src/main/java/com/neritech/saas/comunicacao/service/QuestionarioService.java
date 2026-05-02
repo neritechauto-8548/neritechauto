@@ -4,6 +4,7 @@ import com.neritech.saas.comunicacao.domain.Questionario;
 import com.neritech.saas.comunicacao.dto.QuestionarioRequest;
 import com.neritech.saas.comunicacao.dto.QuestionarioResponse;
 import com.neritech.saas.comunicacao.mapper.QuestionarioMapper;
+import com.neritech.saas.comunicacao.repository.ItQuestionarioRepository;
 import com.neritech.saas.comunicacao.repository.QuestionarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionarioService {
 
     private final QuestionarioRepository repository;
+    private final ItQuestionarioRepository itQuestionarioRepository;
     private final QuestionarioMapper mapper;
 
     public QuestionarioResponse create(QuestionarioRequest request) {
@@ -50,6 +52,7 @@ public class QuestionarioService {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Questionário não encontrado com ID: " + id);
         }
+        itQuestionarioRepository.deleteByQuestionarioId(id);
         repository.deleteById(id);
     }
 }
