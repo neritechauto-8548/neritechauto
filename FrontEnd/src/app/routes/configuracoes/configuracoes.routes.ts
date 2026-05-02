@@ -122,6 +122,11 @@ export const routes: Routes = [
     data: { title: 'Cadastro de Permissões' }
   },
   {
+    path: 'veiculo-modelo',
+    loadComponent: () => import('./veiculo-modelo/veiculo-modelo').then(m => m.VeiculoModelo),
+    data: { title: 'Modelos de Veículo' }
+  },
+  {
     path: 'administrador',
     loadComponent: () => import('./administrador/administrador').then(m => m.Administrador),
     data: { title: 'Administrador' }

@@ -361,16 +361,8 @@
       "icon": "pi pi-cog",
       "children": [
         {
-          "route": "colaboradores",
-          "name": "colaboradores",
-          "type": "link",
-          "icon": "pi pi-users"
-        },
-        {
-          "route": "permissoes",
-          "name": "permissoes",
-          "type": "link",
-          "icon": "pi pi-lock"
+          "type": "heading",
+          "name": "config-geral"
         },
         {
           "route": "empresa",
@@ -385,10 +377,32 @@
           "icon": "pi pi-credit-card"
         },
         {
-          "route": "inventario",
-          "name": "inventario",
+          "route": "usuarios",
+          "name": "usuarios",
           "type": "link",
-          "icon": "pi pi-box"
+          "icon": "pi pi-user"
+        },
+        {
+          "route": "permissoes",
+          "name": "permissoes",
+          "type": "link",
+          "icon": "pi pi-lock"
+        },
+        {
+          "type": "heading",
+          "name": "config-rh"
+        },
+        {
+          "route": "colaboradores",
+          "name": "colaboradores",
+          "type": "link",
+          "icon": "pi pi-users"
+        },
+        {
+          "route": "departamentos",
+          "name": "departamentos",
+          "type": "link",
+          "icon": "pi pi-sitemap"
         },
         {
           "route": "setores",
@@ -397,16 +411,8 @@
           "icon": "pi pi-tags"
         },
         {
-          "route": "categoria",
-          "name": "categoria",
-          "type": "link",
-          "icon": "pi pi-tags"
-        },
-        {
-          "route": "situacao",
-          "name": "situacao",
-          "type": "link",
-          "icon": "pi pi-flag"
+          "type": "heading",
+          "name": "config-financeiro"
         },
         {
           "route": "contas",
@@ -421,22 +427,48 @@
           "icon": "pi pi-credit-card"
         },
         {
-          "route": "localizacao",
-          "name": "localizacao",
-          "type": "link",
-          "icon": "pi pi-map-marker"
-        },
-        {
-          "route": "departamentos",
-          "name": "departamentos",
-          "type": "link",
-          "icon": "pi pi-sitemap"
+          "type": "heading",
+          "name": "config-operacional"
         },
         {
           "route": "checklist",
           "name": "checklist",
           "type": "link",
           "icon": "pi pi-check-circle"
+        },
+        {
+          "route": "inventario",
+          "name": "inventario",
+          "type": "link",
+          "icon": "pi pi-box"
+        },
+        {
+          "route": "situacao",
+          "name": "situacao",
+          "type": "link",
+          "icon": "pi pi-flag"
+        },
+        {
+          "route": "localizacao",
+          "name": "localizacao",
+          "type": "link",
+          "icon": "pi pi-map-marker"
+        },
+        {
+          "route": "veiculo-modelo",
+          "name": "veiculo-modelo",
+          "type": "link",
+          "icon": "pi pi-car"
+        },
+        {
+          "route": "categoria",
+          "name": "categoria",
+          "type": "link",
+          "icon": "pi pi-tags"
+        },
+        {
+          "type": "heading",
+          "name": "config-comunicacao"
         },
         {
           "route": "opcoes-envio",
@@ -449,6 +481,10 @@
           "name": "questionario-envio",
           "type": "link",
           "icon": "pi pi-info-circle"
+        },
+        {
+          "type": "heading",
+          "name": "config-sistema"
         },
         {
           "route": "administrador",
