@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: neritech-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-neritech_auto}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-senha_segura}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - neritech-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: neritech-api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME:-neritech_auto}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-senha_segura}
+      - SPRING_PROFILES_ACTIVE=prod
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_TRIAL_PRICE_ID=${STRIPE_TRIAL_PRICE_ID}
+      - SPRING_MAIL_HOST=${MAIL_HOST}
+      - SPRING_MAIL_USERNAME=${MAIL_USER}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASS}
+    networks:
+      - neritech-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: neritech-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - backend
+    networks:
+      - neritech-network
+
+networks:
+  neritech-network:
+    driver: bridge
+
+volumes:
+  pgdata:
