@@ -25,22 +25,40 @@ export class DepartamentoService {
   private readonly storage = inject(LocalStorageService);
   private readonly base = environment.baseUrl + '/v1/departamentos-contabio-empresa';
 
-  private getHeaders(): HttpHeaders {
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '7';
-    if (!tenantId || typeof tenantId === 'object') {
-      tenantId = '7';
+  private getTenantId(): string {
+    let tenantId: any = this.storage.has('empresaId') ? this.storage.get('empresaId') :
+                        this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
+
+    if (tenantId && typeof tenantId === 'object') {
+      tenantId = tenantId.id || tenantId.tenantId || tenantId.empresaId || null;
     }
+    
+    if (!tenantId) {
+      const tokenStr = localStorage.getItem('ng-matero-token');
+      if (tokenStr) {
+        try {
+          const tokenObj = JSON.parse(tokenStr);
+          if (tokenObj && tokenObj.access_token) {
+            const payload = JSON.parse(atob(tokenObj.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            tenantId = payload.empresaId || payload.tenantId;
+          }
+        } catch (e) {}
+      }
+    }
+
+    return String(tenantId || '');
+  }
+
+  private getHeaders(): HttpHeaders {
     return new HttpHeaders({
-      'X-Tenant-Id': String(tenantId),
+      'X-Tenant-Id': this.getTenantId(),
       'Accept': 'application/json'
     });
   }
 
   list(params?: { page?: number; size?: number; sort?: string }): Observable<Page<DepartamentoContabioResponse>> {
     let httpParams = new HttpParams();
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-    httpParams = httpParams.set('empresaId', String(tenantId));
+    httpParams = httpParams.set('empresaId', this.getTenantId());
     if (params) {
       Object.keys(params).forEach(key => {
         const val = (params as any)[key];

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.neritech.saas.common.tenancy.TenantContext;
 
 import java.util.List;
 
@@ -50,7 +51,11 @@ public class SituacaoService {
 
     @Transactional(readOnly = true)
     public Page<SituacaoResponse> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toResponse);
+        Long tenantId = TenantContext.getCurrentTenant();
+        if (tenantId == null) {
+            return repository.findAll(pageable).map(mapper::toResponse);
+        }
+        return repository.findByEmpresaId(tenantId, pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)

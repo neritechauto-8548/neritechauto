@@ -11,6 +11,8 @@ import com.neritech.saas.trial.dto.TrialRegisterResponse;
 import com.stripe.model.Customer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.neritech.saas.gestaoUsuarios.domain.Funcao;
+import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import com.neritech.saas.rh.domain.Funcionario;
 import com.neritech.saas.rh.domain.enums.StatusFuncionario;
 import com.neritech.saas.rh.repository.FuncionarioRepository;
@@ -32,6 +34,7 @@ public class TrialService {
     private final StripeService stripeService;
     private final EmailService emailService;
     private final FuncionarioRepository funcionarioRepository;
+    private final FuncaoRepository funcaoRepository;
 
     @Transactional
     public TrialRegisterResponse registerTrial(TrialRegisterRequest request) {
@@ -69,7 +72,16 @@ public class TrialService {
         // 3. Gerar senha temporária
         String rawPassword = generateTemporaryPassword();
 
-        // 4. Criar Usuário Admin
+        // 4. Criar Funcao Admin e Associar ao Usuario
+        Funcao funcaoAdmin = Funcao.builder()
+                .empresaId(savedEmpresa.getId())
+                .nome("ADMIN")
+                .descricao("Administrador do Sistema")
+                .sistema(true)
+                .ativo(true)
+                .build();
+        Funcao savedFuncao = funcaoRepository.save(funcaoAdmin);
+
         Usuario usuario = Usuario.builder()
                 .empresaId(savedEmpresa.getId())
                 .nomeCompleto(request.getNomeCompleto())
@@ -78,6 +90,7 @@ public class TrialService {
                 .ativo(true)
                 .bloqueado(false)
                 .build();
+        usuario.getFuncoes().add(savedFuncao);
         Usuario savedUsuario = usuarioRepository.save(usuario);
 
         // 5. Criar Registro de Funcionário

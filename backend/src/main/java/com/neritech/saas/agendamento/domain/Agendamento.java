@@ -118,6 +118,9 @@ public class Agendamento extends BaseEntity {
     @Column(name = "canal_agendamento", length = 30, nullable = false)
     private CanalAgendamento canalAgendamento;
 
+    @Column(name = "agendado_por")
+    private Long agendadoPor;
+
 
 
     public void setTipoAgendamento(TipoAgendamento tipoAgendamento) {
@@ -294,6 +297,14 @@ public class Agendamento extends BaseEntity {
     }
     public void setCanalAgendamento(CanalAgendamento canalAgendamento) {
         this.canalAgendamento = canalAgendamento;
+    }
+
+    public Long getAgendadoPor() {
+        return agendadoPor;
+    }
+
+    public void setAgendadoPor(Long agendadoPor) {
+        this.agendadoPor = agendadoPor;
     }
 
 }

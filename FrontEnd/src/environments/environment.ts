@@ -5,6 +5,7 @@
 export const environment = {
   production: false,
   baseUrl: '/api',
+  supportUrl: 'http://localhost:8081',
   useHash: false,
 };
 

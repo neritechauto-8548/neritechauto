@@ -11,6 +11,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 
 @Entity
@@ -56,6 +58,7 @@ public class Produto extends TenantEntity {
     @Column(name = "aplicacao", columnDefinition = "TEXT")
     private String aplicacao;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "especificacoes_tecnicas")
     private String especificacoesTecnicas;
 

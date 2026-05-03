@@ -15,6 +15,7 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long>, JpaSpec
     List<Veiculo> findByEmpresaId(Long empresaId);
 
     List<Veiculo> findByClienteId(Long clienteId);
+    List<Veiculo> findByClienteIdAndEmpresaId(Long clienteId, Long empresaId);
 
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @org.springframework.data.jpa.repository.Query("delete from Veiculo v where v.cliente.id = :clienteId and v.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")

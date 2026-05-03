@@ -59,7 +59,15 @@ export class LoginService {
   }
 
   user() {
-    return this.http.get<User>('/api/usuarios/me');
+    return this.http.get<User>('/api/usuarios/me').pipe(
+      map((user: any) => {
+        return {
+          ...user,
+          name: user.nomeCompleto || user.name,
+          avatar: user.avatarUrl || user.avatar
+        } as User;
+      })
+    );
   }
 
   menu() {

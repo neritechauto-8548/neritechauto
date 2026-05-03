@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, catchError, iif, map, merge, of, share, switchMap, tap } from 'rxjs';
-import { filterObject, isEmptyObject } from './helpers';
+import { base64, filterObject, isEmptyObject } from './helpers';
 import { User } from './interface';
 import { LoginService } from './login.service';
 import { TokenService } from './token.service';
@@ -37,7 +37,10 @@ export class AuthService {
 
   login(username: string, password: string, rememberMe = false) {
     return this.loginService.login(username, password, rememberMe).pipe(
-      tap(token => this.tokenService.set(token)),
+      tap(token => {
+        this.setTenantFromToken(token.access_token);
+        this.tokenService.set(token);
+      }),
       map(() => this.check())
     );
   }
@@ -47,7 +50,12 @@ export class AuthService {
       .refresh(filterObject({ refresh_token: this.tokenService.getRefreshToken() }))
       .pipe(
         catchError(() => of(undefined)),
-        tap(token => this.tokenService.set(token)),
+        tap(token => {
+          if (token?.access_token) {
+            this.setTenantFromToken(token.access_token);
+          }
+          this.tokenService.set(token);
+        }),
         map(() => this.check())
       );
   }
@@ -106,5 +114,22 @@ export class AuthService {
         }
       })
     );
+  }
+
+  private setTenantFromToken(accessToken: string) {
+    try {
+      if (!accessToken || !accessToken.includes('.')) {
+        return;
+      }
+      const payload = JSON.parse(base64.decode(accessToken.split('.')[1]));
+      const tenantId = payload.empresaId || payload.tenantId;
+      if (tenantId) {
+        console.log('🏢 Setting Tenant ID from token payload:', tenantId);
+        this.storage.set('tenantId', String(tenantId));
+        this.storage.set('empresaId', String(tenantId));
+      }
+    } catch (e) {
+      console.error('Error parsing token payload', e);
+    }
   }
 }

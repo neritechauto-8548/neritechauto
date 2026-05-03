@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-02T17:30:35-0300",
+    date = "2026-05-02T21:26:52-0300",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -31,6 +31,7 @@ public class AgendamentoMapperImpl implements AgendamentoMapper {
         Agendamento agendamento = new Agendamento();
 
         agendamento.setTipoAgendamento( agendamentoRequestToTipoAgendamento( request ) );
+        agendamento.setConfirmadoCliente( request.confirmadoCliente() );
         agendamento.setEmpresaId( request.empresaId() );
         agendamento.setNumeroAgendamento( request.numeroAgendamento() );
         agendamento.setClienteId( request.clienteId() );
@@ -51,7 +52,6 @@ public class AgendamentoMapperImpl implements AgendamentoMapper {
         agendamento.setValorEstimado( request.valorEstimado() );
         agendamento.setFormaPagamentoPreferidaId( request.formaPagamentoPreferidaId() );
         agendamento.setCanalAgendamento( request.canalAgendamento() );
-        agendamento.setConfirmadoCliente( request.confirmadoCliente() );
 
         return agendamento;
     }

@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { debounceTime, tap } from 'rxjs';
 
 import { AuthService, SettingsService, User } from '@core';
+import { environment } from '@env/environment';
 import { AboutSystemDialog } from './about-system';
 
 @Component({
@@ -30,7 +31,9 @@ import { AboutSystemDialog } from './about-system';
         <!-- Menu Header (User Info) -->
         <div class="px-3 py-2.5 bg-slate-50/50 border-b border-slate-100 flex flex-col">
           <span class="text-xs font-bold text-slate-900 leading-tight">{{ user.name }}</span>
-          <span class="text-[10px] text-slate-500 font-medium. mt-0.5 uppercase tracking-wider">Administrador</span>
+          <span class="text-[10px] text-slate-500 font-medium mt-0.5 uppercase tracking-wider">
+            {{ user.funcoes && user.funcoes.length > 0 ? user.funcoes[0] : 'Usuário' }}
+          </span>
         </div>
 
         <div class="p-1 flex flex-col">
@@ -47,6 +50,11 @@ import { AboutSystemDialog } from './about-system';
           <button routerLink="/agendamento/calendario" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
             <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">event</mat-icon>
             <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Minha Agenda</span>
+          </button>
+
+          <button (click)="openSupport()" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
+            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-sky-500 transition-colors">help_outline</mat-icon>
+            <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Suporte</span>
           </button>
 
           <button mat-menu-item (click)="showAbout = true" class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
@@ -117,6 +125,10 @@ export class UserButton implements OnInit {
     this.auth.logout().subscribe(() => {
       this.router.navigateByUrl('/auth/login');
     });
+  }
+
+  openSupport() {
+    window.open(environment.supportUrl, '_blank');
   }
 
   restore() {

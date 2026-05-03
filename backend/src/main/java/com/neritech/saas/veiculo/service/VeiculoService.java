@@ -160,14 +160,26 @@ public class VeiculoService {
 
     @Transactional(readOnly = true)
     public List<VeiculoResponse> findAll() {
-        return repository.findAll().stream()
+        Long tenantId = TenantContext.getCurrentTenant();
+        if (tenantId == null) {
+            return repository.findAll().stream()
+                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+        return repository.findByEmpresaId(tenantId).stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<VeiculoResponse> findByCliente(Long clienteId) {
-        return repository.findByClienteId(clienteId).stream()
+        Long tenantId = TenantContext.getCurrentTenant();
+        if (tenantId == null) {
+            return repository.findByClienteId(clienteId).stream()
+                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+        return repository.findByClienteIdAndEmpresaId(clienteId, tenantId).stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
     }
