@@ -1,51 +1,55 @@
 version: '3.8'
 
 services:
+
+  # ─── Banco de Dados ───────────────────────────────────────
   db:
     image: postgres:15-alpine
     container_name: neritech-db
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME:-neritech_auto}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-senha_segura}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - neritech-network
 
+  # ─── Backend (Spring Boot) ────────────────────────────────
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: neritechauto-backend:latest
     container_name: neritech-api
-    restart: always
+    restart: on-failure
     depends_on:
       - db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME:-neritech_auto}
-      - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-senha_segura}
-      - SPRING_PROFILES_ACTIVE=prod
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_TRIAL_PRICE_ID=${STRIPE_TRIAL_PRICE_ID}
-      - SPRING_MAIL_HOST=${MAIL_HOST}
-      - SPRING_MAIL_USERNAME=${MAIL_USER}
-      - SPRING_MAIL_PASSWORD=${MAIL_PASS}
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://neritech-db:5432/${DB_NAME}?prepareThreshold=0&preparedStatementCacheQueries=0&preparedStatementCacheSizeMiB=0
+      DATABASE_USERNAME: ${DB_USER}
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_TRIAL_PRICE_ID: ${STRIPE_TRIAL_PRICE_ID}
+    ports:
+      - "8080:8080"
     networks:
       - neritech-network
 
+  # ─── Nginx (Proxy Reverso) ────────────────────────────────
   nginx:
     image: nginx:alpine
     container_name: neritech-proxy
     restart: always
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - nginx_conf:/etc/nginx/conf.d
     depends_on:
       - backend
     networks:
@@ -57,3 +61,4 @@ networks:
 
 volumes:
   pgdata:
+  nginx_conf:

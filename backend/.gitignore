@@ -30,6 +30,7 @@ out_*.txt
 .env
 .env.local
 .env.*.local
+.env.*
 
 # ── Docker ──
 # .dockerignore é mantido; ignorar apenas artefatos locais
