@@ -36,9 +36,9 @@ public class ClienteController {
         }
 
         /**
-         * Busca um cliente pelo seu identificador Ãºnico.
+         * Busca um cliente pelo seu identificador Unico.
          *
-         * @param id Identificador Ãºnico do cliente
+         * @param id Identificador Unico do cliente
          * @return Dados detalhados do cliente encontrado
          * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
          */
