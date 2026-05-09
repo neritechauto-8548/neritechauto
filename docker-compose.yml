@@ -51,17 +51,16 @@ services:
     networks:
       - neritech-network
 
-  # ─── Nginx (Proxy Reverso + SSL) ─────────────────────────
+  # ─── Nginx (Apenas HTTP para gerar SSL) ──────────────────
   nginx:
     image: nginx:alpine
     container_name: neritech-proxy
     restart: always
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - letsencrypt:/etc/letsencrypt:ro
-      - certbot_www:/var/www/certbot:ro
+      - letsencrypt:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
     configs:
       - source: nginx_conf
         target: /etc/nginx/conf.d/default.conf
@@ -70,14 +69,13 @@ services:
     networks:
       - neritech-network
 
-  # ─── Certbot (SSL Let's Encrypt) ─────────────────────────
+  # ─── Certbot ─────────────────────────────────────────────
   certbot:
     image: certbot/certbot
     container_name: neritech-certbot
     volumes:
       - letsencrypt:/etc/letsencrypt
       - certbot_www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'"
     networks:
       - neritech-network
 
@@ -90,11 +88,9 @@ volumes:
   letsencrypt:
   certbot_www:
 
-# ─── Config do Nginx com suporte HTTPS ───────────────────
 configs:
   nginx_conf:
     content: |
-      # HTTP → redireciona para HTTPS + permite challenge do Let's Encrypt
       server {
           listen 80;
           server_name api.neritechauto.com.br;
@@ -103,32 +99,11 @@ configs:
               root /var/www/certbot;
           }
 
-          location / {
-              return 301 https://$host$request_uri;
-          }
-      }
-
-      # HTTPS → proxy para a API
-      server {
-          listen 443 ssl;
-          server_name api.neritechauto.com.br;
-
-          ssl_certificate     /etc/letsencrypt/live/api.neritechauto.com.br/fullchain.pem;
-          ssl_certificate_key /etc/letsencrypt/live/api.neritechauto.com.br/privkey.pem;
-
-          ssl_protocols TLSv1.2 TLSv1.3;
-          ssl_ciphers HIGH:!aNULL:!MD5;
-
           location /api/ {
               proxy_pass http://neritech-api:8080/api/;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-Forwarded-Proto https;
-          }
-
-          location /health {
-              access_log off;
-              return 200 'OK';
+              proxy_set_header X-Forwarded-Proto $scheme;
           }
       }
