@@ -81,6 +81,18 @@ services:
     networks:
       - neritech-network
 
+  # ─── Watchtower (Deploy Automático) ──────────────────────
+  watchtower:
+    image: containrrr/watchtower
+    container_name: neritech-watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Checa a cada 30 segundos, apaga a imagem velha (--cleanup) e só mexe no neritech-api
+    command: --interval 30 --cleanup neritech-api
+    networks:
+      - neritech-network
+
 networks:
   neritech-network:
     driver: bridge

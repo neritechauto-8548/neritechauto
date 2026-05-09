@@ -4,6 +4,8 @@ name: Build e Deploy Backend
 on:
   push:
     branches: [ "main", "master" ]
+    paths:
+      - 'backend/**'
   workflow_dispatch:
 
 env:
