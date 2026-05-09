@@ -14,7 +14,7 @@ export class LoginService {
   login(username: string, password: string, rememberMe = false) {
     const tenantId = localStorage.getItem('tenantId') || '1';
     return this.http.post<Token>(
-      '/api/auth/login',
+      '/auth/login',
       { email: username, senha: password },
       { headers: { 'X-Tenant-Id': tenantId } }
     ).pipe(
@@ -33,7 +33,7 @@ export class LoginService {
   refresh(params: Record<string, any>) {
     const tenantId = localStorage.getItem('tenantId') || '1';
     const refreshToken = params.refresh_token || params.refreshToken;
-    return this.http.post<Token>('/api/auth/refresh', { refreshToken }, { headers: { 'X-Tenant-Id': tenantId } }).pipe(
+    return this.http.post<Token>('/auth/refresh', { refreshToken }, { headers: { 'X-Tenant-Id': tenantId } }).pipe(
       map((response: any) => {
         // Converter camelCase do backend para snake_case esperado pelo frontend
         return {
@@ -47,19 +47,19 @@ export class LoginService {
   }
 
   logout() {
-    return this.http.post<any>('/api/auth/logout', {});
+    return this.http.post<any>('/auth/logout', {});
   }
 
   recoverPassword(email: string) {
-    return this.http.post<any>('/api/auth/recover-password', { email });
+    return this.http.post<any>('/auth/recover-password', { email });
   }
 
   resetPassword(params: any) {
-    return this.http.post<any>('/api/auth/reset-password', params);
+    return this.http.post<any>('/auth/reset-password', params);
   }
 
   user() {
-    return this.http.get<User>('/api/usuarios/me').pipe(
+    return this.http.get<User>('/usuarios/me').pipe(
       map((user: any) => {
         return {
           ...user,
