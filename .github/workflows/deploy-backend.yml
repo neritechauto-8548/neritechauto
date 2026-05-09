@@ -1,0 +1,57 @@
+name: Build e Deploy Backend
+
+# Só roda quando você fizer push de algo na pasta 'backend'
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'backend/**'
+
+env:
+  REGISTRY: ghcr.io
+  # O nome da imagem será: ghcr.io/seu-usuario/neritechauto-backend
+  IMAGE_NAME: ${{ github.repository_owner }}/neritechauto-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Baixar código fonte
+        uses: actions/checkout@v4
+
+      - name: Login no GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Preparar Nomes e Tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+
+      - name: Build do Java e Push para o GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Avisar o Portainer (Webhook)
+        if: success()
+        run: |
+          if [ -n "${{ secrets.PORTAINER_WEBHOOK }}" ]; then
+            echo "Avisando o Portainer para atualizar a Stack..."
+            curl -X POST "${{ secrets.PORTAINER_WEBHOOK }}"
+          else
+            echo "ATENÇÃO: Webhook do Portainer não configurado no GitHub Secrets."
+          fi

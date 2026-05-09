@@ -18,7 +18,7 @@ services:
 
   # ─── Backend (Spring Boot) ────────────────────────────────
   backend:
-    image: neritechauto-backend:latest
+    image: ghcr.io/neritechauto-8548/neritechauto-backend:latest
     container_name: neritech-api
     restart: on-failure
     depends_on:
