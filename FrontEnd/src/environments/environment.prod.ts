@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  baseUrl: 'http://localhost:8080/api',
-  supportUrl: 'http://localhost:8081',
+  baseUrl: 'https://api.neritechauto.com.br/api',
+  supportUrl: 'https://api.neritechauto.com.br/api',
   useHash: false,
 };
