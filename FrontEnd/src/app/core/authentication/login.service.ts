@@ -71,6 +71,8 @@ export class LoginService {
   }
 
   menu() {
-    return this.http.get<{ menu: Menu[] }>('/user/menu').pipe(map(res => res.menu));
+    // Busca o arquivo estático da própria URL do frontend, ignorando o BaseUrlInterceptor
+    const menuUrl = window.location.origin + '/data/menu.json';
+    return this.http.get<any>(menuUrl).pipe(map(res => res.menu || res.response?.menu));
   }
 }
