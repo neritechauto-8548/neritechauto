@@ -101,7 +101,8 @@ public class SecurityConfig {
             "https://www.neritechauto.com.br",
             "https://neritechauto.com.br",
             "https://neritechauto.vercel.app",
-            "https://api.neritechauto.com.br"
+            "https://api.neritechauto.com.br",
+            "https://sistema.neritechauto.com.br"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Tenant-Id", "X-Tenant-Header"));
