@@ -91,11 +91,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of(
+            // Desenvolvimento
             "http://localhost:3000",
             "http://localhost:4200",
             "http://localhost:5173",
-            "http://localhost:5174"
+            "http://localhost:5174",
+            // Produção (Site e Dashboard)
+            "https://www.neritechauto.com.br",
+            "https://neritechauto.com.br",
+            "https://neritechauto.vercel.app",
+            "https://api.neritechauto.com.br"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Tenant-Id", "X-Tenant-Header"));
