@@ -25,7 +25,11 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
-        return usuarioRepository.findAll().stream()
+        Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        if (empresaId == null) {
+            return Collections.emptyList();
+        }
+        return usuarioRepository.findAllByEmpresaId(empresaId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -52,15 +56,17 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public UsuarioResponse findById(Long id) {
-        return usuarioRepository.findById(id)
+        Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        return usuarioRepository.findByIdAndEmpresaId(id, empresaId)
                 .map(this::toResponse)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
     }
 
     @Transactional
     public UsuarioResponse update(Long id, UsuarioRequest request) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        Usuario usuario = usuarioRepository.findByIdAndEmpresaId(id, empresaId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
 
         usuario.setNomeCompleto(request.getNomeCompleto());
         usuario.setEmail(request.getEmail());
@@ -77,8 +83,9 @@ public class UsuarioService {
 
     @Transactional
     public void delete(Long id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        Usuario usuario = usuarioRepository.findByIdAndEmpresaId(id, empresaId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
         usuario.setAtivo(false); // Soft delete
         usuarioRepository.save(usuario);
     }

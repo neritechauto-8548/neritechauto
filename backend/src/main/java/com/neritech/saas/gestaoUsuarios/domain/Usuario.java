@@ -16,6 +16,7 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@org.hibernate.annotations.Filter(name = "tenantFilter", condition = "empresa_id = :tenantId")
 public class Usuario extends TenantEntity {
 
     @Column(name = "nome_completo", nullable = false)

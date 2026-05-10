@@ -455,12 +455,6 @@
           "icon": "pi pi-map-marker"
         },
         {
-          "route": "veiculo-modelo",
-          "name": "veiculo-modelo",
-          "type": "link",
-          "icon": "pi pi-car"
-        },
-        {
           "route": "categoria",
           "name": "categoria",
           "type": "link",
