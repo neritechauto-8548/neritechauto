@@ -42,6 +42,7 @@ interface ViewItem {
   preco: number;
   total: number;
   tipo: 'servico' | 'produto';
+  status: 'aprovado' | 'aguardando' | 'negado';
   original?: any;
 }
 
@@ -155,6 +156,7 @@ export class VisualizarOS implements OnInit {
         preco: p.valorUnitario,
         total: p.valorTotal,
         tipo: 'produto' as const,
+        status: 'aprovado' as const, // Status inicial
         original: p
       }));
       this.itens.push(...mappedProds);
@@ -170,6 +172,7 @@ export class VisualizarOS implements OnInit {
         preco: s.valorUnitario,
         total: s.valorTotal,
         tipo: 'servico' as const,
+        status: 'aprovado' as const, // Status inicial
         original: s
       }));
       this.itens.push(...mappedServs);
@@ -180,7 +183,12 @@ export class VisualizarOS implements OnInit {
   calculateTotals() {
     this.totalProdutos = this.itens.filter(i => i.tipo === 'produto').reduce((acc, cur) => acc + cur.total, 0);
     this.totalServicos = this.itens.filter(i => i.tipo === 'servico').reduce((acc, cur) => acc + cur.total, 0);
-    this.total = this.totalProdutos + this.totalServicos;
+    
+    this.totalAprovado = this.itens.filter(i => i.status === 'aprovado').reduce((acc, cur) => acc + cur.total, 0);
+    this.totalAguardando = this.itens.filter(i => i.status === 'aguardando').reduce((acc, cur) => acc + cur.total, 0);
+    this.totalNegado = this.itens.filter(i => i.status === 'negado').reduce((acc, cur) => acc + cur.total, 0);
+    
+    this.total = this.totalAprovado; // O total da OS geralmente é apenas o aprovado
   }
 
   carregarSolicitacoes(osId: number) {
@@ -211,18 +219,28 @@ export class VisualizarOS implements OnInit {
 
   // Modal de Status
   statusDialogVisible = false;
-  statusSeverity: Record<string, 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' | null | undefined> = {
-    Aguardando: 'warn',
-    Aprovado: 'success',
-    Negado: 'danger',
-    Entregue: 'success',
-  };
-  statusIcon: Record<string, string> = {
-    Aguardando: 'pi pi-clock',
-    Aprovado: 'pi pi-check',
-    Negado: 'pi pi-times',
-    Entregue: 'pi pi-send',
-  };
+  getStatusSeverity(s: string) {
+    if (this.isOrcamento) {
+      return 'info'; // Orçamentos em tons de azul/info
+    }
+    const map: Record<string, 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' | null | undefined> = {
+      Aguardando: 'warn',
+      Aprovado: 'success',
+      Negado: 'danger',
+      Entregue: 'success',
+    };
+    return map[s] || 'info';
+  }
+
+  getStatusIcon(s: string) {
+    const map: Record<string, string> = {
+      Aguardando: 'pi pi-clock',
+      Aprovado: 'pi pi-check',
+      Negado: 'pi pi-times',
+      Entregue: 'pi pi-send',
+    };
+    return map[s] || 'pi pi-info-circle';
+  }
   abrirStatusDialog() { this.statusDialogVisible = true; }
   fecharStatusDialog() { this.statusDialogVisible = false; }
   setStatus(s: string) {
@@ -254,8 +272,30 @@ export class VisualizarOS implements OnInit {
   // Produtos e serviços
   prodServBusca = '';
   itens: ViewItem[] = [];
+  
+  get filteredItens() {
+    if (!this.prodServBusca?.trim()) return this.itens;
+    const query = this.prodServBusca.toLowerCase().trim();
+    return this.itens.filter(i => 
+      i.descricao?.toLowerCase().includes(query) || 
+      i.tipo?.toLowerCase().includes(query)
+    );
+  }
+
+  alternarStatusItem(i: ViewItem) {
+    const statusCycle: ('aprovado' | 'aguardando' | 'negado')[] = ['aprovado', 'aguardando', 'negado'];
+    const currentIndex = statusCycle.indexOf(i.status || 'aprovado');
+    const nextIndex = (currentIndex + 1) % statusCycle.length;
+    i.status = statusCycle[nextIndex];
+    // Aqui você pode adicionar uma chamada ao serviço para salvar o novo status no banco, se necessário.
+    this.calculateTotals();
+  }
+
   totalServicos = 0.0;
   totalProdutos = 0.0;
+  totalAprovado = 0.0;
+  totalAguardando = 0.0;
+  totalNegado = 0.0;
   total = 0.0;
 
   // Solicitações
@@ -263,7 +303,7 @@ export class VisualizarOS implements OnInit {
   solicitacaoDialogVisible = false;
   solicitacao = { descricao: '', quantidade: 1, codigoOriginal: '', codigo: '', duvida: false };
 
-  // Pagamentos
+  // Pagamentos Lógica
   faturaOS?: any;
   pagamentosExistentes: any[] = [];
   osFotos: any[] = [];
@@ -292,6 +332,7 @@ export class VisualizarOS implements OnInit {
       }
     });
   }
+
   editandoSolicitacaoId: number | null = null;
 
   abrirSolicitacaoDialog() {
@@ -647,9 +688,9 @@ export class VisualizarOS implements OnInit {
     desconto: 0,
     valorPagar: 0,
     juros: 0,
-    forma: 'CARTAO',
+    forma: 1, // Usando number para consistência
     parcelas: 1,
-    contaDestino: 'BANCO',
+    contaDestino: 1,
     parcelasList: [] as any[],
     totalNegociado: 0,
   };
@@ -663,7 +704,7 @@ export class VisualizarOS implements OnInit {
     this.pagamentoDialogVisible = true;
     this.pagamento.desconto = 0;
     this.pagamento.juros = 0;
-    this.pagamento.forma = 'CARTAO';
+    this.pagamento.forma = 1;
     this.pagamento.parcelas = 1;
     this.pagamento.parcelasList = [];
     this.pagamento.totalNegociado = 0;
