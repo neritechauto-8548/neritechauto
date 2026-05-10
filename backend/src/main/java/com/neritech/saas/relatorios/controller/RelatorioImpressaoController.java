@@ -189,8 +189,9 @@ public class RelatorioImpressaoController {
 
         var dados = lista.stream().map(c -> {
             Map<String, Object> m = new HashMap<>();
-            m.put("nome", c.getNomeCompleto());
-            m.put("dataNascimento", c.getDataNascimento().toString());
+            String nome = c.getNomeCompleto() != null ? c.getNomeCompleto() : (c.getRazaoSocial() != null ? c.getRazaoSocial() : "Cliente sem nome");
+            m.put("nome", nome);
+            m.put("dataNascimento", c.getDataNascimento() != null ? c.getDataNascimento().toString() : "");
             return m;
         }).toList();
 

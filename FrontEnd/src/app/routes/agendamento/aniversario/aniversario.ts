@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { ClienteResponse } from '../../cliente/models/cliente.models';
 import { ComunicacaoService, ComunicacaoEnviadaRequest } from '../comunicacao.service';
+import { RelatoriosService } from '../../relatorios/relatorios.service';
 
 interface ClienteAniversariante extends ClienteResponse {
   nascimentoFormatado: string;
@@ -29,13 +30,12 @@ interface ClienteAniversariante extends ClienteResponse {
     CommonModule,
     FormsModule,
     DialogModule,
-    ToastModule,
     RouterModule,
     MatIconModule,
     MatMenuModule,
     MatButtonModule
   ],
-  providers: [MessageService, DatePipe],
+  providers: [DatePipe],
   templateUrl: './aniversario.html',
   styleUrls: [],
 })
@@ -45,6 +45,7 @@ export class AniversarioAgendamento implements OnInit {
   private messageService = inject(MessageService);
   private datePipe = inject(DatePipe);
   private router = inject(Router);
+  private relatoriosService = inject(RelatoriosService);
 
   meses = [
     { label: 'JANEIRO', value: 1 }, { label: 'FEVEREIRO', value: 2 }, { label: 'MARÇO', value: 3 },
@@ -145,7 +146,14 @@ export class AniversarioAgendamento implements OnInit {
   }
 
   imprimir(): void {
-    window.print();
+    this.messageService.add({severity:'info', summary: 'Aguarde', detail: 'Gerando relatório em PDF...'});
+    this.relatoriosService.gerarRelatorio('aniversariantes', { mes: this.mesSelecionado }).subscribe({
+      next: blob => {
+        this.relatoriosService.downloadBlob(blob, `relatorio-aniversariantes-mes-${this.mesSelecionado}.pdf`);
+        this.messageService.add({severity:'success', summary: 'Sucesso', detail: 'Relatório gerado com sucesso!'});
+      },
+      error: () => this.messageService.add({severity:'error', summary: 'Erro', detail: 'Falha ao gerar relatório PDF.'})
+    });
   }
 
   verFicha(c: ClienteAniversariante): void {

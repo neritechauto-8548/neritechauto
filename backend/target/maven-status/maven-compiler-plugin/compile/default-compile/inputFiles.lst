@@ -680,10 +680,13 @@ C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\nerite
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\domain\Permissao.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\domain\SessaoUsuario.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\domain\TentativaLogin.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\domain\TokenRecuperacaoSenha.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\domain\Usuario.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\LoginRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\LoginResponse.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\RecoverPasswordRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\RefreshTokenRequest.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\ResetPasswordRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\SessaoResponse.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\UsuarioRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\dto\UsuarioResponse.java
@@ -693,6 +696,7 @@ C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\nerite
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\repository\PermissaoRepository.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\repository\SessaoUsuarioRepository.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\repository\TentativaLoginRepository.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\repository\TokenRecuperacaoSenhaRepository.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\repository\UsuarioRepository.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\service\AuthService.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\gestaoUsuarios\service\FuncaoService.java
@@ -1103,6 +1107,8 @@ C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\nerite
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\trial\dto\TrialRegisterRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\trial\dto\TrialRegisterResponse.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\trial\service\TrialService.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\util\controller\DocumentoController.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\util\DocumentoValidator.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\util\FlywayRepairUtil.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\controller\AdminController.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\controller\AnoModeloController.java
@@ -1128,6 +1134,7 @@ C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\nerite
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\domain\Veiculo.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\dto\AnoModeloRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\dto\AnoModeloResponse.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\dto\ExternalVehicleDTO.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\dto\MarcaVeiculoRequest.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\dto\MarcaVeiculoResponse.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\dto\ModeloVeiculoRequest.java
@@ -1151,4 +1158,5 @@ C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\nerite
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\service\MarcaVeiculoService.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\service\ModeloVeiculoService.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\service\TipoCombustivelService.java
+C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\service\VehicleExternalLookupService.java
 C:\Users\alexa\OneDrive\Documentos\neritechauto\backend\src\main\java\com\neritech\saas\veiculo\service\VeiculoService.java
