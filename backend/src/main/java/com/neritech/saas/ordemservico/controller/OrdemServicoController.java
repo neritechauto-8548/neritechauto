@@ -41,8 +41,10 @@ public class OrdemServicoController {
     @Operation(summary = "Listar ordens de serviço por empresa")
     public ResponseEntity<Page<OrdemServicoResponse>> findByEmpresaId(
             @PathVariable Long empresaId,
+            @RequestParam(required = false, defaultValue = "SERVICO") String tipo,
+            @RequestParam(required = false) String search,
             Pageable pageable) {
-        Page<OrdemServicoResponse> response = service.findByEmpresaId(empresaId, pageable);
+        Page<OrdemServicoResponse> response = service.findByEmpresaId(empresaId, tipo, search, pageable);
         return ResponseEntity.ok(response);
     }
 

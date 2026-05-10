@@ -119,7 +119,7 @@ export class OrdemServico implements OnInit {
   private load() {
     this.loading = true;
     const page = Math.floor(this.first / this.rows);
-    const params: any = { page, size: this.rows, sort: 'numeroOS,desc', search: this.search };
+    const params: any = { page, size: this.rows, sort: 'numeroOS,desc', search: this.search, tipo: 'SERVICO' };
     if (this.statusParam) params.status = this.statusParam;
 
     this.osService.list(params).subscribe({

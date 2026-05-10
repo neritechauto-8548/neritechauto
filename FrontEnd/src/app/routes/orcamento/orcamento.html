@@ -6,10 +6,10 @@
 
     <!-- Search -->
     <div class="relative w-full sm:max-w-md group">
-      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
+      <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
       <input pInputText [(ngModel)]="termo" (ngModelChange)="onSearch()"
         placeholder="Buscar por Nº OS, cliente ou placa..."
-        class="w-full pl-12 pr-16 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none" />
+        class="w-full !pl-12 pr-16 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none" />
       <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">Ctrl+K</div>
     </div>
 
@@ -42,7 +42,7 @@
             <!-- Nº OS -->
             <td class="py-2.5 px-6 align-middle">
               <div class="flex items-center gap-4">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 ring-4 ring-white shadow-sm">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600 ring-4 ring-white shadow-sm shrink-0">
                   <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">request_quote</mat-icon>
                 </div>
                 <div class="flex flex-col">

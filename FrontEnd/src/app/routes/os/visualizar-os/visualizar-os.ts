@@ -220,9 +220,9 @@ export class VisualizarOS implements OnInit {
   // Modal de Status
   statusDialogVisible = false;
   getStatusSeverity(s: string) {
-    if (this.isOrcamento) {
+    /* if (this.isOrcamento) {
       return 'info'; // Orçamentos em tons de azul/info
-    }
+    } */
     const map: Record<string, 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' | null | undefined> = {
       Aguardando: 'warn',
       Aprovado: 'success',

@@ -32,7 +32,7 @@ export class OrdemServicoService {
   }
 
   // ========== ORDEM DE SERVIÇO ==========
-  list(params?: { page?: number; size?: number; sort?: string; search?: string; dataTipo?: string; de?: string; ate?: string; status?: string }): Observable<Page<OrdemServicoResponse>> {
+  list(params?: { page?: number; size?: number; sort?: string; search?: string; tipo?: string; dataTipo?: string; de?: string; ate?: string; status?: string }): Observable<Page<OrdemServicoResponse>> {
     const empresaId = this.getTenantId();
     let httpParams = new HttpParams();
     Object.entries(params || {}).forEach(([k, v]) => {

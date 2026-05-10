@@ -55,9 +55,23 @@ public class OrdemServicoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrdemServicoResponse> findByEmpresaId(Long empresaId, Pageable pageable) {
-        return repository.findByEmpresaId(empresaId, pageable)
-                .map(mapper::toResponse); // No enriquecimento aqui para performance em listagem
+    public Page<OrdemServicoResponse> findByEmpresaId(Long empresaId, String tipoStr, String search, Pageable pageable) {
+        java.util.List<com.neritech.saas.ordemservico.domain.enums.TipoOS> tipos;
+        if ("ORCAMENTO".equalsIgnoreCase(tipoStr)) {
+            tipos = java.util.List.of(com.neritech.saas.ordemservico.domain.enums.TipoOS.ORCAMENTO);
+        } else {
+            // Se for SERVICO (ou qualquer outra coisa), traz todos os tipos EXCETO Orçamento.
+            tipos = java.util.Arrays.stream(com.neritech.saas.ordemservico.domain.enums.TipoOS.values())
+                    .filter(t -> t != com.neritech.saas.ordemservico.domain.enums.TipoOS.ORCAMENTO)
+                    .toList();
+        }
+
+        if (search != null && !search.trim().isEmpty()) {
+            return repository.search(empresaId, tipos, search, pageable)
+                    .map(mapper::toResponse);
+        }
+        return repository.findByEmpresaIdAndTiposIn(empresaId, tipos, pageable)
+                .map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)

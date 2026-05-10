@@ -37,16 +37,16 @@ export class OrcamentoComponent implements OnInit {
   // Paginação — padrão veículo
   first = 0;
   rows = 10;
+  totalItemsBackend = 0;
 
   currentOS: OrdemServicoResponse | null = null;
 
-  // ─── Paginação ─────────────────────────────────────
-  get pagedData(): OrdemServicoResponse[] {
-    return this.filteredData.slice(this.first, this.first + this.rows);
+  get totalRecords(): number {
+    return this.totalItemsBackend;
   }
 
-  get totalRecords(): number {
-    return this.filteredData.length;
+  get pagedData(): OrdemServicoResponse[] {
+    return this.filteredData; // Já vem paginado do backend
   }
 
   get rangeStart(): number {
@@ -57,32 +57,27 @@ export class OrcamentoComponent implements OnInit {
     return Math.min(this.first + this.rows, this.totalRecords);
   }
 
-  goPrev() { if (this.first > 0) this.first -= this.rows; }
-  goNext() { if (this.first + this.rows < this.totalRecords) this.first += this.rows; }
+  ngOnInit() { this.carregar(); }
 
-  // ─── Busca ─────────────────────────────────────────
   onSearch() {
     this.first = 0;
-    const t = this.termo.toLowerCase().trim();
-    if (!t) {
-      this.filteredData = [...this.orcamentos];
-      return;
-    }
-    this.filteredData = this.orcamentos.filter(o =>
-      (o.numeroOS || '').toLowerCase().includes(t) ||
-      (o.nomeCliente || '').toLowerCase().includes(t) ||
-      (o.placaVeiculo || '').toLowerCase().includes(t)
-    );
+    this.carregar();
   }
-
-  ngOnInit() { this.carregar(); }
 
   carregar() {
     this.loading = true;
-    this.osService.list({ size: 200 }).subscribe({
-      next: (page) => {
-        this.orcamentos = page.content.filter(os => os.tipoOS === TipoOS.ORCAMENTO);
+    const page = Math.floor(this.first / this.rows);
+    this.osService.list({ 
+      page, 
+      size: this.rows, 
+      sort: 'dataAbertura,desc', 
+      tipo: 'ORCAMENTO', 
+      search: this.termo 
+    }).subscribe({
+      next: (res) => {
+        this.orcamentos = res.content || [];
         this.filteredData = [...this.orcamentos];
+        this.totalItemsBackend = res.totalElements || 0;
         this.loading = false;
       },
       error: () => {
@@ -90,6 +85,20 @@ export class OrcamentoComponent implements OnInit {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os orçamentos.' });
       }
     });
+  }
+
+  goPrev() { 
+    if (this.first >= this.rows) {
+      this.first -= this.rows; 
+      this.carregar();
+    }
+  }
+  
+  goNext() { 
+    if (this.first + this.rows < this.totalItemsBackend) {
+      this.first += this.rows; 
+      this.carregar();
+    }
   }
 
   setCurrent(os: OrdemServicoResponse) {

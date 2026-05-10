@@ -3,17 +3,17 @@
 <!-- Barra de Ações Superior (Sticky Top) -->
 <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 mb-6">
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton label="Editar" icon="pi pi-pencil" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-sm shadow-sm" (click)="onAction('editar')"></button>
-    <button pButton label="Salvar OS" icon="pi pi-check" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm flex items-center gap-2" (click)="onAction('salvar')"></button>
+    <button pButton label="Editar" icon="pi pi-pencil" class="p-button-warning px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('editar')"></button>
+    <button pButton [label]="isOrcamento ? 'Salvar Orçamento' : 'Salvar OS'" icon="pi pi-check" class="p-button-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm flex items-center gap-2" (click)="onAction('salvar')"></button>
   </div>
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton label="Imprimir" icon="pi pi-print" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-sm shadow-sm" (click)="onAction('imprimir')"></button>
-    <button pButton label="Via WhatsApp" icon="pi pi-send" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm" (click)="onAction('enviar')"></button>
+    <button pButton label="Imprimir" icon="pi pi-print" class="p-button-secondary px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('imprimir')"></button>
+    <button pButton label="Via WhatsApp" icon="pi pi-send" class="p-button-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('enviar')"></button>
     <div class="w-[1px] h-6 bg-slate-200 mx-2 hidden sm:block"></div>
-    <button pButton label="Receber" icon="pi pi-money-bill" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm" (click)="onAction('pagamento')"></button>
-    <button pButton label="Fotos" icon="pi pi-camera" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition-colors text-sm shadow-sm" (click)="onAction('fotos')"></button>
-    <button *ngIf="!isOrcamento" pButton label="NF-e" icon="pi pi-file" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
-    <button *ngIf="isOrcamento" pButton label="Aprovar/Converter" icon="pi pi-exchange" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
+    <button *ngIf="!isOrcamento" pButton label="Receber" icon="pi pi-money-bill" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')"></button>
+    <button pButton label="Fotos" icon="pi pi-camera" class="p-button-warning px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('fotos')"></button>
+    <button *ngIf="!isOrcamento" pButton label="NF-e" icon="pi pi-file" class="p-button-help px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
+    <button *ngIf="isOrcamento" pButton label="Aprovar/Converter" icon="pi pi-exchange" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
   </div>
 </div>
 
@@ -74,7 +74,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
       <!-- Status -->
       <div class="space-y-1">
-        <label class="text-xs font-bold text-slate-700">Status da OS</label>
+        <label class="text-xs font-bold text-slate-700">Status do {{ isOrcamento ? 'Orçamento' : 'Serviço' }}</label>
         <div class="flex items-start h-[38px] pt-1">
           <p-tag [value]="status" [severity]="getStatusSeverity(status)" [icon]="getStatusIcon(status)" class="cursor-pointer shadow-sm hover:opacity-90 transition-opacity" (click)="abrirStatusDialog()" />
         </div>
@@ -118,23 +118,32 @@
 
 <!-- Produtos e Serviços -->
 <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-       <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
+  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex flex-row items-center justify-between gap-4 w-full">
+    
+    <!-- Esquerda: Título -->
+    <div class="flex items-center gap-3 flex-1 justify-start">
+       <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
           <i class="pi pi-box text-sm"></i>
       </div>
-      <div>
-          <h3 class="font-bold text-slate-800 text-sm">Produtos e Serviços</h3>
-          <p class="text-[11px] text-slate-500 font-medium">Itens e serviços lançados na ordem de serviço</p>
+      <div class="hidden sm:block">
+          <h3 class="font-bold text-slate-800 text-sm whitespace-nowrap">Produtos e Serviços</h3>
+          <p class="text-[11px] text-slate-500 font-medium hidden lg:block whitespace-nowrap">Itens e serviços lançados na ordem de serviço</p>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <div class="p-inputgroup w-64 hidden sm:flex">
-        <span class="p-inputgroup-addon bg-slate-50 border-slate-200"><i class="pi pi-search text-slate-400"></i></span>
-        <input pInputText [(ngModel)]="prodServBusca" placeholder="Pesquisar..." class="border-l-0 modern-input !h-[38px] w-full" />
+    
+    <!-- Centro: Pesquisa -->
+    <div class="flex justify-center flex-1">
+      <div class="p-inputgroup w-full max-w-sm">
+        <span class="p-inputgroup-addon bg-white border-slate-200"><i class="pi pi-search text-slate-400"></i></span>
+        <input pInputText [(ngModel)]="prodServBusca" placeholder="Pesquisar itens..." class="border-l-0 modern-input !h-[38px] w-full" />
       </div>
-      <button pButton label="Incluir Item" icon="pi pi-plus" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm whitespace-nowrap" (click)="abrirIncluirDialog()"></button>
     </div>
+
+    <!-- Direita: Botão -->
+    <div class="flex items-center justify-end flex-1 shrink-0">
+      <button pButton label="Incluir Item" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm whitespace-nowrap" (click)="abrirIncluirDialog()"></button>
+    </div>
+
   </div>
 
   <p-table [value]="filteredItens" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" responsiveLayout="scroll">
@@ -207,10 +216,10 @@
       </div>
       <div>
           <h3 class="font-bold text-slate-800 text-sm">Solicitações de Peças</h3>
-          <p class="text-[11px] text-slate-500 font-medium">Requisições feitas ao setor de compras ou estoque</p>
+      <p class="text-[11px] text-slate-500 font-medium">Requisições feitas ao setor de compras ou estoque para este {{ isOrcamento ? 'orçamento' : 'serviço' }}</p>
       </div>
     </div>
-    <button pButton label="Nova Solicitação" icon="pi pi-plus" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm" (click)="abrirSolicitacaoDialog()"></button>
+    <button pButton label="Nova Solicitação" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirSolicitacaoDialog()"></button>
   </div>
   <p-table [value]="solicitacoes" styleClass="p-datatable-sm">
     <ng-template pTemplate="header">
@@ -254,7 +263,7 @@
           <p class="text-[11px] text-slate-500 font-medium">Itens inspecionados na entrada ou saída do veículo</p>
       </div>
     </div>
-    <button pButton label="Adicionar Checklist" icon="pi pi-plus" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm" (click)="abrirChecklistDialog()"></button>
+    <button pButton label="Adicionar Checklist" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirChecklistDialog()"></button>
   </div>
   <div *ngIf="!checklistsOS.length" class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">{{ checklistMsg }}</div>
   <p-table *ngIf="checklistsOS.length" [value]="checklistsOS" styleClass="p-datatable-sm">
@@ -278,7 +287,7 @@
 </div>
 
 <!-- Pagamentos -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
+<div *ngIf="!isOrcamento" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
   <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
     <div class="flex items-center gap-3">
        <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
@@ -289,7 +298,7 @@
           <p class="text-[11px] text-slate-500 font-medium">Histórico financeiro desta ordem de serviço</p>
       </div>
     </div>
-    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()"></button>
+    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()"></button>
   </div>
 
   <div *ngIf="!pagamentosExistentes.length" class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhum pagamento registrado para esta OS.</div>
@@ -330,7 +339,7 @@
           <p class="text-[11px] text-slate-500 font-medium">Fotos de vistoria e acompanhamento de serviço</p>
       </div>
     </div>
-    <button pButton label="Adicionar Foto" icon="pi pi-image" class="px-4 py-2 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 shadow-sm transition-all text-sm" (click)="abrirDialogFoto()"></button>
+    <button pButton label="Adicionar Foto" icon="pi pi-image" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirDialogFoto()"></button>
   </div>
 
   <p-table *ngIf="osFotos.length; else noFotos" [value]="osFotos" styleClass="p-datatable-sm">
@@ -451,7 +460,7 @@
 
   <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
     <input pInputText [(ngModel)]="novoComentario" (keyup.enter)="adicionarComentario()" placeholder="Escreva a nova atualização para o diário..." class="flex-1 modern-input shadow-inner" />
-    <button pButton icon="pi pi-send" label="Enviar" class="px-6 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm shrink-0" (click)="adicionarComentario()"></button>
+    <button pButton icon="pi pi-send" label="Enviar" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm shrink-0" (click)="adicionarComentario()"></button>
   </div>
 </div>
 
@@ -525,7 +534,7 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 w-full mt-4">
       <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharChecklistDialog()"></button>
-      <button pButton label="Adicionar à OS" icon="pi pi-check" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm" [disabled]="!checklistSelecionado" (click)="adicionarChecklist()"></button>
+      <button pButton label="Adicionar à OS" icon="pi pi-check" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" [disabled]="!checklistSelecionado" (click)="adicionarChecklist()"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -558,7 +567,7 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 w-full mt-4">
       <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharSolicitacaoDialog()"></button>
-      <button pButton label="Salvar Solicitação" icon="pi pi-check" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm" (click)="incluirSolicitacao()" [disabled]="!solicitacao.descricao || solicitacao.quantidade <= 0"></button>
+      <button pButton label="Salvar Solicitação" icon="pi pi-check" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="incluirSolicitacao()" [disabled]="!solicitacao.descricao || solicitacao.quantidade <= 0"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -699,7 +708,7 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 w-full mt-4">
       <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharIncluirDialog()"></button>
-      <button pButton label="Adicionar à OS" icon="pi pi-check" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-sm transition-all text-sm" (click)="incluirItem()" [disabled]="!incluir.descricao || incluir.quantidade <= 0 || incluir.valor <= 0"></button>
+      <button pButton label="Adicionar à OS" icon="pi pi-check" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="incluirItem()" [disabled]="!incluir.descricao || incluir.quantidade <= 0 || incluir.valor <= 0"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -748,7 +757,7 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 w-full mt-4">
       <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharPagamentoDialog()"></button>
-      <button pButton label="Finalizar Recebimento" icon="pi pi-check" class="px-6 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm" (click)="salvarPagamento()"></button>
+      <button pButton label="Finalizar Recebimento" icon="pi pi-check" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="salvarPagamento()"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -764,8 +773,9 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="flex flex-col gap-3 w-full pt-2">
-      <button pButton label="Imprimir Comprovante" icon="pi pi-print" class="w-full justify-center px-4 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-sm transition-all text-sm"></button>
+      <button pButton label="Imprimir Comprovante" icon="pi pi-print" class="w-full justify-center px-4 py-3 rounded-xl !bg-blue-600 !border-blue-600 hover:!bg-blue-700 hover:!border-blue-700 text-white font-bold shadow-sm transition-all text-sm"></button>
       <button pButton label="Fechar" class="w-full justify-center px-4 py-3 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="reciboDialogVisible = false"></button>
     </div>
   </ng-template>
 </p-dialog>
+

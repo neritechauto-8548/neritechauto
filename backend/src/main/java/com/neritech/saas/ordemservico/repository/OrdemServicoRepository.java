@@ -11,7 +11,22 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
 
     Page<OrdemServico> findByEmpresaIdAndStatusId(Long empresaId, Long statusId, Pageable pageable);
 
-    Page<OrdemServico> findByEmpresaIdAndTipoOS(Long empresaId, TipoOS tipoOS, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.tipoOS IN :tipos AND (" +
+            "LOWER(o.numeroOS) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "o.clienteId IN (SELECT c.id FROM Cliente c WHERE LOWER(c.nomeCompleto) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
+            "o.veiculoId IN (SELECT v.id FROM Veiculo v WHERE LOWER(v.placa) LIKE LOWER(CONCAT('%', :search, '%')))" +
+            ")")
+    Page<OrdemServico> search(
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("tipos") java.util.List<TipoOS> tipos,
+            @org.springframework.data.repository.query.Param("search") String search,
+            Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.tipoOS IN :tipos")
+    Page<OrdemServico> findByEmpresaIdAndTiposIn(
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("tipos") java.util.List<TipoOS> tipos,
+            Pageable pageable);
 
     Page<OrdemServico> findByClienteId(Long clienteId, Pageable pageable);
 
