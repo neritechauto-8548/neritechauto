@@ -184,7 +184,14 @@ public class RelatorioImpressaoController {
 
     @GetMapping("/aniversariantes")
     @Operation(summary = "Relatório de Aniversariantes")
-    public ResponseEntity<byte[]> relatorioAniversariantes(@RequestParam Integer mes) {
+    public ResponseEntity<byte[]> relatorioAniversariantes(
+            @RequestParam Integer mes,
+            @RequestParam(required = false, defaultValue = "") String empresaNome,
+            @RequestParam(required = false, defaultValue = "") String empresaEndereco,
+            @RequestParam(required = false, defaultValue = "") String empresaTelefone,
+            @RequestParam(required = false, defaultValue = "") String empresaCnpj,
+            @RequestParam(required = false, defaultValue = "") String empresaEmail) {
+
         var lista = clienteRepository.findByMesAniversario(mes);
 
         var dados = lista.stream().map(c -> {
@@ -195,9 +202,24 @@ public class RelatorioImpressaoController {
             return m;
         }).toList();
 
-        byte[] pdfBytes = jasperService.gerarRelatorioPdf("aniversariantes", criarParamsPadrao(), dados);
-        return retornarPdf(pdfBytes, "relatorio-aniversariantes");
+        // Nomes dos meses em português
+        String[] meses = {"Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
+        String mesNome = (mes >= 1 && mes <= 12) ? meses[mes - 1] : mes.toString();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("NOME_EMPRESA", empresaNome.isEmpty() ? "NeriTech Auto Center" : empresaNome);
+        params.put("ENDERECO_EMPRESA", empresaEndereco.isEmpty() ? "" : empresaEndereco);
+        params.put("TELEFONE_EMPRESA", empresaTelefone.isEmpty() ? "" : empresaTelefone);
+        params.put("CNPJ_EMPRESA", empresaCnpj.isEmpty() ? "" : empresaCnpj);
+        params.put("EMAIL_EMPRESA", empresaEmail.isEmpty() ? "" : empresaEmail);
+        params.put("MES_REFERENCIA", mesNome);
+        params.put("DATA_EMISSAO", new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date()));
+
+        byte[] pdfBytes = jasperService.gerarRelatorioPdf("aniversariantes", params, dados);
+        return retornarPdf(pdfBytes, "relatorio-aniversariantes-mes-" + mes);
     }
+
 
     @GetMapping("/financeiro")
     @Operation(summary = "Relatório Financeiro (Receitas)")

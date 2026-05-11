@@ -48,4 +48,13 @@ export class RelatoriosService {
     a.click();
     window.URL.revokeObjectURL(url);
   }
+
+  abrirBlobEmNovaAba(blob: Blob) {
+    const url = window.URL.createObjectURL(blob);
+    const aba = window.open(url, '_blank');
+    // Libera memória após a aba carregar
+    if (aba) {
+      aba.addEventListener('load', () => window.URL.revokeObjectURL(url));
+    }
+  }
 }

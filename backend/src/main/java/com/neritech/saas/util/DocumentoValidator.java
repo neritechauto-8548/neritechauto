@@ -48,11 +48,11 @@ public class DocumentoValidator {
                 return false;
             }
 
-            int d1 = calculateCnpjDigit(cleanCnpj.substring(0, 12), new int[]{5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2});
-            int d2 = calculateCnpjDigit(cleanCnpj.substring(0, 12) + d1, new int[]{6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2});
+                int d1 = calculateCnpjDigit(cleanCnpj.substring(0, 12), new int[]{5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2});
+                int d2 = calculateCnpjDigit(cleanCnpj.substring(0, 12) + d1, new int[]{6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2});
 
-            String expectedDv = "" + d1 + d2;
-            return cleanCnpj.endsWith(expectedDv);
+                String expectedDv = "" + d1 + d2;
+                return cleanCnpj.endsWith(expectedDv);
         } catch (Exception e) {
             return false;
         }

@@ -149,7 +149,7 @@ export class AniversarioAgendamento implements OnInit {
     this.messageService.add({severity:'info', summary: 'Aguarde', detail: 'Gerando relatório em PDF...'});
     this.relatoriosService.gerarRelatorio('aniversariantes', { mes: this.mesSelecionado }).subscribe({
       next: blob => {
-        this.relatoriosService.downloadBlob(blob, `relatorio-aniversariantes-mes-${this.mesSelecionado}.pdf`);
+        this.relatoriosService.abrirBlobEmNovaAba(blob);
         this.messageService.add({severity:'success', summary: 'Sucesso', detail: 'Relatório gerado com sucesso!'});
       },
       error: () => this.messageService.add({severity:'error', summary: 'Erro', detail: 'Falha ao gerar relatório PDF.'})

@@ -36,7 +36,14 @@
                    <span class="input-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                   </span>
-                  <input type="tel" v-model="formulario.whatsapp" placeholder="(11) 99999-9999" required />
+                  <input 
+                    type="tel" 
+                    :value="formulario.whatsapp" 
+                    @input="handlePhoneInput"
+                    placeholder="(11) 99999-9999" 
+                    maxlength="15"
+                    required 
+                  />
                 </div>
               </div>
             </div>
@@ -58,7 +65,14 @@
                    <span class="input-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="7" x2="7" y1="15" y2="15"/><line x1="11" x2="11" y1="15" y2="15"/></svg>
                   </span>
-                  <input type="text" v-model="formulario.cnpjOuCpf" placeholder="00.000.000/0000-00" required />
+                  <input 
+                    type="text" 
+                    :value="formulario.cnpjOuCpf" 
+                    @input="handleCpfCnpjInput"
+                    placeholder="00.000.000/0000-00" 
+                    maxlength="18"
+                    required 
+                  />
                 </div>
               </div>
             </div>
@@ -158,6 +172,39 @@ const formulario = ref({
 });
 
 const loading = ref(false);
+
+const handlePhoneInput = (e) => {
+  let v = e.target.value.replace(/\D/g, "");
+  if (v.length > 11) v = v.substring(0, 11);
+  
+  let x = v.match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+  if (v.length <= 10) {
+    // Caso com 8 dígitos: (11) 1234-5678
+    x = v.match(/(\d{0,2})(\d{0,4})(\d{0,4})/);
+  }
+  
+  v = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+  formulario.value.whatsapp = v;
+};
+
+const handleCpfCnpjInput = (e) => {
+  let v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (v.length > 14) v = v.substring(0, 14);
+  
+  const temLetras = /[A-Z]/.test(v);
+  
+  if (v.length <= 11 && !temLetras) {
+    // CPF: 000.000.000-00
+    let x = v.match(/([A-Z0-9]{0,3})([A-Z0-9]{0,3})([A-Z0-9]{0,3})([A-Z0-9]{0,2})/);
+    v = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
+  } else {
+    // CNPJ: 00.000.000/0000-00
+    let x = v.match(/([A-Z0-9]{0,2})([A-Z0-9]{0,3})([A-Z0-9]{0,3})([A-Z0-9]{0,4})([A-Z0-9]{0,2})/);
+    v = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '/' + x[4] : '') + (x[5] ? '-' + x[5] : '');
+  }
+  
+  formulario.value.cnpjOuCpf = v;
+};
 
 const lidarRegistro = async () => {
   if (formulario.value.email !== formulario.value.email_confirm) {

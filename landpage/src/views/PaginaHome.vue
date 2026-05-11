@@ -1,7 +1,6 @@
 <template>
   <main>
     <SecaoPrincipal />
-    <SecaoLogos />
     <SecaoDestaques />
     <SecaoEstatisticas />
     <SecaoSegmentos />
@@ -9,7 +8,6 @@
     <SecaoRecursos />
     <SecaoVantagens />
     <SecaoPrecos />
-    <SecaoDepoimentos />
     <SecaoFAQ />
     <SecaoContato />
 
@@ -50,7 +48,6 @@
 
 <script setup>
 import SecaoPrincipal   from '../components/SecaoPrincipal.vue';
-import SecaoLogos       from '../components/SecaoLogos.vue';
 import SecaoDestaques   from '../components/SecaoDestaques.vue';
 import SecaoEstatisticas from '../components/SecaoEstatisticas.vue';
 import SecaoSegmentos   from '../components/SecaoSegmentos.vue';
@@ -58,7 +55,6 @@ import SecaoIntegracao  from '../components/SecaoIntegracao.vue';
 import SecaoRecursos    from '../components/SecaoRecursos.vue';
 import SecaoVantagens   from '../components/SecaoVantagens.vue';
 import SecaoPrecos      from '../components/SecaoPrecos.vue';
-import SecaoDepoimentos from '../components/SecaoDepoimentos.vue';
 import SecaoFAQ         from '../components/SecaoFAQ.vue';
 import SecaoContato     from '../components/SecaoContato.vue';
 import SecaoRodape      from '../components/SecaoRodape.vue';

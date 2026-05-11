@@ -42,7 +42,7 @@ export class RelatorioAniversariantes {
     this.relatoriosService
       .gerarRelatorio('aniversariantes', { mes: this.mesSelecionado })
       .subscribe({
-        next: blob => this.relatoriosService.downloadBlob(blob, 'relatorio-aniversariantes.pdf'),
+        next: blob => this.relatoriosService.abrirBlobEmNovaAba(blob),
         error: err => console.error(err),
       });
   }
