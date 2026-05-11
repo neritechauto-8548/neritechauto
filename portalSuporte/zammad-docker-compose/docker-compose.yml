@@ -116,8 +116,10 @@ services:
     command: ["zammad-nginx"]
     expose:
       - "${NGINX_PORT:-8080}"
-    ports:
-      - "${NGINX_EXPOSE_PORT:-8080}:${NGINX_PORT:-8080}"
+    # Ports are now handled by the main stack's Nginx Gateway
+    networks:
+      - default
+      - neritech-network
     depends_on:
       - zammad-railsserver
 
@@ -160,3 +162,9 @@ volumes:
     driver: local
   zammad-storage:
     driver: local
+
+networks:
+  default:
+    driver: bridge
+  neritech-network:
+    external: true
