@@ -29,10 +29,14 @@
                 type="email"
                 name="email"
                 id="email"
-                placeholder="seu@oficina.com.br"
                 formControlName="username"
                 class="block w-full h-10 px-3 py-2 text-[14px] text-slate-800 placeholder-slate-400 bg-white border border-slate-300 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-sm"
+                [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': username.invalid && (username.dirty || username.touched)}"
               />
+              <div *ngIf="username.invalid && (username.dirty || username.touched)" class="mt-1 text-xs text-red-500">
+                <span *ngIf="username.errors?.['required']">Por favor, informe seu e-mail.</span>
+                <span *ngIf="username.errors?.['remote']">{{ username.errors?.['remote'] }}</span>
+              </div>
             </div>
 
             <div class="mt-6">
@@ -46,9 +50,9 @@
                   [type]="showPassword ? 'text' : 'password'"
                   name="password"
                   id="password"
-                  placeholder="••••••"
                   formControlName="password"
                   class="block w-full h-10 px-3 pr-10 py-2 text-[14px] text-slate-800 placeholder-slate-400 bg-white border border-slate-300 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-sm"
+                  [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': password.invalid && (password.dirty || password.touched)}"
                 />
                 <button
                   type="button"
@@ -59,13 +63,17 @@
                   <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-sm"></i>
                 </button>
               </div>
+              <div *ngIf="password.invalid && (password.dirty || password.touched)" class="mt-1 text-xs text-red-500">
+                <span *ngIf="password.errors?.['required']">Por favor, informe sua senha.</span>
+                <span *ngIf="password.errors?.['remote']">{{ password.errors?.['remote'] }}</span>
+              </div>
             </div>
 
             <div class="mt-6 pt-2">
               <button
                 type="submit"
-                [disabled]="!!loginForm.invalid || isSubmitting"
-                class="w-full flex justify-center items-center h-10 px-4 py-2 text-[14px] font-semibold tracking-wide text-white transition-all transform bg-[#635BFF] rounded-md hover:bg-[#5851E5] focus:outline-none disabled:bg-indigo-300 shadow-sm"
+                [disabled]="isSubmitting"
+                class="w-full flex justify-center items-center h-10 px-4 py-2 text-[14px] font-semibold tracking-wide text-white transition-all transform bg-[#635BFF] rounded-md hover:bg-[#5851E5] focus:outline-none disabled:bg-indigo-400 disabled:cursor-not-allowed shadow-sm"
               >
                 <span *ngIf="!isSubmitting">Entrar</span>
                 <span *ngIf="isSubmitting"><i class="pi pi-spinner pi-spin"></i></span>
@@ -73,10 +81,7 @@
             </div>
           </form>
 
-          <p class="mt-6 text-[13px] text-center font-medium text-slate-500">
-            Ainda não tem uma conta?
-         <!--  <a routerLink="/auth/register" class="text-blue-600 font-semibold focus:outline-none focus:underline hover:underline">Cadastre-se</a>.  -->
-          </p>
+
         </div>
       </div>
     </div>

@@ -1,0 +1,57 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: fiscal-service
+  datasource:
+    # Mesmo banco do backend principal
+    url: jdbc:postgresql://localhost:5432/neritech_saas
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # validate: as tabelas são gerenciadas pelo backend (V232__create_fiscal_nfe_tables.sql)
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  flyway:
+    # Flyway DESABILITADO: as migrations são gerenciadas centralmente no módulo backend
+    enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  api-docs:
+    path: /api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+# ─── Configurações NF-e ───────────────────────────────────────────────────────
+nfe:
+  # Caminho para o certificado digital A1 (.pfx / .p12)
+  certificado-caminho: ${NFE_CERTIFICADO_CAMINHO:/certs/certificado.pfx}
+  certificado-senha: ${NFE_CERTIFICADO_SENHA:senha}
+
+  # Caminho para a pasta de schemas XML (schemas.zip extraído do Java_NFe)
+  schemas-caminho: ${NFE_SCHEMAS_CAMINHO:/schemas}
+
+  # Ambiente: HOMOLOGACAO ou PRODUCAO
+  ambiente: ${NFE_AMBIENTE:HOMOLOGACAO}
+
+  # UF do emitente
+  uf: ${NFE_UF:SP}
+
+  # CNPJ do emitente (apenas números, 14 dígitos)
+  cnpj-emitente: ${NFE_CNPJ_EMITENTE:00000000000000}
+
+  timeout: 30

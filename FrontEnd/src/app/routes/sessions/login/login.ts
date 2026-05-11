@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import { MtxButtonModule } from '@ng-matero/extensions/button';
 import { TranslateModule } from '@ngx-translate/core';
-import { filter } from 'rxjs/operators';
+import { filter, finalize } from 'rxjs/operators';
 
 import { AuthService } from '@core/authentication';
 import { LocalStorageService } from '@shared/services/storage.service';
@@ -66,11 +66,29 @@ export class Login {
   constructor() {}
 
   login() {
+    // Remove os erros da tentativa anterior antes de validar novamente
+    if (this.username.hasError('remote')) {
+      this.username.setErrors(null);
+      this.username.updateValueAndValidity({ emitEvent: false });
+    }
+    if (this.password.hasError('remote')) {
+      this.password.setErrors(null);
+      this.password.updateValueAndValidity({ emitEvent: false });
+    }
+
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
     this.isSubmitting = true;
 
     this.auth
       .login(this.username.value, this.password.value, this.rememberMe.value)
-      .pipe(filter(authenticated => authenticated))
+      .pipe(
+        filter(authenticated => authenticated),
+        finalize(() => this.isSubmitting = false)
+      )
       .subscribe({
         next: () => {
           if (this.rememberMe.value) {
@@ -119,7 +137,7 @@ export class Login {
               detail: errorRes.error?.message || 'E-mail ou senha incorretos.' 
             });
           }
-          this.isSubmitting = false;
+          // isSubmitting é resetado no finalize
         },
       });
   }
