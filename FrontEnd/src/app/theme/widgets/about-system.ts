@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
       [modal]="true"
       [draggable]="false"
       [resizable]="false"
+      appendTo="body"
       header="Sobre o Sistema"
       [style]="{ width: '550px' }"
       class="about-dialog"
