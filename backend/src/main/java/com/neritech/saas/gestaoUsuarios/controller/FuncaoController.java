@@ -32,4 +32,26 @@ public class FuncaoController {
     public ResponseEntity<Funcao> create(@RequestBody Funcao funcao) {
         return ResponseEntity.ok(funcaoService.save(funcao));
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('FUNCAO.READ')")
+    @Operation(summary = "Buscar função por ID", description = "Retorna os detalhes de uma função específica")
+    public ResponseEntity<Funcao> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(funcaoService.findById(id));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('FUNCAO.UPDATE')")
+    @Operation(summary = "Atualizar função", description = "Atualiza os dados e permissões de uma função")
+    public ResponseEntity<Funcao> update(@PathVariable Long id, @RequestBody Funcao funcao) {
+        return ResponseEntity.ok(funcaoService.update(id, funcao));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('FUNCAO.DELETE')")
+    @Operation(summary = "Excluir função", description = "Remove uma função do sistema")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        funcaoService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,6 +1,6 @@
 package com.neritech.saas.gestaoUsuarios.domain;
 
-import com.neritech.saas.common.tenancy.TenantEntity;
+import com.neritech.saas.common.audit.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -14,12 +14,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Permissao extends TenantEntity {
+public class Permissao extends BaseEntity {
 
     @Column(nullable = false)
-    private String nome;
+    private String chave;
 
     private String descricao;
 
-    private String modulo;
+    private String valor;
 }

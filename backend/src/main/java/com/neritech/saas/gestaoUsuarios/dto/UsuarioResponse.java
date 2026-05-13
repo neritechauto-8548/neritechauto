@@ -32,4 +32,6 @@ public class UsuarioResponse {
     private String avatarUrl;
     
     private Integer planoNivel;
+    private boolean assinaturaAtiva;
+    private String stripeUrl;
 }

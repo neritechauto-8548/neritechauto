@@ -49,50 +49,35 @@ export class AssinaturaComponent implements OnInit {
 
   planos: Plano[] = [
     {
-      id: 'start',
-      nome: 'neri start',
-      preco: '90',
-      descricao: 'Essencial para organizar o fluxo de entrada e saída.',
-      destaque: false,
-      productId: 'prod_UMeQq4ASz2Tm5h',
-      features: [
-        'Ordens de Serviço Digitais',
-        'Cadastro de Clientes e Veículos',
-        'Financeiro Básico (CP/CR)',
-        'Checklist de Entrada',
-        'Emissão de NF-e Simples',
-        'Suporte via E-mail',
-      ]
-    },
-    {
       id: 'pro',
-      nome: 'neri pro',
-      preco: '140',
-      descricao: 'A gestão completa para oficinas que buscam performance.',
-      destaque: true,
+      nome: 'Neri Pro',
+      preco: '99,90',
+      descricao: 'A gestão completa para oficinas que buscam performance e organização.',
+      destaque: false,
       productId: 'prod_UMeRIYKOYS5enM',
       features: [
-        'Tudo do neri start',
-        'Conciliação Bancária Automática',
-        'Emissão de NF-e e NFS-e',
-        'Controle de Estoque Inteligente',
-        'Relatórios Gerenciais (DRE)',
-        'WhatsApp Nativo para Clientes',
-        'Suporte prioritário WhatsApp',
+        'Cadastros Ilimitados',
+        'Ordens de Serviço e PDV',
+        'Financeiro Operacional',
+        'Emissão de NF-e e NFC-e',
+        'Estoque e Insumos',
+        'Dashboards Iniciais'
       ]
     },
     {
       id: 'elite',
-      nome: 'neri elite',
-      preco: '230',
-      descricao: 'O nível máximo de controle e inteligência de dados.',
-      destaque: false,
+      nome: 'Neri Elite',
+      preco: '199,90',
+      descricao: 'O nível máximo de controle com inteligência de dados e gestão fiscal.',
+      destaque: true,
       productId: 'prod_UMeS5gEJzxET8x',
       features: [
-        'Tudo do neri pro',
-        'Dashboards BI Customizados',
-        'API para Integrações Externas',
-        'Consultoria Mensal de Processos',
+        'Tudo do Neri Pro',
+        'Módulo Fiscal Avançado (DRE)',
+        'Cálculo de Custo Hora',
+        'Portal do Cliente',
+        'Auditoria e Logs de Acesso',
+        'Suporte Prioritário'
       ]
     }
   ];

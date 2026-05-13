@@ -80,7 +80,9 @@ export class CadastroUsuarioComponent implements OnInit {
         // Strategies:
         // 1. Backend response includes IDs? No.
         // 2. We can try to map names to IDs from our role list.
-        if (user.funcoes && this.roles.length) {
+        if (user.funcoesIds) {
+             this.form.patchValue({ funcoesIds: user.funcoesIds });
+        } else if (user.funcoes && this.roles.length) {
              const selectedIds = this.roles
                 .filter(r => user.funcoes.includes(r.label))
                 .map(r => r.value);

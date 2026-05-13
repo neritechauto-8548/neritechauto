@@ -9,7 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface PermissaoRepository extends JpaRepository<Permissao, Long> {
-    Optional<Permissao> findByNome(String nome);
-    
-    List<Permissao> findAllByEmpresaId(Long empresaId);
+    Optional<Permissao> findByValor(String valor);
+
 }

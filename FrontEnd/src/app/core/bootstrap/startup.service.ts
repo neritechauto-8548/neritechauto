@@ -18,7 +18,15 @@ export class StartupService {
       this.authService
         .change()
         .pipe(
-          tap((user: User) => this.setPermissions(user)),
+          tap((user: User) => {
+            this.setPermissions(user);
+            
+            // Verificação de Assinatura Stripe
+            if (user && user.assinaturaAtiva === false && user.stripeUrl) {
+               console.warn('Assinatura inativa. Redirecionando para o Stripe...');
+               window.location.href = user.stripeUrl;
+            }
+          }),
           switchMap((user: User) => this.authService.menu().pipe(
             tap((menu: Menu[]) => this.setMenu(menu, user))
           ))

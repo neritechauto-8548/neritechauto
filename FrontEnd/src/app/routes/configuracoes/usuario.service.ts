@@ -48,13 +48,7 @@ export class UsuarioService {
       return this.http.get<Permissao[]>(`${environment.baseUrl}/v1/permissoes`);
   }
 
-  // Helper mock for Roles if Permissoes don't fit
   getRoles(): Observable<any[]> {
-      return of([
-          { id: 1, nome: 'ADMIN', descricao: 'Administrador' },
-          { id: 2, nome: 'USUARIO', descricao: 'Usuário Padrão' },
-          { id: 3, nome: 'VENDEDOR', descricao: 'Vendedor' },
-          { id: 4, nome: 'FINANCEIRO', descricao: 'Gestor Financeiro' }
-      ]);
+      return this.http.get<any[]>(`${environment.baseUrl}/v1/funcoes`);
   }
 }

@@ -4,8 +4,12 @@ import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
+import com.neritech.saas.gestaoUsuarios.domain.Funcao;
 import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
 import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
+import com.neritech.saas.empresa.service.StripeService;
+import com.neritech.saas.empresa.repository.EmpresaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,8 +27,11 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final FuncaoRepository funcaoRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
+    private final StripeService stripeService;
+    private final EmpresaRepository empresaRepository;
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
@@ -51,7 +58,7 @@ public class UsuarioService {
                 .bloqueado(request.isBloqueado())
                 .build();
 
-        // Handle roles and profile... (Simplified for now)
+        syncFuncoes(usuario, request.getFuncoesIds());
 
         usuario = usuarioRepository.save(usuario);
         return toResponse(usuario);
@@ -80,8 +87,21 @@ public class UsuarioService {
             usuario.setSenha(passwordEncoder.encode(request.getSenha()));
         }
 
+        syncFuncoes(usuario, request.getFuncoesIds());
+
         usuario = usuarioRepository.save(usuario);
         return toResponse(usuario);
+    }
+
+    private void syncFuncoes(Usuario usuario, java.util.Set<Long> funcoesIds) {
+        if (usuario.getFuncoes() == null) {
+            usuario.setFuncoes(new java.util.HashSet<>());
+        }
+        usuario.getFuncoes().clear();
+        if (funcoesIds != null && !funcoesIds.isEmpty()) {
+            List<Funcao> funcoesGerenciadas = funcaoRepository.findAllById(funcoesIds);
+            usuario.getFuncoes().addAll(funcoesGerenciadas);
+        }
     }
 
     @Transactional
@@ -89,7 +109,7 @@ public class UsuarioService {
         Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
         Usuario usuario = usuarioRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
-        usuario.setAtivo(false); // Soft delete
+        usuario.setAtivo(false);
         usuarioRepository.save(usuario);
     }
 
@@ -108,9 +128,39 @@ public class UsuarioService {
     }
 
     private UsuarioResponse toResponse(Usuario usuario) {
+        Long empresaId = usuario.getEmpresaId();
+        boolean assinaturaAtiva = false;
+        String stripeUrl = null;
+        Integer planoNivel = 1;
+
+        if (empresaId != null) {
+            java.util.Optional<AssinaturaEmpresa> assinaturaOpt = assinaturaEmpresaRepository
+                .findFirstByEmpresaIdOrderByDataFimDesc(empresaId);
+            
+            if (assinaturaOpt.isPresent()) {
+                AssinaturaEmpresa assinatura = assinaturaOpt.get();
+                assinaturaAtiva = (assinatura.getStatus() == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO);
+                planoNivel = (assinatura.getPlano() != null) ? assinatura.getPlano().getNivel() : 1;
+
+                if (!assinaturaAtiva && stripeService.isConfigured()) {
+                    try {
+                        String customerId = empresaRepository.findById(empresaId)
+                            .map(e -> e.getStripeCustomerId())
+                            .orElse(null);
+                        
+                        if (customerId != null) {
+                            stripeUrl = stripeService.createBillingPortalSession(customerId, "https://app.neritechauto.com.br/auth/login");
+                        }
+                    } catch (Exception e) {
+                        // Log error mas continua o login bloqueado com URL nula
+                    }
+                }
+            }
+        }
+
         return UsuarioResponse.builder()
                 .id(usuario.getId())
-                .empresaId(usuario.getEmpresaId())
+                .empresaId(empresaId)
                 .nomeCompleto(usuario.getNomeCompleto())
                 .email(usuario.getEmail())
                 .ativo(usuario.getAtivo())
@@ -122,14 +172,9 @@ public class UsuarioService {
                 .funcoesIds(usuario.getFuncoes() != null 
                     ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(Collectors.toSet()) 
                     : Collections.emptySet())
-                .planoNivel(getPlanoNivel(usuario.getEmpresaId()))
+                .planoNivel(planoNivel)
+                .assinaturaAtiva(assinaturaAtiva)
+                .stripeUrl(stripeUrl)
                 .build();
-    }
-
-    private Integer getPlanoNivel(Long empresaId) {
-        if (empresaId == null) return 1;
-        return assinaturaEmpresaRepository.findByEmpresaIdAndStatus(empresaId, com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO)
-                .map(assinatura -> assinatura.getPlano() != null ? assinatura.getPlano().getNivel() : 1)
-                .orElse(1);
     }
 }

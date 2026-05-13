@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 
 export interface PermissaoResponse {
   id: number;
-  nome: string;
+  chave: string;
   descricao: string;
-  modulo: string;
+  valor: string;
 }
 
 export interface FuncaoResponse {
@@ -33,8 +33,20 @@ export class PermissaoService {
     return this.http.get<FuncaoResponse[]>('/api/v1/funcoes');
   }
 
+  getFuncao(id: number): Observable<FuncaoResponse> {
+    return this.http.get<FuncaoResponse>(`/api/v1/funcoes/${id}`);
+  }
+
   createFuncao(req: FuncaoRequest): Observable<FuncaoResponse> {
     return this.http.post<FuncaoResponse>('/api/v1/funcoes', req);
+  }
+
+  updateFuncao(id: number, req: FuncaoRequest): Observable<FuncaoResponse> {
+    return this.http.put<FuncaoResponse>(`/api/v1/funcoes/${id}`, req);
+  }
+
+  deleteFuncao(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/v1/funcoes/${id}`);
   }
 
   listPermissoes(): Observable<PermissaoResponse[]> {

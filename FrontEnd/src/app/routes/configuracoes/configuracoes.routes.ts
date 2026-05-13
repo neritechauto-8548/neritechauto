@@ -117,9 +117,14 @@ export const routes: Routes = [
     data: { title: 'Permissões' }
   },
   {
-    path: 'permissoes/cadastro/:id',
+    path: 'permissoes/cadastro',
     loadComponent: () => import('./permissoes/permissoes-cadastro').then(m => m.PermissoesCadastro),
-    data: { title: 'Cadastro de Permissões' }
+    data: { title: 'Cadastro de Perfil' }
+  },
+  {
+    path: 'permissoes/editar/:id',
+    loadComponent: () => import('./permissoes/permissoes-cadastro').then(m => m.PermissoesCadastro),
+    data: { title: 'Editar Perfil' }
   },
   {
     path: 'veiculo-modelo',

@@ -7,6 +7,9 @@ export interface User {
   avatar?: string;
   roles?: any[];
   permissions?: any[];
+  planoNivel?: number;
+  assinaturaAtiva?: boolean;
+  stripeUrl?: string;
 }
 
 export interface Token {

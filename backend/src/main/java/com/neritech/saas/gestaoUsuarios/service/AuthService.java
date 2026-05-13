@@ -78,7 +78,7 @@ public class AuthService {
             Set<String> permissoes = usuario.getFuncoes().stream()
                     .filter(f -> f.getAtivo())
                     .flatMap(f -> f.getPermissoes().stream())
-                    .map(p -> p.getNome())
+                    .map(p -> p.getValor())
                     .collect(Collectors.toSet());
 
             extraClaims.put("roles", roles);
@@ -180,7 +180,7 @@ public class AuthService {
             Set<String> permissoes = usuario.getFuncoes().stream()
                     .filter(f -> f.getAtivo())
                     .flatMap(f -> f.getPermissoes().stream())
-                    .map(p -> p.getNome())
+                    .map(p -> p.getValor())
                     .collect(Collectors.toSet());
             extraClaims.put("roles", roles);
             extraClaims.put("permissoes", permissoes);

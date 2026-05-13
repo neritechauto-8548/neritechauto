@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -63,6 +64,8 @@ public class EmpresaService {
         createTrialSubscription(saved);
         return saved;
     }
+
+
 
     private void createTrialSubscription(Empresa empresa) {
         PlanoAssinatura plano = planoAssinaturaRepository.findAll().stream()

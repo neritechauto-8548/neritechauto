@@ -13,4 +13,5 @@ public interface FuncaoRepository extends JpaRepository<Funcao, Long> {
     
     List<Funcao> findAllByEmpresaId(Long empresaId);
     Optional<Funcao> findByNomeAndEmpresaId(String nome, Long empresaId);
+    Optional<Funcao> findByIdAndEmpresaId(Long id, Long empresaId);
 }

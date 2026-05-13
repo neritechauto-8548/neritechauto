@@ -1,8 +1,25 @@
-.permissoes-cadastro-page {
-  .mat-form-field {
-    width: 100%;
+:host {
+  display: block;
+}
+
+.custom-checkbox {
+  ::ng-deep {
+    .mat-checkbox-layout {
+      margin-bottom: 0;
+    }
+    .mat-checkbox-inner-container {
+      width: 18px;
+      height: 18px;
+    }
   }
-  .text-red-600 {
-    color: #dc2626;
-  }
+}
+
+// Fade in animation for groups
+.group {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -37,7 +37,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 
                 // Add Permissions
                 funcao.getPermissoes().forEach(permissao -> {
-                    authorities.add(new SimpleGrantedAuthority(permissao.getNome()));
+                    authorities.add(new SimpleGrantedAuthority(permissao.getValor()));
                 });
             }
         });

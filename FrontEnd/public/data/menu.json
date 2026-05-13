@@ -87,7 +87,7 @@
       ]
     },
 
-    { "type": "heading", "name": "gestao-e-fiscal" },
+    { "type": "heading", "name": "gestao-e-fiscal", "minPlan": 2 },
     {
       "route": "financeiro",
       "name": "financeiro",
