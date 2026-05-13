@@ -1,53 +1,49 @@
 {
   "menu": [
-    {
-      "type": "heading",
-      "name": "geral"
-    },
+    { "type": "heading", "name": "geral" },
     {
       "route": "dashboard",
       "name": "dashboard",
       "type": "link",
       "icon": "pi pi-home",
-      "badge": {
-        "color": "red-50",
-        "value": "5"
-      }
+      "minPlan": 1
     },
 
-    {
-      "type": "heading",
-      "name": "operacional"
-    },
+    { "type": "heading", "name": "operacional" },
     {
       "route": "cliente",
       "name": "cliente",
       "type": "link",
-      "icon": "pi pi-users"
+      "icon": "pi pi-users",
+      "minPlan": 1
     },
     {
       "route": "veiculo",
       "name": "veiculo",
       "type": "link",
-      "icon": "pi pi-car"
+      "icon": "pi pi-car",
+      "minPlan": 1
     },
     {
       "route": "os",
       "name": "ordem-de-servico",
       "type": "link",
-      "icon": "pi pi-briefcase"
+      "icon": "pi pi-briefcase",
+      "minPlan": 1
     },
     {
       "route": "orcamento",
       "name": "orcamento",
       "type": "link",
-      "icon": "pi pi-file-excel"
+      "icon": "pi pi-file-excel",
+      "minPlan": 1
     },
     {
       "route": "pdv",
       "name": "pdv",
       "type": "sub",
       "icon": "pi pi-shopping-cart",
+      "minPlan": 1,
       "children": [
         {
           "route": "listar-vendas",
@@ -68,6 +64,7 @@
       "name": "agenda-alerta",
       "type": "sub",
       "icon": "pi pi-calendar",
+      "minPlan": 1,
       "children": [
         {
           "route": "agendamentos-alertas",
@@ -90,52 +87,20 @@
       ]
     },
 
-    {
-      "type": "heading",
-      "name": "gestao-e-fiscal"
-    },
+    { "type": "heading", "name": "gestao-e-fiscal" },
     {
       "route": "financeiro",
       "name": "financeiro",
       "type": "sub",
       "icon": "pi pi-wallet",
+      "minPlan": 2,
       "children": [
-        {
-          "route": "caixa",
-          "name": "caixa",
-          "type": "link",
-          "icon": "pi pi-money-bill"
-        },
-        {
-          "route": "caixas-fechado",
-          "name": "caixas fechado",
-          "type": "link",
-          "icon": "pi pi-lock"
-        },
-        {
-          "route": "pagar",
-          "name": "contas a pagar",
-          "type": "link",
-          "icon": "pi pi-arrow-circle-down"
-        },
-        {
-          "route": "receber",
-          "name": "contas a receber",
-          "type": "link",
-          "icon": "pi pi-arrow-circle-up"
-        },
-        {
-          "route": "notas-compra",
-          "name": "notas de compra",
-          "type": "link",
-          "icon": "pi pi-list"
-        },
-        {
-          "route": "comissoes",
-          "name": "comissões",
-          "type": "link",
-          "icon": "pi pi-chart-bar"
-        }
+        { "route": "caixa", "name": "caixa", "type": "link", "icon": "pi pi-money-bill" },
+        { "route": "caixas-fechado", "name": "caixas fechado", "type": "link", "icon": "pi pi-lock" },
+        { "route": "pagar", "name": "contas a pagar", "type": "link", "icon": "pi pi-arrow-circle-down" },
+        { "route": "receber", "name": "contas a receber", "type": "link", "icon": "pi pi-arrow-circle-up" },
+        { "route": "notas-compra", "name": "notas de compra", "type": "link", "icon": "pi pi-list" },
+        { "route": "comissoes", "name": "comissões", "type": "link", "icon": "pi pi-chart-bar" }
       ]
     },
     {
@@ -143,19 +108,10 @@
       "name": "fornecedor",
       "type": "sub",
       "icon": "pi pi-truck",
+      "minPlan": 2,
       "children": [
-        {
-          "route": "",
-          "name": "fornecedor",
-          "type": "link",
-          "icon": "pi pi-truck"
-        },
-        {
-          "route": "pedidos",
-          "name": "fornecedor.pedidos",
-          "type": "link",
-          "icon": "pi pi-briefcase"
-        }
+        { "route": "", "name": "fornecedor", "type": "link", "icon": "pi pi-truck" },
+        { "route": "pedidos", "name": "fornecedor.pedidos", "type": "link", "icon": "pi pi-briefcase" }
       ]
     },
     {
@@ -163,6 +119,7 @@
       "name": "fiscal",
       "type": "sub",
       "icon": "pi pi-file-excel",
+      "minPlan": 2,
       "children": [
         {
           "route": "nfe",
@@ -170,36 +127,11 @@
           "type": "sub",
           "icon": "pi pi-file",
           "children": [
-            {
-              "route": "nfe-lista",
-              "name": "fiscal.nfe.lista",
-              "type": "link",
-              "icon": "pi pi-list"
-            },
-            {
-              "route": "inutilizar-numeracao",
-              "name": "fiscal.nfe.inutilizar-numeracao",
-              "type": "link",
-              "icon": "pi pi-ban"
-            },
-            {
-              "route": "carta-correcao",
-              "name": "fiscal.nfe.carta-correcao",
-              "type": "link",
-              "icon": "pi pi-pencil"
-            },
-            {
-              "route": "entrada",
-              "name": "fiscal.nfe.entrada",
-              "type": "link",
-              "icon": "pi pi-download"
-            },
-            {
-              "route": "devolucao",
-              "name": "fiscal.nfe.devolucao",
-              "type": "link",
-              "icon": "pi pi-upload"
-            }
+            { "route": "nfe-lista", "name": "fiscal.nfe.lista", "type": "link", "icon": "pi pi-list" },
+            { "route": "inutilizar-numeracao", "name": "fiscal.nfe.inutilizar-numeracao", "type": "link", "icon": "pi pi-ban" },
+            { "route": "carta-correcao", "name": "fiscal.nfe.carta-correcao", "type": "link", "icon": "pi pi-pencil" },
+            { "route": "entrada", "name": "fiscal.nfe.entrada", "type": "link", "icon": "pi pi-download" },
+            { "route": "devolucao", "name": "fiscal.nfe.devolucao", "type": "link", "icon": "pi pi-upload" }
           ]
         },
         {
@@ -208,18 +140,8 @@
           "type": "sub",
           "icon": "pi pi-list",
           "children": [
-            {
-              "route": "nota-nfce",
-              "name": "fiscal.nfce.nota",
-              "type": "link",
-              "icon": "pi pi-list"
-            },
-            {
-              "route": "inutilizar-numeracao",
-              "name": "fiscal.nfce.inutilizar-numeracao",
-              "type": "link",
-              "icon": "pi pi-ban"
-            }
+            { "route": "nota-nfce", "name": "fiscal.nfce.nota", "type": "link", "icon": "pi pi-list" },
+            { "route": "inutilizar-numeracao", "name": "fiscal.nfce.inutilizar-numeracao", "type": "link", "icon": "pi pi-ban" }
           ]
         },
         {
@@ -228,12 +150,7 @@
           "type": "sub",
           "icon": "pi pi-check-square",
           "children": [
-            {
-              "route": "nfse-lista",
-              "name": "fiscal.nfse.lista",
-              "type": "link",
-              "icon": "pi pi-list"
-            }
+            { "route": "nfse-lista", "name": "fiscal.nfse.lista", "type": "link", "icon": "pi pi-list" }
           ]
         },
         {
@@ -245,88 +162,26 @@
       ]
     },
 
-    {
-      "type": "heading",
-      "name": "estoque-e-analise"
-    },
+    { "type": "heading", "name": "estoque-e-analise" },
     {
       "route": "relatorios",
       "name": "relatorios",
       "type": "sub",
       "icon": "pi pi-chart-line",
+      "minPlan": 2,
       "children": [
-        {
-          "route": "relatorio-vendas",
-          "name": "relatorios.relatorio-vendas",
-          "type": "link",
-          "icon": "pi pi-chart-pie"
-        },
-        {
-          "route": "relatorio-contas",
-          "name": "relatorios.relatorio-contas",
-          "type": "link",
-          "icon": "pi pi-chart-bar"
-        },
-        {
-          "route": "relatorio-estoque",
-          "name": "relatorios.relatorio-estoque",
-          "type": "link",
-          "icon": "pi pi-box"
-        },
-        {
-          "route": "relatorio-receitas",
-          "name": "relatorios.relatorio-receitas",
-          "type": "link",
-          "icon": "pi pi-arrow-up-right"
-        },
-        {
-          "route": "relatorio-despesas",
-          "name": "relatorios.relatorio-despesas",
-          "type": "link",
-          "icon": "pi pi-arrow-down-right"
-        },
-        {
-          "route": "relatorio-receitas-despesas",
-          "name": "relatorios.relatorio-receitas-despesas",
-          "type": "link",
-          "icon": "pi pi-chart-bar"
-        },
-        {
-          "route": "relatorio-fluxo-caixa",
-          "name": "relatorios.relatorio-fluxo-caixa",
-          "type": "link",
-          "icon": "pi pi-chart-bar"
-        },
-        {
-          "route": "relatorio-uso-sistema",
-          "name": "relatorios.relatorio-uso-sistema",
-          "type": "link",
-          "icon": "pi pi-desktop"
-        },
-        {
-          "route": "relatorio-questionarios",
-          "name": "relatorios.relatorio-questionarios",
-          "type": "link",
-          "icon": "pi pi-info-circle"
-        },
-        {
-          "route": "relatorio-aniversariantes",
-          "name": "relatorios.relatorio-aniversariantes",
-          "type": "link",
-          "icon": "pi pi-gift"
-        },
-        {
-          "route": "relatorio-produtos",
-          "name": "relatorios.relatorio-produtos",
-          "type": "link",
-          "icon": "pi pi-box"
-        },
-        {
-          "route": "relatorio-clientes",
-          "name": "relatorios.relatorio-clientes",
-          "type": "link",
-          "icon": "pi pi-users"
-        }
+        { "route": "relatorio-vendas", "name": "relatorios.relatorio-vendas", "type": "link", "icon": "pi pi-chart-pie" },
+        { "route": "relatorio-contas", "name": "relatorios.relatorio-contas", "type": "link", "icon": "pi pi-chart-bar" },
+        { "route": "relatorio-estoque", "name": "relatorios.relatorio-estoque", "type": "link", "icon": "pi pi-box" },
+        { "route": "relatorio-receitas", "name": "relatorios.relatorio-receitas", "type": "link", "icon": "pi pi-arrow-up-right" },
+        { "route": "relatorio-despesas", "name": "relatorios.relatorio-despesas", "type": "link", "icon": "pi pi-arrow-down-right" },
+        { "route": "relatorio-receitas-despesas", "name": "relatorios.relatorio-receitas-despesas", "type": "link", "icon": "pi pi-chart-bar" },
+        { "route": "relatorio-fluxo-caixa", "name": "relatorios.relatorio-fluxo-caixa", "type": "link", "icon": "pi pi-chart-bar" },
+        { "route": "relatorio-uso-sistema", "name": "relatorios.relatorio-uso-sistema", "type": "link", "icon": "pi pi-desktop" },
+        { "route": "relatorio-questionarios", "name": "relatorios.relatorio-questionarios", "type": "link", "icon": "pi pi-info-circle" },
+        { "route": "relatorio-aniversariantes", "name": "relatorios.relatorio-aniversariantes", "type": "link", "icon": "pi pi-gift" },
+        { "route": "relatorio-produtos", "name": "relatorios.relatorio-produtos", "type": "link", "icon": "pi pi-box" },
+        { "route": "relatorio-clientes", "name": "relatorios.relatorio-clientes", "type": "link", "icon": "pi pi-users" }
       ]
     },
     {
@@ -334,158 +189,44 @@
       "name": "produtos-servicos",
       "type": "sub",
       "icon": "pi pi-shopping-bag",
+      "minPlan": 1,
       "children": [
-        {
-          "route": "estoque",
-          "name": "produtos-servicos.estoque",
-          "type": "link",
-          "icon": "pi pi-box"
-        },
-        {
-          "route": "servicos",
-          "name": "produtos-servicos.servicos",
-          "type": "link",
-          "icon": "pi pi-wrench"
-        }
+        { "route": "estoque", "name": "produtos-servicos.estoque", "type": "link", "icon": "pi pi-box" },
+        { "route": "servicos", "name": "produtos-servicos.servicos", "type": "link", "icon": "pi pi-wrench" }
       ]
     },
 
-    {
-      "type": "heading",
-      "name": "configuracoes-header"
-    },
+    { "type": "heading", "name": "configuracoes-header" },
     {
       "route": "configuracoes",
       "name": "configuracoes",
       "type": "sub",
       "icon": "pi pi-cog",
+      "minPlan": 1,
       "children": [
-        {
-          "type": "heading",
-          "name": "config-geral"
-        },
-        {
-          "route": "empresa",
-          "name": "empresa",
-          "type": "link",
-          "icon": "pi pi-cog"
-        },
-        {
-          "route": "assinatura",
-          "name": "assinatura",
-          "type": "link",
-          "icon": "pi pi-credit-card"
-        },
-        {
-          "route": "usuarios",
-          "name": "usuarios",
-          "type": "link",
-          "icon": "pi pi-user"
-        },
-        {
-          "route": "permissoes",
-          "name": "permissoes",
-          "type": "link",
-          "icon": "pi pi-lock"
-        },
-        {
-          "type": "heading",
-          "name": "config-rh"
-        },
-        {
-          "route": "colaboradores",
-          "name": "colaboradores",
-          "type": "link",
-          "icon": "pi pi-users"
-        },
-        {
-          "route": "departamentos",
-          "name": "departamentos",
-          "type": "link",
-          "icon": "pi pi-sitemap"
-        },
-        {
-          "route": "setores",
-          "name": "setores",
-          "type": "link",
-          "icon": "pi pi-tags"
-        },
-        {
-          "type": "heading",
-          "name": "config-financeiro"
-        },
-        {
-          "route": "contas",
-          "name": "contas",
-          "type": "link",
-          "icon": "pi pi-money-bill"
-        },
-        {
-          "route": "formas-pagamento",
-          "name": "formas-pagamento",
-          "type": "link",
-          "icon": "pi pi-credit-card"
-        },
-        {
-          "type": "heading",
-          "name": "config-operacional"
-        },
-        {
-          "route": "checklist",
-          "name": "checklist",
-          "type": "link",
-          "icon": "pi pi-check-circle"
-        },
-        {
-          "route": "inventario",
-          "name": "inventario",
-          "type": "link",
-          "icon": "pi pi-box"
-        },
-        {
-          "route": "situacao",
-          "name": "situacao",
-          "type": "link",
-          "icon": "pi pi-flag"
-        },
-        {
-          "route": "localizacao",
-          "name": "localizacao",
-          "type": "link",
-          "icon": "pi pi-map-marker"
-        },
-        {
-          "route": "categoria",
-          "name": "categoria",
-          "type": "link",
-          "icon": "pi pi-tags"
-        },
-        {
-          "type": "heading",
-          "name": "config-comunicacao"
-        },
-        {
-          "route": "opcoes-envio",
-          "name": "opcoes-envio",
-          "type": "link",
-          "icon": "pi pi-send"
-        },
-        {
-          "route": "questionario-envio",
-          "name": "questionario-envio",
-          "type": "link",
-          "icon": "pi pi-info-circle"
-        },
-        {
-          "type": "heading",
-          "name": "config-sistema"
-        },
-        {
-          "route": "administrador",
-          "name": "administrador",
-          "type": "link",
-          "icon": "pi pi-shield"
-        }
+        { "type": "heading", "name": "config-geral" },
+        { "route": "empresa", "name": "empresa", "type": "link", "icon": "pi pi-cog" },
+        { "route": "assinatura", "name": "assinatura", "type": "link", "icon": "pi pi-credit-card" },
+        { "route": "usuarios", "name": "usuarios", "type": "link", "icon": "pi pi-user" },
+        { "route": "permissoes", "name": "permissoes", "type": "link", "icon": "pi pi-lock" },
+        { "type": "heading", "name": "config-rh" },
+        { "route": "colaboradores", "name": "colaboradores", "type": "link", "icon": "pi pi-users" },
+        { "route": "departamentos", "name": "departamentos", "type": "link", "icon": "pi pi-sitemap" },
+        { "route": "setores", "name": "setores", "type": "link", "icon": "pi pi-tags" },
+        { "type": "heading", "name": "config-financeiro" },
+        { "route": "contas", "name": "contas", "type": "link", "icon": "pi pi-money-bill" },
+        { "route": "formas-pagamento", "name": "formas-pagamento", "type": "link", "icon": "pi pi-credit-card" },
+        { "type": "heading", "name": "config-operacional" },
+        { "route": "checklist", "name": "checklist", "type": "link", "icon": "pi pi-check-circle" },
+        { "route": "inventario", "name": "inventario", "type": "link", "icon": "pi pi-box" },
+        { "route": "situacao", "name": "situacao", "type": "link", "icon": "pi pi-flag" },
+        { "route": "localizacao", "name": "localizacao", "type": "link", "icon": "pi pi-map-marker" },
+        { "route": "categoria", "name": "categoria", "type": "link", "icon": "pi pi-tags" },
+        { "type": "heading", "name": "config-comunicacao" },
+        { "route": "opcoes-envio", "name": "opcoes-envio", "type": "link", "icon": "pi pi-send" },
+        { "route": "questionario-envio", "name": "questionario-envio", "type": "link", "icon": "pi pi-info-circle" },
+        { "type": "heading", "name": "config-sistema" },
+        { "route": "administrador", "name": "administrador", "type": "link", "icon": "pi pi-shield" }
       ]
     }
   ]

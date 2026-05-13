@@ -13,18 +13,15 @@ export class StartupService {
   private readonly permissonsService = inject(NgxPermissionsService);
   private readonly rolesService = inject(NgxRolesService);
 
-  /**
-   * Load the application only after get the menu or other essential informations
-   * such as permissions and roles.
-   */
   load() {
     return new Promise<void>((resolve, reject) => {
       this.authService
         .change()
         .pipe(
-          tap(user => this.setPermissions(user)),
-          switchMap(() => this.authService.menu()),
-          tap(menu => this.setMenu(menu))
+          tap((user: User) => this.setPermissions(user)),
+          switchMap((user: User) => this.authService.menu().pipe(
+            tap((menu: Menu[]) => this.setMenu(menu, user))
+          ))
         )
         .subscribe({
           next: () => resolve(),
@@ -33,19 +30,35 @@ export class StartupService {
     });
   }
 
-  private setMenu(menu: Menu[]) {
-    this.menuService.addNamespace(menu, 'menu');
-    this.menuService.set(menu);
+  private setMenu(menu: Menu[], user: User) {
+    const planLevel = user?.planoNivel || 1;
+    const filteredMenu = this.filterMenuByPlan(menu, planLevel);
+    
+    this.menuService.addNamespace(filteredMenu, 'menu');
+    this.menuService.set(filteredMenu);
+  }
+
+  private filterMenuByPlan(menu: any[], planLevel: number): any[] {
+    return menu.filter(item => {
+      if (item.minPlan && item.minPlan > planLevel) {
+        return false;
+      }
+      
+      if (item.children && item.children.length > 0) {
+        item.children = this.filterMenuByPlan(item.children, planLevel);
+        if (item.type === 'sub' && item.children.length === 0) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
   }
 
   private setPermissions(user: User) {
-    // In a real app, you should get permissions and roles from the user information.
     const permissions = ['canAdd', 'canDelete', 'canEdit', 'canRead'];
     this.permissonsService.loadPermissions(permissions);
     this.rolesService.flushRoles();
     this.rolesService.addRoles({ ADMIN: permissions });
-
-    // Tips: Alternatively you can add permissions with role at the same time.
-    // this.rolesService.addRolesWithPermissions({ ADMIN: permissions });
   }
 }

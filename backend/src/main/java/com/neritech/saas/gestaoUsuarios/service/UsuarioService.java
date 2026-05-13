@@ -4,6 +4,8 @@ import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
+import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +24,7 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
@@ -119,6 +122,14 @@ public class UsuarioService {
                 .funcoesIds(usuario.getFuncoes() != null 
                     ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(Collectors.toSet()) 
                     : Collections.emptySet())
+                .planoNivel(getPlanoNivel(usuario.getEmpresaId()))
                 .build();
+    }
+
+    private Integer getPlanoNivel(Long empresaId) {
+        if (empresaId == null) return 1;
+        return assinaturaEmpresaRepository.findByEmpresaIdAndStatus(empresaId, com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO)
+                .map(assinatura -> assinatura.getPlano() != null ? assinatura.getPlano().getNivel() : 1)
+                .orElse(1);
     }
 }

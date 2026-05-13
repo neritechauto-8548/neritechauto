@@ -47,8 +47,6 @@ public class StripeService {
     @Value("${stripe.default.price.id:}")
     private String defaultPriceId;
 
-    @Value("${stripe.products.start:}")
-    private String productIdStart;
 
     @Value("${stripe.products.pro:}")
     private String productIdPro;
@@ -155,13 +153,13 @@ public class StripeService {
      */
     public String resolvePlanName(String productId) {
         if (productId == null) return "Sem plano";
-        if (productId.equals(productIdStart)) return "neri start";
-        if (productId.equals(productIdPro)) return "neri pro";
-        if (productId.equals(productIdElite)) return "neri elite";
+        // Mapeando Pro para Nível 1
+        if (productId.equals(productIdPro)) return "Pro";
+        // Mapeando Elite para Nível 2
+        if (productId.equals(productIdElite)) return "Elite";
         return "Plano desconhecido";
     }
 
-    public String getProductIdStart() { return productIdStart; }
     public String getProductIdPro() { return productIdPro; }
     public String getProductIdElite() { return productIdElite; }
 

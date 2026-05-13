@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { PageHeader } from '@shared';
 // PrimeNG
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -21,7 +20,6 @@ import { FornecedorService } from '../fornecedor.service';
     CommonModule,
     FormsModule,
     RouterModule,
-    PageHeader,
     SelectModule,
     InputTextModule,
     ButtonModule,

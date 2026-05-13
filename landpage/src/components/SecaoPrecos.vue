@@ -76,47 +76,42 @@ import { ref } from 'vue';
 
 const plans = ref([
   {
-    id: 'price_start',
-    name: 'neri start',
-    price: '90',
-    description: 'Essencial para organizar o fluxo de entrada e saída.',
+    id: 'price_pro',
+    name: 'Neri Pro',
+    price: '99,90',
+    description: 'A base sólida para organizar sua oficina e profissionalizar seu atendimento.',
     featured: false,
     features: [
-      'Ordens de Serviço Digitais',
-      'Cadastro de Clientes e Veículos',
-      'Financeiro Básico (CP/CR)',
-      'Checklist de Entrada',
-      'Emissão de NF-e Simples',
-      'Suporte via E-mail',
-    ],
-  },
-  {
-    id: 'price_pro',
-    name: 'neri pro',
-    price: '140',
-    description: 'A gestão completa para oficinas que buscam performance.',
-    featured: true,
-    features: [
-      'Tudo do NeriTechAuto Start',
-      'Conciliação Bancária Automática',
-      'Emissão de NF-e e NFS-e',
-      'Controle de Estoque Inteligente',
-      'Relatórios Gerenciais (DRE)',
-      'WhatsApp Nativo para Clientes',
-      'Suporte prioritário WhatsApp',
+      'Até 5 usuários',
+      'Suporte por Chat e Telefone',
+      'Dashboard financeiro',
+      'Dashboard gerencial',
+      'Gestão e emissão de NF de peças e serviços',
+      'NF de Devolução/Garantia',
+      'E-mail Marketing',
+      'Gestão de clientes (aniversário)',
+      'Cobrança',
+      'Pesquisa de satisfação',
+      'Serviços Futuros/Próximas Revisões',
     ],
   },
   {
     id: 'price_elite',
-    name: 'neri elite',
-    price: '230',
-    description: 'O nível máximo de controle e inteligência de dados.',
-    featured: false,
+    name: 'Neri Elite',
+    price: '199,90',
+    description: 'O plano mais completo, ideal para oficinas que querem elevar e potencializar sua gestão.',
+    featured: true,
     features: [
-      'Tudo do NeriTechAuto Pro',
-      'Dashboards BI Customizados',
-      'API para Integrações Externas',
-      'Consultoria Mensal de Processos',
+      'Usuários Ilimitados',
+      'Suporte via Chat, Telefone e WhatsApp',
+      'Gestão fiscal, jurídica e financeira',
+      'Custo hora',
+      'Agendamentos',
+      'Relatório de entrega de materiais',
+      'Cotação',
+      'Aplicativo de pós-venda',
+      'Auditoria',
+      'Integrações',
     ],
   },
 ]);
@@ -125,7 +120,6 @@ const initiateCheckout = async (planId) => {
   try {
     const publishableKey = import.meta.env.VITE_STRIPE_CHAVE_PUBLICA;
     const priceMap = {
-      'price_start': import.meta.env.VITE_STRIPE_PRECO_START,
       'price_pro':   import.meta.env.VITE_STRIPE_PRECO_PRO,
       'price_elite': import.meta.env.VITE_STRIPE_PRECO_ELITE,
     };
@@ -199,10 +193,11 @@ const initiateCheckout = async (planId) => {
 /* ── Grid ── */
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto var(--spacing-xl);
   align-items: start;
-  margin-bottom: var(--spacing-xl);
 }
 
 /* ── Card ── */

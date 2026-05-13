@@ -30,4 +30,6 @@ public class UsuarioResponse {
     private String departamento;
     private String telefone;
     private String avatarUrl;
+    
+    private Integer planoNivel;
 }

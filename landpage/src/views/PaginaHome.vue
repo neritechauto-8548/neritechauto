@@ -8,6 +8,7 @@
     <SecaoRecursos />
     <SecaoVantagens />
     <SecaoPrecos />
+    <SecaoComparativo />
     <SecaoFAQ />
     <SecaoContato />
 
@@ -55,6 +56,7 @@ import SecaoIntegracao  from '../components/SecaoIntegracao.vue';
 import SecaoRecursos    from '../components/SecaoRecursos.vue';
 import SecaoVantagens   from '../components/SecaoVantagens.vue';
 import SecaoPrecos      from '../components/SecaoPrecos.vue';
+import SecaoComparativo  from '../components/SecaoComparativo.vue';
 import SecaoFAQ         from '../components/SecaoFAQ.vue';
 import SecaoContato     from '../components/SecaoContato.vue';
 import SecaoRodape      from '../components/SecaoRodape.vue';

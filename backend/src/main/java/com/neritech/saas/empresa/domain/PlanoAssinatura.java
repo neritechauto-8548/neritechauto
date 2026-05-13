@@ -15,6 +15,9 @@ public class PlanoAssinatura extends BaseEntity {
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
 
+    @Column(name = "nivel")
+    private Integer nivel; // 1 = Pro, 2 = Elite
+
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
@@ -215,5 +218,13 @@ public class PlanoAssinatura extends BaseEntity {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public Integer getNivel() {
+        return nivel;
+    }
+
+    public void setNivel(Integer nivel) {
+        this.nivel = nivel;
     }
 }
