@@ -14,6 +14,8 @@ import { InputTextModule } from 'primeng/inputtext';
 // Shared
 import { OrdemServicoService } from '../ordem-servico.service';
 import { OrdemServicoResponse } from '../models/os.models';
+import { MessageService } from 'primeng/api';
+import { NgxPermissionsService } from 'ngx-permissions';
 
 @Pipe({ name: 'min', standalone: true })
 export class MinPipe implements PipeTransform {
@@ -42,6 +44,8 @@ export class OrdemServico implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly osService = inject(OrdemServicoService);
+  private readonly messageService = inject(MessageService);
+  private readonly permissionsService = inject(NgxPermissionsService);
 
   // Filtro
   search = '';
@@ -87,10 +91,26 @@ export class OrdemServico implements OnInit {
   }
 
   onCadastrar() {
+    if (!this.permissionsService.getPermission('OS_INCLUIR')) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atenção', 
+        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
+      });
+      return;
+    }
     this.router.navigate(['/os/cadastro']);
   }
 
   onCadastrarOrcamento() {
+    if (!this.permissionsService.getPermission('OS_INCLUIR')) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atenção', 
+        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
+      });
+      return;
+    }
     this.router.navigate(['/os/cadastro'], { queryParams: { tipo: 'ORCAMENTO' } });
   }
 
@@ -101,6 +121,14 @@ export class OrdemServico implements OnInit {
   }
 
   editarOS(row: any) {
+    if (!this.permissionsService.getPermission('OS_EDITAR')) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atenção', 
+        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
+      });
+      return;
+    }
     const id = row?.os ?? row?.id ?? null;
     if (id) this.router.navigate(['/os/cadastro', id]);
   }
@@ -133,7 +161,7 @@ export class OrdemServico implements OnInit {
         this.totalItems = res?.totalElements || list.length;
         this.loading = false;
       },
-      error: () => {
+      error: (err: any) => {
         this.orders = [];
         this.totalItems = 0;
         this.loading = false;

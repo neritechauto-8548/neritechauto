@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.neritech.saas.produtoServico.dto.ServicoRequest;
@@ -25,6 +26,7 @@ public class ServicoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_INC_SERV')")
     @Operation(summary = "Criar novo serviÃ§o")
     public ResponseEntity<ServicoResponse> create(@Valid @RequestBody ServicoRequest request) {
         ServicoResponse response = service.create(request);
@@ -32,12 +34,14 @@ public class ServicoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV')")
     @Operation(summary = "Buscar serviÃ§o por ID")
     public ResponseEntity<ServicoResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV')")
     @Operation(summary = "Listar serviÃ§os por empresa (paginado)")
     public ResponseEntity<Page<ServicoResponse>> findAll(
             @RequestParam Long empresaId,
@@ -50,6 +54,7 @@ public class ServicoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_EDIT_SERV')")
     @Operation(summary = "Atualizar serviÃ§o")
     public ResponseEntity<ServicoResponse> update(
             @PathVariable Long id,
@@ -58,6 +63,7 @@ public class ServicoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_EXC_SERV')")
     @Operation(summary = "Excluir serviÃ§o")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {

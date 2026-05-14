@@ -16,19 +16,15 @@
     [class.submenu]="level > 0"
   >
     @for (menuItem of menuList; track menuItem) {
-      <ng-template
-        [ngxPermissionsOnly]="menuItem.permissions?.only"
-        [ngxPermissionsExcept]="menuItem.permissions?.except"
+      <li
+        #navItem="navAccordionItem"
+        navAccordionItem
+        class="menu-item"
+        [class.menu-item-heading]="menuItem.type === 'heading'"
+        routerLinkActive="active"
+        [route]="menuItem.route"
+        [type]="menuItem.type"
       >
-        <li
-          #navItem="navAccordionItem"
-          navAccordionItem
-          class="menu-item"
-          [class.menu-item-heading]="menuItem.type === 'heading'"
-          routerLinkActive="active"
-          [route]="menuItem.route"
-          [type]="menuItem.type"
-        >
           @if (menuItem.type === 'heading') {
             <div class="menu-heading-label">
                 {{ menuItem.name | translate }}
@@ -110,7 +106,6 @@
             />
           }
         </li>
-      </ng-template>
     }
   </ul>
 </ng-template>

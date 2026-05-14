@@ -24,6 +24,7 @@ public class UsuarioResponse {
     
     private Set<String> funcoes;
     private Set<Long> funcoesIds;
+    private Set<String> permissions;
     
     // Perfil data
     private String cargo;

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,6 +25,7 @@ public class OrdemServicoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_INCLUIR')")
     @Operation(summary = "Criar nova ordem de serviço")
     public ResponseEntity<OrdemServicoResponse> create(@Valid @RequestBody OrdemServicoRequest request) {
         OrdemServicoResponse response = service.create(request);
@@ -31,6 +33,7 @@ public class OrdemServicoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Buscar ordem de serviço por ID")
     public ResponseEntity<OrdemServicoResponse> findById(@PathVariable Long id) {
         OrdemServicoResponse response = service.findById(id);
@@ -38,6 +41,7 @@ public class OrdemServicoController {
     }
 
     @GetMapping("/empresa/{empresaId}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Listar ordens de serviço por empresa")
     public ResponseEntity<Page<OrdemServicoResponse>> findByEmpresaId(
             @PathVariable Long empresaId,
@@ -49,6 +53,7 @@ public class OrdemServicoController {
     }
 
     @GetMapping("/cliente/{clienteId}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Listar ordens de serviço por cliente")
     public ResponseEntity<Page<OrdemServicoResponse>> findByClienteId(
             @PathVariable Long clienteId,
@@ -57,6 +62,7 @@ public class OrdemServicoController {
     }
 
     @GetMapping("/empresa/{empresaId}/status/{statusId}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Listar ordens de serviço por empresa e status")
     public ResponseEntity<Page<OrdemServicoResponse>> findByEmpresaIdAndStatusId(
             @PathVariable Long empresaId,
@@ -67,6 +73,7 @@ public class OrdemServicoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EDITAR')")
     @Operation(summary = "Atualizar ordem de serviço")
     public ResponseEntity<OrdemServicoResponse> update(
             @PathVariable Long id,
@@ -76,6 +83,7 @@ public class OrdemServicoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EXCLUIR')")
     @Operation(summary = "Deletar ordem de serviço")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

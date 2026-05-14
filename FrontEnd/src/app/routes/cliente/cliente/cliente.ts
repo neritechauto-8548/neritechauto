@@ -21,6 +21,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { ConfirmationService } from '@shared/services/confirmation.service';
+import { NgxPermissionsService } from 'ngx-permissions';
 import {
   TipoCliente,
   StatusCliente,
@@ -60,6 +61,7 @@ export class Cliente implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly messageService = inject(MessageService);
+  private readonly permissionsService = inject(NgxPermissionsService);
 
   // Expose enums to template
   readonly TipoCliente = TipoCliente;
@@ -182,10 +184,26 @@ export class Cliente implements OnInit {
   }
 
   cadastrarCliente() {
+    if (!this.permissionsService.getPermission('CLIENTE_CRIAR')) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atenção', 
+        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
+      });
+      return;
+    }
     this.router.navigate(['/cliente/cadastro']);
   }
 
   navigateToEdit(row: { uuid?: string | number }) {
+    if (!this.permissionsService.getPermission('CLIENTE_EDITAR')) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atenção', 
+        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
+      });
+      return;
+    }
     const id = row?.uuid;
     if (id) {
       this.router.navigate(['/cliente/editar', id]);
@@ -193,6 +211,14 @@ export class Cliente implements OnInit {
   }
 
   navigateToAddVeiculo(row: { id?: string | number; uuid?: string | number; nome?: string }) {
+    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atenção', 
+        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
+      });
+      return;
+    }
     const clienteId = row?.id || row?.uuid;
     if (clienteId) {
       this.router.navigate(['/veiculo/cadastro'], { queryParams: { clienteId } });
@@ -278,14 +304,16 @@ export class Cliente implements OnInit {
         // Após mapear clientes, buscar contatos para preencher a coluna "Contato"
         this.loadContatosForRows();
       },
-      error: (err: unknown) => {
+      error: (err: any) => {
         this.isLoading = false;
         console.error('❌ Erro ao carregar clientes:', err);
-        if (err && typeof err === 'object' && 'error' in err) {
-          console.error('Error details:', (err as any).error);
-        }
-        if (err && typeof err === 'object' && 'status' in err) {
-          console.error('HTTP Status:', (err as any).status);
+        
+        if (err.status !== 403) {
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Erro', 
+            detail: 'Ocorreu um erro ao carregar os dados dos clientes.' 
+          });
         }
       },
     });

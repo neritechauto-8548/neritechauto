@@ -15,28 +15,32 @@
       "name": "cliente",
       "type": "link",
       "icon": "pi pi-users",
-      "minPlan": 1
+      "minPlan": 1,
+      "permissions": { "only": "GERAL_USUARIO" }
     },
     {
       "route": "veiculo",
       "name": "veiculo",
       "type": "link",
       "icon": "pi pi-car",
-      "minPlan": 1
+      "minPlan": 1,
+      "permissions": { "only": "GERAL_USUARIO" }
     },
     {
       "route": "os",
       "name": "ordem-de-servico",
       "type": "link",
       "icon": "pi pi-briefcase",
-      "minPlan": 1
+      "minPlan": 1,
+      "permissions": { "only": "OS_INCLUIR" }
     },
     {
       "route": "orcamento",
       "name": "orcamento",
       "type": "link",
       "icon": "pi pi-file-excel",
-      "minPlan": 1
+      "minPlan": 1,
+      "permissions": { "only": "GERAL_ORCAMENTO" }
     },
     {
       "route": "pdv",
@@ -65,6 +69,7 @@
       "type": "sub",
       "icon": "pi pi-calendar",
       "minPlan": 1,
+      "permissions": { "only": "GERAL_AGENDAMENTO_VISUALIZAR" },
       "children": [
         {
           "route": "agendamentos-alertas",
@@ -94,6 +99,7 @@
       "type": "sub",
       "icon": "pi pi-wallet",
       "minPlan": 2,
+      "permissions": { "only": "FIN_VIS_CAIXA" },
       "children": [
         { "route": "caixa", "name": "caixa", "type": "link", "icon": "pi pi-money-bill" },
         { "route": "caixas-fechado", "name": "caixas fechado", "type": "link", "icon": "pi pi-lock" },
@@ -207,8 +213,8 @@
         { "type": "heading", "name": "config-geral" },
         { "route": "empresa", "name": "empresa", "type": "link", "icon": "pi pi-cog" },
         { "route": "assinatura", "name": "assinatura", "type": "link", "icon": "pi pi-credit-card" },
-        { "route": "usuarios", "name": "usuarios", "type": "link", "icon": "pi pi-user" },
-        { "route": "permissoes", "name": "permissoes", "type": "link", "icon": "pi pi-lock" },
+        { "route": "usuarios", "name": "usuarios", "type": "link", "icon": "pi pi-user", "permissions": { "only": "GERAL_USUARIO" } },
+        { "route": "permissoes", "name": "permissoes", "type": "link", "icon": "pi pi-lock", "permissions": { "only": "GERAL_CONFIG_SISTEMA" } },
         { "type": "heading", "name": "config-rh" },
         { "route": "colaboradores", "name": "colaboradores", "type": "link", "icon": "pi pi-users" },
         { "route": "departamentos", "name": "departamentos", "type": "link", "icon": "pi pi-sitemap" },

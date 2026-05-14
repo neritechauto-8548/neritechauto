@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -43,6 +44,7 @@ public class ClienteController {
          * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
          */
         @GetMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
         @Operation(summary = "Buscar cliente por ID", description = "Retorna os dados detalhados de um cliente especÃ­fico baseado no ID fornecido.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Cliente encontrado com sucesso", content = @Content(schema = @Schema(implementation = ClienteResponse.class))),
@@ -68,6 +70,7 @@ public class ClienteController {
          * @return PÃ¡gina com lista de clientes encontrados
          */
         @GetMapping
+        @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
         @Operation(summary = "Listar clientes", description = "Retorna uma lista paginada de clientes que correspondem aos filtros fornecidos.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
@@ -95,6 +98,7 @@ public class ClienteController {
          *                           duplicado)
          */
         @PostMapping
+        @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_CRIAR')")
         @ResponseStatus(HttpStatus.CREATED)
         @Operation(summary = "Criar novo cliente", description = "Cadastra um novo cliente no sistema. Valida duplicidade de CPF/CNPJ.")
         @ApiResponses(value = {
@@ -118,6 +122,7 @@ public class ClienteController {
          * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
          */
         @PutMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_EDITAR')")
         @Operation(summary = "Atualizar cliente", description = "Atualiza os dados cadastrais de um cliente existente.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Cliente atualizado com sucesso", content = @Content(schema = @Schema(implementation = ClienteResponse.class))),
@@ -138,6 +143,7 @@ public class ClienteController {
          * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
          */
         @DeleteMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_EXCLUIR')")
         @Operation(summary = "Excluir cliente", description = "Remove um cliente do sistema pelo ID.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Cliente removido com sucesso"),

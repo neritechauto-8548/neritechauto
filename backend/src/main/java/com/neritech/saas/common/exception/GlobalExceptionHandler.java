@@ -124,7 +124,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("Acesso negado: você não tem permissão para realizar esta operação"));
+                .body(ApiResponse.error("Acesso negado: você não tem permissão para realizar esta operação", "FORBIDDEN_PERMISSION"));
     }
 
     @ExceptionHandler(Exception.class)

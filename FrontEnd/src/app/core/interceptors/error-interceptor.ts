@@ -76,9 +76,25 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
           }
         } else {
           if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-            if (!skipToast) apiErrors.forEach((err: string) => messageService.add({ severity: 'error', summary: 'Erro', detail: err }));
+            if (!skipToast) {
+              apiErrors.forEach((err: string) => {
+                const severity = error.status === STATUS.FORBIDDEN ? 'warn' : 'error';
+                const summary = error.status === STATUS.FORBIDDEN ? 'Atenção' : 'Erro';
+                messageService.add({ severity, summary, detail: err });
+              });
+            }
           } else {
-            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+            if (!skipToast) {
+              const isPermissionError = error.status === STATUS.FORBIDDEN && error.error?.code === 'FORBIDDEN_PERMISSION';
+              
+              const severity = isPermissionError ? 'warn' : 'error';
+              const summary = isPermissionError ? 'Atenção' : 'Erro';
+              const detail = isPermissionError 
+                ? 'Seu perfil não possui permissão para realizar esta operação.' 
+                : getMessage(error);
+                
+              messageService.add({ severity, summary, detail });
+            }
           }
         }
         return throwError(() => error);

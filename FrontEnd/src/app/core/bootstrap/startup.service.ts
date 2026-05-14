@@ -48,10 +48,12 @@ export class StartupService {
 
   private filterMenuByPlan(menu: any[], planLevel: number): any[] {
     return menu.filter(item => {
+      // Filtro por Nível de Plano (única restrição que esconde o menu)
       if (item.minPlan && item.minPlan > planLevel) {
         return false;
       }
       
+      // Recursividade para filhos
       if (item.children && item.children.length > 0) {
         item.children = this.filterMenuByPlan(item.children, planLevel);
         if (item.type === 'sub' && item.children.length === 0) {
@@ -64,9 +66,14 @@ export class StartupService {
   }
 
   private setPermissions(user: User) {
-    const permissions = ['canAdd', 'canDelete', 'canEdit', 'canRead'];
+    const permissions = user.permissions || [];
     this.permissonsService.loadPermissions(permissions);
+    
     this.rolesService.flushRoles();
-    this.rolesService.addRoles({ ADMIN: permissions });
+    if (user.funcoes) {
+      user.funcoes.forEach((role: string) => {
+        this.rolesService.addRole(role, permissions);
+      });
+    }
   }
 }

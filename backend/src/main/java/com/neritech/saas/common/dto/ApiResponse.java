@@ -10,6 +10,7 @@ import java.util.List;
 public class ApiResponse<T> {
     private T data;
     private String message;
+    private String code;
     private LocalDateTime timestamp;
     private List<String> errors;
 
@@ -38,6 +39,14 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> error(String error) {
         return ApiResponse.<T>builder()
                 .errors(List.of(error))
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(String error, String code) {
+        return ApiResponse.<T>builder()
+                .errors(List.of(error))
+                .code(code)
                 .timestamp(LocalDateTime.now())
                 .build();
     }

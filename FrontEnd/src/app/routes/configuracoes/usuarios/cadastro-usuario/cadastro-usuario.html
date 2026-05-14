@@ -30,7 +30,14 @@
 
             <div class="field">
                 <label class="block font-medium mb-1">Funções (Roles)</label>
-                <p-multiSelect [options]="roles" formControlName="funcoesIds" defaultLabel="Selecione as funções" styleClass="w-full" />
+                <p-multiSelect 
+                    [options]="roles" 
+                    formControlName="funcoesIds" 
+                    optionLabel="label" 
+                    optionValue="value"
+                    defaultLabel="Selecione as funções..." 
+                    styleClass="w-full"
+                    appendTo="body" />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="!id">

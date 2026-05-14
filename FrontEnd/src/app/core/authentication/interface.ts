@@ -6,6 +6,7 @@ export interface User {
   email?: string;
   avatar?: string;
   roles?: any[];
+  funcoes?: string[];
   permissions?: any[];
   planoNivel?: number;
   assinaturaAtiva?: boolean;

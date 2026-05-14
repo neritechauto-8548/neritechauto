@@ -174,6 +174,10 @@ public class UsuarioService {
                         .avatarUrl(usuario.getPerfil() != null ? usuario.getPerfil().getAvatarUrl() : null)
                         .funcoes(usuario.getFuncoes().stream().map(f -> f.getNome()).collect(java.util.stream.Collectors.toSet()))
                         .funcoesIds(usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()))
+                        .permissions(usuario.getFuncoes().stream()
+                            .flatMap(f -> f.getPermissoes().stream())
+                            .map(p -> p.getChave())
+                            .collect(java.util.stream.Collectors.toSet()))
                         .assinaturaAtiva(assinaturaAtiva)
                         .subscriptionStatus(status)
                         .planoNivel(planoNivel)
@@ -213,6 +217,12 @@ public class UsuarioService {
                     : Collections.emptySet())
                 .funcoesIds(usuario.getFuncoes() != null 
                     ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(Collectors.toSet()) 
+                    : Collections.emptySet())
+                .permissions(usuario.getFuncoes() != null
+                    ? usuario.getFuncoes().stream()
+                        .flatMap(f -> f.getPermissoes().stream())
+                        .map(p -> p.getChave())
+                        .collect(Collectors.toSet())
                     : Collections.emptySet())
                 .planoNivel(planoNivel)
                 .assinaturaAtiva(false)
