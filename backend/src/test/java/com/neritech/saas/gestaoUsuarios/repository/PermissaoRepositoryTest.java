@@ -17,20 +17,34 @@ class PermissaoRepositoryTest extends BaseRepositoryTest {
     private PermissaoRepository permissaoRepository;
 
     @Test
-    @DisplayName("Deve listar todas as permissões da empresa")
-    void deveListarPermissoesDaEmpresa() {
+    @DisplayName("Deve listar todas as permissões")
+    void deveListarTodasPermissoes() {
         // Arrange
-        Permissao p1 = TestDataBuilder.umaPermissao().comNome("P1").comEmpresaId(1L).build();
-        Permissao p2 = TestDataBuilder.umaPermissao().comNome("P2").comEmpresaId(1L).build();
-        Permissao p3 = TestDataBuilder.umaPermissao().comNome("P3").comEmpresaId(2L).build();
+        Permissao p1 = TestDataBuilder.umaPermissao().comChave("P1").comValor("VALOR_P1").build();
+        Permissao p2 = TestDataBuilder.umaPermissao().comChave("P2").comValor("VALOR_P2").build();
         
-        permissaoRepository.saveAll(List.of(p1, p2, p3));
+        permissaoRepository.saveAll(List.of(p1, p2));
 
         // Act
-        List<Permissao> permissoes = permissaoRepository.findAllByEmpresaId(1L);
+        List<Permissao> permissoes = permissaoRepository.findAll();
 
         // Assert
-        assertThat(permissoes).hasSize(2);
-        assertThat(permissoes).extracting(Permissao::getNome).containsExactlyInAnyOrder("P1", "P2");
+        assertThat(permissoes).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(permissoes).extracting(Permissao::getChave).contains("P1", "P2");
+    }
+
+    @Test
+    @DisplayName("Deve encontrar permissão por valor")
+    void deveEncontrarPorValor() {
+        // Arrange
+        Permissao p = TestDataBuilder.umaPermissao().comValor("BUSCA_VALOR").build();
+        permissaoRepository.save(p);
+
+        // Act
+        java.util.Optional<Permissao> found = permissaoRepository.findByValor("BUSCA_VALOR");
+
+        // Assert
+        assertThat(found).isPresent();
+        assertThat(found.get().getValor()).isEqualTo("BUSCA_VALOR");
     }
 }

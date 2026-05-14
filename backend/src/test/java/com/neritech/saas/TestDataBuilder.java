@@ -197,23 +197,17 @@ public class TestDataBuilder {
 
     public static class PermissaoBuilder {
         private Long id = 1L;
-        private Long empresaId = 1L;
-        private String nome = "USUARIO.READ";
+        private String chave = "USUARIO.READ";
         private String descricao = "Visualizar usuários";
-        private String modulo = "gestaoUsuarios";
+        private String valor = "USUARIO_READ";
 
         public PermissaoBuilder comId(Long id) {
             this.id = id;
             return this;
         }
 
-        public PermissaoBuilder comEmpresaId(Long empresaId) {
-            this.empresaId = empresaId;
-            return this;
-        }
-
-        public PermissaoBuilder comNome(String nome) {
-            this.nome = nome;
+        public PermissaoBuilder comChave(String chave) {
+            this.chave = chave;
             return this;
         }
 
@@ -222,20 +216,18 @@ public class TestDataBuilder {
             return this;
         }
 
-        public PermissaoBuilder comModulo(String modulo) {
-            this.modulo = modulo;
+        public PermissaoBuilder comValor(String valor) {
+            this.valor = valor;
             return this;
         }
 
         public Permissao build() {
-            Permissao permissao = Permissao.builder()
+            return Permissao.builder()
                     .id(id)
-                    .nome(nome)
+                    .chave(chave)
                     .descricao(descricao)
-                    .modulo(modulo)
+                    .valor(valor)
                     .build();
-            permissao.setEmpresaId(empresaId);
-            return permissao;
         }
     }
 

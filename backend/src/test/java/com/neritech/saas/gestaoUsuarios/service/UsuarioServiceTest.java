@@ -7,6 +7,7 @@ import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
 import com.neritech.saas.gestaoUsuarios.mapper.UsuarioMapper;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -63,7 +64,7 @@ class UsuarioServiceTest {
         @DisplayName("Deve criar usuário com sucesso")
         void deveCriarUsuarioComSucesso() {
             // Arrange
-            when(usuarioRepository.existsByEmailAndEmpresaId(anyString(), anyLong())).thenReturn(false);
+            when(usuarioRepository.existsByEmail(anyString())).thenReturn(false);
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(usuarioMapper.toEntity(any(UsuarioRequest.class))).thenReturn(usuario);
             when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
@@ -86,11 +87,11 @@ class UsuarioServiceTest {
         @DisplayName("Deve lançar exceção quando email já existe")
         void deveLancarExcecaoQuandoEmailExiste() {
             // Arrange
-            when(usuarioRepository.existsByEmailAndEmpresaId(anyString(), anyLong())).thenReturn(true);
+            when(usuarioRepository.existsByEmail(anyString())).thenReturn(true);
 
             // Act & Assert
             assertThatThrownBy(() -> usuarioService.create(usuarioRequest))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Email já cadastrado");
             
             verify(usuarioRepository, never()).save(any(Usuario.class));

@@ -15,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,16 +35,16 @@ class PermissaoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve listar todas as permissões da empresa")
+    @DisplayName("Deve listar todas as permissões")
     void deveListarTodasPermissoes() {
         // Arrange
-        when(permissaoRepository.findAllByEmpresaId(anyLong())).thenReturn(List.of(permissao));
+        when(permissaoRepository.findAll()).thenReturn(List.of(permissao));
 
         // Act
         List<Permissao> permissoes = permissaoService.findAll();
 
         // Assert
         assertThat(permissoes).hasSize(1);
-        assertThat(permissoes.get(0).getNome()).isEqualTo("USUARIO.READ");
+        assertThat(permissoes.get(0).getChave()).isEqualTo("USUARIO.READ");
     }
 }
