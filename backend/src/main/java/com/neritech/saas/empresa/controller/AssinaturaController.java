@@ -40,17 +40,31 @@ public class AssinaturaController {
                 empresaId = currentTenant;
             }
 
+            Empresa empresa = this.empresaService.findById(empresaId);
+            String customerId = empresa.getStripeCustomerId();
+
             if (!this.stripeService.isConfigured()) {
+                // Se não houver Stripe, tenta buscar a assinatura local do banco
+                java.util.Optional<com.neritech.saas.empresa.domain.AssinaturaEmpresa> localSub = 
+                    this.empresaService.findActiveSubscriptionByEmpresa(empresaId);
+                
+                if (localSub.isPresent()) {
+                    com.neritech.saas.empresa.domain.AssinaturaEmpresa sub = localSub.get();
+                    return ResponseEntity.ok(AssinaturaDTO.builder()
+                            .plano(sub.getPlano() != null ? sub.getPlano().getNome() : "Plano Local")
+                            .status(sub.getStatus().name())
+                            .precoFormatado(String.format("R$ %,.2f", sub.getValorMensal()))
+                            .proximaCobranca(sub.getDataFim().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                            .build());
+                }
+
                 return ResponseEntity.ok(AssinaturaDTO.builder()
-                        .plano("Ambiente Local (Sem Stripe Key)")
-                        .status("inactive")
+                        .plano("Sem faturamento ativo")
+                        .status("INATIVO")
                         .precoFormatado("R$ 0,00")
                         .proximaCobranca("N/A")
                         .build());
             }
-
-            Empresa empresa = this.empresaService.findById(empresaId);
-            String customerId = empresa.getStripeCustomerId();
 
             // If no Stripe customer linked yet, try to find by email
             if (customerId == null || customerId.isBlank()) {
@@ -86,19 +100,33 @@ public class AssinaturaController {
             boolean isTrial = "trialing".equals(sub.getStatus());
             String inicioTrial = null;
             String fimTrial = null;
+            long diasRestantesTrial = 0;
+
             if (sub.getTrialStart() != null) {
                 inicioTrial = formatTimestamp(sub.getTrialStart());
             }
             if (sub.getTrialEnd() != null) {
                 fimTrial = formatTimestamp(sub.getTrialEnd());
+                long diff = sub.getTrialEnd() - Instant.now().getEpochSecond();
+                diasRestantesTrial = Math.max(0, diff / (24 * 3600));
             }
+
+            String statusMapeado;
+            String stripeStatus = sub.getStatus();
+            if ("active".equals(stripeStatus)) statusMapeado = "ATIVO";
+            else if ("trialing".equals(stripeStatus)) statusMapeado = "TESTE";
+            else if ("past_due".equals(stripeStatus)) statusMapeado = "ATRASADO";
+            else if ("canceled".equals(stripeStatus)) statusMapeado = "CANCELADO";
+            else if ("unpaid".equals(stripeStatus)) statusMapeado = "SUSPENSO";
+            else if ("incomplete".equals(stripeStatus)) statusMapeado = "INCOMPLETO";
+            else statusMapeado = "SUSPENSO";
 
             String proximaCobranca = sub.getCurrentPeriodEnd() != null
                     ? formatTimestamp(sub.getCurrentPeriodEnd()) : null;
 
             return ResponseEntity.ok(AssinaturaDTO.builder()
                     .plano(planName)
-                    .status(sub.getStatus())
+                    .status(statusMapeado)
                     .precoFormatado(preco)
                     .proximaCobranca(proximaCobranca)
                     .stripeCustomerId(customerId)
@@ -107,6 +135,7 @@ public class AssinaturaController {
                     .trial(isTrial)
                     .inicioTrial(inicioTrial)
                     .fimTrial(fimTrial)
+                    .diasRestantesTrial(diasRestantesTrial)
                     .build());
 
         } catch (Exception e) {

@@ -78,6 +78,13 @@ public class TestDataBuilder {
             return this;
         }
 
+        private PerfilUsuario perfil;
+
+        public UsuarioBuilder comPerfil(PerfilUsuario perfil) {
+            this.perfil = perfil;
+            return this;
+        }
+
         public Usuario build() {
             Usuario usuario = Usuario.builder()
                     .id(id)
@@ -89,9 +96,41 @@ public class TestDataBuilder {
                     .deveTrocarSenha(deveTrocarSenha)
                     .ultimoAcesso(ultimoAcesso)
                     .funcoes(funcoes)
+                    .perfil(perfil)
                     .build();
             usuario.setEmpresaId(empresaId);
+            if (perfil != null) {
+                perfil.setUsuario(usuario);
+            }
             return usuario;
+        }
+    }
+
+    public static PerfilUsuarioBuilder umPerfil() {
+        return new PerfilUsuarioBuilder();
+    }
+
+    public static class PerfilUsuarioBuilder {
+        private String cargo = "Analista";
+        private String departamento = "TI";
+        private String telefone = "(11) 98765-4321";
+
+        public PerfilUsuarioBuilder comCargo(String cargo) {
+            this.cargo = cargo;
+            return this;
+        }
+
+        public PerfilUsuarioBuilder comDepartamento(String departamento) {
+            this.departamento = departamento;
+            return this;
+        }
+
+        public PerfilUsuario build() {
+            return PerfilUsuario.builder()
+                    .cargo(cargo)
+                    .departamento(departamento)
+                    .telefone(telefone)
+                    .build();
         }
     }
 

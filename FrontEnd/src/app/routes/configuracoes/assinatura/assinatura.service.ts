@@ -14,6 +14,7 @@ export interface AssinaturaStatus {
   trial: boolean;
   inicioTrial: string;
   fimTrial: string;
+  diasRestantesTrial: number;
 }
 
 export interface PortalResponse {

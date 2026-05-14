@@ -20,4 +20,5 @@ public class AssinaturaDTO {
     private boolean trial;
     private String inicioTrial;
     private String fimTrial;
+    private long diasRestantesTrial;
 }

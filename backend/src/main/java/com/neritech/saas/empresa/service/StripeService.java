@@ -164,17 +164,25 @@ public class StripeService {
     public String getProductIdElite() { return productIdElite; }
 
     public void handleWebhookEvent(com.stripe.model.Event event) {
-        if ("customer.subscription.created".equals(event.getType())
-                || "customer.subscription.updated".equals(event.getType())
-                || "customer.subscription.deleted".equals(event.getType())) {
+        String type = event.getType();
+        log.info("Recebido evento Stripe: {}", type);
 
+        if (type.startsWith("customer.subscription.")) {
             com.stripe.model.Subscription stripeSub = (com.stripe.model.Subscription) event.getDataObjectDeserializer()
                     .getObject().orElse(null);
-
             if (stripeSub != null) {
                 syncSubscriptionWithDatabase(stripeSub);
-            } else {
-                log.warn("Falha ao desserializar objeto Subscription do evento webhook");
+            }
+        } else if (type.startsWith("invoice.")) {
+            com.stripe.model.Invoice invoice = (com.stripe.model.Invoice) event.getDataObjectDeserializer()
+                    .getObject().orElse(null);
+            if (invoice != null && invoice.getSubscription() != null) {
+                try {
+                    com.stripe.model.Subscription sub = com.stripe.model.Subscription.retrieve(invoice.getSubscription());
+                    syncSubscriptionWithDatabase(sub);
+                } catch (StripeException e) {
+                    log.error("Erro ao buscar assinatura {} após evento {}", invoice.getSubscription(), type, e);
+                }
             }
         }
     }
@@ -197,6 +205,7 @@ public class StripeService {
                     return nova;
                 });
 
+        assinatura.setStripeCustomerId(customerId);
         String productId = stripeSub.getItems().getData().get(0).getPrice().getProduct();
         assinatura.setStripeProductId(productId);
 
@@ -208,26 +217,37 @@ public class StripeService {
         if (plano != null) {
             assinatura.setPlano(plano);
             assinatura.setValorMensal(plano.getPrecoMensal() != null ? plano.getPrecoMensal() : BigDecimal.ZERO);
-        } else {
-            log.error("Plano não encontrado para resolver assinatura. Assinatura não será sincronizada corretamente.");
-            return;
         }
 
-        LocalDate dataInicio = Instant.ofEpochSecond(stripeSub.getCurrentPeriodStart()).atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
-        LocalDate dataFim = Instant.ofEpochSecond(stripeSub.getCurrentPeriodEnd()).atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
+        java.time.LocalDateTime dataInicio = java.time.Instant.ofEpochSecond(stripeSub.getCurrentPeriodStart()).atZone(java.time.ZoneId.of("America/Sao_Paulo")).toLocalDateTime();
+        java.time.LocalDateTime dataFim = java.time.Instant.ofEpochSecond(stripeSub.getCurrentPeriodEnd()).atZone(java.time.ZoneId.of("America/Sao_Paulo")).toLocalDateTime();
         
-        assinatura.setDataInicio(dataInicio);
-        assinatura.setDataFim(dataFim);
+        assinatura.setDataInicio(dataInicio.toLocalDate());
+        assinatura.setDataFim(dataFim.toLocalDate());
+        assinatura.setSubscriptionEndsAt(dataFim);
 
-        if ("active".equals(stripeSub.getStatus()) || "trialing".equals(stripeSub.getStatus())) {
+        if (stripeSub.getTrialEnd() != null) {
+            assinatura.setTrialEndsAt(java.time.Instant.ofEpochSecond(stripeSub.getTrialEnd()).atZone(java.time.ZoneId.of("America/Sao_Paulo")).toLocalDateTime());
+        }
+
+        String stripeStatus = stripeSub.getStatus();
+        if ("active".equals(stripeStatus)) {
             assinatura.setStatus(StatusAssinatura.ATIVO);
-        } else if ("canceled".equals(stripeSub.getStatus())) {
+        } else if ("trialing".equals(stripeStatus)) {
+            assinatura.setStatus(StatusAssinatura.TESTE);
+        } else if ("canceled".equals(stripeStatus)) {
             assinatura.setStatus(StatusAssinatura.CANCELADO);
             assinatura.setDataCancelamento(LocalDate.now());
-        } else if ("past_due".equals(stripeSub.getStatus()) || "unpaid".equals(stripeSub.getStatus())) {
-            assinatura.setStatus(StatusAssinatura.INADIMPLENTE);
+        } else if ("past_due".equals(stripeStatus)) {
+            assinatura.setStatus(StatusAssinatura.ATRASADO);
+            // Grace period of 3 days
+            assinatura.setGracePeriodEndsAt(java.time.LocalDateTime.now().plusDays(3));
+        } else if ("unpaid".equals(stripeStatus)) {
+            assinatura.setStatus(StatusAssinatura.SUSPENSO);
+        } else if ("incomplete".equals(stripeStatus)) {
+            assinatura.setStatus(StatusAssinatura.INCOMPLETO);
         } else {
-            assinatura.setStatus(StatusAssinatura.INATIVO);
+            assinatura.setStatus(StatusAssinatura.SUSPENSO);
         }
 
         assinaturaEmpresaRepository.save(assinatura);

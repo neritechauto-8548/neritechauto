@@ -67,7 +67,52 @@ public class AssinaturaEmpresa extends BaseEntity {
     @Column(name = "stripe_product_id", length = 255)
     private String stripeProductId;
 
+    @Column(name = "stripe_customer_id", length = 255)
+    private String stripeCustomerId;
+
+    @Column(name = "trial_ends_at")
+    private java.time.LocalDateTime trialEndsAt;
+
+    @Column(name = "subscription_ends_at")
+    private java.time.LocalDateTime subscriptionEndsAt;
+
+    @Column(name = "grace_period_ends_at")
+    private java.time.LocalDateTime gracePeriodEndsAt;
+
     public AssinaturaEmpresa() {
+    }
+
+    // Getters and Setters
+    public String getStripeCustomerId() {
+        return stripeCustomerId;
+    }
+
+    public void setStripeCustomerId(String stripeCustomerId) {
+        this.stripeCustomerId = stripeCustomerId;
+    }
+
+    public java.time.LocalDateTime getTrialEndsAt() {
+        return trialEndsAt;
+    }
+
+    public void setTrialEndsAt(java.time.LocalDateTime trialEndsAt) {
+        this.trialEndsAt = trialEndsAt;
+    }
+
+    public java.time.LocalDateTime getSubscriptionEndsAt() {
+        return subscriptionEndsAt;
+    }
+
+    public void setSubscriptionEndsAt(java.time.LocalDateTime subscriptionEndsAt) {
+        this.subscriptionEndsAt = subscriptionEndsAt;
+    }
+
+    public java.time.LocalDateTime getGracePeriodEndsAt() {
+        return gracePeriodEndsAt;
+    }
+
+    public void setGracePeriodEndsAt(java.time.LocalDateTime gracePeriodEndsAt) {
+        this.gracePeriodEndsAt = gracePeriodEndsAt;
     }
 
     // Getters and Setters (simplified)

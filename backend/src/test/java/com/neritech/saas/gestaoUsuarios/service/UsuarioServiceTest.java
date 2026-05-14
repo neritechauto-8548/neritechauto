@@ -30,9 +30,17 @@ class UsuarioServiceTest {
     @Mock
     private UsuarioRepository usuarioRepository;
     @Mock
+    private FuncaoRepository funcaoRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private UsuarioMapper usuarioMapper;
+    @Mock
+    private com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository assinaturaEmpresaRepository;
+    @Mock
+    private com.neritech.saas.empresa.service.StripeService stripeService;
+    @Mock
+    private com.neritech.saas.empresa.repository.EmpresaRepository empresaRepository;
 
     @InjectMocks
     private UsuarioService usuarioService;

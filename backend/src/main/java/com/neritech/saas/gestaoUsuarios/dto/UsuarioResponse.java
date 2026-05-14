@@ -33,5 +33,6 @@ public class UsuarioResponse {
     
     private Integer planoNivel;
     private boolean assinaturaAtiva;
+    private com.neritech.saas.empresa.domain.enums.StatusAssinatura subscriptionStatus;
     private String stripeUrl;
 }

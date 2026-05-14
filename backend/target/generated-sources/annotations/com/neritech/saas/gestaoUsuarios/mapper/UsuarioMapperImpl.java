@@ -1,5 +1,6 @@
 package com.neritech.saas.gestaoUsuarios.mapper;
 
+import com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-13T19:36:35-0300",
+    date = "2026-05-14T13:37:05-0300",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -22,6 +23,10 @@ public class UsuarioMapperImpl implements UsuarioMapper {
 
         UsuarioResponse.UsuarioResponseBuilder usuarioResponse = UsuarioResponse.builder();
 
+        usuarioResponse.cargo( usuarioPerfilCargo( usuario ) );
+        usuarioResponse.departamento( usuarioPerfilDepartamento( usuario ) );
+        usuarioResponse.telefone( usuarioPerfilTelefone( usuario ) );
+        usuarioResponse.avatarUrl( usuarioPerfilAvatarUrl( usuario ) );
         if ( usuario.getAtivo() != null ) {
             usuarioResponse.ativo( usuario.getAtivo() );
         }
@@ -51,5 +56,65 @@ public class UsuarioMapperImpl implements UsuarioMapper {
         usuario.nomeCompleto( request.getNomeCompleto() );
 
         return usuario.build();
+    }
+
+    private String usuarioPerfilCargo(Usuario usuario) {
+        if ( usuario == null ) {
+            return null;
+        }
+        PerfilUsuario perfil = usuario.getPerfil();
+        if ( perfil == null ) {
+            return null;
+        }
+        String cargo = perfil.getCargo();
+        if ( cargo == null ) {
+            return null;
+        }
+        return cargo;
+    }
+
+    private String usuarioPerfilDepartamento(Usuario usuario) {
+        if ( usuario == null ) {
+            return null;
+        }
+        PerfilUsuario perfil = usuario.getPerfil();
+        if ( perfil == null ) {
+            return null;
+        }
+        String departamento = perfil.getDepartamento();
+        if ( departamento == null ) {
+            return null;
+        }
+        return departamento;
+    }
+
+    private String usuarioPerfilTelefone(Usuario usuario) {
+        if ( usuario == null ) {
+            return null;
+        }
+        PerfilUsuario perfil = usuario.getPerfil();
+        if ( perfil == null ) {
+            return null;
+        }
+        String telefone = perfil.getTelefone();
+        if ( telefone == null ) {
+            return null;
+        }
+        return telefone;
+    }
+
+    private String usuarioPerfilAvatarUrl(Usuario usuario) {
+        if ( usuario == null ) {
+            return null;
+        }
+        PerfilUsuario perfil = usuario.getPerfil();
+        if ( perfil == null ) {
+            return null;
+        }
+        String avatarUrl = perfil.getAvatarUrl();
+        if ( avatarUrl == null ) {
+            return null;
+        }
+        return avatarUrl;
     }
 }

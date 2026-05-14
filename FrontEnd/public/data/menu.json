@@ -168,7 +168,7 @@
       "name": "relatorios",
       "type": "sub",
       "icon": "pi pi-chart-line",
-      "minPlan": 2,
+      "minPlan": 1,
       "children": [
         { "route": "relatorio-vendas", "name": "relatorios.relatorio-vendas", "type": "link", "icon": "pi pi-chart-pie" },
         { "route": "relatorio-contas", "name": "relatorios.relatorio-contas", "type": "link", "icon": "pi pi-chart-bar" },

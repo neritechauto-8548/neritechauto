@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { PageHeader } from '@shared';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -27,7 +27,7 @@ export interface GrupoPermissao {
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    PageHeader,
+
     MatFormFieldModule,
     MatInputModule,
     MatCheckboxModule,

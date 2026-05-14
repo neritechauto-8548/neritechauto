@@ -11,6 +11,7 @@ import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
 import com.neritech.saas.empresa.service.StripeService;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
@@ -139,8 +141,43 @@ public class UsuarioService {
             
             if (assinaturaOpt.isPresent()) {
                 AssinaturaEmpresa assinatura = assinaturaOpt.get();
-                assinaturaAtiva = (assinatura.getStatus() == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO);
+                com.neritech.saas.empresa.domain.enums.StatusAssinatura status = assinatura.getStatus();
+                
+                // Validação de período de graça (Grace Period)
+                if (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATRASADO && 
+                    assinatura.getGracePeriodEndsAt() != null && 
+                    assinatura.getGracePeriodEndsAt().isBefore(java.time.LocalDateTime.now())) {
+                    status = com.neritech.saas.empresa.domain.enums.StatusAssinatura.SUSPENSO;
+                }
+
+                // Validação de assinatura ativa/liberada
+                assinaturaAtiva = (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO || 
+                                   status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.TESTE ||
+                                   "ACTIVE".equals(status.name()) || 
+                                   "TRIAL".equals(status.name()));
+                
+                log.info("Empresa: {} - Status Assinatura: {} - Ativa: {}", empresaId, status, assinaturaAtiva);
+                
                 planoNivel = (assinatura.getPlano() != null) ? assinatura.getPlano().getNivel() : 1;
+                
+                UsuarioResponse response = UsuarioResponse.builder()
+                        .id(usuario.getId())
+                        .empresaId(empresaId)
+                        .nomeCompleto(usuario.getNomeCompleto())
+                        .email(usuario.getEmail())
+                        .ativo(usuario.getAtivo())
+                        .bloqueado(usuario.getBloqueado())
+                        .ultimoAcesso(usuario.getUltimoAcesso())
+                        .cargo(usuario.getPerfil() != null ? usuario.getPerfil().getCargo() : null)
+                        .departamento(usuario.getPerfil() != null ? usuario.getPerfil().getDepartamento() : null)
+                        .telefone(usuario.getPerfil() != null ? usuario.getPerfil().getTelefone() : null)
+                        .avatarUrl(usuario.getPerfil() != null ? usuario.getPerfil().getAvatarUrl() : null)
+                        .funcoes(usuario.getFuncoes().stream().map(f -> f.getNome()).collect(java.util.stream.Collectors.toSet()))
+                        .funcoesIds(usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()))
+                        .assinaturaAtiva(assinaturaAtiva)
+                        .subscriptionStatus(status)
+                        .planoNivel(planoNivel)
+                        .build();
 
                 if (!assinaturaAtiva && stripeService.isConfigured()) {
                     try {
@@ -149,12 +186,13 @@ public class UsuarioService {
                             .orElse(null);
                         
                         if (customerId != null) {
-                            stripeUrl = stripeService.createBillingPortalSession(customerId, "https://app.neritechauto.com.br/auth/login");
+                            response.setStripeUrl(stripeService.createBillingPortalSession(customerId, "https://app.neritechauto.com.br/auth/login"));
                         }
                     } catch (Exception e) {
-                        // Log error mas continua o login bloqueado com URL nula
+                        // Log error
                     }
                 }
+                return response;
             }
         }
 
@@ -166,6 +204,10 @@ public class UsuarioService {
                 .ativo(usuario.getAtivo())
                 .bloqueado(usuario.getBloqueado())
                 .ultimoAcesso(usuario.getUltimoAcesso())
+                .cargo(usuario.getPerfil() != null ? usuario.getPerfil().getCargo() : null)
+                .departamento(usuario.getPerfil() != null ? usuario.getPerfil().getDepartamento() : null)
+                .telefone(usuario.getPerfil() != null ? usuario.getPerfil().getTelefone() : null)
+                .avatarUrl(usuario.getPerfil() != null ? usuario.getPerfil().getAvatarUrl() : null)
                 .funcoes(usuario.getFuncoes() != null 
                     ? usuario.getFuncoes().stream().map(f -> f.getNome()).collect(Collectors.toSet()) 
                     : Collections.emptySet())
@@ -173,7 +215,8 @@ public class UsuarioService {
                     ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(Collectors.toSet()) 
                     : Collections.emptySet())
                 .planoNivel(planoNivel)
-                .assinaturaAtiva(assinaturaAtiva)
+                .assinaturaAtiva(false)
+                .subscriptionStatus(com.neritech.saas.empresa.domain.enums.StatusAssinatura.INATIVO)
                 .stripeUrl(stripeUrl)
                 .build();
     }

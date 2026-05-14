@@ -107,4 +107,8 @@ public class EmpresaService {
         }
         empresaRepository.deleteById(id);
     }
+    @Transactional(readOnly = true)
+    public Optional<AssinaturaEmpresa> findActiveSubscriptionByEmpresa(Long empresaId) {
+        return assinaturaEmpresaRepository.findFirstByEmpresaIdOrderByDataFimDesc(empresaId);
+    }
 }

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@core';
+import { authGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
 import { Dashboard } from './routes/dashboard/dashboard';
@@ -14,8 +14,8 @@ export const routes: Routes = [
   {
     path: '',
     component: AdminLayout,
-    canActivate: [authGuard],
-    canActivateChild: [authGuard],
+    canActivate: [authGuard, subscriptionGuard],
+    canActivateChild: [authGuard, subscriptionGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard, data: { title: 'Dashboard' } },

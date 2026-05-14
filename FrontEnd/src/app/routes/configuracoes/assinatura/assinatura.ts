@@ -32,7 +32,7 @@ export class AssinaturaComponent implements OnInit {
 
   loading = false;
   portalLoading = false;
-  empresaId = 1;
+  empresaId: number | null = null;
 
   assinatura: AssinaturaStatus = {
     plano: '',
@@ -44,7 +44,8 @@ export class AssinaturaComponent implements OnInit {
     stripeProductId: '',
     trial: false,
     inicioTrial: '',
-    fimTrial: ''
+    fimTrial: '',
+    diasRestantesTrial: 0
   };
 
   planos: Plano[] = [
@@ -61,6 +62,7 @@ export class AssinaturaComponent implements OnInit {
         'Financeiro Operacional',
         'Emissão de NF-e e NFC-e',
         'Estoque e Insumos',
+        'Relatórios Gerenciais',
         'Dashboards Iniciais'
       ]
     },
@@ -104,6 +106,7 @@ export class AssinaturaComponent implements OnInit {
   }
 
   loadStatus() {
+    if (!this.empresaId) return;
     this.loading = true;
     this.service.getStatus(this.empresaId)
       .pipe(finalize(() => this.loading = false))
@@ -114,6 +117,7 @@ export class AssinaturaComponent implements OnInit {
   }
 
   abrirPortal() {
+    if (!this.empresaId) return;
     this.portalLoading = true;
     const returnUrl = window.location.href;
     this.service.getPortalUrl(this.empresaId, returnUrl)
@@ -134,26 +138,27 @@ export class AssinaturaComponent implements OnInit {
 
   getStatusLabel(): string {
     const map: Record<string, string> = {
-      'active': 'Ativo',
-      'trialing': 'Período de Teste',
-      'past_due': 'Pagamento Pendente',
-      'canceled': 'Cancelado',
-      'unpaid': 'Não Pago',
-      'incomplete': 'Incompleto',
-      'inactive': 'Inativo',
-      'error': 'Erro',
+      'ATIVO': 'Ativo',
+      'TESTE': 'Período de Teste',
+      'ATRASADO': 'Pagamento Pendente',
+      'CANCELADO': 'Cancelado',
+      'SUSPENSO': 'Acesso Suspenso',
+      'INCOMPLETO': 'Cadastro Incompleto',
+      'NAO_PAGO': 'Não Pago',
+      'INATIVO': 'Inativo',
+      'ERRO': 'Erro',
     };
     return map[this.assinatura.status] || this.assinatura.status || 'Desconhecido';
   }
 
   getStatusColor(): string {
     const map: Record<string, string> = {
-      'active': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      'trialing': 'bg-blue-100 text-blue-700 border-blue-200',
-      'past_due': 'bg-amber-100 text-amber-700 border-amber-200',
-      'canceled': 'bg-red-100 text-red-700 border-red-200',
-      'unpaid': 'bg-red-100 text-red-700 border-red-200',
-      'inactive': 'bg-slate-100 text-slate-500 border-slate-200',
+      'ATIVO': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      'TESTE': 'bg-blue-100 text-blue-700 border-blue-200',
+      'ATRASADO': 'bg-amber-100 text-amber-700 border-amber-200',
+      'CANCELADO': 'bg-red-100 text-red-700 border-red-200',
+      'SUSPENSO': 'bg-red-100 text-red-700 border-red-200',
+      'INATIVO': 'bg-slate-100 text-slate-500 border-slate-200',
     };
     return map[this.assinatura.status] || 'bg-slate-100 text-slate-500 border-slate-200';
   }
