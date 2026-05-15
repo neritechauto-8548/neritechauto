@@ -56,6 +56,10 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
         if (error.status === STATUS.UNAUTHORIZED) {
           if (req.url.includes('/api/auth/login')) {
             if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
+          } else if (req.url.includes('/usuarios/me')) {
+            // Não redireciona para o login se /me falhar — o token pode estar válido
+            // mas o perfil ainda não pôde ser carregado (race condition de tenant)
+            console.warn('[ErrorInterceptor] /usuarios/me retornou 401. Ignorando redirecionamento.');
           } else {
             router.navigateByUrl('/auth/login');
           }

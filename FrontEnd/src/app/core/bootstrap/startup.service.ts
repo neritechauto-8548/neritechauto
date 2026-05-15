@@ -18,7 +18,8 @@ export class StartupService {
       this.authService
         .change()
         .pipe(
-          tap((user: User) => {
+          tap((user: any) => {
+            console.log('[StartupService] User profile received:', user);
             this.setPermissions(user);
             
             // Verificação de Assinatura Stripe

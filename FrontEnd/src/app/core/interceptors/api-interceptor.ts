@@ -14,13 +14,14 @@ export function apiInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
     mergeMap((event: HttpEvent<any>) => {
       if (event instanceof HttpResponse) {
         const body: any = event.body;
+
         // failure: { code: **, msg: 'failure' }
         // success: { code: 0,  msg: 'success', data: {} }
-        if (body && 'code' in body && body.code !== 0) {
-          if (body.msg) {
-            toast.error(body.msg);
-          }
-          return throwError(() => []);
+        // Correção: Verifica se 'code' existe e é diferente de 0/null/undefined
+        if (body && 'code' in body && body.code != null && body.code !== 0 && body.code !== '0') {
+          const errorMsg = body.msg || body.message || 'Erro na API';
+          toast.error(errorMsg);
+          return throwError(() => body.errors || [errorMsg]);
         }
         // unwrap ApiResponse { data, message, errors, timestamp }
         if (body && typeof body === 'object' && 'data' in body) {

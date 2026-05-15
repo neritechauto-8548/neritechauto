@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, catchError, iif, map, merge, of, share, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, iif, map, merge, of, share, switchMap, tap, take, timeout } from 'rxjs';
 import { base64, filterObject, isEmptyObject } from './helpers';
 import { User } from './interface';
 import { LoginService } from './login.service';
@@ -88,13 +88,15 @@ export class AuthService {
     }
 
     return this.loginService.user().pipe(
+      take(1),
+      timeout(1000),
       catchError(() => {
-        this.tokenService.clear();
-        return of({});
+        // Silenciosamente falha e retorna objeto vazio — o guard tratará o acesso
+        return of({} as User);
       }),
-      tap(user => {
+      tap((user: User) => {
         this.user$.next(user);
-        if (isEmptyObject(user)) {
+        if (isEmptyObject(user as any)) {
           return;
         }
         // Salva o tenantId (empresaId) no LocalStorage
@@ -106,11 +108,8 @@ export class AuthService {
         }
 
         if (tenantId) {
-          console.log('🏢 Setting Tenant ID from user profile:', tenantId);
           this.storage.set('tenantId', String(tenantId));
           this.storage.set('empresaId', String(tenantId)); // Dual storage for compatibility
-        } else {
-          console.warn('⚠️ No tenant ID found in user profile. Profile data:', u);
         }
       })
     );
@@ -121,12 +120,17 @@ export class AuthService {
       if (!accessToken || !accessToken.includes('.')) {
         return;
       }
-      const payload = JSON.parse(base64.decode(accessToken.split('.')[1]));
+      const payloadPart = accessToken.split('.')[1];
+      const payload = JSON.parse(atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/')));
       const tenantId = payload.empresaId || payload.tenantId;
       if (tenantId) {
         console.log('🏢 Setting Tenant ID from token payload:', tenantId);
-        this.storage.set('tenantId', String(tenantId));
-        this.storage.set('empresaId', String(tenantId));
+        const cleanId = String(tenantId);
+        this.storage.set('tenantId', cleanId);
+        this.storage.set('empresaId', cleanId);
+        // Direct write to ensure immediate visibility
+        localStorage.setItem('tenantId', cleanId);
+        localStorage.setItem('empresaId', cleanId);
       }
     } catch (e) {
       console.error('Error parsing token payload', e);

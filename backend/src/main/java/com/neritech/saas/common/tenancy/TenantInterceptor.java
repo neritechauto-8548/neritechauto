@@ -61,7 +61,7 @@ public class TenantInterceptor implements HandlerInterceptor {
                 log.info("Resolved tenant from JWT claims for request: {}", requestURI);
             } else {
                 // Permitir requisições públicas, de autenticação ou de erro sem tenantId
-                if (requestURI.contains("/public/") || requestURI.contains("/error") || requestURI.contains("/auth/")) {
+                if (requestURI.contains("/public/") || requestURI.contains("/error") || requestURI.contains("/auth/") || requestURI.contains("/usuarios/me")) {
                     log.info("Public, Auth or Error request detected, skipping mandatory tenant check: {}", requestURI);
                     return true;
                 }
@@ -83,7 +83,10 @@ public class TenantInterceptor implements HandlerInterceptor {
                    .setParameter("tenantId", tenantId);
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.isAuthenticated()) {
+            // Para /usuarios/me não validamos se o usuário pertence ao tenant
+            // pois esse endpoint é usado justamente para descobrir o tenant do usuário
+            boolean skipTenantUserValidation = requestURI.contains("/usuarios/me");
+            if (!skipTenantUserValidation && auth != null && auth.isAuthenticated()) {
                 String username = auth.getName();
                 usuarioRepository.findByEmail(username).ifPresent(usuario -> {
                     if (usuario.getEmpresaId() == null || !usuario.getEmpresaId().equals(tenantId)) {

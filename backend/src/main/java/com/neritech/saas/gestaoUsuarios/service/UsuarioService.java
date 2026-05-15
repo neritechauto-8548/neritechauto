@@ -117,6 +117,7 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public UsuarioResponse getCurrentUser() {
+        log.info("Starting getCurrentUser profile load");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UsernameNotFoundException("Usuário não autenticado");
@@ -126,7 +127,9 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
         
-        return toResponse(usuario);
+        UsuarioResponse response = toResponse(usuario);
+        log.info("Profile load completed for user: {}", email);
+        return response;
     }
 
     private UsuarioResponse toResponse(Usuario usuario) {
@@ -151,10 +154,14 @@ public class UsuarioService {
                 }
 
                 // Validação de assinatura ativa/liberada
-                assinaturaAtiva = (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO || 
-                                   status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.TESTE ||
-                                   "ACTIVE".equals(status.name()) || 
-                                   "TRIAL".equals(status.name()));
+                if (status != null) {
+                    assinaturaAtiva = (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO || 
+                                       status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.TESTE ||
+                                       "ACTIVE".equals(status.name()) || 
+                                       "TRIAL".equals(status.name()));
+                } else {
+                    assinaturaAtiva = false;
+                }
                 
                 log.info("Empresa: {} - Status Assinatura: {} - Ativa: {}", empresaId, status, assinaturaAtiva);
                 
@@ -172,12 +179,14 @@ public class UsuarioService {
                         .departamento(usuario.getPerfil() != null ? usuario.getPerfil().getDepartamento() : null)
                         .telefone(usuario.getPerfil() != null ? usuario.getPerfil().getTelefone() : null)
                         .avatarUrl(usuario.getPerfil() != null ? usuario.getPerfil().getAvatarUrl() : null)
-                        .funcoes(usuario.getFuncoes().stream().map(f -> f.getNome()).collect(java.util.stream.Collectors.toSet()))
-                        .funcoesIds(usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()))
-                        .permissions(usuario.getFuncoes().stream()
+                        .funcoes(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getNome()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
+                        .funcoesIds(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
+                        .permissions(usuario.getFuncoes() != null ? usuario.getFuncoes().stream()
+                            .filter(f -> f.getPermissoes() != null)
                             .flatMap(f -> f.getPermissoes().stream())
+                            .filter(p -> p.getChave() != null)
                             .map(p -> p.getChave())
-                            .collect(java.util.stream.Collectors.toSet()))
+                            .collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
                         .assinaturaAtiva(assinaturaAtiva)
                         .subscriptionStatus(status)
                         .planoNivel(planoNivel)
@@ -220,7 +229,9 @@ public class UsuarioService {
                     : Collections.emptySet())
                 .permissions(usuario.getFuncoes() != null
                     ? usuario.getFuncoes().stream()
+                        .filter(f -> f.getPermissoes() != null)
                         .flatMap(f -> f.getPermissoes().stream())
+                        .filter(p -> p.getChave() != null)
                         .map(p -> p.getChave())
                         .collect(Collectors.toSet())
                     : Collections.emptySet())

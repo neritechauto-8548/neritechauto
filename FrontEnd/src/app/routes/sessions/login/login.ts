@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import { MtxButtonModule } from '@ng-matero/extensions/button';
 import { TranslateModule } from '@ngx-translate/core';
-import { filter, finalize } from 'rxjs/operators';
+import { finalize, tap } from 'rxjs/operators';
 
 import { AuthService } from '@core/authentication';
 import { LocalStorageService } from '@shared/services/storage.service';
@@ -86,7 +86,7 @@ export class Login {
     this.auth
       .login(this.username.value, this.password.value, this.rememberMe.value)
       .pipe(
-        filter(authenticated => authenticated),
+        tap(() => {}),
         finalize(() => this.isSubmitting = false)
       )
       .subscribe({
