@@ -33,4 +33,8 @@ export class AssinaturaService {
   getPortalUrl(empresaId: number, returnUrl: string): Observable<PortalResponse> {
     return this.http.post<PortalResponse>(`${this.apiUrl}/portal/${empresaId}`, { returnUrl });
   }
+
+  getCheckoutUrl(empresaId: number, productId: string): Observable<PortalResponse> {
+    return this.http.post<PortalResponse>(`${this.apiUrl}/checkout/${empresaId}`, { productId });
+  }
 }

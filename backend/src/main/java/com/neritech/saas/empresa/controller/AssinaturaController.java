@@ -190,6 +190,68 @@ public class AssinaturaController {
         }
     }
 
+    @PostMapping("/checkout/{empresaId}")
+    @Operation(summary = "Checkout de plano", description = "Gera URL de Checkout do Stripe para um plano específico")
+    public ResponseEntity<Map<String, String>> createCheckoutSession(
+            @PathVariable Long empresaId,
+            @RequestBody Map<String, String> body) {
+        try {
+            Long currentTenant = TenantContext.getCurrentTenant();
+            if (currentTenant != null && !currentTenant.equals(empresaId)) {
+                empresaId = currentTenant;
+            }
+
+            String productId = body.get("productId");
+            if (productId == null || productId.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "ID do produto é obrigatório"));
+            }
+
+            Empresa empresa = this.empresaService.findById(empresaId);
+            String customerId = empresa.getStripeCustomerId();
+
+            // Se não tiver Customer ID, criamos um
+            if (customerId == null || customerId.isBlank()) {
+                com.stripe.model.Customer customer = stripeService.createCustomer(empresa.getEmail(), empresa.getRazaoSocial(), empresa.getTelefone());
+                customerId = customer.getId();
+                empresa.setStripeCustomerId(customerId);
+                empresaService.update(empresa.getId(), empresa);
+            }
+
+            // Buscar o Price ID do produto
+            com.stripe.model.Product product = stripeService.getProduct(productId);
+            String priceId = product.getDefaultPrice();
+            
+            if (priceId == null) {
+                // Tenta buscar preços ativos do produto se o default não estiver setado
+                com.stripe.param.PriceListParams params = com.stripe.param.PriceListParams.builder()
+                        .setProduct(productId)
+                        .setActive(true)
+                        .setLimit(1L)
+                        .build();
+                List<com.stripe.model.Price> prices = com.stripe.model.Price.list(params).getData();
+                if (!prices.isEmpty()) {
+                    priceId = prices.get(0).getId();
+                }
+            }
+
+            if (priceId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Não foi possível encontrar um preço para o produto informado."));
+            }
+
+            String baseUrl = "https://app.neritechauto.com.br/configuracoes/assinatura";
+            String checkoutUrl = stripeService.createCheckoutSession(customerId, priceId, 
+                    baseUrl + "?success=true", baseUrl + "?cancel=true");
+
+            return ResponseEntity.ok(Map.of("url", checkoutUrl));
+
+        } catch (Exception e) {
+            log.error("Erro ao criar sessão de checkout Stripe", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Erro ao gerar checkout: " + e.getMessage()
+            ));
+        }
+    }
+
     private String formatTimestamp(Long timestamp) {
         return Instant.ofEpochSecond(timestamp)
                 .atZone(ZoneId.of("America/Sao_Paulo"))

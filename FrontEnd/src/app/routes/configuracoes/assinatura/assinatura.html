@@ -168,7 +168,7 @@
               </div>
 
               <!-- Action Button -->
-              <button (click)="abrirPortal()" [disabled]="portalLoading || !assinatura.stripeCustomerId"
+              <button (click)="selecionarPlano(plano)" [disabled]="portalLoading"
                 class="w-full py-2 rounded-md font-bold text-sm transition-all flex items-center justify-center gap-1.5"
                 [ngClass]="isPlanoAtual(plano)
                   ? 'bg-slate-100 text-slate-500 cursor-default'

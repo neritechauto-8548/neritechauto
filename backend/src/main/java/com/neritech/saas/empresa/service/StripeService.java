@@ -129,6 +129,27 @@ public class StripeService {
     }
 
     /**
+     * Creates a Checkout Session for a specific price/plan.
+     */
+    public String createCheckoutSession(String customerId, String priceId, String successUrl, String cancelUrl) throws StripeException {
+        com.stripe.param.checkout.SessionCreateParams params = com.stripe.param.checkout.SessionCreateParams.builder()
+                .setCustomer(customerId)
+                .setMode(com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION)
+                .setSuccessUrl(successUrl)
+                .setCancelUrl(cancelUrl)
+                .addLineItem(
+                        com.stripe.param.checkout.SessionCreateParams.LineItem.builder()
+                                .setPrice(priceId)
+                                .setQuantity(1L)
+                                .build()
+                )
+                .build();
+
+        com.stripe.model.checkout.Session session = com.stripe.model.checkout.Session.create(params);
+        return session.getUrl();
+    }
+
+    /**
      * Finds a Stripe customer by email.
      */
     public Customer findCustomerByEmail(String email) throws StripeException {

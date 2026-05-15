@@ -132,6 +132,33 @@ export class AssinaturaComponent implements OnInit {
       });
   }
 
+  selecionarPlano(plano: Plano) {
+    if (!this.empresaId) return;
+    if (this.isPlanoAtual(plano)) {
+      this.abrirPortal();
+      return;
+    }
+
+    this.portalLoading = true;
+    this.service.getCheckoutUrl(this.empresaId, plano.productId)
+      .pipe(finalize(() => this.portalLoading = false))
+      .subscribe({
+        next: (res) => {
+          if (res.url) {
+            window.open(res.url, '_blank');
+          }
+        },
+        error: (err) => {
+          console.error('Erro ao gerar checkout:', err);
+          this.toast.add({ 
+            severity: 'error', 
+            summary: 'Erro', 
+            detail: 'Não foi possível gerar a tela de pagamento. Verifique sua conexão ou tente mais tarde.' 
+          });
+        }
+      });
+  }
+
   isPlanoAtual(plano: Plano): boolean {
     return this.assinatura.stripeProductId === plano.productId;
   }
