@@ -39,7 +39,7 @@
 	<pageHeader>
 		<band height="70" splitType="Stretch">
             <rectangle>
-				<reportElement x="0" y="0" width="555" height="60" uuid="rect-uuid"/>
+				<reportElement x="0" y="0" width="555" height="60" uuid="63d23714-d830-4e45-8173-9a3d463c7b74"/>
 			</rectangle>
 			<textField>
 				<reportElement x="100" y="10" width="180" height="20" uuid="a1b2c3d4-e5f6-4789-8901-234567890abc"/>
@@ -47,12 +47,16 @@
 			</textField>
 			<staticText>
 				<reportElement x="10" y="10" width="90" height="20" uuid="b2c3d4e5-f678-9012-3456-789012345678"/>
-				<textElement isBold="true"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[Número OS:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="10" y="35" width="90" height="20" uuid="c3d4e5f6-7890-1234-5678-901234567890"/>
-				<textElement isBold="true"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[Cliente:]]></text>
 			</staticText>
 			<textField>
@@ -61,7 +65,9 @@
 			</textField>
             <staticText>
 				<reportElement x="380" y="35" width="60" height="20" uuid="e5f67890-1234-5678-9012-345678901234"/>
-				<textElement isBold="true"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[Veículo:]]></text>
 			</staticText>
             <textField>
@@ -74,35 +80,35 @@
     <columnHeader>
 		<band height="25" splitType="Stretch">
 			<staticText>
-				<reportElement x="0" y="0" width="280" height="20" uuid="col1"/>
+				<reportElement x="0" y="0" width="280" height="20" uuid="a1420790-9f17-43f1-b92c-5606e938928d"/>
 				<textElement verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Descrição]]></text>
 			</staticText>
             <staticText>
-				<reportElement x="280" y="0" width="50" height="20" uuid="col2"/>
+				<reportElement x="280" y="0" width="50" height="20" uuid="2861c876-02e0-474c-83b6-128267252089"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Qtd]]></text>
 			</staticText>
             <staticText>
-				<reportElement x="330" y="0" width="100" height="20" uuid="col3"/>
+				<reportElement x="330" y="0" width="100" height="20" uuid="39281a17-380d-4076-9289-54877716f920"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Valor Unit.]]></text>
 			</staticText>
             <staticText>
-				<reportElement x="430" y="0" width="125" height="20" uuid="col4"/>
+				<reportElement x="430" y="0" width="125" height="20" uuid="84729112-2937-4182-9382-127393716293"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total]]></text>
 			</staticText>
             <line>
-				<reportElement x="0" y="22" width="555" height="1" uuid="line1"/>
+				<reportElement x="0" y="22" width="555" height="1" uuid="19384721-2938-4182-9382-127393716293"/>
 			</line>
 		</band>
 	</columnHeader>
@@ -110,21 +116,21 @@
 	<detail>
 		<band height="20" splitType="Stretch">
             <textField>
-				<reportElement x="0" y="0" width="280" height="20" uuid="det1"/>
+				<reportElement x="0" y="0" width="280" height="20" uuid="29384721-2938-4182-9382-127393716293"/>
 				<textFieldExpression><![CDATA[$F{descricao}]]></textFieldExpression>
 			</textField>
             <textField>
-				<reportElement x="280" y="0" width="50" height="20" uuid="det2"/>
+				<reportElement x="280" y="0" width="50" height="20" uuid="39384721-2938-4182-9382-127393716293"/>
                 <textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression>
 			</textField>
             <textField pattern="¤ #,##0.00">
-				<reportElement x="330" y="0" width="100" height="20" uuid="det3"/>
+				<reportElement x="330" y="0" width="100" height="20" uuid="49384721-2938-4182-9382-127393716293"/>
                 <textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{valorUnitario}]]></textFieldExpression>
 			</textField>
              <textField pattern="¤ #,##0.00">
-				<reportElement x="430" y="0" width="125" height="20" uuid="det4"/>
+				<reportElement x="430" y="0" width="125" height="20" uuid="59384721-2938-4182-9382-127393716293"/>
                 <textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$F{valorTotal}]]></textFieldExpression>
 			</textField>
@@ -134,17 +140,17 @@
 	<summary>
 		<band height="50" splitType="Stretch">
             <line>
-				<reportElement x="0" y="5" width="555" height="1" uuid="line2"/>
+				<reportElement x="0" y="5" width="555" height="1" uuid="69384721-2938-4182-9382-127393716293"/>
 			</line>
 			<staticText>
-				<reportElement x="355" y="10" width="100" height="30" uuid="h8901234-5678-9012-3456-789012345678"/>
+				<reportElement x="355" y="10" width="100" height="30" uuid="e8901234-5678-9012-3456-789012345678"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="12" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total Geral:]]></text>
 			</staticText>
 			<textField pattern="¤ #,##0.00;¤ -#,##0.00">
-				<reportElement x="455" y="10" width="100" height="30" uuid="i9012345-6789-0123-4567-890123456789"/>
+				<reportElement x="455" y="10" width="100" height="30" uuid="f9012345-6789-0123-4567-890123456789"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="12" isBold="true"/>
 				</textElement>

@@ -1,34 +1,234 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="clientes" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c1l2i3e4-n5t6-e7s8-9012-34567890abcd">
-    <queryString>
-        <![CDATA[]]>
-    </queryString>
-    <field name="nome" class="java.lang.String"/>
-    <field name="email" class="java.lang.String"/>
-    <background>
-        <band splitType="Stretch"/>
-    </background>
-    <title>
-        <band height="79" splitType="Stretch">
-            <staticText>
-                <reportElement x="0" y="0" width="555" height="79" uuid="c1l2i3e4-n5t6-e7s8-9012-34567890abce"/>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="clientes" pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+
+    <!-- ═══════════════ PARÂMETROS ═══════════════ -->
+    <parameter name="NOME_EMPRESA"     class="java.lang.String"><defaultValueExpression><![CDATA["NeriTech Auto Center"]]></defaultValueExpression></parameter>
+    <parameter name="ENDERECO_EMPRESA" class="java.lang.String"><defaultValueExpression><![CDATA[""]]></defaultValueExpression></parameter>
+    <parameter name="TELEFONE_EMPRESA" class="java.lang.String"><defaultValueExpression><![CDATA[""]]></defaultValueExpression></parameter>
+    <parameter name="CNPJ_EMPRESA"     class="java.lang.String"><defaultValueExpression><![CDATA[""]]></defaultValueExpression></parameter>
+    <parameter name="EMAIL_EMPRESA"    class="java.lang.String"><defaultValueExpression><![CDATA[""]]></defaultValueExpression></parameter>
+    <parameter name="TOTAL_REGISTROS"  class="java.lang.Long"><defaultValueExpression><![CDATA[0L]]></defaultValueExpression></parameter>
+    <parameter name="FILTROS"          class="java.lang.String"><defaultValueExpression><![CDATA["Todos os clientes"]]></defaultValueExpression></parameter>
+    <parameter name="DATA_EMISSAO"     class="java.lang.String"><defaultValueExpression><![CDATA["—"]]></defaultValueExpression></parameter>
+
+    <!-- ═══════════════ CAMPOS (RelatorioClienteDTO) ═══════════════ -->
+    <field name="nome"          class="java.lang.String"/>
+    <field name="documento"     class="java.lang.String"/>
+    <field name="tipo"          class="java.lang.String"/>
+    <field name="email"         class="java.lang.String"/>
+    <field name="origem"        class="java.lang.String"/>
+    <field name="status"        class="java.lang.String"/>
+    <field name="dataCadastro"  class="java.lang.String"/>
+    <field name="dataNascimento" class="java.lang.String"/>
+    <field name="sexo"          class="java.lang.String"/>
+
+    <variable name="ROW_NUM" class="java.lang.Integer" calculation="Count">
+        <variableExpression><![CDATA[1]]></variableExpression>
+    </variable>
+
+    <background><band splitType="Stretch"/></background>
+
+    <!-- ═══════════════════════════════════════════════════
+         CABEÇALHO (Estilo Ultracar)
+    ════════════════════════════════════════════════════ -->
+    <pageHeader>
+        <band height="120" splitType="Stretch">
+            <!-- Borda externa do cabeçalho -->
+            <rectangle>
+                <reportElement x="0" y="0" width="555" height="85" uuid="62395d85-8854-4632-9c32-e56589320d31"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#666666"/></graphicElement>
+            </rectangle>
+
+            <!-- Nome da Empresa Centralizado -->
+            <textField textAdjust="ScaleFont">
+                <reportElement x="100" y="5" width="355" height="20" uuid="88544632-d932-4d31-9c32-e56589320623"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="24" isBold="true"/>
+                    <font size="14" isBold="true" fontName="DejaVu Sans"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{NOME_EMPRESA}.toUpperCase()]]></textFieldExpression>
+            </textField>
+
+            <!-- Detalhes da Empresa -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="100" y="25" width="355" height="55" forecolor="#333333" uuid="e5658932-d932-4d31-8854-e56588540624"/>
+                <textElement textAlignment="Center" verticalAlignment="Top">
+                    <font size="8" fontName="DejaVu Sans"/>
+                    <paragraph lineSpacing="Single"/>
+                </textElement>
+                <textFieldExpression><![CDATA[
+                    ($P{ENDERECO_EMPRESA} != null ? $P{ENDERECO_EMPRESA} + "\n" : "") +
+                    "Telefone: " + ($P{TELEFONE_EMPRESA} != null ? $P{TELEFONE_EMPRESA} : "") + "\n" +
+                    "CNPJ: " + ($P{CNPJ_EMPRESA} != null ? $P{CNPJ_EMPRESA} : "") +
+                    ($P{EMAIL_EMPRESA} != null ? "  |  E-mail: " + $P{EMAIL_EMPRESA} : "")
+                ]]></textFieldExpression>
+            </textField>
+
+            <!-- Data/Hora Emissão (Canto Superior Direito) -->
+            <textField>
+                <reportElement x="455" y="5" width="95" height="12" uuid="e5658932-d932-4d31-8854-463206234632"/>
+                <textElement textAlignment="Right">
+                    <font size="7" fontName="DejaVu Sans"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Emissão: " + $P{DATA_EMISSAO}.split(" ")[0]]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="455" y="17" width="95" height="12" uuid="46320623-d932-4d31-8854-e56589324632"/>
+                <textElement textAlignment="Right">
+                    <font size="7" fontName="DejaVu Sans"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Hora: " + ($P{DATA_EMISSAO}.contains(" ") ? $P{DATA_EMISSAO}.split(" ")[1] : "")]]></textFieldExpression>
+            </textField>
+
+            <!-- Título do Relatório e Filtros -->
+            <rectangle>
+                <reportElement x="0" y="90" width="555" height="15" backcolor="#F0F0F0" uuid="d9320623-8854-4d31-9c32-e56589324632"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#666666"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="5" y="90" width="150" height="15" uuid="d9320623-8854-4d31-9c32-e56589324633"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="9" isBold="true" fontName="DejaVu Sans"/>
                 </textElement>
                 <text><![CDATA[Relatório de Clientes]]></text>
             </staticText>
-        </band>
-    </title>
-    <detail>
-        <band height="30" splitType="Stretch">
             <textField>
-                <reportElement x="0" y="0" width="250" height="30" uuid="c1l2i3e4-n5t6-e7s8-9012-34567890abcf"/>
+                <reportElement x="160" y="90" width="390" height="15" uuid="89324632-d932-4d31-8854-e56588540623"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="7" isItalic="true" fontName="DejaVu Sans"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Filtros: " + $P{FILTROS}]]></textFieldExpression>
+            </textField>
+
+            <!-- Header da Tabela -->
+            <rectangle>
+                <reportElement x="0" y="105" width="555" height="15" backcolor="#E0E0E0" uuid="89320623-8854-4d31-9c32-e56589324633"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#666666"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="2" y="105" width="20" height="15" uuid="e5658932-8854-4632-9c32-893206234634"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[#]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="25" y="105" width="180" height="15" uuid="88544632-d932-4d31-9c32-e56589324635"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[NOME / RAZÃO SOCIAL]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="205" y="105" width="85" height="15" uuid="d9320623-8854-4632-9c32-e56589324636"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[CPF / CNPJ]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="290" y="105" width="115" height="15" uuid="46320623-d932-4d31-8854-e56589324638"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[E-MAIL]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="405" y="105" width="55" height="15" uuid="89324632-d932-4d31-8854-e56588540639"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[ORIGEM]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="460" y="105" width="50" height="15" uuid="46320623-8854-4d31-9c32-e56589324640"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[CADASTRO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="510" y="105" width="45" height="15" uuid="89324632-d932-4d31-8854-e56588540642"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[STATUS]]></text>
+            </staticText>
+        </band>
+    </pageHeader>
+
+    <!-- ═══════════════════════════════════════════════════
+         DETALHE
+    ════════════════════════════════════════════════════ -->
+    <detail>
+        <band height="14" splitType="Stretch">
+            <rectangle>
+                <reportElement mode="Opaque" x="0" y="0" width="555" height="14" backcolor="#F9F9F9" uuid="550e8400-e29b-41d4-a716-446655440000">
+                    <printWhenExpression><![CDATA[$V{ROW_NUM} % 2 == 0]]></printWhenExpression>
+                </reportElement>
+                <graphicElement><pen lineWidth="0.0"/></graphicElement>
+            </rectangle>
+
+            <textField textAdjust="StretchHeight">
+                <reportElement x="2" y="0" width="20" height="14" uuid="d9320623-8854-4d31-9c32-e56589324644"/>
+                <textElement verticalAlignment="Middle"><font size="7" fontName="DejaVu Sans"/></textElement>
+                <textFieldExpression><![CDATA[$V{ROW_NUM}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="25" y="0" width="180" height="14" uuid="e5658932-d932-4d31-8854-463206234645"/>
+                <textElement verticalAlignment="Middle"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
                 <textFieldExpression><![CDATA[$F{nome}]]></textFieldExpression>
             </textField>
-            <textField>
-                <reportElement x="250" y="0" width="250" height="30" uuid="c1l2i3e4-n5t6-e7s8-9012-34567890abd0"/>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="205" y="0" width="85" height="14" uuid="46320623-d932-4d31-8854-e56589324646"/>
+                <textElement verticalAlignment="Middle"><font size="7" fontName="DejaVu Sans"/></textElement>
+                <textFieldExpression><![CDATA[$F{documento}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="290" y="0" width="115" height="14" uuid="e5658932-8854-4632-9c32-893206234648"/>
+                <textElement verticalAlignment="Middle"><font size="7" fontName="DejaVu Sans"/></textElement>
                 <textFieldExpression><![CDATA[$F{email}]]></textFieldExpression>
             </textField>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="405" y="0" width="55" height="14" uuid="88544632-d932-4d31-9c32-e56589324649"/>
+                <textElement verticalAlignment="Middle"><font size="7" fontName="DejaVu Sans"/></textElement>
+                <textFieldExpression><![CDATA[$F{origem}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="460" y="0" width="50" height="14" uuid="d9320623-8854-4d31-9c32-e56589324650"/>
+                <textElement verticalAlignment="Middle"><font size="7" fontName="DejaVu Sans"/></textElement>
+                <textFieldExpression><![CDATA[$F{dataCadastro}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="510" y="0" width="45" height="14" uuid="46320623-d932-4d31-8854-e56589324652"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="7" isBold="true" fontName="DejaVu Sans"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement positionType="FixRelativeToBottom" x="0" y="13" width="555" height="1" forecolor="#CCCCCC" uuid="88544632-d932-4d31-9c32-e56589324643"/>
+                <graphicElement><pen lineWidth="0.25"/></graphicElement>
+            </line>
         </band>
     </detail>
+
+    <!-- ═══════════════════════════════════════════════════
+         RODAPÉ
+    ════════════════════════════════════════════════════ -->
+    <pageFooter>
+        <band height="20" splitType="Stretch">
+            <line>
+                <reportElement x="0" y="0" width="555" height="1" forecolor="#666666" uuid="88544632-d932-4d31-9c32-e56589324655"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <textField>
+                <reportElement x="0" y="5" width="200" height="10" forecolor="#666666" uuid="d9320623-8854-4632-9c32-893206234656"/>
+                <textElement><font size="7" fontName="DejaVu Sans"/></textElement>
+                <textFieldExpression><![CDATA[$P{NOME_EMPRESA}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="455" y="5" width="100" height="10" forecolor="#666666" uuid="46320623-d932-4d31-8854-e56589324658"/>
+                <textElement textAlignment="Right"><font size="7" fontName="DejaVu Sans"/></textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="200" y="5" width="255" height="10" forecolor="#999999" uuid="e5658932-d932-4d31-8854-463206234657"/>
+                <textElement textAlignment="Center"><font size="7" isBold="true" fontName="DejaVu Sans"/></textElement>
+                <text><![CDATA[NeriTech Auto - Gestão de Oficinas]]></text>
+            </staticText>
+        </band>
+    </pageFooter>
+
 </jasperReport>

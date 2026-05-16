@@ -1,40 +1,229 @@
-<div class="relatorio-clientes">
-  <div class="panel">
-    <div class="panel-header">
-      <span class="title">{{ titulo }}</span>
-    </div>
+<p-toast></p-toast>
 
-    <div class="filters">
-      <div class="filter-group">
-        <label>Período</label>
-        <select [(ngModel)]="periodo">
-          <option *ngFor="let p of periodoOptions" [value]="p">{{ p }}</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Data inicial</label>
-        <input type="date" [(ngModel)]="dataInicial" />
-      </div>
-      <div class="filter-group">
-        <label>Data final</label>
-        <input type="date" [(ngModel)]="dataFinal" />
-      </div>
-      <div class="filter-group grow">
-        <label>Consulta</label>
-        <select [(ngModel)]="consulta">
-          <option *ngFor="let c of consultaOptions" [value]="c">{{ c }}</option>
-        </select>
+<!-- ============================= SCREEN VIEW ============================= -->
+<div class="relatorio-screen">
+
+  <!-- Header -->
+  <div class="screen-header">
+    <div class="hd-left">
+      <div class="hd-icon"><mat-icon>people_alt</mat-icon></div>
+      <div>
+        <h1 class="hd-title">Relatório de Clientes</h1>
+        <span class="hd-sub">Filtre, visualize e gere o PDF profissional da base de clientes</span>
       </div>
     </div>
-
-    <hr />
-
-    <div class="actions">
-      <button class="btn btn-secondary">Fechar</button>
-      <button class="btn btn-primary" (click)="gerarRelatorio()">
-        <span class="material-icons">insights</span>
-        Gerar relatorio
+    <div class="hd-actions">
+      <button id="btn-limpar-filtros" class="btn btn-ghost" (click)="limparFiltros()">
+        <mat-icon>filter_alt_off</mat-icon> Limpar
+      </button>
+      <button id="btn-exportar-csv" class="btn btn-outline" (click)="exportarCSV()">
+        <mat-icon>download</mat-icon> CSV
+      </button>
+      <button id="btn-print-css" class="btn btn-outline" (click)="imprimir()" title="Impressão rápida via navegador">
+        <mat-icon>print</mat-icon> Imprimir
+      </button>
+      <button id="btn-gerar-pdf-jasper" class="btn btn-primary" (click)="imprimirJasper()" [disabled]="pdfLoading || isLoading">
+        <span *ngIf="pdfLoading" class="btn-spinner"></span>
+        <mat-icon *ngIf="!pdfLoading">picture_as_pdf</mat-icon>
+        {{ pdfLoading ? 'Gerando PDF...' : 'Gerar PDF' }}
       </button>
     </div>
   </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon si-blue"><mat-icon>group</mat-icon></div>
+      <div><p class="stat-lbl">Total</p><p class="stat-val">{{ stats.total }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-green"><mat-icon>check_circle</mat-icon></div>
+      <div>
+        <p class="stat-lbl">Ativos</p>
+        <p class="stat-val">{{ stats.ativos }}</p>
+        <p class="stat-pct" *ngIf="stats.total>0">{{ (stats.ativos/stats.total*100)|number:'1.0-0' }}%</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-amber"><mat-icon>pause_circle</mat-icon></div>
+      <div><p class="stat-lbl">Inativos</p><p class="stat-val">{{ stats.inativos }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-red"><mat-icon>block</mat-icon></div>
+      <div><p class="stat-lbl">Bloqueados</p><p class="stat-val">{{ stats.bloqueados }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-purple"><mat-icon>person</mat-icon></div>
+      <div><p class="stat-lbl">Pessoa Física</p><p class="stat-val">{{ stats.pessoaFisica }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-indigo"><mat-icon>business</mat-icon></div>
+      <div><p class="stat-lbl">Pessoa Jurídica</p><p class="stat-val">{{ stats.pessoaJuridica }}</p></div>
+    </div>
+  </div>
+
+  <!-- ─── Painel de Filtros ─── -->
+  <div class="filters-panel">
+    <p class="filters-title"><mat-icon class="fi-sm">tune</mat-icon> Filtros do Relatório</p>
+
+    <!-- Linha 1: Busca + Status + Tipo + Origem -->
+    <div class="filters-row">
+      <div class="filter-search">
+        <mat-icon class="fi">search</mat-icon>
+        <input id="input-busca-relatorio" type="text" class="filter-input"
+          placeholder="Buscar por nome, razão social..."
+          [(ngModel)]="filtroBusca" (keyup.enter)="gerarRelatorio()" />
+      </div>
+      <div class="filter-sel">
+        <p-select id="sel-status" [options]="statusOptions" [(ngModel)]="filtroStatus"
+          optionLabel="label" optionValue="value" placeholder="Status" styleClass="p-select-sm" />
+      </div>
+      <div class="filter-sel">
+        <p-select id="sel-tipo" [options]="tipoOptions" [(ngModel)]="filtroTipo"
+          optionLabel="label" optionValue="value" placeholder="Tipo" styleClass="p-select-sm" />
+      </div>
+      <div class="filter-sel">
+        <p-select id="sel-origem" [options]="origemOptions" [(ngModel)]="filtroOrigem"
+          optionLabel="label" optionValue="value" placeholder="Origem" styleClass="p-select-sm" />
+      </div>
+    </div>
+
+    <!-- Linha 2: Período de Cadastro + Botão -->
+    <div class="filters-row filters-row--secondary">
+      <div class="filter-group-label">
+        <mat-icon class="fi-sm">calendar_today</mat-icon>
+        <span>Período de Cadastro:</span>
+      </div>
+      <div class="filter-date">
+        <label class="date-lbl">De</label>
+        <input id="input-data-inicio" type="date" class="date-input" [(ngModel)]="dataInicio" />
+      </div>
+      <div class="filter-date">
+        <label class="date-lbl">Até</label>
+        <input id="input-data-fim" type="date" class="date-input" [(ngModel)]="dataFim" />
+      </div>
+
+      <button id="btn-gerar" class="btn btn-primary btn-gerar" (click)="gerarRelatorio()" [disabled]="isLoading">
+        <mat-icon>refresh</mat-icon>
+        {{ isLoading ? 'Carregando...' : 'Aplicar Filtros' }}
+      </button>
+    </div>
+
+    <p class="filters-info" *ngIf="!isLoading">
+      <mat-icon class="fi-sm">filter_list</mat-icon>
+      {{ filtrosAtivos }} —
+      <strong>{{ clientes.length }}</strong> de <strong>{{ totalElements }}</strong> registros carregados
+      <span class="info-tip" *ngIf="dataInicio || dataFim">
+        · Filtros de data aplicados apenas ao PDF
+      </span>
+    </p>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    <div *ngIf="isLoading" class="state-center">
+      <div class="spinner"></div><p>Carregando dados...</p>
+    </div>
+    <div *ngIf="!isLoading && clientes.length===0" class="state-center">
+      <mat-icon>search_off</mat-icon>
+      <p>Nenhum cliente encontrado com os filtros selecionados.</p>
+      <button class="btn btn-outline" (click)="limparFiltros()">Limpar filtros</button>
+    </div>
+    <table class="data-table" *ngIf="!isLoading && clientes.length>0">
+      <thead>
+        <tr>
+          <th class="th-num">#</th>
+          <th>Nome / Razão Social</th>
+          <th>CPF / CNPJ</th>
+          <th>Tipo</th>
+          <th>E-mail</th>
+          <th>Origem</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of clientes; let i=index" [class.row-blocked]="c.status==='BLOQUEADO'">
+          <td class="th-num td-muted">{{ i+1 }}</td>
+          <td>
+            <div class="av-name">
+              <div class="avatar" [class.avatar--pj]="c.tipoCliente==='PESSOA_JURIDICA'">
+                {{ getNome(c).charAt(0).toUpperCase() }}
+              </div>
+              <span>{{ getNome(c) }}</span>
+            </div>
+          </td>
+          <td class="mono td-muted">{{ getDoc(c) }}</td>
+          <td>
+            <span class="tipo-badge" [class.tipo-pj]="c.tipoCliente === 'PESSOA_JURIDICA'">
+              <mat-icon>{{ c.tipoCliente === 'PESSOA_JURIDICA' ? 'business' : 'person' }}</mat-icon>
+              {{ (c.tipoCliente ? TipoClienteLabels[c.tipoCliente] : '') || c.tipoCliente || '—' }}
+            </span>
+          </td>
+          <td class="td-muted">{{ c.email || '—' }}</td>
+          <td class="td-muted">{{ getOrigemLabel(c.origemCliente) }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(c.status||'')">
+              {{ getStatusLabel(c.status) }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ============================= PRINT VIEW ============================= -->
+<div class="relatorio-print">
+  <header class="ph">
+    <div class="ph-logo">
+      <div class="ph-icon">N</div>
+      <div class="ph-brand">
+        <strong>NeriTech Auto</strong>
+        <span>Sistema de Gestão de Oficinas</span>
+      </div>
+    </div>
+    <div class="ph-center">
+      <div class="ph-title">Relatório de Clientes</div>
+      <div class="ph-meta">Emitido em {{ dataGeracaoFormatada }} · {{ filtrosAtivos }}</div>
+    </div>
+    <div class="ph-stats">
+      <div class="ph-stat"><span class="ph-sv">{{ stats.total }}</span><span class="ph-sl">Total</span></div>
+      <div class="ph-stat"><span class="ph-sv green">{{ stats.ativos }}</span><span class="ph-sl">Ativos</span></div>
+      <div class="ph-stat"><span class="ph-sv amber">{{ stats.inativos }}</span><span class="ph-sl">Inativos</span></div>
+      <div class="ph-stat"><span class="ph-sv red">{{ stats.bloqueados }}</span><span class="ph-sl">Bloqueados</span></div>
+    </div>
+  </header>
+  <div class="ph-rule"></div>
+  <table class="pt">
+    <thead>
+      <tr>
+        <th>#</th><th>Nome / Razão Social</th><th>CPF / CNPJ</th>
+        <th>Tipo</th><th>E-mail</th><th>Origem</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of clientes; let i=index">
+        <td>{{ i+1 }}</td>
+        <td><strong>{{ getNome(c) }}</strong></td>
+        <td class="mono">{{ getDoc(c) }}</td>
+        <td>{{ TipoClienteLabels[c.tipoCliente] || c.tipoCliente }}</td>
+        <td>{{ c.email || '—' }}</td>
+        <td>{{ getOrigemLabel(c.origemCliente) }}</td>
+        <td>
+          <span class="ps" [ngClass]="'ps--'+(c.status||'ATIVO').toLowerCase()">
+            {{ getStatusLabel(c.status) }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <footer class="pf">
+    <div class="pf-left">
+      <strong>NeriTech Auto</strong> — Sistema de Gestão de Oficinas<br/>
+      Emitido em {{ dataGeracaoFormatada }} · {{ filtrosAtivos }}
+    </div>
+    <div class="pf-center"><span class="pf-conf">CONFIDENCIAL</span></div>
+    <div class="pf-right">Total: <strong>{{ stats.total }} clientes</strong></div>
+  </footer>
 </div>

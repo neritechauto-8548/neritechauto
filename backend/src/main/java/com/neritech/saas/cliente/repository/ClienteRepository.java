@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.neritech.saas.cliente.domain.Cliente;
+import com.neritech.saas.cliente.domain.enums.OrigemCliente;
 import com.neritech.saas.cliente.domain.enums.StatusCliente;
 import com.neritech.saas.cliente.domain.enums.TipoCliente;
 
@@ -52,4 +53,25 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     @Query("select count(c) from Cliente c where c.status = :status and c.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
     long countByStatus(@Param("status") StatusCliente status);
+
+    @org.springframework.data.jpa.repository.Query(nativeQuery = true, value =
+           "SELECT * FROM cliente c " +
+           "WHERE c.empresa_id = :empresaId " +
+           "AND (CAST(:status AS TEXT) IS NULL OR c.status = CAST(:status AS TEXT)) " +
+           "AND (CAST(:tipoCliente AS TEXT) IS NULL OR c.tipo_cliente = CAST(:tipoCliente AS TEXT)) " +
+           "AND (CAST(:origemCliente AS TEXT) IS NULL OR c.origem_cliente = CAST(:origemCliente AS TEXT)) " +
+           "AND (CAST(:busca AS TEXT) IS NULL " +
+           "     OR c.nome_completo ILIKE CONCAT('%', CAST(:busca AS TEXT), '%') " +
+           "     OR c.razao_social ILIKE CONCAT('%', CAST(:busca AS TEXT), '%')) " +
+           "AND (CAST(:dataInicio AS TIMESTAMP) IS NULL OR c.data_cadastro >= CAST(:dataInicio AS TIMESTAMP)) " +
+           "AND (CAST(:dataFim AS TIMESTAMP) IS NULL OR c.data_cadastro <= CAST(:dataFim AS TIMESTAMP)) " +
+           "ORDER BY COALESCE(c.nome_completo, c.razao_social) ASC")
+    java.util.List<Cliente> findForRelatorio(
+            @Param("empresaId") Long empresaId,
+            @Param("status") String status,
+            @Param("tipoCliente") String tipoCliente,
+            @Param("origemCliente") String origemCliente,
+            @Param("busca") String busca,
+            @Param("dataInicio") java.time.LocalDateTime dataInicio,
+            @Param("dataFim") java.time.LocalDateTime dataFim);
 }

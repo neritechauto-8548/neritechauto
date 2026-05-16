@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long> {
+    java.util.Optional<OrdemServico> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Page<OrdemServico> findByEmpresaId(Long empresaId, Pageable pageable);
 
     Page<OrdemServico> findByEmpresaIdAndStatusId(Long empresaId, Long statusId, Pageable pageable);

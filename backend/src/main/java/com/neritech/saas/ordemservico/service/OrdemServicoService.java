@@ -30,6 +30,11 @@ public class OrdemServicoService {
     private final OrdemServicoMapper mapper;
     private final ItemOSServicoMapper servicoMapper;
     private final ItemOSProdutoMapper produtoMapper;
+    private final com.neritech.saas.estoque.service.MovimentacaoEstoqueService movimentacaoEstoqueService;
+    private final com.neritech.saas.financeiro.service.ContasReceberService contasReceberService;
+    private final com.neritech.saas.cliente.repository.ClienteRepository clienteRepository;
+    private final com.neritech.saas.veiculo.repository.VeiculoRepository veiculoRepository;
+    private final com.neritech.saas.comunicacao.service.NotificacaoClienteService notificacaoClienteService;
 
     public OrdemServicoResponse create(OrdemServicoRequest request) {
         if (repository.existsByEmpresaIdAndNumeroOS(request.empresaId(), request.numeroOS())) {
@@ -96,15 +101,82 @@ public class OrdemServicoService {
         OrdemServico entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Ordem de Serviço não encontrada"));
 
+        Long oldStatusId = entity.getStatus() != null ? entity.getStatus().getId() : null;
         mapper.updateEntityFromRequest(request, entity);
 
         if (request.statusId() != null) {
-            entity.setStatus(statusOSRepository.findById(request.statusId())
-                    .orElseThrow(() -> new EntityNotFoundException("Status não encontrado")));
+            com.neritech.saas.ordemservico.domain.StatusOS newStatus = statusOSRepository.findById(request.statusId())
+                    .orElseThrow(() -> new EntityNotFoundException("Status não encontrado"));
+            
+            // Verifica se está finalizando agora
+            if (newStatus.getFinalizaOS() && (oldStatusId == null || !oldStatusId.equals(newStatus.getId()))) {
+                processarFinalizacaoOS(entity);
+            }
+            
+            // Verifica se deve notificar o cliente
+            if (newStatus.getNotificaCliente() && (oldStatusId == null || !oldStatusId.equals(newStatus.getId()))) {
+                notificacaoClienteService.enviarNotificacaoOS(entity, newStatus.getTemplateNotificacaoId());
+            }
+
+            entity.setStatus(newStatus);
         }
 
         OrdemServico updated = repository.save(entity);
         return enrichResponse(mapper.toResponse(updated));
+    }
+
+    private void processarFinalizacaoOS(OrdemServico os) {
+        // 1. Baixa de Estoque
+        List<ItemOSProduto> produtos = itemOSProdutoRepository.findByOrdemServicoId(os.getId());
+        for (ItemOSProduto item : produtos) {
+            if (item.getProdutoId() != null && item.getQuantidade() != null) {
+                movimentacaoEstoqueService.create(new com.neritech.saas.estoque.dto.MovimentacaoEstoqueRequest(
+                        os.getEmpresaId(),
+                        item.getProdutoId(),
+                        com.neritech.saas.estoque.domain.enums.TipoMovimentacao.SAIDA,
+                        null, // subtipoMovimentacao
+                        item.getQuantidade(),
+                        item.getValorUnitario(),
+                        item.getLocalizacaoEstoqueId(),
+                        null, // localizacaoDestinoId
+                        "ORDEM_SERVICO", // documentoTipo
+                        os.getNumeroOS(), // documentoNumero
+                        os.getId(), // documentoId
+                        null, // fornecedorId
+                        null, // loteNumero
+                        null, // dataValidade
+                        null, // dataFabricacao
+                        "Saída automática por finalização da OS " + os.getNumeroOS(), // motivo
+                        null, // observacoes
+                        os.getMecanicoResponsavelId() != null ? os.getMecanicoResponsavelId() : os.getCriadoPor(), // usuarioResponsavel
+                        os.getId() // ordemServicoId
+                ));
+            }
+        }
+
+        // 2. Lançamento Financeiro (Contas a Receber)
+        contasReceberService.create(os.getEmpresaId(), new com.neritech.saas.financeiro.dto.ContasReceberRequest(
+                "Recebimento OS " + os.getNumeroOS(),
+                os.getClienteId(),
+                null, // faturaId
+                java.time.LocalDate.now(), // dataEmissao
+                java.time.LocalDate.now().plusDays(30), // dataVencimento
+                null, // dataRecebimento
+                os.getValorTotal(), // valorOriginal
+                java.math.BigDecimal.ZERO, // valorRecebido
+                java.math.BigDecimal.ZERO, // valorJuros
+                java.math.BigDecimal.ZERO, // valorMulta
+                os.getValorDesconto(), // valorDesconto
+                os.getValorTotal(), // saldoDevedor
+                com.neritech.saas.financeiro.domain.enums.StatusTitulo.ABERTO,
+                com.neritech.saas.financeiro.domain.enums.TipoTitulo.OS,
+                os.getFormaPagamentoId(),
+                null, // contaBancariaId
+                null, // centroCustoId
+                null, // planoContasId
+                os.getNumeroOS(), // numeroTitulo
+                "Gerado automaticamente pela Ordem de Serviço " + os.getNumeroOS() // observacoes
+        ));
     }
 
     public void delete(Long id) {

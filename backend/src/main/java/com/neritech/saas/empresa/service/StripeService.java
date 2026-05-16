@@ -72,12 +72,20 @@ public class StripeService {
      * Creates a new customer in Stripe.
      */
     public Customer createCustomer(String email, String name, String phone) throws StripeException {
+        // Idempotência: busca se já existe cliente com esse e-mail
+        Customer existing = findCustomerByEmail(email);
+        if (existing != null) {
+            log.info("Cliente Stripe já existente encontrado para o e-mail {}: {}", email, existing.getId());
+            return existing;
+        }
+
         CustomerCreateParams params = CustomerCreateParams.builder()
                 .setEmail(email)
                 .setName(name)
                 .setPhone(phone)
                 .build();
         
+        log.info("Criando novo cliente Stripe para o e-mail {}", email);
         return Customer.create(params);
     }
 
@@ -90,6 +98,15 @@ public class StripeService {
             return null;
         }
 
+        // Idempotência: verifica se já tem assinatura ativa ou trial
+        List<Subscription> existing = getSubscriptions(customerId);
+        for (Subscription sub : existing) {
+            if ("active".equals(sub.getStatus()) || "trialing".equals(sub.getStatus())) {
+                log.info("Cliente {} já possui uma assinatura ativa ou trialing ({}). Pulando criação de trial.", customerId, sub.getId());
+                return sub;
+            }
+        }
+
         SubscriptionCreateParams params = SubscriptionCreateParams.builder()
                 .setCustomer(customerId)
                 .addItem(
@@ -100,6 +117,7 @@ public class StripeService {
                 .setTrialPeriodDays(7L) // 7 days trial
                 .build();
 
+        log.info("Criando nova assinatura Trial para o cliente {}", customerId);
         return Subscription.create(params);
     }
 
