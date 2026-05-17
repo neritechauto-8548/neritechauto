@@ -1,166 +1,319 @@
 <template>
-  <section id="recursos" class="features">
+  <section id="especialistas" class="communication-section">
     <div class="container">
-      <div class="features-header aos-init">
-        <span class="section-label">Recursos</span>
-        <h2 class="features-title">Resultados que você <span class="text-gradient">sente no bolso.</span></h2>
-        <p class="features-subtitle">Esqueça sistemas complexos. Nossa plataforma devolve seu tempo para o que realmente importa: atender e lucrar.</p>
+      
+      <!-- Premium Stripe Light Header -->
+      <div class="comm-header aos-init">
+        <span class="section-label">Comunicação & Vistoria</span>
+        <h2 class="comm-title">Conecte sua oficina diretamente ao <span class="text-gradient-vibrant">celular do cliente.</span></h2>
+        <p class="comm-subtitle">Feito sob medida para o setor automotivo brasileiro. Aumente em até 40% a aprovação de orçamentos com avisos e vistorias digitais direto no WhatsApp.</p>
       </div>
 
-      <div class="features-grid">
-        <div
-          class="feature-card aos-init"
-          :class="`aos-delay-${(i % 3) + 1}`"
-          v-for="(feature, i) in features"
-          :key="feature.title"
-        >
-          <div class="fc-icon-wrap" :style="{ background: feature.iconBg }">
-            <span class="fc-emoji">{{ feature.icon }}</span>
+      <!-- Stripe-style Clean Cards Grid -->
+      <div class="comm-cards-grid">
+        
+        <!-- Feature 1: Vistoria Digital -->
+        <div class="comm-card">
+          <div class="comm-card-header">
+            <div class="comm-icon">📸</div>
+            <div class="comm-info">
+              <h3>Vistoria Digital</h3>
+              <p>Evite reclamações de avarias</p>
+            </div>
           </div>
-          <h3 class="fc-title">{{ feature.title }}</h3>
-          <p class="fc-desc">{{ feature.desc }}</p>
+          <div class="comm-card-body">
+            <p class="comm-desc">Faça o checklist de entrada do veículo registrando fotos de amassados, arranhões e estado dos pneus. Gere um termo digital pronto para ser compartilhado.</p>
+            
+            <!-- Visual Element: Checklist items -->
+            <div class="checklist-preview">
+              <div class="check-item checked">
+                <span class="indicator">✓</span>
+                <span>Lataria e Pintura (Fotos anexadas)</span>
+              </div>
+              <div class="check-item checked">
+                <span class="indicator">✓</span>
+                <span>Estado dos Pneus e Estepe</span>
+              </div>
+              <div class="check-item checked">
+                <span class="indicator">✓</span>
+                <span>Nível de Combustível & Odômetro</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Feature 2: Orçamentos Interativos -->
+        <div class="comm-card active-border">
+          <div class="comm-card-header">
+            <div class="comm-icon brand-glow">⚡</div>
+            <div class="comm-info">
+              <h3>Orçamento Interativo</h3>
+              <p>Aprovação rápida via WhatsApp</p>
+            </div>
+          </div>
+          <div class="comm-card-body">
+            <p class="comm-desc">Envie um link exclusivo pelo WhatsApp. O cliente visualiza a descrição, as peças necessárias, o preço da mão de obra e aprova ou rejeita com apenas um clique.</p>
+            
+            <!-- Visual Element: Interactive Approved State -->
+            <div class="approval-preview">
+              <div class="approval-header">
+                <strong>Orçamento #1024</strong>
+                <span class="status-pill">Aprovado</span>
+              </div>
+              <div class="approval-total">
+                <span>Total dos Serviços:</span>
+                <strong>R$ 380,00</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 3: Pós-Venda Automático -->
+        <div class="comm-card">
+          <div class="comm-card-header">
+            <div class="comm-icon">📅</div>
+            <div class="comm-info">
+              <h3>Retorno Preventivo</h3>
+              <p>Fidelize e traga o cliente de volta</p>
+            </div>
+          </div>
+          <div class="comm-card-body">
+            <p class="comm-desc">O sistema identifica serviços recorrentes e dispara alertas de retorno após 3, 6 ou 12 meses (como revisões periódicas, troca de óleo ou freios).</p>
+            
+            <!-- Visual Element: WhatsApp Message Simulation -->
+            <div class="wa-preview">
+              <div class="wa-header">WhatsApp Business</div>
+              <div class="wa-msg">
+                "Olá João, faz 6 meses da sua última troca de óleo do Civic. Que tal agendar sua revisão preventiva?"
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+      
     </div>
   </section>
 </template>
 
 <script setup>
-const features = [
-  {
-    icon: '📋',
-    iconBg: 'rgba(99,91,255,0.1)',
-    title: 'O.S. Digital',
-    desc: 'Abra, gerencie e envie orçamentos via WhatsApp instantaneamente. Histórico completo de cada serviço realizado.',
-  },
-  {
-    icon: '💰',
-    iconBg: 'rgba(0,200,83,0.1)',
-    title: 'Fluxo de Caixa',
-    desc: 'Controle entradas e saídas com conciliação bancária automática. DRE, ticket médio e margem em tempo real.',
-  },
-  {
-    icon: '🧾',
-    iconBg: 'rgba(245,158,11,0.1)',
-    title: 'NF-e e NFS-e',
-    desc: 'Emissão de notas fiscais de serviço e peças integrada à SEFAZ. Sem complicação, sem erro.',
-  },
-  {
-    icon: '🔍',
-    iconBg: 'rgba(59,130,246,0.1)',
-    title: 'Busca por Placa',
-    desc: 'Dados do veículo e histórico completo de revisões puxados automaticamente pelo número da placa.',
-  },
-  {
-    icon: '📸',
-    iconBg: 'rgba(236,72,153,0.1)',
-    title: 'Checklist com Fotos',
-    desc: 'Vistoria detalhada com registro fotográfico. Elimine reclamações e aumente a confiança do cliente.',
-  },
-  {
-    icon: '📦',
-    iconBg: 'rgba(139,92,246,0.1)',
-    title: 'Gestão de Estoque',
-    desc: 'Controle de peças e insumos com alertas de reposição inteligente. Nunca mais fique sem peça crítica.',
-  },
-  {
-    icon: '👥',
-    iconBg: 'rgba(20,184,166,0.1)',
-    title: 'CRM e Fidelização',
-    desc: 'Histórico completo de revisões e avisos automáticos de manutenção preventiva para reter clientes.',
-  },
-  {
-    icon: '📊',
-    iconBg: 'rgba(249,115,22,0.1)',
-    title: 'Relatórios Gerenciais',
-    desc: 'DRE, CMV, produtividade por técnico e ranking de serviços — tomada de decisão baseada em dados reais.',
-  },
-]
 </script>
 
 <style scoped>
-.features {
-  padding: var(--spacing-2xl) 0;
-  background: var(--light-bg);
+.communication-section {
+  padding: 6rem 0;
+  background: #ffffff;
+  position: relative;
 }
 
-.features-header {
+.comm-header {
   text-align: center;
-  max-width: 700px;
-  margin: 0 auto var(--spacing-xl);
+  max-width: 720px;
+  margin: 0 auto 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.features-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+.comm-title {
+  font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
+  color: var(--midnight-navy);
   margin-bottom: 1rem;
+  letter-spacing: -0.03em;
 }
 
-.features-subtitle {
-  font-size: 1.125rem;
-  color: var(--text-muted);
-  line-height: 1.65;
+.comm-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  line-height: 1.6;
 }
 
 /* ── Grid ── */
-.features-grid {
+.comm-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+  gap: 2rem;
 }
 
-.feature-card {
-  background: white;
-  border: 1px solid var(--border);
+.comm-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
   border-radius: var(--radius-xl);
   padding: 2rem;
   transition: all var(--transition-base);
-  cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.feature-card:hover {
+.comm-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: rgba(99,91,255,0.2);
+  box-shadow: 0 20px 40px rgba(10, 37, 64, 0.05);
+  border-color: rgba(99, 91, 255, 0.2);
 }
 
-.fc-icon-wrap {
+.comm-card.active-border {
+  border-color: var(--primary-indigo);
+  box-shadow: 0 20px 40px rgba(99, 91, 255, 0.04);
+}
+
+.comm-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.comm-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
+  background: rgba(99, 91, 255, 0.06);
+  color: var(--primary-indigo);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.comm-icon.brand-glow {
+  background: var(--primary-indigo);
+  color: white;
+}
+
+.comm-info h3 {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--midnight-navy);
+  margin-bottom: 2px;
+}
+
+.comm-info p {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.comm-desc {
+  font-size: 0.9375rem;
+  color: var(--text-main);
+  line-height: 1.6;
   margin-bottom: 1.25rem;
 }
 
-.fc-emoji {
-  font-size: 1.375rem;
+/* ── Visual Previews ── */
+.checklist-preview {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.fc-title {
-  font-size: 1.0625rem;
-  font-weight: 700;
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.indicator {
+  width: 16px;
+  height: 16px;
+  background: rgba(0, 200, 83, 0.1);
+  color: #00c853;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 800;
+}
+
+/* Approval */
+.approval-preview {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.approval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.approval-header strong {
   color: var(--midnight-navy);
-  margin-bottom: 0.5rem;
-  font-family: var(--font-body);
 }
 
-.fc-desc {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.65;
+.status-pill {
+  background: rgba(0, 200, 83, 0.1);
+  color: #00c853;
+  font-weight: 700;
+  font-size: 0.625rem;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.approval-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  border-top: 1px solid #edf2f7;
+  padding-top: 8px;
+}
+
+.approval-total strong {
+  color: var(--midnight-navy);
+  font-size: 0.875rem;
+}
+
+/* WhatsApp */
+.wa-preview {
+  background: #e5ddd5;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wa-header {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #128c7e;
+  text-transform: uppercase;
+}
+
+.wa-msg {
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.6875rem;
+  color: var(--text-main);
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
-  .features-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 640px) {
-  .features-grid { grid-template-columns: 1fr; }
+  .comm-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

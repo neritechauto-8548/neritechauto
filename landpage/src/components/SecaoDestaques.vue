@@ -1,15 +1,51 @@
 <template>
   <section id="showcase" class="showcase">
     <div class="container">
+      
+      <!-- Beside-style 4-Column Highlights Grid -->
+      <div class="highlights-grid aos-init">
+        <div class="highlight-card">
+          <div class="hl-badge">Migração</div>
+          <h3>Fácil de migrar</h3>
+          <p>Importe dados de clientes, veículos e histórico de peças de outros sistemas em minutos.</p>
+          <router-link to="/teste-gratis" class="hl-link">Começar agora →</router-link>
+        </div>
+
+        <div class="highlight-card">
+          <div class="hl-badge">Preços</div>
+          <h3>Planos flexíveis</h3>
+          <p>Assinatura simples sem custos ocultos, taxas de implantação ou multas de fidelidade.</p>
+          <a href="#planos" class="hl-link">Comparar planos →</a>
+        </div>
+
+        <div class="highlight-card">
+          <div class="hl-badge">Operação</div>
+          <h3>Equipe integrada</h3>
+          <p>Distribua ordens de serviço, controle o fluxo de oficinas e sincronize mecânicos e consultores.</p>
+          <router-link to="/teste-gratis" class="hl-link">Testar com equipe →</router-link>
+        </div>
+
+        <div class="highlight-card">
+          <div class="hl-badge">Produtividade</div>
+          <h3>Uso ilimitado</h3>
+          <p>Emissão de ordens de serviço, orçamentos e checklists ilimitados em todos os planos.</p>
+          <router-link to="/teste-gratis" class="hl-link">Experimentar grátis →</router-link>
+        </div>
+      </div>
+
+      <!-- Divider line -->
+      <div class="section-divider"></div>
+
+      <!-- Detailed Showcase Items -->
       <div class="showcase-header aos-init">
-        <span class="section-label">Funcionalidades</span>
+        <span class="section-label">Aceleração Operacional</span>
         <h2 class="showcase-title">A tecnologia que <span class="text-gradient">impulsiona sua oficina.</span></h2>
         <p class="showcase-subtitle">Ferramentas desenhadas para alto fluxo e máxima lucratividade — sem complexidade desnecessária.</p>
       </div>
 
       <div class="showcase-grid">
-        <!-- Feature 1 -->
-        <div class="showcase-item aos-init aos-delay-1">
+        <!-- Feature 1: Checklist Digital -->
+        <div class="showcase-item aos-init">
           <div class="showcase-text">
             <span class="feature-pill pill-purple">✦ Inovação</span>
             <h3>Inspeção digital que <strong>gera confiança</strong></h3>
@@ -21,11 +57,11 @@
               </li>
               <li>
                 <span class="check">✓</span>
-                Registro fotográfico de avarias
+                Registro fotográfico de avarias direto do celular
               </li>
               <li>
                 <span class="check">✓</span>
-                Aprovação via link seguro no WhatsApp
+                Aprovação digital via link seguro no WhatsApp
               </li>
             </ul>
           </div>
@@ -40,12 +76,12 @@
               <div class="checklist-items">
                 <div class="cl-item done"><span class="cl-icon">✓</span><span>Freios dianteiros</span><span class="cl-status ok">OK</span></div>
                 <div class="cl-item done"><span class="cl-icon">✓</span><span>Óleo do motor</span><span class="cl-status ok">OK</span></div>
-                <div class="cl-item warn"><span class="cl-icon">!</span><span>Pastilha traseira</span><span class="cl-status warning">Trocar</span></div>
+                <div class="cl-item warn"><span class="cl-icon">!</span><span>Pastilha traseira</span><span class="cl-status warning">Substituir</span></div>
                 <div class="cl-item done"><span class="cl-icon">✓</span><span>Filtro de ar</span><span class="cl-status ok">OK</span></div>
-                <div class="cl-item warn"><span class="cl-icon">!</span><span>Fluido de freio</span><span class="cl-status warning">Trocar</span></div>
+                <div class="cl-item warn"><span class="cl-icon">!</span><span>Fluido de freio</span><span class="cl-status warning">Substituir</span></div>
               </div>
               <div class="checklist-footer">
-                <button class="vc-btn">Enviar para WhatsApp →</button>
+                <button class="vc-btn">Enviar Orçamento para o WhatsApp →</button>
               </div>
             </div>
             <!-- Floating approval card -->
@@ -56,16 +92,16 @@
           </div>
         </div>
 
-        <!-- Feature 2 -->
-        <div class="showcase-item reverse aos-init aos-delay-2">
+        <!-- Feature 2: Kanban de Produção -->
+        <div class="showcase-item reverse aos-init">
           <div class="showcase-text">
             <span class="feature-pill pill-blue">⚡ Gestão de Fluxo</span>
             <h3>Elimine gargalos com <strong>visão em tempo real</strong></h3>
             <p>Veja a capacidade de cada baia, o status de cada OS e a performance de cada técnico — direto no dashboard, sem planilhas ou anotações manuais.</p>
             <ul class="feature-list">
               <li><span class="check">✓</span>Monitoramento de lead time por OS</li>
-              <li><span class="check">✓</span>Alocação inteligente de técnicos</li>
-              <li><span class="check">✓</span>Dashboard de performance operacional</li>
+              <li><span class="check">✓</span>Alocação inteligente de mecânicos e consultores</li>
+              <li><span class="check">✓</span>Dashboard de performance operacional em tempo real</li>
             </ul>
           </div>
           <div class="showcase-visual">
@@ -105,22 +141,92 @@
 
 <style scoped>
 .showcase {
-  padding: var(--spacing-2xl) 0;
-  background: var(--light-bg);
+  padding: 6rem 0;
+  background: #f8fafc;
   overflow: hidden;
 }
 
+/* ── Highlights Grid ── */
+.highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.highlight-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all var(--transition-base);
+}
+
+.highlight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+}
+
+.hl-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-indigo);
+  background: rgba(99, 91, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 99px;
+  margin-bottom: 1rem;
+}
+
+.highlight-card h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--midnight-navy);
+  margin-bottom: 0.75rem;
+}
+
+.highlight-card p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+  flex-grow: 1;
+}
+
+.hl-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-indigo);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.hl-link:hover {
+  color: var(--primary-violet);
+}
+
+.section-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin-bottom: 5rem;
+}
+
+/* ── Detailed Showcase ── */
 .showcase-header {
   text-align: center;
   max-width: 720px;
-  margin: 0 auto var(--spacing-xl);
+  margin: 0 auto 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .showcase-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
   margin-bottom: 1rem;
 }
@@ -128,27 +234,25 @@
 .showcase-subtitle {
   font-size: 1.125rem;
   color: var(--text-muted);
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
-/* ── Items ── */
 .showcase-grid {
   display: flex;
   flex-direction: column;
-  gap: 5rem;
+  gap: 6rem;
 }
 
 .showcase-item {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 5rem;
   align-items: center;
 }
 
 .showcase-item.reverse .showcase-text { order: 2; }
 .showcase-item.reverse .showcase-visual { order: 1; }
 
-/* ── Text ── */
 .feature-pill {
   display: inline-block;
   padding: 4px 12px;
@@ -168,7 +272,6 @@
   margin-bottom: 1rem;
   color: var(--midnight-navy);
   line-height: 1.2;
-  font-family: var(--font-heading);
 }
 
 .showcase-text h3 strong { color: var(--primary-indigo); font-weight: 800; }
@@ -183,7 +286,7 @@
 .feature-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .feature-list li {
@@ -217,15 +320,15 @@
 .visual-card {
   background: white;
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-xl);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
 .visual-card-header {
   height: 36px;
   background: #f8fafc;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   padding: 0 14px;
@@ -248,19 +351,18 @@
   font-weight: 500;
 }
 
-/* Checklist */
 .checklist-items {
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cl-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -297,13 +399,13 @@
 .cl-status.warning { background: rgba(245,158,11,0.1); color: #d97706; }
 
 .checklist-footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
 }
 
 .vc-btn {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background: var(--primary-indigo);
   color: white;
   border: none;
@@ -316,21 +418,20 @@
 }
 .vc-btn:hover { background: #5851e6; }
 
-/* Approval badge */
 .approval-badge {
   position: absolute;
   top: -16px;
   right: -20px;
   background: white;
-  border: 1px solid var(--border);
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   padding: 10px 14px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.8125rem;
-  box-shadow: var(--shadow-lg);
-  animation: float-a 5s ease-in-out infinite;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  animation: float-badge 5s ease-in-out infinite;
 }
 
 .approval-badge strong { color: #059669; }
@@ -339,14 +440,14 @@
 .kanban-cols {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 20px;
 }
 
 .kanban-col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .kanban-header {
@@ -355,14 +456,14 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  padding: 0 4px 4px;
-  border-bottom: 2px solid var(--border);
+  padding: 0 4px 6px;
+  border-bottom: 2px solid #e2e8f0;
 }
 .active-h { color: var(--primary-indigo); border-color: var(--primary-indigo); }
 .done-h   { color: #059669; border-color: #10b981; }
 
 .kanban-card {
-  padding: 10px 12px;
+  padding: 12px;
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -373,26 +474,38 @@
 
 .kanban-card small { display: block; font-weight: 400; color: var(--text-muted); margin-top: 2px; font-size: 0.7rem; }
 
-.k-waiting { background: #f8fafc; border-color: var(--border); }
-.k-active  { background: rgba(99,91,255,0.06); border-color: rgba(99,91,255,0.25); }
-.k-done    { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.2); }
+.k-waiting { background: #f8fafc; border-color: #e2e8f0; }
+.k-active  { background: rgba(99,91,255,0.06); border-color: rgba(99,91,255,0.2); }
+.k-done    { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.15); }
 
-@keyframes float-a {
+@keyframes float-badge {
   0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
+  50%       { transform: translateY(-6px); }
 }
 
 /* ── Responsive ── */
+@media (max-width: 1024px) {
+  .highlights-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .showcase-item,
   .showcase-item.reverse {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 2rem;
+    gap: 3rem;
   }
   .showcase-item.reverse .showcase-text,
   .showcase-item.reverse .showcase-visual { order: unset; }
-  .feature-list { align-items: flex-start; }
+  .feature-list { align-items: center; text-align: left; }
   .approval-badge { display: none; }
+}
+
+@media (max-width: 640px) {
+  .highlights-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -4,7 +4,7 @@
       <div class="pricing-header aos-init">
         <span class="section-label">Preços</span>
         <h2 class="pricing-title">Preço justo para <span class="text-gradient">escalar seu negócio.</span></h2>
-        <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece grátis por 7 dias.</p>
+        <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece grátis por 30 dias.</p>
 
 
       </div>
@@ -39,7 +39,7 @@
             :class="plan.featured ? 'btn-primary' : 'btn-outline-plan'"
             @click="initiateCheckout(plan.id)"
           >
-            Começar grátis por 7 dias →
+            Começar grátis por 30 dias →
           </button>
 
           <div class="plan-divider"></div>
@@ -61,7 +61,7 @@
         <div class="trust-row">
           <span class="trust-item">🔒 Pagamento seguro via Stripe</span>
           <span class="trust-item">✓ Cancele a qualquer momento</span>
-          <span class="trust-item">🎁 7 dias grátis sem cartão</span>
+          <span class="trust-item">🎁 30 dias grátis sem cartão</span>
           <span class="trust-item">💬 Suporte incluído em todos os planos</span>
         </div>
       </div>
@@ -205,7 +205,7 @@ const initiateCheckout = async (planId) => {
   background: white;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 2rem;
+  padding: 2.5rem 2rem;
   position: relative;
   transition: var(--transition-base);
   display: flex;
@@ -215,12 +215,13 @@ const initiateCheckout = async (planId) => {
 
 .pricing-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 30px 60px -15px rgba(0,0,0,0.08);
+  border-color: rgba(99,91,255,0.25);
 }
 
 .pricing-card.featured {
   border-color: var(--primary-indigo);
-  box-shadow: 0 0 0 1px var(--primary-indigo), var(--shadow-lg);
+  box-shadow: 0 30px 60px -15px rgba(99,91,255,0.12);
   background: linear-gradient(180deg, rgba(99,91,255,0.02) 0%, white 100%);
 }
 
@@ -233,23 +234,26 @@ const initiateCheckout = async (planId) => {
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 4px 16px;
-  border-radius: var(--radius-full);
+  padding: 6px 18px;
+  border-radius: 99px;
   white-space: nowrap;
   box-shadow: var(--shadow-indigo);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* Plan info */
 .plan-name {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.375rem;
+  font-weight: 800;
   color: var(--midnight-navy);
   margin-bottom: 0.375rem;
+  letter-spacing: -0.02em;
 }
 
 .plan-desc {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -270,7 +274,7 @@ const initiateCheckout = async (planId) => {
 
 .amount {
   font-family: var(--font-heading);
-  font-size: 3.25rem;
+  font-size: 3.5rem;
   font-weight: 800;
   color: var(--midnight-navy);
   letter-spacing: -0.04em;
@@ -292,9 +296,24 @@ const initiateCheckout = async (planId) => {
 .btn-plan {
   width: 100%;
   padding: 0.875rem;
-  border-radius: var(--radius-md);
+  border-radius: 99px;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.btn-primary {
+  background: var(--primary-indigo);
+  color: white;
+  box-shadow: var(--shadow-indigo);
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #5851e6;
+  transform: translateY(-1px);
 }
 
 .btn-outline-plan {
@@ -307,7 +326,7 @@ const initiateCheckout = async (planId) => {
 .btn-outline-plan:hover {
   border-color: var(--primary-indigo);
   color: var(--primary-indigo);
-  background: var(--primary-indigo-light);
+  background: rgba(99,91,255,0.05);
 }
 
 /* Features list */

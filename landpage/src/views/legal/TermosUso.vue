@@ -43,7 +43,7 @@
 
       <section id="trial">
         <h2>5. Período de Teste (Free Trial)</h2>
-        <p>Oferecemos um período de teste gratuito de 7 dias para novos usuários. Após esse período, o acesso será restrito a menos que uma assinatura paga seja ativada.</p>
+        <p>Oferecemos um período de teste gratuito de 30 dias para novos usuários. Após esse período, o acesso será restrito a menos que uma assinatura paga seja ativada.</p>
       </section>
 
       <section id="proibido">

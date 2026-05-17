@@ -28,14 +28,13 @@
         <div class="footer-col">
           <h4>Produto</h4>
           <a href="/#recursos">Recursos</a>
-          <a href="/#planos">Preços</a>
+          <router-link to="/precos">Preços</router-link>
           <a href="/#clientes">Clientes</a>
           <a href="/#showcase">Como Funciona</a>
         </div>
         <div class="footer-col">
           <h4>Empresa</h4>
           <a href="#">Sobre a NeriTechAuto</a>
-          <a href="#">Blog</a>
           <a href="#">Carreiras</a>
           <a href="#">Parceiros</a>
         </div>

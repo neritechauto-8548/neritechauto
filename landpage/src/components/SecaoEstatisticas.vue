@@ -1,50 +1,56 @@
 <template>
-  <section class="stats-section">
+  <section id="piloto-automatico" class="stats-section">
     <div class="container">
+      
+      <!-- ClickUp & Stripe Style Light Header -->
       <div class="stats-header aos-init">
-        <span class="section-label">Inteligência de Dados</span>
-        <h2 class="stats-title">Dados que viram <span class="text-gradient-vibrant">decisões lucrativas.</span></h2>
-        <p class="stats-subtitle">Tenha o controle total da sua oficina com relatórios inteligentes e previsibilidade financeira em tempo real.</p>
+        <div class="stats-badge">Fluxo de Trabalho</div>
+        <h2 class="stats-title">Sua oficina organizada em um <span class="text-gradient-vibrant">único ecossistema.</span></h2>
+        <p class="stats-subtitle">Esqueça fichas de papel e planilhas soltas. Centralize o acompanhamento do pátio, controle a entrada e saída de peças e acompanhe o caixa com simplicidade.</p>
       </div>
 
-      <!-- Numbers Row -->
-      <div class="metrics-row aos-init aos-delay-1">
-        <div class="metric-item" v-for="m in metrics" :key="m.label">
-          <div class="metric-value">{{ m.value }}</div>
-          <div class="metric-label">{{ m.label }}</div>
-          <div class="metric-sub">{{ m.sub }}</div>
+      <!-- ClickUp-style Feature Cards (Real Workshop Features) -->
+      <div class="automation-features-grid">
+        <div class="auto-feature-card">
+          <div class="af-icon">📋</div>
+          <h3>Centralizador de OS</h3>
+          <p>Acompanhe o andamento de cada serviço, o técnico responsável e as peças utilizadas em uma visão unificada e organizada.</p>
+        </div>
+
+        <div class="auto-feature-card">
+          <div class="af-icon">📦</div>
+          <h3>Controle de Estoque</h3>
+          <p>Cadastre autopeças com código de barras, controle níveis mínimos e dê baixa automática assim que a OS for finalizada.</p>
+        </div>
+
+        <div class="auto-feature-card">
+          <div class="af-icon">⚖️</div>
+          <h3>Fluxo de Caixa Operacional</h3>
+          <p>Registre entradas e saídas diretamente a partir da conclusão das ordens de serviço. Contas a pagar e receber integradas.</p>
         </div>
       </div>
 
-      <!-- Dashboard Mock -->
-      <div class="dashboard-mock aos-init aos-delay-2">
+      <!-- Stripe-style Light Dashboard Mock (Real interface components) -->
+      <div class="dashboard-mock aos-init">
         <!-- Sidebar -->
         <div class="dash-sidebar">
           <div class="dash-logo">N</div>
           <div class="side-menu">
             <div class="side-item active">
-              <span class="side-icon">📊</span>
-              <span>Dashboard</span>
-            </div>
-            <div class="side-item">
-              <span class="side-icon">💰</span>
-              <span>Financeiro</span>
-            </div>
-            <div class="side-item">
-              <span class="side-icon">🔧</span>
-              <span>O.S. / Serviços</span>
-            </div>
-            <div class="side-item">
-              <span class="side-icon">🚗</span>
-              <span>Veículos</span>
-            </div>
-            <div class="side-item">
-              <span class="side-icon">👥</span>
-              <span>Clientes</span>
+              <span class="side-icon">📋</span>
+              <span>Ordens de Serviço</span>
             </div>
             <div class="side-item">
               <span class="side-icon">📦</span>
-              <span>Estoque</span>
+              <span>Estoque de Peças</span>
+            </div>
+            <div class="side-item">
+              <span class="side-icon">💸</span>
+              <span>Financeiro</span>
+            </div>
+            <div class="side-item">
+              <span class="side-icon">👥</span>
+              <span>Clientes & Pátio</span>
             </div>
           </div>
         </div>
@@ -53,30 +59,30 @@
         <div class="dash-main">
           <!-- Top bar -->
           <div class="dash-topbar">
-            <div class="dash-title">Dashboard · Abril 2026</div>
+            <div class="dash-title">Visão Geral Operacional</div>
             <div class="dash-topbar-right">
-              <div class="period-badge">Últimos 30 dias</div>
+              <div class="period-badge">Pátio Ativo</div>
             </div>
           </div>
 
-          <!-- Widgets -->
+          <!-- Widgets — ClickUp-style Functional Metas (No fake huge revenues!) -->
           <div class="widgets-grid">
             <div class="widget" v-for="w in widgets" :key="w.label">
               <div class="widget-label">{{ w.label }}</div>
               <div class="widget-value">{{ w.value }}</div>
-              <div class="widget-trend" :class="w.up ? 'up' : 'down'">
-                {{ w.up ? '↑' : '↓' }} {{ w.change }}
+              <div class="widget-trend">
+                {{ w.desc }}
               </div>
             </div>
           </div>
 
-          <!-- Chart -->
+          <!-- Cash Flow Bar Visual -->
           <div class="chart-card">
             <div class="chart-header">
-              <span class="chart-title">Fluxo de Caixa — Abril 2026</span>
+              <span class="chart-title">Movimentação Operacional (Semana)</span>
               <div class="chart-legend">
-                <span class="leg"><i style="background: var(--primary-indigo)"></i> Entradas</span>
-                <span class="leg"><i style="background: var(--primary-cyan)"></i> Saídas</span>
+                <span class="leg"><i style="background: var(--primary-indigo)"></i> Ordens Abertas</span>
+                <span class="leg"><i style="background: #00c853"></i> Concluídas</span>
               </div>
             </div>
             <div class="chart-area">
@@ -89,136 +95,156 @@
           </div>
         </div>
       </div>
+      
     </div>
   </section>
 </template>
 
 <script setup>
-const metrics = [
-  { value: '100%',   label: 'Nuvem AWS',            sub: 'Infraestrutura global segura' },
-  { value: '2h/dia', label: 'Tempo Economizado',     sub: 'Em tarefas administrativas' },
-  { value: '84%',    label: 'Taxa de Conversão',     sub: 'De orçamentos aprovados' },
-  { value: '24/7',   label: 'Disponibilidade',       sub: 'Acesse de qualquer dispositivo' },
-]
-
 const widgets = [
-  { label: 'Vendas do Mês',   value: 'R$ 42.850', change: '12% vs mês anterior', up: true },
-  { label: 'Ticket Médio',    value: 'R$ 1.150',  change: '8% vs mês anterior',  up: true },
-  { label: 'OS Abertas Hoje', value: '14',         change: '3 a mais que ontem',  up: true },
-]
+  { label: 'Serviços em Andamento', value: '4 Ativos',  desc: 'Pátio operacional' },
+  { label: 'Peças em Alerta Mínimo', value: '2 Itens',  desc: 'Reposição necessária' },
+  { label: 'Contas a Receber Hoje',   value: 'R$ 840,00', desc: 'Faturamento de OS prontas' },
+];
 
 const chartData = [
-  { in: 55, out: 30, label: '1' },
-  { in: 70, out: 35, label: '5' },
-  { in: 45, out: 28, label: '10' },
-  { in: 85, out: 40, label: '15' },
-  { in: 60, out: 32, label: '20' },
-  { in: 90, out: 45, label: '25' },
-  { in: 75, out: 38, label: '30' },
-]
+  { in: 60, out: 40, label: 'Seg' },
+  { in: 80, out: 70, label: 'Ter' },
+  { in: 50, out: 50, label: 'Qua' },
+  { in: 90, out: 80, label: 'Qui' },
+  { in: 70, out: 60, label: 'Sex' },
+  { in: 30, out: 30, label: 'Sáb' },
+];
 </script>
 
 <style scoped>
 .stats-section {
-  padding: var(--spacing-2xl) 0;
-  background: var(--midnight-navy);
+  padding: 6rem 0;
+  background: #f8fafc;
   position: relative;
   overflow: hidden;
+  border-top: 1px solid #edf2f7;
+  border-bottom: 1px solid #edf2f7;
 }
 
 .stats-section::before {
   content: '';
   position: absolute;
   top: -200px;
-  left: -200px;
+  right: -200px;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(99,91,255,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(99, 91, 255, 0.04) 0%, transparent 70%);
   pointer-events: none;
+}
+
+.stats-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(99, 91, 255, 0.08);
+  border: 1px solid rgba(99, 91, 255, 0.15);
+  color: var(--primary-indigo);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 99px;
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .stats-header {
   text-align: center;
   max-width: 720px;
-  margin: 0 auto var(--spacing-xl);
+  margin: 0 auto 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.stats-header .section-label { color: rgba(255,255,255,0.5); }
-
 .stats-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
-  color: white;
+  color: var(--midnight-navy);
   margin-bottom: 1rem;
+  letter-spacing: -0.03em;
 }
 
 .stats-subtitle {
   font-size: 1.1rem;
-  color: rgba(255,255,255,0.6);
-  line-height: 1.65;
+  color: var(--text-main);
+  line-height: 1.6;
 }
 
-/* ── Metrics ── */
-.metrics-row {
+/* ── Automation Grid ── */
+.automation-features-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-  margin-bottom: var(--spacing-xl);
-  background: rgba(255,255,255,0.05);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.auto-feature-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(255,255,255,0.08);
-  overflow: hidden;
-}
-
-.metric-item {
   padding: 2rem;
-  text-align: center;
-  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 10px rgba(10, 37, 64, 0.02);
 }
 
-.metric-item:last-child { border-right: none; }
+.auto-feature-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 91, 255, 0.2);
+  box-shadow: 0 12px 30px rgba(10, 37, 64, 0.06);
+}
 
-.metric-value {
-  font-family: var(--font-heading);
-  font-size: 2.5rem;
+.af-icon {
+  font-size: 1.75rem;
+  margin-bottom: 1.25rem;
+  background: rgba(99, 91, 255, 0.06);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auto-feature-card h3 {
+  font-size: 1.125rem;
   font-weight: 800;
-  color: white;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  margin-bottom: 0.5rem;
+  color: var(--midnight-navy);
+  margin-bottom: 0.75rem;
 }
 
-.metric-label {
+.auto-feature-card p {
   font-size: 0.9375rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 0.25rem;
-}
-
-.metric-sub {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.4);
+  color: var(--text-main);
+  line-height: 1.6;
 }
 
 /* ── Dashboard Mock ── */
 .dashboard-mock {
   display: grid;
   grid-template-columns: 200px 1fr;
-  background: white;
+  background: #ffffff;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: var(--shadow-2xl);
-  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 
+    0 40px 100px -20px rgba(10, 37, 64, 0.08),
+    0 20px 40px -20px rgba(10, 37, 64, 0.06),
+    0 0 0 1px rgba(10, 37, 64, 0.04);
   min-height: 460px;
 }
 
 /* Sidebar */
 .dash-sidebar {
   background: #f8fafc;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #edf2f7;
   padding: 20px 12px;
   display: flex;
   flex-direction: column;
@@ -242,31 +268,31 @@ const chartData = [
 .side-menu {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .side-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 10px;
+  padding: 10px;
   border-radius: 8px;
   font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--text-main);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .side-item.active {
-  background: white;
+  background: #ffffff;
   color: var(--primary-indigo);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid #edf2f7;
+  box-shadow: 0 2px 4px rgba(10, 37, 64, 0.03);
 }
 
 .side-item:hover:not(.active) {
-  background: rgba(0,0,0,0.04);
+  background: rgba(0, 0, 0, 0.02);
   color: var(--midnight-navy);
 }
 
@@ -278,7 +304,7 @@ const chartData = [
   display: flex;
   flex-direction: column;
   gap: 20px;
-  background: white;
+  background: #ffffff;
 }
 
 .dash-topbar {
@@ -288,19 +314,19 @@ const chartData = [
 }
 
 .dash-title {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1rem;
   color: var(--midnight-navy);
 }
 
 .period-badge {
-  background: var(--light-bg);
-  border: 1px solid var(--border);
+  background: rgba(0, 200, 83, 0.08);
+  border: 1px solid rgba(0, 200, 83, 0.15);
   border-radius: 99px;
   padding: 4px 12px;
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: #00c853;
 }
 
 /* Widgets */
@@ -312,7 +338,7 @@ const chartData = [
 
 .widget {
   background: #f8fafc;
-  border: 1px solid var(--border);
+  border: 1px solid #edf2f7;
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -322,7 +348,7 @@ const chartData = [
 
 .widget-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
@@ -338,14 +364,14 @@ const chartData = [
 
 .widget-trend {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--text-light);
 }
-.widget-trend.up   { color: #059669; }
-.widget-trend.down { color: #dc2626; }
 
 /* Chart */
 .chart-card {
-  border: 1px solid var(--border);
+  border: 1px solid #edf2f7;
+  background: #ffffff;
   border-radius: 14px;
   padding: 20px;
   flex: 1;
@@ -375,7 +401,7 @@ const chartData = [
   gap: 5px;
   font-size: 0.75rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .leg i {
@@ -390,8 +416,8 @@ const chartData = [
   height: 120px;
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  border-bottom: 1px solid #edf2f7;
 }
 
 .bar-group {
@@ -409,29 +435,32 @@ const chartData = [
   transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bar-in  { background: var(--primary-indigo); opacity: 0.85; }
-.bar-out { background: var(--primary-cyan); opacity: 0.7; }
+.bar-in  { background: var(--primary-indigo); opacity: 0.9; }
+.bar-out { background: #00c853; opacity: 0.8; }
 
 .bar-label {
   position: absolute;
-  bottom: -18px;
+  bottom: -20px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.6rem;
+  font-size: 0.625rem;
   color: var(--text-light);
   white-space: nowrap;
 }
 
 /* ── Responsive ── */
+@media (max-width: 1024px) {
+  .automation-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 968px) {
-  .metrics-row { grid-template-columns: repeat(2, 1fr); }
   .dashboard-mock { grid-template-columns: 1fr; }
   .dash-sidebar { display: none; }
-  .widgets-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 600px) {
-  .metrics-row { grid-template-columns: repeat(2, 1fr); }
   .widgets-grid { grid-template-columns: 1fr; }
 }
 </style>

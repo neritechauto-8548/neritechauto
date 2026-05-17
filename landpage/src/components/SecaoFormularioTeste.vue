@@ -1,22 +1,17 @@
 <template>
   <div class="trial-page">
-    <!-- Stripe Mesh Gradient Engine -->
-    <div class="stripe-mesh-bg">
-      <div class="mesh-vibrant">
-        <div class="mesh-cloud-inner"></div>
-      </div>
-    </div>
+    <!-- Soft Stripe-style Mesh Gradient Background -->
+    <div class="stripe-mesh-bg"></div>
 
     <div class="container trial-wrapper">
-      <!-- Spacer for focus -->
       <div style="height: 10px;"></div>
 
       <div class="trial-grid">
-        <!-- Main Form Card -->
+        <!-- Main Form Card (Light Theme) -->
         <div class="stripe-card registration-card">
           <div class="card-glow"></div>
-          <h2 class="form-title">Comece 7 dias grátis na <span class="text-gradient">NeriTechAuto.</span></h2>
-          <p class="form-subtitle">Configuramos sua oficina em segundos. Sem cartão, sem compromisso.</p>
+          <h2 class="form-title">Comece <span class="text-gradient-vibrant">30 dias grátis</span> na NeriTechAuto.</h2>
+          <p class="form-subtitle">Configuramos sua oficina em segundos. Sem cartão de crédito, sem compromisso.</p>
           
           <form @submit.prevent="lidarRegistro" class="stripe-form">
             <div class="form-row">
@@ -88,7 +83,6 @@
                     <option value="oficina">Oficina Mecânica</option>
                     <option value="autocenter">Auto Center</option>
                     <option value="funilaria">Funilaria e Pintura</option>
-
                   </select>
                 </div>
               </div>
@@ -124,30 +118,30 @@
           </form>
         </div>
 
-        <!-- Info Column -->
+        <!-- Info Column (Light Theme) -->
         <div class="info-content">
-          <div class="info-card-mini stripe-card color-1">
+          <div class="info-card-mini stripe-card">
             <div class="icon-abstract stripe-icon-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-2 10h8L11 22l2-10H5Z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-2 10h8L11 22l2-10H5Z"/></svg>
             </div>
             <h3>Acesso Imediato</h3>
-            <p>Sua chave é gerada e enviada automaticamente para seu e-mail em segundos.</p>
+            <p>Sua chave de acesso de avaliação é gerada e enviada automaticamente para seu e-mail em segundos.</p>
           </div>
 
-          <div class="info-card-mini stripe-card color-2">
-            <div class="icon-abstract stripe-icon-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-2a1 1 0 0 1 1-1h5l3 3 3-3h5a1 1 0 0 1 1 1v2"/><path d="M15 13a3 3 0 1 0-6 0"/><rect width="20" height="12" x="2" y="4" rx="2"/></svg>
+          <div class="info-card-mini stripe-card">
+            <div class="icon-abstract stripe-icon-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-2a1 1 0 0 1 1-1h5l3 3 3-3h5a1 1 0 0 1 1 1v2"/><path d="M15 13a3 3 0 1 0-6 0"/><rect width="20" height="12" x="2" y="4" rx="2"/></svg>
             </div>
             <h3>Suporte Dedicado</h3>
-            <p>Nossa equipe está disponível de Seg. a Sex. das 8:30 às 18:00 para ajudar na sua primeira configuração.</p>
+            <p>Nossa equipe técnica atende diretamente no WhatsApp para ajudar você a cadastrar seus primeiros veículos no pátio.</p>
           </div>
 
-          <div class="info-card-mini stripe-card color-3">
-            <div class="icon-abstract stripe-icon-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+          <div class="info-card-mini stripe-card">
+            <div class="icon-abstract stripe-icon-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
             </div>
             <h3>Sem Compromisso</h3>
-            <p>Teste todas as funcionalidades Master por 7 dias sem precisar de cartão de crédito.</p>
+            <p>Teste todas as funcionalidades Master por 30 dias sem precisar de cartão de crédito.</p>
           </div>
         </div>
       </div>
@@ -179,7 +173,6 @@ const handlePhoneInput = (e) => {
   
   let x = v.match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
   if (v.length <= 10) {
-    // Caso com 8 dígitos: (11) 1234-5678
     x = v.match(/(\d{0,2})(\d{0,4})(\d{0,4})/);
   }
   
@@ -194,11 +187,9 @@ const handleCpfCnpjInput = (e) => {
   const temLetras = /[A-Z]/.test(v);
   
   if (v.length <= 11 && !temLetras) {
-    // CPF: 000.000.000-00
     let x = v.match(/([A-Z0-9]{0,3})([A-Z0-9]{0,3})([A-Z0-9]{0,3})([A-Z0-9]{0,2})/);
     v = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
   } else {
-    // CNPJ: 00.000.000/0000-00
     let x = v.match(/([A-Z0-9]{0,2})([A-Z0-9]{0,3})([A-Z0-9]{0,3})([A-Z0-9]{0,4})([A-Z0-9]{0,2})/);
     v = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '/' + x[4] : '') + (x[5] ? '-' + x[5] : '');
   }
@@ -231,8 +222,6 @@ const lidarRegistro = async () => {
     });
     
     const result = await response.json();
-    
-    // O backend retorna um padrão ApiResponse { data, message, errors, ... }
     const success = response.ok && result.data?.success;
     const message = result.data?.message || result.message || (result.errors?.[0]) || 'Erro ao realizar cadastro.';
 
@@ -254,13 +243,22 @@ const lidarRegistro = async () => {
 </script>
 
 <style scoped>
-/* ── Estilo Premium Stripe ── */
 .trial-page {
   position: relative;
   min-height: 100vh;
   padding: 120px 0 80px;
   overflow: hidden;
-  background-color: var(--slate-navy);
+  background-color: #ffffff;
+}
+
+.stripe-mesh-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(99, 91, 255, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(0, 216, 255, 0.04) 0%, transparent 40%),
+    #ffffff;
 }
 
 .trial-wrapper {
@@ -277,10 +275,10 @@ const lidarRegistro = async () => {
 
 .registration-card {
   padding: 3rem !important;
-  background: white;
+  background: #ffffff;
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-2xl);
-  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 40px 100px -20px rgba(10, 37, 64, 0.08);
+  border: 1px solid #edf2f7;
   position: relative;
 }
 
@@ -292,9 +290,9 @@ const lidarRegistro = async () => {
   letter-spacing: -0.03em;
 }
 
-.form-intro {
+.form-subtitle {
   font-size: 1.0625rem;
-  color: var(--text-muted);
+  color: var(--text-main);
   margin-bottom: 2.5rem;
   line-height: 1.5;
 }
@@ -384,24 +382,24 @@ const lidarRegistro = async () => {
 }
 
 .info-card-mini {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
+  border: 1px solid #edf2f7;
   padding: 1.5rem !important;
   border-radius: var(--radius-lg);
-  color: white;
+  color: var(--midnight-navy);
+  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.02);
 }
 
 .info-card-mini h3 {
   font-size: 1.125rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: white;
+  color: var(--midnight-navy);
 }
 
 .info-card-mini p {
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.6);
+  color: var(--text-main);
   line-height: 1.6;
 }
 
@@ -413,8 +411,12 @@ const lidarRegistro = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.04);
 }
+
+.stripe-icon-1 { background: rgba(99, 91, 255, 0.08); color: var(--primary-indigo); }
+.stripe-icon-2 { background: rgba(0, 200, 83, 0.08); color: #00c853; }
+.stripe-icon-3 { background: rgba(0, 216, 255, 0.08); color: #00d8ff; }
 
 @media (max-width: 968px) {
   .trial-grid { grid-template-columns: 1fr; gap: 3rem; }

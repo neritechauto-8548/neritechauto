@@ -35,7 +35,7 @@
                 </li>
               </ul>
               <router-link to="/teste-gratis" class="btn btn-primary" id="seg-cta-btn">
-                Experimente grátis por 7 dias →
+                Experimente grátis por 30 dias →
               </router-link>
             </div>
             <div class="seg-panel-visual">
@@ -83,7 +83,7 @@ const segments = [
     icon: '🔧',
     title: 'Oficinas Mecânicas',
     route: 'oficina',
-    description: 'Gerencie ordens de serviço, controle a produtividade dos mecânicos e acompanhe o faturamento em tempo real. Da entrada do veículo à entrega, tudo digitalizado.',
+    description: 'Gerencie ordens de serviço, controle a produtividade dos mecânicos e acompanhe o fluxo de pátio em tempo real. Da entrada do veículo à entrega, tudo digitalizado.',
     benefits: [
       'OS digital com checklist fotográfico',
       'Controle de produtividade por técnico',
@@ -93,9 +93,9 @@ const segments = [
     screenTitle: 'Dashboard — Oficina Central',
     menuItems: ['Dashboard', 'Ordens de Serviço', 'Clientes', 'Financeiro', 'Estoque'],
     stats: [
-      { value: '23', label: 'OS Abertas' },
-      { value: 'R$ 18.4k', label: 'Faturamento' },
-      { value: '94%', label: 'Aprovação' },
+      { value: 'Ativo', label: 'Controle de OS' },
+      { value: 'WhatsApp', label: 'Envio de Alertas' },
+      { value: 'Histórico', label: 'Busca por Placa' },
     ]
   },
   {
@@ -103,19 +103,19 @@ const segments = [
     icon: '🏢',
     title: 'Centros Automotivos',
     route: 'centro-automotivo',
-    description: 'Para operações maiores que precisam de controle rigoroso de estoque, múltiplas baias e gestão financeira avançada. Visão 360° do seu negócio.',
+    description: 'Para operações maiores que precisam de controle rigoroso de estoque, múltiplas baias e acompanhamento de contas a pagar/receber. Visão unificada do seu negócio.',
     benefits: [
       'Backup automático e seguro na nuvem',
-      'Gestão avançada de estoque com curva ABC',
-      'DRE e fluxo de caixa em tempo real',
+      'Gestão avançada de estoque de autopeças',
+      'Fluxo de caixa operacional integrado',
       'Emissão de NF-e e NFS-e integrada',
     ],
     screenTitle: 'Dashboard — Centro Automotivo',
     menuItems: ['Dashboard', 'Veículos', 'Estoque', 'NF-e', 'Relatórios'],
     stats: [
-      { value: '5', label: 'Usuários Ilimitados' },
-      { value: 'R$ 142k', label: 'Receita/mês' },
-      { value: '12', label: 'Técnicos' },
+      { value: 'Multi-Baia', label: 'Distribuição OS' },
+      { value: 'Estoque ABC', label: 'Reposição Peças' },
+      { value: 'Fiscal', label: 'Faturamento NF-e' },
     ]
   },
   {
@@ -123,19 +123,19 @@ const segments = [
     icon: '🎨',
     title: 'Funilaria e Pintura',
     route: 'funilaria',
-    description: 'Controle todo o fluxo de reparo e pintura com registro fotográfico detalhado. Do orçamento à entrega, com rastreabilidade total.',
+    description: 'Controle todo o fluxo de reparo e pintura com registro fotográfico detalhado das avarias. Do orçamento à entrega, com rastreabilidade total.',
     benefits: [
       'Registro de avarias com fotos antes/depois',
       'Orçamentos detalhados por etapa',
-      'Comunicação direta com seguradoras',
+      'Comunicação direta com clientes e terceiros',
       'Controle de materiais e tintas',
     ],
     screenTitle: 'Dashboard — Funilaria Express',
     menuItems: ['Dashboard', 'Reparos', 'Fotos', 'Seguros', 'Materiais'],
     stats: [
-      { value: '8', label: 'Em Reparo' },
-      { value: 'R$ 32k', label: 'Faturamento' },
-      { value: '4.8★', label: 'Avaliação' },
+      { value: 'Checklist', label: 'Vistoria Fotos' },
+      { value: 'Avarias', label: 'Mapeamento Lataria' },
+      { value: 'Garantia', label: 'Registro Placa' },
     ]
   },
 ];

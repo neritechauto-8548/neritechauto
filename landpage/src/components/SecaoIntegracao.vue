@@ -1,17 +1,17 @@
 <template>
-  <section class="integrations">
+  <section id="integracoes" class="integrations">
     <div class="container">
       <div class="integrations-inner">
         <!-- Text -->
         <div class="int-text aos-init">
           <span class="section-label">Ecossistema</span>
-          <h2 class="int-title">Conectado com o que <span class="text-gradient">seu negócio precisa.</span></h2>
+          <h2 class="int-title">Integrado nativamente com as <span class="text-gradient">ferramentas que você já usa.</span></h2>
           <p class="int-desc">
-            A NeriTechAuto não é uma ilha. Integramos nativamente com as ferramentas que você já usa, automatizando o fluxo do banco até o WhatsApp do seu cliente.
+            A NeriTechAuto se conecta ao seu ecossistema financeiro e operacional de forma transparente. Sem importações manuais, sem perda de dados.
           </p>
 
           <div class="int-list">
-            <div class="int-item aos-init aos-delay-1" v-for="item in integrations" :key="item.title">
+            <div class="int-item aos-init" v-for="item in integrations" :key="item.title">
               <div class="int-icon-wrap">
                 <span>{{ item.icon }}</span>
               </div>
@@ -24,12 +24,12 @@
         </div>
 
         <!-- Visual -->
-        <div class="int-visual aos-init aos-delay-2">
+        <div class="int-visual aos-init">
           <div class="hub-map">
             <!-- Center node -->
             <div class="hub-center">
               <span class="hub-logo">N</span>
-              <small>NeriTechAuto</small>
+              <small>NeriTech</small>
             </div>
 
             <!-- Orbit nodes -->
@@ -60,17 +60,17 @@
 
 <script setup>
 const integrations = [
-  { icon: '🏦', title: 'Conciliação Bancária', desc: 'Sincronize extratos e baixe contas automaticamente.' },
-  { icon: '📱', title: 'WhatsApp Nativo', desc: 'Aprovação de orçamentos e notificações direto no WhatsApp.' },
-  { icon: '📄', title: 'NF-e e NFS-e', desc: 'Emissão de notas fiscais em poucos cliques, integrado à SEFAZ.' },
-  { icon: '📦', title: 'Fornecedores', desc: 'Cotação e compra de peças integrada ao controle de estoque.' },
+  { icon: '💬', title: 'WhatsApp Business API', desc: 'Envio de laudos digitais e alertas automáticos de revisão.' },
+  { icon: '📄', title: 'FocusNFe (Sefaz)', desc: 'Emissão automatizada de Notas Fiscais de Peças (NF-e) e Serviços (NFS-e).' },
+  { icon: '💳', title: 'Stripe & Asaas', desc: 'Links de pagamento integrados e cobranças de faturas automatizadas.' },
+  { icon: '🏦', title: 'Conciliação Bancária', desc: 'Integração de extratos com os maiores bancos do país.' },
 ]
 
 const orbitNodes = [
-  { icon: '🏦', label: 'Banco',       delay: '0s' },
-  { icon: '📱', label: 'WhatsApp',   delay: '0.8s' },
-  { icon: '📄', label: 'NF-e',        delay: '1.6s' },
-  { icon: '📦', label: 'Estoque',     delay: '2.4s' },
+  { icon: '💬', label: 'WhatsApp',    delay: '0s' },
+  { icon: '📄', label: 'Sefaz Fiscal', delay: '0.8s' },
+  { icon: '💳', label: 'Pagamentos',   delay: '1.6s' },
+  { icon: '🏦', label: 'Bancos',       delay: '2.4s' },
 ]
 
 const hubLines = [

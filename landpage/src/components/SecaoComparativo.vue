@@ -25,7 +25,7 @@
       <div class="comparativo-card">
         <div class="table-header">
           <div class="feature-label">
-            <span class="category-indicator">{{ categorias.find(c => c.id === abaAtiva).nome }}</span>
+            <span class="category-indicator">{{ nomeAbaAtiva }}</span>
           </div>
           <div class="plan-header">
             <span class="plan-name">Neri Pro</span>
@@ -40,7 +40,7 @@
         <div class="table-body">
           <transition-group name="list">
             <div 
-              v-for="item in recursos[abaAtiva]" 
+              v-for="item in recursosAtivos" 
               :key="item.nome"
               class="table-row"
             >
@@ -83,9 +83,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
-const abaAtiva = ref('vendas');
+import { ref, computed } from 'vue';
 
 const categorias = [
   { id: 'cadastro', nome: 'Cadastro' },
@@ -172,6 +170,15 @@ const recursos = {
     { nome: 'Agendamento', plus: false, master: true },
   ]
 };
+
+const abaAtiva = ref('vendas');
+
+const nomeAbaAtiva = computed(() => {
+  const cat = categorias.find(c => c.id === abaAtiva.value);
+  return cat ? cat.nome : '';
+});
+
+const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 </script>
 
 <style scoped>
@@ -288,6 +295,11 @@ const recursos = {
 .plan-name {
   font-size: 1.125rem;
   font-weight: 700;
+  color: #111827;
+}
+
+.plan-header.featured .plan-name {
+  color: #6366f1;
 }
 
 .plan-price {
