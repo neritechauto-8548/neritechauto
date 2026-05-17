@@ -88,6 +88,9 @@ export class AssinaturaComponent implements OnInit {
 
   ngOnInit() {
     this.auth.user().subscribe(user => {
+      if (!this.auth.check()) {
+        return;
+      }
       const u = user as any;
       const id = u.empresaId || u.tenantId || u.idEmpresa || u.id_empresa || u.companyId;
       

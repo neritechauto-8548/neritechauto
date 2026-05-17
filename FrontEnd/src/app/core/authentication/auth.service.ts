@@ -65,6 +65,9 @@ export class AuthService {
       tap(() => {
         this.tokenService.clear();
         this.storage.remove('tenantId');
+        this.storage.remove('empresaId');
+        localStorage.removeItem('tenantId');
+        localStorage.removeItem('empresaId');
       }),
       map(() => !this.check())
     );

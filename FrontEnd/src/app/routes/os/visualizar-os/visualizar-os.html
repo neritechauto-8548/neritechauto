@@ -3,17 +3,17 @@
 <!-- Barra de Ações Superior (Sticky Top) -->
 <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 mb-6">
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton label="Editar" icon="pi pi-pencil" class="p-button-warning px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('editar')"></button>
-    <button pButton [label]="isOrcamento ? 'Salvar Orçamento' : 'Salvar OS'" icon="pi pi-check" class="p-button-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm flex items-center gap-2" (click)="onAction('salvar')"></button>
+    <button pButton label="Editar" icon="pi pi-pencil" class="btn-stripe-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('editar')"></button>
+    <button pButton [label]="isOrcamento ? 'Salvar Orçamento' : 'Salvar OS'" icon="pi pi-check" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm flex items-center gap-2" (click)="onAction('salvar')"></button>
   </div>
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton label="Imprimir" icon="pi pi-print" class="p-button-secondary px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('imprimir')"></button>
-    <button pButton label="Via WhatsApp" icon="pi pi-send" class="p-button-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('enviar')"></button>
+    <button pButton label="Imprimir" icon="pi pi-print" class="btn-secondary px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('imprimir')" [disabled]="isGeneratingPdf"></button>
+    <button pButton label="Via WhatsApp" icon="pi pi-send" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('enviar')"></button>
     <div class="w-[1px] h-6 bg-slate-200 mx-2 hidden sm:block"></div>
-    <button *ngIf="!isOrcamento" pButton label="Receber" icon="pi pi-money-bill" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')"></button>
-    <button pButton label="Fotos" icon="pi pi-camera" class="p-button-warning px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('fotos')"></button>
-    <button *ngIf="!isOrcamento" pButton label="NF-e" icon="pi pi-file" class="p-button-help px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
-    <button *ngIf="isOrcamento" pButton label="Aprovar/Converter" icon="pi pi-exchange" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
+    <button *ngIf="!isOrcamento" pButton label="Receber" icon="pi pi-money-bill" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')"></button>
+    <button pButton label="Fotos" icon="pi pi-camera" class="btn-stripe-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('fotos')"></button>
+    <button *ngIf="!isOrcamento" pButton label="NF-e" icon="pi pi-file" class="btn-stripe-purple px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
+    <button *ngIf="isOrcamento" pButton label="Aprovar/Converter" icon="pi pi-exchange" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
   </div>
 </div>
 

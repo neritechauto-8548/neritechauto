@@ -96,6 +96,7 @@ export class VisualizarOS implements OnInit {
   orcamentoNumero = 0;
   currentOS?: OrdemServicoResponse;
   isOrcamento = false;
+  isGeneratingPdf = false;
 
   menuPS: MenuItem[] = [];
   menuSolic: MenuItem[] = [];
@@ -898,10 +899,22 @@ export class VisualizarOS implements OnInit {
     switch (key) {
       case 'imprimir':
         if (this.orcamentoNumero) {
-           this.osService.imprimir(this.orcamentoNumero).subscribe(blob => {
-             const url = window.URL.createObjectURL(blob);
-             window.open(url);
-           });
+          this.isGeneratingPdf = true;
+          this.messageService.add({ severity: 'info', summary: 'Aguarde', detail: 'Gerando PDF...', sticky: true });
+          this.osService.imprimir(this.orcamentoNumero).subscribe({
+            next: (blob) => {
+              const url = window.URL.createObjectURL(blob);
+              window.open(url);
+              this.isGeneratingPdf = false;
+              this.messageService.clear();
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'PDF gerado com sucesso!' });
+            },
+            error: () => {
+              this.isGeneratingPdf = false;
+              this.messageService.clear();
+              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o PDF' });
+            }
+          });
         }
         break;
       case 'editar': this.editing = !this.editing; break;
