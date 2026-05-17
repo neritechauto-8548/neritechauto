@@ -1,7 +1,7 @@
 <template>
-  <section id="planos" class="pricing">
+  <section id="planos" class="pricing" :class="{ 'pricing--embedded': hideHeader }">
     <div class="container">
-      <div class="pricing-header aos-init">
+      <div v-if="!hideHeader" class="pricing-header aos-init">
         <span class="section-label">Preços</span>
         <h2 class="pricing-title">Preço justo para <span class="text-gradient">escalar seu negócio.</span></h2>
         <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece grátis por 30 dias.</p>
@@ -17,7 +17,7 @@
           :class="{ featured: plan.featured }"
         >
           <!-- Popular badge -->
-          <div v-if="plan.featured" class="popular-tag shimmer-badge">
+          <div v-if="plan.featured" class="popular-tag">
             ⭐ Mais Popular
           </div>
 
@@ -57,7 +57,7 @@
       </div>
 
       <!-- Bottom trust -->
-      <div class="pricing-footer aos-init">
+      <div v-if="!hideHeader" class="pricing-footer aos-init">
         <div class="trust-row">
           <span class="trust-item">🔒 Pagamento seguro via Stripe</span>
           <span class="trust-item">✓ Cancele a qualquer momento</span>
@@ -71,6 +71,10 @@
 
 <script setup>
 import { ref } from 'vue';
+
+defineProps({
+  hideHeader: { type: Boolean, default: false },
+});
 
 
 
@@ -163,7 +167,20 @@ const initiateCheckout = async (planId) => {
 <style scoped>
 .pricing {
   padding: var(--spacing-2xl) 0;
-  background: white;
+  background: var(--surface-blue-75);
+}
+
+.pricing--embedded {
+  padding: 0;
+  background: transparent;
+}
+
+.pricing--embedded .pricing-grid {
+  margin-bottom: 0;
+}
+
+.pricing--embedded .pricing-footer {
+  margin-top: 1rem;
 }
 
 /* ── Header ── */
@@ -216,13 +233,13 @@ const initiateCheckout = async (planId) => {
 .pricing-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 30px 60px -15px rgba(0,0,0,0.08);
-  border-color: rgba(99,91,255,0.25);
+  border-color: var(--primary-border);
 }
 
 .pricing-card.featured {
-  border-color: var(--primary-indigo);
-  box-shadow: 0 30px 60px -15px rgba(99,91,255,0.12);
-  background: linear-gradient(180deg, rgba(99,91,255,0.02) 0%, white 100%);
+  border-color: var(--primary);
+  box-shadow: 0 30px 60px -15px var(--primary-shadow);
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.04) 0%, white 100%);
 }
 
 .popular-tag {
@@ -230,7 +247,7 @@ const initiateCheckout = async (planId) => {
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--primary-indigo);
+  background: var(--primary);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -305,14 +322,14 @@ const initiateCheckout = async (planId) => {
 }
 
 .btn-primary {
-  background: var(--primary-indigo);
+  background: var(--primary);
   color: white;
   box-shadow: var(--shadow-indigo);
   transition: all 0.2s;
 }
 
 .btn-primary:hover {
-  background: #5851e6;
+  background: var(--primary-dark);
   transform: translateY(-1px);
 }
 
@@ -324,9 +341,9 @@ const initiateCheckout = async (planId) => {
 }
 
 .btn-outline-plan:hover {
-  border-color: var(--primary-indigo);
-  color: var(--primary-indigo);
-  background: rgba(99,91,255,0.05);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 /* Features list */
@@ -362,8 +379,8 @@ const initiateCheckout = async (planId) => {
 .check-icon {
   width: 18px;
   height: 18px;
-  background: rgba(99,91,255,0.1);
-  color: var(--primary-indigo);
+  background: var(--primary-light);
+  color: var(--primary);
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -375,7 +392,7 @@ const initiateCheckout = async (planId) => {
 }
 
 .pricing-card.featured .check-icon {
-  background: var(--primary-indigo);
+  background: var(--primary);
   color: white;
 }
 

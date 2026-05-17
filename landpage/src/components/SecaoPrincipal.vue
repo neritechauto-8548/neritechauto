@@ -1,121 +1,103 @@
 <template>
-  <section class="hero">
-    <!-- Soft Stripe-style Mesh Gradient Background -->
-    <div class="stripe-mesh-bg"></div>
-    <div class="grid-overlay"></div>
+  <section class="hero section-surface section-surface--hero section-surface--pattern">
+    <div class="hero-shape hero-shape--1" aria-hidden="true"></div>
+    <div class="hero-shape hero-shape--2" aria-hidden="true"></div>
 
     <div class="container hero-container">
-      <!-- Content Column -->
       <div class="hero-content">
-        <!-- ClickUp-style Tag -->
-        <div class="hero-pill-badge" style="animation-delay: 0s">
-          🔧 Ordem de Serviço & Pátio
-        </div>
+        <span class="hero-badge aos-init">Sistema de gestão para oficinas</span>
 
-        <!-- Headline -->
-        <h1 class="hero-title" style="animation-delay: 0.08s">
-          A plataforma de gestão que <span class="text-gradient-vibrant">organiza sua oficina.</span>
+        <h1 class="hero-title aos-init aos-delay-1">
+          Controle total da sua oficina em um único sistema.
         </h1>
 
-        <!-- Subtitle -->
-        <p class="hero-subtitle" style="animation-delay: 0.16s">
-          Vistoria digital (DVI), ordens de serviço, orçamentos interativos via WhatsApp e controle de estoque integrado com emissão de notas (NFS-e/NF-e). Do pátio ao financeiro de forma inteligente.
+        <p class="hero-subtitle aos-init aos-delay-2">
+          Ordens de serviço, financeiro, estoque e portal do cliente em uma plataforma moderna, simples e profissional.
         </p>
 
-        <!-- CTAs -->
-        <div class="hero-actions" style="animation-delay: 0.24s">
+        <div class="hero-actions aos-init aos-delay-3">
           <router-link to="/teste-gratis" class="btn-hero-primary" id="hero-cta-start">
-            Experimentar 30 Dias Grátis
+            Teste grátis
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </router-link>
-          <a href="#showcase" class="btn-hero-secondary" id="hero-cta-demo">
-            Conhecer os Recursos
+          <a href="#demonstracao" class="btn-hero-secondary" id="hero-cta-demo">
+            Ver demonstração
           </a>
         </div>
+
+        <p class="hero-trust aos-init aos-delay-4">
+          <span>✓ 30 dias grátis</span>
+          <span>✓ Sem cartão</span>
+          <span>✓ Suporte humanizado</span>
+        </p>
       </div>
 
-      <!-- Visual Column — ClickUp & Stripe Inspired Light Mockup -->
-      <div class="hero-visual" style="animation-delay: 0.32s">
-        <div class="mockup-wrapper">
-          <div class="mockup-glow"></div>
-          <div class="mockup-browser">
-            <!-- Browser Top Bar -->
-            <div class="browser-bar">
-              <div class="browser-dots">
-                <span class="dot dot-red"></span>
-                <span class="dot dot-yellow"></span>
-                <span class="dot dot-green"></span>
+      <div class="hero-visual aos-init aos-delay-2">
+        <div class="mockup-stage">
+          <div class="mockup-laptop">
+            <div class="mockup-laptop__bezel">
+              <div class="mockup-frame">
+                <div class="mockup-frame__bar">
+                  <span class="mockup-dot mockup-dot--red"></span>
+                  <span class="mockup-dot mockup-dot--yellow"></span>
+                  <span class="mockup-dot mockup-dot--green"></span>
+                  <span class="mockup-frame__url">app.neritechauto.com.br</span>
+                </div>
+                <div class="app-dashboard">
+                  <aside class="app-sidebar">
+                    <div class="app-sidebar__logo">N</div>
+                    <nav class="app-sidebar__nav">
+                      <span class="nav-item active">Dashboard</span>
+                      <span class="nav-item">Ordens</span>
+                      <span class="nav-item">Financeiro</span>
+                      <span class="nav-item">Estoque</span>
+                    </nav>
+                  </aside>
+                  <main class="app-main">
+                    <div class="app-main__header">
+                      <h3>Visão geral</h3>
+                      <span class="pill pill--green">Pátio ativo</span>
+                    </div>
+                    <div class="app-stats">
+                      <div class="stat-card" v-for="s in stats" :key="s.label">
+                        <span class="stat-card__value">{{ s.value }}</span>
+                        <span class="stat-card__label">{{ s.label }}</span>
+                      </div>
+                    </div>
+                    <div class="app-table">
+                      <div class="table-row table-row--head">
+                        <span>Veículo</span><span>Serviço</span><span>Status</span>
+                      </div>
+                      <div class="table-row" v-for="row in osRows" :key="row.plate">
+                        <span><strong>{{ row.vehicle }}</strong><small>{{ row.plate }}</small></span>
+                        <span>{{ row.service }}</span>
+                        <span :class="['status', `status--${row.status}`]">{{ row.statusLabel }}</span>
+                      </div>
+                    </div>
+                  </main>
+                </div>
               </div>
-              <div class="browser-url">app.neritechauto.com.br/ordens</div>
             </div>
+            <div class="mockup-laptop__base"></div>
+          </div>
 
-            <!-- Light Mode CSS-drawn App Preview (ClickUp structure + UltraCar workshop fields) -->
-            <div class="app-preview-container">
-              <!-- App Sidebar -->
-              <div class="app-preview-sidebar">
-                <div class="app-logo">N</div>
-                <div class="app-menu">
-                  <div class="app-menu-item active">📋 Ordens</div>
-                  <div class="app-menu-item">📅 Agenda</div>
-                  <div class="app-menu-item">📦 Peças</div>
-                  <div class="app-menu-item">💰 Financeiro</div>
-                </div>
-              </div>
-
-              <!-- App Main Content -->
-              <div class="app-preview-main">
-                <div class="app-main-header">
-                  <h3>Pátio Operacional</h3>
-                  <span class="badge-active">5 Veículos Hoje</span>
-                </div>
-
-                <!-- ClickUp-style Task List -->
-                <div class="app-task-list">
-                  <!-- Row 1 -->
-                  <div class="app-task-row">
-                    <div class="task-vehicle">
-                      <strong>Honda Civic</strong>
-                      <span>Placa: BRA-2E12</span>
-                    </div>
-                    <div class="task-service">Revisão de Freios</div>
-                    <div class="task-status status-active">Em Andamento</div>
-                  </div>
-                  <!-- Row 2 -->
-                  <div class="app-task-row">
-                    <div class="task-vehicle">
-                      <strong>Toyota Corolla</strong>
-                      <span>Placa: KEL-4910</span>
-                    </div>
-                    <div class="task-service">Troca de Óleo e Filtros</div>
-                    <div class="task-status status-waiting">Aguardando Peça</div>
-                  </div>
-                  <!-- Row 3 -->
-                  <div class="app-task-row">
-                    <div class="task-vehicle">
-                      <strong>Chevrolet Onix</strong>
-                      <span>Placa: PXT-9182</span>
-                    </div>
-                    <div class="task-service">Diagnóstico de Injeção</div>
-                    <div class="task-status status-done">Concluído</div>
-                  </div>
-                </div>
-              </div>
+          <div class="float-card float-card--1">
+            <div class="float-card__icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <div>
+              <span class="float-card__label">OS em andamento</span>
+              <strong>5 veículos no pátio</strong>
             </div>
           </div>
 
-          <!-- ClickUp-style Floating Cards with Real Workshop Data -->
-          <div class="float-card float-card-1">
-            <div class="fc-icon">📸</div>
-            <div class="fc-body">
-              <span class="fc-label">Checklist de Entrada</span>
-              <span class="fc-value">12 Itens Verificados</span>
+          <div class="float-card float-card--2">
+            <div class="float-card__icon float-card__icon--green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </div>
-          </div>
-
-          <div class="float-card float-card-2">
-            <div class="fc-icon">💬</div>
-            <div class="fc-body">
-              <span class="fc-label">WhatsApp Integração</span>
-              <span class="fc-value">Orçamento Enviado</span>
+            <div>
+              <span class="float-card__label">Financeiro</span>
+              <strong>R$ 4.280 a receber</strong>
             </div>
           </div>
         </div>
@@ -125,390 +107,379 @@
 </template>
 
 <script setup>
+const stats = [
+  { value: '12', label: 'OS abertas' },
+  { value: 'R$ 8.4k', label: 'Faturamento mês' },
+  { value: '3', label: 'Alertas estoque' },
+];
+
+const osRows = [
+  { vehicle: 'Honda Civic', plate: 'BRA-2E12', service: 'Revisão de freios', status: 'active', statusLabel: 'Em andamento' },
+  { vehicle: 'Toyota Corolla', plate: 'KEL-4910', service: 'Troca de óleo', status: 'waiting', statusLabel: 'Aguardando' },
+  { vehicle: 'Chevrolet Onix', plate: 'PXT-9182', service: 'Diagnóstico', status: 'done', statusLabel: 'Concluído' },
+];
 </script>
 
 <style scoped>
 .hero {
-  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
-  padding: 140px 0 100px;
-  overflow: hidden;
-  background-color: #ffffff;
+  padding: 128px 0 88px;
 }
 
-/* Stripe-style soft pastel mesh gradient */
-.stripe-mesh-bg {
+.hero-shape {
   position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(99, 91, 255, 0.05) 0%, transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(0, 216, 255, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
-    #ffffff;
-  z-index: 1;
-}
-
-.grid-overlay {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: center;
-  z-index: 2;
+  border-radius: 50%;
   pointer-events: none;
+  z-index: 0;
+}
+
+.hero-shape--1 {
+  width: 480px;
+  height: 480px;
+  top: -120px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, transparent 70%);
+}
+
+.hero-shape--2 {
+  width: 320px;
+  height: 320px;
+  bottom: 10%;
+  left: -60px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.04) 0%, transparent 70%);
 }
 
 .hero-container {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1fr 1.05fr;
   gap: 4rem;
   align-items: center;
   position: relative;
-  z-index: 3;
+  z-index: 1;
 }
 
-/* ── Content ── */
 .hero-content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.hero-pill-badge {
+.hero-badge {
   display: inline-flex;
-  align-items: center;
-  background: rgba(99, 91, 255, 0.06);
-  border: 1px solid rgba(99, 91, 255, 0.15);
-  color: var(--primary-indigo);
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 99px;
-  margin-bottom: 1.5rem;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  background: var(--primary-light);
+  border: 1px solid var(--primary-border);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: 1.5rem;
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 4.5vw, 4.25rem);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.25rem, 4.8vw, 3.5rem);
   font-weight: 800;
   color: var(--midnight-navy);
-  margin-bottom: 1.5rem;
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+  margin-bottom: 1.25rem;
+  max-width: 560px;
 }
 
 .hero-subtitle {
-  font-size: clamp(1rem, 1.8vw, 1.1875rem);
-  line-height: 1.6;
-  color: var(--text-main);
-  margin-bottom: 2.5rem;
-  max-width: 560px;
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  font-size: clamp(1rem, 1.8vw, 1.125rem);
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 2rem;
+  max-width: 520px;
 }
 
 .hero-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.875rem;
   flex-wrap: wrap;
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  margin-bottom: 1.5rem;
 }
 
 .btn-hero-primary {
-  background: var(--primary-indigo);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
   color: white !important;
   font-weight: 700;
   font-size: 0.9375rem;
-  padding: 0.875rem 2rem;
-  border-radius: 99px;
-  text-decoration: none;
+  padding: 0.9rem 1.75rem;
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-indigo);
   transition: all var(--transition-base);
 }
 
 .btn-hero-primary:hover {
+  background: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(99, 91, 255, 0.4);
+  box-shadow: 0 10px 28px var(--primary-shadow);
 }
 
 .btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
   background: white;
   color: var(--midnight-navy) !important;
   font-weight: 600;
   font-size: 0.9375rem;
-  padding: 0.875rem 2rem;
-  border-radius: 99px;
+  padding: 0.9rem 1.75rem;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--border);
-  text-decoration: none;
   transition: all var(--transition-base);
 }
 
 .btn-hero-secondary:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
+  border-color: var(--primary);
+  color: var(--primary) !important;
+  background: var(--primary-light);
 }
 
-/* ── Visual ── */
-.hero-visual {
-  position: relative;
+.hero-trust {
   display: flex;
-  justify-content: center;
-  animation: fadeInRight 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.mockup-wrapper {
-  position: relative;
-  width: 105%;
-}
-
-.mockup-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 85%;
-  height: 70%;
-  background: radial-gradient(ellipse, rgba(99, 91, 255, 0.1) 0%, transparent 70%);
-  filter: blur(60px);
-  z-index: -1;
-  pointer-events: none;
-}
-
-.mockup-browser {
-  background: #ffffff;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow:
-    0 40px 100px -20px rgba(10, 37, 64, 0.12),
-    0 20px 40px -20px rgba(10, 37, 64, 0.08),
-    0 0 0 1px rgba(10, 37, 64, 0.05);
-  transform: perspective(2000px) rotateY(-12deg) rotateX(6deg);
-  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mockup-browser:hover {
-  transform: perspective(2000px) rotateY(-4deg) rotateX(2deg) translateY(-4px);
-}
-
-.browser-bar {
-  height: 36px;
-  background: #f8fafc;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  gap: 12px;
-  border-bottom: 1px solid #edf2f7;
-}
-
-.browser-dots {
-  display: flex;
-  gap: 6px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.dot-red    { background: #ff5f57; }
-.dot-yellow { background: #ffbd2e; }
-.dot-green  { background: #28c840; }
-
-.browser-url {
-  flex: 1;
-  background: #ffffff;
-  border-radius: 6px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font-size: 0.6875rem;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--text-muted);
-  border: 1px solid #edf2f7;
 }
 
-/* ── Light CSS App Mockup (ClickUp structure) ── */
-.app-preview-container {
+.hero-trust span { display: flex; align-items: center; gap: 4px; }
+
+/* ── Mockup ── */
+.hero-visual { position: relative; }
+
+.mockup-stage {
+  position: relative;
+  padding: 0 1rem;
+}
+
+.mockup-laptop {
+  position: relative;
+}
+
+.mockup-laptop__bezel {
+  padding: 10px 10px 0;
+  background: #E2E8F0;
+  border-radius: 14px 14px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+
+.mockup-laptop__base {
+  height: 14px;
+  background: linear-gradient(180deg, #CBD5E1, #94A3B8);
+  border-radius: 0 0 12px 12px;
+  margin: 0 8%;
+}
+
+.mockup-frame {
+  border-radius: 8px 8px 0 0;
+  box-shadow: none;
+}
+
+.app-dashboard {
   display: grid;
-  grid-template-columns: 100px 1fr;
-  background: #ffffff;
-  height: 240px;
+  grid-template-columns: 88px 1fr;
+  min-height: 280px;
+  background: white;
 }
 
-.app-preview-sidebar {
-  background: #f8fafc;
-  border-right: 1px solid #edf2f7;
-  padding: 12px 6px;
+.app-sidebar {
+  background: var(--gray-50);
+  border-right: 1px solid var(--border);
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.app-logo {
-  width: 24px;
-  height: 24px;
-  background: var(--primary-indigo);
+.app-sidebar__logo {
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
   color: white;
+  border-radius: 8px;
   font-weight: 800;
-  border-radius: 6px;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
   margin: 0 auto;
 }
 
-.app-menu {
+.app-sidebar__nav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.app-menu-item {
-  font-size: 0.625rem;
+.nav-item {
+  font-size: 0.5625rem;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
+  padding: 6px 4px;
+  border-radius: 6px;
+  text-align: center;
 }
 
-.app-menu-item.active {
-  background: rgba(99, 91, 255, 0.08);
-  color: var(--primary-indigo);
+.nav-item.active {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
-.app-preview-main {
-  padding: 16px;
+.app-main {
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.app-main-header {
+.app-main__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.app-main-header h3 {
+.app-main__header h3 {
   font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--midnight-navy);
 }
 
-.badge-active {
-  background: rgba(0, 200, 83, 0.1);
-  color: #00c853;
+.pill {
   font-size: 0.5625rem;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 99px;
 }
 
-.app-task-list {
-  display: flex;
-  flex-direction: column;
+.pill--green {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.app-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
-.app-task-row {
-  display: grid;
-  grid-template-columns: 1.2fr 1.2fr 1fr;
-  align-items: center;
+.stat-card {
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 8px;
-  background: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #edf2f7;
+  text-align: center;
 }
 
-.task-vehicle {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.task-vehicle strong {
-  font-size: 0.6875rem;
+.stat-card__value {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
   color: var(--midnight-navy);
+  font-family: var(--font-heading);
 }
 
-.task-vehicle span {
+.stat-card__label {
+  font-size: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.app-table { display: flex; flex-direction: column; gap: 6px; }
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 8px;
+  background: var(--gray-50);
+  border-radius: 6px;
+  border: 1px solid var(--border);
   font-size: 0.5625rem;
-  color: var(--text-light);
 }
 
-.task-service {
+.table-row--head {
+  background: transparent;
+  border: none;
+  padding: 0 8px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.5rem;
+}
+
+.table-row strong {
+  display: block;
+  color: var(--midnight-navy);
   font-size: 0.625rem;
-  font-weight: 500;
-  color: var(--text-main);
 }
 
-.task-status {
-  font-size: 0.5625rem;
+.table-row small {
+  color: var(--text-light);
+  font-size: 0.5rem;
+}
+
+.status {
+  font-size: 0.5rem;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
-  text-align: center;
   width: fit-content;
 }
 
-.status-active  { background: rgba(99, 91, 255, 0.1); color: var(--primary-indigo); }
-.status-waiting { background: rgba(245, 158, 11, 0.1); color: #d97706; }
-.status-done    { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.status--active  { background: var(--primary-light); color: var(--primary); }
+.status--waiting { background: rgba(245, 158, 11, 0.12); color: #D97706; }
+.status--done    { background: rgba(5, 150, 105, 0.1); color: #059669; }
 
-/* ── Floating Cards ── */
 .float-card {
   position: absolute;
-  background: #ffffff;
+  background: white;
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 12px 16px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 12px 30px rgba(10, 37, 64, 0.08);
-  border: 1px solid #edf2f7;
-  z-index: 10;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 5;
 }
 
-.float-card-1 {
-  top: 15%;
-  left: -20px;
-  animation: float-a 5s ease-in-out infinite;
-}
+.float-card--1 { top: 8%; left: -8px; animation: float-soft 5s ease-in-out infinite; }
+.float-card--2 { bottom: 18%; right: -12px; animation: float-soft 6s ease-in-out infinite 0.5s; }
 
-.float-card-2 {
-  bottom: 20%;
-  right: -10px;
-  animation: float-b 6s ease-in-out infinite;
-}
-
-.fc-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(99, 91, 255, 0.08);
-  color: var(--primary-indigo);
+.float-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
   flex-shrink: 0;
 }
 
-.fc-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.float-card__icon--green {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
 }
 
-.fc-label {
+.float-card__label {
+  display: block;
   font-size: 0.625rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -516,57 +487,33 @@
   letter-spacing: 0.04em;
 }
 
-.fc-value {
+.float-card strong {
   font-size: 0.8125rem;
-  font-weight: 700;
   color: var(--midnight-navy);
 }
 
-/* ── Animations ── */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
-@keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(20px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes float-a {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-6px) rotate(0.5deg); }
-}
-
-@keyframes float-b {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-5px) rotate(-0.5deg); }
-}
-
-/* ── Responsive ── */
 @media (max-width: 1024px) {
   .hero-container {
     grid-template-columns: 1fr;
     text-align: center;
     gap: 3rem;
-    padding-top: 60px;
   }
-  .hero-content {
-    align-items: center;
-  }
-  .hero-subtitle {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .hero-visual {
-    max-width: 560px;
-    margin: 0 auto;
-  }
-  .mockup-browser {
-    transform: none;
-  }
-  .float-card {
-    display: none;
-  }
+  .hero-content { align-items: center; }
+  .hero-title, .hero-subtitle { max-width: 100%; }
+  .hero-trust { justify-content: center; }
+  .hero-actions { justify-content: center; }
+  .float-card { display: none; }
+}
+
+@media (max-width: 640px) {
+  .hero { padding-top: 110px; }
+  .hero-actions { flex-direction: column; width: 100%; }
+  .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
+  .app-stats { grid-template-columns: 1fr; }
 }
 </style>

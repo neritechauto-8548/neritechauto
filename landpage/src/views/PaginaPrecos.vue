@@ -1,53 +1,55 @@
 <template>
-  <main class="pricing-page">
-    <!-- Soft Background Mesh -->
-    <div class="stripe-mesh-bg"></div>
-
-    <!-- Header / Hero section -->
-    <section class="pricing-hero">
-      <div class="container text-center">
-        <span class="pricing-badge">Preços Transparentes</span>
-        <h1 class="pricing-title">Planos simples, <span class="text-gradient-vibrant">sem taxas surpresas.</span></h1>
-        <p class="pricing-subtitle">
-          Escolha o plano ideal para acelerar o crescimento da sua oficina. Comece hoje mesmo o seu teste de 30 dias grátis, sem cartão de crédito e sem contratos de fidelidade rígidos.
-        </p>
-      </div>
-    </section>
-
-    <!-- Pricing Tiers Component -->
-    <SecaoPrecos />
-
-    <!-- Detailed Value Text section -->
-    <section class="pricing-value-proposition">
+  <main class="pagina-precos">
+    <!-- Hero + planos + garantias em um bloco contínuo -->
+    <section class="precos-top section-surface section-surface--hero section-surface--pattern">
       <div class="container">
-        <div class="value-grid">
-          <div class="value-card">
-            <div class="v-icon">💎</div>
-            <h4>Sem custo de implantação</h4>
-            <p>Diferente de sistemas legados, na NeriTechAuto você não paga taxa de adesão ou instalação. Nosso suporte ajuda você a configurar tudo grátis.</p>
-          </div>
-          <div class="value-card">
-            <div class="v-icon">⚡</div>
-            <h4>Cancele quando quiser</h4>
-            <p>Trabalhamos no modelo SaaS por assinatura. Sem fidelidade forçada. Se o sistema não fizer sua oficina faturar mais, cancele sem multa.</p>
-          </div>
-          <div class="value-card">
-            <div class="v-icon">🔒</div>
-            <h4>Seus dados seguros</h4>
-            <p>Utilizamos servidores criptografados de alta disponibilidade. Suas ordens de serviço, dados de clientes e financeiro estão 100% protegidos.</p>
-          </div>
+        <header class="precos-intro aos-init">
+          <span class="section-label">Preços</span>
+          <h1 class="precos-intro__title">Planos simples, sem taxas surpresas.</h1>
+          <p class="precos-intro__subtitle">
+            Teste grátis por 30 dias · Sem cartão · Cancele quando quiser
+          </p>
+          <ul class="precos-trust">
+            <li v-for="t in trustItems" :key="t">{{ t }}</li>
+          </ul>
+        </header>
+
+        <SecaoPrecos :hide-header="true" />
+
+        <div class="valor-grid aos-init">
+          <article class="valor-card" v-for="item in valorCards" :key="item.title">
+            <span class="valor-card__icon">{{ item.icon }}</span>
+            <div>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.desc }}</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- Detailed Comparison Component -->
-    <SecaoComparativo />
+    <section class="precos-comparativo section-surface section-surface--light">
+      <SecaoComparativo />
+    </section>
 
-    <!-- Pricing FAQ -->
-    <SecaoFAQ />
+    <section class="precos-faq section-surface section-surface--white">
+      <SecaoFAQ />
+    </section>
 
-    <!-- Contact & Footer -->
-    <SecaoContato />
+    <section class="final-cta section-surface section-surface--alt" id="cta-precos">
+      <div class="container cta-content aos-init">
+        <h2 class="cta-title">Comece seu teste grátis hoje</h2>
+        <div class="cta-actions">
+          <router-link to="/teste-gratis" class="btn-cta-primary">
+            Experimentar 30 dias grátis →
+          </router-link>
+          <a href="https://wa.me/5511999999999" target="_blank" rel="noopener" class="btn-cta-secondary">
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </section>
+
     <SecaoRodape />
   </main>
 </template>
@@ -57,8 +59,35 @@ import { onMounted } from 'vue';
 import SecaoPrecos from '../components/SecaoPrecos.vue';
 import SecaoComparativo from '../components/SecaoComparativo.vue';
 import SecaoFAQ from '../components/SecaoFAQ.vue';
-import SecaoContato from '../components/SecaoContato.vue';
 import SecaoRodape from '../components/SecaoRodape.vue';
+import { useScrollAnimation } from '../composables/useScrollAnimation.js';
+
+useScrollAnimation();
+
+const trustItems = [
+  '🔒 Pagamento seguro',
+  '✓ Sem fidelidade',
+  '🎁 30 dias grátis',
+  '💬 Suporte incluído',
+];
+
+const valorCards = [
+  {
+    icon: '💎',
+    title: 'Sem custo de implantação',
+    desc: 'Suporte para configurar sua oficina, sem taxa de adesão.',
+  },
+  {
+    icon: '⚡',
+    title: 'Cancele quando quiser',
+    desc: 'Assinatura mensal flexível, sem multa.',
+  },
+  {
+    icon: '🔒',
+    title: 'Dados na nuvem',
+    desc: 'Backup automático e criptografia.',
+  },
+];
 
 onMounted(() => {
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -66,114 +95,264 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.pricing-page {
-  position: relative;
-  min-height: 100vh;
-  padding-top: 100px;
-  background-color: #ffffff;
-  overflow: hidden;
+.pagina-precos {
+  padding-top: 80px;
 }
 
-.stripe-mesh-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(99, 91, 255, 0.03) 0%, transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(0, 216, 255, 0.03) 0%, transparent 40%),
-    #ffffff;
+/* ── Bloco principal compacto ── */
+.precos-top {
+  padding: 1.5rem 0 2rem;
 }
 
-.pricing-hero {
-  position: relative;
-  z-index: 1;
-  padding: 60px 0 20px;
+.precos-intro {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
 }
 
-.pricing-badge {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(99, 91, 255, 0.08);
-  border: 1px solid rgba(99, 91, 255, 0.15);
-  color: var(--primary-indigo);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 99px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1.25rem;
-}
-
-.pricing-title {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
+.precos-intro__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
   color: var(--midnight-navy);
   letter-spacing: -0.04em;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
-}
-
-.pricing-subtitle {
-  font-size: 1.125rem;
-  color: var(--text-main);
-  max-width: 680px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-/* Value Cards Section */
-.pricing-value-proposition {
-  position: relative;
-  z-index: 1;
-  padding: 40px 0 60px;
-  background: #f8fafc;
-  border-top: 1px solid #edf2f7;
-  border-bottom: 1px solid #edf2f7;
-}
-
-.value-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
-
-.value-card {
-  background: #ffffff;
-  border: 1px solid #edf2f7;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.02);
-  transition: transform 0.2s ease;
-}
-
-.value-card:hover {
-  transform: translateY(-2px);
-}
-
-.v-icon {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.value-card h4 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--midnight-navy);
+  line-height: 1.12;
   margin-bottom: 0.5rem;
 }
 
-.value-card p {
-  font-size: 0.875rem;
+.precos-intro__subtitle {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.precos-trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  list-style: none;
+}
+
+.precos-trust li {
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--text-main);
-  line-height: 1.5;
+  background: white;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+}
+
+.valor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.valor-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.125rem;
+}
+
+.valor-card__icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.valor-card h3 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--midnight-navy);
+  margin-bottom: 2px;
+  font-family: var(--font-heading);
+}
+
+.valor-card p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* ── Overrides: SecaoPrecos embutida ── */
+.pagina-precos :deep(.pricing--embedded) {
+  padding: 0;
+  background: transparent;
+}
+
+.pagina-precos :deep(.pricing-grid) {
+  margin-bottom: 0;
+  gap: 1.25rem;
+}
+
+.pagina-precos :deep(.pricing-card) {
+  padding: 1.5rem 1.25rem;
+  gap: 1rem;
+}
+
+.pagina-precos :deep(.amount) {
+  font-size: 2.75rem;
+}
+
+.pagina-precos :deep(.pricing-footer) {
+  margin-top: 1rem;
+  padding-top: 0;
+}
+
+.pagina-precos :deep(.trust-row) {
+  gap: 1rem 1.5rem;
+}
+
+.pagina-precos :deep(.trust-item) {
+  font-size: 0.8125rem;
+}
+
+/* ── Comparativo ── */
+.precos-comparativo {
+  padding: 0;
+}
+
+.pagina-precos :deep(.secao-comparativo) {
+  padding: 2.25rem 0;
+}
+
+.pagina-precos :deep(.header-comparativo) {
+  margin-bottom: 1.25rem;
+}
+
+.pagina-precos :deep(.title) {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 0.5rem;
+}
+
+.pagina-precos :deep(.subtitle) {
+  font-size: 0.9375rem;
+}
+
+.pagina-precos :deep(.tabs-container) {
+  margin-bottom: 1.25rem;
+}
+
+.pagina-precos :deep(.table-header) {
+  padding: 1.25rem 1rem;
+}
+
+.pagina-precos :deep(.table-row) {
+  padding: 0.75rem 1rem;
+}
+
+.pagina-precos :deep(.table-footer) {
+  padding: 1rem;
+}
+
+.pagina-precos :deep(.category-indicator) {
+  font-size: 1.0625rem;
+}
+
+/* ── FAQ ── */
+.precos-faq {
+  padding: 0;
+}
+
+.pagina-precos :deep(.faq) {
+  padding: 2.25rem 0;
+  background: transparent;
+}
+
+.pagina-precos :deep(.faq-layout) {
+  gap: 2rem;
+}
+
+.pagina-precos :deep(.faq-intro) {
+  position: static;
+}
+
+.pagina-precos :deep(.faq-title) {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 0.5rem;
+}
+
+.pagina-precos :deep(.faq-subtitle) {
+  font-size: 0.9375rem;
+  margin-bottom: 1rem;
+}
+
+/* ── CTA ── */
+.final-cta {
+  padding: 2.25rem 0;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.cta-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cta-title {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  font-weight: 800;
+  color: var(--midnight-navy);
+  letter-spacing: -0.03em;
+}
+
+.cta-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary);
+  color: white !important;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-indigo);
+  transition: all var(--transition-base);
+}
+
+.btn-cta-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  background: white;
+  color: var(--midnight-navy) !important;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  transition: all var(--transition-base);
+}
+
+.btn-cta-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary) !important;
 }
 
 @media (max-width: 768px) {
-  .value-grid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
+  .valor-grid { grid-template-columns: 1fr; }
+  .pagina-precos :deep(.pricing-grid) { max-width: 100%; }
+  .cta-actions { flex-direction: column; width: 100%; max-width: 320px; }
+  .btn-cta-primary, .btn-cta-secondary { justify-content: center; width: 100%; }
 }
 </style>

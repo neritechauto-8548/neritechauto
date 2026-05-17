@@ -1,8 +1,8 @@
 <template>
   <section class="secao-comparativo" id="comparativo">
     <div class="container">
-      <div class="header-comparativo">
-        <span class="badge">Comparativo Completo</span>
+      <div class="header-comparativo aos-init">
+        <span class="section-label">Comparativo</span>
         <h2 class="title">Escolha o plano ideal para sua <span class="text-gradient">oficina</span></h2>
         <p class="subtitle">Transparência total: compare cada funcionalidade antes de decidir.</p>
       </div>
@@ -183,40 +183,33 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 
 <style scoped>
 .secao-comparativo {
-  padding: 100px 0;
-  background-color: #fff;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  padding: 4rem 0;
+  background: transparent;
 }
 
 .header-comparativo {
   text-align: center;
-  margin-bottom: 60px;
-}
-
-.badge {
-  background: #f3f4f6;
-  color: #374151;
-  padding: 6px 14px;
-  border-radius: 99px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  display: inline-block;
+  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .title {
-  font-size: 3rem;
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
   font-weight: 800;
-  color: #111827;
-  letter-spacing: -0.02em;
-  margin-bottom: 1.25rem;
+  color: var(--midnight-navy);
+  letter-spacing: -0.035em;
+  margin-bottom: 1rem;
+  font-family: var(--font-heading);
 }
 
 .subtitle {
-  color: #4b5563;
-  font-size: 1.25rem;
-  max-width: 650px;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  max-width: 600px;
   margin: 0 auto;
+  line-height: 1.65;
 }
 
 /* Tabs Estilo Stripe */
@@ -228,56 +221,61 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 
 .tabs-wrapper {
   display: flex;
-  background: #f9fafb;
-  padding: 4px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  background: var(--surface-blue-50);
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
 }
 
 .tab-btn {
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
   border: none;
   background: transparent;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.95rem;
+  transition: all var(--transition-base);
+  font-size: 0.875rem;
+  font-family: var(--font-body);
 }
 
 .tab-btn:hover {
-  color: #111827;
+  color: var(--midnight-navy);
 }
 
 .tab-btn.active {
   background: white;
-  color: #6366f1;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Card Comparativo Moderno */
 .comparativo-card {
   background: white;
-  border-radius: 24px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
 .table-header {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  padding: 40px 30px;
-  border-bottom: 1px solid #f3f4f6;
-  background: #fafafa;
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-blue-50);
 }
 
 .category-indicator {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #111827;
-  letter-spacing: -0.01em;
+  color: var(--midnight-navy);
+  letter-spacing: -0.02em;
+  font-family: var(--font-heading);
 }
 
 .plan-header {
@@ -289,22 +287,22 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 }
 
 .plan-header.featured {
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .plan-name {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--midnight-navy);
 }
 
 .plan-header.featured .plan-name {
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .plan-price {
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: 0.875rem;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -331,8 +329,8 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 .table-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  padding: 20px 30px;
-  border-bottom: 1px solid #f9fafb;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
   align-items: center;
 }
 
@@ -341,9 +339,9 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 }
 
 .feature-name {
-  color: #374151;
+  color: var(--text-main);
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.9375rem;
 }
 
 .check-cell {
@@ -370,17 +368,17 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 }
 
 .check-cell.featured .status-icon.success {
-  background: #eef2ff;
-  color: #6366f1;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 /* Footer */
 .table-footer {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  padding: 30px;
-  background: #fafafa;
-  border-top: 1px solid #f3f4f6;
+  padding: 1.5rem;
+  background: var(--surface-blue-50);
+  border-top: 1px solid var(--border);
 }
 
 .footer-action {
@@ -389,29 +387,23 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 }
 
 .btn-link {
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .btn-link:hover {
-  color: #111827;
+  color: var(--midnight-navy);
 }
 
 .footer-action.featured .btn-link {
-  color: #6366f1;
+  color: var(--primary);
 }
 
 .footer-action.featured .btn-link:hover {
-  color: #4f46e5;
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary-dark);
 }
 
 /* Animations */

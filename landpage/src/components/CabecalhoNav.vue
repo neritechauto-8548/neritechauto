@@ -2,13 +2,7 @@
   <header class="header" :class="{ 'scrolled': estaRolar, 'menu-open': menuMobileAberto }">
     <div class="container nav-container">
       <!-- Logo -->
-      <router-link to="/" class="logo" @click="menuMobileAberto = false">
-        <div class="logo-box">
-          <span class="logo-mark">N</span>
-          <div class="logo-glow"></div>
-        </div>
-        <span class="logo-wordmark">Neri<span class="logo-accent">TechAuto</span></span>
-      </router-link>
+      <LogoMarca to="/" size="md" @click="menuMobileAberto = false" />
 
       <!-- Desktop Nav (Matches user screenshot exactly) -->
       <nav class="nav-desktop" role="navigation" aria-label="Navegação principal">
@@ -133,6 +127,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import LogoMarca from './LogoMarca.vue';
 
 const urlSistemaCliente = import.meta.env.VITE_URL_SISTEMA_CLIENTE || '/login';
 const estaRolar = ref(false);
@@ -165,11 +160,11 @@ onUnmounted(() => {
 }
 
 .header.scrolled {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(239, 246, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 14px 0;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.06), 0 4px 20px rgba(37, 99, 235, 0.04);
 }
 
 /* ── Layout ── */
@@ -178,63 +173,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-}
-
-/* ── Logo ── */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-.logo-mark {
-  width: 32px;
-  height: 32px;
-  background: var(--primary-indigo);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 1rem;
-  color: white;
-}
-
-.logo-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-glow {
-  position: absolute;
-  inset: -4px;
-  background: var(--primary-indigo);
-  filter: blur(8px);
-  opacity: 0.2;
-  border-radius: 8px;
-  z-index: -1;
-  transition: opacity 0.3s;
-}
-
-.logo:hover .logo-glow {
-  opacity: 0.4;
-}
-
-.logo-wordmark {
-  font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--midnight-navy);
-  letter-spacing: -0.04em;
-}
-
-.logo-accent {
-  color: var(--primary-indigo);
 }
 
 /* ── Desktop Nav ── */
@@ -257,7 +195,7 @@ onUnmounted(() => {
 }
 
 .nav-link:hover {
-  color: var(--primary-indigo) !important;
+  color: var(--primary) !important;
 }
 
 .link-login-nav {
@@ -285,7 +223,7 @@ onUnmounted(() => {
 
 .nav-dropdown-item:hover .dropdown-chevron {
   transform: rotate(180deg);
-  color: var(--primary-indigo);
+  color: var(--primary);
 }
 
 .dropdown-menu {
@@ -369,7 +307,7 @@ onUnmounted(() => {
 }
 
 .btn-try-free {
-  background: var(--primary-indigo);
+  background: var(--primary);
   color: white !important;
   padding: 0.5rem 1.25rem;
   border-radius: 99px;
@@ -382,7 +320,8 @@ onUnmounted(() => {
 
 .btn-try-free:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(99, 91, 255, 0.4);
+  background: var(--primary-dark);
+  box-shadow: 0 6px 20px var(--primary-shadow);
 }
 
 /* ── Mobile Toggle ── */
@@ -464,7 +403,7 @@ onUnmounted(() => {
   padding-bottom: 4px;
 }
 
-.mobile-link:hover { color: var(--primary-indigo) !important; }
+.mobile-link:hover { color: var(--primary) !important; }
 
 .mobile-actions {
   display: flex;
@@ -491,7 +430,7 @@ onUnmounted(() => {
   justify-content: center;
   width: 100%;
   padding: 0.75rem;
-  background: var(--primary-indigo);
+  background: var(--primary);
   border-radius: 99px;
   color: white !important;
   font-weight: 700;

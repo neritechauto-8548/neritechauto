@@ -2,9 +2,9 @@
   <section id="segmentos" class="segments">
     <div class="container">
       <div class="seg-header aos-init">
-        <span class="section-label">Para quem é</span>
-        <h2 class="seg-title">Independente do seu <span class="text-gradient">segmento automotivo.</span></h2>
-        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a NeriTechAuto se adapta ao seu fluxo e escala com o crescimento da sua empresa.</p>
+        <span class="section-label">Gestão completa</span>
+        <h2 class="seg-title">Gestão completa da sua oficina, do pátio ao financeiro</h2>
+        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a NeriTech Auto se adapta ao seu fluxo e escala com o crescimento do seu negócio.</p>
       </div>
 
       <!-- Tabs -->
@@ -146,6 +146,18 @@ const segments = [
   padding: 6rem 0;
   background: var(--light-bg);
   overflow: hidden;
+  position: relative;
+}
+
+.segments::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(147, 197, 253, 0.5) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.35;
+  mask-image: linear-gradient(180deg, transparent, black 30%, black 70%, transparent);
 }
 
 .seg-header {

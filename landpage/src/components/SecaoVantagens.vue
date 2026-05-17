@@ -5,7 +5,7 @@
       <!-- Premium Stripe-style Light Header -->
       <div class="adv-header aos-init">
         <span class="section-label">Diferenciais</span>
-        <h2 class="adv-title">Mais do que um sistema — <span class="text-gradient-vibrant">um parceiro de negócio.</span></h2>
+        <h2 class="adv-title">Mais do que um sistema — <span class="text-gradient">um parceiro de negócio.</span></h2>
         <p class="adv-subtitle">Diferente dos softwares genéricos e complexos, a NeriTechAuto foi desenhada focando no fluxo real das oficinas brasileiras.</p>
       </div>
 
@@ -100,11 +100,11 @@ const compares = [
 <style scoped>
 .advantages {
   padding: 6rem 0;
-  background: #ffffff;
+  background: var(--surface-blue-50);
   position: relative;
   overflow: hidden;
-  border-top: 1px solid #edf2f7;
-  border-bottom: 1px solid #edf2f7;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .advantages::before {
