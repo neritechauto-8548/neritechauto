@@ -55,19 +55,7 @@
       </div>
     </div>
 
-    <!-- Newsletter -->
-    <div class="container footer-newsletter">
-      <div class="newsletter-inner">
-        <div class="newsletter-text">
-          <h3>Receba dicas de gestão para oficinas</h3>
-          <p>Conteúdo exclusivo sobre gestão automotiva, tendências do setor e atualizações da NeriTechAuto.</p>
-        </div>
-        <form class="newsletter-form" @submit.prevent="subscribeNewsletter">
-          <input type="email" placeholder="Seu melhor e-mail" required v-model="newsletterEmail" />
-          <button type="submit" class="btn btn-primary">Inscrever-se →</button>
-        </form>
-      </div>
-    </div>
+
 
     <div class="container footer-bottom">
       <p class="copyright">© {{ currentYear }} NeriTechAuto Sistemas. Todos os direitos reservados. CNPJ: 00.000.000/0001-00</p>
@@ -97,10 +85,6 @@
 <script setup>
 import { ref } from 'vue';
 const currentYear = ref(new Date().getFullYear());
-const newsletterEmail = ref('');
-const subscribeNewsletter = () => {
-  newsletterEmail.value = '';
-};
 </script>
 
 <style scoped>
@@ -244,74 +228,17 @@ const subscribeNewsletter = () => {
   color: rgba(255,255,255,0.35);
 }
 
-/* ── Newsletter ── */
-.footer-newsletter {
-  border-top: 1px solid rgba(255,255,255,0.07);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  padding: 2.5rem 0;
-}
 
-.newsletter-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 3rem;
-}
-
-.newsletter-text h3 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 0.375rem;
-  font-family: var(--font-body);
-}
-
-.newsletter-text p {
-  font-size: 0.875rem;
-  color: rgba(255,255,255,0.5);
-}
-
-.newsletter-form {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.newsletter-form input {
-  width: 280px;
-  padding: 0.6875rem 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  color: white;
-  font-size: 0.875rem;
-  font-family: var(--font-body);
-}
-
-.newsletter-form input::placeholder {
-  color: rgba(255,255,255,0.35);
-}
-
-.newsletter-form input:focus {
-  border-color: var(--primary-indigo);
-  box-shadow: 0 0 0 3px rgba(99,91,255,0.15);
-  outline: none;
-}
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .footer-top { grid-template-columns: 1fr; gap: 3rem; }
   .footer-links-grid { grid-template-columns: repeat(2, 1fr); }
-  .newsletter-inner { flex-direction: column; text-align: center; }
-  .newsletter-form { width: 100%; }
-  .newsletter-form input { flex: 1; width: auto; }
 }
 
 @media (max-width: 640px) {
   .footer-links-grid { grid-template-columns: 1fr 1fr; }
   .footer-bottom { flex-direction: column; text-align: center; }
   .footer-badges { justify-content: center; flex-wrap: wrap; }
-  .newsletter-form { flex-direction: column; }
-  .newsletter-form input { width: 100%; }
 }
 </style>

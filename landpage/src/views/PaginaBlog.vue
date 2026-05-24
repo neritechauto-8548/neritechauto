@@ -1,51 +1,64 @@
 <template>
   <main class="blog-page">
-    <!-- Soft Background Mesh -->
-    <div class="stripe-mesh-bg"></div>
-
     <!-- Seção de Artigo Completo -->
-    <div v-if="idArtigoAtivo" class="article-detail-container">
-      <div class="container article-inner">
-        <router-link to="/blog" class="btn-back">
-          ← Voltar para o Blog
-        </router-link>
+    <div v-if="idArtigoAtivo">
+      <section class="section-surface section-surface--hero section-surface--pattern blog-detail-section">
+        <div class="container">
+          <div class="article-inner aos-init">
+            <router-link to="/blog" class="btn-back">
+              <span class="arrow-back">←</span> Voltar para o Blog
+            </router-link>
 
-        <article v-if="artigoAtivo" class="full-article">
-          <header class="article-header">
-            <span class="article-category">{{ artigoAtivo.category }}</span>
-            <h1 class="article-title">{{ artigoAtivo.title }}</h1>
-            <div class="article-meta">
-              <span class="article-date">Publicado em {{ artigoAtivo.date }}</span>
-              <span class="meta-separator">•</span>
-              <span class="article-read-time">📖 {{ artigoAtivo.readTime }} de leitura</span>
+            <article v-if="artigoAtivo" class="full-article premium-card aos-init aos-delay-1">
+              <header class="article-header">
+                <span class="section-label">{{ artigoAtivo.category }}</span>
+                <h1 class="article-title">{{ artigoAtivo.title }}</h1>
+                <div class="article-meta">
+                  <span class="article-date">📅 {{ artigoAtivo.date }}</span>
+                  <span class="meta-separator">•</span>
+                  <span class="article-read-time">📖 {{ artigoAtivo.readTime }} de leitura</span>
+                </div>
+              </header>
+
+              <div class="article-image-wrapper mockup-frame">
+                <div class="mockup-frame__bar">
+                  <span class="mockup-dot mockup-dot--red"></span>
+                  <span class="mockup-dot mockup-dot--yellow"></span>
+                  <span class="mockup-dot mockup-dot--green"></span>
+                  <div class="mockup-frame__url">neritechauto.com.br/blog/{{ artigoAtivo.id }}</div>
+                </div>
+                <img :src="artigoAtivo.image" :alt="artigoAtivo.title" class="article-hero-image">
+              </div>
+
+              <!-- Dynamic Rich Content for the Post -->
+              <div class="article-body text-main" v-html="artigoAtivo.content"></div>
+            </article>
+
+            <div v-else class="text-center article-not-found premium-card aos-init aos-delay-1">
+              <span class="section-label">Erro 404</span>
+              <h2 class="section-title">Artigo não encontrado</h2>
+              <p class="section-subtitle">O artigo que você está procurando não existe ou foi movido.</p>
+              <router-link to="/blog" class="btn btn-primary">Voltar para o Blog</router-link>
             </div>
-          </header>
-
-          <div class="article-image-wrapper">
-            <img :src="artigoAtivo.image" :alt="artigoAtivo.title" class="article-hero-image">
           </div>
-
-          <!-- Dynamic Rich Content for the Post -->
-          <div class="article-body" v-html="artigoAtivo.content"></div>
-        </article>
-
-        <div v-else class="text-center article-not-found">
-          <h2>Artigo não encontrado</h2>
-          <p>O artigo que você está procurando não existe ou foi movido.</p>
-          <router-link to="/blog" class="btn btn-primary">Voltar para o Blog</router-link>
         </div>
-      </div>
+      </section>
     </div>
 
     <!-- Lista de Posts Padrão (se não houver ID na rota) -->
     <div v-else>
-      <section class="blog-hero">
-        <div class="container text-center">
-          <span class="blog-badge">Central de Inteligência</span>
-          <h1 class="blog-title">Central de <span class="text-gradient-vibrant">Conhecimento</span></h1>
-          <p class="blog-subtitle">Insights estratégicos, finanças e tecnologia para oficinas que buscam o topo do mercado.</p>
+      <!-- Hero Section -->
+      <section class="section-surface section-surface--hero section-surface--pattern blog-hero">
+        <div class="container">
+          <header class="section-header aos-init">
+            <span class="section-label">Central de Inteligência</span>
+            <h1 class="section-title">Central de <span class="text-gradient">Conhecimento</span></h1>
+            <p class="section-subtitle">
+              Insights estratégicos, finanças e tecnologia para oficinas que buscam o topo do mercado.
+            </p>
+          </header>
           
-          <div class="category-filters">
+          <div class="category-filters aos-init aos-delay-1">
             <button 
               v-for="cat in categories" 
               :key="cat"
@@ -59,22 +72,29 @@
         </div>
       </section>
 
-      <section class="blog-content">
+      <!-- Grid de Posts -->
+      <section class="section-surface section-surface--light blog-content-section">
         <div class="container">
           <div class="blog-grid">
             <article 
-              v-for="post in filteredPosts" 
+              v-for="(post, index) in filteredPosts" 
               :key="post.id" 
-              class="blog-card"
+              class="blog-card premium-card aos-init"
+              :class="'aos-delay-' + ((index % 3) + 1)"
             >
-              <div class="post-image-wrapper">
+              <div class="post-image-wrapper mockup-frame">
+                <div class="mockup-frame__bar">
+                  <span class="mockup-dot mockup-dot--red"></span>
+                  <span class="mockup-dot mockup-dot--yellow"></span>
+                  <span class="mockup-dot mockup-dot--green"></span>
+                </div>
                 <img :src="post.image" :alt="post.title" class="post-image">
-                <span class="post-label">{{ post.category }}</span>
+                <span class="post-label section-label">{{ post.category }}</span>
               </div>
               <div class="post-body">
-                <span class="post-date">{{ post.date }}</span>
+                <span class="post-date">📅 {{ post.date }}</span>
                 <h2 class="post-title">{{ post.title }}</h2>
-                <p class="post-excerpt">{{ post.excerpt }}</p>
+                <p class="post-excerpt text-muted">{{ post.excerpt }}</p>
                 <div class="post-footer">
                   <span class="post-read-time">📖 {{ post.readTime }} de leitura</span>
                   <router-link :to="`/blog/${post.id}`" class="post-link">
@@ -87,18 +107,7 @@
         </div>
       </section>
 
-      <!-- Newsletter Section (Premium Light Theme) -->
-      <section class="newsletter">
-        <div class="container newsletter-content">
-          <span class="news-badge">Newsletter</span>
-          <h3>Receba o Radar NeriTech</h3>
-          <p class="news-desc">Notícias do mercado e dicas de gestão diretamente no seu e-mail para acelerar sua oficina.</p>
-          <form class="newsletter-form" @submit.prevent="inscreverNewsletter">
-            <input type="email" v-model="emailNewsletter" placeholder="Seu melhor e-mail" required>
-            <button type="submit" class="btn btn-primary">Inscrever-se</button>
-          </form>
-        </div>
-      </section>
+
     </div>
 
     <SecaoRodape />
@@ -106,16 +115,53 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import SecaoRodape from '../components/SecaoRodape.vue';
+import { useScrollAnimation } from '../composables/useScrollAnimation.js';
 
 const route = useRoute();
-const emailNewsletter = ref('');
 const categories = ['Todos', 'Gestão', 'Mercado', 'Finanças', 'Tecnologia'];
 const activeCategory = ref('Todos');
 
 const idArtigoAtivo = computed(() => route.params.id);
+
+// Inicializa a animação de scroll no mount inicial
+useScrollAnimation();
+
+onMounted(() => {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
+
+// Garante que as animações AOS reiniciem e a tela suba ao navegar
+watch(
+  () => route.path,
+  () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    nextTick(() => {
+      // Remove a visibilidade para animar novamente
+      document.querySelectorAll('.aos-init').forEach((el) => {
+        el.classList.remove('aos-visible');
+      });
+      // Registra novamente os novos elementos renderizados no IntersectionObserver
+      setTimeout(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('aos-visible');
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+        );
+        document.querySelectorAll('.aos-init').forEach((el) => {
+          observer.observe(el);
+        });
+      }, 100);
+    });
+  }
+);
 
 const posts = ref([
   {
@@ -188,43 +234,23 @@ const filteredPosts = computed(() => {
   return posts.value.filter(post => post.category === activeCategory.value);
 });
 
-const inscreverNewsletter = () => {
-  if (emailNewsletter.value) {
-    alert('Obrigado! Seu e-mail foi cadastrado com sucesso no Radar NeriTech.');
-    emailNewsletter.value = '';
-  }
-};
+
 </script>
 
 <style scoped>
 .blog-page {
   position: relative;
   min-height: 100vh;
-  padding-top: 100px;
-  background-color: #ffffff;
-  overflow: hidden;
+  padding-top: 80px;
 }
 
-.stripe-mesh-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(99, 91, 255, 0.03) 0%, transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(0, 216, 255, 0.03) 0%, transparent 40%),
-    #ffffff;
-}
-
-/* Seção de Artigo Detalhado */
-.article-detail-container {
-  position: relative;
-  z-index: 1;
-  padding: 40px 0 80px;
+/* Detail Section Layout */
+.blog-detail-section {
+  padding: 3rem 0 6rem;
 }
 
 .article-inner {
-  max-width: 800px;
+  max-width: 820px;
   margin: 0 auto;
 }
 
@@ -232,50 +258,56 @@ const inscreverNewsletter = () => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--primary-indigo);
-  text-decoration: none;
+  background: white;
+  color: var(--midnight-navy) !important;
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  transition: all var(--transition-base);
   margin-bottom: 2rem;
-  transition: transform 0.2s ease;
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-back:hover {
+  border-color: var(--primary);
+  color: var(--primary) !important;
+  background: var(--primary-light);
   transform: translateX(-4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.arrow-back {
+  transition: transform var(--transition-fast);
+}
+
+.btn-back:hover .arrow-back {
+  transform: translateX(-2px);
 }
 
 .full-article {
-  background: white;
-  border: 1px solid #edf2f7;
-  border-radius: 24px;
-  padding: 3rem;
-  box-shadow: 0 10px 30px rgba(10, 37, 64, 0.02);
+  padding: 3.5rem;
+  margin-top: 1rem;
 }
 
 .article-header {
   margin-bottom: 2.5rem;
+  text-align: left;
 }
 
-.article-category {
-  display: inline-block;
-  background: rgba(99, 91, 255, 0.08);
-  color: var(--primary-indigo);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border-radius: 6px;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
+.article-header .section-label {
+  margin-bottom: 1.25rem;
 }
 
 .article-title {
-  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
   font-weight: 800;
   color: var(--midnight-navy);
   line-height: 1.2;
-  letter-spacing: -0.03em;
-  margin-bottom: 1rem;
+  letter-spacing: -0.035em;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-heading);
 }
 
 .article-meta {
@@ -284,52 +316,51 @@ const inscreverNewsletter = () => {
   gap: 12px;
   font-size: 0.875rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .meta-separator {
-  color: #cbd5e1;
+  color: var(--border);
 }
 
 .article-image-wrapper {
-  height: 400px;
-  border-radius: 16px;
-  overflow: hidden;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
+  box-shadow: var(--shadow-lg);
 }
 
 .article-hero-image {
   width: 100%;
-  height: 100%;
+  height: 440px;
   object-fit: cover;
 }
 
 .article-body {
   font-size: 1.125rem;
   color: var(--text-main);
-  line-height: 1.8;
+  line-height: 1.85;
 }
 
 .article-body :deep(p) {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
 }
 
 .article-body :deep(h3) {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 800;
   color: var(--midnight-navy);
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  letter-spacing: -0.02em;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.03em;
+  font-family: var(--font-heading);
 }
 
 .article-body :deep(ul) {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
   padding-left: 1.5rem;
 }
 
 .article-body :deep(li) {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .article-body :deep(strong) {
@@ -338,60 +369,24 @@ const inscreverNewsletter = () => {
 }
 
 .article-not-found {
-  padding: 6rem 0;
-  background: white;
-  border: 1px solid #edf2f7;
-  border-radius: 24px;
+  padding: 5rem 3rem;
+  text-align: center;
+  margin-top: 1rem;
 }
 
-.article-not-found h2 {
-  font-size: 2rem;
-  color: var(--midnight-navy);
-  margin-bottom: 1rem;
+.article-not-found .section-title {
+  margin-top: 1rem;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
 }
 
 .article-not-found p {
-  color: var(--text-main);
   margin-bottom: 2rem;
 }
 
-/* Lista de Posts / Hero */
+/* Hero Section */
 .blog-hero {
-  position: relative;
-  z-index: 1;
-  padding: 60px 0 20px;
-}
-
-.blog-badge {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(99, 91, 255, 0.08);
-  border: 1px solid rgba(99, 91, 255, 0.15);
-  color: var(--primary-indigo);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 99px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1.25rem;
-}
-
-.blog-title {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  font-weight: 800;
-  color: var(--midnight-navy);
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
-}
-
-.blog-subtitle {
-  font-size: 1.125rem;
-  color: var(--text-main);
-  max-width: 680px;
-  margin: 0 auto 2.5rem;
-  line-height: 1.6;
+  padding: 4rem 0 2rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .category-filters {
@@ -399,30 +394,31 @@ const inscreverNewsletter = () => {
   justify-content: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
 .filter-btn {
   padding: 8px 24px;
-  border-radius: 99px;
-  background: #f1f5f9;
-  border: 1px solid #edf2f7;
+  border-radius: var(--radius-full);
+  background: white;
+  border: 1.5px solid var(--border);
   color: var(--text-main);
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .filter-btn:hover, .filter-btn.active {
-  background: var(--primary-indigo);
-  border-color: var(--primary-indigo);
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
+  box-shadow: var(--shadow-indigo);
 }
 
-.blog-content {
-  position: relative;
-  z-index: 1;
-  padding: 60px 0 80px;
+/* Grid & Cards Section */
+.blog-content-section {
+  padding: 5rem 0 6rem;
 }
 
 .blog-grid {
@@ -432,32 +428,26 @@ const inscreverNewsletter = () => {
 }
 
 .blog-card {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.02);
-  transition: all 0.3s ease;
-  border: 1px solid #edf2f7;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
-.blog-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(10, 37, 64, 0.06);
-}
-
-.post-image-wrapper {
-  position: relative;
+.blog-card .post-image-wrapper.mockup-frame {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  box-shadow: none;
   height: 220px;
-  overflow: hidden;
 }
 
 .post-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform var(--transition-slow);
 }
 
 .blog-card:hover .post-image {
@@ -466,20 +456,17 @@ const inscreverNewsletter = () => {
 
 .post-label {
   position: absolute;
-  top: 16px;
+  top: 48px; /* space below mockup bar */
   right: 16px;
-  background: var(--primary-indigo);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  z-index: 2;
+  box-shadow: var(--shadow-sm);
+  background: var(--primary) !important;
+  color: white !important;
+  border-color: rgba(255,255,255,0.2) !important;
 }
 
 .post-body {
-  padding: 1.5rem;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -489,22 +476,23 @@ const inscreverNewsletter = () => {
   font-size: 0.8125rem;
   color: var(--text-muted);
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .post-title {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.35;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   color: var(--midnight-navy);
+  letter-spacing: -0.025em;
+  font-family: var(--font-heading);
 }
 
 .post-excerpt {
   font-size: 0.875rem;
-  color: var(--text-main);
   line-height: 1.6;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
   flex-grow: 1;
 }
 
@@ -512,110 +500,68 @@ const inscreverNewsletter = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
   margin-top: auto;
 }
 
 .post-read-time {
   font-size: 0.75rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .post-link {
   font-weight: 700;
   font-size: 0.8125rem;
-  color: var(--primary-indigo);
+  color: var(--primary);
   display: flex;
   align-items: center;
   gap: 4px;
   text-decoration: none;
-  transition: gap 0.2s ease;
+  transition: gap var(--transition-fast);
 }
 
 .post-link:hover {
   gap: 8px;
 }
 
-/* Newsletter section style */
-.newsletter {
-  position: relative;
-  z-index: 1;
-  padding: 80px 0;
-  background: #f8fafc;
-  border-top: 1px solid #edf2f7;
+/* Newsletter Section */
+.newsletter-section {
+  padding: 5rem 0;
+}
+
+.newsletter-content {
+  max-width: 680px;
+  margin: 0 auto;
   text-align: center;
-}
-
-.news-badge {
-  display: inline-flex;
+  padding: 4rem 3rem;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  background: rgba(99, 91, 255, 0.06);
-  color: var(--primary-indigo);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 99px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
+  box-shadow: var(--shadow-xl);
 }
 
-.newsletter-content h3 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
-  color: var(--midnight-navy);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.03em;
+.newsletter-content .section-title {
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
 }
 
-.news-desc {
-  font-size: 1.0625rem;
-  color: var(--text-main);
-  max-width: 520px;
-  margin: 0 auto 2rem;
-  line-height: 1.5;
+.newsletter-content .section-subtitle {
+  margin-bottom: 2.25rem;
 }
 
 .newsletter-form {
   display: flex;
   max-width: 500px;
+  width: 100%;
   margin: 0 auto;
   gap: 0.75rem;
 }
 
 .newsletter-form input {
   flex-grow: 1;
-  padding: 12px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--midnight-navy);
-  font-size: 0.875rem;
-}
-
-.newsletter-form input:focus {
-  outline: none;
-  border-color: var(--primary-indigo);
-}
-
-.newsletter-form button {
-  background: var(--primary-indigo);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.875rem;
-  cursor: pointer;
-  box-shadow: var(--shadow-indigo);
-  transition: all 0.2s ease;
-}
-
-.newsletter-form button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(99, 91, 255, 0.35);
 }
 
 @media (max-width: 1024px) {
@@ -624,9 +570,12 @@ const inscreverNewsletter = () => {
 
 @media (max-width: 768px) {
   .blog-grid { grid-template-columns: 1fr; }
-  .newsletter-form { flex-direction: column; }
+  .blog-content-section { padding: 3.5rem 0 4.5rem; }
+  .newsletter-section { padding: 3.5rem 0; }
+  .newsletter-content { padding: 3rem 1.5rem; }
+  .newsletter-form { flex-direction: column; gap: 0.75rem; }
   .newsletter-form button { width: 100%; }
-  .full-article { padding: 1.5rem; }
-  .article-image-wrapper { height: 240px; }
+  .full-article { padding: 2rem 1.5rem; }
+  .article-hero-image { height: 280px; }
 }
 </style>
