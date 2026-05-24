@@ -6,11 +6,20 @@
 
 :root {
   /* ── Brand ── */
-  --primary:           #2563EB;
-  --primary-dark:      #1D4ED8;
-  --primary-light:     rgba(37, 99, 235, 0.08);
-  --primary-border:    rgba(37, 99, 235, 0.18);
-  --primary-shadow:    rgba(37, 99, 235, 0.22);
+  --primary:           var(--p-primary-color);
+  --primary-dark:      var(--p-primary-hover-color);
+  --primary-light:     var(--p-primary-50);
+  --primary-border:    var(--p-primary-100);
+  --primary-shadow:    var(--p-primary-200);
+
+  /* Cor azul base da landpage (igual screenshot) */
+  --brand-blue-deep:   #1e3a8a;
+  --brand-blue-mid:    #1d4ed8;
+  --brand-blue-bright: #2563eb;
+  --brand-blue-accent: #3b82f6;
+
+  /* Hero gradient — usado em todas as páginas */
+  --hero-gradient: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #2563eb 100%);
 
   /* Aliases legados */
   --primary-indigo:        var(--primary);
@@ -106,6 +115,8 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Fundo azul no html: elimina o branco que aparecia atr\u00e1s do header transparente */
+  background-color: #1e3a8a;
 }
 
 body {
@@ -138,9 +149,10 @@ ul { list-style: none; }
 img { max-width: 100%; display: block; }
 
 .container {
-  max-width: 1180px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
+  width: 100%;
 }
 
 /* ── Typography utilities ── */
@@ -216,13 +228,8 @@ img { max-width: 100%; display: block; }
 }
 
 .section-surface--hero {
-  background: linear-gradient(
-    165deg,
-    #DBEAFE 0%,
-    #EFF6FF 38%,
-    #F4F8FD 72%,
-    #FFFFFF 100%
-  );
+  background: var(--hero-gradient);
+  color: white;
 }
 
 .section-surface::before {
@@ -259,6 +266,114 @@ img { max-width: 100%; display: block; }
 .section-surface > .container {
   position: relative;
   z-index: 1;
+}
+
+/* =========================================================
+   PAGE HERO — Hero padrão azul para todas as páginas internas
+   Uso: <section class="page-hero">
+   ========================================================= */
+.page-hero {
+  position: relative;
+  background: var(--hero-gradient);
+  color: white;
+  padding: 130px 0 90px;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Efeito de pontos decorativos */
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 75%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Glow decorativo */
+.page-hero::after {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  top: -150px;
+  right: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.page-hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Textos dentro do hero */
+.page-hero .section-label {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.95);
+}
+
+.page-hero h1,
+.page-hero .page-hero__title {
+  color: white !important;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.page-hero p,
+.page-hero .page-hero__subtitle {
+  color: rgba(255,255,255,0.78) !important;
+  font-size: 1.125rem;
+  line-height: 1.65;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+/* Botao primario dentro do hero */
+.page-hero .btn-primary,
+.page-hero .btn.btn-primary {
+  background: white !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  border: none;
+}
+.page-hero .btn-primary:hover,
+.page-hero .btn.btn-primary:hover {
+  background: #f0f9ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+}
+
+.page-hero .btn-outline-link {
+  color: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  text-decoration: none;
+  font-weight: 600;
+  padding-bottom: 2px;
+  transition: all 0.2s;
+}
+.page-hero .btn-outline-link:hover {
+  color: white;
+  border-bottom-color: white;
+}
+
+/* Dark mode do page-hero — mais escuro */
+.p-dark .page-hero {
+  background: linear-gradient(135deg, #020617 0%, #0f172a 55%, #1e293b 100%) !important;
+}
+
+@media (max-width: 768px) {
+  .page-hero {
+    padding: 100px 0 60px;
+  }
 }
 
 .section-divider-wave {
@@ -348,7 +463,7 @@ input, select, textarea {
   font-size: 0.9375rem;
   color: var(--midnight-navy);
   transition: all var(--transition-base);
-  background: white;
+  background: var(--white);
   outline: none;
 }
 
@@ -364,7 +479,7 @@ input::placeholder, textarea::placeholder {
 /* ── Cards ── */
 .stripe-card,
 .premium-card {
-  background: white;
+  background: var(--white);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   padding: var(--spacing-lg);
@@ -496,3 +611,301 @@ input::placeholder, textarea::placeholder {
   70%  { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
   100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
 }
+
+/* ── Dark Mode Overrides ── */
+.p-dark {
+  --surface-base: var(--p-surface-900);
+  --surface-blue-50: var(--p-surface-950);
+  --surface-blue-75: var(--p-surface-900);
+  --surface-blue-100: var(--p-surface-800);
+  --light-bg: var(--p-surface-900);
+  --light-bg-alt: var(--p-surface-800);
+  --white: var(--p-surface-950);
+  --midnight-navy: var(--p-surface-50);
+  --dark-navy: var(--p-surface-800);
+  --slate-navy: var(--p-surface-950);
+  --border: var(--p-surface-800);
+  --text-main: var(--p-surface-300);
+  --text-muted: var(--p-surface-400);
+  --text-light: var(--p-surface-500);
+  --gray-50: var(--p-surface-900);
+  --gray-100: var(--p-surface-800);
+  --gray-200: var(--p-surface-700);
+  --gray-300: var(--p-surface-600);
+  --gray-400: var(--p-surface-500);
+  --gray-500: var(--p-surface-400);
+  --gray-600: var(--p-surface-300);
+  --gray-700: var(--p-surface-200);
+  --gray-800: var(--p-surface-100);
+  --gray-900: var(--p-surface-50);
+}
+
+.p-dark .btn-outline-dark {
+  color: var(--p-surface-50) !important;
+  border-color: var(--p-surface-700);
+}
+
+.p-dark .btn-outline-dark:hover {
+  background: var(--p-primary-50);
+  color: var(--p-primary-500) !important;
+}
+
+.p-dark .btn-white {
+  background: var(--p-surface-800);
+  color: var(--p-surface-50);
+  border: 1px solid var(--p-surface-700);
+}
+
+.p-dark .btn-white:hover {
+  background: var(--p-surface-700);
+}
+
+.p-dark .mobile-menu {
+  background: rgba(15, 23, 42, 0.98);
+  border-bottom-color: var(--p-surface-800);
+}
+
+.p-dark .mobile-link {
+  color: var(--p-surface-50) !important;
+  border-bottom-color: var(--p-surface-800);
+}
+
+.p-dark .mobile-link:hover {
+  color: var(--p-primary-400) !important;
+}
+
+.p-dark .btn-mobile-login {
+  color: var(--p-surface-50) !important;
+  border-color: var(--p-surface-800);
+}
+
+.p-dark .btn-mobile-login:hover {
+  background: var(--p-surface-800);
+}
+
+/* ── Additional Dark Mode Overrides (Genesis SaaS Style) ── */
+.p-dark {
+  background-color: var(--p-surface-950) !important;
+  color: var(--p-surface-300) !important;
+}
+
+/* Ensure all cards have dark backgrounds and readable text */
+.p-dark .benefit-card,
+.p-dark .module-card,
+.p-dark .premium-card,
+.p-dark .stripe-card,
+.p-dark .registration-card,
+.p-dark .info-card-mini,
+.p-dark .channel-card,
+.p-dark .faq-item,
+.p-dark .pricing-card,
+.p-dark .segment-card,
+.p-dark .print-card,
+.p-dark .destaque-card,
+.p-dark .depoimento-card,
+.p-dark .comparativo-card,
+.p-dark .blog-card,
+.p-dark .aprovacao-card,
+.p-dark .legal-card,
+.p-dark .toast-card,
+.p-dark .feature-card,
+.p-dark .integ-card,
+.p-dark .logo-card,
+.p-dark .card,
+.p-dark .mockup-frame {
+  background: var(--p-surface-900) !important;
+  color: var(--p-surface-300) !important;
+  border-color: var(--p-surface-800) !important;
+}
+
+.p-dark .benefit-card:hover,
+.p-dark .module-card:hover,
+.p-dark .premium-card:hover,
+.p-dark .stripe-card:hover,
+.p-dark .channel-card:hover,
+.p-dark .faq-item:hover,
+.p-dark .pricing-card:hover {
+  border-color: var(--p-primary-500) !important;
+  box-shadow: 0 10px 30px -10px var(--p-primary-950) !important;
+}
+
+/* Headings colors */
+.p-dark h1,
+.p-dark h2,
+.p-dark h3,
+.p-dark h4,
+.p-dark h5,
+.p-dark h6,
+.p-dark .section-title,
+.p-dark .hero-title,
+.p-dark .pricing-title,
+.p-dark .faq-title,
+.p-dark .contact-title,
+.p-dark .form-title {
+  color: var(--p-surface-50) !important;
+}
+
+/* Paragraphs and descriptions */
+.p-dark p,
+.p-dark span,
+.p-dark li,
+.p-dark .section-subtitle,
+.p-dark .hero-subtitle,
+.p-dark .pricing-subtitle,
+.p-dark .faq-subtitle,
+.p-dark .contact-subtitle,
+.p-dark .form-subtitle {
+  color: var(--p-surface-400);
+}
+
+/* Hero Section and gradients */
+.p-dark .section-surface--hero {
+  background: linear-gradient(
+    165deg,
+    var(--p-surface-900) 0%,
+    var(--p-surface-950) 100%
+  ) !important;
+}
+
+.p-dark .section-surface--alt {
+  background: linear-gradient(
+    180deg,
+    var(--p-surface-900) 0%,
+    var(--p-surface-950) 100%
+  ) !important;
+}
+
+/* Laptop Mockup Dark Mode */
+.p-dark .mockup-laptop__bezel {
+  background: var(--p-surface-800) !important;
+  border-color: var(--p-surface-700) !important;
+}
+
+.p-dark .mockup-laptop__base {
+  background: linear-gradient(180deg, var(--p-surface-700), var(--p-surface-900)) !important;
+}
+
+.p-dark .app-dashboard {
+  background: var(--p-surface-950) !important;
+}
+
+.p-dark .app-sidebar {
+  background: var(--p-surface-900) !important;
+  border-right-color: var(--p-surface-800) !important;
+}
+
+.p-dark .app-sidebar__logo {
+  background: var(--p-primary-600) !important;
+}
+
+.p-dark .stat-card,
+.p-dark .table-row {
+  background: var(--p-surface-900) !important;
+  border-color: var(--p-surface-800) !important;
+}
+
+.p-dark .table-row strong,
+.p-dark .stat-card__value {
+  color: var(--p-surface-50) !important;
+}
+
+.p-dark .float-card {
+  background: var(--p-surface-900) !important;
+  border-color: var(--p-surface-800) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+.p-dark .float-card strong {
+  color: var(--p-surface-50) !important;
+}
+
+/* Segments tabs and mockup */
+.p-dark .seg-tab {
+  background: var(--p-surface-900) !important;
+  border-color: var(--p-surface-800) !important;
+  color: var(--p-surface-400) !important;
+}
+
+.p-dark .seg-tab.active {
+  background: var(--p-primary-900) !important;
+  border-color: var(--p-primary-500) !important;
+  color: var(--p-primary-50) !important;
+}
+
+.p-dark .seg-mockup {
+  background: var(--p-surface-950) !important;
+  border-color: var(--p-surface-800) !important;
+}
+
+.p-dark .seg-mockup-bar {
+  background: var(--p-surface-900) !important;
+  border-bottom-color: var(--p-surface-800) !important;
+}
+
+.p-dark .seg-mockup-body {
+  background: var(--p-surface-950) !important;
+}
+
+.p-dark .smb-sidebar {
+  background: var(--p-surface-900) !important;
+  border-right-color: var(--p-surface-800) !important;
+}
+
+.p-dark .smb-stat {
+  background: var(--p-surface-900) !important;
+  border-color: var(--p-surface-800) !important;
+}
+
+.p-dark .smb-stat-value {
+  color: var(--p-surface-50) !important;
+}
+
+.p-dark .smb-item {
+  color: var(--p-surface-400) !important;
+}
+
+.p-dark .smb-item.smb-active {
+  background: var(--p-primary-900) !important;
+  color: var(--p-primary-50) !important;
+}
+
+.p-dark .smb-header {
+  color: var(--p-surface-50) !important;
+}
+
+/* ============================================================
+   CONTRASTE DA LOGOMARCA (CABECALHO)
+   ============================================================ */
+.header:not(.scrolled) .logo-wordmark {
+  color: white !important;
+}
+.header:not(.scrolled) .logo-wordmark__accent {
+  color: #60a5fa !important; /* Lighter high-contrast blue for dark background */
+}
+.header:not(.scrolled) .logo-wordmark__suffix {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Dark mode do logo padrão (ex: no rodapé ou seções normais escurecidas) */
+.p-dark .logo-wordmark {
+  color: var(--p-surface-50) !important;
+}
+.p-dark .logo-wordmark__accent {
+  color: var(--p-primary-400) !important;
+}
+.p-dark .logo-wordmark__suffix {
+  color: var(--p-surface-400) !important;
+}
+
+/* Garante contraste no header transparente em modo escuro */
+.p-dark .header:not(.scrolled) .logo-wordmark {
+  color: white !important;
+}
+.p-dark .header:not(.scrolled) .logo-wordmark__accent {
+  color: #90caf9 !important; /* Lighter blue in dark mode transparent header */
+}
+.p-dark .header:not(.scrolled) .logo-wordmark__suffix {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+

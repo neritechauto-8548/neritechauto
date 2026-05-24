@@ -12,34 +12,16 @@
           </a>
         </div>
 
-        <!-- Right: Accordion -->
+        <!-- Right: Accordion (PrimeVue Accordion Component) -->
         <div class="faq-accordion">
-          <div
-            class="faq-item"
-            :class="{ open: openIndex === i }"
-            v-for="(item, i) in faqs"
-            :key="i"
-          >
-            <button class="faq-question" @click="toggle(i)" :aria-expanded="openIndex === i">
-              <span>{{ item.q }}</span>
-              <span class="faq-chevron">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-            </button>
-            <div 
-              class="faq-answer" 
-              :style="{ 
-                maxHeight: openIndex === i ? '1000px' : '0', 
-                opacity: openIndex === i ? '1' : '0',
-                paddingTop: openIndex === i ? '1rem' : '0',
-                paddingBottom: openIndex === i ? '1.5rem' : '0'
-              }"
-            >
-              <p>{{ item.a }}</p>
-            </div>
-          </div>
+          <Accordion :value="0">
+            <AccordionPanel v-for="(item, i) in faqs" :key="i" :value="i">
+              <AccordionHeader>{{ item.q }}</AccordionHeader>
+              <AccordionContent>
+                <p class="faq-answer-text">{{ item.a }}</p>
+              </AccordionContent>
+            </AccordionPanel>
+          </Accordion>
         </div>
       </div>
     </div>
@@ -47,13 +29,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-
-const openIndex = ref(0);
-
-const toggle = (i) => {
-  openIndex.value = openIndex.value === i ? -1 : i;
-};
+import Accordion from 'primevue/accordion';
+import AccordionPanel from 'primevue/accordionpanel';
+import AccordionHeader from 'primevue/accordionheader';
+import AccordionContent from 'primevue/accordioncontent';
 
 const faqs = [
   {
@@ -123,73 +102,32 @@ const faqs = [
 .faq-accordion {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
-.faq-item {
-  background: white;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: all var(--transition-base);
-}
-
-.faq-item:hover {
-  border-color: rgba(99,91,255,0.2);
-}
-
-.faq-item.open {
-  border-color: var(--primary-indigo);
-  box-shadow: 0 0 0 1px var(--primary-indigo), var(--shadow-sm);
-}
-
-.faq-question {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--midnight-navy);
-  text-align: left;
-  gap: 1rem;
-}
-
-.faq-question:hover {
-  color: var(--primary-indigo);
-}
-
-.faq-chevron {
-  flex-shrink: 0;
-  color: var(--text-light);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-}
-
-.faq-item.open .faq-chevron {
-  transform: rotate(180deg);
-  color: var(--primary-indigo);
-}
-
-.faq-answer {
-  overflow: hidden;
-  padding: 0 1.5rem;
-  transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.3s ease,
-              padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.faq-answer p {
+.faq-answer-text {
   font-size: 0.9375rem;
   color: var(--text-muted);
   line-height: 1.7;
-  border-top: 1px solid var(--border);
-  padding-top: 1rem;
+}
+
+:deep(.p-accordionheader) {
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  color: var(--midnight-navy) !important;
+  background: var(--white) !important;
+  border-color: var(--border) !important;
+}
+
+:deep(.p-accordionpanel) {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  margin-bottom: 8px !important;
+  overflow: hidden;
+}
+
+:deep(.p-accordioncontent) {
+  background: var(--white) !important;
+  border-color: var(--border) !important;
 }
 
 /* ── Responsive ── */

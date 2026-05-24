@@ -1,6 +1,6 @@
 <template>
   <div class="legal-layout">
-    <div class="legal-hero">
+    <div class="page-hero legal-hero">
       <div class="container">
         <span class="legal-badge">Documento Legal</span>
         <h1 class="legal-title">{{ title }}</h1>
@@ -40,23 +40,22 @@ defineProps({
 
 <style scoped>
 .legal-layout {
-  background: white;
+  background: var(--white);
   min-height: 100vh;
   padding-bottom: 5rem;
 }
 
 .legal-hero {
-  background: var(--light-bg);
-  padding: 120px 0 60px;
-  border-bottom: 1px solid var(--border);
+  padding: 130px 0 60px;
   text-align: center;
 }
 
 .legal-badge {
   display: inline-block;
   padding: 4px 12px;
-  background: rgba(99,91,255,0.1);
-  color: var(--primary-indigo);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 700;
@@ -68,14 +67,14 @@ defineProps({
 .legal-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
-  color: var(--midnight-navy);
+  color: white !important;
   margin-bottom: 1rem;
   letter-spacing: -0.03em;
 }
 
 .legal-updated {
   font-size: 0.9375rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.78) !important;
 }
 
 .legal-content {

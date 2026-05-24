@@ -72,7 +72,7 @@ const currentYear = ref(new Date().getFullYear());
 
 <style scoped>
 .footer {
-  background: var(--midnight-navy);
+  background: #0b0f19;
   color: rgba(255,255,255,0.7);
 }
 

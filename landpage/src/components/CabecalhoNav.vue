@@ -1,5 +1,5 @@
 <template>
-  <header class="header" :class="{ 'scrolled': estaRolar, 'menu-open': menuMobileAberto }">
+  <header class="header" :class="{ 'scrolled': estaRolar, 'menu-open': menuMobileAberto, 'header--hidden': estaRolar }">
     <div class="container nav-container">
       <!-- Logo -->
       <LogoMarca to="/" size="md" @click="menuMobileAberto = false" />
@@ -19,6 +19,14 @@
       
       <!-- Actions (CTA Button on the right with Login closer) -->
       <div class="nav-actions">
+        <button 
+          class="btn-theme-toggle" 
+          @click="alternarTema" 
+          :aria-label="ehModoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro'"
+        >
+          <i :class="ehModoEscuro ? 'pi pi-sun' : 'pi pi-moon'"></i>
+        </button>
+
         <a :href="urlSistemaCliente" class="link-login">Login</a>
         <router-link to="/teste-gratis" class="btn-try-free" id="nav-cta-btn">
           Começar Grátis
@@ -55,6 +63,14 @@
           <a href="/#contato" class="mobile-link" @click="menuMobileAberto = false">Fale conosco</a>
         </div>
         <div class="mobile-actions">
+          <button 
+            class="btn-mobile-theme-toggle" 
+            @click="alternarTema"
+          >
+            <i :class="ehModoEscuro ? 'pi pi-sun' : 'pi pi-moon'"></i>
+            <span>{{ ehModoEscuro ? 'Modo Claro' : 'Modo Escuro' }}</span>
+          </button>
+
           <a :href="urlSistemaCliente" class="btn-mobile-login">Login</a>
           <router-link to="/teste-gratis" class="btn-mobile-cta" @click="menuMobileAberto = false">
             Começar Grátis →
@@ -72,13 +88,29 @@ import LogoMarca from './LogoMarca.vue';
 const urlSistemaCliente = import.meta.env.VITE_URL_SISTEMA_CLIENTE || '/login';
 const estaRolar = ref(false);
 const menuMobileAberto = ref(false);
+const ehModoEscuro = ref(false);
 
 const handleScroll = () => {
   estaRolar.value = window.scrollY > 40;
 };
 
+const alternarTema = () => {
+  const isDark = document.documentElement.classList.toggle('p-dark');
+  ehModoEscuro.value = isDark;
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+};
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true });
+  
+  const temaSalvo = localStorage.getItem('theme');
+  if (temaSalvo === 'dark' || (!temaSalvo && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('p-dark');
+    ehModoEscuro.value = true;
+  } else {
+    document.documentElement.classList.remove('p-dark');
+    ehModoEscuro.value = false;
+  }
 });
 
 onUnmounted(() => {
@@ -90,21 +122,26 @@ onUnmounted(() => {
 /* ── Base Header ── */
 .header {
   position: fixed;
-  top: 0;
+  top: 16px;
   left: 0;
+  right: 0;
   width: 100%;
-  padding: 20px 0;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
   background: transparent;
+  padding: 0;
+}
+
+/* Esconde ao rolar para baixo */
+.header--hidden {
+  transform: translateY(calc(-100% - 32px));
+  opacity: 0;
+  pointer-events: none;
 }
 
 .header.scrolled {
-  background: rgba(239, 246, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 14px 0;
-  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.06), 0 4px 20px rgba(37, 99, 235, 0.04);
+  top: 10px;
+  padding: 0;
 }
 
 /* ── Layout ── */
@@ -113,6 +150,31 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  background: rgba(255, 255, 255, 0.0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border: 1px solid transparent;
+  border-radius: 99px;
+  padding: 10px 24px;
+  box-shadow: none;
+  transition: all 0.35s ease;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header.scrolled .nav-container {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 30px -8px rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.12);
+  padding: 8px 24px;
+}
+
+:global(.p-dark) .header.scrolled .nav-container {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: var(--p-surface-700);
+  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Desktop Nav ── */
@@ -122,12 +184,13 @@ onUnmounted(() => {
   gap: 1.75rem;
 }
 
+/* No topo: links e logo brancos (hero azul) */
 .nav-link {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-main) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
   font-family: var(--font-body);
   display: flex;
   align-items: center;
@@ -135,7 +198,18 @@ onUnmounted(() => {
 }
 
 .nav-link:hover {
+  color: white !important;
+  opacity: 0.85;
+}
+
+/* Depois do scroll: links escuros */
+.header.scrolled .nav-link {
+  color: var(--midnight-navy) !important;
+}
+
+.header.scrolled .nav-link:hover {
   color: var(--primary) !important;
+  opacity: 1;
 }
 
 .link-login-nav {
@@ -242,24 +316,49 @@ onUnmounted(() => {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   flex-shrink: 0;
 }
 
+/* Login link: branco no topo, escuro com scroll */
+.link-login {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.link-login:hover { color: white !important; }
+.header.scrolled .link-login { color: var(--midnight-navy) !important; }
+.header.scrolled .link-login:hover { color: var(--primary) !important; }
+
+/* Btn Começar Grátis: outline branco no topo, sólido com scroll */
 .btn-try-free {
-  background: var(--primary);
+  background: rgba(255, 255, 255, 0.15);
   color: white !important;
   padding: 0.5rem 1.25rem;
   border-radius: 99px;
   font-weight: 700;
   font-size: 0.8125rem;
-  box-shadow: var(--shadow-indigo);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
   transition: all var(--transition-base);
   text-decoration: none;
+  backdrop-filter: blur(4px);
 }
 
 .btn-try-free:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: white;
   transform: translateY(-1px);
+}
+
+.header.scrolled .btn-try-free {
+  background: var(--primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-indigo);
+}
+
+.header.scrolled .btn-try-free:hover {
   background: var(--primary-dark);
   box-shadow: 0 6px 20px var(--primary-shadow);
 }
@@ -284,10 +383,12 @@ onUnmounted(() => {
   display: block;
   width: 100%;
   height: 2px;
-  background: var(--midnight-navy);
+  background: white;
   border-radius: 2px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.header.scrolled .hamburger span { background: var(--midnight-navy); }
 
 .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
@@ -297,17 +398,20 @@ onUnmounted(() => {
 .mobile-menu {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  left: 5%;
+  width: 90%;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   z-index: 999;
+  box-shadow: var(--shadow-lg);
+  margin-top: 8px;
 }
 
 .mobile-nav {
@@ -376,6 +480,59 @@ onUnmounted(() => {
   font-weight: 700;
   box-shadow: var(--shadow-indigo);
   text-decoration: none;
+}
+
+.btn-theme-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.header.scrolled .btn-theme-toggle {
+  color: var(--text-main);
+}
+
+.header.scrolled .btn-theme-toggle:hover {
+  background: var(--p-surface-100);
+  color: var(--primary);
+}
+
+:global(.p-dark) .btn-theme-toggle:hover {
+  background: var(--p-surface-800);
+}
+
+.btn-mobile-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--midnight-navy);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+:global(.p-dark) .btn-mobile-theme-toggle {
+  border-color: var(--p-surface-800);
+  color: var(--p-surface-50);
 }
 
 /* ── Responsive ── */

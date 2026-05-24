@@ -1,7 +1,7 @@
 <template>
   <main class="pagina-precos">
     <!-- Hero + planos + garantias em um bloco contínuo -->
-    <section class="precos-top section-surface section-surface--hero section-surface--pattern">
+    <section class="page-hero precos-top">
       <div class="container">
         <header class="precos-intro aos-init">
           <span class="section-label">Preços</span>
@@ -96,12 +96,13 @@ onMounted(() => {
 
 <style scoped>
 .pagina-precos {
-  padding-top: 80px;
+  /* sem padding-top: o page-hero cuida do espaço pelo topo */
 }
 
 /* ── Bloco principal compacto ── */
 .precos-top {
-  padding: 1.5rem 0 2rem;
+  /* page-hero já tem padding: 130px 0 90px */
+  padding-bottom: 3rem;
 }
 
 .precos-intro {
@@ -113,7 +114,7 @@ onMounted(() => {
 .precos-intro__title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  color: var(--midnight-navy);
+  color: white !important;
   letter-spacing: -0.04em;
   line-height: 1.12;
   margin-bottom: 0.5rem;
@@ -121,7 +122,7 @@ onMounted(() => {
 
 .precos-intro__subtitle {
   font-size: 0.9375rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.78) !important;
   margin-bottom: 1rem;
 }
 
@@ -136,11 +137,12 @@ onMounted(() => {
 .precos-trust li {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-main);
-  background: white;
-  border: 1px solid var(--border);
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
   padding: 6px 12px;
   border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
 }
 
 .valor-grid {

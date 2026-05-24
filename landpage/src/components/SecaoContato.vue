@@ -45,28 +45,26 @@
           <form class="contact-form" @submit.prevent="handleSubmit">
             <div class="form-group">
               <label for="contact-name">Nome completo</label>
-              <input id="contact-name" type="text" placeholder="Ex: João Silva" required v-model="form.name" />
+              <InputText id="contact-name" placeholder="Ex: João Silva" required v-model="form.name" />
             </div>
 
             <div class="form-row">
               <div class="form-group">
                 <label for="contact-email">E-mail</label>
-                <input id="contact-email" type="email" placeholder="joao@oficina.com.br" required v-model="form.email" />
+                <InputText id="contact-email" type="email" placeholder="joao@oficina.com.br" required v-model="form.email" />
               </div>
               <div class="form-group">
                 <label for="contact-phone">WhatsApp</label>
-                <input id="contact-phone" type="tel" placeholder="(11) 99999-9999" required v-model="form.phone" />
+                <InputText id="contact-phone" type="tel" placeholder="(11) 99999-9999" required v-model="form.phone" />
               </div>
             </div>
 
             <div class="form-group">
               <label for="contact-message">Como podemos ajudar?</label>
-              <textarea id="contact-message" placeholder="Ex: Tenho 2 mecânicos, quero organizar as OS e saber o financeiro do mês." rows="4" v-model="form.message"></textarea>
+              <Textarea id="contact-message" placeholder="Ex: Tenho 2 mecânicos, quero organizar as OS e saber o financeiro do mês." rows="4" autoResize v-model="form.message"></Textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg btn-submit" :disabled="submitted">
-              {{ submitted ? 'Mensagem enviada! ✓' : 'Enviar Mensagem →' }}
-            </button>
+            <Button type="submit" class="btn-submit" :disabled="submitted" :label="submitted ? 'Mensagem enviada! ✓' : 'Enviar Mensagem'" icon="pi pi-send" iconPos="right" />
 
             <p class="form-note">Respondemos em até 2 horas úteis via WhatsApp ou e-mail.</p>
           </form>
@@ -79,6 +77,9 @@
 
 <script setup>
 import { ref } from 'vue';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
+import Button from 'primevue/button';
 
 const form = ref({ name: '', email: '', phone: '', message: '' });
 const submitted = ref(false);
@@ -96,7 +97,7 @@ const handleSubmit = () => {
 <style scoped>
 .contact {
   padding: var(--spacing-2xl) 0;
-  background: white;
+  background: var(--white);
 }
 
 .contact-inner {
@@ -137,7 +138,7 @@ const handleSubmit = () => {
   border-radius: var(--radius-lg);
   text-decoration: none;
   transition: all var(--transition-base);
-  background: white;
+  background: var(--white);
 }
 
 .channel-card:hover {

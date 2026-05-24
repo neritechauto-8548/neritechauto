@@ -2,7 +2,7 @@
   <main class="pagina-funcionalidades">
 
     <!-- ── Hero ── -->
-    <section class="func-hero section-surface section-surface--hero section-surface--pattern">
+    <section class="page-hero">
       <div class="container">
         <header class="func-intro aos-init">
           <span class="section-label">Funcionalidades</span>
@@ -270,10 +270,6 @@ const integrations = [
 
 <style scoped>
 /* ── Hero ── */
-.func-hero {
-  padding: 8rem 0 5rem;
-}
-
 .func-intro {
   text-align: center;
   max-width: 720px;
@@ -286,7 +282,7 @@ const integrations = [
 .func-intro__title {
   font-size: clamp(2.25rem, 5vw, 3.25rem);
   font-weight: 800;
-  color: var(--midnight-navy);
+  color: white !important;
   line-height: 1.1;
   letter-spacing: -0.04em;
   margin-bottom: 1rem;
@@ -294,7 +290,7 @@ const integrations = [
 
 .func-intro__subtitle {
   font-size: 1.125rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.78) !important;
   line-height: 1.65;
   max-width: 560px;
   margin-bottom: 2rem;
@@ -307,15 +303,6 @@ const integrations = [
   flex-wrap: wrap;
   justify-content: center;
 }
-
-.btn-outline-link {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-.btn-outline-link:hover { opacity: 0.75; }
 
 /* ── Módulos ── */
 .func-modulos { padding: 4rem 0 6rem; }
@@ -565,7 +552,6 @@ const integrations = [
 }
 
 @media (max-width: 640px) {
-  .func-hero { padding: 7rem 0 3rem; }
   .func-actions { flex-direction: column; align-items: stretch; }
   .integrations-grid { grid-template-columns: 1fr; }
   .cta-actions { flex-direction: column; align-items: stretch; }

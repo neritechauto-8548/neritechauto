@@ -2,7 +2,7 @@
   <main class="blog-page">
     <!-- Seção de Artigo Completo -->
     <div v-if="idArtigoAtivo">
-      <section class="section-surface section-surface--hero section-surface--pattern blog-detail-section">
+      <section class="page-hero blog-detail-section">
         <div class="container">
           <div class="article-inner aos-init">
             <router-link to="/blog" class="btn-back">
@@ -48,12 +48,12 @@
     <!-- Lista de Posts Padrão (se não houver ID na rota) -->
     <div v-else>
       <!-- Hero Section -->
-      <section class="section-surface section-surface--hero section-surface--pattern blog-hero">
+      <section class="page-hero blog-hero">
         <div class="container">
           <header class="section-header aos-init">
             <span class="section-label">Central de Inteligência</span>
-            <h1 class="section-title">Central de <span class="text-gradient">Conhecimento</span></h1>
-            <p class="section-subtitle">
+            <h1 class="section-title" style="color: white !important;">Central de <span style="color: rgba(255,255,255,0.85);">Conhecimento</span></h1>
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.75) !important;">
               Insights estratégicos, finanças e tecnologia para oficinas que buscam o topo do mercado.
             </p>
           </header>

@@ -2,7 +2,7 @@
   <main class="pagina-sobre">
 
     <!-- ── Hero ── -->
-    <section class="sobre-hero section-surface section-surface--hero section-surface--pattern">
+    <section class="page-hero sobre-hero">
       <div class="container">
         <header class="sobre-intro aos-init">
           <span class="section-label">Sobre nós</span>
@@ -128,11 +128,11 @@ const valores = [
 <style scoped>
 /* ── Hero ── */
 .sobre-hero {
-  padding: 8rem 0 5rem;
+  padding: 130px 0 90px;
+  text-align: center;
 }
 
 .sobre-intro {
-  text-align: center;
   max-width: 760px;
   margin: 0 auto;
   display: flex;
@@ -143,7 +143,7 @@ const valores = [
 .sobre-intro__title {
   font-size: clamp(2.25rem, 5vw, 3.25rem);
   font-weight: 800;
-  color: var(--midnight-navy);
+  color: white !important;
   line-height: 1.1;
   letter-spacing: -0.04em;
   margin-bottom: 1rem;
@@ -151,7 +151,7 @@ const valores = [
 
 .sobre-intro__subtitle {
   font-size: 1.125rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.78) !important;
   line-height: 1.65;
   max-width: 600px;
 }

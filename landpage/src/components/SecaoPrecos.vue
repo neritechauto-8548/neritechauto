@@ -10,50 +10,54 @@
       </div>
 
       <div class="pricing-grid">
-        <div
+        <Card
           v-for="plan in plans"
           :key="plan.id"
           class="pricing-card"
           :class="{ featured: plan.featured }"
         >
-          <!-- Popular badge -->
-          <div v-if="plan.featured" class="popular-tag">
-            ⭐ Mais Popular
-          </div>
-
-          <div class="plan-top">
-            <div class="plan-name">{{ plan.name }}</div>
-            <p class="plan-desc">{{ plan.description }}</p>
-          </div>
-
-          <div class="plan-price-block">
-            <div class="plan-price">
-              <span class="currency">R$</span>
-              <span class="amount">{{ plan.price }}</span>
-              <span class="period">/mês</span>
+          <template #content>
+            <!-- Popular badge -->
+            <div v-if="plan.featured" class="popular-tag">
+              ⭐ Mais Popular
             </div>
-          </div>
 
-          <button
-            class="btn btn-plan"
-            :class="plan.featured ? 'btn-primary' : 'btn-outline-plan'"
-            @click="initiateCheckout(plan.id)"
-          >
-            Começar grátis por 30 dias →
-          </button>
+            <div class="plan-top">
+              <div class="plan-name">{{ plan.name }}</div>
+              <p class="plan-desc">{{ plan.description }}</p>
+            </div>
 
-          <div class="plan-divider"></div>
+            <div class="plan-price-block">
+              <div class="plan-price">
+                <span class="currency">R$</span>
+                <span class="amount">{{ plan.price }}</span>
+                <span class="period">/mês</span>
+              </div>
+            </div>
 
-          <div class="plan-features">
-            <p class="features-label">O que está incluído:</p>
-            <ul>
-              <li v-for="f in plan.features" :key="f">
-                <span class="check-icon">✓</span>
-                {{ f }}
-              </li>
-            </ul>
-          </div>
-        </div>
+            <Button
+              class="btn-plan"
+              :severity="plan.featured ? 'primary' : 'secondary'"
+              :outlined="!plan.featured"
+              @click="initiateCheckout(plan.id)"
+              rounded
+            >
+              Começar grátis por 30 dias <i class="pi pi-arrow-right ml-1"></i>
+            </Button>
+
+            <div class="plan-divider"></div>
+
+            <div class="plan-features">
+              <p class="features-label">O que está incluído:</p>
+              <ul>
+                <li v-for="f in plan.features" :key="f">
+                  <span class="check-icon">✓</span>
+                  {{ f }}
+                </li>
+              </ul>
+            </div>
+          </template>
+        </Card>
       </div>
 
       <!-- Bottom trust -->
@@ -71,6 +75,8 @@
 
 <script setup>
 import { ref } from 'vue';
+import Card from 'primevue/card';
+import Button from 'primevue/button';
 
 defineProps({
   hideHeader: { type: Boolean, default: false },
@@ -219,15 +225,11 @@ const initiateCheckout = async (planId) => {
 
 /* ── Card ── */
 .pricing-card {
-  background: white;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 2.5rem 2rem;
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--radius-xl) !important;
+  transition: var(--transition-base) !important;
   position: relative;
-  transition: var(--transition-base);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  background: var(--white) !important;
 }
 
 .pricing-card:hover {
@@ -237,9 +239,16 @@ const initiateCheckout = async (planId) => {
 }
 
 .pricing-card.featured {
-  border-color: var(--primary);
+  border-color: var(--primary) !important;
   box-shadow: 0 30px 60px -15px var(--primary-shadow);
-  background: linear-gradient(180deg, rgba(37, 99, 235, 0.04) 0%, white 100%);
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.04) 0%, var(--white) 100%) !important;
+}
+
+:deep(.p-card-body) {
+  padding: 2.5rem 2rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .popular-tag {
@@ -309,41 +318,12 @@ const initiateCheckout = async (planId) => {
   font-weight: 600;
 }
 
-/* CTA */
 .btn-plan {
   width: 100%;
-  padding: 0.875rem;
-  border-radius: 99px;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
+  padding: 0.875rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
   font-family: var(--font-body);
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  box-shadow: var(--shadow-indigo);
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
-.btn-outline-plan {
-  background: transparent;
-  color: var(--midnight-navy);
-  border: 1.5px solid var(--border);
-  transition: all var(--transition-base);
-}
-
-.btn-outline-plan:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-light);
 }
 
 /* Features list */

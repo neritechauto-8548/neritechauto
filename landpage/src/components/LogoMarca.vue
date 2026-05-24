@@ -73,12 +73,20 @@ defineProps({
   color: var(--midnight-navy);
   letter-spacing: -0.04em;
   line-height: 1;
+  transition: color var(--transition-base);
 }
 
 .logo-marca--sm .logo-wordmark { font-size: 1.0625rem; }
 .logo-marca--md .logo-wordmark { font-size: 1.2rem; }
 .logo-marca--lg .logo-wordmark { font-size: 1.375rem; }
 
-.logo-wordmark__accent { color: var(--primary); }
-.logo-wordmark__suffix { font-weight: 700; color: var(--text-muted); }
+.logo-wordmark__accent { 
+  color: var(--primary); 
+  transition: color var(--transition-base);
+}
+.logo-wordmark__suffix { 
+  font-weight: 700; 
+  color: var(--text-muted); 
+  transition: color var(--transition-base);
+}
 </style>
