@@ -16,12 +16,6 @@
       <button id="btn-limpar-filtros" class="btn btn-ghost" (click)="limparFiltros()">
         <mat-icon>filter_alt_off</mat-icon> Limpar
       </button>
-      <button id="btn-exportar-csv" class="btn btn-outline" (click)="exportarCSV()">
-        <mat-icon>download</mat-icon> CSV
-      </button>
-      <button id="btn-print-css" class="btn btn-outline" (click)="imprimir()" title="Impressão rápida via navegador">
-        <mat-icon>print</mat-icon> Imprimir
-      </button>
       <button id="btn-gerar-pdf-jasper" class="btn btn-primary" (click)="imprimirJasper()" [disabled]="pdfLoading || isLoading">
         <span *ngIf="pdfLoading" class="btn-spinner"></span>
         <mat-icon *ngIf="!pdfLoading">picture_as_pdf</mat-icon>
@@ -32,11 +26,15 @@
 
   <!-- Stats Cards -->
   <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon si-blue"><mat-icon>group</mat-icon></div>
-      <div><p class="stat-lbl">Total</p><p class="stat-val">{{ stats.total }}</p></div>
+    <div class="stat-card" *ngIf="tipoRelatorio === 'VISITAS'">
+      <div class="stat-icon si-green"><mat-icon>monetization_on</mat-icon></div>
+      <div><p class="stat-lbl">Valor Total Gasto</p><p class="stat-val">{{ totalValorVisitas | currency:'BRL':'symbol':'1.2-2' }}</p></div>
     </div>
     <div class="stat-card">
+      <div class="stat-icon si-blue"><mat-icon>group</mat-icon></div>
+      <div><p class="stat-lbl">{{ tipoRelatorio === 'VISITAS' ? 'Total Visitas' : 'Total Clientes' }}</p><p class="stat-val">{{ stats.total }}</p></div>
+    </div>
+    <div class="stat-card" *ngIf="tipoRelatorio !== 'VISITAS'">
       <div class="stat-icon si-green"><mat-icon>check_circle</mat-icon></div>
       <div>
         <p class="stat-lbl">Ativos</p>
@@ -44,11 +42,11 @@
         <p class="stat-pct" *ngIf="stats.total>0">{{ (stats.ativos/stats.total*100)|number:'1.0-0' }}%</p>
       </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" *ngIf="tipoRelatorio !== 'VISITAS'">
       <div class="stat-icon si-amber"><mat-icon>pause_circle</mat-icon></div>
       <div><p class="stat-lbl">Inativos</p><p class="stat-val">{{ stats.inativos }}</p></div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" *ngIf="tipoRelatorio !== 'VISITAS'">
       <div class="stat-icon si-red"><mat-icon>block</mat-icon></div>
       <div><p class="stat-lbl">Bloqueados</p><p class="stat-val">{{ stats.bloqueados }}</p></div>
     </div>
@@ -66,8 +64,13 @@
   <div class="filters-panel">
     <p class="filters-title"><mat-icon class="fi-sm">tune</mat-icon> Filtros do Relatório</p>
 
-    <!-- Linha 1: Busca + Status + Tipo + Origem -->
+    <!-- Linha 1: Tipo + Busca + Status + Tipo + Origem -->
     <div class="filters-row">
+      <div class="filter-sel" style="min-width: 220px;">
+        <p-select id="sel-tipo-relatorio" [options]="tipoRelatorioOptions" [(ngModel)]="tipoRelatorio"
+          optionLabel="label" optionValue="value" placeholder="Tipo de Relatório" styleClass="p-select-sm"
+          (onChange)="gerarRelatorio()" />
+      </div>
       <div class="filter-search">
         <mat-icon class="fi">search</mat-icon>
         <input id="input-busca-relatorio" type="text" class="filter-input"
@@ -76,31 +79,34 @@
       </div>
       <div class="filter-sel">
         <p-select id="sel-status" [options]="statusOptions" [(ngModel)]="filtroStatus"
-          optionLabel="label" optionValue="value" placeholder="Status" styleClass="p-select-sm" />
+          optionLabel="label" optionValue="value" placeholder="Status" styleClass="p-select-sm"
+          (onChange)="gerarRelatorio()" />
       </div>
       <div class="filter-sel">
         <p-select id="sel-tipo" [options]="tipoOptions" [(ngModel)]="filtroTipo"
-          optionLabel="label" optionValue="value" placeholder="Tipo" styleClass="p-select-sm" />
+          optionLabel="label" optionValue="value" placeholder="Tipo" styleClass="p-select-sm"
+          (onChange)="gerarRelatorio()" />
       </div>
       <div class="filter-sel">
         <p-select id="sel-origem" [options]="origemOptions" [(ngModel)]="filtroOrigem"
-          optionLabel="label" optionValue="value" placeholder="Origem" styleClass="p-select-sm" />
+          optionLabel="label" optionValue="value" placeholder="Origem" styleClass="p-select-sm"
+          (onChange)="gerarRelatorio()" />
       </div>
     </div>
 
-    <!-- Linha 2: Período de Cadastro + Botão -->
+    <!-- Linha 2: Período + Botão -->
     <div class="filters-row filters-row--secondary">
       <div class="filter-group-label">
         <mat-icon class="fi-sm">calendar_today</mat-icon>
-        <span>Período de Cadastro:</span>
+        <span>Período:</span>
       </div>
       <div class="filter-date">
         <label class="date-lbl">De</label>
-        <input id="input-data-inicio" type="date" class="date-input" [(ngModel)]="dataInicio" />
+        <input id="input-data-inicio" type="date" class="date-input" [(ngModel)]="dataInicio" (change)="gerarRelatorio()" />
       </div>
       <div class="filter-date">
         <label class="date-lbl">Até</label>
-        <input id="input-data-fim" type="date" class="date-input" [(ngModel)]="dataFim" />
+        <input id="input-data-fim" type="date" class="date-input" [(ngModel)]="dataFim" (change)="gerarRelatorio()" />
       </div>
 
       <button id="btn-gerar" class="btn btn-primary btn-gerar" (click)="gerarRelatorio()" [disabled]="isLoading">
@@ -112,10 +118,7 @@
     <p class="filters-info" *ngIf="!isLoading">
       <mat-icon class="fi-sm">filter_list</mat-icon>
       {{ filtrosAtivos }} —
-      <strong>{{ clientes.length }}</strong> de <strong>{{ totalElements }}</strong> registros carregados
-      <span class="info-tip" *ngIf="dataInicio || dataFim">
-        · Filtros de data aplicados apenas ao PDF
-      </span>
+      <strong>{{ clientes.length }}</strong> registros carregados
     </p>
   </div>
 
@@ -126,47 +129,82 @@
     </div>
     <div *ngIf="!isLoading && clientes.length===0" class="state-center">
       <mat-icon>search_off</mat-icon>
-      <p>Nenhum cliente encontrado com os filtros selecionados.</p>
+      <p>Nenhum registro encontrado com os filtros selecionados.</p>
       <button class="btn btn-outline" (click)="limparFiltros()">Limpar filtros</button>
     </div>
+    
     <table class="data-table" *ngIf="!isLoading && clientes.length>0">
       <thead>
-        <tr>
+        <!-- Columns for CADASTRADOS & INATIVOS -->
+        <tr *ngIf="tipoRelatorio === 'CADASTRADOS' || tipoRelatorio === 'INATIVOS'">
           <th class="th-num">#</th>
-          <th>Nome / Razão Social</th>
-          <th>CPF / CNPJ</th>
-          <th>Tipo</th>
-          <th>E-mail</th>
-          <th>Origem</th>
-          <th>Status</th>
+          <th>Nome</th>
+          <th>Endereço</th>
+          <th>Telefones</th>
+          <th>Ticket Médio</th>
+          <th>Última Visita</th>
+          <th>Nº OS</th>
+          <th>Data Cadastro</th>
+        </tr>
+        <!-- Columns for VISITAS -->
+        <tr *ngIf="tipoRelatorio === 'VISITAS'">
+          <th class="th-num">#</th>
+          <th>Nome</th>
+          <th>Endereço</th>
+          <th>Telefones</th>
+          <th>Nº OS</th>
+          <th>OS (Serviços)</th>
+          <th>Data OS</th>
+          <th>Valor Gasto</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let c of clientes; let i=index" [class.row-blocked]="c.status==='BLOQUEADO'">
-          <td class="th-num td-muted">{{ i+1 }}</td>
-          <td>
-            <div class="av-name">
-              <div class="avatar" [class.avatar--pj]="c.tipoCliente==='PESSOA_JURIDICA'">
-                {{ getNome(c).charAt(0).toUpperCase() }}
+        <!-- Rows for CADASTRADOS & INATIVOS -->
+        <ng-container *ngIf="tipoRelatorio === 'CADASTRADOS' || tipoRelatorio === 'INATIVOS'">
+          <tr *ngFor="let c of clientes; let i=index" [class.row-blocked]="c.status==='Bloqueado' || c.status==='BLOQUEADO'">
+            <td class="th-num td-muted">{{ i+1 }}</td>
+            <td>
+              <div class="av-name">
+                <div class="avatar" [class.avatar--pj]="isPessoaJuridica(c.documento)">
+                  {{ c.nome?.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <strong>{{ c.nome }}</strong>
+                  <div class="td-sub-info text-xs text-muted">{{ c.documento }}</div>
+                </div>
               </div>
-              <span>{{ getNome(c) }}</span>
-            </div>
-          </td>
-          <td class="mono td-muted">{{ getDoc(c) }}</td>
-          <td>
-            <span class="tipo-badge" [class.tipo-pj]="c.tipoCliente === 'PESSOA_JURIDICA'">
-              <mat-icon>{{ c.tipoCliente === 'PESSOA_JURIDICA' ? 'business' : 'person' }}</mat-icon>
-              {{ (c.tipoCliente ? TipoClienteLabels[c.tipoCliente] : '') || c.tipoCliente || '—' }}
-            </span>
-          </td>
-          <td class="td-muted">{{ c.email || '—' }}</td>
-          <td class="td-muted">{{ getOrigemLabel(c.origemCliente) }}</td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusClass(c.status||'')">
-              {{ getStatusLabel(c.status) }}
-            </span>
-          </td>
-        </tr>
+            </td>
+            <td class="td-muted">{{ c.endereco || '—' }}</td>
+            <td class="td-muted">{{ c.telefones || '—' }}</td>
+            <td class="mono font-semibold">{{ (c.ticketMedio || 0) | currency:'BRL':'symbol':'1.2-2' }}</td>
+            <td class="td-muted">{{ c.ultimaVisita || '—' }}</td>
+            <td class="th-num">{{ c.numeroOS || 0 }}</td>
+            <td class="td-muted">{{ c.dataCadastro || '—' }}</td>
+          </tr>
+        </ng-container>
+        <!-- Rows for VISITAS -->
+        <ng-container *ngIf="tipoRelatorio === 'VISITAS'">
+          <tr *ngFor="let c of clientes; let i=index" [class.row-blocked]="c.status==='Bloqueado' || c.status==='BLOQUEADO'">
+            <td class="th-num td-muted">{{ i+1 }}</td>
+            <td>
+              <div class="av-name">
+                <div class="avatar" [class.avatar--pj]="isPessoaJuridica(c.documento)">
+                  {{ c.nome?.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <strong>{{ c.nome }}</strong>
+                  <div class="td-sub-info text-xs text-muted">{{ c.documento }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="td-muted">{{ c.endereco || '—' }}</td>
+            <td class="td-muted">{{ c.telefones || '—' }}</td>
+            <td class="mono font-semibold text-primary">{{ c.numeroOSVisita || '—' }}</td>
+            <td class="td-muted" title="{{ c.osDescricao }}">{{ c.osDescricao || '—' }}</td>
+            <td class="td-muted">{{ c.dataOS || '—' }}</td>
+            <td class="mono font-semibold">{{ (c.valorGastoOS || 0) | currency:'BRL':'symbol':'1.2-2' }}</td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
   </div>
@@ -184,38 +222,89 @@
       </div>
     </div>
     <div class="ph-center">
-      <div class="ph-title">Relatório de Clientes</div>
+      <div class="ph-title">
+        <span *ngIf="tipoRelatorio === 'CADASTRADOS'">RELATÓRIO DE CLIENTES CADASTRADOS {{ periodoFormatado }}</span>
+        <span *ngIf="tipoRelatorio === 'VISITAS'">RELATÓRIO DE VISITAS DE CLIENTES {{ periodoFormatado }}</span>
+        <span *ngIf="tipoRelatorio === 'INATIVOS'">RELATÓRIO DE CLIENTES INATIVOS / SEM VISITAS {{ periodoFormatado }}</span>
+      </div>
       <div class="ph-meta">Emitido em {{ dataGeracaoFormatada }} · {{ filtrosAtivos }}</div>
     </div>
     <div class="ph-stats">
-      <div class="ph-stat"><span class="ph-sv">{{ stats.total }}</span><span class="ph-sl">Total</span></div>
-      <div class="ph-stat"><span class="ph-sv green">{{ stats.ativos }}</span><span class="ph-sl">Ativos</span></div>
-      <div class="ph-stat"><span class="ph-sv amber">{{ stats.inativos }}</span><span class="ph-sl">Inativos</span></div>
-      <div class="ph-stat"><span class="ph-sv red">{{ stats.bloqueados }}</span><span class="ph-sl">Bloqueados</span></div>
+      <div class="ph-stat" *ngIf="tipoRelatorio === 'VISITAS'">
+        <span class="ph-sv green">{{ totalValorVisitas | currency:'BRL':'symbol':'1.2-2' }}</span>
+        <span class="ph-sl">Total Gasto</span>
+      </div>
+      <div class="ph-stat">
+        <span class="ph-sv">{{ stats.total }}</span>
+        <span class="ph-sl">{{ tipoRelatorio === 'VISITAS' ? 'Visitas' : 'Total' }}</span>
+      </div>
+      <div class="ph-stat" *ngIf="tipoRelatorio !== 'VISITAS'">
+        <span class="ph-sv green">{{ stats.ativos }}</span>
+        <span class="ph-sl">Ativos</span>
+      </div>
+      <div class="ph-stat" *ngIf="tipoRelatorio !== 'VISITAS'">
+        <span class="ph-sv amber">{{ stats.inativos }}</span>
+        <span class="ph-sl">Inativos</span>
+      </div>
+      <div class="ph-stat" *ngIf="tipoRelatorio !== 'VISITAS'">
+        <span class="ph-sv red">{{ stats.bloqueados }}</span>
+        <span class="ph-sl">Bloqueados</span>
+      </div>
     </div>
   </header>
   <div class="ph-rule"></div>
   <table class="pt">
     <thead>
-      <tr>
-        <th>#</th><th>Nome / Razão Social</th><th>CPF / CNPJ</th>
-        <th>Tipo</th><th>E-mail</th><th>Origem</th><th>Status</th>
+      <!-- Columns for CADASTRADOS & INATIVOS -->
+      <tr *ngIf="tipoRelatorio === 'CADASTRADOS' || tipoRelatorio === 'INATIVOS'">
+        <th>#</th>
+        <th>Nome</th>
+        <th>Endereço</th>
+        <th>Telefones</th>
+        <th>Ticket Médio</th>
+        <th>Última Visita</th>
+        <th>Nº OS</th>
+        <th>Data Cadastro</th>
+      </tr>
+      <!-- Columns for VISITAS -->
+      <tr *ngIf="tipoRelatorio === 'VISITAS'">
+        <th>#</th>
+        <th>Nome</th>
+        <th>Endereço</th>
+        <th>Telefones</th>
+        <th>Nº OS</th>
+        <th>OS (Serviços)</th>
+        <th>Data OS</th>
+        <th>Valor Gasto</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let c of clientes; let i=index">
-        <td>{{ i+1 }}</td>
-        <td><strong>{{ getNome(c) }}</strong></td>
-        <td class="mono">{{ getDoc(c) }}</td>
-        <td>{{ TipoClienteLabels[c.tipoCliente] || c.tipoCliente }}</td>
-        <td>{{ c.email || '—' }}</td>
-        <td>{{ getOrigemLabel(c.origemCliente) }}</td>
-        <td>
-          <span class="ps" [ngClass]="'ps--'+(c.status||'ATIVO').toLowerCase()">
-            {{ getStatusLabel(c.status) }}
-          </span>
-        </td>
-      </tr>
+      <!-- Rows for CADASTRADOS & INATIVOS -->
+      <ng-container *ngIf="tipoRelatorio === 'CADASTRADOS' || tipoRelatorio === 'INATIVOS'">
+        <tr *ngFor="let c of clientes; let i=index">
+          <td>{{ i+1 }}</td>
+          <td><strong>{{ c.nome }}</strong><br/><small class="mono">{{ c.documento }}</small></td>
+          <td>{{ c.endereco || '—' }}</td>
+          <td>{{ c.telefones || '—' }}</td>
+          <td class="mono font-semibold">{{ (c.ticketMedio || 0) | currency:'BRL':'symbol':'1.2-2' }}</td>
+          <td>{{ c.ultimaVisita || '—' }}</td>
+          <td>{{ c.numeroOS || 0 }}</td>
+          <td>{{ c.dataCadastro || '—' }}</td>
+        </tr>
+      </ng-container>
+      <!-- Rows for VISITAS -->
+      <ng-container *ngIf="tipoRelatorio === 'VISITAS'">
+        <tr *ngFor="let c of clientes; let i=index">
+          <td>{{ i+1 }}</td>
+          <td><strong>{{ c.nome }}</strong><br/><small class="mono">{{ c.documento }}</small></td>
+          <td>{{ c.endereco || '—' }}</td>
+          <td>{{ c.telefones || '—' }}</td>
+          <td class="mono font-semibold">{{ c.numeroOSVisita || '—' }}</td>
+          <td>{{ c.osDescricao || '—' }}</td>
+          <td>{{ c.dataOS || '—' }}</td>
+          <td class="mono font-semibold">{{ (c.valorGastoOS || 0) | currency:'BRL':'symbol':'1.2-2' }}</td>
+        </tr>
+      </ng-container>
     </tbody>
   </table>
   <footer class="pf">
@@ -224,6 +313,6 @@
       Emitido em {{ dataGeracaoFormatada }} · {{ filtrosAtivos }}
     </div>
     <div class="pf-center"><span class="pf-conf">CONFIDENCIAL</span></div>
-    <div class="pf-right">Total: <strong>{{ stats.total }} clientes</strong></div>
+    <div class="pf-right">Total: <strong>{{ stats.total }} {{ tipoRelatorio === 'VISITAS' ? 'visitas' : 'clientes' }}</strong></div>
   </footer>
 </div>

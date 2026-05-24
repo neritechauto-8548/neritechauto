@@ -3,10 +3,7 @@
     <SecaoPrincipal />
     <SecaoBeneficios />
     <SecaoPrints />
-    <SecaoModulos />
-    <SecaoPortalCliente />
     <SecaoAprovacao />
-    <SecaoFinanceiro />
     <SecaoSegmentos />
     <SecaoVantagens />
     <SecaoPrecos />
@@ -15,13 +12,12 @@
 
     <section class="final-cta section-surface section-surface--alt" id="cta-final">
       <div class="container cta-content aos-init">
-        <span class="section-label">Comece hoje</span>
+        <span class="section-label">Começar agora</span>
         <h2 class="cta-title">
-          Pronto para organizar sua oficina?
+          Sua oficina mais organizada em horas, não dias.
         </h2>
         <p class="cta-desc">
-          Modernize sua gestão com uma plataforma profissional, simples e feita para o setor automotivo.
-          Teste grátis por 30 dias — sem cartão de crédito.
+          Configure o sistema hoje, cadastre seus clientes e comece a emitir OS digitais ainda esta semana — sem burocracia e sem treinamento complicado.
         </p>
         <div class="cta-actions">
           <router-link to="/teste-gratis" class="btn-cta-primary" id="home-cta-main">
@@ -29,10 +25,15 @@
             <span class="cta-arrow">→</span>
           </router-link>
           <a href="/#contato" class="btn-cta-secondary" id="home-cta-contact">
-            Falar com especialista
+            Falar com a equipe
           </a>
         </div>
-        <p class="cta-micro">Sem cartão · Configuração rápida · Cancele quando quiser</p>
+        <div class="cta-guarantees">
+          <span><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> 30 dias grátis</span>
+          <span><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Sem cartão de crédito</span>
+          <span><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Cancele quando quiser</span>
+          <span>🇧🇷 Suporte em português</span>
+        </div>
       </div>
     </section>
 
@@ -44,10 +45,7 @@
 import SecaoPrincipal    from '../components/SecaoPrincipal.vue';
 import SecaoBeneficios   from '../components/SecaoBeneficios.vue';
 import SecaoPrints       from '../components/SecaoPrints.vue';
-import SecaoModulos      from '../components/SecaoModulos.vue';
-import SecaoPortalCliente from '../components/SecaoPortalCliente.vue';
 import SecaoAprovacao    from '../components/SecaoAprovacao.vue';
-import SecaoFinanceiro   from '../components/SecaoFinanceiro.vue';
 import SecaoSegmentos    from '../components/SecaoSegmentos.vue';
 import SecaoVantagens    from '../components/SecaoVantagens.vue';
 import SecaoPrecos       from '../components/SecaoPrecos.vue';
@@ -140,10 +138,26 @@ useScrollAnimation();
   background: var(--primary-light);
 }
 
-.cta-micro {
+.cta-guarantees {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
   font-size: 0.8125rem;
-  color: var(--text-light);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cta-guarantees span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cta-guarantees svg {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {

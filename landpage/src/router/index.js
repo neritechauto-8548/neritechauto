@@ -3,6 +3,8 @@ import PaginaHome from '../views/PaginaHome.vue';
 import PaginaTeste from '../views/PaginaTeste.vue';
 import PaginaPrecos from '../views/PaginaPrecos.vue';
 import PaginaBlog from '../views/PaginaBlog.vue';
+import PaginaFuncionalidades from '../views/PaginaFuncionalidades.vue';
+import PaginaSobre from '../views/PaginaSobre.vue';
 import PoliticaPrivacidade from '../views/legal/PoliticaPrivacidade.vue';
 import TermosUso from '../views/legal/TermosUso.vue';
 import PoliticaCookies from '../views/legal/PoliticaCookies.vue';
@@ -28,6 +30,16 @@ const routes = [
     path: '/blog/:id',
     name: 'blog-post',
     component: PaginaBlog
+  },
+  {
+    path: '/funcionalidades',
+    name: 'funcionalidades',
+    component: PaginaFuncionalidades
+  },
+  {
+    path: '/sobre',
+    name: 'sobre',
+    component: PaginaSobre
   },
   {
     path: '/teste-gratis',

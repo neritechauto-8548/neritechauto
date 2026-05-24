@@ -1,290 +1,209 @@
 <template>
-  <section id="clientes" class="testimonials">
+  <section id="clientes" class="reasons-section">
     <div class="container">
-      <div class="test-header aos-init">
-        <span class="section-label">Depoimentos</span>
-        <h2 class="test-title">O que dizem os líderes <span class="text-gradient">do setor.</span></h2>
-        <p class="test-subtitle">A NeriTechAuto sustenta a operação das oficinas que mais crescem no Brasil.</p>
+      <div class="reasons-header aos-init">
+        <span class="section-label">Por que a NeriTechAuto?</span>
+        <h2 class="reasons-title">Construído para quem <span class="text-gradient">vive a rotina de oficina.</span></h2>
+        <p class="reasons-subtitle">Cada funcionalidade foi pensada a partir dos problemas reais que donos de oficina enfrentam todo dia.</p>
       </div>
 
-      <!-- Stars row -->
-      <div class="global-rating aos-init aos-delay-1">
-        <div class="rating-stars">★★★★★</div>
-        <div class="rating-info">
-          <strong>4.9/5</strong> de satisfação · <span>baseado em +200 avaliações</span>
+      <div class="reasons-grid">
+        <div class="reason-card aos-init" v-for="(r, i) in reasons" :key="r.title" :class="`aos-delay-${i + 1}`">
+          <div class="reason-icon">{{ r.icon }}</div>
+          <h3>{{ r.title }}</h3>
+          <p>{{ r.desc }}</p>
         </div>
       </div>
 
-      <!-- Cards grid -->
-      <div class="test-grid">
-        <div
-          class="test-card aos-init"
-          :class="`aos-delay-${(i % 3) + 1}`"
-          v-for="(t, i) in testimonials"
-          :key="t.name"
-        >
-          <div class="test-stars">★★★★★</div>
-          <p class="test-text">"{{ t.text }}"</p>
-          <div class="test-author">
-            <div class="test-avatar" :style="{ background: t.avatarBg }">{{ t.initials }}</div>
-            <div class="test-meta">
-              <span class="test-name">{{ t.name }}</span>
-              <span class="test-role">{{ t.role }} · {{ t.company }}</span>
-            </div>
-          </div>
+      <!-- Honest CTA block instead of fake testimonials -->
+      <div class="early-access-banner aos-init">
+        <div class="eab-left">
+          <span class="eab-badge">🚀 Lançamento</span>
+          <h3>Seja um dos primeiros a usar</h3>
+          <p>Estamos com as primeiras vagas abertas para oficinas que querem digitalizar a gestão com preço especial de lançamento.</p>
         </div>
-      </div>
-
-      <!-- Logos Marquee -->
-      <div class="logos-row aos-init">
-        <p class="logos-label">Empresas que confiam na NeriTechAuto</p>
-        <div class="marquee-wrapper logos-marquee">
-          <div class="marquee-track">
-            <div class="logo-pill" v-for="l in [...logos, ...logos]" :key="l + Math.random()">{{ l }}</div>
-          </div>
-        </div>
+        <router-link to="/teste-gratis" class="btn btn-primary eab-cta" id="early-access-cta">
+          Garantir minha vaga →
+        </router-link>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-const testimonials = [
+const reasons = [
   {
-    name: 'Carlos Mendes',
-    role: 'Proprietário',
-    company: 'Mendes Auto Center',
-    initials: 'CM',
-    avatarBg: 'linear-gradient(135deg, #635bff, #a855f7)',
-    text: 'A integração da busca por placa e o faturamento automático nos salvou horas de trabalho manual por dia. Nunca mais voltamos para planilhas.',
+    icon: '🔧',
+    title: 'Feito para oficina, não para escritório',
+    desc: 'Nada de sistemas genéricos adaptados. Cada módulo foi desenhado pensando no fluxo de uma oficina: entrada de veículo, OS, peças, entrega e pagamento.',
   },
   {
-    name: 'Ricardo Oliveira',
-    role: 'Gerente',
-    company: 'RO Officina',
-    initials: 'RO',
-    avatarBg: 'linear-gradient(135deg, #0891b2, #06b6d4)',
-    text: 'Finalmente um sistema que meus mecânicos realmente usam. A interface é limpa, rápida e foca no que importa. Zero treinamento necessário.',
+    icon: '📱',
+    title: 'Funciona em qualquer dispositivo',
+    desc: 'Acesse pelo celular, tablet ou computador. Seu mecânico atualiza a OS no pátio e você acompanha tudo do escritório ou de casa.',
   },
   {
-    name: 'Ana Silva',
-    role: 'Diretora',
-    company: 'Elite Motors',
-    initials: 'AS',
-    avatarBg: 'linear-gradient(135deg, #ec4899, #f43f5e)',
-    text: 'O controle financeiro do NeriTechAuto é o mais preciso que já usei. Tenho visão real do meu lucro, ticket médio e margem — tudo em tempo real.',
+    icon: '💬',
+    title: 'Suporte humano pelo WhatsApp',
+    desc: 'Nada de chatbot ou ticket de suporte. Quando você tiver dúvida, fala com a gente diretamente. Simples assim.',
   },
   {
-    name: 'Marcos Teixeira',
-    role: 'Sócio',
-    company: 'Teixeira & Filhos',
-    initials: 'MT',
-    avatarBg: 'linear-gradient(135deg, #059669, #10b981)',
-    text: 'Reduzi o tempo de emissão de NF-e de 15 minutos para menos de 2. O checklist com foto eliminou todas as reclamações de clientes.',
+    icon: '⚡',
+    title: 'Configuração rápida, sem complicação',
+    desc: 'Em poucas horas sua oficina já está cadastrada, com seus serviços e preços configurados. Sem precisar de técnico de TI.',
   },
   {
-    name: 'Fernanda Costa',
-    role: 'Proprietária',
-    company: 'FC Auto Service',
-    initials: 'FC',
-    avatarBg: 'linear-gradient(135deg, #d97706, #f59e0b)',
-    text: 'Em 3 meses usando o NeriTechAuto, aumentei minha receita em 28%. O controle de estoque evitou que eu perdesse serviços por falta de peça.',
+    icon: '🔒',
+    title: 'Seus dados são seus',
+    desc: 'Todas as informações ficam na nuvem com backup automático. Nenhum dado de cliente ou financeiro se perde.',
   },
   {
-    name: 'Paulo Rodrigues',
-    role: 'Dono',
-    company: 'Garage PR',
-    initials: 'PR',
-    avatarBg: 'linear-gradient(135deg, #7c3aed, #8b5cf6)',
-    text: 'O suporte da NeriTechAuto é impecável. Qualquer dúvida, resposta em minutos via WhatsApp. Sinto que tenho um parceiro de negócio, não só um software.',
+    icon: '🇧🇷',
+    title: 'Sistema brasileiro, para o mercado brasileiro',
+    desc: 'NF-e, NFS-e, boleto, Pix — tudo integrado dentro da realidade fiscal e de pagamento do Brasil.',
   },
-]
-
-const logos = [
-  'Mendes Auto Center',
-  'Elite Motors',
-  'Garage PR',
-  'RO Officina',
-  'FC Auto Service',
-  'Teixeira & Filhos',
-]
+];
 </script>
 
 <style scoped>
-.testimonials {
+.reasons-section {
   padding: var(--spacing-2xl) 0;
   background: var(--light-bg);
 }
 
 /* ── Header ── */
-.test-header {
+.reasons-header {
   text-align: center;
   max-width: 640px;
-  margin: 0 auto 2rem;
+  margin: 0 auto 3.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.test-title {
+.reasons-title {
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 800;
   margin-bottom: 0.75rem;
 }
 
-.test-subtitle {
+.reasons-subtitle {
   font-size: 1.125rem;
   color: var(--text-muted);
+  line-height: 1.65;
 }
 
-/* Global rating */
-.global-rating {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: var(--spacing-xl);
-  padding: 16px 28px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-  box-shadow: var(--shadow-sm);
-}
-
-.rating-stars {
-  color: #fbbf24;
-  font-size: 1.125rem;
-  letter-spacing: 2px;
-}
-
-.rating-info {
-  font-size: 0.9375rem;
-  color: var(--text-muted);
-}
-
-.rating-info strong {
-  color: var(--midnight-navy);
-}
-
-/* ── Cards ── */
-.test-grid {
+/* ── Grid ── */
+.reasons-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 3rem;
 }
 
-.test-card {
+.reason-card {
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
   transition: var(--transition-base);
+  box-shadow: var(--shadow-card);
 }
 
-.test-card:hover {
+.reason-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
   border-color: rgba(99,91,255,0.15);
 }
 
-.test-stars {
-  color: #fbbf24;
-  font-size: 0.875rem;
-  letter-spacing: 2px;
-}
-
-.test-text {
-  font-size: 0.9375rem;
-  color: var(--midnight-navy);
-  line-height: 1.7;
-  flex: 1;
-  font-style: italic;
-}
-
-.test-author {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.test-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+.reason-icon {
+  font-size: 1.75rem;
+  width: 48px;
+  height: 48px;
+  background: rgba(99,91,255,0.06);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.875rem;
-  color: white;
-  flex-shrink: 0;
 }
 
-.test-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.test-name {
-  font-weight: 700;
-  font-size: 0.9375rem;
+.reason-card h3 {
+  font-size: 1rem;
+  font-weight: 800;
   color: var(--midnight-navy);
+  font-family: var(--font-heading);
+  line-height: 1.3;
 }
 
-.test-role {
-  font-size: 0.8125rem;
+.reason-card p {
+  font-size: 0.9rem;
   color: var(--text-muted);
+  line-height: 1.6;
 }
 
-/* ── Logos ── */
-.logos-row {
-  text-align: center;
+/* ── Early access banner ── */
+.early-access-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  background: var(--midnight-navy);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 3rem;
+  color: white;
 }
 
-.logos-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
+.eab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99,91,255,0.3);
+  border: 1px solid rgba(99,91,255,0.5);
+  color: #a5b4fc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 99px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-light);
-  margin-bottom: 1.25rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
 }
 
-.logos-marquee {
-  margin-top: 0.5rem;
+.eab-left h3 {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-heading);
 }
 
-.logo-pill {
-  padding: 8px 20px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  box-shadow: var(--shadow-xs);
-  white-space: nowrap;
+.eab-left p {
+  font-size: 0.9375rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.eab-cta {
   flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  padding: 0.875rem 1.75rem;
 }
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
-  .test-grid { grid-template-columns: repeat(2, 1fr); }
+  .reasons-grid { grid-template-columns: repeat(2, 1fr); }
+  .early-access-banner { flex-direction: column; text-align: center; padding: 2rem; }
+  .eab-left { display: flex; flex-direction: column; align-items: center; }
+  .eab-left p { text-align: center; }
 }
 
 @media (max-width: 640px) {
-  .test-grid { grid-template-columns: 1fr; }
-  .global-rating { flex-direction: column; gap: 0.5rem; }
+  .reasons-grid { grid-template-columns: 1fr; }
+  .eab-cta { width: 100%; justify-content: center; }
 }
 </style>

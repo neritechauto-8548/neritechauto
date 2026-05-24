@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class LogAlteracaoResponse {
     private Long id;
+    private String usuarioNome;
     private Long empresaId;
     private String tabelaAfetada;
     private Long registroId;

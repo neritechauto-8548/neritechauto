@@ -5,30 +5,30 @@
 
     <div class="container hero-container">
       <div class="hero-content">
-        <span class="hero-badge aos-init">Sistema de gestão para oficinas</span>
+        <span class="hero-badge aos-init">🇧🇷 Sistema feito para oficinas automotivas brasileiras</span>
 
         <h1 class="hero-title aos-init aos-delay-1">
-          Controle total da sua oficina em um único sistema.
+          Chega de papel e planilha. Gerencie sua oficina do jeito certo.
         </h1>
 
         <p class="hero-subtitle aos-init aos-delay-2">
-          Ordens de serviço, financeiro, estoque e portal do cliente em uma plataforma moderna, simples e profissional.
+          OS digital com checklist fotográfico, financeiro integrado, controle de estoque e portal do cliente — tudo em um sistema simples, rápido e feito para o dia a dia da sua oficina.
         </p>
 
         <div class="hero-actions aos-init aos-delay-3">
           <router-link to="/teste-gratis" class="btn-hero-primary" id="hero-cta-start">
-            Teste grátis
+            Começar teste grátis
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </router-link>
           <a href="#demonstracao" class="btn-hero-secondary" id="hero-cta-demo">
-            Ver demonstração
+            Ver o sistema funcionando
           </a>
         </div>
 
         <p class="hero-trust aos-init aos-delay-4">
-          <span>✓ 30 dias grátis</span>
-          <span>✓ Sem cartão</span>
-          <span>✓ Suporte humanizado</span>
+          <span>✓ 30 dias grátis, sem compromisso</span>
+          <span>✓ Sem cartão de crédito</span>
+          <span>✓ Suporte pelo WhatsApp</span>
         </p>
       </div>
 

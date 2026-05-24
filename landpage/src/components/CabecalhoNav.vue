@@ -8,68 +8,13 @@
       <nav class="nav-desktop" role="navigation" aria-label="Navegação principal">
         <router-link to="/" class="nav-link">Início</router-link>
 
-        <!-- Dropdown Funcionalidades -->
-        <div class="nav-dropdown-item">
-          <button class="nav-link nav-dropdown-trigger">
-            Funcionalidades
-            <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="dropdown-menu">
-            <a href="/#showcase" class="dropdown-item">
-              <span class="dd-icon">📋</span>
-              <div class="dd-text">
-                <span class="dd-title">Ordem de Serviço</span>
-                <span class="dd-desc">Abertura e controle ágil de OS.</span>
-              </div>
-            </a>
-            <a href="/#piloto-automatico" class="dropdown-item">
-              <span class="dd-icon">📊</span>
-              <div class="dd-text">
-                <span class="dd-title">Pátio Kanban</span>
-                <span class="dd-desc">Acompanhe veículos em tempo real.</span>
-              </div>
-            </a>
-            <a href="/#especialistas" class="dropdown-item">
-              <span class="dd-icon">📸</span>
-              <div class="dd-text">
-                <span class="dd-title">Vistoria Digital (DVI)</span>
-                <span class="dd-desc">Checklist com fotos no WhatsApp.</span>
-              </div>
-            </a>
-          </div>
-        </div>
+        <router-link to="/funcionalidades" class="nav-link">Funcionalidades</router-link>
 
         <router-link to="/precos" class="nav-link">Preços</router-link>
         
         <router-link to="/blog" class="nav-link">Blog</router-link>
 
-        <!-- Dropdown Fale conosco -->
-        <div class="nav-dropdown-item">
-          <button class="nav-link nav-dropdown-trigger">
-            Fale conosco
-            <svg class="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="dropdown-menu dropdown-menu-right">
-            <a href="https://wa.me/5511999999999" target="_blank" class="dropdown-item">
-              <span class="dd-icon">💬</span>
-              <div class="dd-text">
-                <span class="dd-title">Suporte WhatsApp</span>
-                <span class="dd-desc">Fale com um técnico na hora.</span>
-              </div>
-            </a>
-            <a href="/#contato" class="dropdown-item">
-              <span class="dd-icon">✉️</span>
-              <div class="dd-text">
-                <span class="dd-title">Enviar Mensagem</span>
-                <span class="dd-desc">Envie um e-mail para nós.</span>
-              </div>
-            </a>
-          </div>
-        </div>
+        <a href="/#contato" class="nav-link">Fale conosco</a>
       </nav>
       
       <!-- Actions (CTA Button on the right with Login closer) -->
@@ -101,18 +46,13 @@
         <div class="mobile-nav">
           <router-link to="/" class="mobile-link" @click="menuMobileAberto = false">Início</router-link>
           
-          <div class="mobile-section-title">Funcionalidades</div>
-          <a href="/#showcase" class="mobile-link indented" @click="menuMobileAberto = false">Ordem de Serviço</a>
-          <a href="/#piloto-automatico" class="mobile-link indented" @click="menuMobileAberto = false">Pátio Kanban</a>
-          <a href="/#especialistas" class="mobile-link indented" @click="menuMobileAberto = false">Vistoria Digital (DVI)</a>
+          <router-link to="/funcionalidades" class="mobile-link" @click="menuMobileAberto = false">Funcionalidades</router-link>
 
           <a href="/#planos" class="mobile-link" @click="menuMobileAberto = false">Preços</a>
           
           <router-link to="/blog" class="mobile-link" @click="menuMobileAberto = false">Blog</router-link>
 
-          <div class="mobile-section-title">Fale conosco</div>
-          <a href="https://wa.me/5511999999999" target="_blank" class="mobile-link indented" @click="menuMobileAberto = false">Suporte WhatsApp</a>
-          <a href="/#contato" class="mobile-link indented" @click="menuMobileAberto = false">Enviar Mensagem</a>
+          <a href="/#contato" class="mobile-link" @click="menuMobileAberto = false">Fale conosco</a>
         </div>
         <div class="mobile-actions">
           <a :href="urlSistemaCliente" class="btn-mobile-login">Login</a>

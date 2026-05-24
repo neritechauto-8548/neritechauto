@@ -8,7 +8,13 @@
           </div>
           <h3>{{ item.title }}</h3>
           <p>{{ item.desc }}</p>
+          <p class="benefit-card__impact">{{ item.impact }}</p>
         </article>
+      </div>
+      <div class="benefits-actions aos-init aos-delay-1" style="text-align: center; margin-top: 3.5rem;">
+        <router-link to="/funcionalidades" class="benefits-link">
+          Ver todas as funcionalidades detalhadas <span class="arrow">→</span>
+        </router-link>
       </div>
     </div>
   </section>
@@ -19,24 +25,28 @@ const items = [
   {
     title: 'Ordens de serviço digitais',
     desc: 'Abra, acompanhe e finalize OS com histórico completo por placa e cliente.',
+    impact: 'Fim das fichas de papel e anotações perdidas.',
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 8h8M8 12h5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>',
     iconBg: 'rgba(37, 99, 235, 0.08)',
   },
   {
     title: 'Financeiro integrado',
     desc: 'Contas a pagar e receber conectadas à conclusão das ordens de serviço.',
+    impact: 'Saiba exatamente quanto entrou e saíu todo dia.',
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 7H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>',
     iconBg: 'rgba(5, 150, 105, 0.08)',
   },
   {
     title: 'Estoque sob controle',
     desc: 'Cadastre peças, receba alertas de estoque mínimo e dê baixa automática na OS.',
+    impact: 'Nunca perca um serviço por falta de peça.',
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="currentColor" stroke-width="1.75"/></svg>',
     iconBg: 'rgba(14, 165, 233, 0.08)',
   },
   {
     title: 'Portal do cliente',
     desc: 'Seu cliente acompanha o serviço, aprova orçamentos e recebe atualizações.',
+    impact: 'Menos ligações, mais confiança e relacionamento profissional.',
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.75"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>',
     iconBg: 'rgba(99, 102, 241, 0.08)',
   },
@@ -87,6 +97,16 @@ const items = [
   font-size: 0.9rem;
   color: var(--text-muted);
   line-height: 1.55;
+  margin-bottom: 0.75rem;
+}
+
+.benefit-card__impact {
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: var(--primary) !important;
+  margin-bottom: 0 !important;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }
 
 @media (max-width: 1024px) {
@@ -95,5 +115,32 @@ const items = [
 
 @media (max-width: 560px) {
   .benefits-grid { grid-template-columns: 1fr; }
+}
+
+.benefits-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary) !important;
+  text-decoration: none;
+  transition: all var(--transition-base);
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+}
+
+.benefits-link:hover {
+  color: var(--primary-dark) !important;
+  border-color: var(--primary-dark);
+}
+
+.benefits-link:hover .arrow {
+  transform: translateX(4px);
+}
+
+.arrow {
+  transition: transform 0.2s ease;
+  display: inline-block;
 }
 </style>

@@ -19,6 +19,7 @@ public class LogAlteracaoService {
 
     private final LogAlteracaoRepository logRepository;
     private final LogAlteracaoMapper logMapper;
+    private final com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository usuarioRepository;
 
     @Transactional
     public LogAlteracaoResponse create(LogAlteracaoRequest request) {
@@ -31,7 +32,15 @@ public class LogAlteracaoService {
     @Transactional(readOnly = true)
     public List<LogAlteracaoResponse> findByEmpresa(Long empresaId) {
         return logRepository.findByEmpresaId(empresaId).stream()
-                .map(logMapper::toResponse)
+                .map(entity -> {
+                    LogAlteracaoResponse resp = logMapper.toResponse(entity);
+                    if (entity.getUsuarioResponsavel() != null) {
+                        usuarioRepository.findById(entity.getUsuarioResponsavel()).ifPresent(u -> {
+                            resp.setUsuarioNome(u.getNomeCompleto());
+                        });
+                    }
+                    return resp;
+                })
                 .collect(Collectors.toList());
     }
 }

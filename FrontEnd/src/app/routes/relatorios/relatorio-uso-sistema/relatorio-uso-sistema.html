@@ -1,66 +1,148 @@
-<div class="header-bar">
-  <span class="material-icons">computer</span>
-  <span class="title">Uso do sistema</span>
-</div>
+<div class="relatorio-screen">
 
-<div class="filters-row">
-  <div class="field">
-    <label>Data inicial</label>
-    <input type="date" [(ngModel)]="dataInicial" />
+  <!-- Header -->
+  <div class="screen-header">
+    <div class="hd-left">
+      <div class="hd-icon"><mat-icon>history</mat-icon></div>
+      <div>
+        <h1 class="hd-title">Uso do Sistema</h1>
+        <span class="hd-sub">Auditoria de acessos e logs de alterações de dados da oficina</span>
+      </div>
+    </div>
+    <div class="hd-actions">
+      <button id="btn-limpar-filtros" class="btn btn-ghost" (click)="limparFiltros()">
+        <mat-icon>filter_alt_off</mat-icon> Limpar Filtros
+      </button>
+    </div>
   </div>
-  <div class="field">
-    <label>Data final</label>
-    <input type="date" [(ngModel)]="dataFinal" />
-  </div>
-  <div class="field">
-    <label>Funcionario</label>
-    <select [(ngModel)]="funcionario">
-      <option>Todos</option>
-      <option>ALEXANDRE ROMULO ALBUQUERQUE NERI</option>
-    </select>
-  </div>
-  <div class="field">
-    <label>Descricao</label>
-    <input type="text" [(ngModel)]="descricao" />
-  </div>
-  <div class="field">
-    <label>Ordem de serviço</label>
-    <input type="text" [(ngModel)]="ordemServico" />
-  </div>
-  <div class="actions">
-    <button pButton type="button" class="p-button-primary" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
-  </div>
-</div>
 
-<div class="table-wrapper">
-  <table class="log-table">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Funcionario</th>
-        <th>Descricao</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of pageItems">
-        <td>
-          <div class="date">{{ item.date }}</div>
-          <div class="time">{{ item.time }}</div>
-        </td>
-        <td>
-          <div class="employee">{{ item.employee }}</div>
-        </td>
-        <td>
-          <div class="desc">{{ item.description }}</div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="pagination">
-    <button pButton type="button" class="p-button-text" icon="pi pi-angle-left" label="Anterior" (click)="anterior()"></button>
-    <span>Pagina {{ page }} de {{ totalPages }}</span>
-    <button pButton type="button" class="p-button-text" label="Proxima" iconPos="right" icon="pi pi-angle-right" (click)="proxima()"></button>
-    <span class="count">{{ total }} registros</span>
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon si-blue"><mat-icon>history</mat-icon></div>
+      <div><p class="stat-lbl">Total Logs</p><p class="stat-val">{{ stats.total }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-green"><mat-icon>add_circle</mat-icon></div>
+      <div><p class="stat-lbl">Cadastros</p><p class="stat-val">{{ stats.criacoes }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-amber"><mat-icon>edit</mat-icon></div>
+      <div><p class="stat-lbl">Alterações</p><p class="stat-val">{{ stats.alteracoes }}</p></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-red"><mat-icon>delete</mat-icon></div>
+      <div><p class="stat-lbl">Exclusões</p><p class="stat-val">{{ stats.exclusoes }}</p></div>
+    </div>
   </div>
+
+  <!-- Filters Panel -->
+  <div class="filters-panel">
+    <p class="filters-title"><mat-icon class="fi-sm">tune</mat-icon> Filtros do Relatório</p>
+
+    <!-- Row 1: Search + Employee Dropdown + OS Input -->
+    <div class="filters-row">
+      <div class="filter-search" style="flex: 1.5; min-width: 250px;">
+        <mat-icon class="fi">search</mat-icon>
+        <input type="text" class="filter-input" placeholder="Buscar por descrição..." [(ngModel)]="descricao" (keyup.enter)="buscar()" />
+      </div>
+      <div class="filter-sel" style="flex: 1; min-width: 200px;">
+        <p-select id="sel-funcionario" [options]="funcionarioOptions" [(ngModel)]="funcionario"
+          optionLabel="label" optionValue="value" placeholder="Funcionário" styleClass="p-select-sm"
+          (onChange)="buscar()" />
+      </div>
+      <div class="filter-search" style="flex: 1; min-width: 180px;">
+        <mat-icon class="fi">receipt_long</mat-icon>
+        <input type="text" class="filter-input" placeholder="Ordem de serviço..." [(ngModel)]="ordemServico" (keyup.enter)="buscar()" />
+      </div>
+    </div>
+
+    <!-- Row 2: Date Inputs + Buscar Button -->
+    <div class="filters-row filters-row--secondary" style="margin-top: 10px;">
+      <div class="filter-group-label">
+        <mat-icon class="fi-sm">calendar_today</mat-icon>
+        <span>Período:</span>
+      </div>
+      <div class="filter-date">
+        <label class="date-lbl">De</label>
+        <input id="input-data-inicio" type="date" class="date-input" [(ngModel)]="dataInicial" (change)="buscar()" />
+      </div>
+      <div class="filter-date">
+        <label class="date-lbl">Até</label>
+        <input id="input-data-fim" type="date" class="date-input" [(ngModel)]="dataFinal" (change)="buscar()" />
+      </div>
+
+      <button id="btn-buscar" class="btn btn-primary btn-gerar" (click)="buscar()">
+        <mat-icon>search</mat-icon> Buscar
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card">
+    <div *ngIf="logs.length === 0" class="state-center">
+      <mat-icon>info</mat-icon>
+      <p>Nenhum registro de log encontrado no momento.</p>
+      <button class="btn btn-outline" (click)="limparFiltros()">Limpar filtros</button>
+    </div>
+
+    <table class="data-table" *ngIf="logs.length > 0 && pageItems.length > 0">
+      <thead>
+        <tr>
+          <th class="th-num">#</th>
+          <th>Data e Hora</th>
+          <th>Funcionário</th>
+          <th>Atividade / Descrição</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of pageItems; let i=index">
+          <td class="th-num td-muted">{{ (page - 1) * pageSize + i + 1 }}</td>
+          <td class="mono font-semibold" style="white-space: nowrap;">
+            <span class="log-date-span">{{ item.date }}</span>
+            <span class="log-time-span text-muted" style="margin-left: 10px; font-size: 11px;">{{ item.time }}</span>
+          </td>
+          <td>
+            <div class="av-name">
+              <div class="avatar">
+                {{ item.employee.charAt(0).toUpperCase() }}
+              </div>
+              <strong class="log-employee-name">{{ item.employee }}</strong>
+            </div>
+          </td>
+          <td>
+            <span class="activity-desc" [class.activity-desc--version]="item.description.includes('VERSAO')" [class.activity-desc--login]="item.description.includes('entrou no sistema')">
+              {{ item.description }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="logs.length > 0">
+    <div class="stripe-pagination">
+      <button class="btn-pag btn-prev" (click)="anterior()" [disabled]="page === 1">
+        <mat-icon>arrow_back</mat-icon> Anterior
+      </button>
+      
+      <span class="pag-text">Página {{ page }} de {{ totalPages }}</span>
+      
+      <button class="btn-pag btn-next" (click)="proxima()" [disabled]="page === totalPages">
+        Próxima <mat-icon>arrow_forward</mat-icon>
+      </button>
+      
+      <span class="badge-total">{{ total }} Registros</span>
+      
+      <div class="pag-go-group">
+        <label class="go-label">Página</label>
+        <input type="number" class="input-go" [(ngModel)]="paginaDestino" min="1" [max]="totalPages" />
+        <button class="btn-go" (click)="irParaPagina()">
+          Ir <mat-icon>check</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

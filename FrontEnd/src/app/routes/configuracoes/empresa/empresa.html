@@ -353,6 +353,46 @@
           </div>
         </div>
 
+        <!-- Intervalo de Expediente -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
+          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">restaurant</mat-icon>
+              </div>
+              <h3 class="font-bold text-slate-800 text-sm">Intervalo de Expediente</h3>
+            </div>
+            <label class="flex items-center gap-2.5 cursor-pointer group">
+              <input type="checkbox" [(ngModel)]="configOficina.possuiIntervalo" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
+              <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Possui Intervalo</span>
+            </label>
+          </div>
+
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" *ngIf="configOficina.possuiIntervalo">
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-700">Início do intervalo</label>
+                <input [(ngModel)]="configOficina.inicioIntervalo" type="time" class="w-full modern-input text-sm" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-700">Fim do intervalo</label>
+                <input [(ngModel)]="configOficina.fimIntervalo" type="time" class="w-full modern-input text-sm" />
+              </div>
+            </div>
+
+            <div *ngIf="!configOficina.possuiIntervalo" class="p-8 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <mat-icon class="!text-slate-300 block mx-auto !text-32 !w-8 !h-8 mb-2">restaurant_menu</mat-icon>
+              <p class="text-xs text-slate-400 font-medium tracking-tight">Sem intervalo definido para o expediente</p>
+            </div>
+
+            <!-- Informativo Callout -->
+            <div class="flex items-start gap-3 text-xs text-amber-700 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 shadow-sm font-medium">
+              <mat-icon class="!text-amber-500 !text-[18px] mt-0.5">info</mat-icon>
+              <span>O expediente da empresa, é usado para calcular o tempo em horas e minutos em Ordem de serviço. Para cada Situacao é calculado o tempo em que permaneceu, porém esse tempo não é contado quando a empresa está fechada. Por isso é importante definir o horario de expediente da empresa.</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ==================== TAB 5: REGRAS DE NEGÓCIO ==================== -->
@@ -536,232 +576,114 @@
       </div>
 
       <!-- ==================== TAB 7: E-MAIL ==================== -->
-      <div *ngIf="activeTab === 'email'" class="space-y-8">
+      <div *ngIf="activeTab === 'email'" class="space-y-8 animate-fade-in-up">
 
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
           <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
              <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">email</mat-icon>
+                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">mail</mat-icon>
             </div>
-            <h3 class="font-bold text-slate-800 text-sm">Configuração de Remetente</h3>
+            <h3 class="font-bold text-slate-800 text-sm">Configurações email</h3>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Provedor de E-mail</label>
-              <select [(ngModel)]="configEmail.provedorServico" class="w-full modern-input text-sm">
-                <option *ngFor="let p of provedoresEmail" [value]="p">{{ p }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">E-mail de Envio</label>
-              <input [(ngModel)]="configEmail.remetenteEmail" type="email" class="w-full modern-input text-sm" placeholder="noreply@oficina.com" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Nome de Exibição</label>
-              <input [(ngModel)]="configEmail.remetenteNome" class="w-full modern-input text-sm" placeholder="Ex: Oficina Mecânica Elite" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">E-mail de Resposta (Reply-To)</label>
-              <input [(ngModel)]="configEmail.emailResposta" type="email" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Cópia Oculta (BCC)</label>
-              <input [(ngModel)]="configEmail.emailCopiaOculta" type="email" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Domínio de Autenticação</label>
-              <input [(ngModel)]="configEmail.dominioAutorizado" class="w-full modern-input text-sm" placeholder="oficina.com.br" />
-            </div>
-          </div>
-        </div>
+          
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              <!-- Email de envio -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700">Email de envio</label>
+                <input [(ngModel)]="configEmail.remetenteEmail" type="email" class="w-full modern-input text-sm" placeholder="exemplo@gmail.com" />
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  E-mail de origem utilizado para enviar as notificações e ordens de serviço.
+                </div>
+              </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">alternate_email</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Servidor SMTP</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="md:col-span-2 space-y-1">
-              <label class="text-xs font-bold text-slate-700">Host SMTP</label>
-              <input [(ngModel)]="configEmail.servidorSmtp" class="w-full modern-input font-mono" placeholder="smtp.dominio.com" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Porta</label>
-              <input [(ngModel)]="configEmail.portaSmtp" type="number" class="w-full modern-input text-sm" placeholder="587" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Segurança / TLS</label>
-              <select [(ngModel)]="configEmail.criptografia" class="w-full modern-input text-sm">
-                <option *ngFor="let c of criptografias" [value]="c">{{ c }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Usuário SMTP</label>
-              <input [(ngModel)]="configEmail.usuarioSmtp" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Senha SMTP</label>
-              <input [(ngModel)]="configEmail.senhaSmtp" type="password" class="w-full modern-input text-sm" />
-            </div>
-          </div>
-        </div>
+              <!-- Email de recebimento -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700">Email de recebimento</label>
+                <input [(ngModel)]="configEmail.emailResposta" type="email" class="w-full modern-input text-sm" placeholder="exemplo@gmail.com" />
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  E-mail de resposta configurado (Reply-To) para onde retornarão as mensagens dos clientes.
+                </div>
+              </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">sync_alt</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Webhooks e Assinatura</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Webhook de Entrega</label><input [(ngModel)]="configEmail.webhookEntrega" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Webhook de Leitura</label><input [(ngModel)]="configEmail.webhookAbertura" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Webhook de Clique</label><input [(ngModel)]="configEmail.webhookClique" class="w-full modern-input text-sm" /></div>
-            <div class="md:col-span-3 space-y-1">
-              <label class="text-xs font-bold text-slate-700">Assinatura HTML dos E-mails</label>
-              <textarea [(ngModel)]="configEmail.assinaturaPadrao" class="w-full modern-input !h-24" rows="3"></textarea>
-            </div>
-            <div class="md:col-span-3 pt-2">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" [(ngModel)]="configEmail.ativo" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Habilitar serviço de E-mail Outbound</span>
+              <!-- Senha email envio -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700">Senha email envio</label>
+                <input [(ngModel)]="configEmail.senhaSmtp" type="password" class="w-full modern-input text-sm" placeholder="••••••••••••" />
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  Senha do e-mail de envio ou senha de app gerada no provedor (App Password).
+                </div>
+              </div>
+
+              <!-- Servidor SMTP -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700">Servidor SMTP</label>
+                <input [(ngModel)]="configEmail.servidorSmtp" type="text" class="w-full modern-input text-sm" placeholder="smtp.gmail.com" />
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  Endereço de saída do servidor SMTP do seu provedor (ex: smtp.gmail.com).
+                </div>
+              </div>
+
+              <!-- Porta SMTP -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700">Porta SMTP</label>
+                <input [(ngModel)]="configEmail.portaSmtp" type="number" class="w-full modern-input text-sm" placeholder="465" />
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  Porta utilizada para conexão SMTP (ex: 465 para SSL ou 587 para TLS).
+                </div>
+              </div>
+
+              <!-- Utiliza SSL -->
+              <div class="flex flex-col justify-start space-y-1 pt-1 relative group">
+                <label class="text-xs font-bold text-slate-700 mb-1">Criptografia</label>
+                <label class="flex items-center gap-2.5 cursor-pointer group mt-2">
+                  <input type="checkbox" [ngModel]="configEmail.criptografia === 'SSL'" (ngModelChange)="configEmail.criptografia = $event ? 'SSL' : 'TLS'" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Utiliza SSL</span>
                 </label>
-            </div>
-          </div>
-        </div>
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  Marque esta opção para utilizar conexão segura com SSL (obrigatório para porta 465).
+                </div>
+              </div>
 
-        <div class="flex items-center gap-3 text-xs text-amber-700 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 shadow-sm font-medium">
-           <mat-icon class="!text-amber-500 !text-[18px]">warning</mat-icon>
-           <span><strong>Importante:</strong> Certifique-se de testar a conexão SMTP após salvar as alterações para garantir o envio das notas.</span>
-        </div>
-      </div>
+              <!-- Email que receberá o teste -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700">Email que receberá o teste</label>
+                <input [(ngModel)]="emailTeste" type="email" class="w-full modern-input text-sm" placeholder="destino@exemplo.com" />
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  E-mail de destino que receberá a mensagem de verificação SMTP.
+                </div>
+              </div>
 
-      <!-- ==================== TAB 8: WHATSAPP ==================== -->
-      <div *ngIf="activeTab === 'whatsapp'" class="space-y-8">
+              <!-- Testar e-mail botão -->
+              <div class="space-y-1 relative group">
+                <label class="text-xs font-bold text-slate-700 block">Faça um teste no seu email</label>
+                <button (click)="testarEmail()" [disabled]="testingEmail" type="button" 
+                  class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 shadow-sm transition-all text-xs flex items-center gap-2 disabled:opacity-50 active:scale-95">
+                  <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ testingEmail ? 'hourglass_empty' : 'email' }}</mat-icon>
+                  {{ testingEmail ? 'Testando...' : 'Testar e-mail' }}
+                </button>
+                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
+                  Clique para testar o envio com as credenciais acima.
+                </div>
+              </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chat</mat-icon>
             </div>
-            <h3 class="font-bold text-slate-800 text-sm">Conectividade WhatsApp</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Tipo da Central</label>
-              <select [(ngModel)]="configWhatsapp.tipoIntegracao" class="w-full modern-input text-sm">
-                <option *ngFor="let t of tiposIntegracao" [value]="t">{{ t }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Plataforma / Parceiro</label>
-              <input [(ngModel)]="configWhatsapp.provedorServico" class="w-full modern-input text-sm" placeholder="Ex: Z-API, Evolution" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Número Oficial *</label>
-              <input [(ngModel)]="configWhatsapp.numeroWhatsapp" class="w-full modern-input font-mono" placeholder="+5511999999999" />
-            </div>
-            <div class="md:col-span-2 space-y-1">
-              <label class="text-xs font-bold text-slate-700">API Authentication Token</label>
-              <input [(ngModel)]="configWhatsapp.tokenAcesso" type="password" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Modo de Operação</label>
-              <select [(ngModel)]="configWhatsapp.ambiente" class="w-full modern-input text-sm">
-                <option value="HOMOLOGACAO">🧪 Homologação</option>
-                <option value="PRODUCAO">🚀 Produção</option>
-              </select>
-            </div>
-          </div>
-        </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">api</mat-icon>
+            <!-- Informativo Callout -->
+            <div class="flex items-start gap-3 text-xs text-amber-700 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 shadow-sm font-medium">
+               <mat-icon class="!text-amber-500 !text-[18px] mt-0.5">info</mat-icon>
+               <div class="space-y-1">
+                 <p class="m-0">Esta configuração de e-mail é responsável pelo disparo de comunicações automáticas do sistema, incluindo o envio de Ordens de Serviço e outras notificações.</p>
+                 <p class="m-0">Ao acionar o botão "Testar e-mail", se as credenciais estiverem corretas, você receberá a mensagem de validação "Email configurado com sucesso!".</p>
+               </div>
             </div>
-            <h3 class="font-bold text-slate-800 text-sm">Meta Cloud API (Configurações Técnicas)</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Phone Number ID</label><input [(ngModel)]="configWhatsapp.phoneNumberId" class="w-full modern-input font-mono" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Business Account ID</label><input [(ngModel)]="configWhatsapp.businessAccountId" class="w-full modern-input font-mono" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Application ID</label><input [(ngModel)]="configWhatsapp.appId" class="w-full modern-input font-mono" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">App Secret Key</label><input [(ngModel)]="configWhatsapp.appSecret" type="password" class="w-full modern-input text-sm" /></div>
-          </div>
-        </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">support_agent</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Chatbot e Mensagens Rápidas</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Início do Plantão</label><input [(ngModel)]="configWhatsapp.horarioAtendimentoInicio" type="time" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Fim do Plantão</label><input [(ngModel)]="configWhatsapp.horarioAtendimentoFim" type="time" class="w-full modern-input text-sm" /></div>
-            <div class="md:col-span-2 space-y-1"><label class="text-xs font-bold text-slate-700">Mensagem Fora de Horário</label><input [(ngModel)]="configWhatsapp.mensagemForaHorario" class="w-full modern-input text-sm" /></div>
-            <div class="md:col-span-2 space-y-1"><label class="text-xs font-bold text-slate-700">Saudação de Boas-Vindas</label><textarea [(ngModel)]="configWhatsapp.mensagemBoasVindas" class="w-full modern-input text-sm" rows="2"></textarea></div>
-            <div class="md:col-span-2 flex gap-8 pt-4 border-t border-slate-100">
-               <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" [(ngModel)]="configWhatsapp.integracaoAtiva" class="w-4 h-4 rounded accent-emerald-600 cursor-pointer" />
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Central WhatsApp Ativa</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" [(ngModel)]="configWhatsapp.chatbotAtivo" class="w-4 h-4 rounded accent-emerald-600 cursor-pointer" />
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Chatbot Inteligente Ativo</span>
-                </label>
-            </div>
           </div>
         </div>
 
       </div>
 
-      <!-- ==================== TAB 9: SMS ==================== -->
-      <div *ngIf="activeTab === 'sms'" class="space-y-8">
-
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">sms</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Central de Mensagens SMS</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Gateway SMS</label>
-              <select [(ngModel)]="configSms.provedorServico" class="w-full modern-input text-sm">
-                <option *ngFor="let p of provedoresSms" [value]="p">{{ p }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Identificador (Sender ID)</label>
-              <input [(ngModel)]="configSms.remetentePadrao" class="w-full modern-input text-sm" placeholder="Ex: OFICINA" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Ambiente</label>
-              <select [(ngModel)]="configSms.ambiente" class="w-full modern-input text-sm">
-                <option value="HOMOLOGACAO">🧪 Homologação</option>
-                <option value="PRODUCAO">🚀 Produção</option>
-              </select>
-            </div>
-            <div class="md:col-span-3 space-y-1"><label class="text-xs font-bold text-slate-700">Endpoint de Integração</label><input [(ngModel)]="configSms.apiEndpoint" class="w-full modern-input font-mono" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">API Access Key</label><input [(ngModel)]="configSms.apiKey" type="password" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">API Private Secret</label><input [(ngModel)]="configSms.apiSecret" type="password" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Limite p/ Bloco</label><input [(ngModel)]="configSms.limiteCaracteres" type="number" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">Créditos Atuais</label><input [ngModel]="configSms.creditosDisponiveis" class="w-full modern-input bg-slate-50 text-slate-500 font-bold" readonly /></div>
-            <div class="md:col-span-3 pt-2">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" [(ngModel)]="configSms.ativo" class="w-4 h-4 rounded accent-amber-600 cursor-pointer" />
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Serviço de SMS Transacional Ativo</span>
-                </label>
-            </div>
-          </div>
-        </div>
-
-      </div>
 
     </div>
   </div>

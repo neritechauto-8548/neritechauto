@@ -21,8 +21,11 @@ import com.neritech.saas.relatorios.service.JasperRelatorioService;
 import com.neritech.saas.relatorios.dto.RelatorioItemDTO;
 import com.neritech.saas.relatorios.dto.OrdemServicoRelatorioDTO;
 import com.neritech.saas.relatorios.dto.RelatorioClienteDTO;
+import com.neritech.saas.relatorios.dto.RelatorioClienteDetalhadoDTO;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.cliente.domain.Cliente;
+import com.neritech.saas.cliente.repository.EnderecoClienteRepository;
+import com.neritech.saas.cliente.repository.ContatoClienteRepository;
 import com.neritech.saas.veiculo.domain.Veiculo;
 import com.neritech.saas.empresa.domain.Empresa;
 
@@ -51,6 +54,8 @@ public class RelatorioImpressaoController {
     private final com.neritech.saas.veiculo.repository.VeiculoRepository veiculoRepository;
     private final com.neritech.saas.ordemservico.repository.ItemOSProdutoRepository itemOSProdutoRepository;
     private final com.neritech.saas.ordemservico.repository.ItemOSServicoRepository itemOSServicoRepository;
+    private final com.neritech.saas.cliente.repository.EnderecoClienteRepository enderecoRepository;
+    private final com.neritech.saas.cliente.repository.ContatoClienteRepository contatoRepository;
 
     public RelatorioImpressaoController(JasperRelatorioService jasperService,
             OrdemServicoService osService,
@@ -66,7 +71,9 @@ public class RelatorioImpressaoController {
             com.neritech.saas.empresa.repository.EmpresaRepository empresaRepository,
             com.neritech.saas.veiculo.repository.VeiculoRepository veiculoRepository,
             com.neritech.saas.ordemservico.repository.ItemOSProdutoRepository itemOSProdutoRepository,
-            com.neritech.saas.ordemservico.repository.ItemOSServicoRepository itemOSServicoRepository) {
+            com.neritech.saas.ordemservico.repository.ItemOSServicoRepository itemOSServicoRepository,
+            com.neritech.saas.cliente.repository.EnderecoClienteRepository enderecoRepository,
+            com.neritech.saas.cliente.repository.ContatoClienteRepository contatoRepository) {
         this.jasperService = jasperService;
         this.osService = osService;
         this.itemProdutoService = itemProdutoService;
@@ -82,6 +89,8 @@ public class RelatorioImpressaoController {
         this.veiculoRepository = veiculoRepository;
         this.itemOSProdutoRepository = itemOSProdutoRepository;
         this.itemOSServicoRepository = itemOSServicoRepository;
+        this.enderecoRepository = enderecoRepository;
+        this.contatoRepository = contatoRepository;
     }
 
     @GetMapping("/os/{id}")
@@ -265,6 +274,7 @@ public class RelatorioImpressaoController {
     @Operation(summary = "Relatório de Clientes")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<byte[]> relatorioClientes(
+            @RequestParam(required = false) String tipoRelatorio,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String tipoCliente,
             @RequestParam(required = false) String origemCliente,
@@ -286,11 +296,45 @@ public class RelatorioImpressaoController {
         java.time.LocalDateTime dtInicio = parseDate(dataInicio, false);
         java.time.LocalDateTime dtFim    = parseDate(dataFim,    true);
 
+        java.time.LocalDateTime dtInicioClienteQuery = "CADASTRADOS".equals(tipoRelatorio) ? dtInicio : null;
+        java.time.LocalDateTime dtFimClienteQuery    = "CADASTRADOS".equals(tipoRelatorio) ? dtFim : null;
+
         Long empresaId = TenantContext.getCurrentTenant();
-        var lista = clienteRepository.findForRelatorio(empresaId, statusParam, tipoParam, origemParam, buscaParam, dtInicio, dtFim);
+        var lista = clienteRepository.findForRelatorio(empresaId, statusParam, tipoParam, origemParam, buscaParam, dtInicioClienteQuery, dtFimClienteQuery);
 
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
-        var dados = lista.stream().map(c -> {
+        java.util.List<RelatorioClienteDTO> dados = new java.util.ArrayList<>();
+
+        for (Cliente c : lista) {
+            var ordens = osRepository.findByClienteId(c.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent();
+
+            // Filtrar visitas se for VISITAS
+            if ("VISITAS".equals(tipoRelatorio)) {
+                var ordensNoPeriodo = ordens.stream().filter(o -> {
+                    if (o.getDataAbertura() == null) return false;
+                    if (dtInicio != null && o.getDataAbertura().isBefore(dtInicio)) return false;
+                    if (dtFim != null && o.getDataAbertura().isAfter(dtFim)) return false;
+                    return true;
+                }).toList();
+
+                if (ordensNoPeriodo.isEmpty()) {
+                    continue;
+                }
+            } else if ("INATIVOS".equals(tipoRelatorio)) {
+                java.time.LocalDateTime maxData = null;
+                for (var o : ordens) {
+                    if (o.getDataAbertura() != null) {
+                        if (maxData == null || o.getDataAbertura().isAfter(maxData)) {
+                            maxData = o.getDataAbertura();
+                        }
+                    }
+                }
+                boolean noRecentVisits = maxData == null || maxData.isBefore(java.time.LocalDateTime.now().minusDays(90));
+                if (!noRecentVisits) {
+                    continue;
+                }
+            }
+
             String nome     = c.getNomeCompleto() != null ? c.getNomeCompleto() : (c.getRazaoSocial() != null ? c.getRazaoSocial() : "—");
             String doc      = c.getCpf() != null ? c.getCpf() : (c.getCnpj() != null ? c.getCnpj() : "—");
             String tipoLbl  = c.getTipoCliente() != null && "PESSOA_FISICA".equals(c.getTipoCliente().name()) ? "Pessoa Física" : "Pessoa Jurídica";
@@ -305,10 +349,10 @@ public class RelatorioImpressaoController {
             String dataNasc = c.getDataNascimento() != null ? c.getDataNascimento().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "—";
             String sexoLbl  = c.getSexo() != null ? ("M".equals(c.getSexo().name()) ? "Masculino" : "Feminino") : "—";
 
-            return new RelatorioClienteDTO(
+            dados.add(new RelatorioClienteDTO(
                     nome, doc, tipoLbl, c.getEmail() != null ? c.getEmail() : "—",
-                    origemLbl, statusLbl, dataCad, dataNasc, sexoLbl);
-        }).toList();
+                    origemLbl, statusLbl, dataCad, dataNasc, sexoLbl));
+        }
 
         String filtrosDesc = buildFiltrosDesc(statusParam, tipoParam, origemParam, buscaParam, dataInicio, dataFim);
         Map<String, Object> params = new HashMap<>();
@@ -440,6 +484,147 @@ public class RelatorioImpressaoController {
 
         byte[] pdfBytes = jasperService.gerarRelatorioPdf("comissoes", criarParamsPadrao(), dados);
         return retornarPdf(pdfBytes, "relatorio-comissoes");
+    }
+
+    @GetMapping("/clientes-dados")
+    @Operation(summary = "Dados detalhados para o relatório de clientes")
+    @Transactional(readOnly = true)
+    public ResponseEntity<java.util.List<RelatorioClienteDetalhadoDTO>> getClientesDados(
+            @RequestParam(required = false) String tipoRelatorio,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String tipoCliente,
+            @RequestParam(required = false) String origemCliente,
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) String dataInicio,
+            @RequestParam(required = false) String dataFim) {
+
+        Long empresaId = TenantContext.getCurrentTenant();
+
+        java.time.LocalDateTime dtInicio = parseDate(dataInicio, false);
+        java.time.LocalDateTime dtFim    = parseDate(dataFim,    true);
+
+        String statusParam  = (status       != null && !status.isBlank())       ? status       : null;
+        String tipoParam    = (tipoCliente  != null && !tipoCliente.isBlank())  ? tipoCliente  : null;
+        String origemParam  = (origemCliente!= null && !origemCliente.isBlank())? origemCliente: null;
+        String buscaParam   = (busca        != null && !busca.isBlank())        ? busca        : null;
+
+        java.time.LocalDateTime dtInicioClienteQuery = "CADASTRADOS".equals(tipoRelatorio) ? dtInicio : null;
+        java.time.LocalDateTime dtFimClienteQuery    = "CADASTRADOS".equals(tipoRelatorio) ? dtFim : null;
+
+        var clientes = clienteRepository.findForRelatorio(empresaId, statusParam, tipoParam, origemParam, buscaParam, dtInicioClienteQuery, dtFimClienteQuery);
+
+        java.util.List<RelatorioClienteDetalhadoDTO> resultado = new java.util.ArrayList<>();
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+
+        for (Cliente c : clientes) {
+            var enderecos = enderecoRepository.findByClienteId(c.getId(), org.springframework.data.domain.Pageable.ofSize(1)).getContent();
+            String enderecoStr = "—";
+            if (!enderecos.isEmpty()) {
+                var e = enderecos.get(0);
+                enderecoStr = String.format("%s, %s - %s, %s/%s", e.getLogradouro(), e.getNumero(), e.getBairro(), e.getCidade(), e.getEstado());
+            }
+
+            var contatos = contatoRepository.findByClienteId(c.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent();
+            java.util.List<String> telefonesList = new java.util.ArrayList<>();
+            for (var cont : contatos) {
+                if (cont.getTipoContato() == com.neritech.saas.cliente.domain.enums.TipoContato.CELULAR 
+                        || cont.getTipoContato() == com.neritech.saas.cliente.domain.enums.TipoContato.WHATSAPP 
+                        || cont.getTipoContato() == com.neritech.saas.cliente.domain.enums.TipoContato.TELEFONE_FIXO) {
+                    telefonesList.add(cont.getContato());
+                }
+            }
+            String telefonesStr = telefonesList.isEmpty() ? "—" : String.join(", ", telefonesList);
+
+            var ordens = osRepository.findByClienteId(c.getId(), org.springframework.data.domain.Pageable.unpaged()).getContent();
+            
+            String nome = c.getNomeCompleto() != null ? c.getNomeCompleto() : (c.getRazaoSocial() != null ? c.getRazaoSocial() : "—");
+            String doc = c.getCpf() != null ? c.getCpf() : (c.getCnpj() != null ? c.getCnpj() : "—");
+            String tipoLbl = c.getTipoCliente() != null && "PESSOA_FISICA".equals(c.getTipoCliente().name()) ? "Pessoa Física" : "Pessoa Jurídica";
+            String statusLbl = c.getStatus() != null ? switch (c.getStatus().name()) {
+                case "ATIVO" -> "Ativo"; case "INATIVO" -> "Inativo"; case "BLOQUEADO" -> "Bloqueado"; default -> c.getStatus().name();
+            } : "—";
+            String origemLbl = c.getOrigemCliente() != null ? switch (c.getOrigemCliente().name()) {
+                case "SITE" -> "Site"; case "TELEFONE" -> "Telefone"; case "INDICACAO" -> "Indicação";
+                case "REDES_SOCIAIS" -> "Redes Sociais"; default -> "Outros";
+            } : "—";
+            String dataCad = c.getDataCadastro() != null ? sdf.format(java.sql.Timestamp.valueOf(c.getDataCadastro())) : "—";
+
+            if ("VISITAS".equals(tipoRelatorio)) {
+                var ordensNoPeriodo = ordens.stream().filter(o -> {
+                    if (o.getDataAbertura() == null) return false;
+                    if (dtInicio != null && o.getDataAbertura().isBefore(dtInicio)) return false;
+                    if (dtFim != null && o.getDataAbertura().isAfter(dtFim)) return false;
+                    return true;
+                }).toList();
+
+                for (var o : ordensNoPeriodo) {
+                    String osDesc = o.getProblemaRelatado() != null && !o.getProblemaRelatado().isBlank() 
+                            ? o.getProblemaRelatado() : "Serviços automotivos";
+
+                    RelatorioClienteDetalhadoDTO row = RelatorioClienteDetalhadoDTO.builder()
+                            .nome(nome)
+                            .documento(doc)
+                            .email(c.getEmail() != null ? c.getEmail() : "—")
+                            .origem(origemLbl)
+                            .status(statusLbl)
+                            .dataCadastro(dataCad)
+                            .endereco(enderecoStr)
+                            .telefones(telefonesStr)
+                            .numeroOSVisita(o.getNumeroOS())
+                            .osDescricao(osDesc)
+                            .dataOS(o.getDataAbertura().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                            .valorGastoOS(o.getValorTotal())
+                            .build();
+                    resultado.add(row);
+                }
+            } else {
+                long osCount = ordens.size();
+                BigDecimal totalGasto = BigDecimal.ZERO;
+                java.time.LocalDateTime maxData = null;
+                for (var o : ordens) {
+                    if (o.getValorTotal() != null) {
+                        totalGasto = totalGasto.add(o.getValorTotal());
+                    }
+                    if (o.getDataAbertura() != null) {
+                        if (maxData == null || o.getDataAbertura().isAfter(maxData)) {
+                            maxData = o.getDataAbertura();
+                        }
+                    }
+                }
+                
+                BigDecimal ticketMedio = osCount > 0 
+                        ? totalGasto.divide(BigDecimal.valueOf(osCount), 2, java.math.RoundingMode.HALF_UP) 
+                        : BigDecimal.ZERO;
+                String ultimaVisitaStr = maxData != null 
+                        ? maxData.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) 
+                        : "—";
+
+                boolean isSemVisita = "INATIVOS".equals(tipoRelatorio);
+                if (isSemVisita) {
+                    boolean noRecentVisits = maxData == null || maxData.isBefore(java.time.LocalDateTime.now().minusDays(90));
+                    if (!noRecentVisits) {
+                        continue;
+                    }
+                }
+
+                RelatorioClienteDetalhadoDTO row = RelatorioClienteDetalhadoDTO.builder()
+                        .nome(nome)
+                        .documento(doc)
+                        .email(c.getEmail() != null ? c.getEmail() : "—")
+                        .origem(origemLbl)
+                        .status(statusLbl)
+                        .dataCadastro(dataCad)
+                        .endereco(enderecoStr)
+                        .telefones(telefonesStr)
+                        .ticketMedio(ticketMedio)
+                        .ultimaVisita(ultimaVisitaStr)
+                        .numeroOS(osCount)
+                        .build();
+                resultado.add(row);
+            }
+        }
+
+        return ResponseEntity.ok(resultado);
     }
 
     private Map<String, Object> criarParamsPadrao() {

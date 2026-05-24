@@ -70,6 +70,15 @@ public class ConfiguracaoOficina extends BaseEntity {
     @Column(name = "timezone", length = 50)
     private String timezone = "America/Sao_Paulo";
 
+    @Column(name = "possui_intervalo")
+    private Boolean possuiIntervalo = false;
+
+    @Column(name = "inicio_intervalo")
+    private LocalTime inicioIntervalo;
+
+    @Column(name = "fim_intervalo")
+    private LocalTime fimIntervalo;
+
     public ConfiguracaoOficina() {
     }
 
@@ -224,5 +233,29 @@ public class ConfiguracaoOficina extends BaseEntity {
 
     public void setTimezone(String timezone) {
         this.timezone = timezone;
+    }
+
+    public Boolean getPossuiIntervalo() {
+        return possuiIntervalo;
+    }
+
+    public void setPossuiIntervalo(Boolean possuiIntervalo) {
+        this.possuiIntervalo = possuiIntervalo;
+    }
+
+    public LocalTime getInicioIntervalo() {
+        return inicioIntervalo;
+    }
+
+    public void setInicioIntervalo(LocalTime inicioIntervalo) {
+        this.inicioIntervalo = inicioIntervalo;
+    }
+
+    public LocalTime getFimIntervalo() {
+        return fimIntervalo;
+    }
+
+    public void setFimIntervalo(LocalTime fimIntervalo) {
+        this.fimIntervalo = fimIntervalo;
     }
 }

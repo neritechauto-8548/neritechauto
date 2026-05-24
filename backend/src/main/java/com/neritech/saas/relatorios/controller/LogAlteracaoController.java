@@ -31,4 +31,11 @@ public class LogAlteracaoController {
     public ResponseEntity<List<LogAlteracaoResponse>> findByEmpresa(@PathVariable Long empresaId) {
         return ResponseEntity.ok(logService.findByEmpresa(empresaId));
     }
+
+    @GetMapping
+    @Operation(summary = "Listar logs de alterações do tenant atual")
+    public ResponseEntity<List<LogAlteracaoResponse>> getLogs() {
+        Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        return ResponseEntity.ok(logService.findByEmpresa(empresaId));
+    }
 }

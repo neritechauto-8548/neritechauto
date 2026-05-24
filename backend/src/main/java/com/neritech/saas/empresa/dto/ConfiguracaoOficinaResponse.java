@@ -26,6 +26,9 @@ public record ConfiguracaoOficinaResponse(
         String formatoData,
         String formatoHora,
         String timezone,
+        Boolean possuiIntervalo,
+        LocalTime inicioIntervalo,
+        LocalTime fimIntervalo,
         LocalDateTime dataCadastro,
         LocalDateTime dataAtualizacao) {
 }

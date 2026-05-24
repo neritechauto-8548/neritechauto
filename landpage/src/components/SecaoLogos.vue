@@ -1,7 +1,7 @@
 <template>
   <section class="logos-section">
     <div class="container marquee-title-wrap">
-      <p class="logos-headline">Confiança de quem busca <strong>excelência técnica</strong> e performance</p>
+      <p class="logos-headline">Para qualquer tipo de oficina — <strong>do simples ao complexo</strong></p>
     </div>
 
     <div class="marquee-wrapper">
@@ -19,16 +19,16 @@
 
 <script setup>
 const logos = [
-  { icon: '🔧', name: 'Mendes Auto Center' },
-  { icon: '🏎️', name: 'Elite Motors' },
-  { icon: '🚗', name: 'Garage PR' },
-  { icon: '⚙️', name: 'RO Officina' },
-  { icon: '🛠️', name: 'FC Auto Service' },
-  { icon: '🏢', name: 'Teixeira & Filhos' },
-  { icon: '🔩', name: 'Auto Mecânica JR' },
-  { icon: '🚘', name: 'Speed Car Centro' },
-  { icon: '💎', name: 'Premium Motors' },
-  { icon: '🏗️', name: 'Rede MasterFix' },
+  { icon: '🔧', name: 'Oficina Mecânica' },
+  { icon: '🏢', name: 'Centro Automotivo' },
+  { icon: '🎨', name: 'Funilaria e Pintura' },
+  { icon: '🛥️', name: 'Oficina de Motos' },
+  { icon: '🚚', name: 'Borracharia' },
+  { icon: '⚙️', name: 'Eletricista Automotivo' },
+  { icon: '🚗', name: 'Auto Elétrica' },
+  { icon: '🛡️', name: 'Vidraçaria Automotiva' },
+  { icon: '🔧', name: 'Suspensão e Freios' },
+  { icon: '📊', name: 'Oficina Multimarca' },
 ]
 
 

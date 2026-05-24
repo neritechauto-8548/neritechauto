@@ -23,5 +23,8 @@ public record ConfiguracaoOficinaRequest(
         String moeda,
         String formatoData,
         String formatoHora,
-        String timezone) {
+        String timezone,
+        Boolean possuiIntervalo,
+        LocalTime inicioIntervalo,
+        LocalTime fimIntervalo) {
 }

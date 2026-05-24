@@ -50,9 +50,18 @@ public class ConfiguracaoEmailController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir configuraÃ§Ã£o de Email", description = "Remove uma configuraÃ§Ã£o de Email do sistema")
+    @Operation(summary = "Excluir configuração de Email", description = "Remove uma configuração de Email do sistema")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/test")
+    @Operation(summary = "Testar configuração de Email", description = "Envia um email de teste usando as configurações fornecidas")
+    public ResponseEntity<Void> testEmail(
+            @RequestParam String destinatario,
+            @RequestBody @Valid ConfiguracaoEmailRequest request) {
+        service.testEmail(destinatario, request);
+        return ResponseEntity.ok().build();
     }
 }

@@ -40,6 +40,16 @@ export class RelatoriosService {
     });
   }
 
+  getClientesDados(params: any = {}) {
+    return this.http.get<any[]>('/v1/relatorios/clientes-dados', {
+      params
+    });
+  }
+
+  getLogsAlteracoes() {
+    return this.http.get<any[]>('/v1/logs-alteracoes');
+  }
+
   downloadBlob(blob: Blob, filename: string) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

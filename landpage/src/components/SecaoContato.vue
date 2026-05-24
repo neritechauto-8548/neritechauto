@@ -6,8 +6,8 @@
         <!-- Info -->
         <div class="contact-info aos-init">
           <span class="section-label">Fale Conosco</span>
-          <h2 class="contact-title">Dúvidas? <span class="text-gradient">Fale com um especialista.</span></h2>
-          <p class="contact-subtitle">Nossa equipe está pronta para ajudar sua oficina a dar o próximo passo na digitalização.</p>
+          <h2 class="contact-title">Fale com quem <span class="text-gradient">entende de oficina.</span></h2>
+          <p class="contact-subtitle">Tire suas dúvidas sobre o sistema, planos ou integrações. Respondemos em até 1 dia útil.</p>
 
           <div class="contact-channels">
             <a
@@ -19,7 +19,7 @@
               <div class="channel-icon">💬</div>
               <div class="channel-text">
                 <strong>WhatsApp</strong>
-                <span>(11) 98765-4321</span>
+                <span>Resposta mais rápida</span>
               </div>
               <span class="channel-arrow">→</span>
             </a>
@@ -61,7 +61,7 @@
 
             <div class="form-group">
               <label for="contact-message">Como podemos ajudar?</label>
-              <textarea id="contact-message" placeholder="Descreva a dúvida ou necessidade da sua oficina..." rows="4" v-model="form.message"></textarea>
+              <textarea id="contact-message" placeholder="Ex: Tenho 2 mecânicos, quero organizar as OS e saber o financeiro do mês." rows="4" v-model="form.message"></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg btn-submit" :disabled="submitted">

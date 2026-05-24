@@ -146,7 +146,10 @@ export class EmpresaService {
       moeda: data.moeda,
       formatoData: data.formatoData,
       formatoHora: data.formatoHora,
-      timezone: data.timezone
+      timezone: data.timezone,
+      possuiIntervalo: data.possuiIntervalo,
+      inicioIntervalo: data.inicioIntervalo,
+      fimIntervalo: data.fimIntervalo
     };
     return data.id
       ? this.http.put<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina/${data.id}`, payload)
@@ -244,5 +247,34 @@ export class EmpresaService {
     return data.id
       ? this.http.put<ConfiguracaoSms>(`/api/v1/comunicacao/config/sms/${data.id}`, payload)
       : this.http.post<ConfiguracaoSms>(`/api/v1/comunicacao/config/sms`, payload);
+  }
+
+  testEmail(destinatario: string, data: ConfiguracaoEmail): Observable<void> {
+    const payload = {
+      empresaId: data.empresaId,
+      provedorServico: data.provedorServico || 'SMTP_CUSTOMIZADO',
+      servidorSmtp: data.servidorSmtp,
+      portaSmtp: data.portaSmtp,
+      usuarioSmtp: data.usuarioSmtp || data.remetenteEmail,
+      senhaSmtp: data.senhaSmtp,
+      criptografia: data.criptografia || 'TLS',
+      remetenteNome: data.remetenteNome,
+      remetenteEmail: data.remetenteEmail,
+      emailResposta: data.emailResposta,
+      emailCopiaOculta: data.emailCopiaOculta,
+      apiKey: data.apiKey,
+      apiSecret: data.apiSecret,
+      dominioAutorizado: data.dominioAutorizado,
+      limiteEnviosDia: data.limiteEnviosDia,
+      webhookEntrega: data.webhookEntrega,
+      webhookAbertura: data.webhookAbertura,
+      webhookClique: data.webhookClique,
+      assinaturaPadrao: data.assinaturaPadrao,
+      templateCabecalho: data.templateCabecalho,
+      templateRodape: data.templateRodape,
+      ativo: data.ativo,
+      observacoes: data.observacoes
+    };
+    return this.http.post<void>(`/api/v1/comunicacao/config/email/test?destinatario=${encodeURIComponent(destinatario)}`, payload);
   }
 }

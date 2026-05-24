@@ -44,8 +44,6 @@ export class EmpresaConfig implements OnInit {
     { id: 'regras',    label: 'Operacional',           icon: 'build' },
     { id: 'fiscal',    label: 'Dados Fiscais',          icon: 'receipt_long' },
     { id: 'email',     label: 'E-mail',                 icon: 'mail' },
-    { id: 'whatsapp',  label: 'WhatsApp',               icon: 'whatsapp' },
-    { id: 'sms',       label: 'SMS',                    icon: 'sms' },
   ];
 
   empresa: Empresa = { nomeFantasia: '', razaoSocial: '', cnpj: '' };
@@ -94,6 +92,7 @@ export class EmpresaConfig implements OnInit {
 
   configOficina: ConfiguracaoOficina = {
     empresaId: this.empresaId, funcionaDomingo: false,
+    possuiIntervalo: false, inicioIntervalo: '', fimIntervalo: '',
     permiteAgendamentoOnline: true, enviaLembreteAgendamento: true,
     margemLucroPadrao: 30, diasGarantiaPadrao: 90,
     tempoAgendamentoPadrao: 60, antecedenciaMinimaAgendamento: 24,
@@ -105,6 +104,9 @@ export class EmpresaConfig implements OnInit {
     empresaId: this.empresaId, provedorServico: 'SMTP_CUSTOMIZADO',
     criptografia: 'TLS', portaSmtp: 587, servidorSmtp: 'smtp.gmail.com', ativo: true
   };
+
+  emailTeste = '';
+  testingEmail = false;
 
   configWhatsapp: ConfiguracaoWhatsapp = {
     empresaId: this.empresaId, numeroWhatsapp: '',
@@ -261,13 +263,11 @@ export class EmpresaConfig implements OnInit {
 
     // Only send communication payloads if their respective functionality is marked as active
     if (this.configEmail?.ativo) {
+      // Sincronizar o usuarioSmtp com o remetenteEmail se estiver vazio
+      if (!this.configEmail.usuarioSmtp) {
+        this.configEmail.usuarioSmtp = this.configEmail.remetenteEmail;
+      }
       requests['email'] = this.service.saveConfigEmail(this.configEmail);
-    }
-    if (this.configWhatsapp?.integracaoAtiva) {
-      requests['whatsapp']  = this.service.saveConfigWhatsapp(this.configWhatsapp);
-    }
-    if (this.configSms?.ativo) {
-      requests['sms']       = this.service.saveConfigSms(this.configSms);
     }
 
     forkJoin(requests).pipe(finalize(() => this.loading = false)).subscribe({
@@ -278,10 +278,33 @@ export class EmpresaConfig implements OnInit {
         if (res.fiscal)    this.configFiscal  = res.fiscal;
         if (res.oficina)   this.configOficina = res.oficina;
         if (res.email)     this.configEmail   = res.email;
-        if (res.whatsapp)  this.configWhatsapp = res.whatsapp;
-        if (res.sms)       this.configSms     = res.sms;
       },
       error: () => this.toast.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar. Verifique os dados e tente novamente.' })
     });
+  }
+
+  testarEmail() {
+    if (!this.emailTeste) {
+      this.toast.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe o e-mail de destino para o teste.' });
+      return;
+    }
+    
+    this.testingEmail = true;
+    // Sincronizar o usuarioSmtp com o remetenteEmail se estiver vazio
+    if (!this.configEmail.usuarioSmtp) {
+      this.configEmail.usuarioSmtp = this.configEmail.remetenteEmail;
+    }
+
+    this.service.testEmail(this.emailTeste, this.configEmail)
+      .pipe(finalize(() => this.testingEmail = false))
+      .subscribe({
+        next: () => {
+          this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Email configurado com sucesso!' });
+        },
+        error: (err) => {
+          const msg = err.error?.message || err.message || 'Erro ao enviar e-mail de teste.';
+          this.toast.add({ severity: 'error', summary: 'Falha no Teste', detail: msg });
+        }
+      });
   }
 }

@@ -41,6 +41,14 @@ export class RelatorioClientes implements OnInit {
   // Empresa info (para o PDF)
   nomeEmpresa = 'NeriTech Auto';
 
+  // ─── Tipo de Relatório ───
+  tipoRelatorio: 'CADASTRADOS' | 'VISITAS' | 'INATIVOS' = 'CADASTRADOS';
+  tipoRelatorioOptions = [
+    { label: 'Clientes Cadastrados', value: 'CADASTRADOS' },
+    { label: 'Visitas de Clientes', value: 'VISITAS' },
+    { label: 'Clientes Inativos / Sem Visitas (90 dias)', value: 'INATIVOS' }
+  ];
+
   // ─── Filtros básicos ───
   filtroStatus: StatusCliente | null = null;
   filtroTipo: TipoCliente | null = null;
@@ -57,13 +65,14 @@ export class RelatorioClientes implements OnInit {
   origemOptions  = [{ label: 'Todas as Origens',value: null }, ...getOrigemClienteOptions()];
 
   // ─── Dados ───
-  clientes: ClienteResponseDTO[] = [];
+  clientes: any[] = [];
   isLoading  = false;
   pdfLoading = false;
   totalElements = 0;
 
   // ─── Stats ───
   stats: ResumoStats = { total: 0, ativos: 0, inativos: 0, bloqueados: 0, pessoaFisica: 0, pessoaJuridica: 0 };
+  totalValorVisitas = 0;
 
   // Labels para template
   TipoClienteLabels   = TipoClienteLabels;
@@ -74,34 +83,76 @@ export class RelatorioClientes implements OnInit {
 
   dataGeracao = new Date();
 
-  ngOnInit() { this.gerarRelatorio(); }
+  ngOnInit() {
+    this.configurarDatasPadrao();
+    this.gerarRelatorio();
+  }
+
+  configurarDatasPadrao() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+
+    const formatarData = (d: Date) => {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      return `${d.getFullYear()}-${month}-${day}`;
+    };
+
+    this.dataInicio = formatarData(primeiroDia);
+    this.dataFim = formatarData(ultimoDia);
+  }
+
+  get periodoFormatado() {
+    if (!this.dataInicio || !this.dataFim) return '';
+    
+    const formatarParaExibicao = (dataStr: string) => {
+      const partes = dataStr.split('-');
+      if (partes.length !== 3) return '';
+      const dia = parseInt(partes[2], 10);
+      const mes = parseInt(partes[1], 10);
+      const ano = partes[0];
+      return `${dia}/${mes}/${ano}`;
+    };
+
+    const ini = formatarParaExibicao(this.dataInicio);
+    const fim = formatarParaExibicao(this.dataFim);
+    return `NO PERÍODO DE ${ini} ATÉ ${fim}`;
+  }
 
   gerarRelatorio() {
     this.isLoading = true;
-    const filters: any = { page: 1, size: 200, sort: 'nomeCompleto,asc' };
-    if (this.filtroStatus) filters['status']       = this.filtroStatus;
-    if (this.filtroTipo)   filters['tipoCliente']  = this.filtroTipo;
-    if (this.filtroOrigem) filters['origemCliente']= this.filtroOrigem;
-    if (this.filtroBusca.trim()) filters['nomeCompleto'] = this.filtroBusca.trim();
-    // Nota: dataInicio/dataFim/mesAniversario não são suportados pelo endpoint /clientes (paginado)
-    // — são passados apenas para o PDF Jasper.
+    const params: any = {
+      tipoRelatorio: this.tipoRelatorio
+    };
+    if (this.filtroStatus) params['status'] = this.filtroStatus;
+    if (this.filtroTipo) params['tipoCliente'] = this.filtroTipo;
+    if (this.filtroOrigem) params['origemCliente'] = this.filtroOrigem;
+    if (this.filtroBusca.trim()) params['busca'] = this.filtroBusca.trim();
+    if (this.dataInicio) params['dataInicio'] = this.dataInicio;
+    if (this.dataFim) params['dataFim'] = this.dataFim;
 
-    this.clientesService.list(filters).pipe(
+    this.relatoriosService.getClientesDados(params).pipe(
       finalize(() => { this.isLoading = false; this.cdr.detectChanges(); })
     ).subscribe({
-      next: (res: Page<ClienteResponseDTO>) => {
-        this.clientes = res.content || [];
-        this.totalElements = res.totalElements;
+      next: (res: any[]) => {
+        this.clientes = res || [];
+        this.totalElements = res.length;
         this.calcularStats();
         this.dataGeracao = new Date();
       },
-      error: () => this.toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar clientes.' })
+      error: () => this.toast.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar dados do relatório.' })
     });
   }
 
   imprimirJasper() {
     this.pdfLoading = true;
-    const params: any = {};
+    const params: any = {
+      tipoRelatorio: this.tipoRelatorio
+    };
     if (this.filtroStatus)  params['status']         = this.filtroStatus;
     if (this.filtroTipo)    params['tipoCliente']     = this.filtroTipo;
     if (this.filtroOrigem)  params['origemCliente']   = this.filtroOrigem;
@@ -122,57 +173,76 @@ export class RelatorioClientes implements OnInit {
 
   private calcularStats() {
     const c = this.clientes;
+    this.totalValorVisitas = c.reduce((sum, item) => sum + (item.valorGastoOS || 0), 0);
     this.stats = {
       total: this.totalElements,
-      ativos:         c.filter(x => x.status === StatusCliente.ATIVO).length,
-      inativos:       c.filter(x => x.status === StatusCliente.INATIVO).length,
-      bloqueados:     c.filter(x => x.status === StatusCliente.BLOQUEADO).length,
-      pessoaFisica:   c.filter(x => x.tipoCliente === TipoCliente.PESSOA_FISICA).length,
-      pessoaJuridica: c.filter(x => x.tipoCliente === TipoCliente.PESSOA_JURIDICA).length,
+      ativos:         c.filter(x => x.status?.toUpperCase().includes('ATIVO')).length,
+      inativos:       c.filter(x => x.status?.toUpperCase().includes('INATIVO')).length,
+      bloqueados:     c.filter(x => x.status?.toUpperCase().includes('BLOQUEADO')).length,
+      pessoaFisica:   c.filter(x => (x.documento || '').replace(/\D/g, '').length <= 11).length,
+      pessoaJuridica: c.filter(x => (x.documento || '').replace(/\D/g, '').length > 11).length,
     };
   }
 
   imprimir() { window.print(); }
 
   exportarCSV() {
-    const headers = ['Nome/Razão Social','CPF/CNPJ','Tipo','Status','E-mail','Origem'];
-    const rows = this.clientes.map(c => [
-      this.getNome(c), c.cpf || c.cnpj || '',
-      TipoClienteLabels[c.tipoCliente as TipoCliente] || c.tipoCliente,
-      StatusClienteLabels[c.status as StatusCliente] || c.status || '',
-      c.email || '',
-      OrigemClienteLabels[c.origemCliente as OrigemCliente] || c.origemCliente || ''
-    ]);
-    const csv = [headers,...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-    const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+    let headers: string[] = [];
+    let rows: any[][] = [];
+
+    if (this.tipoRelatorio === 'VISITAS') {
+      headers = ['Nome', 'Endereço', 'Telefones', 'Nº OS', 'OS (Serviços)', 'Data OS', 'Valor Gasto'];
+      rows = this.clientes.map(c => [
+        c.nome || '',
+        c.endereco || '',
+        c.telefones || '',
+        c.numeroOSVisita || '',
+        c.osDescricao || '',
+        c.dataOS || '',
+        c.valorGastoOS || 0
+      ]);
+    } else {
+      headers = ['Nome', 'Endereço', 'Telefones', 'Ticket Médio', 'Última Visita', 'Nº de OS', 'Data Cadastro'];
+      rows = this.clientes.map(c => [
+        c.nome || '',
+        c.endereco || '',
+        c.telefones || '',
+        c.ticketMedio || 0,
+        c.ultimaVisita || '',
+        c.numeroOS || 0,
+        c.dataCadastro || ''
+      ]);
+    }
+
+    const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `clientes-${this.datePipe.transform(new Date(),'yyyyMMdd')}.csv`;
+    a.download = `relatorio-clientes-${this.tipoRelatorio.toLowerCase()}-${this.datePipe.transform(new Date(), 'yyyyMMdd')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
   limparFiltros() {
     this.filtroStatus = null; this.filtroTipo = null; this.filtroOrigem = null;
-    this.filtroBusca = ''; this.dataInicio = ''; this.dataFim = '';
+    this.filtroBusca = '';
+    this.configurarDatasPadrao();
     this.gerarRelatorio();
   }
 
-  getNome(c: ClienteResponseDTO): string { return c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '—'; }
-  getDoc (c: ClienteResponseDTO): string { return c.cpf || c.cnpj || '—'; }
+  isPessoaJuridica(documento?: string): boolean {
+    if (!documento) return false;
+    return documento.replace(/\D/g, '').length > 11;
+  }
 
-  getStatusLabel(status?: string): string {
-    if (!status) return '—';
-    return StatusClienteLabels[status as StatusCliente] || status;
-  }
-  getOrigemLabel(origem?: string): string {
-    if (!origem) return '—';
-    return OrigemClienteLabels[origem as OrigemCliente] || origem;
-  }
   getStatusClass(status: string) {
-    const m: Record<string,string> = { ATIVO:'badge-success', INATIVO:'badge-secondary', BLOQUEADO:'badge-danger' };
-    return m[status] || 'badge-secondary';
+    if (!status) return 'badge-secondary';
+    const s = status.toUpperCase();
+    if (s.includes('ATIVO')) return 'badge-success';
+    if (s.includes('INATIVO')) return 'badge-secondary';
+    if (s.includes('BLOQUEADO')) return 'badge-danger';
+    return 'badge-secondary';
   }
 
   get dataGeracaoFormatada() { return this.datePipe.transform(this.dataGeracao,'dd/MM/yyyy HH:mm') || ''; }
