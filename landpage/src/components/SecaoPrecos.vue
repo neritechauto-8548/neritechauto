@@ -17,11 +17,6 @@
           :class="{ featured: plan.featured }"
         >
           <template #content>
-            <!-- Popular badge -->
-            <div v-if="plan.featured" class="popular-tag">
-              ⭐ Mais Popular
-            </div>
-
             <div class="plan-top">
               <div class="plan-name">{{ plan.name }}</div>
               <p class="plan-desc">{{ plan.description }}</p>
@@ -89,39 +84,33 @@ const plans = ref([
     id: 'price_pro',
     name: 'Neri Pro',
     price: '99,90',
-    description: 'A base sólida para organizar sua oficina e profissionalizar seu atendimento.',
+    description: 'Sistema completo de gestão, controle e relacionamento para sua oficina.',
     featured: false,
     features: [
-      'Até 5 usuários',
-      'Suporte por Chat e Telefone',
-      'Dashboard financeiro',
-      'Dashboard gerencial',
-      'Gestão e emissão de NF de peças e serviços',
-      'NF de Devolução/Garantia',
-      'E-mail Marketing',
-      'Gestão de clientes (aniversário)',
-      'Cobrança',
-      'Pesquisa de satisfação',
-      'Serviços Futuros/Próximas Revisões',
+      'Usuários Ilimitados',
+      'Suporte via Chat, Telefone e WhatsApp',
+      'Gestão de Orçamentos e Ordens de Serviço (OS)',
+      'Controle Financeiro e Fluxo de Caixa',
+      'Gestão de Estoque e Compras',
+      'Relatórios e Dashboards Gerenciais',
+      'Cobrança e Relacionamento via WhatsApp',
+      '❌ Sem Emissão de Notas Fiscais',
     ],
   },
   {
     id: 'price_elite',
     name: 'Neri Elite',
     price: '199,90',
-    description: 'O plano mais completo, ideal para oficinas que querem elevar e potencializar sua gestão.',
+    description: 'Ideal para oficinas que precisam emitir notas fiscais diretamente pelo sistema.',
     featured: true,
     features: [
-      'Usuários Ilimitados',
-      'Suporte via Chat, Telefone e WhatsApp',
-      'Gestão fiscal, jurídica e financeira',
-      'Custo hora',
-      'Agendamentos',
-      'Relatório de entrega de materiais',
-      'Cotação',
-      'Aplicativo de pós-venda',
-      'Auditoria',
-      'Integrações',
+      'Todos os recursos do plano Pro',
+      'Emissão de Notas Fiscais ilimitadas (NF-e e NFS-e)',
+      'NF de Consumidor (NFC-e) e SAT/MF-e',
+      'NF de Devolução, Garantia e Retorno',
+      'Importação automática de XML de Compra',
+      'Manifestação de Destinatário e Busca na SEFAZ',
+      'Suporte especializado em Configuração Fiscal',
     ],
   },
 ]);

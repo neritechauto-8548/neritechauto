@@ -102,18 +102,18 @@ const recursos = {
     { nome: 'Insumos', plus: true, master: true },
     { nome: 'Integração de busca do veículo pela placa', plus: true, master: true },
     { nome: 'Integração de busca de cliente pelo CPF/CNPJ', plus: true, master: true },
-    { nome: 'Kit de peças e/ou serviços', plus: false, master: true },
+    { nome: 'Kit de peças e/ou serviços', plus: true, master: true },
   ],
   estoque: [
     { nome: 'Peças', plus: true, master: true },
     { nome: 'Insumos', plus: true, master: true },
     { nome: 'Importação de compras via XML', plus: true, master: true },
     { nome: 'Estoque Mínimo', plus: true, master: true },
-    { nome: 'Auditoria', plus: false, master: true },
-    { nome: 'Relatório de entrega de materiais', plus: false, master: true },
-    { nome: 'Cotação', plus: false, master: true },
-    { nome: 'Transferência de estoque', plus: false, master: true },
-    { nome: 'Devolução de venda', plus: false, master: true },
+    { nome: 'Auditoria', plus: true, master: true },
+    { nome: 'Relatório de entrega de materiais', plus: true, master: true },
+    { nome: 'Cotação', plus: true, master: true },
+    { nome: 'Transferência de estoque', plus: true, master: true },
+    { nome: 'Devolução de venda', plus: true, master: true },
   ],
   financeiro: [
     { nome: 'Movimento de caixa', plus: true, master: true },
@@ -124,8 +124,8 @@ const recursos = {
     { nome: 'Balancete', plus: true, master: true },
     { nome: 'Fluxo de caixa', plus: true, master: true },
     { nome: 'Custo da oficina', plus: true, master: true },
-    { nome: 'D.R.E (demonstrativo de resultado)', plus: false, master: true },
-    { nome: 'Emissão de boletos', plus: false, master: true },
+    { nome: 'D.R.E (demonstrativo de resultado)', plus: true, master: true },
+    { nome: 'Emissão de boletos', plus: true, master: true },
     { nome: 'Lançamento bancário', plus: true, master: true },
   ],
   fiscal: [
@@ -142,10 +142,10 @@ const recursos = {
   ],
   integracoes: [
     { nome: 'Sistemas de Orçamento (Cília, Soma, Audatex e I360)', plus: true, master: true },
-    { nome: 'Peça Aí', plus: false, master: true },
+    { nome: 'Peça Aí', plus: true, master: true },
     { nome: 'PartsLink24', plus: true, master: true },
-    { nome: 'Catálogo Fraga', plus: false, master: true },
-    { nome: 'Stone', plus: false, master: true },
+    { nome: 'Catálogo Fraga', plus: true, master: true },
+    { nome: 'Stone', plus: true, master: true },
   ],
   relacionamento: [
     { nome: 'E-mail Marketing', plus: true, master: true },
@@ -153,7 +153,7 @@ const recursos = {
     { nome: 'Cobrança', plus: true, master: true },
     { nome: 'Pesquisa de satisfação', plus: true, master: true },
     { nome: 'Serviço Futuros/Próximas Revisões', plus: true, master: true },
-    { nome: 'Área do cliente', plus: false, master: true },
+    { nome: 'Área do cliente', plus: true, master: true },
   ],
   vendas: [
     { nome: 'Orçamentos - Envio via whatsapp e e-mail', plus: true, master: true },
@@ -166,8 +166,8 @@ const recursos = {
     { nome: 'Comissão', plus: true, master: true },
     { nome: 'Relatórios de orçamentos', plus: true, master: true },
     { nome: 'Dashboard de orçamentos', plus: true, master: true },
-    { nome: 'Custo hora', plus: false, master: true },
-    { nome: 'Agendamento', plus: false, master: true },
+    { nome: 'Custo hora', plus: true, master: true },
+    { nome: 'Agendamento', plus: true, master: true },
   ]
 };
 

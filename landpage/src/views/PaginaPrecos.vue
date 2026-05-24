@@ -1,6 +1,6 @@
 <template>
   <main class="pagina-precos">
-    <!-- Hero + planos + garantias em um bloco contínuo -->
+    <!-- Hero (header apenas) -->
     <section class="page-hero precos-top">
       <div class="container">
         <header class="precos-intro aos-init">
@@ -13,7 +13,12 @@
             <li v-for="t in trustItems" :key="t">{{ t }}</li>
           </ul>
         </header>
+      </div>
+    </section>
 
+    <!-- Planos e Garantias (Fundo Claro com sobreposição) -->
+    <section class="section-surface section-surface--light precos-content">
+      <div class="container precos-container-inner">
         <SecaoPrecos :hide-header="true" />
 
         <div class="valor-grid aos-init">
@@ -101,8 +106,19 @@ onMounted(() => {
 
 /* ── Bloco principal compacto ── */
 .precos-top {
-  /* page-hero já tem padding: 130px 0 90px */
+  padding-bottom: 120px;
+}
+
+.precos-content {
+  padding-top: 0;
   padding-bottom: 3rem;
+  overflow: visible !important;
+}
+
+.precos-container-inner {
+  margin-top: -90px;
+  position: relative;
+  z-index: 10;
 }
 
 .precos-intro {
@@ -352,6 +368,12 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .precos-top {
+    padding-bottom: 80px;
+  }
+  .precos-container-inner {
+    margin-top: -50px;
+  }
   .valor-grid { grid-template-columns: 1fr; }
   .pagina-precos :deep(.pricing-grid) { max-width: 100%; }
   .cta-actions { flex-direction: column; width: 100%; max-width: 320px; }

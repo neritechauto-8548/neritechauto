@@ -241,16 +241,15 @@ const filteredPosts = computed(() => {
 .blog-page {
   position: relative;
   min-height: 100vh;
-  padding-top: 80px;
 }
 
 /* Detail Section Layout */
 .blog-detail-section {
-  padding: 3rem 0 6rem;
+  padding: 130px 0 6rem;
 }
 
 .article-inner {
-  max-width: 820px;
+  max-width: 740px;
   margin: 0 auto;
 }
 
@@ -298,16 +297,29 @@ const filteredPosts = computed(() => {
 
 .article-header .section-label {
   margin-bottom: 1.25rem;
+  background: var(--primary-light) !important;
+  border: 1px solid var(--primary-border) !important;
+  color: var(--primary) !important;
+}
+
+:global(.p-dark) .article-header .section-label {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
 }
 
 .article-title {
   font-size: clamp(2rem, 4.5vw, 2.75rem);
   font-weight: 800;
-  color: var(--midnight-navy);
+  color: var(--midnight-navy) !important;
   line-height: 1.2;
   letter-spacing: -0.035em;
   margin-bottom: 1.25rem;
   font-family: var(--font-heading);
+}
+
+:global(.p-dark) .article-title {
+  color: var(--p-surface-50) !important;
 }
 
 .article-meta {
@@ -336,16 +348,27 @@ const filteredPosts = computed(() => {
 
 .article-body {
   font-size: 1.125rem;
-  color: var(--text-main);
+  color: #334155;
   line-height: 1.85;
 }
 
 .article-body :deep(p) {
   margin-bottom: 1.75rem;
+  color: #334155 !important;
+}
+
+.article-body :deep(h2) {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--midnight-navy);
+  margin-top: 2.75rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.035em;
+  font-family: var(--font-heading);
 }
 
 .article-body :deep(h3) {
-  font-size: 1.625rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--midnight-navy);
   margin-top: 2.5rem;
@@ -354,18 +377,48 @@ const filteredPosts = computed(() => {
   font-family: var(--font-heading);
 }
 
-.article-body :deep(ul) {
+.article-body :deep(ul), .article-body :deep(ol) {
   margin-bottom: 1.75rem;
-  padding-left: 1.5rem;
+  padding-left: 1.75rem;
 }
 
 .article-body :deep(li) {
   margin-bottom: 0.75rem;
+  line-height: 1.75;
+  color: #334155;
 }
 
 .article-body :deep(strong) {
   color: var(--midnight-navy);
   font-weight: 700;
+}
+
+.article-body :deep(blockquote) {
+  border-left: 4px solid var(--primary);
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 2rem 0;
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+/* ── Dark Mode Reading Enhancements ── */
+:global(.p-dark) .article-body {
+  color: var(--p-surface-200) !important;
+}
+:global(.p-dark) .article-body :deep(p),
+:global(.p-dark) .article-body :deep(li) {
+  color: var(--p-surface-200) !important;
+}
+:global(.p-dark) .article-body :deep(h2),
+:global(.p-dark) .article-body :deep(h3),
+:global(.p-dark) .article-body :deep(strong) {
+  color: var(--p-surface-50) !important;
+}
+:global(.p-dark) .article-body :deep(blockquote) {
+  color: var(--p-surface-400) !important;
+  border-left-color: var(--p-primary-500);
 }
 
 .article-not-found {
@@ -385,7 +438,7 @@ const filteredPosts = computed(() => {
 
 /* Hero Section */
 .blog-hero {
-  padding: 4rem 0 2rem;
+  padding: 130px 0 3rem;
   border-bottom: 1px solid var(--border);
 }
 
