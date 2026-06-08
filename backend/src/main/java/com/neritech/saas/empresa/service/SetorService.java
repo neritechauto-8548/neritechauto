@@ -33,10 +33,21 @@ public class SetorService {
     }
 
     public SetorResponse create(SetorRequest request) {
+        if (request.nome() == null || request.nome().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome do setor é obrigatório.");
+        }
+        if (request.nome().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome do setor deve ter pelo menos 2 caracteres.");
+        }
+        if (repository.existsByEmpresaIdAndNomeIgnoreCase(request.empresaId(), request.nome().trim())) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe um setor cadastrado com este nome.");
+        }
+
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new EntityNotFoundException("Empresa não encontrada com ID: " + request.empresaId()));
 
         Setor setor = mapper.toEntity(request);
+        setor.setNome(request.nome().trim());
         setor.setEmpresa(empresa);
 
         Setor saved = repository.save(setor);
@@ -67,6 +78,16 @@ public class SetorService {
     }
 
     public SetorResponse update(Long id, SetorRequest request) {
+        if (request.nome() == null || request.nome().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome do setor é obrigatório.");
+        }
+        if (request.nome().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome do setor deve ter pelo menos 2 caracteres.");
+        }
+        if (repository.existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(request.empresaId(), request.nome().trim(), id)) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe um setor cadastrado com este nome.");
+        }
+
         Setor setor = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Setor não encontrado com ID: " + id));
 
@@ -77,6 +98,7 @@ public class SetorService {
         }
 
         mapper.updateEntityFromRequest(request, setor);
+        setor.setNome(request.nome().trim());
         Setor updated = repository.save(setor);
         return mapper.toResponse(updated);
     }

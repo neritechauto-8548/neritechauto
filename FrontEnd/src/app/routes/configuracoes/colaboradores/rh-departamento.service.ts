@@ -32,16 +32,13 @@ export class RHDepartamentoService {
     });
   }
 
-  list(params?: any): Observable<Page<DepartamentoRHResponse>> {
-    let httpParams = new HttpParams().set('empresaId', this.tenantId);
+  list(params?: any): Observable<Page<any>> {
+    let p = new HttpParams().set('empresaId', this.tenantId);
     if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== undefined && params[key] !== null) {
-          httpParams = httpParams.set(key, String(params[key]));
-        }
+      Object.entries(params).forEach(([k, v]) => {
+        if (v != null) p = p.set(k, String(v));
       });
     }
-
-    return this.http.get<Page<DepartamentoRHResponse>>(this.base, { params: httpParams, headers: this.getHeaders() });
+    return this.http.get<Page<any>>(this.base, { params: p, headers: this.getHeaders() });
   }
 }

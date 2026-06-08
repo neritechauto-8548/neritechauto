@@ -29,7 +29,7 @@ public class UnidadeMedida extends TenantEntity {
 
     @NotBlank
     @Size(max = 10)
-    @Column(name = "sigla", nullable = false, length = 10, unique = true)
+    @Column(name = "sigla", nullable = false, length = 10)
     private String sigla;
 
     @Builder.Default

@@ -12,14 +12,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.neritech.saas.rh.service.FuncionarioFotoStorageService;
 
 @RestController
 @RequestMapping("/v1/rh/funcionarios")
 @RequiredArgsConstructor
-@Tag(name = "FuncionÃ¡rios", description = "GestÃ£o de funcionÃ¡rios")
+@Tag(name = "Funcionários", description = "Gestão de funcionários")
 public class FuncionarioController {
 
     private final FuncionarioService service;
+    private final FuncionarioFotoStorageService fotoStorageService;
 
     @GetMapping
     @Operation(summary = "Listar funcionÃ¡rios")
@@ -58,9 +61,45 @@ public class FuncionarioController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir funcionÃ¡rio")
+    @Operation(summary = "Excluir funcionário")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/foto")
+    @Operation(summary = "Upload da foto", description = "Realiza o upload da foto do funcionário")
+    public ResponseEntity<FuncionarioResponse> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        String path = fotoStorageService.store(id, file);
+        FuncionarioResponse saved = service.updateFotoPath(id, path);
+        return ResponseEntity.ok(saved);
+    }
+
+    @DeleteMapping("/{id}/foto")
+    @Operation(summary = "Remover foto do funcionário", description = "Remove a imagem atual do funcionário")
+    public ResponseEntity<Void> removerFoto(@PathVariable Long id) {
+        service.updateFotoPath(id, null);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/foto")
+    @Operation(summary = "Obter foto do funcionário", description = "Retorna a imagem do funcionário")
+    public ResponseEntity<org.springframework.core.io.Resource> getFoto(@PathVariable Long id) {
+        FuncionarioResponse f = service.findById(id);
+        if (f.fotoFuncionarioUrl() == null || f.fotoFuncionarioUrl().isBlank()) {
+            return ResponseEntity.notFound().build();
+        }
+        org.springframework.core.io.Resource r = fotoStorageService.load(f.fotoFuncionarioUrl());
+        String contentType = "image/png";
+        if (f.fotoFuncionarioUrl().toLowerCase().endsWith(".jpg") || f.fotoFuncionarioUrl().toLowerCase().endsWith(".jpeg")) {
+            contentType = "image/jpeg";
+        } else if (f.fotoFuncionarioUrl().toLowerCase().endsWith(".gif")) {
+            contentType = "image/gif";
+        } else if (f.fotoFuncionarioUrl().toLowerCase().endsWith(".svg")) {
+            contentType = "image/svg+xml";
+        }
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                .body(r);
     }
 }

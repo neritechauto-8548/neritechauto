@@ -1,9 +1,12 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
 import screenfull from 'screenfull';
 
 import { NotificationButton } from '../widgets/notification-button';
@@ -19,9 +22,12 @@ import { SettingsService } from '@core';
   },
   encapsulation: ViewEncapsulation.None,
   imports: [
-    MatToolbarModule,
+    CommonModule,
+    ToolbarModule,
+    ButtonModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     NotificationButton,
     UserButton,
   ],
@@ -33,7 +39,7 @@ export class Header {
   @Output() toggleSidenav = new EventEmitter<void>();
   @Output() toggleSidenavNotice = new EventEmitter<void>();
 
-  private readonly settings = inject(SettingsService);
+  public readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
 

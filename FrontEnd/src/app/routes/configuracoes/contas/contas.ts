@@ -152,8 +152,9 @@ export class Contas {
             this.contas = [...this.contas, created];
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Conta bancária cadastrada!' });
           },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Ocorreu um erro ao cadastrar a conta.' });
+          error: (err) => {
+            // O interceptador global cuida do toast de erro
+            console.error('Erro ao cadastrar conta', err);
           }
         });
       });
@@ -175,8 +176,9 @@ export class Contas {
             this.contas = this.contas.filter(c => c.id !== item.id);
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Conta bancária excluída com sucesso!' });
           },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir a conta bancária.' });
+          error: (err) => {
+            // O interceptador global cuida do toast de erro
+            console.error('Erro ao excluir conta', err);
           }
         });
       }
@@ -225,8 +227,9 @@ export class Contas {
           this.contas = this.contas.map(c => c.id === updated.id ? updated : c);
           this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Conta bancária atualizada!' });
         },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Ocorreu um erro ao atualizar a conta.' });
+        error: (err) => {
+          // O interceptador global cuida do toast de erro
+          console.error('Erro ao atualizar conta', err);
         }
       });
     });

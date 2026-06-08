@@ -18,5 +18,9 @@ public interface TemplateComunicacaoRepository extends JpaRepository<TemplateCom
             Pageable pageable);
 
     boolean existsByEmpresaIdAndNome(Long empresaId, String nome);
+
+    boolean existsByEmpresaIdAndNomeIgnoreCase(Long empresaId, String nome);
+
+    boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
 }
 

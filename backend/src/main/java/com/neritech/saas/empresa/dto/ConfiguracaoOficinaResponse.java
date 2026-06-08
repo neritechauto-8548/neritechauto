@@ -29,6 +29,15 @@ public record ConfiguracaoOficinaResponse(
         Boolean possuiIntervalo,
         LocalTime inicioIntervalo,
         LocalTime fimIntervalo,
+        Boolean mostrarLogoCupom,
+        String mostrarAssinaturaOs,
+        String termoGarantiaPadrao,
+        String mensagemEnvioOsPadrao,
+        Boolean mostrarExclusivoMensagemOs,
+        String mostrarRelatorios,
+        Boolean receberEmailRespostaQuestionario,
+        Boolean descontoIncideComissao,
+        Boolean atualizarPrecoCustoVendaAutomaticamente,
         LocalDateTime dataCadastro,
         LocalDateTime dataAtualizacao) {
 }

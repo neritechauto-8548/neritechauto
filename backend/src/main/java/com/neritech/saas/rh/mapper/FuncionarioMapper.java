@@ -16,6 +16,8 @@ public interface FuncionarioMapper {
     @Mapping(target = "atualizadoPor", ignore = true)
     Funcionario toEntity(FuncionarioRequest request);
 
+    @Mapping(source = "cargo.nome", target = "cargoNome")
+    @Mapping(source = "departamento.descricao", target = "departamentoNome")
     FuncionarioResponse toResponse(Funcionario entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

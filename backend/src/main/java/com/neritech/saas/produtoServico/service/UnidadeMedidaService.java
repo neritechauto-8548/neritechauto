@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neritech.saas.common.exception.BusinessException;
 import com.neritech.saas.produtoServico.domain.UnidadeMedida;
 import com.neritech.saas.produtoServico.dto.UnidadeMedidaRequest;
 import com.neritech.saas.produtoServico.dto.UnidadeMedidaResponse;
@@ -25,13 +26,53 @@ public class UnidadeMedidaService {
         this.mapper = mapper;
     }
 
-    @Transactional
-    public UnidadeMedidaResponse create(UnidadeMedidaRequest request) {
-        Long tenantId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
-        if (repository.findByEmpresaIdAndSigla(tenantId, request.sigla()).isPresent()) {
-            throw new IllegalArgumentException("Já existe uma unidade de medida com esta sigla");
+    private void validarUnidadeMedida(UnidadeMedidaRequest request, Long id) {
+        if (request.nome() == null || request.nome().trim().isBlank()) {
+            throw new BusinessException("O nome da unidade de medida é obrigatório.");
+        }
+        if (request.nome().trim().length() < 2) {
+            throw new BusinessException("O nome da unidade de medida deve ter pelo menos 2 caracteres.");
+        }
+        if (request.nome().trim().length() > 50) {
+            throw new BusinessException("O nome da unidade de medida não pode exceder 50 caracteres.");
         }
 
+        if (request.sigla() == null || request.sigla().trim().isBlank()) {
+            throw new BusinessException("A sigla da unidade de medida é obrigatória.");
+        }
+        if (request.sigla().trim().length() < 1) {
+            throw new BusinessException("A sigla deve ter pelo menos 1 caractere.");
+        }
+        if (request.sigla().trim().length() > 10) {
+            throw new BusinessException("A sigla não pode exceder 10 caracteres.");
+        }
+
+        Long tenantId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+
+        boolean nomeExists;
+        boolean siglaExists;
+
+        if (id == null) {
+            nomeExists = repository.existsByEmpresaIdAndNomeIgnoreCase(tenantId, request.nome().trim());
+            siglaExists = repository.existsByEmpresaIdAndSiglaIgnoreCase(tenantId, request.sigla().trim());
+        } else {
+            nomeExists = repository.existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(tenantId, request.nome().trim(), id);
+            siglaExists = repository.existsByEmpresaIdAndSiglaIgnoreCaseAndIdNot(tenantId, request.sigla().trim(), id);
+        }
+
+        if (nomeExists) {
+            throw new BusinessException("Já existe uma unidade de medida cadastrada com este nome.");
+        }
+        if (siglaExists) {
+            throw new BusinessException("Já existe uma unidade de medida cadastrada com esta sigla.");
+        }
+    }
+
+    @Transactional
+    public UnidadeMedidaResponse create(UnidadeMedidaRequest request) {
+        validarUnidadeMedida(request, null);
+
+        Long tenantId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
         UnidadeMedida entity = mapper.toEntity(request);
         entity.setEmpresaId(tenantId);
         UnidadeMedida saved = repository.save(entity);
@@ -65,10 +106,7 @@ public class UnidadeMedidaService {
         UnidadeMedida entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Unidade de medida não encontrada com ID: " + id));
 
-        Long tenantId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
-        if (!entity.getSigla().equals(request.sigla()) && repository.findByEmpresaIdAndSigla(tenantId, request.sigla()).isPresent()) {
-            throw new IllegalArgumentException("Já existe uma unidade de medida com esta sigla");
-        }
+        validarUnidadeMedida(request, id);
 
         mapper.updateEntityFromRequest(request, entity);
         UnidadeMedida saved = repository.save(entity);
@@ -78,7 +116,7 @@ public class UnidadeMedidaService {
     @Transactional
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Unidade de medida nÃ£o encontrada com ID: " + id);
+            throw new EntityNotFoundException("Unidade de medida não encontrada com ID: " + id);
         }
         repository.deleteById(id);
     }

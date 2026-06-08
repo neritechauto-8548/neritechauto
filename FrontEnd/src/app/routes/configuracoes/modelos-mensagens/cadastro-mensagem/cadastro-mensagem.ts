@@ -45,7 +45,6 @@ export class CadastroMensagem {
 
   // Opções para os selects
   tipoOptions = [
-    { label: 'App/Push', value: 'PUSH_NOTIFICATION' },
     { label: 'Email', value: 'EMAIL' },
     { label: 'SMS', value: 'SMS' },
     { label: 'WhatsApp', value: 'WHATSAPP' }
@@ -54,7 +53,7 @@ export class CadastroMensagem {
   // Formulário mapeando Request do Backend
   form = {
     nome: '',
-    tipoTemplate: 'PUSH_NOTIFICATION' as TipoTemplate,
+    tipoTemplate: 'EMAIL' as TipoTemplate,
     categoria: 'OUTROS' as CategoriaTemplate,
     assunto: '',
     conteudo: '',
@@ -122,9 +121,41 @@ export class CadastroMensagem {
   }
 
   salvar() {
-    if (!this.form.nome.trim() || !this.form.conteudo.trim()) {
-      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'Preencha os campos obrigatórios (*)' });
+    const nome = this.form.nome ? this.form.nome.trim() : '';
+    if (!nome) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O nome do modelo de envio é obrigatório.' });
       return;
+    }
+    if (nome.length < 2 || nome.length > 100) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O nome deve ter entre 2 e 100 caracteres.' });
+      return;
+    }
+
+    if (!this.form.categoria) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'A categoria do modelo é obrigatória.' });
+      return;
+    }
+
+    const conteudo = this.form.conteudo ? this.form.conteudo.trim() : '';
+    if (!conteudo) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O conteúdo do modelo é obrigatório.' });
+      return;
+    }
+    if (conteudo.length < 10) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O conteúdo deve ter pelo menos 10 caracteres.' });
+      return;
+    }
+
+    if (this.form.tipoTemplate === 'EMAIL') {
+      const assunto = this.form.assunto ? this.form.assunto.trim() : '';
+      if (!assunto) {
+        this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O assunto é obrigatório para modelos do tipo E-mail.' });
+        return;
+      }
+      if (assunto.length < 2 || assunto.length > 255) {
+        this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O assunto deve ter entre 2 e 255 caracteres.' });
+        return;
+      }
     }
 
     let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';

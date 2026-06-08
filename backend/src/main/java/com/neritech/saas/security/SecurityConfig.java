@@ -56,7 +56,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     HttpMethod.GET,
-                    "/v1/ordens-servico/fotos/*/download"
+                    "/v1/ordens-servico/fotos/*/download",
+                    "/v1/empresas/*/logo",
+                    "/v1/rh/funcionarios/*/foto"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

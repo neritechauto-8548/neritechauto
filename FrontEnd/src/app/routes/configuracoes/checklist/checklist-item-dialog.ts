@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-checklist-item-dialog',
@@ -16,7 +17,11 @@ export class ChecklistItemDialog implements OnInit {
   descricao = '';
   isEdit = false;
 
-  constructor(private ref: DynamicDialogRef, public config: DynamicDialogConfig) {}
+  constructor(
+    private ref: DynamicDialogRef, 
+    public config: DynamicDialogConfig,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
     if (this.config?.data && this.config.data.descricao) {
@@ -31,8 +36,14 @@ export class ChecklistItemDialog implements OnInit {
 
   salvar(): void {
     const value = this.descricao.trim();
-    if (value) {
-      this.ref.close(value);
+    if (!value) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'A descrição do item de checklist é obrigatória.' });
+      return;
     }
+    if (value.length < 2) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'A descrição do item de checklist deve ter pelo menos 2 caracteres.' });
+      return;
+    }
+    this.ref.close(value);
   }
 }

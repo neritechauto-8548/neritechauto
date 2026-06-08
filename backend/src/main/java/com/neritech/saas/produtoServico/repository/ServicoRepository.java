@@ -16,6 +16,10 @@ public interface ServicoRepository extends JpaRepository<Servico, Long> {
 
     boolean existsByNomeAndEmpresaId(String nome, Long empresaId);
 
+    boolean existsByEmpresaIdAndNomeIgnoreCase(Long empresaId, String nome);
+
+    boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
+
     Page<Servico> findByEmpresaId(Long empresaId, Pageable pageable);
 
     Page<Servico> findByEmpresaIdAndNomeContainingIgnoreCase(Long empresaId, String nome, Pageable pageable);

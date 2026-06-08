@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import com.neritech.saas.common.exception.BusinessException;
+
 @Service("comunicacaoItQuestionarioService")
 @Transactional
 @RequiredArgsConstructor
@@ -25,7 +27,37 @@ public class ItQuestionarioService {
     private final QuestionarioRepository questionarioRepository;
     private final ItQuestionarioMapper mapper;
 
+    private void validate(ItQuestionarioRequest request, Long id) {
+        if (request.questionarioId() == null) {
+            throw new BusinessException("O ID do questionário é obrigatório.");
+        }
+        if (request.dsItQuestionario() == null || request.dsItQuestionario().trim().isEmpty()) {
+            throw new BusinessException("A descrição da pergunta é obrigatória.");
+        }
+        String ds = request.dsItQuestionario().trim();
+        if (ds.length() < 2) {
+            throw new BusinessException("A descrição da pergunta deve ter pelo menos 2 caracteres.");
+        }
+        if (ds.length() > 255) {
+            throw new BusinessException("A descrição da pergunta não pode exceder 255 caracteres.");
+        }
+        if (request.tpItQuestionario() == null) {
+            throw new BusinessException("O tipo de resposta da pergunta é obrigatório.");
+        }
+
+        boolean exists;
+        if (id == null) {
+            exists = repository.existsByQuestionarioIdAndDsItQuestionarioIgnoreCase(request.questionarioId(), ds);
+        } else {
+            exists = repository.existsByQuestionarioIdAndDsItQuestionarioIgnoreCaseAndIdNot(request.questionarioId(), ds, id);
+        }
+        if (exists) {
+            throw new BusinessException("Já existe uma pergunta cadastrada com esta descrição neste questionário.");
+        }
+    }
+
     public ItQuestionarioResponse create(ItQuestionarioRequest request) {
+        validate(request, null);
         Questionario questionario = questionarioRepository.findById(request.questionarioId())
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + request.questionarioId()));
 
@@ -39,7 +71,7 @@ public class ItQuestionarioService {
     @Transactional(readOnly = true)
     public ItQuestionarioResponse findById(Long id) {
         ItQuestionario entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item de checklist não encontrado com ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Pergunta não encontrada com ID: " + id));
         return mapper.toResponse(entity);
     }
 
@@ -56,7 +88,9 @@ public class ItQuestionarioService {
 
     public ItQuestionarioResponse update(Long id, ItQuestionarioRequest request) {
         ItQuestionario entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item de checklist não encontrado com ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Pergunta não encontrada com ID: " + id));
+
+        validate(request, id);
 
         if (!entity.getQuestionario().getId().equals(request.questionarioId())) {
             Questionario questionario = questionarioRepository.findById(request.questionarioId())
@@ -71,7 +105,7 @@ public class ItQuestionarioService {
 
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Item de checklist não encontrado com ID: " + id);
+            throw new EntityNotFoundException("Pergunta não encontrada com ID: " + id);
         }
         repository.deleteById(id);
     }

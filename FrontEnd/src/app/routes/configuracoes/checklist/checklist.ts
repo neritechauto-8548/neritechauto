@@ -44,7 +44,7 @@ export class Checklist implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
 
-  modelos: { id: number; titulo: string; itens: ItChecklistOsResponse[]; loading?: boolean }[] = [];
+  modelos: { id: number; titulo: string; itens: ItChecklistOsResponse[]; loading?: boolean; loaded?: boolean }[] = [];
   loading = false;
 
   ngOnInit() {
@@ -65,13 +65,32 @@ export class Checklist implements OnInit {
           id: c.id,
           titulo: c.dsChecklist,
           itens: [],
+          loading: true,
+          loaded: false
         }));
         this.loading = false;
+
+        // Carrega imediatamente os itens de cada checklist
+        this.modelos.forEach(modelo => {
+          this.itChecklistService.listPorChecklist(modelo.id).subscribe({
+            next: itens => {
+              modelo.itens = itens || [];
+              modelo.loading = false;
+              modelo.loaded = true;
+              this.modelos = [...this.modelos];
+            },
+            error: err => {
+              console.error(`Erro ao carregar itens para o checklist ${modelo.id}:`, err);
+              modelo.loading = false;
+              modelo.loaded = true;
+              this.modelos = [...this.modelos];
+            }
+          });
+        });
       },
       error: (err) => {
         console.error('Erro ao listar checklists', err);
         this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar checklists' });
       }
     });
   }
@@ -91,12 +110,11 @@ export class Checklist implements OnInit {
         const dto: ChecklistRequest = { empresaId: Number(this.tenantId), dsChecklist: value };
         this.checklistService.create(dto).subscribe({
           next: created => {
-            this.modelos = [{ id: created.id, titulo: created.dsChecklist, itens: [] }, ...this.modelos];
+            this.modelos = [{ id: created.id, titulo: created.dsChecklist, itens: [], loaded: true }, ...this.modelos];
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Checklist criado com sucesso' });
           },
           error: (err) => {
             console.error('Erro ao criar checklist', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao criar checklist' });
           }
         });
       }
@@ -126,7 +144,6 @@ export class Checklist implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao atualizar checklist', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar checklist' });
           }
         });
       }
@@ -151,7 +168,6 @@ export class Checklist implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir checklist', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir checklist' });
           }
         });
       }
@@ -180,7 +196,6 @@ export class Checklist implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao adicionar item', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao adicionar item' });
           }
         });
       }
@@ -211,7 +226,6 @@ export class Checklist implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao atualizar item', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar item' });
           }
         });
       }
@@ -238,16 +252,16 @@ export class Checklist implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir item', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir item' });
           }
         });
       }
     });
   }
 
-  abrir(index: number): void {
-    const modelo = this.modelos[index];
-    if (!modelo || (modelo.itens && modelo.itens.length > 0)) {
+  abrir(index: any): void {
+    const idx = typeof index === 'string' ? parseInt(index, 10) : index;
+    const modelo = this.modelos[idx];
+    if (!modelo || modelo.loaded) {
       return;
     }
     modelo.loading = true;
@@ -255,6 +269,7 @@ export class Checklist implements OnInit {
       next: itens => {
         modelo.itens = itens || [];
         modelo.loading = false;
+        modelo.loaded = true;
         this.modelos = [...this.modelos];
       },
       error: () => {

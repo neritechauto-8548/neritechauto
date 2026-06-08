@@ -42,6 +42,14 @@ export interface FuncionarioRequest {
   status?: string;
   motivoInativacao?: string;
   enderecoCompleto?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  pais?: string;
   telefonePrincipal?: string;
   telefoneEmergencia?: string;
   contatoEmergenciaNome?: string;
@@ -81,6 +89,8 @@ export interface FuncionarioResponse {
   profissao?: string;
   cargoId?: number;
   departamentoId?: number;
+  cargoNome?: string;
+  departamentoNome?: string;
   dataAdmissao?: string;
   dataDemissao?: string;
   tipoContrato?: string;
@@ -93,6 +103,14 @@ export interface FuncionarioResponse {
   status?: 'ATIVO' | 'INATIVO' | 'AFASTADO' | 'DEMITIDO' | 'APOSENTADO';
   motivoInativacao?: string;
   enderecoCompleto?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  pais?: string;
   telefonePrincipal?: string;
   telefoneEmergencia?: string;
   contatoEmergenciaNome?: string;
@@ -153,5 +171,17 @@ export class FuncionarioService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`, { headers: this.headers });
+  }
+
+  uploadFoto(id: number, file: File): Observable<FuncionarioResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    // Don't set Content-Type header for FormData, browser will set it with boundary
+    const headers = new HttpHeaders({ 'X-Tenant-Id': this.tenantId, 'Accept': 'application/json' });
+    return this.http.post<FuncionarioResponse>(`${this.base}/${id}/foto`, formData, { headers });
+  }
+
+  removerFoto(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}/foto`, { headers: this.headers });
   }
 }

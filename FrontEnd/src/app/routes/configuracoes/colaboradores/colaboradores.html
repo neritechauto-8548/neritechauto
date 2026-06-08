@@ -67,8 +67,9 @@
                     <!-- Vínculo -->
                     <td class="py-2.5 px-6 align-middle">
                         <div class="flex flex-col">
-                            <span class="text-sm text-slate-700">{{ row.tipoContrato || '—' }}</span>
-                            <span class="text-[11px] text-slate-500" *ngIf="row.telefonePrincipal">{{ row.telefonePrincipal }}</span>
+                            <span class="text-sm font-semibold text-slate-800">{{ row.cargoNome || 'Sem Cargo' }}</span>
+                            <span class="text-[11px] text-slate-500">{{ row.departamentoNome || 'Sem Depto.' }}</span>
+                            <span class="text-[11px] text-slate-400 font-medium">{{ row.tipoContrato || '—' }}</span>
                         </div>
                     </td>
 

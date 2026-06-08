@@ -117,22 +117,26 @@ export class Setores implements OnInit {
     if (ref) {
       this.dialogRef = ref;
       ref.onClose.subscribe(result => {
-        if (result?.nome) {
-          let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-          if (!tenantId || typeof tenantId === 'object') tenantId = '1';
+        if (result) {
+          if (result.error) {
+            this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: result.error });
+            return;
+          }
+          if (result.nome?.trim()) {
+            let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
+            if (!tenantId || typeof tenantId === 'object') tenantId = '1';
 
-          result.empresaId = Number(tenantId);
-          // O dialog retorna 'nome' ao inves de descricao agora.
-          this.setoresService.create({ empresaId: Number(tenantId), nome: result.nome, ativo: result.ativo ?? true }).subscribe({
-            next: () => {
-              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Setor cadastrado com sucesso!' });
-              this.load();
-            },
-            error: (err) => {
-              console.error('Erro ao criar setor', err);
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao cadastrar setor.' });
-            }
-          });
+            result.empresaId = Number(tenantId);
+            this.setoresService.create({ empresaId: Number(tenantId), nome: result.nome, ativo: result.ativo ?? true }).subscribe({
+              next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Setor cadastrado com sucesso!' });
+                this.load();
+              },
+              error: (err) => {
+                console.error('Erro ao criar setor', err);
+              }
+            });
+          }
         }
       });
     }
@@ -148,26 +152,31 @@ export class Setores implements OnInit {
     });
     if (ref) {
       ref.onClose.subscribe(result => {
-        if (result?.nome) {
-          let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-          if (!tenantId || typeof tenantId === 'object') tenantId = '1';
+        if (result) {
+          if (result.error) {
+            this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: result.error });
+            return;
+          }
+          if (result.nome?.trim()) {
+            let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
+            if (!tenantId || typeof tenantId === 'object') tenantId = '1';
 
-          const payload = {
-            empresaId: Number(tenantId),
-            nome: result.nome,
-            ativo: result.ativo ?? true
-          };
+            const payload = {
+              empresaId: Number(tenantId),
+              nome: result.nome,
+              ativo: result.ativo ?? true
+            };
 
-          this.setoresService.update(setor.id, payload).subscribe({
-            next: () => {
-              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Setor atualizado com sucesso!' });
-              this.load();
-            },
-            error: (err) => {
-              console.error('Erro ao atualizar setor', err);
-               this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar setor.' });
-            }
-          });
+            this.setoresService.update(setor.id, payload).subscribe({
+              next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Setor atualizado com sucesso!' });
+                this.load();
+              },
+              error: (err) => {
+                console.error('Erro ao atualizar setor', err);
+              }
+            });
+          }
         }
       });
     }
@@ -190,7 +199,6 @@ export class Setores implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir setor', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir setor.' });
           }
         });
       }

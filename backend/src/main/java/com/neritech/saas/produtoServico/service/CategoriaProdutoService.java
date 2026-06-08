@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neritech.saas.common.exception.BusinessException;
+
 import java.util.List;
 
 import com.neritech.saas.produtoServico.domain.CategoriaProduto;
@@ -25,8 +27,32 @@ public class CategoriaProdutoService {
         this.mapper = mapper;
     }
 
+    private void validarCategoriaProduto(CategoriaProdutoRequest request, Long id) {
+        if (request.nome() == null || request.nome().trim().isBlank()) {
+            throw new BusinessException("O nome da categoria é obrigatório.");
+        }
+        if (request.nome().trim().length() < 2) {
+            throw new BusinessException("O nome da categoria deve ter pelo menos 2 caracteres.");
+        }
+        if (request.nome().trim().length() > 100) {
+            throw new BusinessException("O nome da categoria não pode exceder 100 caracteres.");
+        }
+
+        boolean exists;
+        if (id == null) {
+            exists = repository.existsByEmpresaIdAndNomeIgnoreCase(request.empresaId(), request.nome().trim());
+        } else {
+            exists = repository.existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(request.empresaId(), request.nome().trim(), id);
+        }
+
+        if (exists) {
+            throw new BusinessException("Já existe uma categoria de produto cadastrada com este nome.");
+        }
+    }
+
     @Transactional
     public CategoriaProdutoResponse create(CategoriaProdutoRequest request) {
+        validarCategoriaProduto(request, null);
         CategoriaProduto entity = mapper.toEntity(request);
         entity.setEmpresaId(request.empresaId());
 
@@ -70,6 +96,8 @@ public class CategoriaProdutoService {
         if (!entity.getEmpresaId().equals(request.empresaId())) {
             throw new IllegalArgumentException("Não é permitido alterar a empresa da categoria");
         }
+
+        validarCategoriaProduto(request, id);
 
         mapper.updateEntityFromRequest(request, entity);
 

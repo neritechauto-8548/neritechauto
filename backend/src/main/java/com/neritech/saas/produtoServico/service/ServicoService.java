@@ -12,6 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neritech.saas.common.exception.BusinessException;
+import com.neritech.saas.common.tenancy.TenantContext;
+import java.math.BigDecimal;
+
 @Service
 public class ServicoService {
 
@@ -25,6 +29,7 @@ public class ServicoService {
 
     @Transactional
     public ServicoResponse create(ServicoRequest request) {
+        validate(request, null);
         Servico entity = mapper.toEntity(request);
         Servico saved = repository.save(entity);
         return mapper.toResponse(saved);
@@ -54,9 +59,45 @@ public class ServicoService {
         Servico entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Serviço não encontrado com ID: " + id));
 
+        validate(request, id);
         mapper.updateEntityFromRequest(request, entity);
         Servico saved = repository.save(entity);
         return mapper.toResponse(saved);
+    }
+
+    private void validate(ServicoRequest request, Long id) {
+        if (request.nome() == null || request.nome().trim().isEmpty()) {
+            throw new BusinessException("O nome do serviço é obrigatório.");
+        }
+        if (request.nome().trim().length() < 2 || request.nome().trim().length() > 255) {
+            throw new BusinessException("O nome do serviço deve ter entre 2 e 255 caracteres.");
+        }
+        if (request.precoBase() == null) {
+            throw new BusinessException("O preço base é obrigatório.");
+        }
+        if (request.precoBase().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("O preço base não pode ser negativo.");
+        }
+        if (request.custo() == null) {
+            throw new BusinessException("O custo é obrigatório.");
+        }
+        if (request.custo().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("O custo não pode ser negativo.");
+        }
+        if (request.precoBase().compareTo(request.custo()) < 0) {
+            throw new BusinessException("O preço base de venda do serviço não pode ser inferior ao seu custo de execução.");
+        }
+
+        Long tenantId = TenantContext.getCurrentTenant();
+        boolean exists;
+        if (id == null) {
+            exists = repository.existsByEmpresaIdAndNomeIgnoreCase(tenantId, request.nome().trim());
+        } else {
+            exists = repository.existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(tenantId, request.nome().trim(), id);
+        }
+        if (exists) {
+            throw new BusinessException("Já existe um serviço cadastrado com este nome nesta empresa.");
+        }
     }
 
     @Transactional

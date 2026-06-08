@@ -27,6 +27,7 @@ public class ChecklistService {
     }
 
     public ChecklistResponse create(ChecklistRequest request) {
+        validarChecklist(request.empresaId(), null, request);
         Checklist entity = mapper.toEntity(request);
         Checklist saved = repository.save(entity);
         return mapper.toResponse(saved);
@@ -50,9 +51,29 @@ public class ChecklistService {
     public ChecklistResponse update(Long id, ChecklistRequest request) {
         Checklist entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Checklist não encontrado com ID: " + id));
+        validarChecklist(entity.getEmpresaId(), id, request);
         mapper.updateEntityFromRequest(request, entity);
         Checklist updated = repository.save(entity);
         return mapper.toResponse(updated);
+    }
+
+    private void validarChecklist(Long empresaId, Long id, ChecklistRequest request) {
+        if (request.dsChecklist() == null || request.dsChecklist().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("O título do checklist é obrigatório.");
+        }
+        if (request.dsChecklist().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("O título do checklist deve ter pelo menos 2 caracteres.");
+        }
+        if (empresaId == null) {
+            throw new com.neritech.saas.common.exception.BusinessException("O ID da empresa é obrigatório.");
+        }
+
+        boolean duplicado = id == null
+                ? repository.existsByEmpresaIdAndDsChecklistIgnoreCase(empresaId, request.dsChecklist().trim())
+                : repository.existsByEmpresaIdAndDsChecklistIgnoreCaseAndIdNot(empresaId, request.dsChecklist().trim(), id);
+        if (duplicado) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe um checklist cadastrado com esta descrição.");
+        }
     }
 
     public void delete(Long id) {

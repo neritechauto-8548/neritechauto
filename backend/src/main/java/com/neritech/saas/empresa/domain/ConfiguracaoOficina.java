@@ -79,6 +79,33 @@ public class ConfiguracaoOficina extends BaseEntity {
     @Column(name = "fim_intervalo")
     private LocalTime fimIntervalo;
 
+    @Column(name = "mostrar_logo_cupom")
+    private Boolean mostrarLogoCupom = false;
+
+    @Column(name = "mostrar_assinatura_os", length = 20)
+    private String mostrarAssinaturaOs = "FUNCIONARIO";
+
+    @Column(name = "termo_garantia_padrao", columnDefinition = "TEXT")
+    private String termoGarantiaPadrao;
+
+    @Column(name = "mensagem_envio_os_padrao", columnDefinition = "TEXT")
+    private String mensagemEnvioOsPadrao;
+
+    @Column(name = "mostrar_exclusivo_mensagem_os")
+    private Boolean mostrarExclusivoMensagemOs = false;
+
+    @Column(name = "mostrar_relatorios", length = 20)
+    private String mostrarRelatorios = "NOME_FANTASIA";
+
+    @Column(name = "receber_email_resposta_questionario")
+    private Boolean receberEmailRespostaQuestionario = true;
+
+    @Column(name = "desconto_incide_comissao")
+    private Boolean descontoIncideComissao = false;
+
+    @Column(name = "atualizar_preco_custo_venda_automaticamente")
+    private Boolean atualizarPrecoCustoVendaAutomaticamente = false;
+
     public ConfiguracaoOficina() {
     }
 
@@ -257,5 +284,77 @@ public class ConfiguracaoOficina extends BaseEntity {
 
     public void setFimIntervalo(LocalTime fimIntervalo) {
         this.fimIntervalo = fimIntervalo;
+    }
+
+    public Boolean getMostrarLogoCupom() {
+        return mostrarLogoCupom;
+    }
+
+    public void setMostrarLogoCupom(Boolean mostrarLogoCupom) {
+        this.mostrarLogoCupom = mostrarLogoCupom;
+    }
+
+    public String getMostrarAssinaturaOs() {
+        return mostrarAssinaturaOs;
+    }
+
+    public void setMostrarAssinaturaOs(String mostrarAssinaturaOs) {
+        this.mostrarAssinaturaOs = mostrarAssinaturaOs;
+    }
+
+    public String getTermoGarantiaPadrao() {
+        return termoGarantiaPadrao;
+    }
+
+    public void setTermoGarantiaPadrao(String termoGarantiaPadrao) {
+        this.termoGarantiaPadrao = termoGarantiaPadrao;
+    }
+
+    public String getMensagemEnvioOsPadrao() {
+        return mensagemEnvioOsPadrao;
+    }
+
+    public void setMensagemEnvioOsPadrao(String mensagemEnvioOsPadrao) {
+        this.mensagemEnvioOsPadrao = mensagemEnvioOsPadrao;
+    }
+
+    public Boolean getMostrarExclusivoMensagemOs() {
+        return mostrarExclusivoMensagemOs;
+    }
+
+    public void setMostrarExclusivoMensagemOs(Boolean mostrarExclusivoMensagemOs) {
+        this.mostrarExclusivoMensagemOs = mostrarExclusivoMensagemOs;
+    }
+
+    public String getMostrarRelatorios() {
+        return mostrarRelatorios;
+    }
+
+    public void setMostrarRelatorios(String mostrarRelatorios) {
+        this.mostrarRelatorios = mostrarRelatorios;
+    }
+
+    public Boolean getReceberEmailRespostaQuestionario() {
+        return receberEmailRespostaQuestionario;
+    }
+
+    public void setReceberEmailRespostaQuestionario(Boolean receberEmailRespostaQuestionario) {
+        this.receberEmailRespostaQuestionario = receberEmailRespostaQuestionario;
+    }
+
+    public Boolean getDescontoIncideComissao() {
+        return descontoIncideComissao;
+    }
+
+    public void setDescontoIncideComissao(Boolean descontoIncideComissao) {
+        this.descontoIncideComissao = descontoIncideComissao;
+    }
+
+    public Boolean getAtualizarPrecoCustoVendaAutomaticamente() {
+        return atualizarPrecoCustoVendaAutomaticamente;
+    }
+
+    public void setAtualizarPrecoCustoVendaAutomaticamente(Boolean atualizarPrecoCustoVendaAutomaticamente) {
+        this.atualizarPrecoCustoVendaAutomaticamente = atualizarPrecoCustoVendaAutomaticamente;
     }
 }

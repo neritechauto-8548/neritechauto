@@ -132,7 +132,6 @@ export class Localizacao implements OnInit {
             },
             error: (err) => {
                console.error('Erro ao criar localização', err);
-               this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao criar localização' });
             }
           });
         }
@@ -162,7 +161,6 @@ export class Localizacao implements OnInit {
             },
             error: (err) => {
               console.error('Erro ao atualizar localização', err);
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar localização' });
             }
           });
         }
@@ -187,7 +185,6 @@ export class Localizacao implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir localização', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir localização' });
           }
         });
       }

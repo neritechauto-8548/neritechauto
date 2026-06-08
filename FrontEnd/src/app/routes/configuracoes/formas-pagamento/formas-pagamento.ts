@@ -186,12 +186,14 @@ export class FormasPagamento {
         };
         this.service.create(dto).subscribe({
           next: (created) => {
-            this.formas = [...this.formas, this.mapResponse(created)];
+            if (created.padrao) {
+              this.load();
+            } else {
+              this.formas = [...this.formas, this.mapResponse(created)];
+            }
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Forma de pagamento adicionada com sucesso.' });
           },
-          error: () => {
-             this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao adicionar a forma de pagamento.' });
-          },
+          error: () => {},
         });
       });
     }
@@ -212,9 +214,7 @@ export class FormasPagamento {
              this.formas = this.formas.filter(f => f.id !== item.id);
              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Forma de pagamento excluída com sucesso.' });
           },
-          error: () => {
-             this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir a forma de pagamento.' });
-          }
+          error: () => {}
         });
       }
     });
@@ -227,6 +227,7 @@ export class FormasPagamento {
       data: {
         nome: item.nome,
         tipo: item.tipoPagamento,
+        tipoEnum: item.tipoEnum,
         aceitaParcelamento: item.aceitaParcelamento,
         parcelasMaximas: item.parcelasMaximas,
         taxaAdministracao: item.taxaAdministracao,
@@ -270,13 +271,15 @@ export class FormasPagamento {
       };
       this.service.update(item.id, dto).subscribe({
         next: (updated) => {
-          const ui = this.mapResponse(updated);
-          this.formas = this.formas.map(f => f.id === ui.id ? { ...f, ...ui } : f);
+          if (updated.padrao) {
+            this.load();
+          } else {
+            const ui = this.mapResponse(updated);
+            this.formas = this.formas.map(f => f.id === ui.id ? { ...f, ...ui } : f);
+          }
           this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Forma de pagamento atualizada com sucesso.' });
         },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar a forma de pagamento.' });
-        },
+        error: () => {},
       });
     });
   }

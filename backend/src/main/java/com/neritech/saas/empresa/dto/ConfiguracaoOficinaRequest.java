@@ -26,5 +26,14 @@ public record ConfiguracaoOficinaRequest(
         String timezone,
         Boolean possuiIntervalo,
         LocalTime inicioIntervalo,
-        LocalTime fimIntervalo) {
+        LocalTime fimIntervalo,
+        Boolean mostrarLogoCupom,
+        String mostrarAssinaturaOs,
+        String termoGarantiaPadrao,
+        String mensagemEnvioOsPadrao,
+        Boolean mostrarExclusivoMensagemOs,
+        String mostrarRelatorios,
+        Boolean receberEmailRespostaQuestionario,
+        Boolean descontoIncideComissao,
+        Boolean atualizarPrecoCustoVendaAutomaticamente) {
 }

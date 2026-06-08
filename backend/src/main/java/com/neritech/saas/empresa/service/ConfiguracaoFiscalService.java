@@ -52,8 +52,7 @@ public class ConfiguracaoFiscalService {
     public ConfiguracaoFiscalResponse findByEmpresaId(Long empresaId) {
         return repository.findByEmpresaId(empresaId)
                 .map(mapper::toResponse)
-                .orElseGet(() -> new ConfiguracaoFiscalResponse(
-                        null, empresaId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                .orElseGet(() -> ConfiguracaoFiscalResponse.builder().empresaId(empresaId).build());
     }
 
     @Transactional(readOnly = true)

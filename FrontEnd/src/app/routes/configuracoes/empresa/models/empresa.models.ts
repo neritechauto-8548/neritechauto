@@ -12,6 +12,7 @@ export interface Empresa {
   dataAbertura?: string;
   observacoes?: string;
   ativo?: boolean;
+  logoPath?: string;
 }
 
 // --- Endereço da Empresa ---
@@ -71,6 +72,60 @@ export interface ConfiguracaoFiscal {
   certificadoDigitalA1?: string;
   senhaCertificado?: string;
   validadeCertificado?: string;
+
+  // --- NFe ---
+  situacaoTributariaIcmsNfe?: string;
+  situacaoTributariaPisNfe?: string;
+  situacaoTributariaCofinsNfe?: string;
+  mensagemDadosAdicionaisNfe?: string;
+  mostrarCnpjNfe?: boolean;
+  utilizarCodigoProdutoOriginalNfe?: boolean;
+
+  // --- NFCe ---
+  situacaoTributariaIcmsNfce?: string;
+  situacaoTributariaPisNfce?: string;
+  situacaoTributariaCofinsNfce?: string;
+  mensagemDadosAdicionaisNfce?: string;
+  serieNfce?: number;
+  cfopPadraoNfce?: string;
+
+  // --- NFSe Homologacao ---
+  sequencialRpseHomologacao?: number;
+  serieRpseHomologacao?: string;
+  sequencialLoteRpseHomologacao?: number;
+  usuarioAcessoProvedorHomologacao?: string;
+  tokenAcessoProvedorHomologacao?: string;
+
+  // --- NFSe Producao ---
+  sequencialRpseProducao?: number;
+  serieRpseProducao?: string;
+  sequencialLoteRpseProducao?: number;
+  usuarioAcessoProvedorProducao?: string;
+  tokenAcessoProvedorProducao?: string;
+
+  // --- NFSe Gerais ---
+  cnaeServico?: string;
+  codigoServicoMunicipal?: string;
+  itemListaServico?: string;
+  codigoNbs?: string;
+  codigoTributacaoMunicipio?: string;
+  unidadeServico?: string;
+  descricaoServicoMunicipal?: string;
+  naturezaOperacaoNfse?: string;
+  regimeEspecialTributacaoNfse?: string;
+  issRetidoFonte?: boolean;
+  outrasInformacoesNfse?: string;
+  logoNfsePath?: string;
+
+  // --- Reforma Tributaria ---
+  aliquotaIbs?: number;
+  percentualDiferimentoIbs?: number;
+  percentualReducaoIbs?: number;
+  aliquotaCbs?: number;
+  percentualDiferimentoCbs?: number;
+  percentualReducaoCbs?: number;
+  situacaoTributariaIbsCbs?: string;
+  classificacaoTributariaIbsCbs?: string;
 }
 
 // --- Configuração Oficina (horários e regras operacionais) ---
@@ -98,6 +153,15 @@ export interface ConfiguracaoOficina {
   possuiIntervalo?: boolean;
   inicioIntervalo?: string;
   fimIntervalo?: string;
+  mostrarLogoCupom?: boolean;
+  mostrarAssinaturaOs?: string;
+  termoGarantiaPadrao?: string;
+  mensagemEnvioOsPadrao?: string;
+  mostrarExclusivoMensagemOs?: boolean;
+  mostrarRelatorios?: string;
+  receberEmailRespostaQuestionario?: boolean;
+  descontoIncideComissao?: boolean;
+  atualizarPrecoCustoVendaAutomaticamente?: boolean;
 }
 
 // --- Configuração Email ---

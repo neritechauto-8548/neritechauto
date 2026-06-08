@@ -11,9 +11,9 @@ import { LocalStorageService } from '@shared/services/storage.service';
 import { ConfirmationService as CustomConfirmationService } from '@shared/services/confirmation.service';
 import { MessageService, ConfirmationService as PrimeNGConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { MatIconModule } from '@angular/material/icon';
 import { InputTextModule } from 'primeng/inputtext';
-import { PageHeader, ConfirmationDialogComponent } from '@shared/components';
+import { MatIconModule } from '@angular/material/icon';
+import { PageHeader } from '@shared/components';
 
 @Component({
   selector: 'situacao',
@@ -29,8 +29,7 @@ import { PageHeader, ConfirmationDialogComponent } from '@shared/components';
     DynamicDialogModule,
     ToastModule,
     MatIconModule,
-    InputTextModule,
-    ConfirmationDialogComponent
+    InputTextModule
   ],
   providers: [DialogService, MessageService, PrimeNGConfirmationService],
 })
@@ -144,8 +143,8 @@ export class Situacao implements OnInit {
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Situação criada com sucesso.' });
               this.load();
             },
-            error: () => {
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao criar situação.' });
+            error: (err) => {
+              console.error('Erro ao criar situação', err);
             }
           });
         }
@@ -181,8 +180,8 @@ export class Situacao implements OnInit {
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Situação atualizada com sucesso.' });
               this.load();
             },
-            error: () => {
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao atualizar situação.' });
+            error: (err) => {
+              console.error('Erro ao atualizar situação', err);
             }
           });
         }
@@ -205,9 +204,9 @@ export class Situacao implements OnInit {
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Situação excluída com sucesso.' });
             this.load();
           },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao excluir situação.' });
-          }
+            error: (err) => {
+              console.error('Erro ao excluir situação', err);
+            }
         });
       }
     });

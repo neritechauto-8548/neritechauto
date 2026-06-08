@@ -29,6 +29,8 @@ public class EmpresaResponse {
     private String observacoes;
     @Schema(description = "Ativo", example = "true")
     private Boolean ativo;
+    @Schema(description = "Caminho da logomarca", example = "uploads/logomarcas/logo.png")
+    private String logoPath;
 
     public Long getId() {
         return id;
@@ -124,5 +126,13 @@ public class EmpresaResponse {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public String getLogoPath() {
+        return logoPath;
+    }
+
+    public void setLogoPath(String logoPath) {
+        this.logoPath = logoPath;
     }
 }

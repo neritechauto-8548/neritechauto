@@ -60,6 +60,15 @@ public class UsuarioService {
                 .bloqueado(request.isBloqueado())
                 .build();
 
+        com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario perfil = new com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario();
+        perfil.setUsuario(usuario);
+        perfil.setEmpresaId(com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant());
+        perfil.setPreferencias(request.getPreferencias());
+        perfil.setCargo(request.getCargo());
+        perfil.setDepartamento(request.getDepartamento());
+        perfil.setTelefone(request.getTelefone());
+        usuario.setPerfil(perfil);
+
         syncFuncoes(usuario, request.getFuncoesIds());
 
         usuario = usuarioRepository.save(usuario);
@@ -88,6 +97,17 @@ public class UsuarioService {
         if (request.getSenha() != null && !request.getSenha().isEmpty()) {
             usuario.setSenha(passwordEncoder.encode(request.getSenha()));
         }
+
+        if (usuario.getPerfil() == null) {
+            com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario perfil = new com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario();
+            perfil.setUsuario(usuario);
+            perfil.setEmpresaId(empresaId);
+            usuario.setPerfil(perfil);
+        }
+        usuario.getPerfil().setPreferencias(request.getPreferencias());
+        usuario.getPerfil().setCargo(request.getCargo());
+        usuario.getPerfil().setDepartamento(request.getDepartamento());
+        usuario.getPerfil().setTelefone(request.getTelefone());
 
         syncFuncoes(usuario, request.getFuncoesIds());
 
@@ -179,6 +199,7 @@ public class UsuarioService {
                         .departamento(usuario.getPerfil() != null ? usuario.getPerfil().getDepartamento() : null)
                         .telefone(usuario.getPerfil() != null ? usuario.getPerfil().getTelefone() : null)
                         .avatarUrl(usuario.getPerfil() != null ? usuario.getPerfil().getAvatarUrl() : null)
+                        .preferencias(usuario.getPerfil() != null ? usuario.getPerfil().getPreferencias() : null)
                         .funcoes(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getNome()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
                         .funcoesIds(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
                         .permissions(usuario.getFuncoes() != null ? usuario.getFuncoes().stream()
@@ -221,6 +242,7 @@ public class UsuarioService {
                 .departamento(usuario.getPerfil() != null ? usuario.getPerfil().getDepartamento() : null)
                 .telefone(usuario.getPerfil() != null ? usuario.getPerfil().getTelefone() : null)
                 .avatarUrl(usuario.getPerfil() != null ? usuario.getPerfil().getAvatarUrl() : null)
+                .preferencias(usuario.getPerfil() != null ? usuario.getPerfil().getPreferencias() : null)
                 .funcoes(usuario.getFuncoes() != null 
                     ? usuario.getFuncoes().stream().map(f -> f.getNome()).collect(Collectors.toSet()) 
                     : Collections.emptySet())

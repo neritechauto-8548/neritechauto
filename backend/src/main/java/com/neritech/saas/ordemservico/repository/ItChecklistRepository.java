@@ -9,4 +9,8 @@ import java.util.List;
 public interface ItChecklistRepository extends JpaRepository<ItChecklist, Long> {
     List<ItChecklist> findByChecklist_Id(Long checklistId);
     void deleteByChecklist_Id(Long checklistId);
+
+    boolean existsByChecklist_IdAndDsItChecklistIgnoreCase(Long checklistId, String dsItChecklist);
+
+    boolean existsByChecklist_IdAndDsItChecklistIgnoreCaseAndIdNot(Long checklistId, String dsItChecklist, Long id);
 }

@@ -13,7 +13,7 @@ import { AboutSystemDialog } from './about-system';
 @Component({
   selector: 'app-user',
   template: `
-    <button [matMenuTriggerFor]="menu" class="group flex items-center p-1 rounded-xl hover:bg-slate-100/50 transition-all duration-200">
+    <button [matMenuTriggerFor]="menu" class="group flex items-center p-1 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200">
       <div class="relative">
         @if (user.avatar) {
           <img [src]="user.avatar" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-sm" [alt]="user.name">

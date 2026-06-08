@@ -21,7 +21,7 @@
   <mat-sidenav-container class="matero-container" autosize autoFocus>
     <mat-sidenav
       #sidenav
-      class="matero-sidenav"
+      class="matero-sidenav transition-colors duration-200 {{options.menuThemeClass || '!bg-[var(--p-surface-0)] dark:!bg-[var(--p-surface-900)]'}}"
       [mode]="isOver ? 'over' : 'side'"
       [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver"
       (openedChange)="onSidenavOpenedChange($event)"

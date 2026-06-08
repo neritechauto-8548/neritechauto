@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from '@shared/services/confirmation.service';
@@ -19,6 +20,7 @@ import { Page, ServicoResponse } from '../models/servico.models';
     FormsModule,
     ReactiveFormsModule,
     InputTextModule,
+    InputNumberModule,
     ToastModule,
     MatIconModule,
     MatButtonModule,
@@ -129,9 +131,44 @@ export class Servicos implements OnInit {
   }
 
   salvar(): void {
-    if (this.form.invalid || this.isSaving) return;
-    this.isSaving = true;
+    if (this.isSaving) return;
 
+    const nome = this.form.get('nome')?.value ? this.form.get('nome')?.value.trim() : '';
+    if (!nome) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O nome do serviço é obrigatório.' });
+      return;
+    }
+    if (nome.length < 2 || nome.length > 255) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O nome do serviço deve ter entre 2 e 255 caracteres.' });
+      return;
+    }
+
+    const precoBase = this.form.get('precoBase')?.value;
+    if (precoBase === null || precoBase === undefined || precoBase === '') {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O preço base é obrigatório.' });
+      return;
+    }
+    if (Number(precoBase) < 0) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O preço base não pode ser negativo.' });
+      return;
+    }
+
+    const custo = this.form.get('custo')?.value;
+    if (custo === null || custo === undefined || custo === '') {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O custo é obrigatório.' });
+      return;
+    }
+    if (Number(custo) < 0) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O custo não pode ser negativo.' });
+      return;
+    }
+
+    if (Number(precoBase) < Number(custo)) {
+      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O preço base de venda do serviço não pode ser inferior ao seu custo de execução.' });
+      return;
+    }
+
+    this.isSaving = true;
     const payload = this.form.value;
 
     const obs = this.modo === 'criar'
@@ -149,9 +186,10 @@ export class Servicos implements OnInit {
         });
         this.fetchPage();
       },
-      error: () => {
+      error: (err) => {
         this.isSaving = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao salvar serviço.' });
+        const msg = err?.error?.details || err?.error?.message || 'Falha ao salvar serviço.';
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
       },
     });
   }

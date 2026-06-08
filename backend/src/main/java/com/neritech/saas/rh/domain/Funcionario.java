@@ -58,6 +58,7 @@ public class Funcionario extends BaseEntity {
     private String nomePai;
 
     @Enumerated(EnumType.STRING)
+
     @Column(name = "escolaridade", length = 30)
     private Escolaridade escolaridade;
 
@@ -69,6 +70,14 @@ public class Funcionario extends BaseEntity {
 
     @Column(name = "departamento_id")
     private Long departamentoId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cargo_id", insertable = false, updatable = false)
+    private Cargo cargo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departamento_id", insertable = false, updatable = false)
+    private com.neritech.saas.empresa.domain.DepartamentoContabio departamento;
 
     @Column(name = "data_admissao", nullable = false)
     private LocalDate dataAdmissao;
@@ -107,6 +116,30 @@ public class Funcionario extends BaseEntity {
 
     @Column(name = "endereco_completo", columnDefinition = "TEXT")
     private String enderecoCompleto;
+
+    @Column(name = "cep", length = 9)
+    private String cep;
+
+    @Column(name = "logradouro", length = 255)
+    private String logradouro;
+
+    @Column(name = "numero", length = 20)
+    private String numero;
+
+    @Column(name = "complemento", length = 100)
+    private String complemento;
+
+    @Column(name = "bairro", length = 100)
+    private String bairro;
+
+    @Column(name = "cidade", length = 100)
+    private String cidade;
+
+    @Column(name = "estado", length = 2)
+    private String estado;
+
+    @Column(name = "pais", length = 50)
+    private String pais = "Brasil";
 
     @Column(name = "telefone_principal", length = 20)
     private String telefonePrincipal;
@@ -398,6 +431,70 @@ public class Funcionario extends BaseEntity {
         this.enderecoCompleto = enderecoCompleto;
     }
 
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
+    }
+
+    public String getLogradouro() {
+        return logradouro;
+    }
+
+    public void setLogradouro(String logradouro) {
+        this.logradouro = logradouro;
+    }
+
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
+
+    public String getComplemento() {
+        return complemento;
+    }
+
+    public void setComplemento(String complemento) {
+        this.complemento = complemento;
+    }
+
+    public String getBairro() {
+        return bairro;
+    }
+
+    public void setBairro(String bairro) {
+        this.bairro = bairro;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getPais() {
+        return pais;
+    }
+
+    public void setPais(String pais) {
+        this.pais = pais;
+    }
+
     public String getTelefonePrincipal() {
         return telefonePrincipal;
     }
@@ -540,5 +637,21 @@ public class Funcionario extends BaseEntity {
 
     public void setObservacoes(String observacoes) {
         this.observacoes = observacoes;
+    }
+
+    public Cargo getCargo() {
+        return cargo;
+    }
+
+    public void setCargo(Cargo cargo) {
+        this.cargo = cargo;
+    }
+
+    public com.neritech.saas.empresa.domain.DepartamentoContabio getDepartamento() {
+        return departamento;
+    }
+
+    public void setDepartamento(com.neritech.saas.empresa.domain.DepartamentoContabio departamento) {
+        this.departamento = departamento;
     }
 }

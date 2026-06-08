@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { Checkbox } from 'primeng/checkbox';
 import { InputMaskModule } from 'primeng/inputmask';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
@@ -14,7 +15,7 @@ import { UtilService } from '@shared/services/util.service';
 @Component({
   selector: 'app-contas-item-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, Select, Checkbox, InputMaskModule],
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, Select, Checkbox, InputMaskModule, InputNumberModule],
   templateUrl: './contas-item-dialog.html',
 })
 export class ContasItemDialog {
@@ -38,29 +39,33 @@ export class ContasItemDialog {
     { label: 'Investimento', value: 'INVESTIMENTO' },
   ];
 
-  applyCpfCnpjMask(v: string): string {
-    const digits = v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (digits.length <= 11) {
-      // CPF: 999.999.999-99
-      let out = digits.slice(0, 11);
-      if (digits.length > 3) out = digits.slice(0, 3) + '.' + digits.slice(3);
-      if (digits.length > 6) out = out.slice(0, 7) + '.' + digits.slice(6);
-      if (digits.length > 9) out = out.slice(0, 11) + '-' + digits.slice(9);
-      return out;
-    } else {
-      // CNPJ: AA.AAA.AAA/AAAA-99
-      let out = digits.slice(0, 14);
-      if (digits.length > 2) out = digits.slice(0, 2) + '.' + digits.slice(2);
-      if (digits.length > 5) out = out.slice(0, 6) + '.' + digits.slice(5);
-      if (digits.length > 8) out = out.slice(0, 10) + '/' + digits.slice(8);
-      if (digits.length > 12) out = out.slice(0, 15) + '-' + digits.slice(12);
-      return out;
-    }
-  }
+  tipoPessoa: 'Física' | 'Jurídica' = 'Jurídica';
 
-  onCpfCnpjInput(event: any) {
-    const val = event.target.value;
-    this.cpfCnpjTitular = this.applyCpfCnpjMask(val);
+  formatarDocumento(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let raw = input.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+    if (raw.length > 14) raw = raw.substring(0, 14);
+
+    let fmt = raw;
+    const apenasNumeros = /^\d+$/.test(raw);
+
+    if (apenasNumeros && raw.length <= 11) {
+      // CPF: 999.999.999-99
+      if (raw.length > 3)  fmt = raw.substring(0, 3) + '.' + raw.substring(3);
+      if (raw.length > 6)  fmt = fmt.substring(0, 7) + '.' + raw.substring(6);
+      if (raw.length > 9)  fmt = fmt.substring(0, 11) + '-' + raw.substring(9);
+      this.tipoPessoa = 'Física';
+    } else {
+      // CNPJ alfanumérico (padrão jul/2026): AA.AAA.AAA/AAAA-DD
+      if (raw.length > 2)  fmt = raw.substring(0, 2)  + '.' + raw.substring(2);
+      if (raw.length > 5)  fmt = fmt.substring(0, 6)  + '.' + raw.substring(5);
+      if (raw.length > 8)  fmt = fmt.substring(0, 10) + '/' + raw.substring(8);
+      if (raw.length > 12) fmt = fmt.substring(0, 15) + '-' + raw.substring(12);
+      this.tipoPessoa = 'Jurídica';
+    }
+
+    this.cpfCnpjTitular = fmt;
+    input.value = fmt;
   }
 
   constructor(
@@ -88,7 +93,7 @@ export class ContasItemDialog {
 
   validarDocumento() {
     if (!this.cpfCnpjTitular) return;
-    const digits = this.cpfCnpjTitular.replace(/[^a-zA-Z0-9]/g, '');
+    const digits = this.cpfCnpjTitular.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const tipo = digits.length > 11 ? 'Jurídica' : 'Física';
     
     // Chama a validação do backend
@@ -111,15 +116,66 @@ export class ContasItemDialog {
   }
 
   salvar() {
+    const cod = this.bancoCodigo ? this.bancoCodigo.trim() : '';
+    const nome = this.bancoNome ? this.bancoNome.trim() : '';
+    const ag = this.agencia ? this.agencia.trim() : '';
+    const ct = this.conta ? this.conta.trim() : '';
+    const titular = this.titularConta ? this.titularConta.trim() : '';
+    const doc = this.cpfCnpjTitular ? this.cpfCnpjTitular.trim() : '';
+    
+    if (!cod) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O código do banco é obrigatório.' });
+      return;
+    }
+    if (!nome) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O nome do banco é obrigatório.' });
+      return;
+    }
+    if (!ag) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'A agência é obrigatória.' });
+      return;
+    }
+    if (!ct) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O número da conta é obrigatório.' });
+      return;
+    }
+    if (!titular) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O nome do titular é obrigatório.' });
+      return;
+    }
+    if (!doc) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O CPF ou CNPJ do titular é obrigatório.' });
+      return;
+    }
+
+    const digits = doc.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    if (digits.length !== 11 && digits.length !== 14) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O CPF ou CNPJ do titular deve conter 11 (CPF) ou 14 (CNPJ) dígitos.' });
+      return;
+    }
+
+    if (digits.length === 11) {
+      const onlyNums = digits.replace(/[^0-9]/g, '');
+      if (onlyNums.length !== 11 || !isValidCpf(onlyNums)) {
+        this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O CPF informado não é válido.' });
+        return;
+      }
+    }
+
+    if (digits.length === 14 && !isValidCnpj(digits)) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O CNPJ informado não é válido.' });
+      return;
+    }
+
     this.ref.close({
-      bancoCodigo: this.bancoCodigo,
-      bancoNome: this.bancoNome,
-      agencia: this.agencia,
-      conta: this.conta,
-      digitoConta: this.digitoConta,
+      bancoCodigo: cod,
+      bancoNome: nome,
+      agencia: ag,
+      conta: ct,
+      digitoConta: this.digitoConta ? this.digitoConta.trim() : '',
       tipoConta: this.tipoConta,
-      titularConta: this.titularConta,
-      cpfCnpjTitular: this.cpfCnpjTitular,
+      titularConta: titular,
+      cpfCnpjTitular: doc,
       valorSaldoInicial: this.valorSaldoInicial,
       saldoAtual: this.saldoAtual,
       limiteChequeEspecial: this.limiteChequeEspecial,

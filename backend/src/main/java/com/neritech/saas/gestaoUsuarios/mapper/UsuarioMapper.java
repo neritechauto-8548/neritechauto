@@ -14,6 +14,7 @@ public interface UsuarioMapper {
     @Mapping(target = "departamento", source = "perfil.departamento")
     @Mapping(target = "telefone", source = "perfil.telefone")
     @Mapping(target = "avatarUrl", source = "perfil.avatarUrl")
+    @Mapping(target = "preferencias", source = "perfil.preferencias")
     UsuarioResponse toResponse(Usuario usuario);
 
     @Mapping(target = "senha", ignore = true)

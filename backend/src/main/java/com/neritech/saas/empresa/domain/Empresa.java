@@ -48,6 +48,9 @@ public class Empresa extends BaseEntity {
     @Column(name = "stripe_customer_id", length = 255)
     private String stripeCustomerId;
 
+    @Column(name = "logo_path", length = 255)
+    private String logoPath;
+
     @Column(name = "ativo", nullable = false)
     @ColumnDefault("true")
     private Boolean ativo = true;
@@ -154,5 +157,13 @@ public class Empresa extends BaseEntity {
 
     public void setStripeCustomerId(String stripeCustomerId) {
         this.stripeCustomerId = stripeCustomerId;
+    }
+
+    public String getLogoPath() {
+        return logoPath;
+    }
+
+    public void setLogoPath(String logoPath) {
+        this.logoPath = logoPath;
     }
 }

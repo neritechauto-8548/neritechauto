@@ -33,10 +33,12 @@ public class SituacaoService {
     }
 
     public SituacaoResponse create(SituacaoRequest request) {
+        validarSituacao(null, request);
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new EntityNotFoundException("Empresa não encontrada com ID: " + request.empresaId()));
 
         Situacao entity = mapper.toEntity(request);
+        entity.setCorSituacao(normalizarCor(request.corSituacao()));
         entity.setEmpresa(empresa);
         Situacao saved = repository.save(entity);
         return mapper.toResponse(saved);
@@ -66,6 +68,7 @@ public class SituacaoService {
     }
 
     public SituacaoResponse update(Long id, SituacaoRequest request) {
+        validarSituacao(id, request);
         Situacao entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Situação não encontrada com ID: " + id));
 
@@ -76,6 +79,7 @@ public class SituacaoService {
         }
 
         mapper.updateEntityFromRequest(request, entity);
+        entity.setCorSituacao(normalizarCor(request.corSituacao()));
         Situacao updated = repository.save(entity);
         return mapper.toResponse(updated);
     }
@@ -85,6 +89,45 @@ public class SituacaoService {
             throw new EntityNotFoundException("Situação não encontrada com ID: " + id);
         }
         repository.deleteById(id);
+    }
+
+    private void validarSituacao(Long id, SituacaoRequest request) {
+        if (request.nmSituacao() == null || request.nmSituacao().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome da situação é obrigatório.");
+        }
+        if (request.nmSituacao().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome da situação deve ter pelo menos 2 caracteres.");
+        }
+        if (request.nmSituacao().trim().length() > 255) {
+            throw new com.neritech.saas.common.exception.BusinessException("O nome da situação não pode exceder 255 caracteres.");
+        }
+        if (request.dsSituacao() != null && request.dsSituacao().trim().length() > 1000) {
+            throw new com.neritech.saas.common.exception.BusinessException("A explicação não pode exceder 1000 caracteres.");
+        }
+        if (request.empresaId() == null) {
+            throw new com.neritech.saas.common.exception.BusinessException("O ID da empresa é obrigatório.");
+        }
+
+        boolean duplicado = id == null
+                ? repository.existsByEmpresaIdAndNmSituacaoIgnoreCase(request.empresaId(), request.nmSituacao().trim())
+                : repository.existsByEmpresaIdAndNmSituacaoIgnoreCaseAndIdNot(request.empresaId(), request.nmSituacao().trim(), id);
+        if (duplicado) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe uma situação cadastrada com este nome nesta empresa.");
+        }
+    }
+
+    private String normalizarCor(String cor) {
+        if (cor == null || cor.trim().isEmpty()) {
+            return "#2563EB";
+        }
+        String trimCor = cor.trim();
+        if (!trimCor.startsWith("#")) {
+            trimCor = "#" + trimCor;
+        }
+        if (!trimCor.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")) {
+            throw new com.neritech.saas.common.exception.BusinessException("Formato de cor inválido. Deve ser um código hexadecimal (ex: #2563EB).");
+        }
+        return trimCor;
     }
 }
 

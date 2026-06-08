@@ -5,6 +5,7 @@ import { User } from './interface';
 import { LoginService } from './login.service';
 import { TokenService } from './token.service';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { SettingsService } from '../bootstrap/settings.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,7 @@ export class AuthService {
   private readonly loginService = inject(LoginService);
   private readonly tokenService = inject(TokenService);
   private readonly storage = inject(LocalStorageService);
+  private readonly settings = inject(SettingsService);
 
   private user$ = new BehaviorSubject<User>({});
   private change$ = merge(
@@ -113,6 +115,18 @@ export class AuthService {
         if (tenantId) {
           this.storage.set('tenantId', String(tenantId));
           this.storage.set('empresaId', String(tenantId)); // Dual storage for compatibility
+        }
+
+        // Aplica as preferências de tema do usuário se existirem
+        if (u.preferencias && !isEmptyObject(u.preferencias)) {
+          console.log('🎨 Applying user theme preferences:', u.preferencias);
+          this.settings.setOptions(u.preferencias);
+          if (u.preferencias.theme) {
+            this.settings.setTheme(u.preferencias.theme);
+          }
+          if (u.preferencias.dir) {
+            this.settings.setDirection(u.preferencias.dir);
+          }
         }
       })
     );

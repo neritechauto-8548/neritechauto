@@ -9,5 +9,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChecklistRepository extends JpaRepository<Checklist, Long> {
     Page<Checklist> findByEmpresaId(Long empresaId, Pageable pageable);
+
+    boolean existsByEmpresaIdAndDsChecklistIgnoreCase(Long empresaId, String dsChecklist);
+
+    boolean existsByEmpresaIdAndDsChecklistIgnoreCaseAndIdNot(Long empresaId, String dsChecklist, Long id);
 }
 

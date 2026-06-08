@@ -89,6 +89,7 @@ export class AdminLayout implements OnDestroy {
   private isHovering = false;
 
   constructor() {
+    this.settings.notify.subscribe(options => { Object.assign(this.options, options); });
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_MEDIAQUERY, TABLET_MEDIAQUERY, MONITOR_MEDIAQUERY])
       .subscribe(state => {

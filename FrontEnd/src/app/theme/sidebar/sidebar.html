@@ -1,29 +1,34 @@
 @if (showHeader) {
   <div class="matero-sidebar-header">
-    <mat-toolbar>
+    <p-toolbar [styleClass]="(settings.options.menuThemeClass || '!bg-[var(--p-surface-0)] dark:!bg-[var(--p-surface-900)] !text-[var(--p-text-color)]') + ' !border-none !shadow-none !px-4 flex items-center w-full !rounded-none transition-colors duration-200'">
       <app-branding [showName]="!toggleChecked" />
 
       <span class="flex-fill"></span>
 
       @if (showToggle) {
-        <button
-          mat-icon-button
+        <p-button
+          icon="{{ toggleChecked ? 'pi pi-chevron-right' : 'pi pi-bars' }}"
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
           (click)="toggleCollapsed.emit()"
           [attr.aria-label]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
           [matTooltip]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
           matTooltipPosition="below"
-        >
-          <mat-icon>{{ toggleChecked ? 'chevron_right' : 'menu' }}</mat-icon>
-        </button>
+        ></p-button>
       } @else {
-        <button mat-icon-button (click)="closeSidenav.emit()">
-          <mat-icon>close</mat-icon>
-        </button>
+        <p-button
+          icon="pi pi-times"
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
+          (click)="closeSidenav.emit()"
+          matTooltip="Fechar"
+          matTooltipPosition="below"
+        ></p-button>
       }
-    </mat-toolbar>
+    </p-toolbar>
   </div>
 }
 
-<div class="matero-sidebar-main">
-  <app-sidemenu [ripple]="showToggle" />
-</div>
+<app-sidemenu></app-sidemenu>

@@ -33,6 +33,7 @@ public class LocalizacaoService {
     }
 
     public LocalizacaoResponse create(LocalizacaoRequest request) {
+        validarLocalizacao(null, request);
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new EntityNotFoundException("Empresa não encontrada com ID: " + request.empresaId()));
 
@@ -67,6 +68,7 @@ public class LocalizacaoService {
     }
 
     public LocalizacaoResponse update(Long id, LocalizacaoRequest request) {
+        validarLocalizacao(id, request);
         Localizacao entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Localização não encontrada com ID: " + id));
 
@@ -86,6 +88,28 @@ public class LocalizacaoService {
             throw new EntityNotFoundException("Localização não encontrada com ID: " + id);
         }
         repository.deleteById(id);
+    }
+
+    private void validarLocalizacao(Long id, LocalizacaoRequest request) {
+        if (request.descricao() == null || request.descricao().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição da localização é obrigatória.");
+        }
+        if (request.descricao().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição da localização deve ter pelo menos 2 caracteres.");
+        }
+        if (request.descricao().trim().length() > 255) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição da localização não pode exceder 255 caracteres.");
+        }
+        if (request.empresaId() == null) {
+            throw new com.neritech.saas.common.exception.BusinessException("O ID da empresa é obrigatório.");
+        }
+
+        boolean duplicado = id == null
+                ? repository.existsByEmpresaIdAndDescricaoIgnoreCase(request.empresaId(), request.descricao().trim())
+                : repository.existsByEmpresaIdAndDescricaoIgnoreCaseAndIdNot(request.empresaId(), request.descricao().trim(), id);
+        if (duplicado) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe uma localização cadastrada com esta descrição nesta empresa.");
+        }
     }
 }
 

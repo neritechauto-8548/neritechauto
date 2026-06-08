@@ -30,9 +30,16 @@ export class DepartamentoItemDialog implements OnInit {
   }
 
   salvar(): void {
-    const descricao = this.descricao.trim();
-    if (descricao) {
-      this.ref.close({ descricao });
+    const desc = this.descricao ? this.descricao.trim() : '';
+    if (!desc) {
+      // should be disabled in UI, but keep safe
+      return;
     }
+    if (desc.length < 2) {
+      // we don't have messageService here, but we can return validation detail or handle it in parent component. Let's return it so parent can show toast.
+      this.ref.close({ error: 'A descrição do departamento deve ter pelo menos 2 caracteres.' });
+      return;
+    }
+    this.ref.close({ descricao: desc });
   }
 }

@@ -1,690 +1,1021 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
 
-  <!-- ===== Sticky Action Bar ===== -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
-    <div class="flex items-center gap-4">
-      <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-sm">
-        <mat-icon class="text-indigo-600 !text-[20px] !w-[20px] !h-[20px]">storefront</mat-icon>
-      </div>
-      <div>
-        <h1 class="text-base font-bold text-slate-900 leading-tight">Configurações da Oficina</h1>
-        <span class="text-xs text-slate-500 font-medium. mt-0.5">Gerencie os dados cadastrais, endereço, horários e integrações</span>
-      </div>
-    </div>
-    <div class="flex gap-3 items-center">
-      <button (click)="salvar()" [disabled]="loading"
-        class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-sm transition-all text-sm flex items-center gap-2 disabled:opacity-50 active:scale-95">
-        <i class="pi pi-check text-xs"></i>
-        {{ loading ? 'Salvando...' : 'Salvar Alterações' }}
-      </button>
+<div class="nt-empresa">
+
+  <!-- Toast de notificações (validações, sucesso e erros) -->
+  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+
+  <!-- ====== NAVBAR: p-tabs + Salvar ====== -->
+  <div class="nt-navbar">
+    <p-tabs [(value)]="activeTab" styleClass="h-full">
+      <p-tablist>
+        <p-tab value="dados">        <i class="pi pi-building"></i>   Dados da Oficina  </p-tab>
+        <p-tab value="configuracoes"><i class="pi pi-sliders-h"></i>   Configurações     </p-tab>
+        <p-tab value="horarios">     <i class="pi pi-clock"></i>       Horários          </p-tab>
+        <p-tab value="fiscal">       <i class="pi pi-file"></i>        Dados Fiscais     </p-tab>
+        <p-tab value="email">        <i class="pi pi-envelope"></i>    E-mail            </p-tab>
+      </p-tablist>
+    </p-tabs>
+    <div class="nt-navbar__action">
+      <p-button
+        label="Salvar alterações"
+        icon="pi pi-check"
+        [loading]="loading"
+        [disabled]="loading"
+        (onClick)="salvar()"
+        id="btn-salvar-empresa"
+      />
     </div>
   </div>
 
-  <div class="p-6 w-full space-y-8">
+  <!-- ====== CONTENT ====== -->
+  <div class="nt-content">
 
-    <!-- ===== Pill Tab Navigation (Stripe Style) ===== -->
-    <div class="flex justify-center">
-      <div class="bg-slate-100/80 p-1 rounded-xl inline-flex flex-wrap gap-1 border border-slate-200 shadow-inner">
-        <button *ngFor="let tab of tabs"
-          (click)="activeTab = tab.id"
-          [class]="activeTab === tab.id ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-slate-500 hover:bg-white/50 hover:text-slate-900'"
-          class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
-          <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ tab.icon }}</mat-icon>
-          {{ tab.label }}
-        </button>
-      </div>
-    </div>
 
-    <!-- ===== Tab Content ===== -->
-    <div class="grid grid-cols-1 gap-6 animate-fade-in-up">
+    <!-- ============================= TAB 1: DADOS DA OFICINA ============================= -->
+    @if (activeTab === 'dados') {
 
-      <!-- ==================== TAB 1: DADOS DA OFICINA ==================== -->
-      <div *ngIf="activeTab === 'dados'" class="space-y-8">
+      <!-- CARD: Identificação -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Identificação</span>
+            <span class="nt-panel-sub">Razão social, nome fantasia e documentos</span>
+          </div>
+        </ng-template>
 
-        <!-- Card: Identificação -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">domain</mat-icon>
-            </div>
+        <!-- Linha 1: Nome Fantasia (col-12) -->
+        <div class="nt-row">
+          <div class="nt-c12">
+            <label class="nt-lbl">Nome Fantasia <span class="nt-req">*</span></label>
+            <input pInputText [(ngModel)]="empresa.nomeFantasia" class="w-full" placeholder="Ex: Oficina Mecânica Elite" />
+          </div>
+        </div>
+
+        <!-- Linha 2: Razão Social (col-8) + CPF / CNPJ (col-4) -->
+        <div class="nt-row">
+          <div class="nt-c8">
+            <label class="nt-lbl">Razão Social <span class="nt-req">*</span></label>
+            <input pInputText [(ngModel)]="empresa.razaoSocial" class="w-full" placeholder="Razão social completa" />
+          </div>
+          <div class="nt-c4">
+            <label class="nt-lbl">CPF / CNPJ <span class="nt-req">*</span></label>
+            <input
+              pInputText
+              [(ngModel)]="empresa.cnpj"
+              class="w-full font-mono uppercase tracking-wider"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              maxlength="18"
+              (blur)="onBlurCnpj()"
+              (input)="formatarDocumento($event)"
+            />
+          </div>
+        </div>
+
+
+      </p-panel>
+
+      <!-- CARD: Contato -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Contato</span>
+            <span class="nt-panel-sub">Canais de comunicação da oficina</span>
+          </div>
+        </ng-template>
+
+        <!-- Telefone (col-3) + E-mail (col-5) + Site (col-4) -->
+        <div class="nt-row">
+          <div class="nt-c3">
+            <label class="nt-lbl">Telefone Comercial</label>
+            <p-inputmask [(ngModel)]="empresa.telefone" mask="(99) 99999-9999" placeholder="(00) 00000-0000" class="w-full" />
+          </div>
+          <div class="nt-c5">
+            <label class="nt-lbl">E-mail Principal</label>
+            <input pInputText [(ngModel)]="empresa.email" type="email" class="w-full" placeholder="contato@oficina.com.br" />
+          </div>
+          <div class="nt-c4">
+            <label class="nt-lbl">Site / URL</label>
+            <input pInputText [(ngModel)]="empresa.site" class="w-full" placeholder="https://www.oficina.com.br" />
+          </div>
+        </div>
+
+        <!-- Observações (col-12) -->
+        <div class="nt-row">
+          <div class="nt-c12">
+            <label class="nt-lbl">Observações</label>
+            <input pInputText [(ngModel)]="empresa.observacoes" class="w-full" placeholder="Ex: Atende veículos leves e utilitários" />
+          </div>
+        </div>
+      </p-panel>
+
+      <!-- CARD: Localização -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd nt-panel-hd--row">
             <div>
-                <h3 class="font-bold text-slate-800 text-sm">Dados da Identificação</h3>
-                <p class="text-[11px] text-slate-500 font-medium">Informações legais e documentos principais</p>
+              <span class="nt-panel-title">Localização</span>
+              <span class="nt-panel-sub block mt-0.5">Endereço comercial e fiscal principal</span>
             </div>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Nome Fantasia *</label>
-              <input [(ngModel)]="empresa.nomeFantasia" class="w-full modern-input text-sm" placeholder="Ex: Oficina Mecânica Elite" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Razão Social *</label>
-              <input [(ngModel)]="empresa.razaoSocial" class="w-full modern-input text-sm" placeholder="Razão social completa" />
-            </div>
-            <div class="space-y-1">
-              <div class="flex justify-between items-center">
-                <label class="text-xs font-bold text-slate-700">CNPJ / CPF *</label>
-              </div>
-              <p-inputmask *ngIf="tipoPessoa === 'Física'" [(ngModel)]="empresa.cnpj" mask="999.999.999-99" placeholder="000.000.000-00" styleClass="w-full" inputStyleClass="w-full modern-input font-mono text-sm" [unmask]="false" (onBlur)="onBlurCnpj()"></p-inputmask>
-              <p-inputmask *ngIf="tipoPessoa === 'Jurídica'" [(ngModel)]="empresa.cnpj" mask="**.***.***/****-99" placeholder="00.000.000/0000-00" styleClass="w-full" inputStyleClass="w-full modern-input font-mono text-sm" [unmask]="false" (onBlur)="onBlurCnpj()"></p-inputmask>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-slate-700">Inscrição Estadual</label>
-                <p-inputmask [(ngModel)]="empresa.inscricaoEstadual" mask="99999999999999" [autoClear]="false" styleClass="w-full" inputStyleClass="w-full modern-input text-sm" placeholder="IE (somente números)"></p-inputmask>
-              </div>
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-slate-700">Inscrição Municipal</label>
-                <p-inputmask [(ngModel)]="empresa.inscricaoMunicipal" mask="99999999999999" [autoClear]="false" styleClass="w-full" inputStyleClass="w-full modern-input text-sm" placeholder="IM (somente números)"></p-inputmask>
-              </div>
-            </div>
+        </ng-template>
+
+        <!-- CEP (col-2) + Logradouro (col-7) + Número (col-1) + Complemento (col-2) -->
+        <div class="nt-row">
+          <div class="nt-c2">
+            <label class="nt-lbl">CEP <span class="nt-req">*</span></label>
+            <p-inputgroup>
+              <p-inputmask
+                [(ngModel)]="endereco.cep"
+                mask="99999-999"
+                placeholder="00000-000"
+                [unmask]="false"
+                (onBlur)="buscarCep()"
+              />
+              <p-button icon="pi pi-search" severity="secondary" (onClick)="buscarCep()" />
+            </p-inputgroup>
+          </div>
+          <div class="nt-c7">
+            <label class="nt-lbl">Logradouro <span class="nt-req">*</span></label>
+            <input pInputText [(ngModel)]="endereco.logradouro" class="w-full" placeholder="Av. das Nações Unidas" />
+          </div>
+          <div class="nt-c1">
+            <label class="nt-lbl">Nº</label>
+            <input pInputText [(ngModel)]="endereco.numero" class="w-full" placeholder="123" />
+          </div>
+          <div class="nt-c2">
+            <label class="nt-lbl">Complemento</label>
+            <input pInputText [(ngModel)]="endereco.complemento" class="w-full" placeholder="Sala 1" />
           </div>
         </div>
 
-        <!-- Card: Contato -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">contact_phone</mat-icon>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">Canais de Contato</h3>
-                <p class="text-[11px] text-slate-500 font-medium">Como os clientes e parceiros se comunicam com você</p>
-            </div>
+        <!-- Bairro (col-3) + Cidade (col-4) + UF (col-1) + País (col-2) -->
+        <div class="nt-row">
+          <div class="nt-c3">
+            <label class="nt-lbl">Bairro <span class="nt-req">*</span></label>
+            <input pInputText [(ngModel)]="endereco.bairro" class="w-full" placeholder="Nome do bairro" />
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Telefone Comercial</label>
-              <input [(ngModel)]="empresa.telefone" (input)="onPhoneInput($event)"
-                     class="w-full modern-input text-sm" placeholder="(00) 00000-0000" maxlength="15" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">E-mail Principal</label>
-              <input [(ngModel)]="empresa.email" type="email" class="w-full modern-input text-sm" placeholder="contato@oficina.com" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Site / URL</label>
-              <input [(ngModel)]="empresa.site" class="w-full modern-input text-sm" placeholder="https://www.oficina.com.br" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Data de Abertura</label>
-              <input [(ngModel)]="empresa.dataAbertura" type="date" class="w-full modern-input text-sm" />
-            </div>
-            <div class="md:col-span-2 space-y-1">
-              <label class="text-xs font-bold text-slate-700">Observações do Cadastro</label>
-              <input [(ngModel)]="empresa.observacoes" class="w-full modern-input text-sm" placeholder="Ex: Atende veículos leves e utilitários" />
-            </div>
+          <div class="nt-c4">
+            <label class="nt-lbl">Cidade <span class="nt-req">*</span></label>
+            <input pInputText [(ngModel)]="endereco.cidade" class="w-full" placeholder="Nome da cidade" />
+          </div>
+          <div class="nt-c1">
+            <label class="nt-lbl">UF</label>
+            <p-select [(ngModel)]="endereco.estado" [options]="estadosBr" class="w-full" />
+          </div>
+          <div class="nt-c2">
+            <label class="nt-lbl">País</label>
+            <input pInputText [(ngModel)]="endereco.pais" class="w-full" placeholder="Brasil" />
           </div>
         </div>
 
-      </div>
 
-      <!-- ==================== TAB 2: ENDEREÇO ==================== -->
-      <div *ngIf="activeTab === 'endereco'" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-        <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">location_on</mat-icon>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">Localização da Oficina</h3>
-                <p class="text-[11px] text-slate-500 font-medium">Endereço comercial e fiscal principal</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-              <span class="text-[10px] font-bold text-slate-400 uppercase">Tipo:</span>
-              <select [(ngModel)]="endereco.tipoEndereco" class="modern-input !h-8 !py-1 !text-xs !w-32">
-                <option *ngFor="let t of tiposEndereco" [value]="t">{{ t }}</option>
-              </select>
-          </div>
-        </div>
-        <div class="p-6 grid grid-cols-1 md:grid-cols-6 gap-x-6 gap-y-6">
-          <div class="md:col-span-2 space-y-1">
-            <label class="text-xs font-bold text-slate-700">CEP de Localização *</label>
-            <div class="flex gap-2">
-              <p-inputmask [(ngModel)]="endereco.cep" mask="99999-999" placeholder="00000-000" styleClass="w-full" inputStyleClass="w-full modern-input font-mono text-sm" [unmask]="false" (onBlur)="buscarCep()"></p-inputmask>
-              <button (click)="buscarCep()" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 border border-slate-200 transition-colors">
-                <mat-icon class="!text-[18px] !w-[18px] !h-[18px] leading-[18px]">search</mat-icon>
-              </button>
-            </div>
-          </div>
-          <div class="md:col-span-4 space-y-1">
-            <label class="text-xs font-bold text-slate-700">Logradouro / Rua *</label>
-            <input [(ngModel)]="endereco.logradouro" class="w-full modern-input text-sm" placeholder="Ex: Av. Nações Unidas" />
-          </div>
-          <div class="md:col-span-1 space-y-1">
-            <label class="text-xs font-bold text-slate-700">Número *</label>
-            <input [(ngModel)]="endereco.numero" class="w-full modern-input text-sm" placeholder="123" />
-          </div>
-          <div class="md:col-span-2 space-y-1">
-            <label class="text-xs font-bold text-slate-700">Complemento</label>
-            <input [(ngModel)]="endereco.complemento" class="w-full modern-input text-sm" placeholder="Sala, Andar, Bloco..." />
-          </div>
-          <div class="md:col-span-3 space-y-1">
-            <label class="text-xs font-bold text-slate-700">Bairro *</label>
-            <input [(ngModel)]="endereco.bairro" class="w-full modern-input text-sm" placeholder="Nome do bairro" />
-          </div>
-          <div class="md:col-span-3 space-y-1">
-            <label class="text-xs font-bold text-slate-700">Cidade da Oficina *</label>
-            <input [(ngModel)]="endereco.cidade" class="w-full modern-input text-sm" placeholder="Nome da cidade" />
-          </div>
-          <div class="md:col-span-1 space-y-1">
-            <label class="text-xs font-bold text-slate-700">UF *</label>
-            <select [(ngModel)]="endereco.estado" class="w-full modern-input text-sm">
-              <option *ngFor="let uf of estadosBr" [value]="uf">{{ uf }}</option>
-            </select>
-          </div>
-          <div class="md:col-span-2 space-y-1">
-            <label class="text-xs font-bold text-slate-700">País de Origem</label>
-            <input [(ngModel)]="endereco.pais" class="w-full modern-input text-sm" placeholder="Brasil" />
-          </div>
-          <div class="md:col-span-6 flex gap-8 pt-4 border-t border-slate-100">
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" [(ngModel)]="endereco.principal" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-              <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Este é o Endereço Principal</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" [(ngModel)]="endereco.ativo" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-              <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Local Ativo</span>
-            </label>
-          </div>
-        </div>
-      </div>
+      </p-panel>
 
-      <!-- ==================== TAB 3: DADOS CADASTRAIS ==================== -->
-      <div *ngIf="activeTab === 'cadastral'" class="space-y-8">
-
-        <!-- Card 1: Classificação -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">account_balance</mat-icon>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">Classificação da Empresa</h3>
-                <p class="text-[11px] text-slate-500 font-medium">Regime, porte e tipo de estabelecimento junto à Receita Federal</p>
-            </div>
+      <!-- CARD: Logomarca -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Logomarca</span>
+            <span class="nt-panel-sub">Logotipo da sua oficina para documentos e relatórios</span>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Regime Tributário</label>
-              <select [(ngModel)]="configEmpresa.regimeTributario" class="w-full modern-input text-sm">
-                <option *ngFor="let r of regimesTributarios" [value]="r">{{ r }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Porte da Empresa</label>
-              <select [(ngModel)]="configEmpresa.porteEmpresa" class="w-full modern-input text-sm">
-                <option *ngFor="let p of portesEmpresa" [value]="p">{{ p }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Tipo de Estabelecimento</label>
-              <select [(ngModel)]="configEmpresa.tipoEstabelecimento" class="w-full modern-input text-sm">
-                <option *ngFor="let t of tiposEstabelecimento" [value]="t">{{ t }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">CNAE Principal</label>
-              <input [(ngModel)]="configEmpresa.codigoCnaePrincipal" class="w-full modern-input font-mono" placeholder="Ex: 4520-0/01" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">CNAE Secundário</label>
-              <input [(ngModel)]="configEmpresa.codigoCnaeSecundario" class="w-full modern-input font-mono" placeholder="Código(s) adicionais" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Capital Social (R$)</label>
-              <input [(ngModel)]="configEmpresa.capitalSocial" type="number" step="0.01" class="w-full modern-input text-sm" placeholder="Ex: 50000.00" />
-            </div>
-          </div>
-        </div>
+        </ng-template>
 
-        <!-- Card 2: Situação Cadastral -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">assignment</mat-icon>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-sm">Situação Cadastral</h3>
-                <p class="text-[11px] text-slate-500 font-medium">Status atual da empresa perante os órgãos competentes</p>
-            </div>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Situação Atual</label>
-              <select [(ngModel)]="configEmpresa.situacaoCadastral" class="w-full modern-input text-sm">
-                <option *ngFor="let s of situacoesCadastrais" [value]="s">{{ s }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Data da Situação</label>
-              <input [(ngModel)]="configEmpresa.dataSituacaoCadastral" type="date" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Motivo da Situação</label>
-              <input [(ngModel)]="configEmpresa.motivoSituacaoCadastral" class="w-full modern-input text-sm" placeholder="Ex: Empresa ativa" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Situação Especial</label>
-              <input [(ngModel)]="configEmpresa.situacaoEspecial" class="w-full modern-input text-sm" placeholder="Se houver" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Data Situação Especial</label>
-              <input [(ngModel)]="configEmpresa.dataSituacaoEspecial" type="date" class="w-full modern-input text-sm" />
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ==================== TAB 4: HORÁRIOS ==================== -->
-      <div *ngIf="activeTab === 'horarios'" class="space-y-8">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Seg-Sex -->
-            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-              <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                    <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">schedule</mat-icon>
-                </div>
-                <h3 class="font-bold text-slate-800 text-sm">Segunda a Sexta</h3>
+        <div class="nt-row">
+          <div class="nt-c6 flex flex-col gap-3">
+            <label class="nt-lbl">Visualização do Logo</label>
+            <div class="flex items-center gap-4">
+              <div class="w-32 h-32 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden relative group">
+                @if (getLogoUrl()) {
+                  <img [src]="getLogoUrl()" class="w-full h-full object-contain" alt="Logomarca" />
+                } @else {
+                  <div class="text-slate-400 flex flex-col items-center gap-1">
+                    <i class="pi pi-image text-3xl"></i>
+                    <span class="text-[10px]">Sem logo</span>
+                  </div>
+                }
               </div>
-              <div class="p-6 grid grid-cols-2 gap-6">
-                <div class="space-y-1">
-                  <label class="text-xs font-bold text-slate-700">Abertura</label>
-                  <input [(ngModel)]="configOficina.horarioAberturaSegSex" type="time" class="w-full modern-input text-sm" />
-                </div>
-                <div class="space-y-1">
-                  <label class="text-xs font-bold text-slate-700">Fechamento</label>
-                  <input [(ngModel)]="configOficina.horarioFechamentoSegSex" type="time" class="w-full modern-input text-sm" />
-                </div>
+              <div class="flex flex-col gap-2">
+                <input type="file" #fileInput (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
+                <p-button label="Selecionar Imagem" icon="pi pi-upload" severity="secondary" (onClick)="fileInput.click()" [loading]="uploadingLogo" />
+                @if (getLogoUrl()) {
+                  <p-button label="Remover" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="removerLogo()" />
+                }
               </div>
             </div>
-
-            <!-- Sábado -->
-            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-              <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                    <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">calendar_today</mat-icon>
-                </div>
-                <h3 class="font-bold text-slate-800 text-sm">Sábados</h3>
-              </div>
-              <div class="p-6 grid grid-cols-2 gap-6">
-                <div class="space-y-1">
-                  <label class="text-xs font-bold text-slate-700">Abertura</label>
-                  <input [(ngModel)]="configOficina.horarioAberturaSabado" type="time" class="w-full modern-input text-sm" />
-                </div>
-                <div class="space-y-1">
-                  <label class="text-xs font-bold text-slate-700">Fechamento</label>
-                  <input [(ngModel)]="configOficina.horarioFechamentoSabado" type="time" class="w-full modern-input text-sm" />
-                </div>
-              </div>
-            </div>
+            <small class="nt-hint">Formatos suportados: PNG, JPG. Máximo 2MB.</small>
+          </div>
         </div>
+      </p-panel>
+    }
+
+
+    <!-- ============================= TAB 4: HORÁRIOS ============================= -->
+    @if (activeTab === 'horarios') {
+
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Expediente Semanal</span>
+            <span class="nt-panel-sub">Usado no cálculo de SLA de Ordens de Serviço</span>
+          </div>
+        </ng-template>
+
+        <!-- Seg–Sex -->
+        <div class="nt-sch-row">
+          <span class="nt-sch-day">Seg – Sex</span>
+          <div class="nt-c1">
+            <label class="nt-lbl">Abertura</label>
+            <p-datepicker [(ngModel)]="configOficina.horarioAberturaSegSex"  [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+          </div>
+          <div class="nt-c1">
+            <label class="nt-lbl">Fechamento</label>
+            <p-datepicker [(ngModel)]="configOficina.horarioFechamentoSegSex" [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+          </div>
+        </div>
+
+        <p-divider />
+
+        <!-- Sábado -->
+        <div class="nt-sch-row">
+          <span class="nt-sch-day">Sábado</span>
+          <div class="nt-c1">
+            <label class="nt-lbl">Abertura</label>
+            <p-datepicker [(ngModel)]="configOficina.horarioAberturaSabado"  [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+          </div>
+          <div class="nt-c1">
+            <label class="nt-lbl">Fechamento</label>
+            <p-datepicker [(ngModel)]="configOficina.horarioFechamentoSabado" [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+          </div>
+        </div>
+
+        <p-divider />
 
         <!-- Domingo -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center shadow-sm">
-                    <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">hotel</mat-icon>
+        <div class="nt-sch-row">
+          <span class="nt-sch-day">Domingo</span>
+          <div class="flex items-center gap-2.5">
+            <p-toggleswitch [(ngModel)]="configOficina.funcionaDomingo" />
+            <span class="text-xs text-surface-500">{{ configOficina.funcionaDomingo ? 'Aberto' : 'Fechado' }}</span>
+          </div>
+          @if (configOficina.funcionaDomingo) {
+            <div class="nt-c1">
+              <label class="nt-lbl">Abertura</label>
+              <p-datepicker [(ngModel)]="configOficina.horarioAberturaDomingo"  [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+            </div>
+            <div class="nt-c1">
+              <label class="nt-lbl">Fechamento</label>
+              <p-datepicker [(ngModel)]="configOficina.horarioFechamentoDomingo" [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+            </div>
+          }
+        </div>
+
+        <p-divider />
+
+        <!-- Intervalo -->
+        <div class="nt-sch-row">
+          <span class="nt-sch-day">Intervalo</span>
+          <div class="flex items-center gap-2.5">
+            <p-toggleswitch [(ngModel)]="configOficina.possuiIntervalo" />
+            <span class="text-xs text-surface-500">{{ configOficina.possuiIntervalo ? 'Com intervalo' : 'Sem intervalo' }}</span>
+          </div>
+          @if (configOficina.possuiIntervalo) {
+            <div class="nt-c1">
+              <label class="nt-lbl">Início</label>
+              <p-datepicker [(ngModel)]="configOficina.inicioIntervalo" [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+            </div>
+            <div class="nt-c1">
+              <label class="nt-lbl">Fim</label>
+              <p-datepicker [(ngModel)]="configOficina.fimIntervalo" [timeOnly]="true" hourFormat="24" placeholder="00:00" class="w-full" />
+            </div>
+          }
+        </div>
+      </p-panel>
+
+      <p-message severity="warn" styleClass="w-full">
+        <ng-template pTemplate="icon"><i class="pi pi-info-circle"></i></ng-template>
+        <ng-template pTemplate="detail">
+          O expediente é usado para calcular o tempo de permanência em cada situação da OS.
+          Períodos fora do horário de funcionamento não são contabilizados.
+        </ng-template>
+      </p-message>
+    }
+
+
+
+    <!-- ============================= TAB 6: DADOS FISCAIS ============================= -->
+    @if (activeTab === 'fiscal') {
+
+      <p-accordion [multiple]="true" styleClass="w-full">
+
+        <!-- ======================= 1. EMISSÃO GERAL ======================= -->
+        <p-accordion-panel value="geral">
+          <p-accordion-header>
+            <span class="flex items-center gap-2"><i class="pi pi-cog text-primary"></i> Emissão Geral</span>
+          </p-accordion-header>
+          <p-accordion-content>
+            <!-- Regime + Ambiente + CFOP Dentro + CFOP Fora -->
+            <div class="nt-row">
+              <div class="nt-c3">
+                <label class="nt-lbl">Regime Tributário</label>
+                <p-select [(ngModel)]="configFiscal.regimeTributario" [options]="regimesTributarios" class="w-full" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Ambiente de Emissão</label>
+                <p-select [(ngModel)]="configFiscal.ambienteNfe" [options]="ambientesNfe" class="w-full" />
+                <small class="nt-hint">Homologação = testes, Produção = emissão real</small>
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">CFOP Dentro do Estado</label>
+                <input pInputText [(ngModel)]="configFiscal.cfopVendaDentroEstado" class="w-full font-mono" placeholder="5102" maxlength="4" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">CFOP Fora do Estado</label>
+                <input pInputText [(ngModel)]="configFiscal.cfopVendaForaEstado" class="w-full font-mono" placeholder="6102" maxlength="4" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">CFOP Serviço</label>
+                <input pInputText [(ngModel)]="configFiscal.cfopServico" class="w-full font-mono" placeholder="5933" maxlength="4" />
+              </div>
+            </div>
+
+            <p-divider />
+
+            <!-- Inscrições Fiscais -->
+            <div class="nt-row">
+              <div class="nt-c3">
+                <label class="nt-lbl">Inscrição Estadual</label>
+                <p-inputmask
+                  [(ngModel)]="empresa.inscricaoEstadual"
+                  mask="99999999999999"
+                  [autoClear]="false"
+                  placeholder="Somente números"
+                  class="w-full"
+                />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Inscrição Municipal</label>
+                <p-inputmask
+                  [(ngModel)]="empresa.inscricaoMunicipal"
+                  mask="99999999999999"
+                  [autoClear]="false"
+                  placeholder="Somente números"
+                  class="w-full"
+                />
+              </div>
+            </div>
+
+            <p-divider />
+
+            <!-- Alíquotas -->
+            <div class="nt-row">
+              <div class="nt-c2">
+                <label class="nt-lbl">Alíquota ICMS (%)</label>
+                <p-inputnumber [(ngModel)]="configFiscal.aliquotaIcms" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Alíquota PIS (%)</label>
+                <p-inputnumber [(ngModel)]="configFiscal.aliquotaPis" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Alíquota COFINS (%)</label>
+                <p-inputnumber [(ngModel)]="configFiscal.aliquotaCofins" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Alíquota CSLL (%)</label>
+                <p-inputnumber [(ngModel)]="configFiscal.aliquotaCsll" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Alíquota IRPJ (%)</label>
+                <p-inputnumber [(ngModel)]="configFiscal.aliquotaIrpj" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Cód. Município Prestação</label>
+                <input pInputText [(ngModel)]="configFiscal.codigoMunicipioPrestacao" class="w-full font-mono" placeholder="3550308" maxlength="7" />
+              </div>
+            </div>
+          </p-accordion-content>
+        </p-accordion-panel>
+
+        <!-- ======================= 2. NFE (PRODUTOS) ======================= -->
+        <p-accordion-panel value="nfe">
+          <p-accordion-header>
+            <span class="flex items-center gap-2"><i class="pi pi-file text-primary"></i> NFe — Nota Fiscal de Produtos</span>
+          </p-accordion-header>
+          <p-accordion-content>
+            <!-- Série + Numeração -->
+            <div class="nt-row">
+              <div class="nt-c2">
+                <label class="nt-lbl">Série NFe</label>
+                <p-inputnumber [(ngModel)]="configFiscal.serieNfe" [useGrouping]="false" class="w-full" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Próximo Número</label>
+                <p-inputnumber [(ngModel)]="configFiscal.numeracaoNfe" [useGrouping]="false" class="w-full" />
+              </div>
+            </div>
+
+            <p-divider>
+              <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Tributação padrão de produtos</span>
+            </p-divider>
+
+            <div class="nt-row">
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária ICMS</label>
+                <p-select [(ngModel)]="configFiscal.situacaoTributariaIcmsNfe" [options]="situacoesTributariasIcms" class="w-full" />
+              </div>
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária PIS</label>
+                <p-select [(ngModel)]="configFiscal.situacaoTributariaPisNfe" [options]="situacoesTributariasPis" class="w-full" />
+              </div>
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária COFINS</label>
+                <p-select [(ngModel)]="configFiscal.situacaoTributariaCofinsNfe" [options]="situacoesTributariasCofins" class="w-full" />
+              </div>
+            </div>
+
+            <div class="nt-row mt-3">
+              <div class="nt-c12">
+                <label class="nt-lbl">Mensagem "Dados adicionais" padrão</label>
+                <textarea pTextarea [(ngModel)]="configFiscal.mensagemDadosAdicionaisNfe" rows="2" class="w-full" placeholder="Texto impresso no campo de dados adicionais de todas as NFe emitidas..."></textarea>
+              </div>
+            </div>
+
+            <div class="nt-row mt-2">
+              <div class="nt-c12 flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                  <p-checkbox [(ngModel)]="configFiscal.mostrarCnpjNfe" [binary]="true" inputId="chk-cnpj-nfe" />
+                  <label for="chk-cnpj-nfe" class="nt-lbl cursor-pointer" style="margin-bottom:0; font-weight:normal;">Mostrar CNPJ na NFe</label>
                 </div>
-                <h3 class="font-bold text-slate-800 text-sm">Domingos</h3>
-            </div>
-            <label class="flex items-center gap-2.5 cursor-pointer group">
-              <input type="checkbox" [(ngModel)]="configOficina.funcionaDomingo" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-              <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Funciona aos domingos</span>
-            </label>
-          </div>
-          <div class="p-6 grid grid-cols-2 gap-8" *ngIf="configOficina.funcionaDomingo">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Abertura</label>
-              <input [(ngModel)]="configOficina.horarioAberturaDomingo" type="time" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Fechamento</label>
-              <input [(ngModel)]="configOficina.horarioFechamentoDomingo" type="time" class="w-full modern-input text-sm" />
-            </div>
-          </div>
-          <div *ngIf="!configOficina.funcionaDomingo" class="p-8 text-center bg-slate-50/50">
-             <mat-icon class="!text-slate-300 block mx-auto !text-32 !w-8 !h-8 mb-2">bedtime</mat-icon>
-             <p class="text-xs text-slate-400 font-medium tracking-tight">Oficina fechada aos domingos</p>
-          </div>
-        </div>
-
-        <!-- Intervalo de Expediente -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">restaurant</mat-icon>
+                <div class="flex items-center gap-2">
+                  <p-checkbox [(ngModel)]="configFiscal.utilizarCodigoProdutoOriginalNfe" [binary]="true" inputId="chk-cod-prod-nfe" />
+                  <label for="chk-cod-prod-nfe" class="nt-lbl cursor-pointer" style="margin-bottom:0; font-weight:normal;">Utilizar código original do produto na NFe</label>
+                </div>
               </div>
-              <h3 class="font-bold text-slate-800 text-sm">Intervalo de Expediente</h3>
             </div>
-            <label class="flex items-center gap-2.5 cursor-pointer group">
-              <input type="checkbox" [(ngModel)]="configOficina.possuiIntervalo" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-              <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Possui Intervalo</span>
-            </label>
-          </div>
+          </p-accordion-content>
+        </p-accordion-panel>
 
-          <div class="p-6 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" *ngIf="configOficina.possuiIntervalo">
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-slate-700">Início do intervalo</label>
-                <input [(ngModel)]="configOficina.inicioIntervalo" type="time" class="w-full modern-input text-sm" />
+        <!-- ======================= 3. NFCE (CONSUMIDOR) ======================= -->
+        <p-accordion-panel value="nfce">
+          <p-accordion-header>
+            <span class="flex items-center gap-2"><i class="pi pi-receipt text-primary"></i> NFCe — Nota Fiscal do Consumidor (PDV)</span>
+          </p-accordion-header>
+          <p-accordion-content>
+            <div class="nt-row">
+              <div class="nt-c2">
+                <label class="nt-lbl">Série NFCe</label>
+                <p-inputnumber [(ngModel)]="configFiscal.serieNfce" [useGrouping]="false" class="w-full" />
               </div>
-              <div class="space-y-1">
-                <label class="text-xs font-bold text-slate-700">Fim do intervalo</label>
-                <input [(ngModel)]="configOficina.fimIntervalo" type="time" class="w-full modern-input text-sm" />
+              <div class="nt-c2">
+                <label class="nt-lbl">CFOP Padrão</label>
+                <input pInputText [(ngModel)]="configFiscal.cfopPadraoNfce" class="w-full font-mono" placeholder="5102" maxlength="4" />
+              </div>
+              <div class="nt-c8 flex items-end pb-1">
+                <small class="nt-hint">A numeração da NFCe é controlada individualmente por cada PDV.</small>
               </div>
             </div>
 
-            <div *ngIf="!configOficina.possuiIntervalo" class="p-8 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <mat-icon class="!text-slate-300 block mx-auto !text-32 !w-8 !h-8 mb-2">restaurant_menu</mat-icon>
-              <p class="text-xs text-slate-400 font-medium tracking-tight">Sem intervalo definido para o expediente</p>
+            <p-divider>
+              <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Tributação padrão NFCe</span>
+            </p-divider>
+
+            <div class="nt-row">
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária ICMS</label>
+                <p-select [(ngModel)]="configFiscal.situacaoTributariaIcmsNfce" [options]="situacoesTributariasIcms" class="w-full" />
+              </div>
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária PIS</label>
+                <p-select [(ngModel)]="configFiscal.situacaoTributariaPisNfce" [options]="situacoesTributariasPis" class="w-full" />
+              </div>
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária COFINS</label>
+                <p-select [(ngModel)]="configFiscal.situacaoTributariaCofinsNfce" [options]="situacoesTributariasCofins" class="w-full" />
+              </div>
             </div>
 
-            <!-- Informativo Callout -->
-            <div class="flex items-start gap-3 text-xs text-amber-700 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 shadow-sm font-medium">
-              <mat-icon class="!text-amber-500 !text-[18px] mt-0.5">info</mat-icon>
-              <span>O expediente da empresa, é usado para calcular o tempo em horas e minutos em Ordem de serviço. Para cada Situacao é calculado o tempo em que permaneceu, porém esse tempo não é contado quando a empresa está fechada. Por isso é importante definir o horario de expediente da empresa.</span>
+            <div class="nt-row mt-3">
+              <div class="nt-c12">
+                <label class="nt-lbl">Mensagem "Dados adicionais" padrão</label>
+                <textarea pTextarea [(ngModel)]="configFiscal.mensagemDadosAdicionaisNfce" rows="2" class="w-full" placeholder="Texto impresso nas NFCe emitidas no PDV..."></textarea>
+              </div>
             </div>
+          </p-accordion-content>
+        </p-accordion-panel>
+
+        <!-- ======================= 4. NFSE (SERVIÇOS) ======================= -->
+        <p-accordion-panel value="nfse">
+          <p-accordion-header>
+            <span class="flex items-center gap-2"><i class="pi pi-wrench text-primary"></i> NFSe — Nota Fiscal de Serviços</span>
+          </p-accordion-header>
+          <p-accordion-content>
+
+            <!-- Códigos de Serviço -->
+            <div class="nt-row">
+              <div class="nt-c3">
+                <label class="nt-lbl">CNAE Serviço</label>
+                <input pInputText [(ngModel)]="configFiscal.cnaeServico" class="w-full font-mono" placeholder="4520-0/01" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Cód. Serviço Municipal</label>
+                <input pInputText [(ngModel)]="configFiscal.codigoServicoMunicipal" class="w-full" placeholder="Ex: 14.01" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Item Lista de Serviço (LC 116)</label>
+                <input pInputText [(ngModel)]="configFiscal.itemListaServico" class="w-full" placeholder="14.01" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Cód. NBS</label>
+                <input pInputText [(ngModel)]="configFiscal.codigoNbs" class="w-full font-mono" placeholder="1.09.01.00.00" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Cód. Tributação Município</label>
+                <input pInputText [(ngModel)]="configFiscal.codigoTributacaoMunicipio" class="w-full" />
+              </div>
+            </div>
+
+            <div class="nt-row mt-3">
+              <div class="nt-c3">
+                <label class="nt-lbl">Unidade de Serviço</label>
+                <input pInputText [(ngModel)]="configFiscal.unidadeServico" class="w-full" placeholder="UN" />
+              </div>
+              <div class="nt-c9">
+                <label class="nt-lbl">Descrição do Serviço Municipal</label>
+                <input pInputText [(ngModel)]="configFiscal.descricaoServicoMunicipal" class="w-full" placeholder="Manutenção e reparação de veículos automotores" />
+              </div>
+            </div>
+
+            <p-divider>
+              <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Tributação e Regime</span>
+            </p-divider>
+
+            <div class="nt-row">
+              <div class="nt-c4">
+                <label class="nt-lbl">Natureza da Operação</label>
+                <input pInputText [(ngModel)]="configFiscal.naturezaOperacaoNfse" class="w-full" placeholder="Ex: Tributação no município" />
+              </div>
+              <div class="nt-c4">
+                <label class="nt-lbl">Regime Especial de Tributação</label>
+                <p-select [(ngModel)]="configFiscal.regimeEspecialTributacaoNfse" [options]="regimesEspeciaisTributacao" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Alíquota ISS (%)</label>
+                <p-inputnumber [(ngModel)]="configFiscal.aliquotaIss" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="100" class="w-full" />
+              </div>
+              <div class="nt-c2 flex items-end pb-1">
+                <div class="flex items-center gap-2">
+                  <p-checkbox [(ngModel)]="configFiscal.issRetidoFonte" [binary]="true" inputId="chk-iss-retido" />
+                  <label for="chk-iss-retido" class="nt-lbl cursor-pointer" style="margin-bottom:0; font-weight:normal;">ISS Retido na Fonte</label>
+                </div>
+              </div>
+            </div>
+
+            <p-divider>
+              <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Credenciais do Provedor — Homologação</span>
+            </p-divider>
+
+            <div class="nt-row">
+              <div class="nt-c2">
+                <label class="nt-lbl">Série RPS</label>
+                <input pInputText [(ngModel)]="configFiscal.serieRpseHomologacao" class="w-full font-mono" placeholder="RPS" maxlength="5" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Seq. RPS</label>
+                <p-inputnumber [(ngModel)]="configFiscal.sequencialRpseHomologacao" [useGrouping]="false" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Seq. Lote</label>
+                <p-inputnumber [(ngModel)]="configFiscal.sequencialLoteRpseHomologacao" [useGrouping]="false" class="w-full" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Usuário Provedor</label>
+                <input pInputText [(ngModel)]="configFiscal.usuarioAcessoProvedorHomologacao" class="w-full" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Token / Senha</label>
+                <p-password [(ngModel)]="configFiscal.tokenAcessoProvedorHomologacao" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+              </div>
+            </div>
+
+            <p-divider>
+              <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Credenciais do Provedor — Produção</span>
+            </p-divider>
+
+            <div class="nt-row">
+              <div class="nt-c2">
+                <label class="nt-lbl">Série RPS</label>
+                <input pInputText [(ngModel)]="configFiscal.serieRpseProducao" class="w-full font-mono" placeholder="RPS" maxlength="5" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Seq. RPS</label>
+                <p-inputnumber [(ngModel)]="configFiscal.sequencialRpseProducao" [useGrouping]="false" class="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Seq. Lote</label>
+                <p-inputnumber [(ngModel)]="configFiscal.sequencialLoteRpseProducao" [useGrouping]="false" class="w-full" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Usuário Provedor</label>
+                <input pInputText [(ngModel)]="configFiscal.usuarioAcessoProvedorProducao" class="w-full" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Token / Senha</label>
+                <p-password [(ngModel)]="configFiscal.tokenAcessoProvedorProducao" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+              </div>
+            </div>
+
+            <div class="nt-row mt-3">
+              <div class="nt-c12">
+                <label class="nt-lbl">Outras Informações (impressas na NFSe)</label>
+                <textarea pTextarea [(ngModel)]="configFiscal.outrasInformacoesNfse" rows="2" class="w-full" placeholder="Informações adicionais a serem impressas na nota fiscal de serviços..."></textarea>
+              </div>
+            </div>
+          </p-accordion-content>
+        </p-accordion-panel>
+
+        <!-- ======================= 5. REFORMA TRIBUTÁRIA (IBS/CBS) + CERTIFICADO ======================= -->
+        <p-accordion-panel value="reforma">
+          <p-accordion-header>
+            <span class="flex items-center gap-2"><i class="pi pi-shield text-primary"></i> Reforma Tributária (IBS / CBS) e Certificado Digital</span>
+          </p-accordion-header>
+          <p-accordion-content>
+
+            <p-message severity="info" styleClass="w-full mb-4">
+              <ng-template pTemplate="icon"><i class="pi pi-info-circle"></i></ng-template>
+              <ng-template pTemplate="detail">Campos da Reforma Tributária Brasileira (IBS/CBS). Preencha conforme orientação do seu contador durante a transição.</ng-template>
+            </p-message>
+
+            <!-- Situação + Classificação tributária IBS/CBS -->
+            <div class="nt-row">
+              <div class="nt-c4">
+                <label class="nt-lbl">Situação Tributária IBS/CBS</label>
+                <input pInputText [(ngModel)]="configFiscal.situacaoTributariaIbsCbs" class="w-full" placeholder="Ex: ST01 — Tributado" />
+              </div>
+              <div class="nt-c4">
+                <label class="nt-lbl">Classificação Tributária IBS/CBS</label>
+                <input pInputText [(ngModel)]="configFiscal.classificacaoTributariaIbsCbs" class="w-full" placeholder="Ex: Serviço de Manutenção" />
+              </div>
+            </div>
+
+            <p-divider />
+
+            <!-- IBS e CBS side by side -->
+            <div class="nt-row">
+              <div class="nt-c6">
+                <p-fieldset legend="IBS — Imposto sobre Bens e Serviços (Estadual/Municipal)">
+                  <div class="nt-row">
+                    <div class="nt-c4">
+                      <label class="nt-lbl">Alíquota %</label>
+                      <p-inputnumber [(ngModel)]="configFiscal.aliquotaIbs" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" />
+                    </div>
+                    <div class="nt-c4">
+                      <label class="nt-lbl">% Diferimento</label>
+                      <p-inputnumber [(ngModel)]="configFiscal.percentualDiferimentoIbs" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" />
+                    </div>
+                    <div class="nt-c4">
+                      <label class="nt-lbl">% Redução</label>
+                      <p-inputnumber [(ngModel)]="configFiscal.percentualReducaoIbs" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" />
+                    </div>
+                  </div>
+                </p-fieldset>
+              </div>
+              <div class="nt-c6">
+                <p-fieldset legend="CBS — Contribuição sobre Bens e Serviços (Federal)">
+                  <div class="nt-row">
+                    <div class="nt-c4">
+                      <label class="nt-lbl">Alíquota %</label>
+                      <p-inputnumber [(ngModel)]="configFiscal.aliquotaCbs" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" />
+                    </div>
+                    <div class="nt-c4">
+                      <label class="nt-lbl">% Diferimento</label>
+                      <p-inputnumber [(ngModel)]="configFiscal.percentualDiferimentoCbs" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" />
+                    </div>
+                    <div class="nt-c4">
+                      <label class="nt-lbl">% Redução</label>
+                      <p-inputnumber [(ngModel)]="configFiscal.percentualReducaoCbs" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" />
+                    </div>
+                  </div>
+                </p-fieldset>
+              </div>
+            </div>
+
+            <p-divider>
+              <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Certificado Digital A1</span>
+            </p-divider>
+
+            <div class="nt-row">
+              <div class="nt-c7">
+                <label class="nt-lbl">Certificado (Base64 ou caminho)</label>
+                <input pInputText [(ngModel)]="configFiscal.certificadoDigitalA1" class="w-full" placeholder="Cole aqui o conteúdo do certificado A1 em Base64" />
+              </div>
+              <div class="nt-c3">
+                <label class="nt-lbl">Senha do Certificado</label>
+                <p-password [(ngModel)]="configFiscal.senhaCertificado" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+              </div>
+              <div class="nt-c2">
+                <label class="nt-lbl">Validade</label>
+                <p-datepicker [(ngModel)]="configFiscal.validadeCertificado" dateFormat="dd/mm/yy" placeholder="DD/MM/AAAA" class="w-full" [showIcon]="true" />
+              </div>
+            </div>
+
+          </p-accordion-content>
+        </p-accordion-panel>
+
+      </p-accordion>
+    }
+
+
+    <!-- ============================= TAB 7: E-MAIL ============================= -->
+    @if (activeTab === 'email') {
+
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Servidor SMTP</span>
+            <span class="nt-panel-sub">Credenciais para envio de notificações e Ordens de Serviço</span>
+          </div>
+        </ng-template>
+
+        <!-- Remetente (col-5) + E-mail de recebimento (col-5) -->
+        <div class="nt-row">
+          <div class="nt-c5">
+            <label class="nt-lbl">E-mail de envio</label>
+            <input pInputText [(ngModel)]="configEmail.remetenteEmail" type="email" class="w-full" placeholder="envio@oficina.com.br" />
+            <small class="nt-hint">Endereço remetente das notificações automáticas</small>
+          </div>
+          <div class="nt-c5">
+            <label class="nt-lbl">E-mail de recebimento</label>
+            <input pInputText [(ngModel)]="configEmail.emailResposta" type="email" class="w-full" placeholder="resposta@oficina.com.br" />
+            <small class="nt-hint">Para onde os clientes respondem</small>
           </div>
         </div>
 
-      </div>
+        <p-divider />
 
-      <!-- ==================== TAB 5: REGRAS DE NEGÓCIO ==================== -->
-      <div *ngIf="activeTab === 'regras'" class="space-y-8">
-
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">settings</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Valores e Padrões Operacionais</h3>
+        <!-- Servidor (col-4) + Porta (col-1) + Senha (col-4) + Cripto (col-2) -->
+        <div class="nt-row">
+          <div class="nt-c4">
+            <label class="nt-lbl">Servidor SMTP</label>
+            <input pInputText [(ngModel)]="configEmail.servidorSmtp" class="w-full font-mono" placeholder="smtp.gmail.com" />
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Margem de Lucro Sugerida (%)</label>
-              <input [(ngModel)]="configOficina.margemLucroPadrao" type="number" class="w-full modern-input text-sm" placeholder="30" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Garantia Padrão (Dias)</label>
-              <input [(ngModel)]="configOficina.diasGarantiaPadrao" type="number" class="w-full modern-input text-sm" placeholder="90" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Moeda Principal</label>
-              <input [(ngModel)]="configOficina.moeda" class="w-full modern-input text-sm" placeholder="BRL" />
-            </div>
+          <div class="nt-c1">
+            <!-- Porta: dado ≤ 5 chars → col-1 (KI: dado curto nunca fica em col largo) -->
+            <label class="nt-lbl">Porta</label>
+            <p-inputnumber [(ngModel)]="configEmail.portaSmtp" [useGrouping]="false" [min]="1" [max]="65535" class="w-full" />
+          </div>
+          <div class="nt-c4">
+            <label class="nt-lbl">Senha / App Password</label>
+            <p-password [(ngModel)]="configEmail.senhaSmtp" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" placeholder="••••••••••••" />
+          </div>
+          <div class="nt-c2">
+            <label class="nt-lbl">Criptografia</label>
+            <p-select [(ngModel)]="configEmail.criptografia" [options]="criptografias" class="w-full" />
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">event_available</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Configurações de Agendamento</h3>
+        <p-divider />
+
+        <!-- Teste de e-mail: campo + botão em p-inputgroup -->
+        <div class="nt-row">
+          <div class="nt-c5">
+            <label class="nt-lbl">E-mail para teste</label>
+            <p-inputgroup>
+              <input pInputText [(ngModel)]="emailTeste" type="email" placeholder="destino@exemplo.com" />
+              <p-button
+                label="Testar"
+                icon="pi pi-send"
+                severity="secondary"
+                [loading]="testingEmail"
+                [disabled]="testingEmail"
+                (onClick)="testarEmail()"
+                id="btn-testar-email"
+              />
+            </p-inputgroup>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Duração Média (minutos)</label>
-              <input [(ngModel)]="configOficina.tempoAgendamentoPadrao" type="number" class="w-full modern-input text-sm" placeholder="60" />
+        </div>
+      </p-panel>
+
+      <p-message severity="info" styleClass="w-full">
+        <ng-template pTemplate="icon"><i class="pi pi-info-circle"></i></ng-template>
+        <ng-template pTemplate="detail">
+          Esta configuração controla o envio de comunicações automáticas, incluindo Ordens de Serviço.
+          Ao clicar em <strong>Testar</strong>, se as credenciais estiverem corretas, você receberá um e-mail de confirmação.
+        </ng-template>
+      </p-message>
+    }
+
+
+
+    <!-- ============================= TAB 8: CONFIGURAÇÕES ============================= -->
+    @if (activeTab === 'configuracoes') {
+
+      <!-- PAINEL 1: Documentos e Impressos -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Documentos e Impressos</span>
+            <span class="nt-panel-sub">Configure a exibição de logomarca, assinaturas e relatórios</span>
+          </div>
+        </ng-template>
+
+        <div class="nt-row" style="align-items: start;">
+          <!-- Coluna 1 (Esquerda) -->
+          <div class="nt-c6 flex flex-col gap-6">
+            <!-- Cupom não fiscal -->
+            <div class="flex flex-col gap-1.5">
+              <label class="nt-lbl font-semibold">Cupom Não Fiscal</label>
+              <div class="flex items-center gap-2">
+                <p-checkbox [(ngModel)]="configOficina.mostrarLogoCupom" [binary]="true" inputId="chk-logo-cupom" />
+                <label for="chk-logo-cupom" class="nt-lbl cursor-pointer" style="margin-bottom: 0; display: inline-block; font-weight: normal;">Mostrar logomarca no cupom</label>
+              </div>
             </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Antecedência Mínima (horas)</label>
-              <input [(ngModel)]="configOficina.antecedenciaMinimaAgendamento" type="number" class="w-full modern-input text-sm" placeholder="24" />
+
+            <p-divider />
+
+            <!-- Assinatura OS -->
+            <div class="flex flex-col gap-1.5">
+              <label class="nt-lbl font-semibold">Assinatura na OS</label>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <p-radiobutton name="mostrarAssinaturaOs" value="NOME_FANTASIA" [(ngModel)]="configOficina.mostrarAssinaturaOs" inputId="opt-ass-fantasia" />
+                  <label for="opt-ass-fantasia" class="cursor-pointer" style="margin-bottom: 0; display: inline-block;">Nome Fantasia</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <p-radiobutton name="mostrarAssinaturaOs" value="FUNCIONARIO" [(ngModel)]="configOficina.mostrarAssinaturaOs" inputId="opt-ass-func" />
+                  <label for="opt-ass-func" class="cursor-pointer" style="margin-bottom: 0; display: inline-block;">Funcionário</label>
+                </div>
+              </div>
             </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Lembrete Antecipado (horas)</label>
-              <input [(ngModel)]="configOficina.tempoLembreteHoras" type="number" class="w-full modern-input text-sm" placeholder="24" />
+
+            <p-divider />
+
+            <!-- Mostrar nos relatórios -->
+            <div class="flex flex-col gap-1.5">
+              <label class="nt-lbl font-semibold">Nome em Relatórios</label>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <p-radiobutton name="mostrarRelatorios" value="NOME_FANTASIA" [(ngModel)]="configOficina.mostrarRelatorios" inputId="opt-rel-fantasia" />
+                  <label for="opt-rel-fantasia" class="cursor-pointer" style="margin-bottom: 0; display: inline-block;">Nome Fantasia</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <p-radiobutton name="mostrarRelatorios" value="RAZAO_SOCIAL" [(ngModel)]="configOficina.mostrarRelatorios" inputId="opt-rel-razao" />
+                  <label for="opt-rel-razao" class="cursor-pointer" style="margin-bottom: 0; display: inline-block;">Razão Social</label>
+                </div>
+              </div>
             </div>
-            <div class="md:col-span-3 flex gap-8 pt-4 border-t border-slate-100">
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" [(ngModel)]="configOficina.permiteAgendamentoOnline" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-                <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Permitir Agendamento Online</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" [(ngModel)]="configOficina.enviaLembreteAgendamento" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-                <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Enviar Lembretes Automáticos</span>
-              </label>
+          </div>
+
+          <!-- Coluna 2 (Direita) -->
+          <div class="nt-c6 flex flex-col gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="nt-lbl font-semibold">Termo de Garantia</label>
+              <textarea pTextarea [(ngModel)]="configOficina.termoGarantiaPadrao" rows="6" class="w-full" placeholder="Digite o termo de garantia impresso por padrão nas O.S..."></textarea>
+              <small class="nt-hint mt-1.5">Texto impresso no rodapé da OS. <strong>Exemplo:</strong> Todos os serviços e produtos possuem garantia de 3 meses. Volte sempre!</small>
             </div>
           </div>
         </div>
+      </p-panel>
 
-      </div>
+      <!-- PAINEL 2: Fluxo Operacional e Comunicação -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Fluxo Operacional e Comunicação</span>
+            <span class="nt-panel-sub">Configure comissões, preços na OS, questionários e mensagens automáticas</span>
+          </div>
+        </ng-template>
 
-      <!-- ==================== TAB 6: DADOS FISCAIS ==================== -->
-      <div *ngIf="activeTab === 'fiscal'" class="space-y-8">
+        <div class="nt-row" style="align-items: start;">
+          <!-- Coluna 1 (Esquerda) -->
+          <div class="nt-c6 flex flex-col gap-6">
+            <!-- Questionários -->
+            <div class="flex flex-col gap-1.5">
+              <label class="nt-lbl font-semibold">Resposta de Questionários</label>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <p-radiobutton name="receberEmailRespostaQuestionario" [value]="true" [(ngModel)]="configOficina.receberEmailRespostaQuestionario" inputId="opt-quest-sim" />
+                  <label for="opt-quest-sim" class="cursor-pointer" style="margin-bottom: 0; display: inline-block;">Receber e-mail de confirmação</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <p-radiobutton name="receberEmailRespostaQuestionario" [value]="false" [(ngModel)]="configOficina.receberEmailRespostaQuestionario" inputId="opt-quest-nao" />
+                  <label for="opt-quest-nao" class="cursor-pointer" style="margin-bottom: 0; display: inline-block;">Não receber</label>
+                </div>
+              </div>
+            </div>
 
-        <!-- NF-e -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">receipt_long</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Emissão de Nota Fiscal (NF-e/NFS-e)</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Regime Tributário Fiscal</label>
-              <select [(ngModel)]="configFiscal.regimeTributario" class="w-full modern-input text-sm">
-                <option *ngFor="let r of regimesTributarios" [value]="r">{{ r }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Anexo Simples Nacional</label>
-              <select [(ngModel)]="configFiscal.anexoSimples" class="w-full modern-input text-sm">
-                <option value="">— N/A —</option>
-                <option *ngFor="let a of anexosSimples" [value]="a">{{ a }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Ambiente de Emissão</label>
-              <select [(ngModel)]="configFiscal.ambienteNfe" class="w-full modern-input text-sm">
-                <option *ngFor="let a of ambientesNfe" [value]="a">{{ a }}</option>
-              </select>
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Série da NF-e</label>
-              <input [(ngModel)]="configFiscal.serieNfe" type="number" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Última Numeração NF-e</label>
-              <input [(ngModel)]="configFiscal.numeracaoNfe" type="number" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Cód. Município IBGE</label>
-              <input [(ngModel)]="configFiscal.codigoMunicipioPrestacao" class="w-full modern-input font-mono" placeholder="Ex: 3550308" />
-            </div>
-          </div>
-        </div>
+            <p-divider />
 
-        <!-- Alíquotas -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">percent</mat-icon>
+            <!-- Negociação de pagamento -->
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center">
+                <label class="nt-lbl font-semibold mb-0">Negociação de Pagamento</label>
+                <i class="pi pi-info-circle text-slate-400 cursor-help ml-1.5" pTooltip="Quando ativo, o desconto dado na Ordem de Serviço abate o valor da comissão do colaborador proporcionalmente."></i>
+              </div>
+              <div class="flex items-center gap-2">
+                <p-checkbox [(ngModel)]="configOficina.descontoIncideComissao" [binary]="true" inputId="chk-desc-comissao" />
+                <label for="chk-desc-comissao" class="nt-lbl cursor-pointer" style="margin-bottom: 0; display: inline-block; font-weight: normal;">Descontos incidem em comissão</label>
+              </div>
             </div>
-            <h3 class="font-bold text-slate-800 text-sm">Alíquotas de Impostos (%)</h3>
-          </div>
-          <div class="p-6 grid grid-cols-2 md:grid-cols-6 gap-x-6 gap-y-6">
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">ISS</label><input [(ngModel)]="configFiscal.aliquotaIss" type="number" step="0.01" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">ICMS</label><input [(ngModel)]="configFiscal.aliquotaIcms" type="number" step="0.01" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">PIS</label><input [(ngModel)]="configFiscal.aliquotaPis" type="number" step="0.01" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">COFINS</label><input [(ngModel)]="configFiscal.aliquotaCofins" type="number" step="0.01" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">CSLL</label><input [(ngModel)]="configFiscal.aliquotaCsll" type="number" step="0.01" class="w-full modern-input text-sm" /></div>
-            <div class="space-y-1"><label class="text-xs font-bold text-slate-700">IRPJ</label><input [(ngModel)]="configFiscal.aliquotaIrpj" type="number" step="0.01" class="w-full modern-input text-sm" /></div>
-          </div>
-        </div>
 
-        <!-- CFOPs -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">list_alt</mat-icon>
+            <p-divider />
+
+            <!-- Preço na OS -->
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center">
+                <label class="nt-lbl font-semibold mb-0">Atualização de Custo na OS</label>
+                <i class="pi pi-info-circle text-slate-400 cursor-help ml-1.5" pTooltip="Permite editar o valor de custo dos produtos diretamente na Ordem de Serviço para obter relatórios de lucro customizados."></i>
+              </div>
+              <div class="flex items-center gap-2">
+                <p-checkbox [(ngModel)]="configOficina.atualizarPrecoCustoVendaAutomaticamente" [binary]="true" inputId="chk-preco-custo" />
+                <label for="chk-preco-custo" class="nt-lbl cursor-pointer" style="margin-bottom: 0; display: inline-block; font-weight: normal;">Atualizar preço automaticamente</label>
+              </div>
             </div>
-            <h3 class="font-bold text-slate-800 text-sm">Códigos Fiscais (CFOP)</h3>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Venda Interna (Estadual)</label>
-              <input [(ngModel)]="configFiscal.cfopVendaDentroEstado" class="w-full modern-input font-mono" placeholder="5102" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Venda Interestadual</label>
-              <input [(ngModel)]="configFiscal.cfopVendaForaEstado" class="w-full modern-input font-mono" placeholder="6102" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">CFOP de Serviços</label>
-              <input [(ngModel)]="configFiscal.cfopServico" class="w-full modern-input font-mono" placeholder="5933" />
+
+          <!-- Coluna 2 (Direita) -->
+          <div class="nt-c6 flex flex-col gap-3">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <label class="nt-lbl font-semibold mb-0">Mensagem de Envio da OS</label>
+                <i class="pi pi-info-circle text-slate-400 cursor-help ml-1.5" pTooltip="Esta mensagem padrão será carregada no e-mail ao enviar a OS. Se a flag de exclusividade estiver marcada, o usuário não poderá editá-la ao enviar."></i>
+              </div>
+              <div class="flex items-center gap-2 mb-2">
+                <p-checkbox [(ngModel)]="configOficina.mostrarExclusivoMensagemOs" [binary]="true" inputId="chk-msg-exclusiva" />
+                <label for="chk-msg-exclusiva" class="nt-lbl cursor-pointer" style="margin-bottom: 0; display: inline-block; font-weight: normal;">Mostrar exclusivamente a mensagem padrão</label>
+              </div>
+              <textarea pTextarea [(ngModel)]="configOficina.mensagemEnvioOsPadrao" rows="6" class="w-full" placeholder="Digite a mensagem padrão de e-mail de envio..."></textarea>
             </div>
           </div>
         </div>
+      </p-panel>
 
-        <!-- Certificado -->
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm shadow-indigo-100/20">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">verified_user</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Certificado Digital (A1)</h3>
+      <!-- PAINEL 3: Regras Operacionais e Agendamento -->
+      <p-panel styleClass="nt-panel">
+        <ng-template pTemplate="header">
+          <div class="nt-panel-hd">
+            <span class="nt-panel-title">Regras Operacionais e Agendamento</span>
+            <span class="nt-panel-sub">Configure padrões de margem, garantia, moeda e parâmetros de agendamento online</span>
           </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-            <div class="md:col-span-2 space-y-1">
-              <label class="text-xs font-bold text-slate-700">Certificado (Base64)</label>
-              <input [(ngModel)]="configFiscal.certificadoDigitalA1" class="w-full modern-input text-sm" placeholder="Cole aqui o conteúdo do certificado" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Senha de Instalação</label>
-              <input [(ngModel)]="configFiscal.senhaCertificado" type="password" class="w-full modern-input text-sm" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Data de Validade</label>
-              <input [(ngModel)]="configFiscal.validadeCertificado" type="date" class="w-full modern-input text-sm" />
-            </div>
-          </div>
-        </div>
+        </ng-template>
 
-        <div class="flex items-center gap-3 text-xs text-amber-700 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 shadow-sm">
-           <mat-icon class="!text-amber-500 !text-[18px]">info</mat-icon>
-           <span class="font-medium">O <strong>CNPJ</strong> e a <strong>Razão Social</strong> para emissão fiscal devem ser alterados na aba <strong>Dados da Oficina</strong>.</span>
-        </div>
-
-      </div>
-
-      <!-- ==================== TAB 7: E-MAIL ==================== -->
-      <div *ngIf="activeTab === 'email'" class="space-y-8 animate-fade-in-up">
-
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-             <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">mail</mat-icon>
-            </div>
-            <h3 class="font-bold text-slate-800 text-sm">Configurações email</h3>
-          </div>
-          
-          <div class="p-6 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="nt-row" style="align-items: start;">
+          <!-- Coluna 1 (Esquerda): Agendamento -->
+          <div class="nt-c6 flex flex-col gap-6">
+            <div class="flex flex-col gap-3">
+              <label class="nt-lbl font-semibold">Parâmetros de Agendamento</label>
               
-              <!-- Email de envio -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700">Email de envio</label>
-                <input [(ngModel)]="configEmail.remetenteEmail" type="email" class="w-full modern-input text-sm" placeholder="exemplo@gmail.com" />
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  E-mail de origem utilizado para enviar as notificações e ordens de serviço.
+              <div class="nt-row">
+                <div class="nt-c4">
+                  <label class="nt-lbl">Duração média (min)</label>
+                  <p-inputnumber [(ngModel)]="configOficina.tempoAgendamentoPadrao" [min]="5" [useGrouping]="false" class="w-full" />
+                </div>
+                <div class="nt-c4">
+                  <label class="nt-lbl">Antecedência mínima (h)</label>
+                  <p-inputnumber [(ngModel)]="configOficina.antecedenciaMinimaAgendamento" [min]="0" [useGrouping]="false" class="w-full" />
+                </div>
+                <div class="nt-c4">
+                  <label class="nt-lbl">Lembrete antecipado (h)</label>
+                  <p-inputnumber [(ngModel)]="configOficina.tempoLembreteHoras" [min]="0" [useGrouping]="false" class="w-full" />
                 </div>
               </div>
 
-              <!-- Email de recebimento -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700">Email de recebimento</label>
-                <input [(ngModel)]="configEmail.emailResposta" type="email" class="w-full modern-input text-sm" placeholder="exemplo@gmail.com" />
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  E-mail de resposta configurado (Reply-To) para onde retornarão as mensagens dos clientes.
+              <div class="flex flex-col gap-3 mt-2">
+                <div class="flex items-center gap-2">
+                  <p-checkbox [(ngModel)]="configOficina.permiteAgendamentoOnline" [binary]="true" inputId="chk-agd-online" />
+                  <label for="chk-agd-online" class="nt-lbl cursor-pointer" style="margin-bottom: 0; display: inline-block; font-weight: normal;">Permitir agendamento online</label>
+                </div>
+                <div class="flex items-center gap-2">
+                  <p-checkbox [(ngModel)]="configOficina.enviaLembreteAgendamento" [binary]="true" inputId="chk-envia-lembrete" />
+                  <label for="chk-envia-lembrete" class="nt-lbl cursor-pointer" style="margin-bottom: 0; display: inline-block; font-weight: normal;">Enviar lembretes automáticos</label>
                 </div>
               </div>
-
-              <!-- Senha email envio -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700">Senha email envio</label>
-                <input [(ngModel)]="configEmail.senhaSmtp" type="password" class="w-full modern-input text-sm" placeholder="••••••••••••" />
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  Senha do e-mail de envio ou senha de app gerada no provedor (App Password).
-                </div>
-              </div>
-
-              <!-- Servidor SMTP -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700">Servidor SMTP</label>
-                <input [(ngModel)]="configEmail.servidorSmtp" type="text" class="w-full modern-input text-sm" placeholder="smtp.gmail.com" />
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  Endereço de saída do servidor SMTP do seu provedor (ex: smtp.gmail.com).
-                </div>
-              </div>
-
-              <!-- Porta SMTP -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700">Porta SMTP</label>
-                <input [(ngModel)]="configEmail.portaSmtp" type="number" class="w-full modern-input text-sm" placeholder="465" />
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  Porta utilizada para conexão SMTP (ex: 465 para SSL ou 587 para TLS).
-                </div>
-              </div>
-
-              <!-- Utiliza SSL -->
-              <div class="flex flex-col justify-start space-y-1 pt-1 relative group">
-                <label class="text-xs font-bold text-slate-700 mb-1">Criptografia</label>
-                <label class="flex items-center gap-2.5 cursor-pointer group mt-2">
-                  <input type="checkbox" [ngModel]="configEmail.criptografia === 'SSL'" (ngModelChange)="configEmail.criptografia = $event ? 'SSL' : 'TLS'" class="w-4 h-4 rounded accent-indigo-600 cursor-pointer" />
-                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Utiliza SSL</span>
-                </label>
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  Marque esta opção para utilizar conexão segura com SSL (obrigatório para porta 465).
-                </div>
-              </div>
-
-              <!-- Email que receberá o teste -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700">Email que receberá o teste</label>
-                <input [(ngModel)]="emailTeste" type="email" class="w-full modern-input text-sm" placeholder="destino@exemplo.com" />
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  E-mail de destino que receberá a mensagem de verificação SMTP.
-                </div>
-              </div>
-
-              <!-- Testar e-mail botão -->
-              <div class="space-y-1 relative group">
-                <label class="text-xs font-bold text-slate-700 block">Faça um teste no seu email</label>
-                <button (click)="testarEmail()" [disabled]="testingEmail" type="button" 
-                  class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 shadow-sm transition-all text-xs flex items-center gap-2 disabled:opacity-50 active:scale-95">
-                  <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ testingEmail ? 'hourglass_empty' : 'email' }}</mat-icon>
-                  {{ testingEmail ? 'Testando...' : 'Testar e-mail' }}
-                </button>
-                <div class="absolute z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none bg-slate-900/95 text-white text-[10px] font-medium rounded-lg px-3 py-1.5 shadow-lg border border-slate-700/50 w-full top-full mt-1.5 left-0 backdrop-blur-sm leading-normal">
-                  Clique para testar o envio com as credenciais acima.
-                </div>
-              </div>
-
             </div>
+          </div>
 
-            <!-- Informativo Callout -->
-            <div class="flex items-start gap-3 text-xs text-amber-700 bg-amber-50/60 border border-amber-200 rounded-xl px-4 py-3 shadow-sm font-medium">
-               <mat-icon class="!text-amber-500 !text-[18px] mt-0.5">info</mat-icon>
-               <div class="space-y-1">
-                 <p class="m-0">Esta configuração de e-mail é responsável pelo disparo de comunicações automáticas do sistema, incluindo o envio de Ordens de Serviço e outras notificações.</p>
-                 <p class="m-0">Ao acionar o botão "Testar e-mail", se as credenciais estiverem corretas, você receberá a mensagem de validação "Email configurado com sucesso!".</p>
-               </div>
+          <!-- Coluna 2 (Direita): Padrões Financeiros -->
+          <div class="nt-c6 flex flex-col gap-6">
+            <div class="flex flex-col gap-3">
+              <label class="nt-lbl font-semibold">Padrões Financeiros e de Serviço</label>
+              
+              <div class="nt-row">
+                <div class="nt-c4">
+                  <label class="nt-lbl">Margem de Lucro</label>
+                  <p-inputnumber [(ngModel)]="configOficina.margemLucroPadrao" [min]="0" [max]="100" [minFractionDigits]="1" suffix=" %" class="w-full" />
+                </div>
+                <div class="nt-c4">
+                  <label class="nt-lbl">Garantia Padrão (dias)</label>
+                  <p-inputnumber [(ngModel)]="configOficina.diasGarantiaPadrao" [min]="0" [useGrouping]="false" class="w-full" />
+                </div>
+                <div class="nt-c4">
+                  <label class="nt-lbl">Moeda</label>
+                  <input pInputText [(ngModel)]="configOficina.moeda" class="w-full font-mono" placeholder="BRL" maxlength="3" />
+                </div>
+              </div>
             </div>
-
           </div>
         </div>
+      </p-panel>
+    }
 
-      </div>
-
-
-    </div>
-  </div>
-</div>
+  </div><!-- /nt-content -->
+</div><!-- /nt-empresa -->

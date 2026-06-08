@@ -8,6 +8,7 @@ export interface UsuarioRequest {
   cargo?: string;
   departamento?: string;
   telefone?: string;
+  preferencias?: Record<string, any>;
 }
 
 export interface UsuarioResponse {
@@ -24,6 +25,7 @@ export interface UsuarioResponse {
   departamento?: string;
   telefone?: string;
   avatarUrl?: string;
+  preferencias?: Record<string, any>;
 }
 
 export interface Permissao {

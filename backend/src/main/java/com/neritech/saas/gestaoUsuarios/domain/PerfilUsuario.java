@@ -28,6 +28,8 @@ public class PerfilUsuario extends TenantEntity {
     private String departamento;
 
     // Preferencias stored as JSONB string for simplicity in JPA, or could use a converter
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private String preferencias;
+    @org.hibernate.annotations.ColumnTransformer(write = "?::jsonb")
+    private java.util.Map<String, Object> preferencias;
 }

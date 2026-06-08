@@ -10,5 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface QuestionarioRepository extends JpaRepository<Questionario, Long>, JpaSpecificationExecutor<Questionario> {
     Page<Questionario> findByEmpresaId(Long empresaId, Pageable pageable);
+    boolean existsByEmpresaIdAndDsQuestionarioIgnoreCase(Long empresaId, String dsQuestionario);
+    boolean existsByEmpresaIdAndDsQuestionarioIgnoreCaseAndIdNot(Long empresaId, String dsQuestionario, Long id);
 }
 

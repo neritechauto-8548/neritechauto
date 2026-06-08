@@ -19,6 +19,7 @@ public class EmpresaMapper {
         e.setDataAbertura(dto.getDataAbertura());
         e.setObservacoes(dto.getObservacoes());
         e.setAtivo(dto.getAtivo());
+        e.setLogoPath(dto.getLogoPath());
         return e;
     }
 
@@ -34,6 +35,7 @@ public class EmpresaMapper {
         target.setDataAbertura(dto.getDataAbertura());
         target.setObservacoes(dto.getObservacoes());
         target.setAtivo(dto.getAtivo());
+        target.setLogoPath(dto.getLogoPath());
     }
 
     public static EmpresaResponse toResponse(Empresa e) {
@@ -50,6 +52,7 @@ public class EmpresaMapper {
         r.setDataAbertura(e.getDataAbertura());
         r.setObservacoes(e.getObservacoes());
         r.setAtivo(e.getAtivo());
+        r.setLogoPath(e.getLogoPath());
         return r;
     }
 }

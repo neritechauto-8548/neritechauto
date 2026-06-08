@@ -36,7 +36,9 @@
 
     <div class="md:col-span-3 flex flex-col gap-1">
       <label for="digitoConta" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Digito</label>
-      <input id="digitoConta" type="text" pInputText [(ngModel)]="digitoConta" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" placeholder="0" [disabled]="readonly" />
+      <p-inputmask id="digitoConta" mask="*" [(ngModel)]="digitoConta" [unmask]="true"
+                   styleClass="w-full text-sm border-slate-300 rounded-lg h-[38px]" 
+                   placeholder="0" [disabled]="readonly" />
     </div>
 
     <!-- Row 3 -->
@@ -48,21 +50,25 @@
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="cpfCnpjTitular" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">CPF/CNPJ <span class="text-red-500">*</span></label>
       <input id="cpfCnpjTitular" type="text" pInputText [value]="cpfCnpjTitular"
-             (input)="onCpfCnpjInput($event)"
+             (input)="formatarDocumento($event)"
              (blur)="validarDocumento()"
-             class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-slate-50/50" 
-             placeholder="000.000.000-00" [disabled]="readonly" />
+             class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-white h-[38px]" 
+             placeholder="000.000.000-00 ou AA.AAA.AAA/AAAA-99" [disabled]="readonly" />
     </div>
 
     <!-- Row 4 -->
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="valorSaldoInicial" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Saldo Atual</label>
-      <input id="valorSaldoInicial" type="number" pInputText [(ngModel)]="valorSaldoInicial" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none text-emerald-700 font-semibold" placeholder="0,00" [disabled]="readonly" />
+      <p-inputnumber id="valorSaldoInicial" [(ngModel)]="valorSaldoInicial" mode="currency" currency="BRL" locale="pt-BR"
+                     styleClass="w-full text-sm rounded-lg" inputStyleClass="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none text-emerald-700 font-semibold h-[38px]" 
+                     placeholder="R$ 0,00" [disabled]="readonly" />
     </div>
 
     <div class="md:col-span-4 flex flex-col gap-1">
       <label for="limiteChequeEspecial" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Limite Cheque Especial</label>
-      <input id="limiteChequeEspecial" type="number" pInputText [(ngModel)]="limiteChequeEspecial" class="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="0,00" [disabled]="readonly" />
+      <p-inputnumber id="limiteChequeEspecial" [(ngModel)]="limiteChequeEspecial" mode="currency" currency="BRL" locale="pt-BR"
+                     styleClass="w-full text-sm rounded-lg" inputStyleClass="w-full text-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none h-[38px]" 
+                     placeholder="R$ 0,00" [disabled]="readonly" />
     </div>
 
     <div class="md:col-span-4 flex items-center pt-4">

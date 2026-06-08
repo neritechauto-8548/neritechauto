@@ -4,6 +4,11 @@ import { Injectable, inject, DOCUMENT } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AppDirectionality, LocalStorageService } from '@shared';
 import { enUS, Locale, zhCN, zhTW, ptBR } from 'date-fns/locale';
+// @ts-ignore
+import { updatePrimaryPalette, updateSurfacePalette } from '@primeuix/themes';
+import { PrimeNG } from 'primeng/config';
+import Aura from '@primeuix/themes/aura';
+import Lara from '@primeuix/themes/lara';
 import { BehaviorSubject } from 'rxjs';
 import { AppSettings, AppTheme, defaults } from '../settings';
 
@@ -18,6 +23,7 @@ export class SettingsService {
   private readonly store = inject(LocalStorageService);
   private readonly mediaMatcher = inject(MediaMatcher);
   private readonly dir = inject(AppDirectionality);
+  private readonly primengConfig = inject(PrimeNG);
 
   private readonly notify$ = new BehaviorSubject<Partial<AppSettings>>({});
 
@@ -37,6 +43,36 @@ export class SettingsService {
 
   constructor() {
     this.translate.addLangs(this.languages);
+    this.applyThemeColors();
+  }
+
+  applyThemeColors() {
+    if (this.options.presetTheme === 'Lara') {
+      this.primengConfig.theme.set({ preset: Lara });
+    } else {
+      this.primengConfig.theme.set({ preset: Aura });
+    }
+    try {
+      if (this.options.primaryColorValue) {
+        const c = this.options.primaryColorValue.replace('{', '').replace('}', '');
+        updatePrimaryPalette({
+          50: `{${c}.50}`, 100: `{${c}.100}`, 200: `{${c}.200}`, 300: `{${c}.300}`,
+          400: `{${c}.400}`, 500: `{${c}.500}`, 600: `{${c}.600}`, 700: `{${c}.700}`,
+          800: `{${c}.800}`, 900: `{${c}.900}`, 950: `{${c}.950}`
+        });
+      }
+      if (this.options.surfaceColorValue) {
+        const c = this.options.surfaceColorValue.replace('{', '').replace('}', '');
+        updateSurfacePalette({
+          0: '#ffffff',
+          50: `{${c}.50}`, 100: `{${c}.100}`, 200: `{${c}.200}`, 300: `{${c}.300}`,
+          400: `{${c}.400}`, 500: `{${c}.500}`, 600: `{${c}.600}`, 700: `{${c}.700}`,
+          800: `{${c}.800}`, 900: `{${c}.900}`, 950: `{${c}.950}`
+        });
+      }
+    } catch (e) {
+      console.warn('PrimeNG theme update failed', e);
+    }
   }
 
   reset() {
@@ -46,6 +82,7 @@ export class SettingsService {
   setOptions(options?: Partial<AppSettings>) {
     this.options = Object.assign(defaults, this.options, options);
     this.store.set(this.key, this.options);
+    this.applyThemeColors();
     this.notify$.next(this.options);
   }
 

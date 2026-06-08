@@ -17,7 +17,6 @@ import { CategoriaProdutoService, CategoriaProdutoResponse } from './categoria-p
 import { UnidadeMedidaService, UnidadeMedidaResponse } from './unidade-medida.service';
 import { MatIconModule } from '@angular/material/icon';
 import { InputTextModule } from 'primeng/inputtext';
-import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'categoria',
@@ -37,8 +36,7 @@ import { ConfirmationDialogComponent } from '@shared/components/confirmation-dia
     TabPanel,
     MatIconModule,
     InputTextModule,
-    ToastModule,
-    ConfirmationDialogComponent
+    ToastModule
   ],
   providers: [DialogService, MessageService],
 })
@@ -149,7 +147,6 @@ export class Categoria implements OnInit {
               },
               error: (err) => {
                 console.error('Erro ao criar categoria', err);
-                this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao cadastrar categoria.' });
               }
             });
         }
@@ -184,7 +181,6 @@ export class Categoria implements OnInit {
              },
              error: (err) => {
                console.error('Erro ao atualizar categoria', err);
-               this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar categoria.' });
              }
            });
         }
@@ -209,7 +205,6 @@ export class Categoria implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir categoria', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir categoria.' });
           }
         });
       }
@@ -285,7 +280,6 @@ export class Categoria implements OnInit {
             },
             error: (err) => {
               console.error('Erro ao criar unidade', err);
-              this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao cadastrar unidade.' });
             }
           });
         }
@@ -320,7 +314,6 @@ export class Categoria implements OnInit {
              },
              error: (err) => {
                console.error('Erro ao atualizar unidade', err);
-               this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar unidade.' });
              }
           });
         }
@@ -345,7 +338,6 @@ export class Categoria implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir unidade', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir unidade.' });
           }
         });
       }

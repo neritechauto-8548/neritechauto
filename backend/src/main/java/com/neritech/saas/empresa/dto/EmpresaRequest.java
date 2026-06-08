@@ -52,6 +52,10 @@ public class EmpresaRequest {
     @Schema(description = "Indicador de ativo", example = "true")
     private Boolean ativo = true;
 
+    @Schema(description = "Caminho da logomarca", example = "uploads/logomarcas/logo.png")
+    @Size(max = 255)
+    private String logoPath;
+
     public String getNomeFantasia() {
         return nomeFantasia;
     }
@@ -138,5 +142,13 @@ public class EmpresaRequest {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public String getLogoPath() {
+        return logoPath;
+    }
+
+    public void setLogoPath(String logoPath) {
+        this.logoPath = logoPath;
     }
 }

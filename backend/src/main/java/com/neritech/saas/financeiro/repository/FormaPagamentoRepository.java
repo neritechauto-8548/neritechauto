@@ -14,5 +14,11 @@ public interface FormaPagamentoRepository
     Page<FormaPagamento> findByEmpresaId(Long empresaId, Pageable pageable);
 
     Optional<FormaPagamento> findByIdAndEmpresaId(Long id, Long empresaId);
+
+    boolean existsByEmpresaIdAndNomeIgnoreCase(Long empresaId, String nome);
+
+    boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
+
+    java.util.List<FormaPagamento> findByEmpresaIdAndPadraoTrue(Long empresaId);
 }
 

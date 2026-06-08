@@ -1,10 +1,222 @@
-.cadastro-colaborador-page {
-  .p-tabview .p-tabview-nav {
-    background: #e9f0ff; /* leve azul para aproximar o cabeçalho */
+/* ================================================================
+   cadastro-colaborador.scss — NeriTech Auto Design System
+   Padrão: Minimal Enterprise (Stripe / Linear / Notion)
+
+   REGRA: Este arquivo só define estrutura e overrides de PrimeNG.
+   Cores = var(--p-*) | Espaçamento/layout = Tailwind no HTML
+   ================================================================ */
+
+// ── Host fill ─────────────────────────────────────────────────
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.nt-cadastro-colaborador {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--p-surface-50, #f8fafc);
+  font-size: 13px;
+}
+
+// ── p-panel → Card Minimal Enterprise ─────────────────────────
+// Remove toda sombra e decoração padrão do PrimeNG;
+// mantém apenas borda fina + fundo branco.
+::ng-deep .nt-panel.p-panel {
+  border: 1px solid var(--p-surface-200, #e2e8f0) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  background: var(--p-surface-0, #ffffff) !important;
+  overflow: hidden;
+
+  .p-panel-header {
+    padding: 12px 18px;
+    background: var(--p-surface-50, #f8fafc) !important;
+    border-bottom: 1px solid var(--p-surface-100, #f1f5f9) !important;
+    border-radius: 0 !important;
+    min-height: unset;
+    gap: 0;
   }
-  .info-banner {
-    border-radius: 6px;
-    background: #e9f7e9; /* verde claro */
-    border: 1px solid #c8e6c9;
+
+  // Esconde botão de toggle/collapse
+  .p-panel-icons { display: none; }
+
+  .p-panel-content {
+    padding: 18px 18px;
+    background: var(--p-surface-0, #ffffff) !important;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
+}
+
+// ── Cabeçalho dos panels ──────────────────────────────────────
+.nt-panel-hd {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &--row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+.nt-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--p-text-color, #0f172a);
+  letter-spacing: -.01em;
+}
+
+.nt-panel-sub {
+  font-size: 11.5px;
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+// ── Labels ────────────────────────────────────────────────────
+.nt-lbl {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--p-text-color-secondary, #334155);
+  margin-bottom: 5px;
+  letter-spacing: .01em;
+}
+
+.nt-lbl-inline {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+.nt-req { color: var(--p-red-500, #ef4444); margin-left: 2px; }
+
+.nt-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--p-text-muted-color, #94a3b8);
+  margin-top: 4px;
+}
+
+// ── Grid 12 colunas ───────────────────────────────────────────
+.nt-row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+@for $i from 1 through 12 {
+  .nt-c#{$i} { grid-column: span #{$i}; }
+}
+
+// ── Horários ──────────────────────────────────────────────────
+.nt-sch-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.nt-sch-day {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--p-text-color, #0f172a);
+  min-width: 76px;
+  padding-bottom: 8px; // alinha com input
+}
+
+// ── Overrides globais de inputs PrimeNG ───────────────────────
+// Altura e fonte uniformes — não toca nas cores (tema resolve)
+:host ::ng-deep {
+
+  // Texto plano
+  input.p-inputtext,
+  .p-inputtext,
+  .modern-input {
+    height: 34px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+
+  // Select
+  .p-select {
+    height: 34px;
+    font-size: 13px;
+    align-items: center;
+  }
+  .p-select-label { font-size: 13px; line-height: 1; }
+
+  // InputNumber
+  .p-inputnumber { width: 100%; }
+  .p-inputnumber-input { height: 34px; font-size: 13px; width: 100%; }
+
+  // InputMask
+  .p-inputmask { height: 34px; font-size: 13px; }
+
+  // DatePicker
+  .p-datepicker { width: 100%; }
+  .p-datepicker-input { height: 34px; font-size: 13px; }
+
+  // Password
+  .p-password { width: 100%; }
+  .p-password-input { height: 34px; font-size: 13px; }
+
+  // InputGroup — remove gap entre itens
+  .p-inputgroup {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+
+    > * { border-radius: 0 !important; }
+    > *:first-child { border-radius: var(--p-border-radius, 6px) 0 0 var(--p-border-radius, 6px) !important; }
+    > *:last-child  { border-radius: 0 var(--p-border-radius, 6px) var(--p-border-radius, 6px) 0 !important; }
+
+    p-button .p-button {
+      height: 34px;
+      padding: 0 12px;
+    }
+  }
+
+  // Checkbox label
+  .p-checkbox-label { font-size: 12.5px; font-family: inherit; }
+
+  // ToggleSwitch menor
+  .p-toggleswitch {
+    --p-toggleswitch-width: 34px;
+    --p-toggleswitch-height: 18px;
+  }
+
+  // p-message — sem botão fechar, borda-radius consistente
+  .p-message { border-radius: 8px; }
+  .p-message-close-button { display: none; }
+
+  // p-divider espaçamento compacto
+  .p-divider { margin: 4px 0; }
+
+  // p-button compact
+  .p-button {
+    font-size: 12.5px;
+    font-weight: 600;
+    height: 34px;
+    padding: 0 14px;
+  }
+}
+
+.nt-info-box {
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #78350f;
+  margin-top: 8px;
+  line-height: 1.5;
 }

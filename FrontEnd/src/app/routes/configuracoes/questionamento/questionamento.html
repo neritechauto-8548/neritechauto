@@ -37,16 +37,13 @@
       <div class="p-4 flex items-center justify-between cursor-pointer" (click)="toggle(m)">
         <div class="flex items-center gap-4">
           <!-- State Icon -->
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
-               [ngClass]="m.expanded ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'bg-slate-50 text-slate-400 border border-slate-100 group-hover/item:text-blue-500 group-hover/item:bg-blue-50'">
-            <mat-icon class="transition-transform duration-300" [class.rotate-90]="m.expanded">{{ m.expanded ? 'expand_more' : 'assignment' }}</mat-icon>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-100 bg-slate-50 text-slate-400 group-hover/item:text-blue-500 group-hover/item:bg-blue-50 transition-all">
+            <mat-icon>assignment</mat-icon>
           </div>
 
           <div class="flex flex-col">
             <span class="font-bold text-slate-800 text-sm md:text-base group-hover/item:text-blue-600 transition-colors leading-none">{{ m.titulo }}</span>
             <div class="flex items-center gap-2 mt-1.5">
-              <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">ID: #{{ m.id }}</span>
-              <span class="w-1 h-1 rounded-full bg-slate-200"></span>
               <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ m.perguntas.length || 0 }} Perguntas</span>
               <div (click)="$event.stopPropagation(); toggleAtivo(m)" class="ml-2 py-0.5 px-2 rounded-full border text-[9px] font-black uppercase tracking-tighter cursor-pointer flex items-center gap-1 transition-all"
                    [ngClass]="m.ativo ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'">
@@ -70,6 +67,9 @@
           <button (click)="removerModelo(m)" title="Remover" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90">
              <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete_outline</mat-icon>
           </button>
+          <button (click)="toggle(m)" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all active:scale-90 border-0 bg-transparent">
+             <mat-icon class="transition-transform duration-300" [class.rotate-180]="m.expanded">expand_more</mat-icon>
+          </button>
         </div>
       </div>
 
@@ -81,14 +81,16 @@
             <div class="flex items-center gap-4">
               <!-- Type Indicator -->
               <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border border-slate-100"
-                   [ngClass]="p.tipo === 'avaliacao' ? 'bg-indigo-50 text-indigo-600' : 'bg-violet-50 text-violet-600'">
+                   [ngClass]="p.tipo === 'avaliacao' ? 'bg-indigo-50 text-indigo-600' : (p.tipo === 'aberta' ? 'bg-emerald-50 text-emerald-600' : 'bg-violet-50 text-violet-600')">
                 <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">
-                  {{ p.tipo === 'avaliacao' ? 'star' : 'thumbs_up_down' }}
+                  {{ p.tipo === 'avaliacao' ? 'star' : (p.tipo === 'aberta' ? 'description' : 'thumbs_up_down') }}
                 </mat-icon>
               </div>
               <div class="flex flex-col">
                 <span class="text-sm font-semibold text-slate-700 leading-tight">{{ p.texto }}</span>
-                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest mt-0.5">{{ p.tipo === 'avaliacao' ? 'Nota 1-10' : 'Sim ou Não' }}</span>
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest mt-0.5">
+                  {{ p.tipo === 'avaliacao' ? 'Nota 1-10' : (p.tipo === 'aberta' ? 'Aberta (Texto)' : 'Sim ou Não') }}
+                </span>
               </div>
             </div>
 

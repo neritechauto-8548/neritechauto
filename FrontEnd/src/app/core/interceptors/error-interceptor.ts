@@ -11,6 +11,7 @@ export enum STATUS {
   UNPROCESSABLE_ENTITY = 422,
   CONFLICT = 409,
   INTERNAL_SERVER_ERROR = 500,
+  BAD_REQUEST = 400,
 }
 
 export interface ValidationError {
@@ -38,6 +39,9 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
   };
 
   const getValidationErrors = (error: HttpErrorResponse): ValidationError[] => {
+    if (error.error?.type === 'VALIDATION' && error.error?.errors) {
+      return Object.entries(error.error.errors).map(([field, message]) => ({ field, message: String(message) }));
+    }
     if (error.status === STATUS.UNPROCESSABLE_ENTITY && error.error?.details) {
       const details = error.error.details;
       if (Array.isArray(details)) return details as ValidationError[];
@@ -47,18 +51,49 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const isApi = req.url.includes('/api/');
+      // Verifica se é o novo padrão enterprise ApiErrorResponse
+      if (error.error && error.error.type) {
+        console.error('API ERROR (Enterprise Format)', error);
+        
+        if (error.status === STATUS.UNAUTHORIZED) {
+          if (req.url.includes('/api/auth/login')) {
+            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
+          } else if (req.url.includes('/usuarios/me')) {
+            console.warn('[ErrorInterceptor] /usuarios/me retornou 401. Ignorando redirecionamento.');
+          } else {
+            router.navigateByUrl('/auth/login');
+          }
+        } else if (error.error.type === 'BUSINESS_RULE') {
+          // Regras de negócio viram toast de atenção (warn / amarelo)
+          if (!skipToast) messageService.add({ severity: 'warn', summary: 'Atenção', detail: error.error.message });
+        } else if (error.error.type === 'VALIDATION' || error.status === STATUS.UNPROCESSABLE_ENTITY) {
+          const validationErrors = getValidationErrors(error);
+          if (validationErrors.length > 0) {
+            if (!skipToast) validationErrors.forEach(err => {
+              messageService.add({ severity: 'error', summary: 'Validação', detail: `${err.field}: ${err.message}` });
+            });
+          } else {
+            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+          }
+        } else if (error.error.type === 'FORBIDDEN' || error.status === STATUS.FORBIDDEN) {
+          if (!skipToast) messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Seu perfil não possui permissão para realizar esta operação.' });
+        } else {
+          if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
+        }
+        return throwError(() => error);
+      }
+
+      // Fallback para o comportamento antigo
+      const isApi = req.url.includes('/api/') || req.url.includes('/v1/');
 
       if (isApi) {
         console.error('API ERROR', error);
         const apiErrors = error.error?.errors;
 
         if (error.status === STATUS.UNAUTHORIZED) {
-          if (req.url.includes('/api/auth/login')) {
+          if (req.url.includes('/api/auth/login') || req.url.includes('/auth/login')) {
             if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
           } else if (req.url.includes('/usuarios/me')) {
-            // Não redireciona para o login se /me falhar — o token pode estar válido
-            // mas o perfil ainda não pôde ser carregado (race condition de tenant)
             console.warn('[ErrorInterceptor] /usuarios/me retornou 401. Ignorando redirecionamento.');
           } else {
             router.navigateByUrl('/auth/login');

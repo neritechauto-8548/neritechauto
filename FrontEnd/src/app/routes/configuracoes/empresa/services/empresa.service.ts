@@ -38,9 +38,16 @@ export class EmpresaService {
       site: data.site,
       dataAbertura: data.dataAbertura,
       observacoes: data.observacoes,
-      ativo: data.ativo
+      ativo: data.ativo,
+      logoPath: data.logoPath
     };
     return this.http.put<Empresa>(`/api/v1/empresas/${id}`, payload);
+  }
+
+  uploadLogo(id: number, file: File): Observable<Empresa> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<Empresa>(`/api/v1/empresas/${id}/logo`, formData);
   }
 
   // --- Endereço Empresa ---

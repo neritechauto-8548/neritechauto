@@ -131,8 +131,9 @@ html, body {
   z-index: 9998 !important;
 }
 
-// ColorPicker Z-Index Global Fix
-.p-colorpicker-panel {
+// ColorPicker & Overlay Z-Index Global Fix
+.p-colorpicker-panel,
+.p-overlay {
   z-index: 10000 !important;
 }
 

@@ -33,10 +33,21 @@ public class DepartamentoContabioService {
     }
 
     public DepartamentoContabioResponse create(DepartamentoContabioRequest request) {
+        if (request.descricao() == null || request.descricao().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição do departamento é obrigatória.");
+        }
+        if (request.descricao().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição do departamento deve ter pelo menos 2 caracteres.");
+        }
+        if (repository.existsByEmpresaIdAndDescricaoIgnoreCase(request.empresaId(), request.descricao().trim())) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe um departamento cadastrado com esta descrição.");
+        }
+
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new EntityNotFoundException("Empresa não encontrada com ID: " + request.empresaId()));
 
         DepartamentoContabio entity = mapper.toEntity(request);
+        entity.setDescricao(request.descricao().trim());
         entity.setEmpresa(empresa);
 
         DepartamentoContabio saved = repository.save(entity);
@@ -67,6 +78,16 @@ public class DepartamentoContabioService {
     }
 
     public DepartamentoContabioResponse update(Long id, DepartamentoContabioRequest request) {
+        if (request.descricao() == null || request.descricao().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição do departamento é obrigatória.");
+        }
+        if (request.descricao().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição do departamento deve ter pelo menos 2 caracteres.");
+        }
+        if (repository.existsByEmpresaIdAndDescricaoIgnoreCaseAndIdNot(request.empresaId(), request.descricao().trim(), id)) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe um departamento cadastrado com esta descrição.");
+        }
+
         DepartamentoContabio entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Departamento Contábio não encontrado com ID: " + id));
 
@@ -77,6 +98,7 @@ public class DepartamentoContabioService {
         }
 
         mapper.updateEntityFromRequest(request, entity);
+        entity.setDescricao(request.descricao().trim());
         DepartamentoContabio updated = repository.save(entity);
         return mapper.toResponse(updated);
     }

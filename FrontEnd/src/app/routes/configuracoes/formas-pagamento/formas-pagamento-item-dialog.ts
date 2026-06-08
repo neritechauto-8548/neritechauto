@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MatIconModule } from '@angular/material/icon';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'formas-pagamento-item-dialog',
@@ -38,7 +39,11 @@ export class FormasPagamentoItemDialog {
     { label: 'Outros', value: 'OUTROS' },
   ];
 
-  constructor(private ref: DynamicDialogRef, private config: DynamicDialogConfig) {
+  constructor(
+    private ref: DynamicDialogRef, 
+    private config: DynamicDialogConfig,
+    private messageService: MessageService
+  ) {
     const data = config.data || {};
     this.nome = data.nome || '';
     this.tipo = data.tipoEnum || data.tipo || 'OUTROS';
@@ -59,8 +64,48 @@ export class FormasPagamentoItemDialog {
   }
 
   incluirItem() {
+    const nomeLimpo = (this.nome || '').trim();
+    if (!nomeLimpo) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O nome da forma de pagamento é obrigatório.' });
+      return;
+    }
+    if (nomeLimpo.length < 2) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O nome da forma de pagamento deve ter pelo menos 2 caracteres.' });
+      return;
+    }
+    if (!this.tipo) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O tipo da forma de pagamento é obrigatório.' });
+      return;
+    }
+
+    if (this.aceitaParcelamento) {
+      if (this.parcelasMaximas == null || this.parcelasMaximas < 2) {
+        this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'Para aceitar parcelamento, a quantidade máxima de parcelas deve ser maior ou igual a 2.' });
+        return;
+      }
+    } else {
+      this.parcelasMaximas = 1;
+    }
+
+    if (this.taxaAdministracao != null) {
+      if (this.taxaAdministracao < 0 || this.taxaAdministracao > 100) {
+        this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'A taxa de administração deve estar entre 0% e 100%.' });
+        return;
+      }
+    }
+
+    if (this.prazoRecebimentoDias != null && this.prazoRecebimentoDias < 0) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O prazo de recebimento não pode ser negativo.' });
+      return;
+    }
+
+    if (this.limiteDiario != null && this.limiteDiario < 0) {
+      this.messageService.add({ severity: 'error', summary: 'Validação', detail: 'O limite diário não pode ser negativo.' });
+      return;
+    }
+
     this.ref.close({
-      nome: this.nome,
+      nome: nomeLimpo,
       tipo: this.tipo,
       aceitaParcelamento: this.aceitaParcelamento,
       parcelasMaximas: this.parcelasMaximas,

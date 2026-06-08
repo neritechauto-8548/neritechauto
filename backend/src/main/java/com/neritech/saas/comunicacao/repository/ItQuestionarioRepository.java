@@ -10,4 +10,6 @@ import java.util.List;
 public interface ItQuestionarioRepository extends JpaRepository<ItQuestionario, Long>, JpaSpecificationExecutor<ItQuestionario> {
     List<ItQuestionario> findByQuestionarioId(Long questionarioId);
     void deleteByQuestionarioId(Long questionarioId);
+    boolean existsByQuestionarioIdAndDsItQuestionarioIgnoreCase(Long questionarioId, String dsItQuestionario);
+    boolean existsByQuestionarioIdAndDsItQuestionarioIgnoreCaseAndIdNot(Long questionarioId, String dsItQuestionario, Long id);
 }

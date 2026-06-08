@@ -12,5 +12,7 @@ import java.util.List;
 public interface SetorRepository extends JpaRepository<Setor, Long>, JpaSpecificationExecutor<Setor> {
     List<Setor> findByEmpresaId(Long empresaId);
     Page<Setor> findByEmpresaId(Long empresaId, Pageable pageable);
+    boolean existsByEmpresaIdAndNomeIgnoreCase(Long empresaId, String nome);
+    boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
 }
 

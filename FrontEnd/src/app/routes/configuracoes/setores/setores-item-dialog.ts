@@ -38,6 +38,14 @@ export class SetoresItemDialog implements OnInit {
   }
 
   adicionar() {
+    const nome = this.form.nome ? this.form.nome.trim() : '';
+    if (!nome) {
+      return;
+    }
+    if (nome.length < 2) {
+      this.ref.close({ error: 'O nome do setor deve ter pelo menos 2 caracteres.' });
+      return;
+    }
     this.ref.close(this.form);
   }
 }

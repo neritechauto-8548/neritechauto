@@ -119,20 +119,26 @@ export class Departamentos implements OnInit {
       styleClass: 'modern-dialog',
     });
 
-    ref?.onClose?.subscribe((result: { descricao: string } | undefined) => {
-      if (result && result.descricao?.trim()) {
-        let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-        if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-        this.departamentosService.create({ empresaId: Number(tenantId), descricao: result.descricao }).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Departamento criado com sucesso' });
-            this.load();
-          },
-          error: (err) => {
-            console.error('Erro ao criar departamento', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao criar departamento' });
-          }
-        });
+    ref?.onClose?.subscribe((result: { descricao?: string; error?: string } | undefined) => {
+      if (result) {
+        if (result.error) {
+          this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: result.error });
+          return;
+        }
+        if (result.descricao?.trim()) {
+          let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
+          if (!tenantId || typeof tenantId === 'object') tenantId = '1';
+          this.departamentosService.create({ empresaId: Number(tenantId), descricao: result.descricao }).subscribe({
+            next: () => {
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Departamento criado com sucesso' });
+              this.load();
+            },
+            error: (err) => {
+              console.error('Erro ao criar departamento', err);
+              // O interceptador cuida do toast caso venha formato ApiErrorResponse/BUSINESS_RULE
+            }
+          });
+        }
       }
     });
   }
@@ -147,21 +153,27 @@ export class Departamentos implements OnInit {
       data: { descricao: item.descricao },
     });
 
-    ref?.onClose?.subscribe((result: { descricao: string } | undefined) => {
-      if (result && result.descricao?.trim()) {
-        let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-        if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-        const payload = { empresaId: Number(tenantId), descricao: result.descricao };
-        this.departamentosService.update(item.id, payload).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Departamento atualizado com sucesso' });
-            this.load();
-          },
-          error: (err) => {
-            console.error('Erro ao atualizar departamento', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar departamento' });
-          }
-        });
+    ref?.onClose?.subscribe((result: { descricao?: string; error?: string } | undefined) => {
+      if (result) {
+        if (result.error) {
+          this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: result.error });
+          return;
+        }
+        if (result.descricao?.trim()) {
+          let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
+          if (!tenantId || typeof tenantId === 'object') tenantId = '1';
+          const payload = { empresaId: Number(tenantId), descricao: result.descricao };
+          this.departamentosService.update(item.id, payload).subscribe({
+            next: () => {
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Departamento atualizado com sucesso' });
+              this.load();
+            },
+            error: (err) => {
+              console.error('Erro ao atualizar departamento', err);
+              // O interceptador cuida do toast caso venha formato ApiErrorResponse/BUSINESS_RULE
+            }
+          });
+        }
       }
     });
   }
@@ -183,7 +195,7 @@ export class Departamentos implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao excluir departamento', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir departamento' });
+            // Removido o manual this.messageService.add pois o Interceptor de Erro Global já exibe o toast de erro da API.
           }
         });
       }

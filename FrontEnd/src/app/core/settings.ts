@@ -10,6 +10,13 @@ export interface AppSettings {
   sidenavOpened: boolean;
   sidenavCollapsed: boolean;
   language: string;
+  primaryColor: string;
+  primaryColorValue: string;
+  surfaceColor: string;
+  surfaceColorValue: string;
+  menuThemeClass: string;
+  topbarThemeClass: string;
+  presetTheme: string;
 }
 
 export const defaults: AppSettings = {
@@ -22,4 +29,11 @@ export const defaults: AppSettings = {
   sidenavOpened: true,
   sidenavCollapsed: true,
   language: 'pt-BR',
+  primaryColor: 'indigo',
+  primaryColorValue: '{indigo}',
+  surfaceColor: 'slate',
+  surfaceColorValue: '{slate}',
+  menuThemeClass: 'bg-slate-800',
+  topbarThemeClass: 'bg-blue-600',
+  presetTheme: 'Aura',
 };

@@ -78,86 +78,104 @@ export class Dashboard implements OnInit {
     this.carregarDados();
   }
 
+  public insightsChartOptions: any;
+
   private initChart() {
     this.chartOptions = {
       series: [
         {
           name: 'Venda de Peças',
-          data: [28, 29, 33, 36, 42, 40, 39, 45]
+          data: [28, 29, 33, 36, 42, 40, 39, 45, 50, 48, 52, 60]
         },
         {
-          name: 'Mão-de-obra de Serviços',
-          data: [45, 52, 53, 49, 62, 58, 56, 68]
+          name: 'Mão-de-obra',
+          data: [45, 52, 53, 49, 62, 58, 56, 68, 70, 75, 80, 85]
         }
       ],
       chart: {
         height: 350,
-        type: 'area',
-        toolbar: {
-          show: false
-        },
+        type: 'bar',
+        stacked: false, // Pode ser alterado para true pelo usuário (toggle)
+        toolbar: { show: false },
         fontFamily: 'Inter, sans-serif'
       },
-      colors: ['#6366f1', '#10b981'], // Indigo-500 (Primary), Emerald-500 (Secondary)
-      dataLabels: {
-        enabled: false
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: '45%',
+          borderRadius: 4
+        },
       },
-      stroke: {
-        curve: 'smooth',
-        width: 3
-      },
-      fill: {
-        type: 'gradient',
-        gradient: {
-          shadeIntensity: 1,
-          opacityFrom: 0.7,
-          opacityTo: 0.2,
-          stops: [0, 90, 100]
-        }
-      },
+      colors: ['#0f172a', '#3b82f6'], // Dark Slate (Venda), Blue (Mão de Obra)
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2, colors: ['transparent'] },
       xaxis: {
-        categories: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
+        categories: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {
-          style: {
-            colors: '#64748b', // slate-500
-            fontFamily: 'Inter, sans-serif'
-          }
+          style: { colors: '#64748b', fontFamily: 'Inter, sans-serif' }
         }
       },
       yaxis: {
         labels: {
-          style: {
-            colors: '#64748b', // slate-500
-            fontFamily: 'Inter, sans-serif'
-          }
+          style: { colors: '#64748b', fontFamily: 'Inter, sans-serif' }
         }
       },
       grid: {
         borderColor: '#e2e8f0', // slate-200
         strokeDashArray: 4,
-        yaxis: {
-          lines: {
-            show: true
+        yaxis: { lines: { show: true } }
+      },
+      legend: { position: 'top', horizontalAlign: 'left', offsetX: 40 },
+      fill: { opacity: 1 },
+      tooltip: {
+        y: { formatter: function (val: any) { return 'R$ ' + val + 'k' } }
+      }
+    };
+
+    this.insightsChartOptions = {
+      series: [76, 67, 61, 90, 85, 40, 20],
+      chart: {
+        type: 'radialBar',
+        height: 300,
+        offsetY: -20,
+        fontFamily: 'Inter, sans-serif'
+      },
+      plotOptions: {
+        radialBar: {
+          startAngle: -90,
+          endAngle: 90,
+          track: {
+            background: '#e7e7e7',
+            strokeWidth: '97%',
+            margin: 5, // margin is in pixels
+            dropShadow: {
+              enabled: false
+            }
+          },
+          dataLabels: {
+            name: { show: false },
+            value: { offsetY: -2, fontSize: '22px' }
           }
-        },
-        padding: {
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 10
         }
       },
-      legend: {
-        position: 'bottom',
-        horizontalAlign: 'center'
+      grid: {
+        padding: { top: -10 }
       },
-      tooltip: {
-        x: {
-          format: 'dd/MM/yy HH:mm'
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'light',
+          shadeIntensity: 0.4,
+          inverseColors: false,
+          opacityFrom: 1,
+          opacityTo: 1,
+          stops: [0, 50, 53, 91]
         },
       },
+      colors: ['#4338ca', '#3b82f6', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      labels: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'],
     };
   }
 

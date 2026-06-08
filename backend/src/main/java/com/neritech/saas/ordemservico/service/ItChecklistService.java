@@ -32,6 +32,7 @@ public class ItChecklistService {
     }
 
     public ItChecklistResponse create(ItChecklistRequest request) {
+        validarItChecklist(null, request);
         Checklist checklist = checklistRepository.findById(request.checkListId())
                 .orElseThrow(() -> new EntityNotFoundException("Checklist não encontrado com ID: " + request.checkListId()));
         ItChecklist entity = mapper.toEntity(request);
@@ -60,6 +61,7 @@ public class ItChecklistService {
     }
 
     public ItChecklistResponse update(Long id, ItChecklistRequest request) {
+        validarItChecklist(id, request);
         ItChecklist entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Item de checklist não encontrado com ID: " + id));
         if (!entity.getChecklist().getId().equals(request.checkListId())) {
@@ -70,6 +72,25 @@ public class ItChecklistService {
         mapper.updateEntityFromRequest(request, entity);
         ItChecklist updated = repository.save(entity);
         return mapper.toResponse(updated);
+    }
+
+    private void validarItChecklist(Long id, ItChecklistRequest request) {
+        if (request.dsItChecklist() == null || request.dsItChecklist().trim().isEmpty()) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição do item de checklist é obrigatória.");
+        }
+        if (request.dsItChecklist().trim().length() < 2) {
+            throw new com.neritech.saas.common.exception.BusinessException("A descrição do item de checklist deve ter pelo menos 2 caracteres.");
+        }
+        if (request.checkListId() == null) {
+            throw new com.neritech.saas.common.exception.BusinessException("O ID do checklist é obrigatório.");
+        }
+
+        boolean duplicado = id == null
+                ? repository.existsByChecklist_IdAndDsItChecklistIgnoreCase(request.checkListId(), request.dsItChecklist().trim())
+                : repository.existsByChecklist_IdAndDsItChecklistIgnoreCaseAndIdNot(request.checkListId(), request.dsItChecklist().trim(), id);
+        if (duplicado) {
+            throw new com.neritech.saas.common.exception.BusinessException("Já existe um item cadastrado com esta descrição neste checklist.");
+        }
     }
 
     public void delete(Long id) {

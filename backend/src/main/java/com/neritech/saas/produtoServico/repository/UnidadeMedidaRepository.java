@@ -21,4 +21,12 @@ public interface UnidadeMedidaRepository extends JpaRepository<UnidadeMedida, Lo
     Optional<UnidadeMedida> findBySigla(String sigla);
 
     List<UnidadeMedida> findByAtivoTrue();
+
+    boolean existsByEmpresaIdAndNomeIgnoreCase(Long empresaId, String nome);
+
+    boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
+
+    boolean existsByEmpresaIdAndSiglaIgnoreCase(Long empresaId, String sigla);
+
+    boolean existsByEmpresaIdAndSiglaIgnoreCaseAndIdNot(Long empresaId, String sigla, Long id);
 }

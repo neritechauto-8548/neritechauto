@@ -16,8 +16,8 @@
   </div>
 
   <!-- Checklist Accordion -->
-  <p-accordion [multiple]="true" class="modern-accordion" *ngIf="!loading">
-    <p-accordion-panel *ngFor="let modelo of modelos; index as i" [value]="i.toString()" (onToggle)="abrir(i)" class="mb-3 overflow-hidden border border-slate-200 rounded-xl shadow-sm bg-white ring-1 ring-slate-100">
+  <p-accordion [multiple]="true" class="modern-accordion" *ngIf="!loading" (onOpen)="abrir($event.index)">
+    <p-accordion-panel *ngFor="let modelo of modelos; index as i" [value]="i.toString()" class="mb-3 overflow-hidden border border-slate-200 rounded-xl shadow-sm bg-white ring-1 ring-slate-100">
       <p-accordion-header>
         <div class="flex items-center justify-between w-full px-2">
           <div class="flex items-center gap-3">

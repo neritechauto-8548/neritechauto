@@ -15,5 +15,7 @@ public interface ContaBancariaRepository
     Page<ContaBancaria> findByEmpresaId(Long empresaId, Pageable pageable);
 
     Optional<ContaBancaria> findByIdAndEmpresaId(Long id, Long empresaId);
+    boolean existsByEmpresaIdAndBancoCodigoAndAgenciaAndConta(Long empresaId, String bancoCodigo, String agencia, String conta);
+    boolean existsByEmpresaIdAndBancoCodigoAndAgenciaAndContaAndIdNot(Long empresaId, String bancoCodigo, String agencia, String conta, Long id);
 }
 

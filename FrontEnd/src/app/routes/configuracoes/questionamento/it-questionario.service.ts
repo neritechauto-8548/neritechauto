@@ -5,7 +5,7 @@ import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../categoria/categoria-produto.service';
 
-export type TipoItem = 'SN' | 'AV';
+export type TipoItem = 'SN' | 'AV' | 'AB';
 
 export interface ItQuestionarioRequest {
   questionarioId: number;

@@ -30,6 +30,7 @@ public class StandardResponseAdvice implements ResponseBodyAdvice<Object> {
         // Don't wrap if it's already ApiResponse or void
         String typeName = returnType.getParameterType().getName();
         return !typeName.equals("com.neritech.saas.common.dto.ApiResponse") 
+               && !typeName.equals("com.neritech.saas.common.dto.ApiErrorResponse")
                && !typeName.equals("void")
                && !returnType.getParameterType().getName().contains("springdoc")
                && !returnType.getDeclaringClass().getName().contains("springdoc");
@@ -47,7 +48,7 @@ public class StandardResponseAdvice implements ResponseBodyAdvice<Object> {
             }
         }
 
-        if (body instanceof ApiResponse) {
+        if (body instanceof ApiResponse || body instanceof com.neritech.saas.common.dto.ApiErrorResponse) {
              return body;
         }
 

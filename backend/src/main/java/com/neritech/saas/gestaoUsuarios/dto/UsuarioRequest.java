@@ -33,4 +33,5 @@ public class UsuarioRequest {
     private String cargo;
     private String departamento;
     private String telefone;
+    private java.util.Map<String, Object> preferencias;
 }

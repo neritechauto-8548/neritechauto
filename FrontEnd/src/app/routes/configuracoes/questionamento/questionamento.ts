@@ -93,11 +93,15 @@ export class Questionamento implements OnInit {
   }
 
   private mapTipoItemToPergunta(tp: TipoItem): TipoPergunta {
-    return tp === 'SN' ? 'simnao' : 'avaliacao';
+    if (tp === 'SN') return 'simnao';
+    if (tp === 'AB') return 'aberta';
+    return 'avaliacao';
   }
 
   private mapPerguntaToTipoItem(tp: TipoPergunta): TipoItem {
-    return tp === 'simnao' ? 'SN' : 'AV';
+    if (tp === 'simnao') return 'SN';
+    if (tp === 'aberta') return 'AB';
+    return 'AV';
   }
 
   load() {
@@ -110,8 +114,25 @@ export class Questionamento implements OnInit {
           perguntas: [],
           expanded: false,
           ativo: !!q.snAtivo,
+          loading: true,
         }));
         this.loading = false;
+
+        // Carrega imediatamente as perguntas para cada questionário
+        this.modelos.forEach(modelo => {
+          this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
+            next: (items: ItQuestionarioResponse[]) => {
+              modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+              modelo.loading = false;
+              this.modelos = [...this.modelos];
+            },
+            error: (err) => {
+              console.error(`Erro ao carregar itens para o questionário ${modelo.id}:`, err);
+              modelo.loading = false;
+              this.modelos = [...this.modelos];
+            }
+          });
+        });
       },
       error: (err) => {
         console.error('Erro ao listar questionários', err);
@@ -123,7 +144,7 @@ export class Questionamento implements OnInit {
 
   toggle(modelo: ModeloQuestionamento): void {
     modelo.expanded = !modelo.expanded;
-    if (modelo.expanded && modelo.perguntas.length === 0) {
+    if (modelo.expanded && modelo.perguntas.length === 0 && !modelo.loading) {
       modelo.loading = true;
       this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
         next: (items: ItQuestionarioResponse[]) => {
@@ -161,7 +182,6 @@ export class Questionamento implements OnInit {
           },
           error: (err) => {
             console.error('Erro ao criar pergunta', err);
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao cadastrar pergunta' });
           }
         });
       }
@@ -268,13 +288,13 @@ export class Questionamento implements OnInit {
       closable: true,
       dismissableMask: true,
       styleClass: 'modern-dialog',
-      data: { titulo: modelo.titulo },
+      data: { titulo: modelo.titulo, ativo: modelo.ativo },
     });
 
-    ref?.onClose?.subscribe((result: { titulo: string } | undefined) => {
+    ref?.onClose?.subscribe((result: { titulo: string; ativo: boolean } | undefined) => {
       const titulo = result?.titulo?.trim();
-      if (titulo) {
-        const payload = { empresaId: Number(this.tenantId), dsQuestionario: titulo, snAtivo: modelo.ativo };
+      if (result && titulo) {
+        const payload = { empresaId: Number(this.tenantId), dsQuestionario: titulo, snAtivo: result.ativo };
         this.questionarioService.update(modelo.id, payload).subscribe({
           next: () => {
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Questionário atualizado com sucesso' });
@@ -327,10 +347,11 @@ export class Questionamento implements OnInit {
       styleClass: 'modern-dialog',
     });
 
-    ref?.onClose?.subscribe((result: { titulo: string } | undefined) => {
+    ref?.onClose?.subscribe((result: { titulo: string; ativo?: boolean } | undefined) => {
       const titulo = result?.titulo?.trim();
-      if (titulo) {
-        this.questionarioService.create({ empresaId: Number(this.tenantId), dsQuestionario: titulo, snAtivo: true }).subscribe({
+      if (result && titulo) {
+        const ativo = result.ativo !== false;
+        this.questionarioService.create({ empresaId: Number(this.tenantId), dsQuestionario: titulo, snAtivo: ativo }).subscribe({
           next: () => {
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Questionário criado com sucesso' });
             this.load();
