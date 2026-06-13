@@ -80,6 +80,12 @@ export class ProdutoService {
     });
   }
 
+  duplicate(id: number | string): Observable<ProdutoResponse> {
+    return this.http.post<ProdutoResponse>(`${this.base}/${id}/duplicar`, null, {
+      headers: this.getHeaders(),
+    });
+  }
+
   // ========== IMPRESSAO (JASPER) ==========
 
   private getPdfHeaders(): HttpHeaders {
@@ -115,11 +121,78 @@ export class ProdutoService {
   }
 
   listUnidades(): Observable<any[]> {
-    // Ajustar path se necessario. Assumindo /v1/unidades-medida
     const url = `${environment.baseUrl}/v1/unidades-medida`;
     return this.http.get<any[]>(url, {
         headers: this.getHeaders(),
         params: this.getEmpresaIdParam().set('size', '1000')
+    });
+  }
+
+  listSetores(): Observable<any[]> {
+    const url = `${environment.baseUrl}/v1/setores-empresa`;
+    return this.http.get<any>(url, {
+        headers: this.getHeaders(),
+        params: this.getEmpresaIdParam().set('size', '1000')
+    });
+  }
+
+  uploadFoto(id: number | string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
+    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
+    const headers = new HttpHeaders({ 'X-Tenant-Id': String(tenantId) });
+    return this.http.post<any>(`${this.base}/${id}/foto`, formData, { headers });
+  }
+
+  removeFoto(id: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}/foto`, {
+      headers: this.getHeaders(),
+      params: this.getEmpresaIdParam(),
+    });
+  }
+
+  getFotoUrl(id: number | string): string {
+    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
+    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
+    return `${environment.baseUrl}/v1/produtos/${id}/foto?tenantId=${tenantId}&t=${Date.now()}`;
+  }
+
+  listProdutoFornecedores(produtoId: number | string): Observable<any> {
+    return this.http.get<any>(`${environment.baseUrl}/v1/produtos-fornecedores/produto/${produtoId}`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  createProdutoFornecedor(dto: any): Observable<any> {
+    return this.http.post<any>(`${environment.baseUrl}/v1/produtos-fornecedores`, dto, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  updateProdutoFornecedor(id: number | string, dto: any): Observable<any> {
+    return this.http.put<any>(`${environment.baseUrl}/v1/produtos-fornecedores/${id}`, dto, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  deleteProdutoFornecedor(id: number | string): Observable<void> {
+    return this.http.delete<void>(`${environment.baseUrl}/v1/produtos-fornecedores/${id}`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  getHistorico(produtoId: number | string): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.baseUrl}/v1/logs-alteracoes/produtos/${produtoId}`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  printEtiquetasCustom(produtoId: number, posicoes: number[]): Observable<Blob> {
+    const url = `${environment.baseUrl}/v1/relatorios/estoque/etiquetas-custom`;
+    return this.http.post(url, { produtoId, posicoes }, {
+      headers: this.getPdfHeaders(),
+      responseType: 'blob',
     });
   }
 }

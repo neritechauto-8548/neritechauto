@@ -34,6 +34,9 @@ public record ContasReceberResponse(
         String planoContasNome,
         String numeroTitulo,
         String observacoes,
+        java.util.List<RecebimentoTituloDTO> recebimentos,
+        java.util.List<AnexoTituloDTO> anexos,
+        java.util.List<LogAlteracaoDTO> historico,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {
 }

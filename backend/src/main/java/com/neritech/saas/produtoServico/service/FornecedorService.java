@@ -52,6 +52,12 @@ public class FornecedorService {
                 .map(mapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public Page<FornecedorResponse> search(Long empresaId, String query, Pageable pageable) {
+        return repository.search(empresaId, query, pageable)
+                .map(mapper::toResponse);
+    }
+
     @Transactional
     public FornecedorResponse update(Long id, FornecedorRequest request) {
         Fornecedor entity = repository.findById(id)

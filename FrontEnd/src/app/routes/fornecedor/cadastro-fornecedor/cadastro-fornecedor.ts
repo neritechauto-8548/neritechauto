@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -11,6 +11,8 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { MatIconModule } from '@angular/material/icon';
+import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
   selector: 'cadastro-fornecedor',
@@ -26,11 +28,12 @@ import { MatIconModule } from '@angular/material/icon';
     ButtonModule,
     ToastModule,
     ConfirmDialogModule,
-    MatIconModule
+    MatIconModule,
+    InputNumberModule
   ],
   providers: [MessageService, ConfirmationService],
 })
-export class CadastroFornecedor {
+export class CadastroFornecedor implements OnInit {
   private readonly location = inject(Location);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -121,20 +124,127 @@ export class CadastroFornecedor {
     }
   }
 
-  constructor() {
-    this.route.paramMap.subscribe(pm => {
-      const idParam = pm.get('id');
-      if (idParam) {
-        const id = Number(idParam);
-        if (!Number.isNaN(id)) {
-          this.editingId = id;
-          this.service.get(id).subscribe({
-            next: (f: any) => this.carregarFornecedor(f),
-            error: () => {},
-          });
-        }
+  formatCpf(cpf: string | null): string {
+    if (!cpf) return '';
+    let raw = cpf.replace(/\D/g, '');
+    if (raw.length > 11) raw = raw.substring(0, 11);
+    let formatted = raw;
+    if (raw.length > 3) formatted = raw.substring(0, 3) + '.' + raw.substring(3);
+    if (raw.length > 6) formatted = formatted.substring(0, 7) + '.' + raw.substring(6);
+    if (raw.length > 9) formatted = formatted.substring(0, 11) + '-' + raw.substring(9);
+    return formatted;
+  }
+
+  formatCnpj(cnpj: string | null): string {
+    if (!cnpj) return '';
+    let raw = cnpj.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (raw.length > 14) raw = raw.substring(0, 14);
+    let formatted = raw;
+    if (raw.length > 2) formatted = raw.substring(0, 2) + '.' + raw.substring(2);
+    if (raw.length > 5) formatted = formatted.substring(0, 6) + '.' + raw.substring(5);
+    if (raw.length > 8) formatted = formatted.substring(0, 10) + '/' + raw.substring(8);
+    if (raw.length > 12) formatted = formatted.substring(0, 15) + '-' + raw.substring(12);
+    return formatted;
+  }
+
+  formatCep(cep: string | null): string {
+    if (!cep) return '';
+    let raw = cep.replace(/\D/g, '');
+    if (raw.length > 8) raw = raw.substring(0, 8);
+    let formatted = raw;
+    if (raw.length > 5) formatted = raw.substring(0, 5) + '-' + raw.substring(5);
+    return formatted;
+  }
+
+  formatPhone(phone: string | null): string {
+    if (!phone) return '';
+    let raw = phone.replace(/\D/g, '');
+    if (raw.length > 11) raw = raw.substring(0, 11);
+    let formatted = raw;
+    if (raw.length > 0) formatted = '(' + raw;
+    if (raw.length > 2) formatted = formatted.substring(0, 3) + ') ' + raw.substring(2);
+    if (raw.length > 6) {
+      if (raw.length > 10) {
+        formatted = formatted.substring(0, 10) + '-' + raw.substring(7);
+      } else {
+        formatted = formatted.substring(0, 9) + '-' + raw.substring(6);
       }
-    });
+    }
+    return formatted;
+  }
+
+  onCpfInput(event: any) {
+    const formatted = this.formatCpf(event.target.value);
+    this.model.cpf = formatted;
+    event.target.value = formatted;
+  }
+
+  onCnpjInput(event: any) {
+    const formatted = this.formatCnpj(event.target.value);
+    this.model.cnpj = formatted;
+    event.target.value = formatted;
+  }
+
+  onCepInput(event: any) {
+    const formatted = this.formatCep(event.target.value);
+    this.model.cep = formatted;
+    event.target.value = formatted;
+  }
+
+  onPhoneInput(event: any, field: string) {
+    const formatted = this.formatPhone(event.target.value);
+    this.model[field] = formatted;
+    event.target.value = formatted;
+  }
+
+  formatAgencia(ag: string | null): string {
+    if (!ag) return '';
+    let raw = ag.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (raw.length > 5) raw = raw.substring(0, 5);
+    if (raw.length > 4) {
+      return raw.substring(0, 4) + '-' + raw.substring(4);
+    }
+    return raw;
+  }
+
+  formatConta(cc: string | null): string {
+    if (!cc) return '';
+    let raw = cc.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (raw.length > 15) raw = raw.substring(0, 15);
+    if (raw.length > 1) {
+      return raw.substring(0, raw.length - 1) + '-' + raw.substring(raw.length - 1);
+    }
+    return raw;
+  }
+
+  onAgenciaInput(event: any) {
+    const formatted = this.formatAgencia(event.target.value);
+    this.model.bancoAgencia = formatted;
+    event.target.value = formatted;
+  }
+
+  onContaInput(event: any) {
+    const formatted = this.formatConta(event.target.value);
+    this.model.bancoConta = formatted;
+    event.target.value = formatted;
+  }
+
+  ngOnInit(): void {
+    if (!this.modalMode) {
+      this.route.paramMap.subscribe(pm => {
+        const idParam = pm.get('id');
+        if (idParam) {
+          const id = Number(idParam);
+          if (!Number.isNaN(id)) {
+            this.editingId = id;
+            this.service.get(id).subscribe({
+              next: (f: any) => this.carregarFornecedor(f),
+              error: () => {},
+            });
+          }
+        }
+      });
+    }
   }
 
   salvar() {
@@ -146,13 +256,49 @@ export class CadastroFornecedor {
         return;
     }
 
-    if (dto.tipoPessoa === 'FISICA' && !dto.cpf) {
-        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O CPF é obrigatório'});
+    if (dto.tipoPessoa === 'FISICA') {
+        if (!dto.cpf) {
+            this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O CPF é obrigatório'});
+            return;
+        }
+        if (!isValidCpf(dto.cpf)) {
+            this.messageService.add({severity: 'error', summary: 'Erro', detail: 'CPF inválido — verifique os dígitos'});
+            return;
+        }
+    }
+
+    if (dto.tipoPessoa === 'JURIDICA') {
+        if (!dto.cnpj) {
+            this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O CNPJ é obrigatório'});
+            return;
+        }
+        if (!isValidCnpj(dto.cnpj)) {
+            this.messageService.add({severity: 'error', summary: 'Erro', detail: 'CNPJ inválido — verifique os caracteres e dígitos'});
+            return;
+        }
+    }
+
+    if (dto.cep && dto.cep.replace(/\D/g, '').length !== 8) {
+        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O CEP deve conter 8 dígitos'});
         return;
     }
 
-    if (dto.tipoPessoa === 'JURIDICA' && !dto.cnpj) {
-        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O CNPJ é obrigatório'});
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (dto.emailPrincipal && !emailRegex.test(dto.emailPrincipal)) {
+        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O E-mail Corporativo está em formato inválido'});
+        return;
+    }
+    if (dto.emailContato && !emailRegex.test(dto.emailContato)) {
+        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O E-mail do Representante está em formato inválido'});
+        return;
+    }
+
+    if (dto.telefonePrincipal && dto.telefonePrincipal.replace(/\D/g, '').length < 10) {
+        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O Telefone Principal deve conter DDD e número válido'});
+        return;
+    }
+    if (dto.celularPrincipal && dto.celularPrincipal.replace(/\D/g, '').length < 10) {
+        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'O WhatsApp Oficial deve conter DDD e número válido'});
         return;
     }
 
@@ -217,22 +363,22 @@ export class CadastroFornecedor {
 
       nomeFantasia: f?.nomeFantasia || '',
       razaoSocial: f?.razaoSocial || '',
-      cpf: f?.cpf || '',
-      cnpj: f?.cnpj || '',
+      cpf: this.formatCpf(f?.cpf || ''),
+      cnpj: this.formatCnpj(f?.cnpj || ''),
       inscricaoEstadual: f?.inscricaoEstadual || '',
       inscricaoMunicipal: f?.inscricaoMunicipal || '',
 
       emailPrincipal: f?.emailPrincipal || '',
-      telefonePrincipal: f?.telefonePrincipal || '',
-      celularPrincipal: f?.celularPrincipal || '',
+      telefonePrincipal: this.formatPhone(f?.telefonePrincipal || ''),
+      celularPrincipal: this.formatPhone(f?.celularPrincipal || ''),
       website: f?.website || '',
 
       nomeContato: f?.nomeContato || '',
       cargoContato: f?.cargoContato || '',
       emailContato: f?.emailContato || '',
-      telefoneContato: f?.telefoneContato || '',
+      telefoneContato: this.formatPhone(f?.telefoneContato || ''),
 
-      cep: f?.cep || '',
+      cep: this.formatCep(f?.cep || ''),
       cidade: f?.cidade || '',
       estado: f?.estado || '',
       enderecoCompleto: f?.enderecoCompleto || '',
@@ -243,8 +389,8 @@ export class CadastroFornecedor {
       condicoesEspeciais: f?.condicoesEspeciais || '',
 
       bancoNome: f?.bancoNome || '',
-      bancoAgencia: f?.bancoAgencia || '',
-      bancoConta: f?.bancoConta || '',
+      bancoAgencia: this.formatAgencia(f?.bancoAgencia || ''),
+      bancoConta: this.formatConta(f?.bancoConta || ''),
       bancoPix: f?.bancoPix || '',
 
       observacoes: f?.observacoes || '',

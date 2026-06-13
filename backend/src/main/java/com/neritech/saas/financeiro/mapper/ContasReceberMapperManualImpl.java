@@ -2,6 +2,7 @@ package com.neritech.saas.financeiro.mapper;
 
 import com.neritech.saas.financeiro.domain.*;
 import com.neritech.saas.financeiro.dto.ContasReceberRequest;
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
 import com.neritech.saas.financeiro.dto.ContasReceberResponse;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
         
         // Relationships are ignored here and handled in service
         
+        entity.setDescricao(request.descricao());
         entity.setNumeroTitulo(request.numeroTitulo());
         
         entity.setDataEmissao(request.dataEmissao());
@@ -50,7 +52,7 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
 
         Long id = entity.getId();
         Long empresaId = entity.getEmpresaId();
-        String descricao = entity.getNumeroTitulo(); // ContasReceber nao possui campo descricao, usando numeroTitulo como fallback
+        String descricao = entity.getDescricao();
         Long clienteId = entity.getClienteId();
         
         Long faturaId = null;
@@ -64,13 +66,10 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
         
         LocalDate dataEmissao = entity.getDataEmissao();
         LocalDate dataVencimento = entity.getDataVencimento();
-        // dataRecebimento is not in Entity directly? 
-        // In ContasPagar it was dataPagamento. In ContasReceberResponse it is dataRecebimento.
-        // ContasReceber entity has no dataRecebimento field? 
-        // Let's check ContasReceber.java again. It has valorPago.
-        // It does NOT have dataRecebimento?
-        // Wait, ContasPagar has dataPagamento.
-        // I need to check ContasReceber.java again.
+        LocalDate dataRecebimento = null;
+        if (entity.getRecebimentos() != null && !entity.getRecebimentos().isEmpty()) {
+            dataRecebimento = entity.getRecebimentos().get(entity.getRecebimentos().size() - 1).getDataRecebimento();
+        }
         
         BigDecimal valorOriginal = entity.getValorNominal();
         BigDecimal valorRecebido = entity.getValorPago();
@@ -95,9 +94,10 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
         
         Long centroCustoId = null;
         String centroCustoNome = null;
-        if (entity.getCentroCusto() != null) {
-            centroCustoId = entity.getCentroCusto().getId();
-            centroCustoNome = entity.getCentroCusto().getNome();
+        DepartamentoContabio centro = entity.getCentroCusto();
+        if (centro != null) {
+            centroCustoId = centro.getId();
+            centroCustoNome = centro.getDescricao();
         }
         
         Long planoContasId = null;
@@ -121,7 +121,7 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
                 faturaNumero,
                 dataEmissao,
                 dataVencimento,
-                null, // dataRecebimento placeholder
+                dataRecebimento,
                 valorOriginal,
                 valorRecebido,
                 valorJuros,
@@ -140,6 +140,9 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
                 planoContasNome,
                 numeroTitulo,
                 observacoes,
+                null, // recebimentos
+                null, // anexos
+                null, // historico
                 createdAt,
                 updatedAt
         );
@@ -153,6 +156,7 @@ public class ContasReceberMapperManualImpl implements ContasReceberMapper {
         
         // Relationships ignored
         
+        if (request.descricao() != null) entity.setDescricao(request.descricao());
         if (request.numeroTitulo() != null) entity.setNumeroTitulo(request.numeroTitulo());
         
         if (request.dataEmissao() != null) entity.setDataEmissao(request.dataEmissao());

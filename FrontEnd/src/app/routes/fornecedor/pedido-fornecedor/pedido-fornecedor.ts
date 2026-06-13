@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { MatMenuModule } from '@angular/material/menu';
@@ -12,25 +11,27 @@ import { MatIconModule } from '@angular/material/icon';
 import { PedidoFornecedorService } from '../pedido-fornecedor.service';
 import { PedidoFornecedorResponse } from '../models/compra.models';
 
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
+
 @Component({
   selector: 'pedido-fornecedor',
   standalone: true,
   templateUrl: './pedido-fornecedor.html',
-  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, SelectModule, InputTextModule, TableModule, MatMenuModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, InputTextModule, TableModule, MatMenuModule, MatButtonModule, MatIconModule, ToastModule, ConfirmDialogModule],
+  providers: [MessageService, ConfirmationService]
 })
 export class PedidoFornecedor implements OnInit {
   private readonly router = inject(Router);
   private readonly pedidoService = inject(PedidoFornecedorService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+
 
   dataInicial = '';
   dataFinal = '';
-  tipoBusca = 'Numero';
   termo = '';
-
-  tipos = [
-    { label: 'Numero', value: 'Numero' },
-    { label: 'Fornecedor', value: 'Fornecedor' },
-  ];
 
   pedidos: PedidoFornecedorResponse[] = [];
   loading = false;
@@ -138,4 +139,44 @@ export class PedidoFornecedor implements OnInit {
     const [year, month, day] = isoDate.split('-');
     return `${day}/${month}/${year}`;
   }
+
+  alterarStatus(pedido: PedidoFornecedorResponse, novoStatus: string) {
+    let msg = '';
+    let icon = '';
+    let btnClass = '';
+    
+    if (novoStatus === 'RECEBIDO') {
+        msg = `Tem certeza que deseja marcar o pedido #${pedido.numeroPedido} como entregue? Os produtos serão adicionados ao estoque.`;
+        icon = 'pi pi-check-circle';
+        btnClass = 'p-button-success';
+    } else if (novoStatus === 'CANCELADO') {
+        msg = `Tem certeza que deseja cancelar o pedido #${pedido.numeroPedido}?`;
+        icon = 'pi pi-exclamation-triangle';
+        btnClass = 'p-button-danger';
+    }
+
+    this.confirmationService.confirm({
+      message: msg,
+      header: 'Confirmar Ação',
+      icon: icon,
+      acceptLabel: 'Sim',
+      rejectLabel: 'Não',
+      acceptButtonStyleClass: btnClass,
+      accept: () => {
+        this.loading = true;
+        this.pedidoService.updateStatus(pedido.id, novoStatus).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status atualizado com sucesso.' });
+            this.carregarPedidos();
+          },
+          error: (err) => {
+            this.loading = false;
+            const errorMsg = err?.error?.message || 'Erro ao atualizar status.';
+            this.messageService.add({ severity: 'error', summary: 'Erro', detail: errorMsg });
+          }
+        });
+      }
+    });
+  }
 }
+

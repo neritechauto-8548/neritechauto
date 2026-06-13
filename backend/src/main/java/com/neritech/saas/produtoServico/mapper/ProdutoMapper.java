@@ -6,7 +6,7 @@ import com.neritech.saas.produtoServico.domain.Produto;
 import com.neritech.saas.produtoServico.dto.ProdutoRequest;
 import com.neritech.saas.produtoServico.dto.ProdutoResponse;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = {ProdutoFiscalMapper.class})
 public interface ProdutoMapper {
 
     @Mapping(target = "id", ignore = true)

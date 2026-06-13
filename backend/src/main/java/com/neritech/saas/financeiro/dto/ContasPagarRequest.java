@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public record ContasPagarRequest(
         @NotBlank(message = "DescriÃ§Ã£o Ã© obrigatÃ³ria") String descricao,
 
-        @NotNull(message = "Fornecedor Ã© obrigatÃ³rio") Long fornecedorId,
+        Long fornecedorId,
 
         String numeroDocumento,
 

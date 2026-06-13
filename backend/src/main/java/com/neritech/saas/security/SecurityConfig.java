@@ -58,7 +58,8 @@ public class SecurityConfig {
                     HttpMethod.GET,
                     "/v1/ordens-servico/fotos/*/download",
                     "/v1/empresas/*/logo",
-                    "/v1/rh/funcionarios/*/foto"
+                    "/v1/rh/funcionarios/*/foto",
+                    "/v1/produtos/*/foto"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

@@ -1,6 +1,6 @@
 package com.neritech.saas.financeiro.mapper;
 
-import com.neritech.saas.financeiro.domain.CentroCusto;
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
 import com.neritech.saas.financeiro.domain.ContaBancaria;
 import com.neritech.saas.financeiro.domain.ContasPagar;
 import com.neritech.saas.financeiro.domain.FormaPagamento;
@@ -93,10 +93,10 @@ public class ContasPagarMapperManualImpl implements ContasPagarMapper {
 
         Long centroCustoId = null;
         String centroCustoNome = null;
-        CentroCusto centro = entity.getCentroCusto();
+        DepartamentoContabio centro = entity.getCentroCusto();
         if (centro != null) {
             centroCustoId = centro.getId();
-            centroCustoNome = centro.getNome();
+            centroCustoNome = centro.getDescricao();
         }
 
         Long planoContasId = null;

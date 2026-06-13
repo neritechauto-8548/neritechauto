@@ -11,9 +11,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PedidoFornecedorRepository extends JpaRepository<PedidoFornecedor, Long> {
 
-    Page<PedidoFornecedor> findByEmpresaId(Long empresaId, Pageable pageable);
+    @Query(value = "SELECT p FROM PedidoFornecedor p JOIN FETCH p.fornecedor WHERE p.empresaId = :empresaId",
+           countQuery = "SELECT COUNT(p) FROM PedidoFornecedor p WHERE p.empresaId = :empresaId")
+    Page<PedidoFornecedor> findByEmpresaId(@Param("empresaId") Long empresaId, Pageable pageable);
 
-    @Query("SELECT p FROM PedidoFornecedor p JOIN FETCH p.fornecedor f " +
+    @Query(value = "SELECT p FROM PedidoFornecedor p JOIN FETCH p.fornecedor f " +
+           "WHERE p.empresaId = :empresaId " +
+           "AND (:termo IS NULL OR :termo = '' OR " +
+           "CAST(p.numeroPedido AS string) LIKE %:termo% OR " +
+           "LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%', :termo, '%')) OR " +
+           "LOWER(p.responsavel) LIKE LOWER(CONCAT('%', :termo, '%')))",
+           countQuery = "SELECT COUNT(p) FROM PedidoFornecedor p JOIN p.fornecedor f " +
            "WHERE p.empresaId = :empresaId " +
            "AND (:termo IS NULL OR :termo = '' OR " +
            "CAST(p.numeroPedido AS string) LIKE %:termo% OR " +

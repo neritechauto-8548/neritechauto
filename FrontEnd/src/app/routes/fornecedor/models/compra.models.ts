@@ -13,6 +13,22 @@ export interface PedidoCompraRequest {
     observacoes?: string;
 }
 
+export interface ItemPedidoFornecedorRequest {
+    produtoId: number;
+    quantidade: number;
+    precoUnitario: number;
+}
+
+export interface ItemPedidoFornecedorResponse {
+    id: number;
+    produtoId: number;
+    nomeProduto: string;
+    codigoInternoProduto?: string;
+    quantidade: number;
+    precoUnitario: number;
+    subtotal: number;
+}
+
 export interface PedidoFornecedorRequest {
     empresaId: number;
     fornecedorId: number;
@@ -21,6 +37,7 @@ export interface PedidoFornecedorRequest {
     numeroNf?: string;
     observacao?: string;
     descricaoInterna?: string;
+    itens?: ItemPedidoFornecedorRequest[];
 }
 
 export interface PedidoFornecedorResponse {
@@ -34,6 +51,9 @@ export interface PedidoFornecedorResponse {
     numeroNf?: string;
     observacao?: string;
     descricaoInterna?: string;
-    status: 'PENDENTE' | 'RECEBIDO' | 'CANCELADO';
+    status: 'PENDENTE' | 'ENVIADO' | 'RECEBIDO' | 'CANCELADO';
     dataCadastro: string;
+    itens?: ItemPedidoFornecedorResponse[];
 }
+
+

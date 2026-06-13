@@ -11,6 +11,8 @@ import com.neritech.saas.produtoServico.domain.Produto;
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     Page<Produto> findByEmpresaId(Long empresaId, Pageable pageable);
 
+    java.util.Optional<Produto> findByIdAndEmpresaId(Long id, Long empresaId);
+
     boolean existsByEmpresaIdAndCodigoInterno(Long empresaId, String codigoInterno);
 
     Page<Produto> findByEmpresaIdAndAtivoTrue(Long empresaId, Pageable pageable);

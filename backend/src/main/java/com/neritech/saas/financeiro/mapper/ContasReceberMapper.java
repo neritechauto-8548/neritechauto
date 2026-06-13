@@ -18,7 +18,7 @@ public interface ContasReceberMapper {
     @Mapping(target = "faturaNumero", ignore = true) // Need to fetch if faturaId is present
     @Mapping(target = "formaPagamentoNome", source = "formaPagamento.nome")
     @Mapping(target = "contaBancariaNome", source = "contaBancaria.bancoNome")
-    @Mapping(target = "centroCustoNome", source = "centroCusto.nome")
+    @Mapping(target = "centroCustoNome", source = "centroCusto.descricao")
     @Mapping(target = "planoContasNome", source = "planoContas.nome")
     ContasReceberResponse toResponse(ContasReceber entity);
 

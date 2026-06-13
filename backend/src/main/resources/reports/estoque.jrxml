@@ -1,34 +1,331 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="estoque" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6">
-    <queryString>
-        <![CDATA[]]>
-    </queryString>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="estoque"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              whenNoDataType="AllSectionsNoDetail"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              uuid="a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6">
+
+    <!-- ═══════════════ PARAMETERS ═══════════════ -->
+    <parameter name="NOME_EMPRESA" class="java.lang.String"/>
+    <parameter name="CNPJ_EMPRESA" class="java.lang.String"/>
+    <parameter name="TELEFONE_EMPRESA" class="java.lang.String"/>
+    <parameter name="EMAIL_EMPRESA" class="java.lang.String"/>
+    <parameter name="SITE_EMPRESA" class="java.lang.String"/>
+    <parameter name="ENDERECO_EMPRESA" class="java.lang.String"/>
+    <parameter name="DATA_EMISSAO" class="java.lang.String"/>
+    <parameter name="VALOR_TOTAL_COMPRA" class="java.math.BigDecimal"/>
+    <parameter name="VALOR_TOTAL_VENDA" class="java.math.BigDecimal"/>
+    <parameter name="QUANTIDADE_TOTAL" class="java.lang.Long"/>
+    <parameter name="LOGO_PATH" class="java.lang.String"/>
+
+    <!-- ═══════════════ FIELDS ═══════════════ -->
+    <field name="id" class="java.lang.Long"/>
     <field name="nomeProduto" class="java.lang.String"/>
+    <field name="setor" class="java.lang.String"/>
+    <field name="codigoOriginal" class="java.lang.String"/>
+    <field name="codigoFab" class="java.lang.String"/>
+    <field name="precoCusto" class="java.math.BigDecimal"/>
+    <field name="precoVenda" class="java.math.BigDecimal"/>
+    <field name="estoqueMinimo" class="java.lang.Integer"/>
     <field name="quantidade" class="java.lang.Integer"/>
+
+    <variable name="ROW_NUM" class="java.lang.Integer" calculation="Count">
+        <variableExpression><![CDATA[$F{id}]]></variableExpression>
+    </variable>
+
     <background>
         <band splitType="Stretch"/>
     </background>
+
+    <!-- ═══════════════ TITLE / CABEÇALHO ═══════════════ -->
     <title>
-        <band height="79" splitType="Stretch">
-            <staticText>
-                <reportElement x="0" y="0" width="555" height="79" uuid="a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d7"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="24" isBold="true"/>
+        <band height="110" splitType="Stretch">
+            <!-- Logo Section (Left Side) -->
+            <image hAlign="Left" vAlign="Middle" onErrorType="Blank">
+                <reportElement x="0" y="0" width="250" height="60" uuid="e1f2a3b4-c5d6-a1b2-c3d4-e5f6a7b8c9d0">
+                    <printWhenExpression><![CDATA[$P{LOGO_PATH} != null && !$P{LOGO_PATH}.isEmpty()]]></printWhenExpression>
+                </reportElement>
+                <imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
+            </image>
+
+            <!-- Company Details (Right Side / Left Aligned starting at x=350) -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="350" y="0" width="452" height="60" uuid="a7b8c9d0-e1f2-a3b4-c5d6-a1b2c3d4e5f6"/>
+                <textElement textAlignment="Left" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
                 </textElement>
-                <text><![CDATA[Relatório de Estoque]]></text>
+                <textFieldExpression><![CDATA[
+                    ($P{NOME_EMPRESA} != null ? $P{NOME_EMPRESA}.toUpperCase() + "\n" : "") +
+                    ($P{TELEFONE_EMPRESA} != null && !$P{TELEFONE_EMPRESA}.equals("—") ? $P{TELEFONE_EMPRESA} + "\n" : "") +
+                    ($P{EMAIL_EMPRESA} != null && !$P{EMAIL_EMPRESA}.equals("—") ? $P{EMAIL_EMPRESA} + "\n" : "") +
+                    ($P{SITE_EMPRESA} != null && !$P{SITE_EMPRESA}.equals("—") ? $P{SITE_EMPRESA} + "\n" : "") +
+                    ($P{ENDERECO_EMPRESA} != null && !$P{ENDERECO_EMPRESA}.equals("—") ? $P{ENDERECO_EMPRESA} : "")
+                ]]></textFieldExpression>
+            </textField>
+
+            <!-- Horizontal Divider Line -->
+            <line>
+                <reportElement x="0" y="68" width="802" height="1" forecolor="#666666" uuid="c9d0e1f2-a3b4-c5d6-a7b8-c9d0e1f2a3b4"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+
+            <!-- Report Title -->
+            <staticText>
+                <reportElement x="0" y="75" width="802" height="25" uuid="5d858854-4632-9c32-e565-89320d316239"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="14" isBold="false"/>
+                </textElement>
+                <text><![CDATA[RELATÓRIO DE PRODUTOS]]></text>
             </staticText>
         </band>
     </title>
+
+    <!-- ═══════════════ COLUMN HEADER ═══════════════ -->
+    <columnHeader>
+        <band height="20" splitType="Stretch">
+            <!-- Cod -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="0" y="0" width="30" height="20" uuid="d9320623-8854-4d31-9c32-e56589324633"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Cod]]></text>
+            </staticText>
+            <!-- Descrição -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="30" y="0" width="250" height="20" uuid="88544632-d932-4d31-9c32-e56589324635"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Left" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                    <paragraph leftIndent="4"/>
+                </textElement>
+                <text><![CDATA[Descrição]]></text>
+            </staticText>
+            <!-- Setor -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="280" y="0" width="40" height="20" uuid="d9320623-8854-4632-9c32-e56589324636"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Setor]]></text>
+            </staticText>
+            <!-- Cod Original -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="320" y="0" width="100" height="20" uuid="46320623-d932-4d31-8854-e56589324638"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Cod Original]]></text>
+            </staticText>
+            <!-- Cod Fab -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="420" y="0" width="100" height="20" uuid="89324632-d932-4d31-8854-e56588540639"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Cod Fab]]></text>
+            </staticText>
+            <!-- Preço Custo -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="520" y="0" width="75" height="20" uuid="46320623-8854-4d31-9c32-e56589324640"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Preço Custo]]></text>
+            </staticText>
+            <!-- Preço -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="595" y="0" width="75" height="20" uuid="89324632-d932-4d31-8854-e56588540642"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Preço]]></text>
+            </staticText>
+            <!-- Estoque Mínimo -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="670" y="0" width="65" height="20" uuid="e5658932-8854-4632-9c32-893206234634"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Estoque Mínimo]]></text>
+            </staticText>
+            <!-- Estoque Atual -->
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#CCCCCC" x="735" y="0" width="67" height="20" uuid="88544632-d932-4d31-9c32-e56589324635"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Estoque Atual]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <!-- ═══════════════ DETAIL (ROWS) ═══════════════ -->
     <detail>
-        <band height="30" splitType="Stretch">
-            <textField>
-                <reportElement x="0" y="0" width="300" height="30" uuid="a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d8"/>
+        <band height="20" splitType="Stretch">
+            <!-- Cod -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="0" width="30" height="20" uuid="d9320623-8854-4d31-9c32-e56589324644"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+            </textField>
+            <!-- Descrição -->
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement x="30" y="0" width="250" height="20" uuid="e5658932-d932-4d31-8854-463206234645"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Left" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                    <paragraph leftIndent="4"/>
+                </textElement>
                 <textFieldExpression><![CDATA[$F{nomeProduto}]]></textFieldExpression>
             </textField>
-            <textField>
-                <reportElement x="300" y="0" width="100" height="30" uuid="a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d9"/>
+            <!-- Setor -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="280" y="0" width="40" height="20" uuid="46320623-d932-4d31-8854-e56589324646"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{setor}]]></textFieldExpression>
+            </textField>
+            <!-- Cod Original -->
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement x="320" y="0" width="100" height="20" uuid="e5658932-8854-4632-9c32-893206234648"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{codigoOriginal}]]></textFieldExpression>
+            </textField>
+            <!-- Cod Fab -->
+            <textField isStretchWithOverflow="true" isBlankWhenNull="true">
+                <reportElement x="420" y="0" width="100" height="20" uuid="88544632-d932-4d31-9c32-e56589324649"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{codigoFab}]]></textFieldExpression>
+            </textField>
+            <!-- Preço Custo -->
+            <textField pattern="R$ #,##0.00" isBlankWhenNull="true">
+                <reportElement x="520" y="0" width="75" height="20" uuid="d9320623-8854-4d31-9c32-e56589324650"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                    <paragraph rightIndent="4"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{precoCusto}]]></textFieldExpression>
+            </textField>
+            <!-- Preço -->
+            <textField pattern="R$ #,##0.00" isBlankWhenNull="true">
+                <reportElement x="595" y="0" width="75" height="20" uuid="46320623-d932-4d31-8854-e56589324652"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                    <paragraph rightIndent="4"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{precoVenda}]]></textFieldExpression>
+            </textField>
+            <!-- Estoque Mínimo -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="670" y="0" width="65" height="20" uuid="e5658932-8854-4632-9c32-893206234656"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{estoqueMinimo}]]></textFieldExpression>
+            </textField>
+            <!-- Estoque Atual -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="735" y="0" width="67" height="20" uuid="46320623-d932-4d31-8854-e56589324658"/>
+                <box><pen lineWidth="0.5" lineColor="#000000"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="8"/>
+                </textElement>
                 <textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression>
             </textField>
         </band>
     </detail>
+
+    <!-- ═══════════════ PAGE FOOTER ═══════════════ -->
+    <pageFooter>
+        <band height="20" splitType="Stretch">
+            <line>
+                <reportElement x="0" y="0" width="802" height="1" forecolor="#666666" uuid="e5658932-d932-4d31-8854-463206234664"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <textField>
+                <reportElement x="0" y="5" width="300" height="15" forecolor="#666666" uuid="88544632-d932-4d31-9c32-e56589324655"/>
+                <textElement verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="7"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{NOME_EMPRESA} != null ? $P{NOME_EMPRESA} : "NeriTech Auto"]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="300" y="5" width="202" height="15" forecolor="#999999" uuid="e5658932-d932-4d31-8854-463206234657"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="7" isBold="true"/>
+                </textElement>
+                <text><![CDATA[NeriTech Auto - Gestão de Oficinas]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="702" y="5" width="100" height="15" forecolor="#666666" uuid="46320623-d932-4d31-8854-e56589324658"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="7"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <!-- ═══════════════ SUMMARY (TOTALS) ═══════════════ -->
+    <summary>
+        <band height="65" splitType="Stretch">
+            <!-- Valor total de compra das peças em estoque -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="10" width="402" height="15" uuid="550e8400-e29b-41d4-a716-446655440000"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Valor total de compra das peças em estoque: " + new java.text.DecimalFormat("R$ #,##0.00").format($P{VALOR_TOTAL_COMPRA})]]></textFieldExpression>
+            </textField>
+            <!-- Valor total de venda das peças em estoque -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="25" width="402" height="15" uuid="550e8400-e29b-41d4-a716-446655440001"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Valor total de venda das peças em estoque: " + new java.text.DecimalFormat("R$ #,##0.00").format($P{VALOR_TOTAL_VENDA})]]></textFieldExpression>
+            </textField>
+            <!-- Quantidade total das peças em estoque -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="40" width="402" height="15" uuid="550e8400-e29b-41d4-a716-446655440002"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font fontName="DejaVu Sans" size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Quantidade total das peças em estoque: " + $P{QUANTIDADE_TOTAL}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
 </jasperReport>

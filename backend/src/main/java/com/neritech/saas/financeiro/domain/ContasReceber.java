@@ -10,6 +10,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
 
 @Entity
 @Table(name = "fin_contas_receber")
@@ -17,10 +21,13 @@ import java.time.LocalDate;
 @Setter
 public class ContasReceber extends TenantEntity {
 
+    @Column(name = "descricao", nullable = false, columnDefinition = "TEXT")
+    private String descricao;
+
     @Column(name = "numero_titulo", length = 30)
     private String numeroTitulo;
 
-    @Column(name = "cliente_id", nullable = false)
+    @Column(name = "cliente_id")
     private Long clienteId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,7 +44,7 @@ public class ContasReceber extends TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "centro_custo_id")
-    private CentroCusto centroCusto;
+    private DepartamentoContabio centroCusto;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plano_contas_id")
@@ -91,6 +98,15 @@ public class ContasReceber extends TenantEntity {
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 
+    @OneToMany(mappedBy = "contaReceber", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecebimentoTitulo> recebimentos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "contaReceber", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnexoTitulo> anexos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tituloOriginal", cascade = CascadeType.ALL)
+    private List<Renegociacao> renegociacoes = new ArrayList<>();
+
     // Manual setter for @ManyToOne field (Lombok workaround)
     public void setPlanoContas(PlanoConta planoContas) {
         this.planoContas = planoContas;
@@ -100,7 +116,7 @@ public class ContasReceber extends TenantEntity {
         this.contaBancaria = contaBancaria;
     }
 
-    public void setCentroCusto(CentroCusto centroCusto) {
+    public void setCentroCusto(DepartamentoContabio centroCusto) {
         this.centroCusto = centroCusto;
     }
 

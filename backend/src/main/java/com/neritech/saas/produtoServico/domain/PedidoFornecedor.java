@@ -39,7 +39,11 @@ public class PedidoFornecedor extends TenantEntity {
     @Column(name = "status", nullable = false, length = 20)
     private StatusPedidoFornecedor status = StatusPedidoFornecedor.PENDENTE;
 
+    @OneToMany(mappedBy = "pedido")
+    private java.util.List<ItemPedidoFornecedor> itens = new java.util.ArrayList<>();
+
     // Getters and Setters
+
 
     public Long getFornecedorId() {
         return fornecedorId;
@@ -112,4 +116,13 @@ public class PedidoFornecedor extends TenantEntity {
     public void setStatus(StatusPedidoFornecedor status) {
         this.status = status;
     }
+
+    public java.util.List<ItemPedidoFornecedor> getItens() {
+        return itens;
+    }
+
+    public void setItens(java.util.List<ItemPedidoFornecedor> itens) {
+        this.itens = itens;
+    }
 }
+

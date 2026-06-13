@@ -9,6 +9,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "produtos_fornecedores")
@@ -43,7 +45,8 @@ public class ProdutoFornecedor extends BaseEntity {
     @Column(name = "quantidade_minima", precision = 10, scale = 2)
     private BigDecimal quantidadeMinima;
 
-    @Column(name = "desconto_quantidade")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "desconto_quantidade", columnDefinition = "json")
     private String descontoQuantidade;
 
     @Column(name = "moeda", length = 3)

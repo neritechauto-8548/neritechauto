@@ -37,6 +37,8 @@ public record ProdutoRequest(
                 BigDecimal dimensoesLargura,
                 BigDecimal dimensoesAltura,
 
+                BigDecimal precoCompra,
+
                 @NotNull(message = "O preÃ§o de custo Ã© obrigatÃ³rio") BigDecimal precoCusto,
 
                 @NotNull(message = "O preÃ§o de venda Ã© obrigatÃ³rio") BigDecimal precoVenda,
@@ -65,5 +67,13 @@ public record ProdutoRequest(
                 Boolean promocional,
                 Integer pontosFidelidade,
                 BigDecimal comissaoVendaPercentual,
-                BigDecimal quantidadeEstoque) {
+                BigDecimal quantidadeEstoque,
+                
+                @Size(max = 100) String enderecoEstoque,
+                @Size(max = 100) String setor,
+                java.time.LocalDate dataVencimento,
+                @Size(max = 50) String codigoSubstituto1,
+                @Size(max = 50) String codigoSubstituto2,
+                BigDecimal descontoFornecedorPercentual,
+                ProdutoFiscalRequest dadosFiscais) {
 }

@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface ContasReceberRepository
         extends JpaRepository<ContasReceber, Long>, JpaSpecificationExecutor<ContasReceber> {
     Page<ContasReceber> findByEmpresaId(Long empresaId, Pageable pageable);
+    java.util.List<ContasReceber> findByEmpresaId(Long empresaId);
+    java.util.List<ContasReceber> findByEmpresaIdAndDataVencimentoBetween(Long empresaId, java.time.LocalDate inicio, java.time.LocalDate fim);
 
     Optional<ContasReceber> findByIdAndEmpresaId(Long id, Long empresaId);
 

@@ -16,5 +16,12 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
     boolean existsByEmpresaIdAndCnpj(Long empresaId, String cnpj);
 
     Page<Fornecedor> findByEmpresaIdAndAtivoTrue(Long empresaId, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT f FROM Fornecedor f WHERE f.empresaId = :empresaId AND " +
+            "(LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(f.cpf) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Fornecedor> search(Long empresaId, String search, Pageable pageable);
 }
 

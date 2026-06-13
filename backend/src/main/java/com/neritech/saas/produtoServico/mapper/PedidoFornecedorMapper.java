@@ -32,10 +32,28 @@ public interface PedidoFornecedorMapper {
     @Mapping(target = "numeroPedido", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "fornecedor", ignore = true)
+    @Mapping(target = "itens", ignore = true)
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "criadoPor", ignore = true)
     @Mapping(target = "atualizadoPor", ignore = true)
     @Mapping(target = "versao", ignore = true)
     void updateEntityFromRequest(PedidoFornecedorRequest request, @MappingTarget PedidoFornecedor entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "empresaId", ignore = true)
+    @Mapping(target = "pedido", ignore = true)
+    @Mapping(target = "produto", ignore = true)
+    @Mapping(target = "subtotal", ignore = true)
+    @Mapping(target = "dataCadastro", ignore = true)
+    @Mapping(target = "dataAtualizacao", ignore = true)
+    @Mapping(target = "criadoPor", ignore = true)
+    @Mapping(target = "atualizadoPor", ignore = true)
+    @Mapping(target = "versao", ignore = true)
+    com.neritech.saas.produtoServico.domain.ItemPedidoFornecedor toItemEntity(com.neritech.saas.produtoServico.dto.ItemPedidoFornecedorRequest request);
+
+    @Mapping(target = "nomeProduto", expression = "java(entity.getProduto() != null ? entity.getProduto().getNome() : null)")
+    @Mapping(target = "codigoInternoProduto", expression = "java(entity.getProduto() != null ? entity.getProduto().getCodigoInterno() : null)")
+    com.neritech.saas.produtoServico.dto.ItemPedidoFornecedorResponse toItemResponse(com.neritech.saas.produtoServico.domain.ItemPedidoFornecedor entity);
 }
+

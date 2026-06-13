@@ -1,14 +1,13 @@
 package com.neritech.saas.financeiro.service;
 
-import com.neritech.saas.financeiro.domain.CentroCusto;
 import com.neritech.saas.financeiro.domain.LancamentoContabil;
 import com.neritech.saas.financeiro.domain.PlanoConta;
 import com.neritech.saas.financeiro.dto.LancamentoContabilRequest;
 import com.neritech.saas.financeiro.dto.LancamentoContabilResponse;
 import com.neritech.saas.financeiro.mapper.LancamentoContabilMapper;
-import com.neritech.saas.financeiro.repository.CentroCustoRepository;
 import com.neritech.saas.financeiro.repository.LancamentoContabilRepository;
 import com.neritech.saas.financeiro.repository.PlanoContaRepository;
+import com.neritech.saas.empresa.repository.DepartamentoContabioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,7 @@ public class LancamentoContabilService {
 
     private final LancamentoContabilRepository repository;
     private final PlanoContaRepository planoContaRepository;
-    private final CentroCustoRepository centroCustoRepository;
+    private final DepartamentoContabioRepository departamentoContabioRepository;
     private final LancamentoContabilMapper mapper;
 
     @Transactional(readOnly = true)
@@ -81,9 +80,9 @@ public class LancamentoContabilService {
         }
 
         if (request.centroCustoId() != null) {
-            CentroCusto centro = centroCustoRepository.findById(request.centroCustoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Centro de custo nÃ£o encontrado"));
-            entity.setCentroCusto(centro);
+            com.neritech.saas.empresa.domain.DepartamentoContabio depto = departamentoContabioRepository.findById(request.centroCustoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Departamento não encontrado"));
+            entity.setCentroCusto(depto);
         } else {
             entity.setCentroCusto(null);
         }

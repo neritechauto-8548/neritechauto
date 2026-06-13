@@ -7,6 +7,9 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MatIconModule } from '@angular/material/icon';
 import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { LocalStorageService } from '@shared/services/storage.service';
 
 import { RelatoriosService } from '../../relatorios/relatorios.service';
 import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
@@ -34,6 +37,9 @@ export class ComissoesComponent implements OnInit {
   private relatoriosService = inject(RelatoriosService);
   private funcionarioService = inject(FuncionarioService);
   private messageService = inject(MessageService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
+  private storage = inject(LocalStorageService);
 
   funcionarios: { label: string; value: number | null }[] = [];
   funcionario: number | null = null;
@@ -77,25 +83,83 @@ export class ComissoesComponent implements OnInit {
     this.gerando = true;
     this.resumoVisivel = false;
 
+    let empresaId = this.storage.get('tenantId')?.id || this.storage.get('tenantId') || this.storage.get('empresaId')?.id || this.storage.get('empresaId');
+    if (empresaId && typeof empresaId === 'object') {
+      empresaId = empresaId.id;
+    }
+
+    const params: any = {
+      empresaId: empresaId || '7',
+      page: 0,
+      size: 10000
+    };
+
+    this.http.get<any>('/v1/financeiro/comissoes', { params }).subscribe({
+      next: (res) => {
+        const list = res.content || [];
+        const filtered = list.filter((c: any) => {
+          const matchesFunc = !this.funcionario || c.funcionario?.id === this.funcionario;
+          const dateComp = c.dataCompetencia; // YYYY-MM-DD
+          const matchesDate = (!this.dataInicial || dateComp >= this.dataInicial) && 
+                              (!this.dataFinal || dateComp <= this.dataFinal);
+          return matchesFunc && matchesDate;
+        });
+
+        // Group by employee to populate this.linhas
+        const grupos: { [key: number]: LinhaComissao } = {};
+        filtered.forEach((c: any) => {
+          const fId = c.funcionario?.id || 0;
+          const fNome = c.funcionario?.nomeCompleto || 'N/A';
+          if (!grupos[fId]) {
+            grupos[fId] = {
+              funcionarioId: fId,
+              funcionarioNome: fNome,
+              totalOrdens: 0,
+              totalFaturado: 0,
+              percentual: c.percentualComissao || 0,
+              totalComissao: 0
+            };
+          }
+          grupos[fId].totalComissao += Number(c.valorComissao || 0);
+          grupos[fId].totalFaturado += Number(c.baseCalculo || 0);
+          if (c.ordemServicoId) {
+            grupos[fId].totalOrdens += 1;
+          }
+        });
+
+        this.linhas = Object.values(grupos);
+        this.gerando = false;
+        this.resumoVisivel = true;
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Relatório gerado com sucesso.' });
+      },
+      error: (err) => {
+        console.error(err);
+        this.gerando = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar dados do relatório.' });
+      }
+    });
+  }
+
+  imprimirRelatorio(): void {
     const payload: any = {};
     if (this.funcionario) {
       payload.funcionarioId = this.funcionario;
     }
+    if (this.dataInicial) {
+      payload.dataInicio = this.dataInicial;
+    }
+    if (this.dataFinal) {
+      payload.dataFim = this.dataFinal;
+    }
 
     this.relatoriosService.gerarRelatorio('comissoes', payload).subscribe({
       next: blob => {
-        this.relatoriosService.downloadBlob(blob, 'relatorio-comissoes.pdf');
-        this.gerando = false;
-        this.resumoVisivel = true;
-        // Simulação de linhas de resumo (substituir quando API retornar dados estruturados)
-        this.linhas = [];
-        this.messageService.add({ severity: 'success', summary: 'Relatório gerado!', detail: 'PDF baixado com sucesso.' });
+        this.relatoriosService.abrirBlobEmNovaAba(blob);
       },
       error: err => {
         console.error(err);
-        this.gerando = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o relatório. Verifique o console.' });
-      },
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o PDF.' });
+      }
     });
   }
 

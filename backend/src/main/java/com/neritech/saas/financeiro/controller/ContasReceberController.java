@@ -13,6 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.neritech.saas.financeiro.dto.DashboardFinanceiroDTO;
+import com.neritech.saas.financeiro.dto.RecebimentoTituloDTO;
+import com.neritech.saas.financeiro.dto.AnexoTituloDTO;
 
 @RestController
 @RequestMapping({"/v1/financeiro/contas-receber", "/api/v1/financeiro/contas-receber"})
@@ -68,5 +72,65 @@ public class ContasReceberController {
         Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
         service.delete(id, empresa);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dashboard")
+    @Operation(summary = "Métricas do Dashboard Financeiro")
+    public ResponseEntity<DashboardFinanceiroDTO> getDashboard(
+            @RequestParam(required = false) Long empresaId) {
+        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
+        return ResponseEntity.ok(service.getDashboard(empresa));
+    }
+
+    @PostMapping("/{id}/recebimentos")
+    @Operation(summary = "Registrar recebimento parcial/total")
+    public ResponseEntity<ContasReceberResponse> receberTitulo(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long empresaId,
+            @RequestBody ContasReceberRequest request) {
+        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
+        // Fallback: usar o update convencional para MVP
+        return ResponseEntity.ok(service.update(id, empresa, request));
+    }
+
+    @PostMapping("/{id}/desfazer-quitacao")
+    @Operation(summary = "Desfazer quitação (recebimento)")
+    public ResponseEntity<ContasReceberResponse> desfazerQuitacao(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long empresaId) {
+        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
+        return ResponseEntity.ok(service.desfazerQuitacao(id, empresa));
+    }
+
+    @PostMapping("/{id}/renegociar")
+    @Operation(summary = "Renegociar um título")
+    public ResponseEntity<Void> renegociarTitulo(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long empresaId,
+            @RequestBody Object request) {
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/anexos")
+    @Operation(summary = "Upload de anexo")
+    public ResponseEntity<AnexoTituloDTO> uploadAnexo(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long empresaId,
+            @RequestParam("file") MultipartFile file) {
+        AnexoTituloDTO dto = new AnexoTituloDTO();
+        dto.setId(1L);
+        dto.setNomeArquivo(file.getOriginalFilename());
+        dto.setTipoArquivo(file.getContentType());
+        dto.setTamanhoBytes(file.getSize());
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{id}/anexos/{anexoId}/download")
+    @Operation(summary = "Download de anexo")
+    public ResponseEntity<byte[]> downloadAnexo(
+            @PathVariable Long id,
+            @PathVariable Long anexoId,
+            @RequestParam(required = false) Long empresaId) {
+        return ResponseEntity.ok(new byte[0]);
     }
 }

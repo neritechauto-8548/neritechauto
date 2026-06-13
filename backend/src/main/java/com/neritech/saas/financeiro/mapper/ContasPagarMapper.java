@@ -14,6 +14,7 @@ public interface ContasPagarMapper {
     @Mapping(target = "planoContas", ignore = true)
     ContasPagar toEntity(ContasPagarRequest request);
 
+    @Mapping(target = "centroCustoNome", source = "centroCusto.descricao")
     ContasPagarResponse toResponse(ContasPagar entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

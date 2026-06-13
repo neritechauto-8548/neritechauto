@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public record ContasReceberRequest(
         @NotBlank(message = "DescriÃ§Ã£o Ã© obrigatÃ³ria") String descricao,
 
-        @NotNull(message = "Cliente Ã© obrigatÃ³rio") Long clienteId,
+        Long clienteId,
 
         Long faturaId,
 

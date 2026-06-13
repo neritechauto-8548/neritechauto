@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -12,16 +13,22 @@ import { TextareaModule } from 'primeng/textarea';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ToastModule } from 'primeng/toast';
 import { SelectModule } from 'primeng/select';
-import { MatIconModule } from '@angular/material/icon';
+import { TabsModule } from 'primeng/tabs';
+import { DrawerModule } from 'primeng/drawer';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 import { FinanceiroService } from '../financeiro.service';
+import { RelatoriosService } from '../../relatorios/relatorios.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
+import { DepartamentoService } from '../../configuracoes/departamentos/departamento.service';
 import {
   ContasReceberRequest,
   ContasReceberResponse,
+  DashboardFinanceiroDTO,
   StatusTitulo,
   TipoTitulo
 } from '../models/financeiro.models';
@@ -33,7 +40,8 @@ import {
   imports: [
     CommonModule, FormsModule, ButtonModule, InputTextModule, TableModule,
     TagModule, DialogModule, DatePickerModule, InputNumberModule, TextareaModule,
-    AutoCompleteModule, ToastModule, SelectModule, MatIconModule, ConfirmationDialogComponent
+    AutoCompleteModule, ToastModule, SelectModule, ConfirmationDialogComponent,
+    TabsModule, DrawerModule, SplitButtonModule, CheckboxModule
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -42,11 +50,19 @@ export class ContasReceberComponent implements OnInit {
   private clientesService = inject(ClientesService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private departamentoService = inject(DepartamentoService);
+  private relatoriosService = inject(RelatoriosService);
 
   loading = false;
   salvando = false;
   rows: ContasReceberResponse[] = [];
+  selectedRows: ContasReceberResponse[] = [];
   termo = '';
+
+  printMenuOptions = [
+    { label: 'Relatório PDF', icon: 'pi pi-file-pdf', command: () => this.imprimir('pdf') },
+    { label: 'Exportar Excel', icon: 'pi pi-file-excel', command: () => this.imprimir('excel') }
+  ];
 
   // Paginação
   page = 0;
@@ -57,10 +73,80 @@ export class ContasReceberComponent implements OnInit {
   totalAberto = 0;
   totalVencido = 0;
   totalRecebido = 0;
+  
+  dashboard: DashboardFinanceiroDTO | null = null;
 
-  // Dialog
+  // Dialogs
   dialogVisible = false;
+  receberDialogVisible = false;
+  dialogDetalhesVisible = false;
+  quitarLoteDialogVisible = false;
   editandoId: number | null = null;
+  receberRowSelected!: ContasReceberResponse;
+  detalhesRowSelected: ContasReceberResponse | null = null;
+  // Filtros Avançados
+  filtroTipo = 'Todas';
+  vencInicio: Date | null = null;
+  vencFim: Date | null = null;
+  buscarPor = 'conta';
+  filtroValor: any = 'TODOS';
+
+  tiposFiltro = [
+    { label: 'Todas', value: 'Todas' },
+    { label: 'Todas Quitado', value: 'Todas Quitado' },
+    { label: 'Todas Aberto', value: 'Todas Aberto' },
+    { label: 'Todas Receita', value: 'Todas Receita' },
+    { label: 'Todas Despesa', value: 'Todas Despesa' },
+    { label: 'Despesa Quitado', value: 'Despesa Quitado' },
+    { label: 'Despesa Aberto', value: 'Despesa Aberto' },
+    { label: 'Receita Quitado', value: 'Receita Quitado' },
+    { label: 'Receita Aberto', value: 'Receita Aberto' },
+    { label: 'Transferencias', value: 'Transferencias' }
+  ];
+
+  buscarPorOptions = [
+    { label: 'Caixa/Conta', value: 'conta' },
+    { label: 'Departamento', value: 'centroCusto' },
+    { label: 'Plano de Contas', value: 'planoContas' },
+    { label: 'Forma de Pagamento', value: 'formaPagamento' }
+  ];
+
+  get filtroValorOptions() {
+      const defaultOption = [{ label: 'TODOS', value: 'TODOS' }];
+      switch (this.buscarPor) {
+          case 'conta':
+              return [...defaultOption, ...this.contasBancarias];
+          case 'centroCusto':
+              return [...defaultOption, ...this.departamentos];
+          case 'planoContas':
+              return [...defaultOption, ...this.planosConta];
+          case 'formaPagamento':
+              return [...defaultOption, ...this.formasPagamento];
+          default:
+              return defaultOption;
+      }
+  }
+
+  onBuscarPorChange() {
+      this.filtroValor = 'TODOS';
+  }
+
+  ngOnInit() {
+    const hoje = new Date();
+    this.vencInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    this.vencFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    this.carregar();
+    this.carregarAuxiliares();
+  }
+  
+  valorTotalQuitarLote = 0;
+  contaQuitarLoteId: number | null = null;
+
+  // Auxiliares
+  formasPagamento: any[] = [];
+  contasBancarias: any[] = [];
+  departamentos: any[] = [];
+  planosConta: any[] = [];
 
   // Autocomplete cliente
   clientesFiltrados: any[] = [];
@@ -78,6 +164,7 @@ export class ContasReceberComponent implements OnInit {
 
   tiposDocumento = Object.values(TipoTitulo).map(v => ({ label: v, value: v }));
   form: any = this.emptyForm();
+  formRecebimento: any = {};
 
   emptyForm() {
     return {
@@ -90,21 +177,62 @@ export class ContasReceberComponent implements OnInit {
       tipoTitulo: TipoTitulo.OUTROS,
       observacoes: '',
       receberAgora: false,
+      formaPagamentoId: null as number | null,
+      contaBancariaId: null as number | null,
+      centroCustoId: null as number | null,
+      planoContasId: null as number | null,
+      numeroTitulo: '',
     };
   }
 
-  ngOnInit() { this.carregar(); }
+  carregarAuxiliares() {
+    this.service.listFormasPagamento().subscribe({
+      next: res => {
+        const items = res?.content || res || [];
+        this.formasPagamento = items.map((x: any) => ({ label: x.nome, value: x.id }));
+      },
+      error: err => console.error('Erro formas pagamento', err)
+    });
+    this.service.listContasBancarias().subscribe({
+      next: res => {
+        const items = res?.content || res || [];
+        this.contasBancarias = items.map((x: any) => ({
+          label: x.nome || `${x.bancoNome} • ${x.agencia}/${x.conta}`,
+          value: x.id
+        }));
+      },
+      error: err => console.error('Erro contas bancarias', err)
+    });
+    this.departamentoService.list({ size: 1000 }).subscribe({
+      next: res => {
+        const items = res?.content || res || [];
+        this.departamentos = items.map((x: any) => ({ label: x.descricao, value: x.id }));
+      },
+      error: err => console.error('Erro departamentos', err)
+    });
+    this.service.listPlanosConta().subscribe({
+      next: res => {
+        const items = res?.content || res || [];
+        this.planosConta = items.map((x: any) => ({ label: x.nome || x.descricao, value: x.id }));
+      },
+      error: err => console.error('Erro planos conta', err)
+    });
+  }
 
   carregar() {
     this.loading = true;
-    this.service.listReceber({ page: this.page, size: this.pageSize }).subscribe({
+    this.service.getDashboardReceber().subscribe(d => this.dashboard = d);
+    this.service.listReceber({ page: this.page, size: this.pageSize, sort: 'dataVencimento,asc' }).subscribe({
       next: (res) => {
-        this.rows = res.content;
-        this.totalElements = res.totalElements;
+        this.rows = res.content || [];
+        this.totalElements = res.totalElements || 0;
         this.calcularTotais();
         this.loading = false;
       },
-      error: () => { this.loading = false; this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar contas.' }); }
+      error: () => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar contas.' });
+      }
     });
   }
 
@@ -116,12 +244,179 @@ export class ContasReceberComponent implements OnInit {
   }
 
   get rowsFiltradas() {
-    if (!this.termo) return this.rows;
-    const t = this.termo.toLowerCase();
-    return this.rows.filter(r =>
-      r.descricao?.toLowerCase().includes(t) ||
-      r.faturaNumero?.toLowerCase().includes(t)
-    );
+    let result = this.rows;
+    if (this.termo) {
+      const t = this.termo.toLowerCase();
+      result = result.filter(r =>
+        r.descricao?.toLowerCase().includes(t) ||
+        r.faturaNumero?.toLowerCase().includes(t)
+      );
+    }
+    
+    // 1. Filtro de Tipo
+    if (this.filtroTipo !== 'Todas') {
+        switch (this.filtroTipo) {
+            case 'Todas Quitado':
+            case 'Receita Quitado':
+                result = result.filter(r => r.status === StatusTitulo.PAGO);
+                break;
+            case 'Todas Aberto':
+            case 'Receita Aberto':
+                result = result.filter(r => r.status !== StatusTitulo.PAGO && r.status !== StatusTitulo.CANCELADO);
+                break;
+            case 'Todas Receita':
+                break;
+            case 'Todas Despesa':
+            case 'Despesa Quitado':
+            case 'Despesa Aberto':
+                result = [];
+                break;
+            case 'Transferencias':
+                result = result.filter(r => 
+                    r.descricao?.toLowerCase().includes('transferência') ||
+                    (r.observacoes && r.observacoes.toLowerCase().includes('transferência'))
+                );
+                break;
+        }
+    }
+
+    // 2. Filtros Avançados
+    // Filtro por data
+    if (this.vencInicio) {
+        const start = new Date(this.vencInicio);
+        start.setHours(0, 0, 0, 0);
+        result = result.filter(r => {
+            if (!r.dataVencimento) return false;
+            const d = new Date(r.dataVencimento + 'T00:00');
+            return d >= start;
+        });
+    }
+    if (this.vencFim) {
+        const end = new Date(this.vencFim);
+        end.setHours(23, 59, 59, 999);
+        result = result.filter(r => {
+            if (!r.dataVencimento) return false;
+            const d = new Date(r.dataVencimento + 'T00:00');
+            return d <= end;
+        });
+    }
+
+    // Filtro por Caixa, Centro de Custo, Plano de Contas, Forma de Pagamento
+    if (this.buscarPor && this.filtroValor && this.filtroValor !== 'TODOS') {
+        const filterId = Number(this.filtroValor);
+        switch (this.buscarPor) {
+            case 'conta':
+                result = result.filter(r => r.contaBancariaId === filterId);
+                break;
+            case 'centroCusto':
+                result = result.filter(r => r.centroCustoId === filterId);
+                break;
+            case 'planoContas':
+                result = result.filter(r => r.planoContasId === filterId);
+                break;
+            case 'formaPagamento':
+                result = result.filter(r => r.formaPagamentoId === filterId);
+                break;
+        }
+    }
+
+    return result;
+  }
+
+  imprimir(tipo: string) {
+    if (tipo === 'pdf') {
+      let dataInicio = '';
+      let dataFim = '';
+      if (this.vencInicio) {
+        const d = new Date(this.vencInicio);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        dataInicio = `${year}-${month}-${day}`;
+      }
+      if (this.vencFim) {
+        const d = new Date(this.vencFim);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        dataFim = `${year}-${month}-${day}`;
+      }
+
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Impressão',
+        detail: 'Gerando relatório financeiro...'
+      });
+
+      this.relatoriosService.gerarRelatorio('financeiro', { dataInicio, dataFim }).subscribe({
+        next: (blob) => {
+          this.relatoriosService.abrirBlobEmNovaAba(blob);
+        },
+        error: (err) => {
+          console.error(err);
+          this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao gerar relatório.' });
+        }
+      });
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Impressão',
+        detail: `Exportando em formato ${tipo.toUpperCase()}...`
+      });
+    }
+  }
+
+  quitarContas() {
+    if (!this.selectedRows.length) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione ao menos um lançamento.' });
+      return;
+    }
+
+    this.valorTotalQuitarLote = this.selectedRows.reduce((sum, row) => sum + row.valorOriginal, 0);
+    this.contaQuitarLoteId = null;
+    this.quitarLoteDialogVisible = true;
+  }
+
+  confirmarQuitar() {
+    if (!this.contaQuitarLoteId) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione a conta bancária para o recebimento.' });
+      return;
+    }
+    
+    this.loading = true;
+    const requests = this.selectedRows.map(row => {
+      const payload = {
+        descricao: row.descricao,
+        clienteId: row.clienteId,
+        dataEmissao: row.dataEmissao,
+        dataVencimento: row.dataVencimento,
+        valorOriginal: row.valorOriginal,
+        tipoTitulo: row.tipoTitulo,
+        centroCustoId: row.centroCustoId,
+        planoContasId: row.planoContasId,
+        dataRecebimento: new Date().toISOString().split('T')[0],
+        valorRecebido: row.valorOriginal,
+        formaPagamentoId: row.formaPagamentoId || 1,
+        contaBancariaId: this.contaQuitarLoteId,
+        status: 'PAGO',
+        observacoes: row.observacoes || 'Quitação em lote'
+      };
+      return this.service.receberTitulo(row.id, payload);
+    });
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `${this.selectedRows.length} contas baixadas!` });
+        this.selectedRows = [];
+        this.quitarLoteDialogVisible = false;
+        this.carregar();
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao baixar uma ou mais contas.' });
+      }
+    });
   }
 
   abrirNovo() {
@@ -143,9 +438,71 @@ export class ContasReceberComponent implements OnInit {
       tipoTitulo: row.tipoTitulo,
       observacoes: row.observacoes || '',
       receberAgora: false,
+      formaPagamentoId: row.formaPagamentoId,
+      contaBancariaId: row.contaBancariaId,
+      centroCustoId: row.centroCustoId,
+      planoContasId: row.planoContasId,
+      numeroTitulo: row.numeroTitulo || '',
     };
     this._clienteNome = `Cliente #${row.clienteId}`;
     this.dialogVisible = true;
+  }
+
+  abrirDetalhes(row: ContasReceberResponse) {
+    this.service.getReceberById(row.id).subscribe({
+      next: (res) => {
+        this.detalhesRowSelected = res;
+        this.dialogDetalhesVisible = true;
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar detalhes.' })
+    });
+  }
+
+  getAnexoIcon(tipo: string): string {
+    if (tipo?.includes('pdf')) return 'pi-file-pdf';
+    if (tipo?.includes('image')) return 'pi-image';
+    return 'pi-file';
+  }
+
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  onFileSelected(event: any, contaId: number) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Arquivo excede limite de 5MB' });
+        return;
+      }
+      this.service.uploadAnexo(contaId, file).subscribe({
+        next: (res) => {
+          this.messageService.add({ severity: 'success', summary: 'Anexo adicionado' });
+          if (this.detalhesRowSelected) {
+            this.detalhesRowSelected.anexos = [...(this.detalhesRowSelected.anexos || []), res];
+          }
+        },
+        error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao fazer upload do anexo' })
+      });
+    }
+  }
+
+  baixarAnexo(contaId: number, anexo: any) {
+    this.service.downloadAnexo(contaId, anexo.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = anexo.nomeArquivo;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao baixar anexo' })
+    });
   }
 
   filtrarClientes(event: any) {
@@ -155,8 +512,8 @@ export class ContasReceberComponent implements OnInit {
   }
 
   salvar() {
-    if (!this.form.descricao || !this.form.valorOriginal || !this.form.clienteId) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha Descrição, Cliente e Valor.' });
+    if (!this.form.descricao || !this.form.valorOriginal) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha Descrição e Valor.' });
       return;
     }
     this.salvando = true;
@@ -164,7 +521,7 @@ export class ContasReceberComponent implements OnInit {
 
     const dto: ContasReceberRequest = {
       descricao: this.form.descricao,
-      clienteId: this.form.clienteId,
+      clienteId: this.form.clienteId || null,
       dataEmissao: toISO(this.form.dataEmissao),
       dataVencimento: toISO(this.form.dataVencimento),
       valorOriginal: this.form.valorOriginal,
@@ -173,6 +530,11 @@ export class ContasReceberComponent implements OnInit {
       status: this.form.receberAgora ? StatusTitulo.PAGO : StatusTitulo.ABERTO,
       dataRecebimento: this.form.receberAgora ? toISO(new Date()) : undefined,
       valorRecebido: this.form.receberAgora ? this.form.valorOriginal : undefined,
+      formaPagamentoId: this.form.formaPagamentoId || undefined,
+      contaBancariaId: this.form.contaBancariaId || undefined,
+      centroCustoId: this.form.centroCustoId || undefined,
+      planoContasId: this.form.planoContasId || undefined,
+      numeroTitulo: this.form.numeroTitulo || undefined,
     };
 
     const op$ = this.editandoId
@@ -194,29 +556,103 @@ export class ContasReceberComponent implements OnInit {
   }
 
   receber(row: ContasReceberResponse) {
+    this.receberRowSelected = row;
+
+    // Calcular juros e multa sugeridos
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const vencimento = new Date(row.dataVencimento + 'T00:00');
+    let juros = 0;
+    let multa = 0;
+
+    if (vencimento < hoje) {
+      // Multa padrão de 2%
+      multa = row.valorOriginal * 0.02;
+      // Juros padrão de 0.033% ao dia (aproximadamente 1% ao mês)
+      const diffTime = Math.abs(hoje.getTime() - vencimento.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      juros = row.valorOriginal * 0.00033 * diffDays;
+    }
+
+    this.formRecebimento = {
+      id: row.id,
+      descricao: row.descricao,
+      valorOriginal: row.valorOriginal,
+      valorJuros: Number(juros.toFixed(2)),
+      valorMulta: Number(multa.toFixed(2)),
+      valorDesconto: 0,
+      valorTotal: Number((row.valorOriginal + juros + multa).toFixed(2)),
+      dataRecebimento: new Date(),
+      formaPagamentoId: row.formaPagamentoId || (this.formasPagamento.length > 0 ? this.formasPagamento[0].value : null),
+      contaBancariaId: row.contaBancariaId || (this.contasBancarias.length > 0 ? this.contasBancarias[0].value : null),
+    };
+
+    this.receberDialogVisible = true;
+  }
+
+  recalcularTotalRecebimento() {
+    const original = this.formRecebimento.valorOriginal || 0;
+    const juros = this.formRecebimento.valorJuros || 0;
+    const multa = this.formRecebimento.valorMulta || 0;
+    const desconto = this.formRecebimento.valorDesconto || 0;
+    this.formRecebimento.valorTotal = Number((original + juros + multa - desconto).toFixed(2));
+  }
+
+  salvarRecebimento() {
+    this.salvando = true;
+    const toISO = (d: Date) => d instanceof Date ? d.toISOString().split('T')[0] : d;
+
+    const dto: ContasReceberRequest = {
+      descricao: this.receberRowSelected.descricao,
+      clienteId: this.receberRowSelected.clienteId,
+      dataEmissao: this.receberRowSelected.dataEmissao,
+      dataVencimento: this.receberRowSelected.dataVencimento,
+      valorOriginal: this.receberRowSelected.valorOriginal,
+      tipoTitulo: this.receberRowSelected.tipoTitulo,
+      observacoes: this.receberRowSelected.observacoes,
+      status: StatusTitulo.PAGO,
+      dataRecebimento: toISO(this.formRecebimento.dataRecebimento),
+      valorRecebido: this.formRecebimento.valorTotal,
+      valorJuros: this.formRecebimento.valorJuros,
+      valorMulta: this.formRecebimento.valorMulta,
+      valorDesconto: this.formRecebimento.valorDesconto,
+      formaPagamentoId: this.formRecebimento.formaPagamentoId,
+      contaBancariaId: this.formRecebimento.contaBancariaId,
+      centroCustoId: this.receberRowSelected.centroCustoId,
+      planoContasId: this.receberRowSelected.planoContasId,
+    };
+
+    this.service.updateReceber(this.formRecebimento.id, dto).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Recebido!', detail: 'Conta marcada como recebida.' });
+        this.receberDialogVisible = false;
+        this.salvando = false;
+        this.carregar();
+      },
+      error: () => {
+        this.salvando = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível registrar o recebimento.' });
+      }
+    });
+  }
+
+  desfazerQuitacao(row: ContasReceberResponse) {
     this.confirmationService.confirm({
-      title: 'Confirmar Recebimento',
-      message: `Registrar recebimento de "${row.descricao}" — <strong>${this.formatCurrency(row.valorOriginal)}</strong>?`,
-      confirmText: 'Sim, receber',
+      title: 'Confirmar Estorno',
+      message: `Deseja realmente desfazer a quitação de "<strong>${row.descricao}</strong>"? O título voltará para o status original de pendente.`,
+      confirmText: 'Confirmar',
       cancelText: 'Cancelar',
-      type: 'info'
+      type: 'warning'
     }).subscribe(confirmed => {
       if (confirmed) {
-        const dto: ContasReceberRequest = {
-          descricao: row.descricao,
-          clienteId: row.clienteId,
-          dataEmissao: row.dataEmissao,
-          dataVencimento: row.dataVencimento,
-          valorOriginal: row.valorOriginal,
-          tipoTitulo: row.tipoTitulo,
-          observacoes: row.observacoes,
-          status: StatusTitulo.PAGO,
-          dataRecebimento: new Date().toISOString().split('T')[0],
-          valorRecebido: row.valorOriginal,
-        };
-        this.service.updateReceber(row.id, dto).subscribe({
-          next: () => { this.messageService.add({ severity: 'success', summary: 'Recebido!', detail: 'Conta marcada como recebida.' }); this.carregar(); },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível registrar.' })
+        this.service.desfazerQuitacao(row.id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Quitação desfeita!' });
+            this.carregar();
+          },
+          error: (err: any) => {
+            console.error(err);
+            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível desfazer a quitação.' });
+          }
         });
       }
     });

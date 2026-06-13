@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -14,6 +16,7 @@ import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "produtos")
@@ -81,6 +84,9 @@ public class Produto extends TenantEntity {
     @Column(name = "dimensoes_altura", precision = 8, scale = 2)
     private BigDecimal dimensoesAltura;
 
+    @Column(name = "preco_compra", precision = 10, scale = 4)
+    private BigDecimal precoCompra;
+
     @Column(name = "preco_custo", precision = 10, scale = 4, nullable = false)
     private BigDecimal precoCusto;
 
@@ -141,8 +147,33 @@ public class Produto extends TenantEntity {
     @Column(name = "comissao_venda_percentual", precision = 5, scale = 2)
     private BigDecimal comissaoVendaPercentual;
 
+    @OneToOne(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private ProdutoFiscal dadosFiscais;
+
     @Formula("(SELECT COALESCE(SUM(e.quantidade_atual), 0) FROM estoques e WHERE e.produto_id = id AND e.empresa_id = empresa_id)")
     private BigDecimal quantidadeEstoque;
+
+    @Size(max = 100)
+    @Column(name = "endereco_estoque", length = 100)
+    private String enderecoEstoque;
+
+    @Size(max = 100)
+    @Column(name = "setor", length = 100)
+    private String setor;
+
+    @Column(name = "data_vencimento")
+    private LocalDate dataVencimento;
+
+    @Size(max = 50)
+    @Column(name = "codigo_substituto_1", length = 50)
+    private String codigoSubstituto1;
+
+    @Size(max = 50)
+    @Column(name = "codigo_substituto_2", length = 50)
+    private String codigoSubstituto2;
+
+    @Column(name = "desconto_fornecedor_percentual", precision = 5, scale = 2)
+    private BigDecimal descontoFornecedorPercentual;
 
     public CategoriaProduto getCategoria() {
         return categoria;
@@ -278,6 +309,14 @@ public class Produto extends TenantEntity {
 
     public void setDimensoesAltura(BigDecimal dimensoesAltura) {
         this.dimensoesAltura = dimensoesAltura;
+    }
+
+    public BigDecimal getPrecoCompra() {
+        return precoCompra;
+    }
+
+    public void setPrecoCompra(BigDecimal precoCompra) {
+        this.precoCompra = precoCompra;
     }
 
     public BigDecimal getPrecoCusto() {
@@ -446,5 +485,64 @@ public class Produto extends TenantEntity {
 
     public void setQuantidadeEstoque(BigDecimal quantidadeEstoque) {
         this.quantidadeEstoque = quantidadeEstoque;
+    }
+
+    public String getEnderecoEstoque() {
+        return enderecoEstoque;
+    }
+
+    public void setEnderecoEstoque(String enderecoEstoque) {
+        this.enderecoEstoque = enderecoEstoque;
+    }
+
+    public String getSetor() {
+        return setor;
+    }
+
+    public void setSetor(String setor) {
+        this.setor = setor;
+    }
+
+    public LocalDate getDataVencimento() {
+        return dataVencimento;
+    }
+
+    public void setDataVencimento(LocalDate dataVencimento) {
+        this.dataVencimento = dataVencimento;
+    }
+
+    public String getCodigoSubstituto1() {
+        return codigoSubstituto1;
+    }
+
+    public void setCodigoSubstituto1(String codigoSubstituto1) {
+        this.codigoSubstituto1 = codigoSubstituto1;
+    }
+
+    public String getCodigoSubstituto2() {
+        return codigoSubstituto2;
+    }
+
+    public void setCodigoSubstituto2(String codigoSubstituto2) {
+        this.codigoSubstituto2 = codigoSubstituto2;
+    }
+
+    public BigDecimal getDescontoFornecedorPercentual() {
+        return descontoFornecedorPercentual;
+    }
+
+    public void setDescontoFornecedorPercentual(BigDecimal descontoFornecedorPercentual) {
+        this.descontoFornecedorPercentual = descontoFornecedorPercentual;
+    }
+
+    public ProdutoFiscal getDadosFiscais() {
+        return dadosFiscais;
+    }
+
+    public void setDadosFiscais(ProdutoFiscal dadosFiscais) {
+        this.dadosFiscais = dadosFiscais;
+        if (dadosFiscais != null) {
+            dadosFiscais.setProduto(this);
+        }
     }
 }

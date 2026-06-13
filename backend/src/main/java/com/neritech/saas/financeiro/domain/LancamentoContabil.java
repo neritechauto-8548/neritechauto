@@ -1,6 +1,7 @@
 package com.neritech.saas.financeiro.domain;
 
 import com.neritech.saas.common.audit.BaseEntity;
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,7 +45,7 @@ public class LancamentoContabil extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "centro_custo_id")
-    private CentroCusto centroCusto;
+    private DepartamentoContabio centroCusto;
 
     @Column(name = "usuario_lancamento", nullable = false)
     private Long usuarioLancamento;
@@ -106,10 +107,10 @@ public class LancamentoContabil extends BaseEntity {
     public void setContaCredito(PlanoConta contaCredito) {
         this.contaCredito = contaCredito;
     }
-    public CentroCusto getCentroCusto() {
+    public DepartamentoContabio getCentroCusto() {
         return this.centroCusto;
     }
-    public void setCentroCusto(CentroCusto centroCusto) {
+    public void setCentroCusto(DepartamentoContabio centroCusto) {
         this.centroCusto = centroCusto;
     }
     public Long getUsuarioLancamento() {

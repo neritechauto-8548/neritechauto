@@ -146,12 +146,6 @@
           "icon": "pi pi-arrow-circle-up"
         },
         {
-          "route": "notas-compra",
-          "name": "notas de compra",
-          "type": "link",
-          "icon": "pi pi-list"
-        },
-        {
           "route": "comissoes",
           "name": "comissões",
           "type": "link",

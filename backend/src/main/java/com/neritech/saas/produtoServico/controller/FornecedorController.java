@@ -41,7 +41,11 @@ public class FornecedorController {
     @Operation(summary = "Listar fornecedores por empresa (paginado)")
     public ResponseEntity<Page<FornecedorResponse>> findAll(
             @RequestParam Long empresaId,
+            @RequestParam(required = false) String search,
             Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return ResponseEntity.ok(service.search(empresaId, search, pageable));
+        }
         return ResponseEntity.ok(service.findAll(empresaId, pageable));
     }
 

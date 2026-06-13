@@ -1,6 +1,7 @@
 package com.neritech.saas.financeiro.domain;
 
 import com.neritech.saas.common.tenancy.TenantEntity;
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
 import com.neritech.saas.financeiro.domain.enums.StatusTitulo;
 import com.neritech.saas.financeiro.domain.enums.TipoTitulo;
 import jakarta.persistence.*;
@@ -78,7 +79,7 @@ public class ContasPagar extends TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "centro_custo_id")
-    private CentroCusto centroCusto;
+    private DepartamentoContabio centroCusto;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plano_contas_id")
@@ -113,7 +114,7 @@ public class ContasPagar extends TenantEntity {
         this.contaBancaria = contaBancaria;
     }
 
-    public void setCentroCusto(CentroCusto centroCusto) {
+    public void setCentroCusto(DepartamentoContabio centroCusto) {
         this.centroCusto = centroCusto;
     }
 

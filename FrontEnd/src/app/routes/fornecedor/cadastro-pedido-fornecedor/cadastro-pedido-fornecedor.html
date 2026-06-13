@@ -68,9 +68,6 @@
                               </div>
                           </ng-template>
                       </p-autoComplete>
-                      <button *ngIf="!somenteLeitura" (click)="buscarFornecedor()" class="h-[38px] px-3 bg-blue-50 border border-blue-200 text-blue-600 rounded-md hover:bg-blue-100 transition-colors flex items-center justify-center shrink-0" title="Cadastrar novo Fornecedor rápido">
-                          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
-                      </button>
                   </div>
               </div>
 
@@ -98,9 +95,26 @@
               </div>
 
               <!-- Número NF -->
-              <div class="flex flex-col gap-1.5 md:col-span-8">
+              <div class="flex flex-col gap-1.5" [ngClass]="pedidoId ? 'md:col-span-4' : 'md:col-span-8'">
                   <label class="text-xs font-bold text-slate-700">Número da Nota Fiscal (NF)</label>
                   <input pInputText [(ngModel)]="form.numeroNf" [disabled]="somenteLeitura" class="w-full modern-input font-medium" placeholder="Opcional" />
+              </div>
+
+              <!-- Status -->
+              <div *ngIf="pedidoId" class="flex flex-col gap-1.5 md:col-span-4">
+                  <label class="text-xs font-bold text-slate-700">Status do Pedido</label>
+                  <div (click)="abrirDialogStatus()" class="h-[38px] px-3 border border-slate-300 rounded-md flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors bg-white">
+                      <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border"
+                            [ngStyle]="
+                              form.status === 'PENDENTE' ? {'background-color': '#fffbeb', 'color': '#d97706', 'border-color': '#fde68a'} :
+                              form.status === 'ENVIADO' ? {'background-color': '#eff6ff', 'color': '#2563eb', 'border-color': '#bfdbfe'} :
+                              form.status === 'RECEBIDO' ? {'background-color': '#f0fdf4', 'color': '#16a34a', 'border-color': '#bbf7d0'} :
+                              {'background-color': '#fef2f2', 'color': '#dc2626', 'border-color': '#fecaca'}
+                            ">
+                          {{ form.status === 'PENDENTE' ? 'AGUARDANDO' : (form.status === 'ENVIADO' ? 'ENVIADO' : (form.status === 'RECEBIDO' ? 'ENTREGUE' : 'CANCELADO')) }}
+                      </span>
+                      <mat-icon *ngIf="!somenteLeitura" class="text-slate-400 !text-[18px] !w-[18px] !h-[18px]">edit</mat-icon>
+                  </div>
               </div>
 
               <!-- Observações -->
@@ -109,17 +123,161 @@
                   <textarea pTextarea [(ngModel)]="form.observacao" [disabled]="somenteLeitura" rows="3" class="w-full modern-input resize-y min-h-[80px]" placeholder="Instruções para o fornecedor..."></textarea>
               </div>
 
-              <!-- Descrição Interna -->
-              <div class="flex flex-col gap-1.5 md:col-span-12">
-                  <label class="text-xs font-bold text-slate-700">Descrição Interna</label>
-                  <textarea pTextarea [(ngModel)]="form.descricaoInterna" [disabled]="somenteLeitura" rows="3" class="w-full modern-input resize-y bg-amber-50/50" placeholder="Anotações visíveis apenas para a equipe..."></textarea>
+              <!-- Descricao Interna removed per user request -->
+          </div>
+      </div>
+      
+      <!-- Produtos Section -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm mt-8">
+          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                  <mat-icon class="text-slate-500 !text-[20px] !w-[20px] !h-[20px]">shopping_cart</mat-icon>
+                  <h3 class="font-bold text-slate-800 text-sm">Produtos do Pedido</h3>
               </div>
+              <button *ngIf="!somenteLeitura" (click)="adicionarItem()" type="button" class="text-xs font-semibold !text-blue-600 !bg-white border !border-blue-200 px-3 py-1.5 rounded hover:!bg-blue-50 transition-colors flex items-center gap-1.5 shadow-sm">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">add</mat-icon>
+                  Adicionar Produto
+              </button>
+          </div>
+          
+          <div class="p-0 overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                      <tr class="bg-slate-50 border-b border-slate-200">
+                          <th class="py-3 px-4 text-xs font-semibold text-slate-600 uppercase tracking-wide w-[40%]">Produto</th>
+                          <th class="py-3 px-4 text-xs font-semibold text-slate-600 uppercase tracking-wide w-[20%]">Quantidade</th>
+                          <th class="py-3 px-4 text-xs font-semibold text-slate-600 uppercase tracking-wide w-[20%]">Preço Un.</th>
+                          <th class="py-3 px-4 text-xs font-semibold text-slate-600 uppercase tracking-wide w-[15%]">Total</th>
+                          <th *ngIf="!somenteLeitura" class="py-3 px-4 w-[5%]"></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr *ngFor="let item of form.itens; let i = index" class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                          <td class="p-3">
+                              <div class="flex items-center gap-2">
+                                  <span *ngIf="item.produto" class="flex-1 font-medium text-sm text-slate-800 border border-slate-200 bg-white px-3 py-2 rounded-md">{{ item.produto.nome }}</span>
+                                  <span *ngIf="!item.produto" class="flex-1 text-sm text-slate-400 italic border border-slate-200 bg-slate-50 px-3 py-2 rounded-md">Selecione um produto</span>
+                                  <button *ngIf="!somenteLeitura" (click)="abrirDialogProdutos(i)" type="button" class="h-[38px] px-3 !bg-white border !border-blue-200 !text-blue-600 rounded-md hover:!bg-blue-50 transition-colors flex items-center justify-center shrink-0" title="Buscar Produto">
+                                      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">search</mat-icon>
+                                  </button>
+                              </div>
+
+                          </td>
+                          <td class="p-3">
+                              <input type="number" pInputText [(ngModel)]="item.quantidade" (ngModelChange)="calcularSubtotal(item)" [disabled]="somenteLeitura" class="w-full modern-input font-medium" min="1" max="99999999" />
+                          </td>
+                          <td class="p-3">
+                              <input type="number" pInputText [(ngModel)]="item.precoUnitario" (ngModelChange)="calcularSubtotal(item)" [disabled]="somenteLeitura" class="w-full modern-input font-medium" min="0" step="0.01" />
+                          </td>
+                          <td class="p-3 font-semibold text-slate-800">
+                              {{ item.subtotal | currency:'BRL' }}
+                          </td>
+                          <td *ngIf="!somenteLeitura" class="p-3 text-center">
+                              <button (click)="removerItem(i)" class="text-slate-400 hover:text-red-500 transition-colors rounded-md p-1 hover:bg-red-50" title="Remover item">
+                                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete</mat-icon>
+                              </button>
+                          </td>
+                      </tr>
+                      <tr *ngIf="form.itens.length === 0">
+                          <td colspan="5" class="p-6 text-center text-slate-400 text-sm">
+                              Nenhum produto adicionado ao pedido.
+                          </td>
+                      </tr>
+                  </tbody>
+                  <tfoot *ngIf="form.itens.length > 0" class="bg-slate-50 border-t border-slate-200">
+                      <tr>
+                          <td colspan="3" class="p-4 text-right font-bold text-slate-600 text-sm uppercase">Total do Pedido:</td>
+                          <td colspan="2" class="p-4 font-bold text-blue-600 text-lg">{{ totalPedido | currency:'BRL' }}</td>
+                      </tr>
+                  </tfoot>
+              </table>
           </div>
       </div>
   </div>
 
+
   <!-- Modal de cadastro de fornecedor -->
   <p-dialog [(visible)]="showFornecedorDialog" [modal]="true" [closable]="true" [dismissableMask]="true" [header]="'Buscar / Cadastrar Fornecedor'" [style]="{ width: '75vw' }" styleClass="p-0">
-    <cadastro-fornecedor [modalMode]="true" (saved)="onFornecedorSaved($event)" (canceled)="onFornecedorCanceled()" />
+    <cadastro-fornecedor *ngIf="showFornecedorDialog" [modalMode]="true" (saved)="onFornecedorSaved($event)" (canceled)="onFornecedorCanceled()" />
+  </p-dialog>
+
+  <!-- Modal de Busca de Produtos -->
+  <p-dialog [(visible)]="showProdutoDialog" [modal]="true" [closable]="true" [dismissableMask]="true" header="Incluir Produto" [style]="{ width: '850px' }" styleClass="modern-dialog">
+      <div class="p-4 bg-white rounded-lg">
+          <!-- Filtros -->
+          <div class="flex gap-3 mb-4">
+              <div class="flex-1 relative">
+                  <input type="text" pInputText [(ngModel)]="termoBuscaProduto" placeholder="Codigo, Codigo original, Descricao..." class="w-full modern-input pl-3" (keyup.enter)="buscarProdutosDialog()" />
+              </div>
+              <button (click)="buscarProdutosDialog()" class="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-2">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">search</mat-icon> Buscar
+              </button>
+          </div>
+
+          <!-- Tabela -->
+          <p-table [value]="produtosDialog" [paginator]="true" [rows]="rowsDialog" [totalRecords]="totalRecordsDialog" [lazy]="true" (onLazyLoad)="onPageProdutoDialog($event)" [loading]="loadingProdutosDialog" styleClass="p-datatable-sm w-full border border-slate-200">
+              <ng-template pTemplate="header">
+                  <tr class="bg-slate-50 border-b border-slate-200">
+                      <th class="py-2.5 px-3 text-xs font-semibold text-slate-600 w-16">Id</th>
+                      <th class="py-2.5 px-3 text-xs font-semibold text-slate-600">Descrição</th>
+                      <th class="py-2.5 px-3 text-xs font-semibold text-slate-600">Cod Orig</th>
+                      <th class="py-2.5 px-3 text-xs font-semibold text-slate-600">Cod Fab</th>
+                      <th class="py-2.5 px-3 text-xs font-semibold text-slate-600 w-24">Estoque</th>
+                      <th class="py-2.5 px-3 text-xs font-semibold text-slate-600 w-24">Preço</th>
+                      <th class="py-2.5 px-3 w-16"></th>
+                  </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-prod>
+                  <tr class="border-b border-slate-100 hover:bg-slate-50">
+                      <td class="p-3 text-sm text-slate-700">{{ prod.id }}</td>
+                      <td class="p-3 text-sm font-medium text-slate-800">{{ prod.nome }}</td>
+                      <td class="p-3 text-sm text-slate-600">{{ prod.codigoInterno || '-' }}</td>
+                      <td class="p-3 text-sm text-slate-600">{{ prod.codigoBarras || '-' }}</td>
+                      <td class="p-3 text-sm text-slate-700 font-medium">{{ prod.estoqueAtual || 0 }}</td>
+                      <td class="p-3 text-sm text-slate-700 font-medium">{{ prod.precoVenda | currency:'BRL' }}</td>
+                      <td class="p-3 text-center">
+                          <button (click)="selecionarProdutoDialog(prod)" class="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center justify-center" title="Selecionar">
+                              <mat-icon class="!text-[18px] !w-[18px] !h-[18px] !text-white">add</mat-icon>
+                          </button>
+                      </td>
+                  </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                  <tr>
+                      <td colspan="7" class="text-center p-6 text-slate-500">Nenhum produto encontrado.</td>
+                  </tr>
+              </ng-template>
+          </p-table>
+      </div>
+  </p-dialog>
+
+  <!-- Modal de Alteração de Status -->
+  <p-dialog [(visible)]="showStatusDialog" [modal]="true" [closable]="true" [dismissableMask]="true" header="Atenção" [style]="{ width: '500px' }" styleClass="modern-dialog">
+      <div class="p-4 bg-white rounded-lg flex flex-col gap-5">
+          <h2 class="text-lg font-medium text-slate-800">Escolha o status deste pedido</h2>
+          
+          <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded border border-slate-100">
+              <p><strong>Aguardando:</strong> Pedido realizado e aguardando envio.</p>
+              <p><strong>Enviado:</strong> Pedido enviado aguardando entrega.</p>
+              <p><strong>Cancelado:</strong> Pedido foi cancelado.</p>
+              <p><strong>Entregue:</strong> Pedido foi entregue.</p>
+          </div>
+
+          <div class="flex gap-2 justify-end mt-4">
+              <button (click)="alterarStatus('PENDENTE')" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-1.5 text-xs">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">schedule</mat-icon> Aguardando
+              </button>
+              <button (click)="alterarStatus('ENVIADO')" class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-1.5 text-xs">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">local_shipping</mat-icon> Enviado
+              </button>
+              <button (click)="alterarStatus('CANCELADO')" class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-1.5 text-xs">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">close</mat-icon> Cancelado
+              </button>
+              <button (click)="alterarStatus('RECEBIDO')" class="px-3 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md shadow-sm transition-colors flex items-center gap-1.5 text-xs">
+                  <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">check</mat-icon> Entregue
+              </button>
+          </div>
+      </div>
   </p-dialog>
 </div>
+

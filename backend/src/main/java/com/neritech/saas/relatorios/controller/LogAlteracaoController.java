@@ -38,4 +38,11 @@ public class LogAlteracaoController {
         Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
         return ResponseEntity.ok(logService.findByEmpresa(empresaId));
     }
+
+    @GetMapping("/produtos/{produtoId}")
+    @Operation(summary = "Listar logs de alterações de um produto")
+    public ResponseEntity<List<com.neritech.saas.relatorios.dto.ProdutoHistoricoDTO>> getProdutoLogs(@PathVariable Long produtoId) {
+        Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        return ResponseEntity.ok(logService.getProdutoHistorico(empresaId, produtoId));
+    }
 }

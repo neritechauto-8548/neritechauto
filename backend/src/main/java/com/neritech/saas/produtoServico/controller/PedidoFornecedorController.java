@@ -52,6 +52,15 @@ public class PedidoFornecedorController {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Atualizar status do pedido de fornecedor")
+    public ResponseEntity<PedidoFornecedorResponse> updateStatus(
+            @PathVariable Long id,
+            @RequestParam com.neritech.saas.produtoServico.domain.enums.StatusPedidoFornecedor status) {
+        return ResponseEntity.ok(service.updateStatus(id, status));
+    }
+
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir pedido de fornecedor")
     @ResponseStatus(HttpStatus.NO_CONTENT)

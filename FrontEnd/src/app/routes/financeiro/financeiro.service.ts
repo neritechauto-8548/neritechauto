@@ -19,7 +19,10 @@ import {
   ContasPagarRequest,
   ContasPagarResponse,
   ContasReceberRequest,
-  ContasReceberResponse
+  ContasReceberResponse,
+  DashboardFinanceiroDTO,
+  RecebimentoTituloDTO,
+  AnexoTituloDTO
 } from './models/financeiro.models';
 
 @Injectable({
@@ -120,6 +123,38 @@ export class FinanceiroService {
     return this.http.delete<void>(`${this.API_URL_RECEBER}/${id}`, { params: { empresaId } });
   }
 
+  getDashboardReceber(empresaId?: number): Observable<DashboardFinanceiroDTO> {
+    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
+    return this.http.get<DashboardFinanceiroDTO>(`${this.API_URL_RECEBER}/dashboard`, { params });
+  }
+
+  receberTitulo(id: number, request: any, empresaId?: number): Observable<ContasReceberResponse> {
+    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
+    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/recebimentos`, request, { params });
+  }
+
+  desfazerQuitacao(id: number, empresaId?: number): Observable<ContasReceberResponse> {
+    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
+    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/desfazer-quitacao`, {}, { params });
+  }
+
+  renegociarTitulo(id: number, request: any, empresaId?: number): Observable<any> {
+    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
+    return this.http.post<any>(`${this.API_URL_RECEBER}/${id}/renegociar`, request, { params });
+  }
+
+  uploadAnexo(id: number, file: File, empresaId?: number): Observable<AnexoTituloDTO> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
+    return this.http.post<AnexoTituloDTO>(`${this.API_URL_RECEBER}/${id}/anexos`, formData, { params });
+  }
+
+  downloadAnexo(contaId: number, anexoId: number, empresaId?: number): Observable<Blob> {
+    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
+    return this.http.get(`${this.API_URL_RECEBER}/${contaId}/anexos/${anexoId}/download`, { params, responseType: 'blob' });
+  }
+
   // --- Auxiliares ---
 
   listFormasPagamento(): Observable<any> {
@@ -135,7 +170,9 @@ export class FinanceiroService {
   }
 
   listPlanosConta(): Observable<any> {
-    return this.http.get<any>(`${environment.baseUrl}/v1/financeiro/planos-conta`);
+    const empresa = this.getTenantId();
+    const params = empresa != null ? new HttpParams().set('empresaId', String(empresa)) : new HttpParams().set('empresaId', '1');
+    return this.http.get<any>(`${environment.baseUrl}/v1/financeiro/plano-contas`, { params });
   }
 
   listContasBancarias(): Observable<any> {

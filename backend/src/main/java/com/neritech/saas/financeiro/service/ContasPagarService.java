@@ -5,6 +5,7 @@ import com.neritech.saas.financeiro.dto.ContasPagarRequest;
 import com.neritech.saas.financeiro.dto.ContasPagarResponse;
 import com.neritech.saas.financeiro.mapper.ContasPagarMapper;
 import com.neritech.saas.financeiro.repository.*;
+import com.neritech.saas.empresa.repository.DepartamentoContabioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,7 +20,7 @@ public class ContasPagarService {
     private final ContasPagarRepository repository;
     private final FormaPagamentoRepository formaPagamentoRepository;
     private final ContaBancariaRepository contaBancariaRepository;
-    private final CentroCustoRepository centroCustoRepository;
+    private final DepartamentoContabioRepository departamentoContabioRepository;
     private final PlanoContaRepository planoContaRepository;
     private final ContasPagarMapper mapper;
 
@@ -87,9 +88,9 @@ public class ContasPagarService {
         }
 
         if (request.centroCustoId() != null) {
-            CentroCusto centro = centroCustoRepository.findById(request.centroCustoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Centro de custo nÃ£o encontrado"));
-            entity.setCentroCusto(centro);
+            com.neritech.saas.empresa.domain.DepartamentoContabio depto = departamentoContabioRepository.findById(request.centroCustoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Departamento não encontrado"));
+            entity.setCentroCusto(depto);
         } else {
             entity.setCentroCusto(null);
         }

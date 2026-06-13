@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface ContasPagarRepository extends JpaRepository<ContasPagar, Long>, JpaSpecificationExecutor<ContasPagar> {
     Page<ContasPagar> findByEmpresaId(Long empresaId, Pageable pageable);
+    java.util.List<ContasPagar> findByEmpresaId(Long empresaId);
+    java.util.List<ContasPagar> findByEmpresaIdAndDataVencimentoBetween(Long empresaId, java.time.LocalDate inicio, java.time.LocalDate fim);
 
     Optional<ContasPagar> findByIdAndEmpresaId(Long id, Long empresaId);
 

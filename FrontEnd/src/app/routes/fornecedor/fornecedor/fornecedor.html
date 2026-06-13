@@ -6,23 +6,18 @@
        <div class="relative w-full sm:max-w-md group flex items-center">
             <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none !text-[18px] !w-[18px] !h-[18px]">search</mat-icon>
 
-            <p-select [options]="filterOptions" [(ngModel)]="filterType" styleClass="w-36 border-0 shadow-none !bg-transparent text-sm text-slate-600 border-r border-slate-200 rounded-none ml-10"></p-select>
-
             <input
                 pInputText
                 [(ngModel)]="searchTerm"
                 (keyup.enter)="onSearch()"
                 placeholder="Buscar fornecedor..."
-                class="w-full pl-3 pr-12 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+                class="w-full pl-12 pr-12 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
             />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">Enter</div>
        </div>
 
        <!-- New Fornecedor Button -->
        <div class="flex items-center gap-2">
-           <button (click)="imprimir()" class="hidden sm:flex px-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-sm items-center gap-2">
-               <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon> <span class="hidden md:inline">Imprimir</span>
-           </button>
            <button (click)="cadastrarFornecedor()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
               <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
               <span>Novo Fornecedor</span>

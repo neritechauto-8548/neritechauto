@@ -65,6 +65,14 @@ export class PedidoFornecedorService {
     });
   }
 
+  updateStatus(id: number | string, status: string): Observable<PedidoFornecedorResponse> {
+    return this.http.patch<PedidoFornecedorResponse>(`${this.base}/${id}/status`, null, {
+      headers: this.getHeaders(),
+      params: this.getEmpresaIdParam({ status }),
+    });
+  }
+
+
   delete(id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`, {
       headers: this.getHeaders(),

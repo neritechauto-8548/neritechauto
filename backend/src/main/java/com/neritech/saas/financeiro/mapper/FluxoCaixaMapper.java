@@ -16,7 +16,7 @@ public interface FluxoCaixaMapper {
     FluxoCaixa toEntity(FluxoCaixaRequest request);
 
     @Mapping(target = "contaBancariaNome", source = "contaBancaria.bancoNome")
-    @Mapping(target = "centroCustoNome", source = "centroCusto.nome")
+    @Mapping(target = "centroCustoNome", source = "centroCusto.descricao")
     @Mapping(target = "planoContasId", ignore = true)
     @Mapping(target = "planoContasNome", ignore = true)
     @Mapping(target = "pagamentoId", expression = "java(getPagamentoId(entity))")

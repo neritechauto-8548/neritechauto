@@ -12,5 +12,7 @@ public record PedidoFornecedorRequest(
         LocalDate dataPrevisao,
         String numeroNf,
         String observacao,
-        String descricaoInterna
+        String descricaoInterna,
+        java.util.List<ItemPedidoFornecedorRequest> itens
 ) {}
+

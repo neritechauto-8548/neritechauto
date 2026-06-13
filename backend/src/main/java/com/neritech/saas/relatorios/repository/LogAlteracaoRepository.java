@@ -12,6 +12,8 @@ public interface LogAlteracaoRepository extends JpaRepository<LogAlteracao, Long
 
     List<LogAlteracao> findByEmpresaIdAndTabelaAfetada(Long empresaId, String tabelaAfetada);
 
+    List<LogAlteracao> findByEmpresaIdAndTabelaAfetadaAndRegistroIdOrderByDataAlteracaoAsc(Long empresaId, String tabelaAfetada, Long registroId);
+
     List<LogAlteracao> findByEmpresaIdAndUsuarioResponsavel(Long empresaId, Long usuarioResponsavel);
 }
 

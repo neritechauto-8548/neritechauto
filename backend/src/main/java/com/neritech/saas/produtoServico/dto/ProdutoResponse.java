@@ -25,6 +25,7 @@ public record ProdutoResponse(
                 BigDecimal dimensoesComprimento,
                 BigDecimal dimensoesLargura,
                 BigDecimal dimensoesAltura,
+                BigDecimal precoCompra,
                 BigDecimal precoCusto,
                 BigDecimal precoVenda,
                 BigDecimal margemLucroPercentual,
@@ -45,5 +46,12 @@ public record ProdutoResponse(
                 Boolean promocional,
                 Integer pontosFidelidade,
                 BigDecimal comissaoVendaPercentual,
-                BigDecimal quantidadeEstoque) {
+                BigDecimal quantidadeEstoque,
+                String enderecoEstoque,
+                String setor,
+                java.time.LocalDate dataVencimento,
+                String codigoSubstituto1,
+                String codigoSubstituto2,
+                BigDecimal descontoFornecedorPercentual,
+                ProdutoFiscalResponse dadosFiscais) {
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { FinanceiroService } from '../financeiro.service';
+import { DepartamentoService } from '../../configuracoes/departamentos/departamento.service';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -42,6 +43,7 @@ interface LinhaCaixa {
 export class CaixaComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly finService = inject(FinanceiroService);
+  private readonly departamentoService = inject(DepartamentoService);
   private readonly messageService = inject(MessageService);
   private readonly confirmService = inject(ConfirmationService);
 
@@ -61,7 +63,7 @@ export class CaixaComponent implements OnInit {
     { label: 'Todas as contas', value: 'TODAS' }
   ];
   centroCustoOptions: { label: string; value: number | 'TODOS' }[] = [
-    { label: 'Todos os centros', value: 'TODOS' }
+    { label: 'Todos os departamentos', value: 'TODOS' }
   ];
   contasTransf: { label: string; value: number }[] = [];
 
@@ -323,10 +325,10 @@ export class CaixaComponent implements OnInit {
         this.contasTransf = items;
       }
     });
-    this.finService.listCentrosCusto().subscribe({
+    this.departamentoService.list({ size: 1000 }).subscribe({
       next: (page) => {
-        const items = (page?.content || []).map((c: any) => ({ label: c.nome, value: Number(c.id) }));
-        this.centroCustoOptions = [{ label: 'Todos os centros', value: 'TODOS' }, ...items];
+        const items = (page?.content || []).map((c: any) => ({ label: c.descricao, value: Number(c.id) }));
+        this.centroCustoOptions = [{ label: 'Todos os departamentos', value: 'TODOS' }, ...items];
       }
     });
   }

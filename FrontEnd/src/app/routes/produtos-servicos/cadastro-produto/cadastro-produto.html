@@ -43,181 +43,1070 @@
 
     <ng-container *ngIf="(!loading && form) || form.value.nome">
         <!-- Content Area -->
-        <div class="animate-fade-in-up space-y-6" [formGroup]="form">
+        <div class="animate-fade-in-up" [formGroup]="form">
 
-            <!-- Section: Dados Gerais -->
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800 text-sm">Identificação e Detalhes</h3>
-                    <div class="flex items-center gap-2">
-                        <p-checkbox formControlName="ativo" [binary]="true" inputId="ativo" />
-                        <label for="ativo" class="text-sm font-bold text-slate-700 cursor-pointer">Produto Ativo</label>
-                    </div>
-                </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <p-tabs [value]="0">
+                <p-tablist>
+                    <p-tab [value]="0"><i class="pi pi-box mr-2"></i> Dados Básicos</p-tab>
+                    <p-tab [value]="1"><i class="pi pi-calculator mr-2"></i> Dados Fiscais</p-tab>
+                    <p-tab [value]="2"><i class="pi pi-users mr-2"></i> Cotações</p-tab>
+                    <p-tab [value]="3" [disabled]="!editingId"><i class="pi pi-image mr-2"></i> Imagens</p-tab>
+                </p-tablist>
 
-                    <!-- Linha 1: Códigos -->
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Código Interno *</label>
-                        <input pInputText formControlName="codigoInterno" class="w-full modern-input" maxlength="50" placeholder="Ex: PRD-001" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Código de Barras (EAN)</label>
-                        <input pInputText formControlName="codigoBarras" class="w-full modern-input" maxlength="50" placeholder="789..." />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Cód. Fabricante (Referência)</label>
-                        <input pInputText formControlName="codigoFabricante" class="w-full modern-input" maxlength="50" />
-                    </div>
+                <p-tabpanels>
+                    <!-- ABA 0: DADOS BÁSICOS -->
+                    <p-tabpanel [value]="0">
+                        <div class="space-y-6 pt-4">
+                            <!-- Section: Dados Gerais -->
+                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                                    <h3 class="font-bold text-slate-800 text-sm">Identificação e Detalhes</h3>
+                                </div>
+                                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+                                     <!-- Linha 1 -->
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Código Interno *</label>
+                                         <input pInputText formControlName="codigoInterno" class="w-full modern-input" maxlength="50" placeholder="Ex: PRD-001"
+                                             pTooltip="Código único de identificação interno do produto no sistema" tooltipPosition="top" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Código de Barras (EAN)</label>
+                                         <input pInputText formControlName="codigoBarras" class="w-full modern-input" maxlength="14" placeholder="Apenas dígitos..."
+                                             (input)="formatarEan($event)"
+                                             pTooltip="EAN-8, EAN-13 ou EAN-14. Somente números (máx. 14 dígitos)" tooltipPosition="top" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Cód. Fabricante (Referência)</label>
+                                         <input pInputText formControlName="codigoFabricante" class="w-full modern-input" maxlength="50"
+                                             pTooltip="Código de referência do fabricante (OEM, cross reference, número da peça)" tooltipPosition="top" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Marca</label>
+                                         <input pInputText formControlName="marca" class="w-full modern-input" maxlength="100"
+                                             pTooltip="Marca/fabricante do produto" tooltipPosition="top" />
+                                     </div>
 
-                    <!-- Linha 2: Nome -->
-                    <div class="md:col-span-3 space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Nome do Produto *</label>
-                        <input pInputText formControlName="nome" class="w-full modern-input text-base font-medium" maxlength="255" placeholder="Nome principal do produto" />
-                    </div>
+                                     <!-- Linha 2 -->
+                                     <div class="md:col-span-4 space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Nome do Produto *</label>
+                                         <input pInputText formControlName="nome" class="w-full modern-input text-base font-medium" maxlength="255" placeholder="Nome principal do produto"
+                                             pTooltip="Nome completo do produto como será exibido em notas fiscais e relatórios" tooltipPosition="top" />
+                                     </div>
 
-                    <!-- Linha 3: Marca e Modelo -->
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Marca</label>
-                        <input pInputText formControlName="marca" class="w-full modern-input" maxlength="100" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Modelo</label>
-                        <input pInputText formControlName="modelo" class="w-full modern-input" maxlength="100" />
-                    </div>
-                    <div class="hidden md:block"></div><!-- Spacer -->
+                                     <!-- Linha 3 -->
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Categoria</label>
+                                         <p-select formControlName="categoriaId" [options]="categoriaOptions"
+                                             optionLabel="label" optionValue="value"
+                                             placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body"
+                                             pTooltip="Categoria para organização e filtros de relatório" tooltipPosition="top" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Unidade de Medida</label>
+                                         <p-select formControlName="unidadeMedidaId" [options]="unidadeOptions"
+                                             optionLabel="label" optionValue="value"
+                                             placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body"
+                                             pTooltip="Unidade de comercialização do produto (UN, KG, MT, CX...)" tooltipPosition="top" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Endereço (Estoque)</label>
+                                         <input pInputText formControlName="enderecoEstoque" class="w-full modern-input" maxlength="100" placeholder="Ex: Corredor A, Prateleira 2"
+                                             pTooltip="Localização física no depósito (corredor, prateleira, gaveta)" tooltipPosition="top" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Setor</label>
+                                         <p-select formControlName="setor" [options]="setorOptions"
+                                             optionLabel="label" optionValue="value"
+                                             placeholder="Selecione o setor..." styleClass="w-full modern-select" appendTo="body" [filter]="true"
+                                             pTooltip="Setor da empresa responsável por este produto (cadastre setores em Configurações > Setores)" tooltipPosition="top" />
+                                     </div>
 
-                    <!-- Linha 4: Categoria e UM -->
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Categoria</label>
-                        <p-select formControlName="categoriaId" [options]="categoriaOptions"
-                            optionLabel="label" optionValue="value"
-                            placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Unidade de Medida</label>
-                        <p-select formControlName="unidadeMedidaId" [options]="unidadeOptions"
-                            optionLabel="label" optionValue="value"
-                            placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body" />
-                    </div>
-                    <div class="hidden md:block"></div><!-- Spacer -->
+                                    <!-- Linha 4: Descrição -->
+                                    <div class="md:col-span-4 space-y-1 mt-2">
+                                        <label class="text-xs font-bold text-slate-700">Descrição Detalhada / Aplicação</label>
+                                        <textarea pTextarea formControlName="descricao" rows="3" class="w-full modern-input" placeholder="Detalhes adicionais, aplicação em veículos, especificações técnicas..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <!-- Linha 5: Descrição -->
-                    <div class="md:col-span-3 space-y-1 mt-2">
-                        <label class="text-xs font-bold text-slate-700">Descrição Detalhada / Aplicação</label>
-                        <textarea pTextarea formControlName="descricao" rows="3" class="w-full modern-input" placeholder="Detalhes adicionais, aplicação em veículos, especificações técnicas..."></textarea>
-                    </div>
+                            <!-- Section: Substitutos -->
+                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                                    <h3 class="font-bold text-slate-800 text-sm">Produtos Substitutos</h3>
+                                </div>
+                                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-700">Cód. Produto Substituto 1</label>
+                                        <input pInputText formControlName="codigoSubstituto1" class="w-full modern-input" maxlength="50" placeholder="Referência de outro produto similar" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-700">Cód. Produto Substituto 2</label>
+                                        <input pInputText formControlName="codigoSubstituto2" class="w-full modern-input" maxlength="50" placeholder="Referência de outro produto similar" />
+                                    </div>
+                                </div>
+                            </div>
 
-                </div>
-            </div>
+                            <!-- Section: Preços -->
+                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                                    <h3 class="font-bold text-slate-800 text-sm">Precificação</h3>
+                                </div>
+                                <div class="p-6 grid grid-cols-1 md:grid-cols-5 gap-6">
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Preço de Compra *</label>
+                                         <p-inputnumber formControlName="precoCompra" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">% Desconto Forn</label>
+                                         <p-inputnumber formControlName="descontoFornecedorPercentual" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Preço de Custo (Tabela) *</label>
+                                         <p-inputnumber formControlName="precoCusto" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Margem de Lucro (%)</label>
+                                         <p-inputnumber formControlName="margemLucroPercentual" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                     </div>
+                                     <div class="space-y-1">
+                                         <label class="text-xs font-bold text-slate-700">Preço de Venda *</label>
+                                         <p-inputnumber formControlName="precoVenda" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" [ngClass]="{'ring-2 ring-blue-500/50 shadow-sm': form.get('precoVenda')?.dirty}" styleClass="w-full modern-input bg-blue-50/30" inputStyleClass="w-full border-0 focus:ring-0 shadow-none font-bold text-blue-800 !bg-transparent px-0" />
+                                     </div>
+                                </div>
+                            </div>
 
-            <!-- Section: Preços -->
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-                    <h3 class="font-bold text-slate-800 text-sm">Precificação</h3>
-                </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Preço de Custo *</label>
-                        <p-inputnumber formControlName="precoCusto" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Margem de Lucro (%)</label>
-                        <p-inputnumber formControlName="margemLucroPercentual" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Preço de Venda Final *</label>
-                        <p-inputnumber formControlName="precoVenda" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" [ngClass]="{'ring-2 ring-blue-500/50 shadow-sm': form.get('precoVenda')?.dirty}" styleClass="w-full modern-input bg-blue-50/30" inputStyleClass="w-full border-0 focus:ring-0 shadow-none font-bold text-blue-800 !bg-transparent px-0" />
-                    </div>
-                </div>
-            </div>
+                            <!-- Section: Estoque -->
+                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
+                                    <h3 class="font-bold text-slate-800 text-sm">Gestão de Estoque</h3>
+                                </div>
+                                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-700">Estoque Atual</label>
+                                        <p-inputnumber formControlName="quantidadeEstoque" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                    </div>
 
-            <!-- Section: Estoque -->
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-                    <h3 class="font-bold text-slate-800 text-sm">Gestão de Estoque</h3>
-                </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Estoque Atual</label>
-                        <p-inputnumber formControlName="quantidadeEstoque" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
-                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-700">Estoque Mínimo (Alerta)</label>
+                                        <p-inputnumber formControlName="estoqueMinimo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-700">Estoque Máximo</label>
+                                        <p-inputnumber formControlName="estoqueMaximo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-700">Data de Vencimento</label>
+                                        <p-datepicker formControlName="dataVencimento" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="w-full modern-datepicker" inputStyleClass="w-full"></p-datepicker>
+                                    </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Estoque Mínimo (Alerta)</label>
-                        <p-inputnumber formControlName="estoqueMinimo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Estoque Máximo</label>
-                        <p-inputnumber formControlName="estoqueMaximo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
-                    </div>
+                                    <div class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 md:pt-6">
+                                        <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                            <p-checkbox formControlName="controlaLote" [binary]="true" inputId="controlaLote" class="mt-0.5" />
+                                            <div>
+                                                <label for="controlaLote" class="text-sm font-bold text-slate-700 cursor-pointer block mb-0.5">Controla Lote</label>
+                                                <span class="text-xs text-slate-500 block">Exige o preenchimento do número do lote nas entradas e saídas.</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                            <p-checkbox formControlName="controlaValidade" [binary]="true" inputId="controlaValidade" class="mt-0.5" />
+                                            <div>
+                                                <label for="controlaValidade" class="text-sm font-bold text-slate-700 cursor-pointer block mb-0.5">Controla Validade</label>
+                                                <span class="text-xs text-slate-500 block">Exige o preenchimento da data de validade nos lotes.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 md:pt-6">
-                        <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                            <p-checkbox formControlName="controlaLote" [binary]="true" inputId="controlaLote" class="mt-0.5" />
-                            <div>
-                                <label for="controlaLote" class="text-sm font-bold text-slate-700 cursor-pointer block mb-0.5">Controla Lote</label>
-                                <span class="text-xs text-slate-500 block">Exige o preenchimento do número do lote nas entradas e saídas de estoque.</span>
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- ABA 1: FISCAL -->
+                    <p-tabpanel [value]="1">
+                        <div class="pt-4" formGroupName="dadosFiscais">
+                            <p-tabs [value]="0">
+                                <p-tablist>
+                                    <p-tab [value]="0">Dados básicos</p-tab>
+                                    <p-tab [value]="1">IPI</p-tab>
+                                    <p-tab [value]="2">ICMS</p-tab>
+                                    <p-tab [value]="3">PIS</p-tab>
+                                    <p-tab [value]="4">COFINS</p-tab>
+                                    <p-tab [value]="5">Importadas</p-tab>
+                                    <p-tab [value]="6">Combustíveis</p-tab>
+                                    <p-tab [value]="7">IBS e CBS</p-tab>
+                                </p-tablist>
+                                <p-tabpanels>
+                                    <p-tabpanel [value]="0">
+                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
+                                            <!-- Row 1 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">cEAN Trib</label>
+                                                <input pInputText formControlName="ceanTrib" class="w-full modern-input" placeholder="7891234567890"
+                                                       pTooltip="Código GTIN/EAN da unidade tributável. Use SEM GTIN para produtos sem código de barras" tooltipPosition="top" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">NCM</label>
+                                                <input pInputText formControlName="ncm" class="w-full modern-input" placeholder="9999.99.99"
+                                                       (input)="formatarNcm($event)"
+                                                       pTooltip="Nomenclatura Comum do Mercosul — 8 dígitos. Formato: NNNN.NN.NN (Ex: 8708.29.99)" tooltipPosition="top" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">CEST</label>
+                                                <input pInputText formControlName="cest" class="w-full modern-input" placeholder="99.999.99"
+                                                       (input)="formatarCest($event)"
+                                                       pTooltip="Código Especificador da Substituição Tributária — 7 dígitos. Formato: SS.GGG.II" tooltipPosition="top" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">CFOP</label>
+                                                <input pInputText formControlName="cfop" class="w-full modern-input" placeholder="5102"
+                                                       (input)="formatarCfop($event)"
+                                                       pTooltip="Código Fiscal de Operações e Prestações — 4 dígitos (Ex: 5102 = Venda de mercadoria dentro do Estado)" tooltipPosition="top" />
+                                            </div>
+
+                                            <!-- Row 2 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Unidade Comercial</label>
+                                                <input pInputText formControlName="unComercial" class="w-full modern-input"
+                                                       pTooltip="Sigla da unidade de comercialização usada na nota fiscal (Ex: UN, PC, CX, KG)" tooltipPosition="top" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Qtd Comercial</label>
+                                                <p-inputnumber formControlName="qtdComercial" [minFractionDigits]="2" [maxFractionDigits]="4" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Val. Unit. Comercial</label>
+                                                <p-inputnumber formControlName="valorUnitComercial" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Unidade Tributável</label>
+                                                <input pInputText formControlName="unTrib" class="w-full modern-input" />
+                                            </div>
+
+                                            <!-- Row 3 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Qtd Tributável</label>
+                                                <p-inputnumber formControlName="qtdTrib" [minFractionDigits]="2" [maxFractionDigits]="4" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Val. Unit. Tributável</label>
+                                                <p-inputnumber formControlName="valorUnitTributavel" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Total Seguro</label>
+                                                <p-inputnumber formControlName="totalSeguro" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Desconto</label>
+                                                <p-inputnumber formControlName="desconto" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+
+                                            <!-- Row 4 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Total Frete</label>
+                                                <p-inputnumber formControlName="totalFrete" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Outras Despesas</label>
+                                                <p-inputnumber formControlName="outrasDespesas" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Valor Total Bruto</label>
+                                                <p-inputnumber formControlName="valorTotalBruto" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">EX TIPI</label>
+                                                <input pInputText formControlName="exTipi" class="w-full modern-input" />
+                                            </div>
+
+                                            <!-- Row 5 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Escala Relevante</label>
+                                                <input pInputText formControlName="indicadorEscalaRelevante" class="w-full modern-input" placeholder="Ex: S ou N" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">CNPJ Fabricante
+                                                    <span class="ml-1 text-[10px] text-amber-600 font-normal">(alfanumérico)</span>
+                                                </label>
+                                                <input pInputText formControlName="cnpjFabricante" class="w-full modern-input" placeholder="AA.AAA.AAA/AAAA-DD"
+                                                       (input)="formatarCnpjFabricante($event)"
+                                                       pTooltip="CNPJ alfanumérico do fabricante (novo padrão jul/2026). Formato: AA.AAA.AAA/AAAA-DD" tooltipPosition="top" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Cód. Benefício Fiscal</label>
+                                                <input pInputText formControlName="codigoBeneficioFiscal" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Nº FCI</label>
+                                                <input pInputText formControlName="numeroFci" class="w-full modern-input" />
+                                            </div>
+
+                                            <!-- Row 6 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Pedido Compra</label>
+                                                <input pInputText formControlName="pedidoCompra" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Item Pedido Compra</label>
+                                                <p-inputnumber formControlName="itemPedidoCompra" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Imp. Federal Aprox</label>
+                                                <p-inputnumber formControlName="impostoFederalAprox" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Imp. Estadual Aprox</label>
+                                                <p-inputnumber formControlName="impostoEstadualAprox" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+
+                                            <!-- Row 7 -->
+                                            <div class="md:col-span-4 flex items-center gap-2 pt-2">
+                                                <p-checkbox formControlName="valorBrutoCompoeTotal" [binary]="true" inputId="valorBrutoCompoeTotal" />
+                                                <label for="valorBrutoCompoeTotal" class="text-xs font-bold text-slate-700 cursor-pointer">Valor bruto compõe total do item?</label>
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="1">
+                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
+                                            <!-- Row 1 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Situação Tributária IPI</label>
+                                                <input pInputText formControlName="ipiSitTrib" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Classe Enquadramento</label>
+                                                <input pInputText formControlName="ipiClasseEnquadramento" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Cód. Enquadramento</label>
+                                                <input pInputText formControlName="ipiCodEnquadramento" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">CNPJ Produtor</label>
+                                                <input pInputText formControlName="ipiCnpjProdutor" class="w-full modern-input" />
+                                            </div>
+
+                                            <!-- Row 2 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Cód. Selo Controle</label>
+                                                <input pInputText formControlName="ipiCodSeloControle" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Qtd. Selos</label>
+                                                <p-inputnumber formControlName="ipiQtdSelo" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Tipo de Cálculo</label>
+                                                <input pInputText formControlName="ipiTipoCalculo" class="w-full modern-input" placeholder="Ex: Percentual ou Fixo" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Base Cálculo</label>
+                                                <p-inputnumber formControlName="ipiBaseCalc" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+
+                                            <!-- Row 3 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Alíquota (%)</label>
+                                                <p-inputnumber formControlName="ipiAliquota" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Val. Unid. Tributável</label>
+                                                <p-inputnumber formControlName="ipiValorUnidTrib" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Valor IPI</label>
+                                                <p-inputnumber formControlName="ipiValor" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="2">
+                                        <div class="space-y-6">
+                                            <!-- ICMS Geral -->
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">ICMS Normal / Simples Nacional</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Situação Tributária ICMS</label>
+                                                        <input pInputText formControlName="icmsSitTrib" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Origem da Mercadoria</label>
+                                                        <input pInputText formControlName="icmsOrigem" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Modalidade Determinação BC</label>
+                                                        <input pInputText formControlName="icmsModBc" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Redução Base Cálculo</label>
+                                                        <p-inputnumber formControlName="icmsRedBc" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Base de Cálculo</label>
+                                                        <p-inputnumber formControlName="icmsBaseCalc" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota (%)</label>
+                                                        <p-inputnumber formControlName="icmsAliquota" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor ICMS</label>
+                                                        <p-inputnumber formControlName="icmsValor" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Motivo Desoneração</label>
+                                                        <input pInputText formControlName="icmsMotivoDesoneracao" class="w-full modern-input" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor Desonerado</label>
+                                                        <p-inputnumber formControlName="icmsValorDesoneracao" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Aliq. Cálculo Crédito</label>
+                                                        <p-inputnumber formControlName="icmsAliqCalcCredito" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor Crédito</label>
+                                                        <p-inputnumber formControlName="icmsValorCredito" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- ICMS ST -->
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">ICMS Substituição Tributária (ST)</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Modalidade Det. BC ST</label>
+                                                        <input pInputText formControlName="icmsModBcSt" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Margem Valor Adic. MVA</label>
+                                                        <p-inputnumber formControlName="icmsMargemValorAdicionado" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Preço Unit. Pauta ST</label>
+                                                        <p-inputnumber formControlName="icmsPrecoUnitPautaSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Redução Base Calc. ST</label>
+                                                        <p-inputnumber formControlName="icmsRedBcSt" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Base Cálculo ST</label>
+                                                        <p-inputnumber formControlName="icmsBaseCalcSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota ST (%)</label>
+                                                        <p-inputnumber formControlName="icmsAliquotaSt" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor ICMS ST</label>
+                                                        <p-inputnumber formControlName="icmsValorSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Perc. BC Op. Própria</label>
+                                                        <p-inputnumber formControlName="icmsPercBcOpPropria" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">UF Pagamento ST</label>
+                                                        <input pInputText formControlName="icmsUfPgtoSt" class="w-full modern-input" maxlength="2" placeholder="Ex: SP" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">BC ST UF Origem</label>
+                                                        <p-inputnumber formControlName="icmsBcStUfOrigem" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">ICMS Retido Antes</label>
+                                                        <p-inputnumber formControlName="icmsRetidoAntes" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">BC ST UF Destino</label>
+                                                        <p-inputnumber formControlName="icmsBcStUfDest" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">ICMS ST UF Destino</label>
+                                                        <p-inputnumber formControlName="icmsStUfDestino" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Fundo de Combate à Pobreza (FCP) -->
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">Fundo de Combate à Pobreza (FCP)</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Base Cálculo FCP</label>
+                                                        <p-inputnumber formControlName="icmsBcFcp" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota FCP</label>
+                                                        <p-inputnumber formControlName="icmsPercFcp" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor FCP</label>
+                                                        <p-inputnumber formControlName="icmsValorFcp" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor BC Retido ST</label>
+                                                        <p-inputnumber formControlName="icmsValorBcRetSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota FCP Ret. ST</label>
+                                                        <p-inputnumber formControlName="icmsPercFcpRetSt" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Base FCP Ret. Ant. ST</label>
+                                                        <p-inputnumber formControlName="icmsVbCalcFcpRetAntSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota FCP Ret. Ant. ST</label>
+                                                        <p-inputnumber formControlName="icmsPercFcpRetAntSt" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor BC FCP UF Dest.</label>
+                                                        <p-inputnumber formControlName="icmsValorBcFcpUfDest" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="3">
+                                        <div class="space-y-6">
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">PIS Operação Própria</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Situação Tributária PIS</label>
+                                                        <input pInputText formControlName="pisSitTrib" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Tipo de Cálculo</label>
+                                                        <input pInputText formControlName="pisTipoCalculo" class="w-full modern-input" placeholder="Ex: Percentual ou Fixo" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Base de Cálculo</label>
+                                                        <p-inputnumber formControlName="pisBaseCalc" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota (%)</label>
+                                                        <p-inputnumber formControlName="pisAliquota" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Qtd. Vendida</label>
+                                                        <p-inputnumber formControlName="pisQv" [minFractionDigits]="2" [maxFractionDigits]="4" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota Reais</label>
+                                                        <p-inputnumber formControlName="pisRv" [minFractionDigits]="2" [maxFractionDigits]="4" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor PIS</label>
+                                                        <p-inputnumber formControlName="pisRvbc" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Val. Unid. Tributável</label>
+                                                        <p-inputnumber formControlName="pisValorUnidTrib" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">PIS Substituição Tributária (ST)</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Tipo Cálculo PIS ST</label>
+                                                        <input pInputText formControlName="pisTipoCalculoSt" class="w-full modern-input" placeholder="Ex: Percentual ou Fixo" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota PIS ST (%)</label>
+                                                        <p-inputnumber formControlName="pisAliquotaSt" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Val. Unid. Trib. PIS ST</label>
+                                                        <p-inputnumber formControlName="pisValorUnidTribSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="4">
+                                        <div class="space-y-6">
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">COFINS Operação Própria</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Situação Tributária COFINS</label>
+                                                        <input pInputText formControlName="cofinsSitTrib" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Base de Cálculo</label>
+                                                        <p-inputnumber formControlName="cofinsBaseCalc" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota (%)</label>
+                                                        <p-inputnumber formControlName="cofinsAliquota" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Val. Unid. Tributável</label>
+                                                        <p-inputnumber formControlName="cofinsValorUnidTrib" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Valor COFINS</label>
+                                                        <p-inputnumber formControlName="cofinsValor" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">COFINS Substituição Tributária (ST)</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Tipo Cálculo COFINS ST</label>
+                                                        <input pInputText formControlName="cofinsTipoCalculoSt" class="w-full modern-input" placeholder="Ex: Percentual ou Fixo" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota COFINS ST (%)</label>
+                                                        <p-inputnumber formControlName="cofinsAliquotaSt" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Val. Unid. Trib. COFINS ST</label>
+                                                        <p-inputnumber formControlName="cofinsValorUnidTribSt" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="5">
+                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Base de Cálculo</label>
+                                                <p-inputnumber formControlName="importValorBc" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Despesas Aduaneiras</label>
+                                                <p-inputnumber formControlName="importValorDespAduaneiras" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Valor Imposto Imp. (II)</label>
+                                                <p-inputnumber formControlName="importValorImposto" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Valor IOF</label>
+                                                <p-inputnumber formControlName="importValorIof" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="6">
+                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
+                                            <!-- Row 1 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Cód Produto ANP</label>
+                                                <input pInputText formControlName="combCodAnp" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1 md:col-span-2">
+                                                <label class="text-xs font-bold text-slate-700">Descrição ANP</label>
+                                                <input pInputText formControlName="combDescAnp" class="w-full modern-input" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Cód. Autorização CODIF</label>
+                                                <input pInputText formControlName="combCodAutorizacaoCodif" class="w-full modern-input" />
+                                            </div>
+
+                                            <!-- Row 2 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">UF Consumo</label>
+                                                <input pInputText formControlName="combUfConsumo" class="w-full modern-input" maxlength="2" placeholder="Ex: SP" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Perc. GLP (%)</label>
+                                                <p-inputnumber formControlName="combPercGlp" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">GLP Deriv. Petróleo (%)</label>
+                                                <p-inputnumber formControlName="combPercGlpDerivPetroleo" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Gás Nacional (%)</label>
+                                                <p-inputnumber formControlName="combPercGasNac" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+
+                                            <!-- Row 3 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Gás Importado (%)</label>
+                                                <p-inputnumber formControlName="combPercGasImp" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Base Cálculo CIDE</label>
+                                                <p-inputnumber formControlName="combBcCide" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Alíquota CIDE</label>
+                                                <p-inputnumber formControlName="combAliquotaCide" [minFractionDigits]="2" [maxFractionDigits]="4" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Valor CIDE</label>
+                                                <p-inputnumber formControlName="combValorCide" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+
+                                            <!-- Row 4 -->
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-700">Valor Partida</label>
+                                                <p-inputnumber formControlName="combValorPartida" mode="currency" currency="BRL" locale="pt-BR" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                    <p-tabpanel [value]="7">
+                                        <div class="space-y-6">
+                                            <!-- IBS -->
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">IBS (Imposto sobre Bens e Serviços - Estadual/Municipal)</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Situação Tributária IBS</label>
+                                                        <input pInputText formControlName="ibsSitTrib" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Classificação Trib. IBS</label>
+                                                        <input pInputText formControlName="ibsClassificacaoTrib" class="w-full modern-input" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota UF (%)</label>
+                                                        <p-inputnumber formControlName="ibsAliquotaUf" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Diferimento UF (%)</label>
+                                                        <p-inputnumber formControlName="ibsPercDiferimentoUf" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Redução Alíquota UF (%)</label>
+                                                        <p-inputnumber formControlName="ibsPercRedAliquotaUf" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota Município (%)</label>
+                                                        <p-inputnumber formControlName="ibsAliquotaMunicipio" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- CBS -->
+                                            <div class="bg-slate-50/30 p-4 rounded-lg border border-slate-100">
+                                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200/60 pb-2">CBS (Contribuição sobre Bens e Serviços - Federal)</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Alíquota CBS (%)</label>
+                                                        <p-inputnumber formControlName="cbsAliquota" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Diferimento CBS (%)</label>
+                                                        <p-inputnumber formControlName="cbsPercDiferimento" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <label class="text-xs font-bold text-slate-700">Redução Alíquota CBS (%)</label>
+                                                        <p-inputnumber formControlName="cbsPercRedAliquota" suffix="%" class="w-full border-0 p-0" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p-tabpanel>
+                                </p-tabpanels>
+                            </p-tabs>
+                        </div>
+                    </p-tabpanel>
+
+                    <p-tabpanel [value]="2">
+                        <div class="space-y-6 pt-4">
+                            <!-- Estado bloqueado (produto novo ainda não salvo) -->
+                            <div *ngIf="!editingId" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 text-center py-8">
+                                <i class="pi pi-exclamation-circle text-4xl text-amber-500 mb-4"></i>
+                                <h3 class="text-lg font-bold text-slate-700">Aba Bloqueada</h3>
+                                <p class="text-slate-500 mt-2">Salve os dados básicos do produto primeiro para liberar o cadastro de cotações.</p>
+                            </div>
+
+                            <!-- Painel de Indicadores Rápidos -->
+                            <div *ngIf="editingId && cotacoes.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
+                                <!-- Card 1: Total Cotações -->
+                                <div class="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+                                    <div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                                        <i class="pi pi-users text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Total de Cotações</span>
+                                        <span class="text-2xl font-black text-slate-800">{{ cotacoes.length }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2: Melhor Preço -->
+                                <div class="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+                                    <div class="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                        <i class="pi pi-percentage text-xl"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Melhor Preço</span>
+                                        <span class="text-2xl font-black text-emerald-700 block" *ngIf="melhorPreco">{{ melhorPreco.precoCusto | currency:'BRL' }}</span>
+                                        <span class="text-xs font-semibold text-slate-600 block truncate" *ngIf="melhorPreco" [pTooltip]="melhorPreco.fornecedorNome" tooltipPosition="bottom">
+                                            {{ melhorPreco.fornecedorNome }}
+                                        </span>
+                                        <span class="text-sm text-slate-400 font-medium" *ngIf="!melhorPreco">Nenhum ativo</span>
+                                    </div>
+                                </div>
+
+                                <!-- Card 3: Fornecedor Principal -->
+                                <div class="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm flex items-center gap-4 hover:shadow transition-shadow">
+                                    <div class="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                                        <i class="pi pi-star text-xl"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Fornecedor Principal</span>
+                                        <span class="text-base font-bold text-slate-800 block truncate" *ngIf="fornecedorPrincipal" [pTooltip]="fornecedorPrincipal.fornecedorNome" tooltipPosition="bottom">
+                                            {{ fornecedorPrincipal.fornecedorNome }}
+                                        </span>
+                                        <span class="text-xs text-amber-700 font-bold" *ngIf="fornecedorPrincipal">
+                                            Custo: {{ fornecedorPrincipal.precoCusto | currency:'BRL' }}
+                                        </span>
+                                        <span class="text-sm text-slate-400 font-medium" *ngIf="!fornecedorPrincipal">Não definido</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabela com Grid de Cotações -->
+                            <div *ngIf="editingId" class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-sm">Fornecedores e Cotações</h3>
+                                        <span class="text-xs text-slate-500">Histórico de preços e relação de fornecedores deste produto</span>
+                                    </div>
+                                    <p-button icon="pi pi-plus" label="Nova Cotação" [outlined]="true" size="small" (onClick)="abrirNovaCotacao()" />
+                                </div>
+                                <div class="p-0">
+                                    <p-table [value]="cotacoes" [tableStyle]="{'min-width': '50rem'}" styleClass="p-datatable-striped">
+                                        <ng-template pTemplate="header">
+                                            <tr class="bg-slate-50/50">
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4 pl-6">Fornecedor</th>
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4">Data Cotação</th>
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4">Preço de Custo</th>
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4">Qtd. Mínima</th>
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4">Prazo Entrega</th>
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4">Status</th>
+                                                <th class="text-xs font-bold text-slate-600 uppercase tracking-wider py-4 text-center pr-6 w-28">Ações</th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-cotacao>
+                                            <tr class="hover:bg-slate-50/30 transition-colors">
+                                                <td class="py-3.5 pl-6">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600 border border-slate-200">
+                                                            {{ (cotacao.fornecedorNome || 'F').substring(0, 2).toUpperCase() }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                                                                {{cotacao.fornecedorNome}}
+                                                                <span *ngIf="cotacao.principal" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                                                    Principal
+                                                                </span>
+                                                            </div>
+                                                            <span *ngIf="cotacao.observacoes" class="text-xs text-slate-500 block max-w-[250px] truncate" [pTooltip]="cotacao.observacoes" tooltipPosition="bottom">
+                                                                {{ cotacao.observacoes }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-slate-600 text-sm font-medium">{{ (cotacao.dataUltimoPreco | date:'dd/MM/yyyy') || '-' }}</td>
+                                                <td class="py-3.5 font-bold text-slate-900 text-sm">{{cotacao.precoCusto | currency:'BRL'}}</td>
+                                                <td class="text-slate-600 text-sm">{{cotacao.quantidadeMinima || '1'}} un.</td>
+                                                <td class="text-slate-600 text-sm">{{cotacao.prazoEntregaDias ? cotacao.prazoEntregaDias + ' dias' : '-'}}</td>
+                                                <td>
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                                                          [ngClass]="{
+                                                              'bg-emerald-50 text-emerald-700 border border-emerald-200': cotacao.ativo !== false,
+                                                              'bg-slate-50 text-slate-500 border border-slate-200': cotacao.ativo === false
+                                                          }">
+                                                        <span class="w-1.5 h-1.5 rounded-full" [ngClass]="{
+                                                            'bg-emerald-600': cotacao.ativo !== false,
+                                                            'bg-slate-400': cotacao.ativo === false
+                                                        }"></span>
+                                                        {{ cotacao.ativo !== false ? 'Ativa' : 'Inativa' }}
+                                                    </span>
+                                                </td>
+                                                <td class="text-center pr-6 py-3.5">
+                                                    <div class="flex justify-center items-center gap-1.5">
+                                                        <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="secondary" size="small"
+                                                                  pTooltip="Editar Cotação" tooltipPosition="left" (onClick)="editarCotacao(cotacao)" />
+                                                        <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small"
+                                                                  pTooltip="Excluir Cotação" tooltipPosition="left" (onClick)="excluirCotacao(cotacao.id)" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="emptymessage">
+                                            <tr>
+                                                <td colspan="7" class="text-center p-8 text-slate-500">
+                                                    <div class="flex flex-col items-center gap-2 py-4">
+                                                        <i class="pi pi-users text-3xl text-slate-300"></i>
+                                                        <span>Nenhuma cotação registrada. Clique em "Nova Cotação" para adicionar.</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                            <p-checkbox formControlName="controlaValidade" [binary]="true" inputId="controlaValidade" class="mt-0.5" />
-                            <div>
-                                <label for="controlaValidade" class="text-sm font-bold text-slate-700 cursor-pointer block mb-0.5">Controla Validade</label>
-                                <span class="text-xs text-slate-500 block">Exige o preenchimento da data de validade de cada lote recebido ou produzido.</span>
+                    </p-tabpanel>
+
+                    <!-- ABA 3: IMAGENS -->
+                    <p-tabpanel [value]="3">
+                        <div class="space-y-6 pt-4">
+                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
+
+                                <!-- Estado bloqueado (produto novo ainda não salvo) -->
+                                <div *ngIf="!editingId" class="text-center py-8">
+                                    <i class="pi pi-exclamation-circle text-4xl text-amber-500 mb-4"></i>
+                                    <h3 class="text-lg font-bold text-slate-700">Aba Bloqueada</h3>
+                                    <p class="text-slate-500 mt-2">Salve os dados básicos do produto primeiro para liberar o envio de imagens.</p>
+                                </div>
+
+                                <!-- Upload (só exibe após salvar) -->
+                                <div *ngIf="editingId">
+                                    <label class="text-xs font-bold text-slate-700 block mb-3">Visualização do Produto</label>
+                                    <div class="flex items-center gap-4">
+                                        <!-- Thumbnail preview -->
+                                        <div class="w-32 h-32 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                                            <img *ngIf="currentFoto" [src]="currentFoto" class="w-full h-full object-contain" alt="Imagem do produto" />
+                                            <div *ngIf="!currentFoto" class="text-slate-400 flex flex-col items-center gap-1">
+                                                <i class="pi pi-image text-3xl"></i>
+                                                <span class="text-[10px]">Sem imagem</span>
+                                            </div>
+                                            <!-- Spinner sobre a thumbnail durante upload -->
+                                            <div *ngIf="uploadingFoto" class="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                                <i class="pi pi-spin pi-spinner text-xl text-primary"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Botões PrimeNG -->
+                                        <div class="flex flex-col gap-2">
+                                            <input type="file" #fotoInput (change)="onFotoSelected($event)"
+                                                   accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" />
+                                            <p-button label="Selecionar Imagem" icon="pi pi-upload"
+                                                      severity="secondary"
+                                                      [loading]="uploadingFoto"
+                                                      (onClick)="fotoInput.click()" />
+                                            <p-button *ngIf="currentFoto"
+                                                      label="Remover" icon="pi pi-trash"
+                                                      severity="danger" [outlined]="true"
+                                                      [disabled]="uploadingFoto"
+                                                      (onClick)="removerFoto()" />
+                                        </div>
+                                    </div>
+                                    <small class="text-slate-500 text-xs mt-3 block">
+                                        Formatos suportados: PNG, JPG, WebP. Máximo 2MB.
+                                    </small>
+                                </div>
+
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </p-tabpanel>
 
-            <!-- Section: Fiscal -->
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                    <h3 class="font-bold text-slate-800 text-sm">Classificação Tributária</h3>
-                </div>
-
-                <div class="px-6 pt-4">
-                     <div class="bg-amber-50 border border-amber-200/50 p-3 rounded-lg text-sm text-amber-800 flex items-start gap-2 shadow-sm">
-                        <i class="pi pi-info-circle mt-0.5 text-amber-500"></i>
-                        <p>A tributação detalhada de NF-e (ICMS, IPI, PIS, COFINS) é gerenciada pelas Regras Fiscais vinculadas ao Perfil da Empresa ou Regras de CFOP. Classifique aqui apenas os dados base do produto.</p>
-                    </div>
-                </div>
-
-                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">NCM</label>
-                        <input pInputText formControlName="ncm" class="w-full modern-input font-mono text-sm" placeholder="0000.00.00" maxlength="8" />
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">CEST</label>
-                        <input pInputText formControlName="cest" class="w-full modern-input font-mono text-sm" placeholder="00.000.00" maxlength="7" />
-                    </div>
-                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Origem da Mercadoria</label>
-                        <p-select formControlName="origemProduto" [options]="origemOptions"
-                            optionLabel="label" optionValue="value"
-                            placeholder="Selecione..." styleClass="w-full modern-select" appendTo="body" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section: Extras -->
-             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-                    <h3 class="font-bold text-slate-800 text-sm">Outras Informações</h3>
-                </div>
-                <div class="p-6">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Observações Internas</label>
-                        <textarea pTextarea formControlName="observacoes" rows="3" class="w-full modern-input" placeholder="Anotações para controle interno e equipe..."></textarea>
-                    </div>
-                </div>
-            </div>
+                </p-tabpanels>
+            </p-tabs>
 
         </div>
     </ng-container>
   </div>
+
+  <!-- Dialog de Cotação / Fornecedor -->
+  <p-dialog [(visible)]="displayCotacaoDialog" 
+            [header]="editingCotacaoId ? 'Editar Cotação' : 'Nova Cotação'" 
+            [modal]="true" 
+            [style]="{width: '480px'}" 
+            styleClass="p-fluid rounded-xl overflow-hidden shadow-2xl">
+      <ng-template pTemplate="content">
+          <div [formGroup]="cotacaoForm" class="space-y-5 pt-3 pb-2">
+              
+              <!-- Fornecedor Dropdown -->
+              <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                      <i class="pi pi-truck text-slate-400"></i> Fornecedor *
+                  </label>
+                  <p-select formControlName="fornecedorId" [options]="fornecedorOptions"
+                            optionLabel="label" optionValue="value"
+                            placeholder="Selecione o fornecedor..." [filter]="true" appendTo="body"
+                            styleClass="modern-select shadow-sm" />
+              </div>
+
+              <!-- Data da Cotação -->
+              <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                      <i class="pi pi-calendar text-slate-400"></i> Data da Cotação *
+                  </label>
+                  <p-datepicker formControlName="dataUltimoPreco" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" styleClass="w-full modern-datepicker" inputStyleClass="w-full" />
+              </div>
+
+              <!-- Grid: Preço de Custo e Qtd. Mínima -->
+              <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                      <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                          <i class="pi pi-dollar text-slate-400"></i> Preço de Custo *
+                      </label>
+                      <p-inputnumber formControlName="precoCusto" mode="currency" currency="BRL" locale="pt-BR"
+                                    styleClass="w-full modern-input shadow-sm" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent" />
+                  </div>
+                  <div class="space-y-1.5">
+                      <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                          <i class="pi pi-box text-slate-400"></i> Qtd. Mínima Compra
+                      </label>
+                      <p-inputnumber formControlName="quantidadeMinima" [min]="1"
+                                    styleClass="w-full modern-input shadow-sm" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent" />
+                  </div>
+              </div>
+
+              <!-- Grid: Prazo de Entrega e Principal -->
+              <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                      <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                          <i class="pi pi-calendar text-slate-400"></i> Prazo de Entrega
+                      </label>
+                      <p-inputnumber formControlName="prazoEntregaDias" suffix=" dias" [min]="0"
+                                    styleClass="w-full modern-input shadow-sm" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent" />
+                  </div>
+                  <div class="flex items-center gap-2 pt-6 pl-2">
+                      <p-checkbox formControlName="principal" [binary]="true" inputId="principal" />
+                      <label for="principal" class="text-xs font-bold text-slate-700 cursor-pointer select-none">Fornecedor Principal</label>
+                  </div>
+              </div>
+
+              <div class="flex items-center gap-2 py-1 pl-2">
+                  <p-checkbox formControlName="ativo" [binary]="true" inputId="ativoCotacao" />
+                  <label for="ativoCotacao" class="text-xs font-bold text-slate-700 cursor-pointer select-none">Cotação Ativa</label>
+              </div>
+
+              <!-- Observações -->
+              <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                      <i class="pi pi-comment text-slate-400"></i> Observações
+                  </label>
+                  <textarea pTextarea formControlName="observacoes" rows="2.5" 
+                            placeholder="Ex: Entrega grátis acima de 10 unidades..." 
+                            class="modern-input shadow-sm w-full"></textarea>
+              </div>
+          </div>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+          <div class="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <p-button label="Cancelar" icon="pi pi-times" [outlined]="true" severity="secondary" (onClick)="displayCotacaoDialog = false" />
+              <p-button [label]="savingCotacao ? 'Salvando...' : 'Salvar Cotação'" icon="pi pi-check" [loading]="savingCotacao" [disabled]="cotacaoForm.invalid" (onClick)="salvarCotacao()" />
+          </div>
+      </ng-template>
+  </p-dialog>
 
   <p-confirmDialog [style]="{width: '450px'}" />
 </div>

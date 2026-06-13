@@ -20,10 +20,6 @@
           </div>
 
           <div class="flex gap-3 items-center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide mr-2 shadow-sm"
-                    [ngClass]="model.ativo ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-rose-50 text-rose-700 border border-rose-200'">
-                  {{ model.ativo ? 'ATIVO' : 'INATIVO' }}
-              </span>
 
               <button *ngIf="editingId" (click)="excluir()" class="px-3.5 py-2 rounded-md border border-rose-200 text-rose-600 font-medium hover:bg-rose-50 transition-colors text-sm shadow-sm flex items-center gap-1.5">
                   <mat-icon class="!text-[16px] !w-[16px] !h-[16px] leading-[16px]">delete</mat-icon> Excluir
@@ -61,8 +57,8 @@
                   </div>
                   <div class="flex flex-col gap-1.5 md:col-span-4">
                       <label class="text-xs font-bold text-slate-700">Documento {{ isFisica ? '(CPF)' : '(CNPJ)' }} <span class="text-rose-500">*</span></label>
-                      <input *ngIf="isFisica" pInputText [(ngModel)]="model.cpf" class="w-full modern-input" placeholder="000.000.000-00" maxlength="14" />
-                      <input *ngIf="isJuridica" pInputText [(ngModel)]="model.cnpj" class="w-full modern-input" placeholder="00.000.000/0001-00" maxlength="18" />
+                      <input *ngIf="isFisica" pInputText [(ngModel)]="model.cpf" (input)="onCpfInput($event)" class="w-full modern-input font-mono" placeholder="000.000.000-00" maxlength="14" />
+                      <input *ngIf="isJuridica" pInputText [(ngModel)]="model.cnpj" (input)="onCnpjInput($event)" class="w-full modern-input font-mono uppercase" placeholder="00.000.000/0000-00" maxlength="18" />
                   </div>
 
                   <!-- Nomes -->
@@ -104,11 +100,11 @@
                       <div class="grid grid-cols-2 gap-4">
                           <div class="space-y-1">
                               <label class="text-xs font-bold text-slate-700">Telefone Fixo</label>
-                              <input pInputText [(ngModel)]="model.telefonePrincipal" class="w-full modern-input" />
+                              <input pInputText [(ngModel)]="model.telefonePrincipal" (input)="onPhoneInput($event, 'telefonePrincipal')" class="w-full modern-input" placeholder="(00) 0000-0000" maxlength="15" />
                           </div>
                           <div class="space-y-1">
                               <label class="text-xs font-bold text-slate-700">WhatsApp Oficial</label>
-                              <input pInputText [(ngModel)]="model.celularPrincipal" class="w-full modern-input" />
+                              <input pInputText [(ngModel)]="model.celularPrincipal" (input)="onPhoneInput($event, 'celularPrincipal')" class="w-full modern-input" placeholder="(00) 00000-0000" maxlength="15" />
                           </div>
                       </div>
                       <div class="space-y-1">
@@ -139,7 +135,7 @@
                       </div>
                       <div class="space-y-1">
                           <label class="text-xs font-bold text-slate-700">Celular do Contato</label>
-                          <input pInputText [(ngModel)]="model.telefoneContato" class="w-full modern-input" />
+                          <input pInputText [(ngModel)]="model.telefoneContato" (input)="onPhoneInput($event, 'telefoneContato')" class="w-full modern-input" placeholder="(00) 00000-0000" maxlength="15" />
                       </div>
                   </div>
               </div>
@@ -154,7 +150,7 @@
               <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
                   <div class="space-y-1 md:col-span-3">
                       <label class="text-xs font-bold text-slate-700">CEP</label>
-                      <input pInputText [(ngModel)]="model.cep" class="w-full modern-input" placeholder="00000-000" />
+                      <input pInputText [(ngModel)]="model.cep" (input)="onCepInput($event)" class="w-full modern-input" placeholder="00000-000" maxlength="9" />
                   </div>
                   <div class="space-y-1 md:col-span-9">
                       <label class="text-xs font-bold text-slate-700">Logradouro, Número, Bairro</label>
@@ -182,15 +178,15 @@
                   <div class="p-6 space-y-4">
                       <div class="space-y-1">
                           <label class="text-xs font-bold text-slate-700">Prazo de Pagto Médio (Dias)</label>
-                          <input pInputText type="number" [(ngModel)]="model.prazoPagamentoDias" class="w-full modern-input" placeholder="Ex: 30" />
+                          <p-inputnumber [(ngModel)]="model.prazoPagamentoDias" [useGrouping]="false" placeholder="Ex: 30" class="w-full" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0"></p-inputnumber>
                       </div>
                       <div class="space-y-1">
                           <label class="text-xs font-bold text-slate-700">Limite de Crédito Aprovado (R$)</label>
-                          <input pInputText type="number" [(ngModel)]="model.limiteCredito" class="w-full modern-input" placeholder="R$ 0,00" />
+                          <p-inputnumber [(ngModel)]="model.limiteCredito" mode="currency" currency="BRL" locale="pt-BR" placeholder="R$ 0,00" class="w-full" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0"></p-inputnumber>
                       </div>
                       <div class="space-y-1">
                           <label class="text-xs font-bold text-slate-700">Desconto Padrão (%)</label>
-                          <input pInputText type="number" [(ngModel)]="model.descontoPadrao" class="w-full modern-input" placeholder="Ex: 5" />
+                          <p-inputnumber [(ngModel)]="model.descontoPadrao" suffix="%" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="Ex: 5,00" class="w-full" styleClass="w-full modern-input" inputStyleClass="w-full border-0 focus:ring-0 shadow-none !bg-transparent px-0"></p-inputnumber>
                       </div>
                       <div class="space-y-1">
                           <label class="text-xs font-bold text-slate-700">Condições Especiais</label>
@@ -213,11 +209,11 @@
                       <div class="grid grid-cols-2 gap-4">
                           <div class="space-y-1">
                               <label class="text-xs font-bold text-slate-700">Agência</label>
-                              <input pInputText [(ngModel)]="model.bancoAgencia" class="w-full modern-input" placeholder="Ex: 1234-X"/>
+                              <input pInputText [(ngModel)]="model.bancoAgencia" (input)="onAgenciaInput($event)" class="w-full modern-input font-mono" placeholder="Ex: 1234-X" maxlength="6"/>
                           </div>
                           <div class="space-y-1">
                               <label class="text-xs font-bold text-slate-700">Conta e Dígito</label>
-                              <input pInputText [(ngModel)]="model.bancoConta" class="w-full modern-input" placeholder="Ex: 100055-9"/>
+                              <input pInputText [(ngModel)]="model.bancoConta" (input)="onContaInput($event)" class="w-full modern-input font-mono" placeholder="Ex: 100055-9" maxlength="17"/>
                           </div>
                       </div>
                       <div class="space-y-1 pt-4 border-t border-slate-100 flex-1">

@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
@@ -32,6 +33,7 @@ interface EstoqueItem {
 @Component({
   selector: 'app-estoque',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -53,6 +55,9 @@ interface EstoqueItem {
 export class Estoque implements OnInit {
   constructor(private router: Router) {}
   private readonly produtoService = inject(ProdutoService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly messageService = inject(MessageService);
+  private readonly searchSubject = new Subject<string>();
   // Barra superior
   imprimirItems: MenuItem[] = [
     { label: 'Imprimir', icon: 'pi pi-print', command: () => this.onImprimir() },
@@ -113,6 +118,84 @@ export class Estoque implements OnInit {
     this.currentItem = item;
   }
 
+  // History Popup State
+  displayHistoryDialog = false;
+  historyItems: any[] = [];
+  historyItemsLimit = 5;
+  historyLoading = false;
+
+  // Label Printing State
+  displayLabelDialog = false;
+  labelSlots: boolean[] = [];
+  labelPreviewProduct: EstoqueItem | null = null;
+  labelPrinting = false;
+
+  abrirEtiquetasDialog(row: EstoqueItem | null) {
+    if (!row) return;
+    this.labelPreviewProduct = row;
+    this.labelSlots = Array(30).fill(true);
+    this.displayLabelDialog = true;
+    this.cdr.markForCheck();
+  }
+
+  toggleSlot(index: number) {
+    this.labelSlots[index] = !this.labelSlots[index];
+    this.cdr.markForCheck();
+  }
+
+  imprimirEtiquetasCustom() {
+    if (!this.labelPreviewProduct) return;
+    this.labelPrinting = true;
+    this.cdr.markForCheck();
+
+    const activePositions: number[] = [];
+    this.labelSlots.forEach((active, idx) => {
+      if (active) activePositions.push(idx + 1);
+    });
+
+    this.produtoService.printEtiquetasCustom(this.labelPreviewProduct.codigo, activePositions).subscribe({
+      next: (blob) => {
+        const fileUrl = window.URL.createObjectURL(blob);
+        window.open(fileUrl, '_blank', 'noopener');
+        this.labelPrinting = false;
+        this.displayLabelDialog = false;
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        console.error('Erro ao gerar etiquetas customizadas', e);
+        this.labelPrinting = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  abrirHistorico(row: EstoqueItem | null) {
+    if (!row) return;
+    this.historyLoading = true;
+    this.historyItems = [];
+    this.historyItemsLimit = 5;
+    this.displayHistoryDialog = true;
+    this.cdr.markForCheck();
+
+    this.produtoService.getHistorico(row.codigo).subscribe({
+      next: (res) => {
+        this.historyItems = res || [];
+        this.historyLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.historyItems = [];
+        this.historyLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  mostrarMaisHistorico() {
+    this.historyItemsLimit += 5;
+    this.cdr.markForCheck();
+  }
+
   // Import Popup State
   displayImportXmlDialog = false;
   selectedFileName = 'Nenhum arquivo escolhido';
@@ -147,24 +230,47 @@ export class Estoque implements OnInit {
   }
 
   ngOnInit() {
+    // Debounce de 300ms para não disparar uma chamada por tecla digitada
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.first = 0;
+      this.buscar();
+    });
     this.buscar();
+  }
+
+  onTermoChange() {
+    this.searchSubject.next(this.termo);
   }
 
   buscar() {
     this.loading = true;
     const page = Math.floor(this.first / this.rows);
-    const size = this.rows;
-    const sort = this.getSortParam();
-    this.produtoService.list({ page, size, sort, nome: this.termo, codigo: this.termo }).subscribe({
+    const params: Record<string, any> = { page, size: this.rows, sort: this.getSortParam() };
+    // Envia apenas um parâmetro de busca dependendo do tipo selecionado
+    if (this.termo?.trim()) {
+      switch (this.buscaTipo) {
+        case 'CODIGO':    params['codigoInterno'] = this.termo; break;
+        case 'DESCRICAO': params['nome'] = this.termo; break;
+        case 'COD_ORIGINAL': params['codigoBarras'] = this.termo; break;
+        case 'COD_FAB':   params['codigoFabricante'] = this.termo; break;
+        default:          params['search'] = this.termo; // busca geral
+      }
+    }
+    this.produtoService.list(params).subscribe({
       next: (res) => {
         this.items = (res?.content || []).map(p => this.mapProdutoToItem(p));
         this.totalRecords = res?.totalElements || this.items.length;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.items = [];
         this.totalRecords = 0;
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -221,6 +327,24 @@ export class Estoque implements OnInit {
 
   editarItem(codigo: number) {
     this.router.navigate(['/produtos-servicos/cadastro-produto', codigo]);
+  }
+
+  duplicarItem(row: EstoqueItem) {
+    if (!row) return;
+    this.loading = true;
+    this.cdr.markForCheck();
+    this.produtoService.duplicate(row.codigo).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Produto duplicado com sucesso!' });
+        this.buscar();
+      },
+      error: (err) => {
+        this.loading = false;
+        const msg = err.error?.message || 'Falha ao duplicar produto.';
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   onExport(tipo: 'CSV' | 'XML') {

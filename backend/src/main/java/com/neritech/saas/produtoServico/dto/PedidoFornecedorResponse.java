@@ -17,5 +17,7 @@ public record PedidoFornecedorResponse(
         String observacao,
         String descricaoInterna,
         StatusPedidoFornecedor status,
-        LocalDateTime dataCadastro
+        LocalDateTime dataCadastro,
+        java.util.List<ItemPedidoFornecedorResponse> itens
 ) {}
+

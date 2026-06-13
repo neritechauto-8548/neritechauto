@@ -33,14 +33,6 @@ export class Fornecedor implements OnInit {
   private readonly location = inject(Location);
   private readonly fornecedorService = inject(FornecedorService);
 
-  filterOptions = [
-    { label: 'Razão Social', value: 'razaoSocial' },
-    { label: 'Nome Fantasia', value: 'nomeFantasia' },
-    { label: 'CNPJ', value: 'cnpj' },
-    { label: 'CPF', value: 'cpf' },
-  ];
-
-  filterType: 'razaoSocial' | 'nomeFantasia' | 'cnpj' | 'cpf' = 'razaoSocial';
   searchTerm = '';
 
   items: any[] = [];
@@ -56,10 +48,14 @@ export class Fornecedor implements OnInit {
   buscar() {
     const page = Math.floor(this.first / this.rows);
     const size = this.rows;
-    // Basic filter query placeholder; usually parsed in the Backend Pageable API
     const sort = 'id,desc';
+    
+    const params: Record<string, any> = { page, size, sort };
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      params['search'] = this.searchTerm.trim();
+    }
 
-    this.fornecedorService.list({ page, size, sort }).subscribe({
+    this.fornecedorService.list(params).subscribe({
       next: (res: any) => {
         this.items = (res?.content || []).map((f: any) => this.mapFornecedor(f));
         this.totalRecords = res?.totalElements || this.items.length;
@@ -71,14 +67,39 @@ export class Fornecedor implements OnInit {
     });
   }
 
+  formatCpf(cpf: string | null): string {
+    if (!cpf) return '';
+    let raw = cpf.replace(/\D/g, '');
+    if (raw.length !== 11) return cpf;
+    return `${raw.substring(0, 3)}.${raw.substring(3, 6)}.${raw.substring(6, 9)}-${raw.substring(9, 11)}`;
+  }
+
+  formatCnpj(cnpj: string | null): string {
+    if (!cnpj) return '';
+    let raw = cnpj.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (raw.length !== 14) return cnpj;
+    return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8, 12)}-${raw.substring(12, 14)}`;
+  }
+
+  formatPhone(phone: string | null): string {
+    if (!phone) return '';
+    let raw = phone.replace(/\D/g, '');
+    if (raw.length === 10) {
+      return `(${raw.substring(0, 2)}) ${raw.substring(2, 6)}-${raw.substring(6)}`;
+    } else if (raw.length === 11) {
+      return `(${raw.substring(0, 2)}) ${raw.substring(2, 7)}-${raw.substring(7)}`;
+    }
+    return phone;
+  }
+
   private mapFornecedor(f: any) {
     return {
       id: f.id,
       codigo: f.id,
       nomeFantasia: f.nomeFantasia,
       razaoSocial: f.razaoSocial,
-      documento: f.cnpj || f.cpf || 'Não inform.',
-      telefone: f.telefonePrincipal || f.celularPrincipal || 'Sem Contato',
+      documento: f.cnpj ? this.formatCnpj(f.cnpj) : (f.cpf ? this.formatCpf(f.cpf) : 'Não inform.'),
+      telefone: f.telefonePrincipal ? this.formatPhone(f.telefonePrincipal) : (f.celularPrincipal ? this.formatPhone(f.celularPrincipal) : 'Sem Contato'),
       email: f.emailPrincipal || f.emailContato || '-',
       cidadeEstado: (f.cidade && f.estado) ? `${f.cidade} - ${f.estado}` : (f.cidade || f.estado || 'Endereço n/a'),
       classificacao: f.classificacao, // PRODUTO, SERVICO, AMBOS
@@ -113,10 +134,6 @@ export class Fornecedor implements OnInit {
   }
 
   // Ações da barra superior
-  imprimir() {
-    this.router.navigate(['/fornecedor/relatorio']);
-  }
-
   cadastrarFornecedor() {
     this.router.navigate(['/fornecedor/novo']);
   }

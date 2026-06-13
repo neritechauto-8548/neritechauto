@@ -22,6 +22,7 @@ import { forkJoin } from 'rxjs';
 import { FinanceiroService } from '../financeiro.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { FornecedorService } from '../../fornecedor/fornecedor.service';
+import { DepartamentoService } from '../../configuracoes/departamentos/departamento.service';
 import { StatusTitulo, TipoTitulo, ContasPagarResponse, ContasReceberResponse } from '../models/financeiro.models';
 
 interface UnifiedRow {
@@ -36,6 +37,10 @@ interface UnifiedRow {
   valorPg?: number;
   pago: boolean;
   status: StatusTitulo;
+  contaBancariaId?: number;
+  centroCustoId?: number;
+  planoContasId?: number;
+  formaPagamentoId?: number;
   __original: ContasPagarResponse | ContasReceberResponse;
 }
 
@@ -68,6 +73,7 @@ export class ContasComponent implements OnInit {
   private service = inject(FinanceiroService);
   private clientesService = inject(ClientesService);
   private fornecedorService = inject(FornecedorService);
+  private departamentoService = inject(DepartamentoService);
   private toast = inject(HotToastService);
 
   loading = false;
@@ -79,9 +85,47 @@ export class ContasComponent implements OnInit {
   filtroTipo = 'Todas';
   tiposFiltro = [
     { label: 'Todas', value: 'Todas' },
-    { label: 'A Receber', value: 'Receita' },
-    { label: 'A Pagar', value: 'Despesa' },
+    { label: 'Todas Quitado', value: 'Todas Quitado' },
+    { label: 'Todas Aberto', value: 'Todas Aberto' },
+    { label: 'Todas Receita', value: 'Todas Receita' },
+    { label: 'Todas Despesa', value: 'Todas Despesa' },
+    { label: 'Despesa Quitado', value: 'Despesa Quitado' },
+    { label: 'Despesa Aberto', value: 'Despesa Aberto' },
+    { label: 'Receita Quitado', value: 'Receita Quitado' },
+    { label: 'Receita Aberto', value: 'Receita Aberto' },
+    { label: 'Transferencias', value: 'Transferencias' }
   ];
+  vencInicio: Date | null = null;
+  vencFim: Date | null = null;
+  buscarPor = 'conta';
+  filtroValor: any = 'TODOS';
+
+  buscarPorOptions = [
+    { label: 'Caixa/Conta', value: 'conta' },
+    { label: 'Departamento', value: 'centroCusto' },
+    { label: 'Plano de Contas', value: 'planoContas' },
+    { label: 'Forma de Pagamento', value: 'formaPagamento' }
+  ];
+
+  get filtroValorOptions() {
+      const defaultOption = [{ label: 'TODOS', value: 'TODOS' }];
+      switch (this.buscarPor) {
+          case 'conta':
+              return [...defaultOption, ...this.contasBancarias];
+          case 'centroCusto':
+              return [...defaultOption, ...this.departamentos];
+          case 'planoContas':
+              return [...defaultOption, ...this.planosConta];
+          case 'formaPagamento':
+              return [...defaultOption, ...this.formasPagamento];
+          default:
+              return defaultOption;
+      }
+  }
+
+  onBuscarPorChange() {
+      this.filtroValor = 'TODOS';
+  }
 
   // Dialogs
   incluirDialogVisible = false;
@@ -94,7 +138,7 @@ export class ContasComponent implements OnInit {
   totalPago = 0;
 
   // Listas Auxiliares
-  centrosCusto: any[] = [];
+  departamentos: any[] = [];
   planosConta: any[] = [];
   contasBancarias: any[] = [];
   formasPagamento: any[] = [];
@@ -108,32 +152,38 @@ export class ContasComponent implements OnInit {
   entidadeSelecionada: any = null; // Objeto selecionado no Autocomplete
 
   ngOnInit() {
+      const hoje = new Date();
+      this.vencInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      this.vencFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
       this.carregarDados();
       this.carregarAuxiliares();
   }
 
   carregarAuxiliares() {
-      // TODO: Implementar endpoints no backend para estes recursos
-      // forkJoin({
-      //     cc: this.service.listCentrosCusto(),
-      //     pc: this.service.listPlanosConta(),
-      //     cb: this.service.listContasBancarias(),
-      //     fp: this.service.listFormasPagamento()
-      // }).subscribe({
-      //     next: (res: any) => {
-      //         this.centrosCusto = res.cc.content.map((i: any) => ({ label: i.nome, value: i.id }));
-      //         this.planosConta = res.pc.content.map((i: any) => ({ label: i.descricao, value: i.id }));
-      //         this.contasBancarias = res.cb.content.map((i: any) => ({ label: i.nome, value: i.id }));
-      //         this.formasPagamento = res.fp.content.map((i: any) => ({ label: i.nome, value: i.id }));
-      //     },
-      //     error: (err) => console.error('Erro ao carregar auxiliares', err)
-      // });
+      forkJoin({
+          cc: this.departamentoService.list({ size: 1000 }),
+          pc: this.service.listPlanosConta(),
+          cb: this.service.listContasBancarias(),
+          fp: this.service.listFormasPagamento()
+      }).subscribe({
+          next: (res: any) => {
+              const ccs = res.cc?.content || res.cc || [];
+              this.departamentos = ccs.map((i: any) => ({ label: i.descricao, value: i.id }));
 
-      // Valores temporários vazios até implementar os endpoints
-      this.centrosCusto = [];
-      this.planosConta = [];
-      this.contasBancarias = [];
-      this.formasPagamento = [];
+              const pcs = res.pc?.content || res.pc || [];
+              this.planosConta = pcs.map((i: any) => ({ label: i.nome || i.descricao, value: i.id }));
+
+              const cbs = res.cb?.content || res.cb || [];
+              this.contasBancarias = cbs.map((i: any) => ({ 
+                  label: i.nome || `${i.bancoNome} • ${i.agencia}/${i.conta}`, 
+                  value: i.id 
+              }));
+
+              const fps = res.fp?.content || res.fp || [];
+              this.formasPagamento = fps.map((i: any) => ({ label: i.nome, value: i.id }));
+          },
+          error: (err) => console.error('Erro ao carregar auxiliares', err)
+      });
   }
 
   searchEntidade(event: any) {
@@ -205,11 +255,6 @@ export class ContasComponent implements OnInit {
           return;
       }
 
-      if (!this.entidadeSelecionada) {
-         this.toast.warning('Selecione um Cliente ou Fornecedor.');
-         return;
-      }
-
       const commonPayload = {
           descricao: this.novaConta.descricao,
           valorOriginal: this.novaConta.valor,
@@ -226,11 +271,12 @@ export class ContasComponent implements OnInit {
       };
 
       let req$: import('rxjs').Observable<any>;
+      const entId = this.entidadeSelecionada ? this.entidadeSelecionada.id : null;
       if (this.novaConta.tipo === 'Despesa') {
-          const payload = { ...commonPayload, fornecedorId: this.entidadeSelecionada.id };
+          const payload = { ...commonPayload, fornecedorId: entId };
           req$ = this.service.createPagar(payload as any);
       } else {
-          const payload = { ...commonPayload, clienteId: this.entidadeSelecionada.id };
+          const payload = { ...commonPayload, clienteId: entId };
           req$ = this.service.createReceber(payload as any);
       }
 
@@ -267,6 +313,10 @@ export class ContasComponent implements OnInit {
                   valorPg: p.valorPago,
                   pago: p.status === StatusTitulo.PAGO,
                   status: p.status,
+                  contaBancariaId: p.contaBancariaId,
+                  centroCustoId: p.centroCustoId,
+                  planoContasId: p.planoContasId,
+                  formaPagamentoId: p.formaPagamentoId,
                   __original: p
               }));
 
@@ -282,6 +332,10 @@ export class ContasComponent implements OnInit {
                   valorPg: r.valorRecebido,
                   pago: r.status === StatusTitulo.PAGO,
                   status: r.status,
+                  contaBancariaId: r.contaBancariaId,
+                  centroCustoId: r.centroCustoId,
+                  planoContasId: r.planoContasId,
+                  formaPagamentoId: r.formaPagamentoId,
                   __original: r
               }));
 
@@ -305,8 +359,85 @@ export class ContasComponent implements OnInit {
   }
 
   get filteredRows() {
-      if (this.filtroTipo === 'Todas') return this.rows;
-      return this.rows.filter(r => r.tipo === this.filtroTipo);
+      let result = this.rows;
+
+      // 1. Filtro de Tipo
+      if (this.filtroTipo !== 'Todas') {
+          switch (this.filtroTipo) {
+              case 'Todas Quitado':
+                  result = result.filter(r => r.pago);
+                  break;
+              case 'Todas Aberto':
+                  result = result.filter(r => !r.pago);
+                  break;
+              case 'Todas Receita':
+                  result = result.filter(r => r.tipo === 'Receita');
+                  break;
+              case 'Todas Despesa':
+                  result = result.filter(r => r.tipo === 'Despesa');
+                  break;
+              case 'Despesa Quitado':
+                  result = result.filter(r => r.tipo === 'Despesa' && r.pago);
+                  break;
+              case 'Despesa Aberto':
+                  result = result.filter(r => r.tipo === 'Despesa' && !r.pago);
+                  break;
+              case 'Receita Quitado':
+                  result = result.filter(r => r.tipo === 'Receita' && r.pago);
+                  break;
+              case 'Receita Aberto':
+                  result = result.filter(r => r.tipo === 'Receita' && !r.pago);
+                  break;
+              case 'Transferencias':
+                  result = result.filter(r => 
+                      r.descricao?.toLowerCase().includes('transferência') ||
+                      r.ref?.toLowerCase().includes('transferência')
+                  );
+                  break;
+          }
+      }
+
+      // 2. Filtros Avançados (Vencimento & Buscar Por / Filtro)
+      // Filtro por data
+      if (this.vencInicio) {
+          const start = new Date(this.vencInicio);
+          start.setHours(0, 0, 0, 0);
+          result = result.filter(r => {
+              if (!r.venc) return false;
+              const d = new Date(r.venc + 'T00:00');
+              return d >= start;
+          });
+      }
+      if (this.vencFim) {
+          const end = new Date(this.vencFim);
+          end.setHours(23, 59, 59, 999);
+          result = result.filter(r => {
+              if (!r.venc) return false;
+              const d = new Date(r.venc + 'T00:00');
+              return d <= end;
+          });
+      }
+
+      // Filtro por Caixa, Centro de Custo, Plano de Contas, Forma de Pagamento
+      if (this.buscarPor && this.filtroValor && this.filtroValor !== 'TODOS') {
+          const filterId = Number(this.filtroValor);
+          switch (this.buscarPor) {
+              case 'conta':
+                  result = result.filter(r => r.contaBancariaId === filterId);
+                  break;
+              case 'centroCusto':
+                  result = result.filter(r => r.centroCustoId === filterId);
+                  break;
+              case 'planoContas':
+                  result = result.filter(r => r.planoContasId === filterId);
+                  break;
+              case 'formaPagamento':
+                  result = result.filter(r => r.formaPagamentoId === filterId);
+                  break;
+          }
+      }
+
+      return result;
   }
 
   quitarContas() {

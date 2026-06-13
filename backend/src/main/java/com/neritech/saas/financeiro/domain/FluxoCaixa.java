@@ -1,6 +1,7 @@
 package com.neritech.saas.financeiro.domain;
 
 import com.neritech.saas.common.tenancy.TenantEntity;
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
 import com.neritech.saas.financeiro.domain.enums.TipoMovimentacao;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -52,7 +53,7 @@ public class FluxoCaixa extends TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "centro_custo_id")
-    private CentroCusto centroCusto;
+    private DepartamentoContabio centroCusto;
 
     @Column(name = "cliente_id")
     private Long clienteId;
@@ -98,7 +99,7 @@ public class FluxoCaixa extends TenantEntity {
         this.contaBancaria = contaBancaria;
     }
 
-    public void setCentroCusto(CentroCusto centroCusto) {
+    public void setCentroCusto(DepartamentoContabio centroCusto) {
         this.centroCusto = centroCusto;
     }
 

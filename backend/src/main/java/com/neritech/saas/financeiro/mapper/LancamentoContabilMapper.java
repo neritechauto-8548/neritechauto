@@ -14,7 +14,7 @@ public interface LancamentoContabilMapper {
 
     @Mapping(target = "contaDebitoNome", source = "contaDebito.nome")
     @Mapping(target = "contaCreditoNome", source = "contaCredito.nome")
-    @Mapping(target = "centroCustoNome", source = "centroCusto.nome")
+    @Mapping(target = "centroCustoNome", source = "centroCusto.descricao")
     LancamentoContabilResponse toResponse(LancamentoContabil entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

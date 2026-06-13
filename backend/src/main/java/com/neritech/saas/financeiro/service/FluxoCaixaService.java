@@ -5,6 +5,7 @@ import com.neritech.saas.financeiro.dto.FluxoCaixaRequest;
 import com.neritech.saas.financeiro.dto.FluxoCaixaResponse;
 import com.neritech.saas.financeiro.mapper.FluxoCaixaMapper;
 import com.neritech.saas.financeiro.repository.*;
+import com.neritech.saas.empresa.repository.DepartamentoContabioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +19,7 @@ public class FluxoCaixaService {
 
     private final FluxoCaixaRepository repository;
     private final ContaBancariaRepository contaBancariaRepository;
-    private final CentroCustoRepository centroCustoRepository;
+    private final DepartamentoContabioRepository departamentoContabioRepository;
     private final FluxoCaixaMapper mapper;
 
     @Transactional(readOnly = true)
@@ -110,9 +111,9 @@ public class FluxoCaixaService {
         }
 
         if (request.centroCustoId() != null) {
-            CentroCusto centroCusto = centroCustoRepository.findById(request.centroCustoId())
-                    .orElseThrow(() -> new RuntimeException("Centro de custo nÃ£o encontrado"));
-            entity.setCentroCusto(centroCusto);
+            com.neritech.saas.empresa.domain.DepartamentoContabio depto = departamentoContabioRepository.findById(request.centroCustoId())
+                    .orElseThrow(() -> new RuntimeException("Departamento não encontrado"));
+            entity.setCentroCusto(depto);
         }
 
         // Note: pagamentoId and recebimentoId are stored as documentoId in FluxoCaixa
