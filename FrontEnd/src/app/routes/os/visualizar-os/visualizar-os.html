@@ -303,7 +303,7 @@
           <p class="text-[11px] text-slate-500 font-medium">Histórico financeiro desta ordem de serviço</p>
       </div>
     </div>
-    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()" [disabled]="isPagamentoPago() || (status?.toUpperCase() !== 'FINALIZADA' && status?.toUpperCase() !== 'ENTREGUE')" [pTooltip]="(status?.toUpperCase() !== 'FINALIZADA' && status?.toUpperCase() !== 'ENTREGUE') ? 'Finalize a OS primeiro para liberar o pagamento' : ''"></button>
+    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()" [disabled]="isPagamentoPago() || (status.toUpperCase() !== 'FINALIZADA' && status.toUpperCase() !== 'ENTREGUE')" [pTooltip]="(status.toUpperCase() !== 'FINALIZADA' && status.toUpperCase() !== 'ENTREGUE') ? 'Finalize a OS primeiro para liberar o pagamento' : ''"></button>
   </div>
 
   <div *ngIf="!pagamentosExistentes.length" class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhum pagamento registrado para esta OS.</div>
