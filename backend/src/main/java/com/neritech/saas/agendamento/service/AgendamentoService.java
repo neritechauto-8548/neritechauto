@@ -7,6 +7,7 @@ import com.neritech.saas.agendamento.dto.AgendamentoResponse;
 import com.neritech.saas.agendamento.mapper.AgendamentoMapper;
 import com.neritech.saas.agendamento.repository.AgendamentoRepository;
 import com.neritech.saas.agendamento.repository.TipoAgendamentoRepository;
+import com.neritech.saas.common.exception.BusinessException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,23 @@ public class AgendamentoService {
 
     @Transactional
     public AgendamentoResponse criar(AgendamentoRequest request) {
+        if (request.dataAgendamento() != null && request.dataAgendamento().isBefore(java.time.LocalDate.now())) {
+            throw new BusinessException("Não é permitido realizar agendamentos para datas retroativas.");
+        }
+
+        if (request.veiculoId() != null) {
+            List<Agendamento> conflitos = repository.findConflictingAgendamentos(
+                    request.veiculoId(),
+                    request.dataAgendamento(),
+                    request.horaInicio(),
+                    request.horaFim(),
+                    null
+            );
+            if (!conflitos.isEmpty()) {
+                throw new BusinessException("Já existe um agendamento ativo para este veículo no mesmo período de horário.");
+            }
+        }
+
         Agendamento agendamento = mapper.toEntity(request);
 
         // Buscar tipo de agendamento se fornecido
@@ -68,6 +86,25 @@ public class AgendamentoService {
     public AgendamentoResponse atualizar(Long id, AgendamentoRequest request) {
         Agendamento agendamento = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Agendamento nÃƒÂ£o encontrado"));
+
+        // Validar se a data está sendo alterada para o passado
+        if (request.dataAgendamento() != null && request.dataAgendamento().isBefore(java.time.LocalDate.now()) && !agendamento.getDataAgendamento().equals(request.dataAgendamento())) {
+            throw new BusinessException("Não é permitido alterar a data do agendamento para uma data retroativa.");
+        }
+
+        Long veiculoIdToCheck = request.veiculoId() != null ? request.veiculoId() : agendamento.getVeiculoId();
+        if (veiculoIdToCheck != null) {
+            List<Agendamento> conflitos = repository.findConflictingAgendamentos(
+                    veiculoIdToCheck,
+                    request.dataAgendamento(),
+                    request.horaInicio(),
+                    request.horaFim(),
+                    id
+            );
+            if (!conflitos.isEmpty()) {
+                throw new BusinessException("Já existe um agendamento ativo para este veículo no mesmo período de horário.");
+            }
+        }
 
         // Atualizar campos
         agendamento.setDataAgendamento(request.dataAgendamento());

@@ -15,6 +15,8 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { TagModule } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from '@shared/services/confirmation.service';
+import { NgxPermissionsService } from 'ngx-permissions';
+import { SkeletonModule } from 'primeng/skeleton';
 
 import { VeiculoService } from '../veiculo/veiculo.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
@@ -42,7 +44,8 @@ import {
     TextareaModule,
     AutoCompleteModule,
     ToastModule,
-    TagModule
+    TagModule,
+    SkeletonModule
   ],
   providers: [MessageService]
 })
@@ -54,6 +57,7 @@ export class CadastroVeiculo implements OnInit {
   private readonly clientesService = inject(ClientesService);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly permissionsService = inject(NgxPermissionsService);
 
   // Estado Geral
   loading = false;
@@ -325,6 +329,17 @@ export class CadastroVeiculo implements OnInit {
   // ========== SALVAR VEÍCULO ==========
 
   salvar() {
+    const isNew = !this.id;
+    const reqPerm = isNew ? 'VEICULO_CRIAR' : 'VEICULO_EDITAR';
+    if (!this.permissionsService.getPermission(reqPerm)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Seu perfil não possui permissão para realizar esta operação.'
+      });
+      return;
+    }
+
     if (!this.selectedCliente) {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione um cliente.' });
       return;
@@ -388,6 +403,15 @@ export class CadastroVeiculo implements OnInit {
 
   excluirVeiculo() {
     if (!this.id) return;
+    if (!this.permissionsService.getPermission('VEICULO_EXCLUIR')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Seu perfil não possui permissão para realizar esta operação.'
+      });
+      return;
+    }
+
     this.confirmationService.confirm({
       title: 'Excluir Veículo',
       message: `Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.`,

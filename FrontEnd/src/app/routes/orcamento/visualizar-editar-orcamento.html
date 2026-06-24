@@ -1,15 +1,15 @@
 <div class="toolbar">
   <button class="p-button p-button-danger" (click)="excluir()"><i class="pi pi-trash"></i> Excluir</button>
   <button class="p-button p-button-info" (click)="imprimir()"><i class="pi pi-print"></i> Imprimir</button>
-  <button class="p-button p-button-info" (click)="formatoCupom()"><i class="pi pi-ticket"></i> Formato Cupom</button>
   <p-splitButton [model]="menuEnviarItems" label="Enviar" icon="pi pi-send" class="p-button-warning" />
-  <button class="p-button p-button-success" (click)="abrirIncluirItem()"><i class="pi pi-plus"></i> Incluir itens</button>
+  <button class="p-button p-button-success" (click)="abrirIncluirItem()"><i class="pi pi-plus"></i> Incluir Produto</button>
+  <button class="p-button" style="background-color: #10b981; border-color: #10b981;" (click)="aprovar()"><i class="pi pi-check-circle"></i> Aprovar Orçamento</button>
 </div>
 
 <p-panel>
   <ng-template pTemplate="header">
     <div class="panel-header">
-      <div class="title">Itens Orçamento n° {{ numero }}</div>
+      <div class="title">Itens Orçamento n° {{ osData?.numeroOS || id }}</div>
       <div class="icons"><i class="pi pi-check"></i><i class="pi pi-refresh"></i><i class="pi pi-cog"></i></div>
     </div>
   </ng-template>
@@ -62,8 +62,8 @@
       <div class="input-prefix"><i class="pi pi-user"></i><p-select [options]="funcionarios" [optionLabel]="'label'" [optionValue]="'value'" [(ngModel)]="form.funcionario" name="funcionario" /></div>
     </div>
     <div class="col">
-      <label>Veiculo</label>
-      <div class="input-prefix"><i class="pi pi-car"></i><input pInputText [(ngModel)]="form.veiculo" name="veiculo" /></div>
+      <label>Veículo</label>
+      <div class="input-prefix"><i class="pi pi-car"></i><input pInputText [(ngModel)]="form.veiculo" name="veiculo" readonly style="background-color: #f1f5f9;" /></div>
     </div>
     <div class="col">
       <label>Email</label>
@@ -84,7 +84,7 @@
     </div>
     <div class="col span-2">
       <label>Cliente</label>
-      <div class="input-prefix"><i class="pi pi-id-card"></i><input pInputText [(ngModel)]="form.cliente" name="cliente" /></div>
+      <div class="input-prefix"><i class="pi pi-id-card"></i><input pInputText [(ngModel)]="form.cliente" name="cliente" readonly style="background-color: #f1f5f9;" /></div>
     </div>
 
     <div class="col span-4">

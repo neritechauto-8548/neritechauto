@@ -12,6 +12,8 @@ import { MessageService } from 'primeng/api';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 
 import { ClientesService } from '../cliente/cliente/cliente.service';
+import { OrdemServicoService } from '../os/ordem-servico.service';
+import { OrdemServicoRequest, TipoOS } from '../os/models/os.models';
 
 @Component({
   standalone: true,
@@ -30,6 +32,7 @@ export class CadastroOrcamentoComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly clientesService = inject(ClientesService);
+  private readonly osService = inject(OrdemServicoService);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -100,12 +103,33 @@ export class CadastroOrcamentoComponent implements OnInit {
     }
 
     this.saving = true;
-    // Integração com backend de orçamento quando disponível
-    setTimeout(() => {
-      this.messageService.add({ severity: 'success', summary: 'Orçamento salvo!', detail: 'Orçamento registrado com sucesso.' });
-      this.saving = false;
-      setTimeout(() => this.router.navigate(['/orcamento/orcamento']), 1200);
-    }, 800);
+
+    // Gerar número de orçamento (OS) temporário/fictício caso não exista backend generator
+    const numOS = 'ORC-' + Math.floor(Math.random() * 100000);
+
+    const payload: OrdemServicoRequest = {
+        empresaId: 1,
+        numeroOS: numOS,
+        clienteId: this.selectedCliente.id,
+        tipoOS: TipoOS.ORCAMENTO,
+        valorTotal: 0,
+        dataAbertura: new Date().toISOString(),
+        observacoesCliente: this.form.descricao,
+        equipeExecucao: JSON.stringify([this.form.funcionario])
+    };
+
+    this.osService.create(payload).subscribe({
+      next: (res) => {
+        this.messageService.add({ severity: 'success', summary: 'Orçamento salvo!', detail: 'Orçamento registrado com sucesso.' });
+        this.saving = false;
+        setTimeout(() => this.router.navigate(['/orcamento/visualizar-orcamento', res.id]), 1000);
+      },
+      error: (err) => {
+        console.error(err);
+        this.saving = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar o orçamento.' });
+      }
+    });
   }
 
   excluir() {

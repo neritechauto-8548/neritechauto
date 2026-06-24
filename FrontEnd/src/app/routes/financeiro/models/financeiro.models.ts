@@ -13,6 +13,7 @@ export enum TipoTitulo {
     CONVENIO = 'CONVENIO',
     BOLETO = 'BOLETO',
     OS = 'OS',
+    VENDA_BALCAO = 'VENDA_BALCAO',
     OUTROS = 'OUTROS'
 }
 
@@ -61,7 +62,7 @@ export interface LogAlteracaoDTO {
 
 export interface ContasPagarRequest {
     descricao: string;
-    fornecedorId: number;
+    fornecedorId?: number;
     numeroDocumento?: string;
     dataEmissao: string; // yyyy-MM-dd
     dataVencimento: string; // yyyy-MM-dd
@@ -79,6 +80,7 @@ export interface ContasPagarRequest {
     contaBancariaId?: number;
     centroCustoId?: number;
     planoContasId?: number;
+    numeroTitulo?: string;
     codigoBarras?: string;
     observacoes?: string;
 }
@@ -87,7 +89,7 @@ export interface ContasPagarResponse {
     id: number;
     empresaId: number;
     descricao: string;
-    fornecedorId: number;
+    fornecedorId?: number;
     numeroDocumento?: string;
     dataEmissao: string;
     dataVencimento: string;
@@ -109,6 +111,7 @@ export interface ContasPagarResponse {
     centroCustoNome?: string;
     planoContasId?: number;
     planoContasNome?: string;
+    numeroTitulo?: string;
     codigoBarras?: string;
     observacoes?: string;
     createdAt?: string;

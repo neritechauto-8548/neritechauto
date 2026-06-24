@@ -31,9 +31,17 @@ public class ContasReceberController {
     @Operation(summary = "Listar contas a receber")
     public ResponseEntity<Page<ContasReceberResponse>> findAll(
             @RequestParam(required = false) Long empresaId,
+            @RequestParam(required = false) String termo,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate dataInicio,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate dataFim,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long contaBancariaId,
+            @RequestParam(required = false) Long centroCustoId,
+            @RequestParam(required = false) Long planoContasId,
+            @RequestParam(required = false) Long formaPagamentoId,
             Pageable pageable) {
         Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        return ResponseEntity.ok(service.findAll(empresa, pageable));
+        return ResponseEntity.ok(service.findAll(empresa, termo, dataInicio, dataFim, status, contaBancariaId, centroCustoId, planoContasId, formaPagamentoId, pageable));
     }
 
     @GetMapping("/{id}")

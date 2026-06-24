@@ -1,0 +1,358 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="caixa" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ca18a123-ca1a-ca1b-ca1c-ef1234567890">
+	<parameter name="NOME_EMPRESA" class="java.lang.String"/>
+	<parameter name="CNPJ_EMPRESA" class="java.lang.String"/>
+	<parameter name="TELEFONE_EMPRESA" class="java.lang.String"/>
+	<parameter name="EMAIL_EMPRESA" class="java.lang.String"/>
+	<parameter name="SITE_EMPRESA" class="java.lang.String"/>
+	<parameter name="ENDERECO_EMPRESA" class="java.lang.String"/>
+	<parameter name="CONTA_LABEL" class="java.lang.String"/>
+	<parameter name="DATA_GERACAO" class="java.lang.String"/>
+	<parameter name="HORA_GERACAO" class="java.lang.String"/>
+	<parameter name="RESUMO_ENTRADA" class="java.lang.String"/>
+	<parameter name="RESUMO_SAIDA" class="java.lang.String"/>
+	<parameter name="TOTAL_ENTRADA" class="java.lang.String"/>
+	<parameter name="TOTAL_SAIDA" class="java.lang.String"/>
+	<parameter name="SALDO_INICIAL" class="java.lang.String"/>
+	<parameter name="SALDO_FINAL" class="java.lang.String"/>
+	<parameter name="USUARIO_ATUAL" class="java.lang.String"/>
+	<field name="id" class="java.lang.Long"/>
+	<field name="formaPagamento" class="java.lang.String"/>
+	<field name="dataPagamento" class="java.lang.String"/>
+	<field name="dataVencimento" class="java.lang.String"/>
+	<field name="entrada" class="java.lang.String"/>
+	<field name="saida" class="java.lang.String"/>
+	<field name="descricao" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="95" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="20" width="160" height="30" forecolor="#CC0000" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Oficina Exemplo]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="0" width="355" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NOME_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="15" width="355" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TELEFONE_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="30" width="355" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{EMAIL_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="45" width="355" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SITE_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="60" width="355" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ENDERECO_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="85" width="555" height="1" forecolor="#7F7F7F" />
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="120" splitType="Stretch">
+			<!-- Report Info -->
+			<textField>
+				<reportElement x="0" y="5" width="555" height="20" />
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["CAIXA IMPRESSO EM DATA: " + $P{DATA_GERACAO} + " HORA: " + $P{HORA_GERACAO} + " - CONTA: " + $P{CONTA_LABEL}]]></textFieldExpression>
+			</textField>
+			
+			<!-- Grouped summaries header -->
+			<staticText>
+				<reportElement x="0" y="35" width="260" height="15" forecolor="#333333" />
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Entrada]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="295" y="35" width="260" height="15" forecolor="#333333" />
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saída]]></text>
+			</staticText>
+			
+			<!-- Grouped summaries content -->
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="52" width="260" height="40" />
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{RESUMO_ENTRADA}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="295" y="52" width="260" height="40" />
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{RESUMO_SAIDA}]]></textFieldExpression>
+			</textField>
+			
+			<!-- Table headers -->
+			<line>
+				<reportElement x="0" y="100" width="555" height="1" forecolor="#999999" />
+			</line>
+			<staticText>
+				<reportElement x="0" y="103" width="30" height="15" forecolor="#333333" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Doc]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="103" width="90" height="15" forecolor="#333333" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Forma Pag.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="130" y="103" width="65" height="15" forecolor="#333333" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Pagamento]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="103" width="65" height="15" forecolor="#333333" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vencimento]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="270" y="103" width="65" height="15" forecolor="#333333" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Entrada]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="103" width="65" height="15" forecolor="#333333" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saída]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="415" y="103" width="140" height="15" forecolor="#333333" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Descrição]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="118" width="555" height="1" forecolor="#CCCCCC" />
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="1" width="30" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="35" y="1" width="90" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{formaPagamento}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="130" y="1" width="65" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dataPagamento}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="1" width="65" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dataVencimento}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="270" y="1" width="65" height="15" forecolor="#15803D" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{entrada}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="340" y="1" width="65" height="15" forecolor="#B91C1C" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{saida}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="415" y="1" width="140" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{descricao}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" forecolor="#E5E5E5" />
+			</line>
+			<textField>
+				<reportElement x="0" y="5" width="250" height="15" forecolor="#666666" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NOME_EMPRESA} != null ? $P{NOME_EMPRESA} : "NeriTech Auto"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="250" y="5" width="100" height="15" forecolor="#999999" />
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NeriTech Auto]]></text>
+			</staticText>
+			<textField evaluationTime="Report">
+				<reportElement x="505" y="5" width="50" height="15" forecolor="#666666" />
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" de " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="405" y="5" width="100" height="15" forecolor="#666666" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="145" splitType="Stretch">
+			<!-- Totals and Balances box -->
+			<line>
+				<reportElement x="0" y="2" width="555" height="1" forecolor="#000000" />
+			</line>
+			<staticText>
+				<reportElement x="0" y="8" width="100" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total entrada:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="100" y="8" width="140" height="15" forecolor="#15803D" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TOTAL_ENTRADA}]]></textFieldExpression>
+			</textField>
+			
+			<staticText>
+				<reportElement x="295" y="8" width="100" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total saída:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="395" y="8" width="160" height="15" forecolor="#B91C1C" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TOTAL_SAIDA}]]></textFieldExpression>
+			</textField>
+			
+			<staticText>
+				<reportElement x="0" y="25" width="100" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saldo Inicial:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="100" y="25" width="140" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SALDO_INICIAL}]]></textFieldExpression>
+			</textField>
+			
+			<staticText>
+				<reportElement x="295" y="25" width="100" height="15" />
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saldo final:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="395" y="25" width="160" height="15" />
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SALDO_FINAL}]]></textFieldExpression>
+			</textField>
+			
+			<line>
+				<reportElement x="0" y="44" width="555" height="1" forecolor="#000000" />
+			</line>
+			
+			<!-- Signature line -->
+			<staticText>
+				<reportElement x="180" y="65" width="200" height="15" forecolor="#555555" />
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ASSINATURA DO RESPONSAVEL]]></text>
+			</staticText>
+			<line>
+				<reportElement x="140" y="105" width="280" height="1" forecolor="#333333" />
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="110" width="320" height="15" />
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{USUARIO_ATUAL}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
+

@@ -23,5 +23,8 @@ public record FluxoCaixaResponse(
         Long recebimentoId,
         String observacoes,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt,
+        LocalDate dataVencimento,
+        LocalDate dataPagamento,
+        String formaPagamentoNome) {
 }

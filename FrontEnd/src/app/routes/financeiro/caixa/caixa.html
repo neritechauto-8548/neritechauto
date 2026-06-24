@@ -10,20 +10,24 @@
         <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Movimentações financeiras do período</p>
       </div>
       <div class="flex items-center gap-2 flex-wrap justify-end">
-        <button (click)="abrirNovoLanc()"
-          class="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
-          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">add</mat-icon>
-          <span class="hidden sm:inline">Lançamento</span>
-        </button>
-        <button (click)="abrirTransferencia()"
-          class="flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors">
-          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">swap_horiz</mat-icon>
+        <button (click)="abrirTransferencia()" [disabled]="caixaFechado"
+          class="flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="pi pi-sync text-sm"></i>
           <span class="hidden sm:inline">Transferir</span>
         </button>
-        <button (click)="fecharCaixa()"
-          class="flex items-center gap-1.5 px-3 py-2 border border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg text-sm font-semibold shadow-sm transition-colors">
-          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">lock</mat-icon>
-          <span class="hidden sm:inline">Fechar Caixa</span>
+        <button (click)="imprimir()" [disabled]="pdfLoading"
+          class="flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50">
+          @if (!pdfLoading) {
+            <i class="pi pi-print text-sm"></i>
+          } @else {
+            <i class="pi pi-spin pi-spinner text-sm"></i>
+          }
+          <span class="hidden sm:inline">{{ pdfLoading ? 'Gerando...' : 'Imprimir' }}</span>
+        </button>
+        <button (click)="fecharCaixa()" [disabled]="caixaFechado"
+          class="flex items-center gap-1.5 px-3 py-2 border border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="pi pi-lock text-sm"></i>
+          <span class="hidden sm:inline">{{ caixaFechado ? 'Caixa Fechado' : 'Fechar Caixa' }}</span>
         </button>
       </div>
     </div>
@@ -37,7 +41,7 @@
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Inicial</span>
         <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-600">account_balance_wallet</mat-icon>
+          <i class="pi pi-wallet text-slate-600"></i>
         </span>
       </div>
       <p class="text-lg font-bold text-slate-800">{{ formatCurrency(saldoInicial) }}</p>
@@ -48,7 +52,7 @@
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Entradas</span>
         <span class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-emerald-600">arrow_downward</mat-icon>
+          <i class="pi pi-arrow-down text-emerald-600"></i>
         </span>
       </div>
       <p class="text-lg font-bold text-emerald-700">{{ formatCurrency(totalEntrada) }}</p>
@@ -59,13 +63,13 @@
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-semibold text-red-600 uppercase tracking-wider">Saídas</span>
         <span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-red-600">arrow_upward</mat-icon>
+          <i class="pi pi-arrow-up text-red-600"></i>
         </span>
       </div>
       <p class="text-lg font-bold text-red-700">{{ formatCurrency(totalSaida) }}</p>
     </div>
 
-    <!-- Saldo Final — sempre fundo branco, muda apenas border e texto -->
+    <!-- Saldo Final -->
     <div class="bg-white rounded-xl p-4 shadow-sm border-2"
       [ngClass]="saldoFinal >= 0 ? 'border-indigo-300' : 'border-red-300'">
       <div class="flex items-center justify-between mb-2">
@@ -73,10 +77,9 @@
           [ngClass]="saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">Saldo Final</span>
         <span class="w-8 h-8 rounded-lg flex items-center justify-center"
           [ngClass]="saldoFinal >= 0 ? 'bg-indigo-100' : 'bg-red-100'">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]"
-            [ngClass]="saldoFinal >= 0 ? 'text-indigo-600' : 'text-red-600'">
-            {{ saldoFinal >= 0 ? 'trending_up' : 'trending_down' }}
-          </mat-icon>
+          <i class="pi"
+            [ngClass]="saldoFinal >= 0 ? 'pi-trending-up text-indigo-600' : 'pi-trending-down text-red-600'">
+          </i>
         </span>
       </div>
       <p class="text-lg font-bold" [ngClass]="saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
@@ -85,18 +88,37 @@
     </div>
   </div>
 
+  <!-- Alert Banner if Caixa is Closed -->
+  @if (caixaFechado) {
+    <div class="mx-4 sm:mx-6 mb-3 rounded-xl p-4 flex items-center gap-3" style="background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b;">
+      <i class="pi pi-lock text-lg" style="color: #ef4444;"></i>
+      <div class="flex-1">
+        <h3 class="text-sm font-bold" style="color: #991b1b; margin: 0;">Caixa Fechado</h3>
+        <p class="text-xs" style="color: #b91c1c; margin: 2px 0 0 0; line-height: 1.4;">Este período já foi encerrado e está bloqueado para novas transferências ou modificações retroativas.</p>
+      </div>
+    </div>
+  }
+
   <!-- Filtros -->
   <div class="px-4 sm:px-6 pb-3">
+    <!-- Alerta Caixa Aberto -->
+    <div class="mb-3 bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-start gap-3">
+      <i class="pi pi-info-circle text-indigo-600 mt-0.5"></i>
+      <div>
+        <p class="text-sm text-indigo-900 font-medium">Caixa Aberto</p>
+        <p class="text-xs text-indigo-700 mt-0.5">Esta tela exibe apenas as movimentações do período em aberto. Para consultar o histórico detalhado de períodos encerrados, acesse a tela de <a routerLink="/financeiro/caixas-fechado" class="font-bold underline hover:text-indigo-900">Caixas Fechados</a>.</p>
+      </div>
+    </div>
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap items-end gap-3">
 
         <div class="flex flex-col gap-1 min-w-[120px]">
-          <label class="text-xs font-semibold text-slate-700">De</label>
+          <label class="text-xs font-semibold text-slate-700">De (Pagamento)</label>
           <input type="date" [(ngModel)]="dataInicial"
             class="px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
         </div>
         <div class="flex flex-col gap-1 min-w-[120px]">
-          <label class="text-xs font-semibold text-slate-700">Até</label>
+          <label class="text-xs font-semibold text-slate-700">Até (Pagamento)</label>
           <input type="date" [(ngModel)]="dataFinal"
             class="px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
         </div>
@@ -114,15 +136,18 @@
         </div>
 
         <button (click)="buscar()" [disabled]="loading"
-          class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">search</mat-icon>
+          class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50 h-[38px]">
+          <i class="pi pi-search text-sm"></i>
           Filtrar
         </button>
 
-        <div class="relative flex-1 min-w-[180px]">
-          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 !text-[16px] !w-[16px] !h-[16px] text-slate-400">search</mat-icon>
-          <input [(ngModel)]="filtroTexto" type="text" placeholder="Buscar na lista..."
-            class="w-full pl-9 pr-4 py-2 text-sm text-slate-800 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+        <div class="flex flex-col gap-1 flex-1 min-w-[180px]">
+          <label class="text-xs font-semibold text-slate-700">Buscar</label>
+          <div class="relative w-full">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input [(ngModel)]="filtroTexto" type="text" placeholder="Buscar na lista..."
+              class="w-full pl-9 pr-4 py-2 text-sm text-slate-800 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 h-[38px]" />
+          </div>
         </div>
       </div>
     </div>
@@ -133,421 +158,310 @@
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
 
       <!-- Loading -->
-      <div *ngIf="loading" class="py-16 flex flex-col items-center gap-3 text-slate-400">
-        <mat-icon class="animate-spin !text-2xl">refresh</mat-icon>
-        <span class="text-sm">Carregando movimentações...</span>
-      </div>
+      @if (loading) {
+        <div class="py-16 flex flex-col items-center gap-3 text-slate-400">
+          <i class="pi pi-spin pi-spinner text-2xl"></i>
+          <span class="text-sm">Carregando movimentações...</span>
+        </div>
+      }
 
       <!-- Empty -->
-      <div *ngIf="!loading && linhasFiltradas.length === 0" class="py-16 flex flex-col items-center gap-3">
-        <mat-icon class="!text-4xl text-slate-300">account_balance</mat-icon>
-        <p class="text-sm font-semibold text-slate-500">Nenhuma movimentação encontrada</p>
-        <p class="text-xs text-slate-400">Ajuste os filtros ou clique em Lançamento para registrar.</p>
-      </div>
+      @if (!loading && linhasFiltradas.length === 0) {
+        <div class="py-16 flex flex-col items-center gap-3">
+          <i class="pi pi-building text-4xl text-slate-300"></i>
+          <p class="text-sm font-semibold text-slate-500">Nenhuma movimentação encontrada</p>
+          <p class="text-xs text-slate-400">Ajuste os filtros para pesquisar outras movimentações.</p>
+        </div>
+      }
 
       <!-- Table -->
-      <table *ngIf="!loading && linhasFiltradas.length > 0" class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-slate-100 bg-slate-50">
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Tipo</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Data</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Descrição</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider hidden md:table-cell">Conta</th>
-            <th class="text-right py-3 px-4 text-xs font-bold text-emerald-700 uppercase tracking-wider">Entrada</th>
-            <th class="text-right py-3 px-4 text-xs font-bold text-red-600 uppercase tracking-wider">Saída</th>
-            <th class="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Saldo</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let l of linhasFiltradas"
-              class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+      @if (!loading && linhasFiltradas.length > 0) {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 bg-slate-50">
+              <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Tipo</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Pagamento</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Vencimento</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Descrição</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider hidden md:table-cell">Conta</th>
+              <th class="text-right py-3 px-4 text-xs font-bold text-emerald-700 uppercase tracking-wider">Entrada</th>
+              <th class="text-right py-3 px-4 text-xs font-bold text-red-600 uppercase tracking-wider">Saída</th>
+              <th class="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of linhasFiltradas; track l.id) {
+              <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
 
-            <!-- Tipo badge — fundo sólido com texto branco = máximo contraste -->
-            <td class="py-3 px-4">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-                [ngClass]="{
-                  'bg-emerald-600 text-white': l.tipo === 'ENTRADA',
-                  'bg-red-600 text-white': l.tipo === 'SAIDA',
-                  'bg-indigo-600 text-white': l.tipo === 'TRANSFERENCIA'
-                }">
-                <mat-icon class="!text-[11px] !w-[11px] !h-[11px]">
-                  {{ l.tipo === 'ENTRADA' ? 'arrow_downward' : l.tipo === 'SAIDA' ? 'arrow_upward' : 'swap_horiz' }}
-                </mat-icon>
-                {{ l.tipo === 'ENTRADA' ? 'Entrada' : l.tipo === 'SAIDA' ? 'Saída' : 'Transf.' }}
-              </span>
-            </td>
+                <!-- Tipo badge utilizando o padrão .nt-badge do design system -->
+                <td class="py-3 px-4">
+                  <span class="nt-badge"
+                    [ngClass]="{
+                      'nt-badge--success': l.tipo === 'ENTRADA',
+                      'nt-badge--danger': l.tipo === 'SAIDA',
+                      'nt-badge--info': l.tipo === 'TRANSFERENCIA'
+                    }">
+                    <i class="pi"
+                      [ngClass]="{
+                        'pi-arrow-down': l.tipo === 'ENTRADA',
+                        'pi-arrow-up': l.tipo === 'SAIDA',
+                        'pi-sync': l.tipo === 'TRANSFERENCIA'
+                      }" style="font-size: 10px;"></i>
+                    {{ l.tipo === 'ENTRADA' ? 'Entrada' : l.tipo === 'SAIDA' ? 'Saída' : 'Transf.' }}
+                  </span>
+                </td>
 
-            <td class="py-3 px-4 text-slate-700 font-mono text-xs whitespace-nowrap">{{ l.dataFmt }}</td>
+                <td class="py-3 px-4 text-slate-700 font-mono text-xs whitespace-nowrap">{{ l.dataPagamentoFmt || l.dataFmt }}</td>
 
-            <td class="py-3 px-4">
-              <p class="font-semibold text-slate-800 truncate max-w-[220px]">{{ l.descricao }}</p>
-              <p *ngIf="l.centroCusto" class="text-xs text-slate-500 mt-0.5">{{ l.centroCusto }}</p>
-            </td>
+                <td class="py-3 px-4 text-slate-700 font-mono text-xs whitespace-nowrap">{{ l.dataVencimentoFmt || '-' }}</td>
 
-            <td class="py-3 px-4 text-slate-600 text-xs hidden md:table-cell">{{ l.conta || '—' }}</td>
+                <td class="py-3 px-4">
+                  <p class="font-semibold text-slate-800 truncate max-w-[220px]">{{ l.descricao }}</p>
+                  @if (l.centroCusto) {
+                    <p class="text-xs text-slate-500 mt-0.5">{{ l.centroCusto }}</p>
+                  }
+                </td>
 
-            <td class="py-3 px-4 text-right">
-              <span *ngIf="l.entrada > 0" class="font-bold text-emerald-700">{{ formatCurrency(l.entrada) }}</span>
-              <span *ngIf="l.entrada === 0" class="text-slate-300">—</span>
-            </td>
+                <td class="py-3 px-4 text-slate-600 text-xs hidden md:table-cell">{{ l.conta || '—' }}</td>
 
-            <td class="py-3 px-4 text-right">
-              <span *ngIf="l.saida > 0" class="font-bold text-red-700">{{ formatCurrency(l.saida) }}</span>
-              <span *ngIf="l.saida === 0" class="text-slate-300">—</span>
-            </td>
+                <td class="py-3 px-4 text-right">
+                  @if (l.entrada > 0) {
+                    <span class="font-bold text-emerald-700">{{ formatCurrency(l.entrada) }}</span>
+                  } @else {
+                    <span class="text-slate-300">—</span>
+                  }
+                </td>
 
-            <td class="py-3 px-4 text-right">
-              <span class="font-bold" [ngClass]="l.saldo >= 0 ? 'text-slate-800' : 'text-red-700'">
-                {{ formatCurrency(l.saldo) }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
+                <td class="py-3 px-4 text-right">
+                  @if (l.saida > 0) {
+                    <span class="font-bold text-red-700">{{ formatCurrency(l.saida) }}</span>
+                  } @else {
+                    <span class="text-slate-300">—</span>
+                  }
+                </td>
 
-        <!-- Footer totais -->
-        <tfoot class="border-t-2 border-slate-200 bg-slate-50">
-          <tr>
-            <td colspan="4" class="py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">
-              {{ linhasFiltradas.length }} movimentações no período
-            </td>
-            <td class="py-3 px-4 text-right font-bold text-emerald-700">{{ formatCurrency(totalEntrada) }}</td>
-            <td class="py-3 px-4 text-right font-bold text-red-700">{{ formatCurrency(totalSaida) }}</td>
-            <td class="py-3 px-4 text-right font-bold" [ngClass]="saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
-              {{ formatCurrency(saldoFinal) }}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+                <td class="py-3 px-4 text-right">
+                  <span class="font-bold" [ngClass]="l.saldo >= 0 ? 'text-slate-800' : 'text-red-700'">
+                    {{ formatCurrency(l.saldo) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+
+          <!-- Footer totais -->
+          <tfoot class="border-t-2 border-slate-200 bg-slate-50">
+            <tr>
+              <td colspan="5" class="py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                {{ linhasFiltradas.length }} movimentações no período
+              </td>
+              <td class="py-3 px-4 text-right font-bold text-emerald-700">{{ formatCurrency(totalEntrada) }}</td>
+              <td class="py-3 px-4 text-right font-bold text-red-700">{{ formatCurrency(totalSaida) }}</td>
+              <td class="py-3 px-4 text-right font-bold" [ngClass]="saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
+                {{ formatCurrency(saldoFinal) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      }
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- Dialog: Novo Lançamento Manual                         -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<p-dialog [(visible)]="novoLancDialog" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '500px', maxHeight: '90vh' }"
-  [contentStyle]="{'padding':'0','overflow':'hidden'}"
-  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
 
-  <!-- Header verde ou vermelho -->
-  <div [ngClass]="lanc.tipo === 'ENTRADA' ? 'bg-emerald-600' : 'bg-red-600'"
-    class="px-5 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-black/10 rounded-xl flex items-center justify-center">
-        <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">
-          {{ lanc.tipo === 'ENTRADA' ? 'arrow_downward' : 'arrow_upward' }}
-        </mat-icon>
-      </div>
-      <div>
-        <h2 class="text-base font-bold text-white">Novo Lançamento</h2>
-        <p class="text-xs text-white/80 mt-0.5">Registre uma movimentação no caixa</p>
-      </div>
-    </div>
-    <button (click)="novoLancDialog = false" class="w-8 h-8 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
-    </button>
-  </div>
-
-  <!-- Body -->
-  <div class="px-5 py-4 space-y-4 bg-white overflow-y-auto" style="max-height: calc(90vh - 76px)">
-
-    <!-- Toggle Entrada / Saída -->
-    <div class="flex gap-2 p-1 bg-slate-100 rounded-xl">
-      <button (click)="lanc.tipo = 'ENTRADA'"
-        class="flex-1 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
-        [ngClass]="lanc.tipo === 'ENTRADA' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'">
-        <mat-icon class="!text-[15px] !w-[15px] !h-[15px]">arrow_downward</mat-icon>
-        Entrada
-      </button>
-      <button (click)="lanc.tipo = 'SAIDA'"
-        class="flex-1 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all"
-        [ngClass]="lanc.tipo === 'SAIDA' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'">
-        <mat-icon class="!text-[15px] !w-[15px] !h-[15px]">arrow_upward</mat-icon>
-        Saída
-      </button>
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-bold text-slate-800">Descrição <span class="text-red-500">*</span></label>
-      <input pInputText [(ngModel)]="lanc.descricao" placeholder="Ex: Pagamento de fornecedor..."
-        class="w-full text-sm text-slate-800" />
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800">Valor <span class="text-red-500">*</span></label>
-        <p-inputnumber [(ngModel)]="lanc.valor" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" />
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800">Data</label>
-        <p-datepicker [(ngModel)]="lanc.data" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" />
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-bold text-slate-800">Conta Bancária</label>
-      <p-select [options]="contasTransf" optionLabel="label" optionValue="value"
-        [(ngModel)]="lanc.contaBancariaId" [showClear]="true" placeholder="Selecione a conta..." styleClass="w-full" />
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-bold text-slate-800">Observações</label>
-      <textarea pTextarea [(ngModel)]="lanc.observacoes" rows="2"
-        class="w-full text-sm text-slate-800 resize-none" placeholder="Opcional..."></textarea>
-    </div>
-  </div>
-
-  <!-- Footer Fixo -->
-  <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
-    <button (click)="novoLancDialog = false"
-      class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-bold flex items-center justify-center transition-colors shadow-sm">
-      Cancelar
-    </button>
-    <button (click)="salvarLanc()" [disabled]="salvandoLanc"
-      [ngClass]="lanc.tipo === 'ENTRADA' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'"
-      class="px-5 py-2.5 rounded-lg text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors shadow-sm">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">check</mat-icon>
-      {{ salvandoLanc ? 'Salvando...' : 'Lançar' }}
-    </button>
-  </div>
-</p-dialog>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- Dialog: Transferência                                   -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <p-dialog [(visible)]="transferenciaDialog" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '500px', maxHeight: '90vh' }"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '650px', maxHeight: '90vh' }"
   [contentStyle]="{'padding':'0','overflow':'hidden'}"
-  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
+  styleClass="!rounded-2xl overflow-hidden !p-0 shadow-xl" [baseZIndex]="99999" appendTo="body">
 
-  <!-- Header azul escuro -->
-  <div class="bg-indigo-600 px-5 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-black/10 rounded-xl flex items-center justify-center">
-        <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">swap_horiz</mat-icon>
-      </div>
-      <div>
-        <h2 class="text-base font-bold text-white">Transferência</h2>
-        <p class="text-xs text-white/80 mt-0.5">Mova saldo entre contas bancárias</p>
-      </div>
-    </div>
-    <button (click)="transferenciaDialog = false" class="w-8 h-8 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
+  <!-- Header -->
+  <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
+    <h2 class="text-base font-bold text-slate-800">Transferência entre contas</h2>
+    <button (click)="transferenciaDialog = false" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-500">
+      <i class="pi pi-times"></i>
     </button>
   </div>
 
   <!-- Body -->
   <div class="px-5 py-5 bg-white space-y-4 overflow-y-auto" style="max-height: calc(90vh - 140px)">
 
-    <!-- Origem → Destino -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-      <div class="flex-1 flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800">De (Origem) <span class="text-red-500">*</span></label>
+    <!-- Row 1: Origem -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-6 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700">Conta origem</label>
         <p-select [options]="contasTransf" optionLabel="label" optionValue="value"
-          [(ngModel)]="transfOrigem" placeholder="Conta de origem..." styleClass="w-full font-medium border-slate-300" />
+          [(ngModel)]="transfOrigem" placeholder="Selecione..." styleClass="w-full border-slate-300 font-medium" />
       </div>
-      <div class="flex items-center justify-center sm:mt-5">
-        <mat-icon class="!text-[22px] !w-[22px] !h-[22px] text-slate-400 rotate-90 sm:rotate-0">arrow_forward</mat-icon>
+      <div class="md:col-span-3 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700">Valor atual</label>
+        <input type="text" readonly [value]="formatNumber(getSaldoAtual(transfOrigem))"
+          class="w-full px-3 py-2 text-sm border border-slate-300 bg-slate-100 rounded-lg text-slate-700 font-medium cursor-not-allowed outline-none select-all" />
       </div>
-      <div class="flex-1 flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800">Para (Destino) <span class="text-red-500">*</span></label>
+      <div class="md:col-span-3 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+          Valor final
+          <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-white text-[10px] font-sans font-bold cursor-help"
+            title="Saldo estimado após a transferência">i</span>
+        </label>
+        <input type="text" readonly [value]="formatNumber(getSaldoFinalOrigem())"
+          class="w-full px-3 py-2 text-sm border border-slate-300 bg-slate-100 rounded-lg text-slate-700 font-medium cursor-not-allowed outline-none select-all"
+          [ngClass]="{'text-red-600 font-bold': getSaldoFinalOrigem() < 0}" />
+      </div>
+    </div>
+
+    <!-- Row 2: Destino -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-6 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700">Conta destino</label>
         <p-select [options]="contasTransf" optionLabel="label" optionValue="value"
-          [(ngModel)]="transfDestino" placeholder="Conta de destino..." styleClass="w-full font-medium border-slate-300" />
+          [(ngModel)]="transfDestino" placeholder="Selecione..." styleClass="w-full border-slate-300 font-medium" />
+      </div>
+      <div class="md:col-span-3 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700">Valor atual</label>
+        <input type="text" readonly [value]="formatNumber(getSaldoAtual(transfDestino))"
+          class="w-full px-3 py-2 text-sm border border-slate-300 bg-slate-100 rounded-lg text-slate-700 font-medium cursor-not-allowed outline-none select-all" />
+      </div>
+      <div class="md:col-span-3 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+          Valor final
+          <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-white text-[10px] font-sans font-bold cursor-help"
+            title="Saldo estimado após a transferência">i</span>
+        </label>
+        <input type="text" readonly [value]="formatNumber(getSaldoFinalDestino())"
+          class="w-full px-3 py-2 text-sm border border-slate-300 bg-slate-100 rounded-lg text-slate-700 font-medium cursor-not-allowed outline-none select-all" />
       </div>
     </div>
 
-    <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-bold text-slate-800">Valor a Transferir <span class="text-red-500">*</span></label>
-      <p-inputnumber [(ngModel)]="transfValor" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-bold border-slate-300 text-slate-800" />
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-bold text-slate-800">Descrição</label>
-      <input pInputText [(ngModel)]="transfDescricao" placeholder="Ex: Transferência para reserva..." class="w-full text-sm font-medium border-slate-300" />
-    </div>
-
-    <!-- Banner resumo — fundo azul claro, texto azul escuro -->
-    <div *ngIf="transfOrigem && transfDestino && transfValor > 0"
-      class="flex items-start gap-3 bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-      <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-indigo-600 flex-shrink-0">info</mat-icon>
-      <div>
-        <p class="text-sm font-bold text-indigo-900">{{ formatCurrency(transfValor) }} transferido</p>
-        <p class="text-[11px] font-medium text-indigo-700 mt-0.5">Criará automaticamente os registros de débito e crédito</p>
+    <!-- Row 3: Valor da Transferência -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-6 flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700">Valor da Transferência</label>
+        <p-inputnumber [(ngModel)]="transfValor" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" locale="pt-BR"
+          styleClass="w-full" inputStyleClass="border-slate-300 text-slate-800 text-sm py-2 px-3 font-medium w-full" />
       </div>
     </div>
+
   </div>
 
-  <!-- Footer Fixo -->
+  <!-- Footer -->
   <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex justify-end gap-3 items-center">
     <button (click)="transferenciaDialog = false"
-      class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-bold transition-colors shadow-sm">
+      class="px-5 py-2 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-semibold transition-colors shadow-sm">
       Cancelar
     </button>
     <button (click)="fazerTransferencia()" [disabled]="salvandoTransf"
-      class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-sm">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">swap_horiz</mat-icon>
-      {{ salvandoTransf ? 'Transferindo...' : 'Confirmar Transferência' }}
+      class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-sm">
+      Confirmar
     </button>
   </div>
 </p-dialog>
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!-- Dialog: Pergunta antes de fechar                        -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<p-dialog [(visible)]="perguntaFechDialog" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '460px', maxHeight: '90vh' }"
-  [contentStyle]="{'padding':'0','overflow':'hidden'}"
-  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
-
-  <!-- Header âmbar -->
-  <div class="bg-amber-600 px-5 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-black/10 rounded-xl flex items-center justify-center">
-        <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">lock</mat-icon>
-      </div>
-      <div>
-        <h2 class="text-base font-bold text-white">Fechar Caixa</h2>
-        <p class="text-xs text-white/80 mt-0.5">Confirme como deseja proceder</p>
-      </div>
-    </div>
-    <button (click)="perguntaFechDialog = false" class="w-8 h-8 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
-    </button>
-  </div>
-
-  <!-- Body -->
-  <div class="px-5 py-5 bg-white space-y-4 overflow-y-auto" style="max-height: calc(90vh - 220px)">
-
-    <!-- Banner saldo atual -->
-    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-      <div class="flex items-center gap-2">
-        <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-600">account_balance_wallet</mat-icon>
-        <span class="text-sm text-slate-700 font-semibold">Saldo atual do caixa</span>
-      </div>
-      <span class="text-lg font-bold" [ngClass]="saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
-        {{ formatCurrency(saldoFinal) }}
-      </span>
-    </div>
-
-    <p class="text-sm text-slate-700 font-medium">
-      Deseja realizar uma <strong class="text-slate-900">transferência</strong> para outra conta antes de fechar?
-    </p>
-
-    <!-- Info box -->
-    <div class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-      <span class="text-amber-700 text-sm mt-0.5">💡</span>
-      <p class="text-xs text-amber-800 font-medium">Sem transferência, o saldo restante será o Saldo Inicial do próximo período.</p>
-    </div>
-  </div>
-
-  <!-- Footer Fixo -->
-  <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex flex-col gap-2">
-    <button (click)="perguntaFechDialog = false; abrirTransferencia()"
-      class="w-full py-2.5 rounded-lg border-2 border-indigo-400 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 text-sm font-bold transition-colors flex items-center justify-center gap-2">
-      <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">swap_horiz</mat-icon>
-      Transferir saldo antes de fechar
-    </button>
-    <button (click)="confirmarFechamento()"
-      class="w-full py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
-      <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">lock</mat-icon>
-      Fechar com saldo atual
-    </button>
-    <button (click)="perguntaFechDialog = false"
-      class="w-full py-2 text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors">
-      Cancelar
-    </button>
-  </div>
-</p-dialog>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- Dialog: Confirmar Fechamento                            -->
+<!-- Dialog: Passo 1 - Escolha a conta para o fechamento      -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <p-dialog [(visible)]="fechamentoDialog" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '460px', maxHeight: '90vh' }"
-  [contentStyle]="{'padding':'0','overflow':'hidden'}"
-  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '460px' }"
+  styleClass="!rounded-xl overflow-hidden !p-0 shadow-lg border border-slate-200" [baseZIndex]="99999" appendTo="body">
 
   <!-- Header -->
-  <div class="bg-amber-600 px-5 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 bg-black/10 rounded-xl flex items-center justify-center">
-        <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">receipt_long</mat-icon>
-      </div>
-      <div>
-        <h2 class="text-base font-bold text-white">Confirmar Fechamento</h2>
-        <p class="text-xs text-white/80 mt-0.5">Revise o resumo e confirme</p>
-      </div>
-    </div>
-    <button (click)="fechamentoDialog = false" class="w-8 h-8 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
+  <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
+    <h2 class="text-[15px] font-semibold text-slate-800">Escolha a conta para o fechamento</h2>
+    <button (click)="fechamentoDialog = false" class="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-400">
+      <i class="pi pi-times"></i>
     </button>
   </div>
 
   <!-- Body -->
-  <div class="px-5 py-5 bg-white space-y-4 overflow-y-auto" style="max-height: calc(90vh - 140px)">
-
-    <!-- Resumo estilo receipt -->
-    <div class="border border-slate-200 rounded-xl overflow-hidden">
-      <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200">
-        <p class="text-xs font-bold text-slate-600 uppercase tracking-wider">Resumo do período</p>
-      </div>
-      <div class="divide-y divide-slate-100">
-        <div class="flex justify-between items-center px-4 py-3">
-          <div class="flex items-center gap-2 text-slate-600">
-            <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">account_balance_wallet</mat-icon>
-            <span class="text-sm font-medium">Saldo Inicial</span>
-          </div>
-          <span class="text-sm font-bold text-slate-800">{{ formatCurrency(saldoInicial) }}</span>
-        </div>
-        <div class="flex justify-between items-center px-4 py-3">
-          <div class="flex items-center gap-2 text-emerald-700">
-            <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">arrow_downward</mat-icon>
-            <span class="text-sm font-medium">Total Entradas</span>
-          </div>
-          <span class="text-sm font-bold text-emerald-700">+ {{ formatCurrency(totalEntrada) }}</span>
-        </div>
-        <div class="flex justify-between items-center px-4 py-3">
-          <div class="flex items-center gap-2 text-red-600">
-            <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">arrow_upward</mat-icon>
-            <span class="text-sm font-medium">Total Saídas</span>
-          </div>
-          <span class="text-sm font-bold text-red-700">- {{ formatCurrency(totalSaida) }}</span>
-        </div>
-        <div class="flex justify-between items-center px-4 py-3 bg-slate-50">
-          <span class="text-sm font-bold text-slate-700">Saldo Final</span>
-          <span class="text-lg font-bold" [ngClass]="saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
-            {{ formatCurrency(saldoFinal) }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Data e Hora -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800">Data do Fechamento</label>
-        <input type="date" [(ngModel)]="fechData"
-          class="px-3 py-2 text-sm font-medium text-slate-800 border border-slate-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-500" />
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-800">Hora</label>
-        <input type="time" [(ngModel)]="fechHora"
-          class="px-3 py-2 text-sm font-medium text-slate-800 border border-slate-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-500" />
-      </div>
+  <div class="px-5 py-4 bg-white space-y-4">
+    <p class="text-xs font-medium text-slate-600">Abaixo a data em que o fechamento será realizado.</p>
+    <div class="flex items-center gap-3">
+      <input type="date" [(ngModel)]="fechData"
+        class="px-3 py-1.5 text-xs text-slate-800 border border-slate-200 rounded focus:outline-none focus:border-blue-500 w-32" />
+      <input type="time" [(ngModel)]="fechHora"
+        class="px-3 py-1.5 text-xs text-slate-800 border border-slate-200 rounded focus:outline-none focus:border-blue-500 w-20" />
     </div>
   </div>
 
-  <!-- Footer Fixo -->
-  <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex justify-end gap-3 items-center">
-    <button (click)="fechamentoDialog = false"
-      class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-bold transition-colors shadow-sm">
-      Cancelar
+  <!-- Footer -->
+  <div class="px-5 py-3 border-t border-slate-100 bg-white flex justify-end">
+    <button (click)="salvarDataHoraFechamento()"
+      class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+      ✔ Salvar Fechamento
     </button>
-    <button (click)="salvarFechamento()" [disabled]="salvandoFech"
-      class="px-5 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-sm">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">lock</mat-icon>
-      {{ salvandoFech ? 'Fechando...' : 'Confirmar Fechamento' }}
+  </div>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Dialog: Passo 2 - Pergunta sobre Transferência         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="perguntaFechDialog" [modal]="true" [closable]="false" [dismissableMask]="true"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '460px' }"
+  styleClass="!rounded-xl overflow-hidden !p-0 shadow-lg border border-slate-200" [baseZIndex]="99999" appendTo="body">
+
+  <!-- Header -->
+  <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
+    <h2 class="text-[15px] font-semibold text-slate-800">Deseja realizar uma transferencia antes de fechar o seu Caixa?</h2>
+    <button (click)="perguntaFechDialog = false" class="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-400">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="px-5 py-4 bg-white">
+    <p class="text-xs font-medium text-slate-600 leading-relaxed">
+      Caso você decida por não tranferir o valor em CAIXA para uma conta destino ele será contabilizado como Saldo Inicial na próxima abertura de CAIXA.
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div class="px-5 py-3 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+    <button (click)="perguntaFechDialog = false; abrirTransferencia()"
+      class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+      ⇄ Transferência
+    </button>
+    <button (click)="salvarFechamentoFinal()" [disabled]="salvandoFech"
+      class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
+      @if (salvandoFech) {
+        <i class="pi pi-spin pi-spinner text-xs"></i>
+      }
+      ✔ Fechar Caixa com valor atual
+    </button>
+  </div>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Dialog: Passo 3 - Parabéns / Sucesso                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="sucessoFechDialog" [modal]="true" [closable]="false" [dismissableMask]="true"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '460px' }"
+  styleClass="!rounded-xl overflow-hidden !p-0 shadow-lg border border-slate-200" [baseZIndex]="99999" appendTo="body">
+
+  <!-- Header -->
+  <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
+    <h2 class="text-[15px] font-semibold text-slate-800 tracking-wider">PARABÉNS!</h2>
+    <button (click)="sucessoFechDialog = false" class="w-7 h-7 rounded hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-400">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="px-5 py-4 bg-white">
+    <p class="text-xs font-medium text-slate-600">Fechamento de caixa concluido com sucesso</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="px-5 py-3 border-t border-slate-100 bg-white flex justify-end gap-2.5">
+    <button (click)="imprimir()"
+      class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+      🖨 Imprimir
+    </button>
+    <button (click)="sucessoFechDialog = false"
+      class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm">
+      ✔ Ok
     </button>
   </div>
 </p-dialog>

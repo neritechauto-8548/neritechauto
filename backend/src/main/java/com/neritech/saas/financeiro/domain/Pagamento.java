@@ -25,6 +25,9 @@ public class Pagamento extends TenantEntity {
     @Column(name = "cliente_id", nullable = false)
     private Long clienteId;
 
+    @Column(name = "ordem_servico_id")
+    private Long osId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "forma_pagamento_id", nullable = false)
     private FormaPagamento formaPagamento;

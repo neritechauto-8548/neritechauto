@@ -10,6 +10,7 @@ public record PagamentoResponse(
         Long id,
         Long empresaId,
         Long faturaId,
+        Long osId,
         String faturaNumero,
         Long fornecedorId,
         Long clienteId,

@@ -28,5 +28,8 @@ public interface ContasReceberRepository
 
     @org.springframework.data.jpa.repository.Query("SELECT SUM(c.valorPendente) FROM ContasReceber c WHERE c.empresaId = :empresaId AND c.dataVencimento < :hoje AND c.status <> 'PAGO' AND c.status <> 'CANCELADO'")
     java.math.BigDecimal calculateTotalVencidos(@org.springframework.data.repository.query.Param("empresaId") Long empresaId, @org.springframework.data.repository.query.Param("hoje") java.time.LocalDate hoje);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c FROM ContasReceber c LEFT JOIN FETCH c.recebimentos WHERE c.id IN :ids AND c.empresaId = :empresaId")
+    java.util.List<ContasReceber> findAllByIdsAndEmpresaId(@org.springframework.data.repository.query.Param("ids") java.util.Collection<Long> ids, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 }
 

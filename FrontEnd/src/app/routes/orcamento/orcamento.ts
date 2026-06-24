@@ -110,11 +110,11 @@ export class OrcamentoComponent implements OnInit {
   }
 
   editar(id: number) {
-    this.router.navigate(['/os/cadastro', id]);
+    this.router.navigate(['/orcamento/editar-orcamento', id]);
   }
 
   visualizar(id: number) {
-    this.router.navigate(['/os/visualizar-os', id]);
+    this.router.navigate(['/orcamento/visualizar-orcamento', id]);
   }
 
   excluir(id: number, numero?: string) {

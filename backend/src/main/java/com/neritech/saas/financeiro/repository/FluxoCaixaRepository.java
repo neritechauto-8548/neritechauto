@@ -14,5 +14,8 @@ public interface FluxoCaixaRepository extends JpaRepository<FluxoCaixa, Long>, J
     Page<FluxoCaixa> findByEmpresaId(Long empresaId, Pageable pageable);
 
     Optional<FluxoCaixa> findByIdAndEmpresaId(Long id, Long empresaId);
+
+    Optional<FluxoCaixa> findByEmpresaIdAndDocumentoIdAndTipoMovimentacao(
+            Long empresaId, Long documentoId, com.neritech.saas.financeiro.domain.enums.TipoMovimentacao tipoMovimentacao);
 }
 

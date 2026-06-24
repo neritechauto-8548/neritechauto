@@ -1,7 +1,8 @@
 <div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
 
   <!-- Action Bar (Sticky Top) -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm" *ngIf="!embed">
+  @if (!embed) {
+  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
       <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
              <i class="pi pi-calendar text-indigo-600 text-lg"></i>
@@ -15,8 +16,10 @@
       <div class="flex gap-3 items-center">
           <div class="relative w-48 hidden md:block">
             <i class="pi pi-filter absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <select [(ngModel)]="funcionarioSelecionado" class="w-full modern-select pl-9 py-2 bg-white !text-sm appearance-none cursor-pointer">
-              <option *ngFor="let f of funcionarioOptions" [value]="f">Responsável: {{ f }}</option>
+            <select [(ngModel)]="funcionarioSelecionado" (ngModelChange)="onFilterChange()" class="w-full modern-select pl-9 py-2 bg-white !text-sm appearance-none cursor-pointer">
+              @for (f of funcionarioOptions; track f) {
+                <option [value]="f">Responsável: {{ f }}</option>
+              }
             </select>
           </div>
 
@@ -30,11 +33,13 @@
           </button>
       </div>
   </div>
+  }
 
   <div class="p-6 w-full max-w-[1400px] mx-auto space-y-4">
 
     <!-- Calendario Header Nav -->
-    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white px-5 py-4 border border-slate-200 rounded-xl shadow-sm" *ngIf="!embed">
+    @if (!embed) {
+    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white px-5 py-4 border border-slate-200 rounded-xl shadow-sm">
       <div class="flex items-center gap-2">
         <button (click)="anterior()" class="w-8 h-8 rounded-md flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
           <i class="pi pi-chevron-left text-xs"></i>
@@ -53,40 +58,88 @@
       </div>
 
       <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60">
-        <button class="px-4 py-1.5 text-sm font-medium rounded-md bg-white text-slate-800 shadow-sm border border-slate-200/50">Mês</button>
-        <button class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors">Semana</button>
-        <button class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors">Dia</button>
+        <button (click)="viewMode = 'mes'"
+                [ngClass]="viewMode === 'mes' ? 'bg-white text-slate-800 border border-slate-200/50 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'"
+                class="px-4 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer">Mês</button>
+        <button (click)="viewMode = 'semana'"
+                [ngClass]="viewMode === 'semana' ? 'bg-white text-slate-800 border border-slate-200/50 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'"
+                class="px-4 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer">Semana</button>
+        <button (click)="viewMode = 'dia'"
+                [ngClass]="viewMode === 'dia' ? 'bg-white text-slate-800 border border-slate-200/50 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'"
+                class="px-4 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer">Dia</button>
       </div>
     </div>
+    }
 
     <!-- Grid Custom (Mated Tailwind) -->
     <div class="cal-grid shadow-sm">
-      <div class="header">
-        <div>Domingo</div>
-        <div>Segunda</div>
-        <div>Terça</div>
-        <div>Quarta</div>
-        <div>Quinta</div>
-        <div>Sexta</div>
-        <div>Sábado</div>
+      <div class="header" [ngClass]="viewMode === 'dia' ? 'grid-cols-1' : 'grid-cols-7'">
+        @if (viewMode === 'dia') {
+          <div class="capitalize text-slate-800 font-bold py-3 text-center bg-slate-100/50">{{ obterNomeDiaDaSemana(corrente) }}</div>
+        } @else {
+          <div>Domingo</div>
+          <div>Segunda</div>
+          <div>Terça</div>
+          <div>Quarta</div>
+          <div>Quinta</div>
+          <div>Sexta</div>
+          <div>Sábado</div>
+        }
       </div>
-      <div class="body">
+      <div class="body" [ngClass]="{'grid-mes': viewMode === 'mes', 'grid-semana': viewMode === 'semana', 'grid-dia': viewMode === 'dia'}">
         <!-- Loop de Dias -->
+        @for (d of diasParaExibir(); track d.getTime()) {
         <div class="cell"
-             *ngFor="let d of diasDoMes()"
-             [class.outside]="d.getMonth() !== corrente.getMonth()"
-             [class.is-today]="d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()">
+             [class.outside]="viewMode === 'mes' && d.getMonth() !== corrente.getMonth()"
+             [class.is-today]="d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()"
+             [class.cell-semana]="viewMode === 'semana'"
+             [class.cell-dia]="viewMode === 'dia'">
 
           <div class="day">{{ d.getDate() }}</div>
 
           <div class="events">
-            <div class="event" *ngFor="let e of eventosDoDia(d)" (click)="abrirEvento(e)">
-              <div class="w-1 h-3 rounded-full shrink-0 bg-blue-500"></div>
-              <span class="time">{{ e.inicio | date:'HH:mm' }}</span>
-              <span class="title">{{ e.titulo }}</span>
+            @for (e of eventosDoDia(d); track e.id) {
+            <div class="event" [class.event-dia]="viewMode === 'dia'" (click)="abrirEvento(e)">
+              @if (viewMode === 'dia') {
+                <div class="flex flex-col gap-1 w-full">
+                  <div class="flex justify-between items-center w-full">
+                    <span class="time text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                      {{ e.inicio | date:'HH:mm' }} - {{ e.termino | date:'HH:mm' }}
+                    </span>
+                    <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded" [ngClass]="getStatusBadgeClass(e.agendamento.status)">
+                      {{ e.agendamento.status || 'PENDENTE' }}
+                    </span>
+                  </div>
+                  <div class="font-bold text-slate-800 text-sm mt-1">{{ e.titulo }}</div>
+                  <div class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                    <i class="pi pi-user text-[10px]"></i>
+                    <span>Cliente: <strong class="text-slate-600">{{ e.agendamento.clienteNome }}</strong></span>
+                    @if (e.agendamento.veiculoId) {
+                      <span class="text-slate-300">•</span>
+                      <i class="pi pi-car text-[10px]"></i>
+                      <span>Veículo ID: <strong class="text-slate-600">{{ e.agendamento.veiculoId }}</strong></span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="w-1 h-3 rounded-full shrink-0 bg-blue-500"></div>
+                <span class="time">{{ e.inicio | date:'HH:mm' }}</span>
+                <span class="title">{{ e.titulo }}</span>
+              }
             </div>
+            } @empty {
+              @if (viewMode === 'dia') {
+                <div class="text-slate-400 text-sm py-12 text-center flex flex-col items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                    <i class="pi pi-calendar-times text-xl text-slate-400"></i>
+                  </div>
+                  <span class="font-medium text-slate-500">Nenhum agendamento para este dia.</span>
+                </div>
+              }
+            }
           </div>
         </div>
+        }
       </div>
     </div>
   </div>
@@ -151,6 +204,9 @@
             <div class="flex gap-2">
                 <button (click)="mostrarDialogEvento=false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
                     Fechar
+                </button>
+                <button *ngxPermissionsOnly="['OS_INCLUIR']" (click)="criarOsParaAgendamentoSelecionado()" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2">
+                    <i class="pi pi-cog text-xs"></i> Gerar Ordem de Serviço
                 </button>
                 <button (click)="gravarAlteracoes()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
                     <i class="pi pi-external-link text-xs"></i> Editar Ficha Completa

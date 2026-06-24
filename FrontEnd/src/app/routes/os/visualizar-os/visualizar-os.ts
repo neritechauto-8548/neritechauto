@@ -33,6 +33,11 @@ import { AvatarModule } from 'primeng/avatar';
 // Shared
 import { OrdemServicoService } from '../ordem-servico.service';
 import { StatusOSService } from '../status-os.service';
+import { SetorService } from '../../configuracoes/setores/setor.service';
+import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
+import { SituacaoService } from '../../configuracoes/situacao/situacao.service';
+import { LocalizacaoService } from '../../configuracoes/localizacao/localizacao.service';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { OrdemServicoResponse, OrdemServicoRequest, ItemOSProdutoRequest, ItemOSServicoRequest, DiagnosticoRequest, TipoOS, StatusOSResponse } from '../models/os.models';
 
 interface ViewItem {
@@ -82,6 +87,7 @@ interface ViewItem {
     DialogModule,
     MenuModule,
     FileUploadModule,
+    InputNumberModule,
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -92,11 +98,63 @@ export class VisualizarOS implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly statusService = inject(StatusOSService);
+  private readonly setorService = inject(SetorService);
+  private readonly funcionarioService = inject(FuncionarioService);
+  private readonly situacaoOficinaService = inject(SituacaoService);
+  private readonly localizacaoPatioService = inject(LocalizacaoService);
 
   orcamentoNumero = 0;
   currentOS?: OrdemServicoResponse;
   isOrcamento = false;
   isGeneratingPdf = false;
+  isSendingEmail = false;
+
+  // Modal: Enviar por WhatsApp / E-mail
+  enviarDialogVisible = false;
+  enviarCanal: 'whatsapp' | 'email' = 'whatsapp';
+  enviarEmail = '';
+
+  abrirEnviarDialog() {
+    this.enviarCanal = 'whatsapp';
+    this.enviarEmail = '';
+    this.enviarDialogVisible = true;
+  }
+
+  confirmarEnvio() {
+    if (this.enviarCanal === 'whatsapp') {
+      // Lógica WhatsApp original
+      const tipo = this.isOrcamento ? 'Orçamento' : 'OS';
+      const num = this.orcamentoNumero;
+      const cliente = this.cliente;
+      const total = this.total;
+      const veiculo = this.veiculo;
+      const placa = this.placa;
+      const msg = encodeURIComponent(
+        `Olá ${cliente}! Segue o detalhamento do seu ${tipo} #${num}:\n` +
+        `Veículo: ${veiculo} (${placa})\n` +
+        `Total: R$ ${total.toFixed(2).replace('.', ',')}\n` +
+        `Para aprovar ou tirar dúvidas, entre em contato conosco.`
+      );
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+      this.enviarDialogVisible = false;
+    } else {
+      // Envio por e-mail via backend
+      if (!this.orcamentoNumero) return;
+      this.isSendingEmail = true;
+      this.osService.enviarPorEmail(this.orcamentoNumero, this.enviarEmail || undefined).subscribe({
+        next: () => {
+          this.isSendingEmail = false;
+          this.enviarDialogVisible = false;
+          this.messageService.add({ severity: 'success', summary: 'Enviado!', detail: 'E-mail enviado com sucesso para o cliente.' });
+        },
+        error: (err) => {
+          this.isSendingEmail = false;
+          const detail = err?.error?.message || 'Não foi possível enviar o e-mail. Verifique o e-mail do cliente ou o SMTP.';
+          this.messageService.add({ severity: 'error', summary: 'Erro', detail });
+        }
+      });
+    }
+  }
 
   menuPS: MenuItem[] = [];
   menuSolic: MenuItem[] = [];
@@ -123,6 +181,88 @@ export class VisualizarOS implements OnInit {
     this.statusService.list({ ativo: true }).subscribe({
       next: (page) => this.statusLista = page?.content || [],
       error: () => this.statusLista = []
+    });
+
+    // Carrega lista de setores
+    this.setorService.list({ size: 1000, sort: 'nome,asc' }).subscribe({
+      next: (resp) => {
+        const list = resp?.content || [];
+        this.setorOptions = [
+          { label: 'Sem escolher', value: 'NONE' },
+          ...list.map((s: any) => ({ label: s.nome, value: s.nome }))
+        ];
+      },
+      error: () => {
+        this.setorOptions = [{ label: 'Sem escolher', value: 'NONE' }];
+      }
+    });
+
+    // Carrega lista de funcionários
+    this.funcionarioService.list({ size: 1000 }).subscribe({
+      next: (resp) => {
+        const list = resp?.content || [];
+        if (list.length > 0) {
+          this.funcionarioOptions = list.map((f: any) => ({
+            label: f.nomeCompleto || f.nome,
+            value: f.nomeCompleto || f.nome
+          }));
+          this.incluir.funcionario = this.funcionarioOptions[0].value;
+
+          this.responsavelOptions = list.map((f: any) => ({
+            label: `${f.id} - ${f.nomeCompleto || f.nome}`,
+            value: `${f.id} - ${f.nomeCompleto || f.nome}`
+          }));
+
+          if (this.currentOS?.consultorResponsavelId) {
+            this.atualizarResponsavelNome(this.currentOS.consultorResponsavelId);
+          } else {
+            this.responsavel = this.responsavelOptions[0].value;
+          }
+        } else {
+          this.funcionarioOptions = [{ label: '1 - ALEXANDRE ROM', value: '1 - ALEXANDRE ROM' }];
+          this.responsavelOptions = [{ label: '1 - ALEXANDRE ROM', value: '1 - ALEXANDRE ROM' }];
+          this.responsavel = '1 - ALEXANDRE ROM';
+        }
+      },
+      error: () => {
+        this.funcionarioOptions = [{ label: '1 - ALEXANDRE ROM', value: '1 - ALEXANDRE ROM' }];
+        this.responsavelOptions = [{ label: '1 - ALEXANDRE ROM', value: '1 - ALEXANDRE ROM' }];
+        this.responsavel = '1 - ALEXANDRE ROM';
+      }
+    });
+
+    // Carrega Situações da Oficina
+    this.situacaoOficinaService.list({ size: 1000 }).subscribe({
+      next: (resp) => {
+        const list = resp?.content || [];
+        this.situacaoOptions = list.map((s: any) => ({
+          label: s.nmSituacao,
+          value: s.nmSituacao
+        }));
+        if (this.situacaoOptions.length > 0 && !this.situacaoOptions.some(o => o.value === this.situacao)) {
+          this.situacao = this.situacaoOptions[0].value;
+        }
+      },
+      error: () => {
+        this.situacaoOptions = [{ label: 'ALINHAMENTO', value: 'ALINHAMENTO' }];
+      }
+    });
+
+    // Carrega Localizações do Pátio
+    this.localizacaoPatioService.list({ size: 1000 }).subscribe({
+      next: (resp) => {
+        const list = resp?.content || [];
+        this.localizacaoOptions = list.map((l: any) => ({
+          label: l.descricao,
+          value: l.descricao
+        }));
+        if (this.localizacaoOptions.length > 0 && !this.localizacaoOptions.some(o => o.value === this.localizacao)) {
+          this.localizacao = this.localizacaoOptions[0].value;
+        }
+      },
+      error: () => {
+        this.localizacaoOptions = [{ label: 'ALINHAMENTO', value: 'ALINHAMENTO' }];
+      }
     });
   }
 
@@ -216,10 +356,19 @@ export class VisualizarOS implements OnInit {
   quilometragem = '';
   previsaoSaidaDate = '';
   previsaoSaidaHora = '';
-  editing = false;
-
-  // Modal de Status
+  editing = true;
   statusDialogVisible = false;
+
+  isOSFinalizada(): boolean {
+    if (!this.status || !this.statusLista || this.statusLista.length === 0) return false;
+    const key = this.status.toLowerCase();
+    const found = this.statusLista.find(st => 
+      (st.nome || '').toLowerCase() === key || 
+      (st.codigo || '').toLowerCase() === key
+    );
+    return found ? !!found.finalizaOS : false;
+  }
+
   getStatusSeverity(s: string) {
     /* if (this.isOrcamento) {
       return 'info'; // Orçamentos em tons de azul/info
@@ -245,15 +394,14 @@ export class VisualizarOS implements OnInit {
   abrirStatusDialog() { this.statusDialogVisible = true; }
   fecharStatusDialog() { this.statusDialogVisible = false; }
   setStatus(s: string) {
-    this.status = s;
     const key = (s || '').toLowerCase();
     let found = this.statusLista.find(st => (st.nome || '').toLowerCase() === key);
     if (!found) {
       const codeMap: Record<string, string> = {
-        aguardando: 'AGUARDANDO',
-        aprovado: 'APROVADO',
-        negar: 'NEGADO',
-        negado: 'NEGADO',
+        aguardando: 'AGUARDANDO_APROVACAO',
+        aprovado: 'APROVADA',
+        negar: 'CANCELADA',
+        negado: 'CANCELADA',
         entregue: 'ENTREGUE',
         aberta: 'ABERTA'
       };
@@ -262,13 +410,21 @@ export class VisualizarOS implements OnInit {
         found = this.statusLista.find(st => (st.codigo || '').toUpperCase() === codigo);
       }
     }
-    this.statusId = found?.id ?? this.statusId;
+    if (found) {
+      this.statusId = found.id;
+      this.status = found.nome || s;
+    } else {
+      this.status = s;
+    }
     this.fecharStatusDialog();
   }
 
-  situacao = 'ALINHAMENTO';
-  localizacao = 'ALINHAMENTO';
+  situacao = '';
+  localizacao = '';
   responsavel = '';
+  situacaoOptions: any[] = [];
+  localizacaoOptions: any[] = [];
+  responsavelOptions: any[] = [];
 
   // Produtos e serviços
   prodServBusca = '';
@@ -311,26 +467,46 @@ export class VisualizarOS implements OnInit {
   showFotoDialog = false;
   showFotoViewDialog = false;
   selectedFotoUrl = '';
+
+  get dataPagamentoRealizado(): string {
+    if (this.pagamentosExistentes && this.pagamentosExistentes.length > 0) {
+      const p = this.pagamentosExistentes[0];
+      if (p.dataPagamento) {
+        return new Date(p.dataPagamento).toLocaleDateString('pt-BR');
+      }
+    }
+    return '';
+  }
+
+  isPagamentoPago(): boolean {
+    if (!this.pagamentosExistentes || this.pagamentosExistentes.length === 0) return false;
+    return this.pagamentosExistentes.some(p => 
+      p.status === 'CONFIRMADO' || 
+      p.status === 'PAGO' || 
+      p.status === 'PAGA' || 
+      p.status === 'QUITADO' || 
+      (p.valorTotal && p.valorTotal > 0)
+    );
+  }
   selectedFotoDesc = '';
   fotoDescricao = '';
   fotoFile: File | null = null;
+
   carregarPagamentosOS(osId: number) {
     this.faturaOS = undefined;
     this.pagamentosExistentes = [];
     this.osService.getFaturaPorOS(osId).subscribe({
       next: (fat) => {
         this.faturaOS = fat;
-        if (fat?.id) {
-          this.osService.listPagamentosPorFatura(fat.id).subscribe({
-            next: (page) => this.pagamentosExistentes = page?.content || [],
-            error: () => this.pagamentosExistentes = []
-          });
-        }
       },
       error: () => {
         this.faturaOS = undefined;
-        this.pagamentosExistentes = [];
       }
+    });
+
+    this.osService.listPagamentosPorOS(osId).subscribe({
+      next: (page) => this.pagamentosExistentes = page?.content || [],
+      error: () => this.pagamentosExistentes = []
     });
   }
 
@@ -479,8 +655,42 @@ export class VisualizarOS implements OnInit {
   novoComentario = '';
   adicionarComentario() {
     if (!this.novoComentario.trim()) return;
-    this.comentarios.push({ autor: 'Você', data: new Date().toLocaleDateString('pt-BR'), texto: this.novoComentario });
+    const dataHora = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    this.comentarios.push({ autor: 'Você', data: dataHora, texto: this.novoComentario });
     this.novoComentario = '';
+    this.salvarComentarios();
+  }
+
+  salvarComentarios() {
+    if (!this.orcamentoNumero) return;
+    
+    let idParaSalvar = this.statusId;
+    const std = this.status;
+    if (std) {
+       const found = this.statusLista.find(st => st.nome?.toLowerCase() === std.toLowerCase() || st.codigo?.toUpperCase() === std.toUpperCase());
+       if (found) idParaSalvar = found.id;
+    }
+
+    const tipo = this.currentOS?.tipoOS || TipoOS.MANUTENCAO;
+    const dto: Omit<OrdemServicoRequest, 'empresaId'> = {
+      numeroOS: this.currentOS?.numeroOS || String(this.orcamentoNumero),
+      tipoOS: tipo,
+      valorTotal: this.currentOS?.valorTotal ?? this.total ?? 0,
+      quilometragemEntrada: Number(this.quilometragem) || this.currentOS?.quilometragemEntrada,
+      consultorResponsavelId: this.parseResponsavelId() || this.currentOS?.consultorResponsavelId,
+      observacoesInternas: this.observacaoInterna,
+      observacoesCliente: this.descricaoCliente,
+      comentarios: JSON.stringify(this.comentarios),
+      dataPromessa: this.composeDateTime(this.previsaoSaidaDate, this.previsaoSaidaHora),
+      statusId: idParaSalvar,
+    };
+
+    this.osService.update(this.orcamentoNumero, dto).subscribe({
+      next: () => {
+         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Diário atualizado' });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível salvar no diário' }),
+    });
   }
 
   // Popup "Incluir" (Produtos e Serviços)
@@ -518,10 +728,13 @@ export class VisualizarOS implements OnInit {
     this.incluir.descricao = '';
     this.incluir.quantidade = 1;
     this.incluir.valor = 0;
+    this.incluir.valorCusto = 0;
     this.incluir.total = 0;
     this.incluir.produtoId = undefined;
     this.incluir.servicoId = undefined;
     this.editandoItem = null;
+    this.buscarProdutos('');
+    this.buscarServicos('');
   }
   fecharIncluirDialog() { this.incluirDialogVisible = false; }
 
@@ -554,6 +767,7 @@ export class VisualizarOS implements OnInit {
   selecionarProduto(p: any) {
     this.incluir.descricao = p.nome;
     this.incluir.valor = p.precoVenda || 0;
+    this.incluir.valorCusto = p.precoCusto || 0;
     this.incluir.quantidade = 1;
     this.incluir.produtoId = p.id;
     this.calcularTotal();
@@ -562,7 +776,8 @@ export class VisualizarOS implements OnInit {
 
   selecionarServico(s: any) {
     this.incluir.descricao = s.nome;
-    this.incluir.valor = s.valorVenda || 0;
+    this.incluir.valor = s.precoBase || 0;
+    this.incluir.valorCusto = s.custo || 0;
     this.incluir.quantidade = 1;
     this.incluir.servicoId = s.id;
     this.calcularTotal();
@@ -614,7 +829,8 @@ export class VisualizarOS implements OnInit {
         quantidade: Number(this.incluir.quantidade),
         valorUnitario: Number(this.incluir.valor),
         valorTotal: Number(this.incluir.total),
-        valorFinal: Number(this.incluir.total)
+        valorFinal: Number(this.incluir.total),
+        precoCusto: Number(this.incluir.valorCusto)
       };
       if (this.editandoItem?.tipo === 'produto') {
         this.osService.updateProduto(this.editandoItem.id, req).subscribe({
@@ -671,6 +887,7 @@ export class VisualizarOS implements OnInit {
     this.incluir.descricao = item.descricao;
     this.incluir.quantidade = Number(item.qtd || 1);
     this.incluir.valor = Number(item.preco || 0);
+    this.incluir.valorCusto = Number(item.original?.precoCusto || item.original?.custo || 0);
     this.calcularTotal();
     if (item.tipo === 'produto') {
       this.incluirTabIndex = 2;
@@ -685,6 +902,7 @@ export class VisualizarOS implements OnInit {
   // Pagamento / Negociação
   pagamentoDialogVisible = false;
   reciboDialogVisible = false;
+  ultimoPagamentoId?: number;
   pagamento = {
     desconto: 0,
     valorPagar: 0,
@@ -711,28 +929,36 @@ export class VisualizarOS implements OnInit {
     this.pagamento.totalNegociado = 0;
     this.pagamento.valorPagar = Number((this.total || 0).toFixed(2));
 
+    this.calcularPagamento();
+
     this.osService.listFormasPagamento().subscribe({
-      next: (page) => this.formaPagamentoOptions = (page?.content || []).map((f: any) => ({ label: f.nome, value: f.id })),
+      next: (page) => {
+        this.formaPagamentoOptions = (page?.content || []).map((f: any) => ({ label: f.nome, value: f.id }));
+        if (this.formaPagamentoOptions.length > 0) {
+          this.pagamento.forma = this.formaPagamentoOptions[0].value;
+        }
+        this.calcularPagamento();
+      },
       error: () => this.formaPagamentoOptions = []
     });
     this.osService.listContasBancarias().subscribe({
-      next: (page) => this.contaDestinoOptions = (page?.content || []).map((c: any) => ({ label: `${c.bancoNome} • ${c.agencia}/${c.conta}`, value: c.id })),
+      next: (page) => {
+        this.contaDestinoOptions = (page?.content || []).map((c: any) => ({ label: `${c.bancoNome} • ${c.agencia}/${c.conta}`, value: c.id }));
+        if (this.contaDestinoOptions.length > 0) {
+          this.pagamento.contaDestino = this.contaDestinoOptions[0].value;
+        }
+        this.calcularPagamento();
+      },
       error: () => this.contaDestinoOptions = []
     });
 
-    // Verificar fatura e pagamentos existentes para esta OS
+    // Verificar pagamentos existentes para esta OS
     if (this.orcamentoNumero) {
-      this.osService.getFaturaPorOS(this.orcamentoNumero).subscribe({
-        next: (fat) => {
-          if (fat?.id) {
-            this.osService.listPagamentosPorFatura(fat.id).subscribe({
-              next: (page) => {
-                const pagos = page?.content || [];
-                if (pagos.length) {
-                  this.messageService.add({ severity: 'info', summary: 'Pagamento', detail: 'Já existe pagamento registrado para esta OS' });
-                }
-              }
-            });
+      this.osService.listPagamentosPorOS(this.orcamentoNumero).subscribe({
+        next: (page) => {
+          const pagos = page?.content || [];
+          if (pagos.length) {
+            this.messageService.add({ severity: 'info', summary: 'Pagamento', detail: 'Já existe pagamento registrado para esta OS' });
           }
         }
       });
@@ -802,9 +1028,9 @@ export class VisualizarOS implements OnInit {
 
   isPagamentoValido(): boolean {
     if (!this.pagamento.parcelasList || this.pagamento.parcelasList.length === 0) return false;
-    const p = Number(this.pagamento.valorPagar || 0).toFixed(2);
-    const n = Number(this.pagamento.totalNegociado || 0).toFixed(2);
-    return p === n && Number(p) > 0;
+    const p = Number(this.pagamento.valorPagar || 0);
+    const n = Number(this.pagamento.totalNegociado || 0);
+    return Math.abs(p - n) < 0.05 && p > 0;
   }
 
   calcularPagamento() {
@@ -816,25 +1042,32 @@ export class VisualizarOS implements OnInit {
     this.pagamento.valorPagar = Number(valorFinal.toFixed(2));
 
     const parcelas = Math.max(1, Number(this.pagamento.parcelas) || 1);
-    const valorParcela = Number((valorFinal / parcelas).toFixed(2));
+    const valorParcelaBase = Math.floor((valorFinal / parcelas) * 100) / 100;
+    let somaParcelas = 0;
     const lista: any[] = [];
     const hoje = new Date();
     for (let i = 0; i < parcelas; i++) {
       const venc = new Date(hoje.getTime());
       venc.setDate(hoje.getDate() + i * 30);
+      let valorDaParcela = valorParcelaBase;
+      if (i === parcelas - 1) {
+        valorDaParcela = Number((this.pagamento.valorPagar - somaParcelas).toFixed(2));
+      }
+      somaParcelas += valorDaParcela;
+      
       lista.push({
         parcela: i + 1,
         contaDestino: this.pagamento.contaDestino,
         formaPagamento: this.pagamento.forma,
         vencimento: this.localDate(venc),
-        pagamento: '',
-        valor: valorParcela,
-        situacao: 'Pendente',
-        pago: false,
+        pagamento: this.localDate(),
+        valor: valorDaParcela,
+        situacao: 'Quitado',
+        pago: true,
       });
     }
     this.pagamento.parcelasList = lista;
-    this.pagamento.totalNegociado = lista.reduce((s, p) => s + Number(p.valor || 0), 0);
+    this.pagamento.totalNegociado = Number(lista.reduce((s, p) => s + Number(p.valor || 0), 0).toFixed(2));
   }
 
   marcarParcelaQuitada(idx: number) {
@@ -847,7 +1080,7 @@ export class VisualizarOS implements OnInit {
 
   removerParcela(idx: number) {
     this.pagamento.parcelasList.splice(idx, 1);
-    this.pagamento.totalNegociado = this.pagamento.parcelasList.reduce((s, p) => s + Number(p.valor || 0), 0);
+    this.pagamento.totalNegociado = Number(this.pagamento.parcelasList.reduce((s, p) => s + Number(p.valor || 0), 0).toFixed(2));
   }
 
   salvarPagamento() {
@@ -856,9 +1089,11 @@ export class VisualizarOS implements OnInit {
       return;
     }
     const formaId = typeof this.pagamento.forma === 'number' ? this.pagamento.forma : this.formaPagamentoOptions[0]?.value;
-    const contaId = this.contaDestinoOptions[0]?.value;
+    const contaId = typeof this.pagamento.contaDestino === 'number' ? this.pagamento.contaDestino : this.contaDestinoOptions[0]?.value;
     const total = Number(this.total || 0);
     const req: any = {
+      faturaId: (this as any).faturaOS?.id,
+      osId: this.orcamentoNumero,
       clienteId: this.currentOS?.clienteId,
       formaPagamentoId: formaId,
       contaBancariaId: contaId,
@@ -868,7 +1103,7 @@ export class VisualizarOS implements OnInit {
       valorJuros: Number(this.pagamento.juros) || 0,
       valorMulta: 0,
       valorTotal: Number(this.pagamento.valorPagar) || total,
-      status: 'PENDENTE',
+      status: 'CONFIRMADO',
       observacoes: '',
       parcelas: (this.pagamento.parcelasList || []).map((p: any) => ({
         numeroParcela: Number(p.parcela),
@@ -885,15 +1120,51 @@ export class VisualizarOS implements OnInit {
     };
 
     this.osService.createPagamento(req).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pagamento registrado' });
+      next: (resp) => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Financeiro registrado com sucesso!' });
+        this.ultimoPagamentoId = resp?.id;
         this.pagamentoDialogVisible = false;
         this.reciboDialogVisible = true;
+        if (this.orcamentoNumero) {
+          this.carregarPagamentosOS(this.orcamentoNumero);
+        }
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao registrar pagamento' })
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao registrar financeiro' })
     });
   }
   abrirRecibo() { this.reciboDialogVisible = true; }
+
+  mostrarRecibo() {
+    if (this.pagamentosExistentes && this.pagamentosExistentes.length > 0) {
+      const p = this.pagamentosExistentes.find(x => x.status === 'CONFIRMADO' || x.status === 'PAGO') || this.pagamentosExistentes[0];
+      this.ultimoPagamentoId = p.id;
+    }
+    this.reciboDialogVisible = true;
+  }
+
+  imprimirComprovante(pagamentoId?: number) {
+    const id = pagamentoId || this.ultimoPagamentoId;
+    if (!id) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Nenhum pagamento identificado para impressão' });
+      return;
+    }
+    this.isGeneratingPdf = true;
+    this.messageService.add({ severity: 'info', summary: 'Aguarde', detail: 'Gerando comprovante...', sticky: true });
+    this.osService.imprimirComprovante(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url);
+        this.isGeneratingPdf = false;
+        this.messageService.clear();
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Comprovante gerado com sucesso!' });
+      },
+      error: () => {
+        this.isGeneratingPdf = false;
+        this.messageService.clear();
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o comprovante' });
+      }
+    });
+  }
 
   onAction(key: string) {
     switch (key) {
@@ -901,7 +1172,10 @@ export class VisualizarOS implements OnInit {
         if (this.orcamentoNumero) {
           this.isGeneratingPdf = true;
           this.messageService.add({ severity: 'info', summary: 'Aguarde', detail: 'Gerando PDF...', sticky: true });
-          this.osService.imprimir(this.orcamentoNumero).subscribe({
+          const print$ = this.isOrcamento
+            ? this.osService.imprimirOrcamento(this.orcamentoNumero)
+            : this.osService.imprimir(this.orcamentoNumero);
+          print$.subscribe({
             next: (blob) => {
               const url = window.URL.createObjectURL(blob);
               window.open(url);
@@ -966,13 +1240,44 @@ export class VisualizarOS implements OnInit {
     this.quilometragem = os?.quilometragemEntrada ? String(os.quilometragemEntrada) : this.quilometragem;
     
     // Configura o dropdown responsável
-    if (os?.consultorResponsavelId === 1) {
-      this.responsavel = '1 - ALEXANDRE ROM';
+    if (os?.consultorResponsavelId) {
+      this.atualizarResponsavelNome(os.consultorResponsavelId);
+    } else {
+      this.responsavel = '';
     }
 
     const promessa = os?.dataPromessa || '';
     this.previsaoSaidaDate = promessa ? promessa.slice(0, 10) : this.previsaoSaidaDate;
     this.previsaoSaidaHora = promessa ? promessa.slice(11, 16) : this.previsaoSaidaHora;
+
+    // Configura as observações
+    this.observacaoInterna = os?.observacoesInternas || '';
+    this.descricaoCliente = os?.observacoesCliente || '';
+
+    // Configura comentários
+    if (os?.comentarios) {
+      try {
+        this.comentarios = JSON.parse(os.comentarios);
+      } catch (e) {
+        console.error('Erro ao ler comentarios:', e);
+        this.comentarios = [];
+      }
+    } else {
+      this.comentarios = [];
+    }
+  }
+
+  atualizarResponsavelNome(id: number) {
+    if (!id) return;
+    const found = this.responsavelOptions.find(o => {
+      const match = o.value.match(/^\s*(\d+)/);
+      return match && Number(match[1]) === id;
+    });
+    if (found) {
+      this.responsavel = found.value;
+    } else {
+      this.responsavel = `${id} - Carregando...`;
+    }
   }
 
   private findStatusIdAberta(): number | undefined {
@@ -993,7 +1298,7 @@ export class VisualizarOS implements OnInit {
     this.osService.update(this.orcamentoNumero, dto).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Orçamento convertido em OS' });
-        this.carregarOS(this.orcamentoNumero);
+        this.router.navigate(['/os/visualizar-os', this.orcamentoNumero]);
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao converter orçamento' }),
     });
@@ -1025,6 +1330,7 @@ export class VisualizarOS implements OnInit {
       consultorResponsavelId: this.parseResponsavelId() || this.currentOS?.consultorResponsavelId,
       observacoesInternas: this.observacaoInterna,
       observacoesCliente: this.descricaoCliente,
+      comentarios: JSON.stringify(this.comentarios),
       dataPromessa: this.composeDateTime(this.previsaoSaidaDate, this.previsaoSaidaHora),
       statusId: idParaSalvar,
     };
@@ -1034,7 +1340,6 @@ export class VisualizarOS implements OnInit {
     this.osService.update(this.orcamentoNumero, dto).subscribe({
       next: () => {
          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Alterações salvas' });
-         this.editing = false;
          this.carregarOS(this.orcamentoNumero); // Recarregar para fixar campos
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível salvar' }),

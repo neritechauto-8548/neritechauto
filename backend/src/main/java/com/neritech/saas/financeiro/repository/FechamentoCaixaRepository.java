@@ -13,4 +13,6 @@ public interface FechamentoCaixaRepository extends JpaRepository<FechamentoCaixa
     Page<FechamentoCaixa> findByEmpresaIdAndDataAberturaBetween(Long empresaId, LocalDateTime start, LocalDateTime end, Pageable pageable);
     
     Page<FechamentoCaixa> findByEmpresaId(Long empresaId, Pageable pageable);
+
+    java.util.Optional<FechamentoCaixa> findFirstByEmpresaIdAndSituacaoOrderByDataFechamentoDesc(Long empresaId, String situacao);
 }

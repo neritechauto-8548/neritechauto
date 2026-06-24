@@ -66,7 +66,7 @@ export class ListarVendasPDV implements OnInit {
     this.loading = true;
     // O service atual lista todas as OS. Iremos puxar e filtrar no front (ou apenas mostrar as últimas).
     // Num cenário ideal haveria ?tipoOS=VENDA_PRODUTO direto na query da API
-    this.osService.list({ page: this.page - 1, size: 50 }).subscribe({
+    this.osService.list({ page: this.page - 1, size: 50, tipo: 'VENDA_PRODUTO' }).subscribe({
       next: (res: any) => {
          // Filtra apenas VENDAS e mapeia para interface da tela
          const contentArray = res.content || [];

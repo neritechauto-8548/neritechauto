@@ -171,10 +171,10 @@
                   title="Detalhes">
                   <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">visibility</mat-icon>
                 </button>
-                <button (click)="imprimirCupom()"
+                <button (click)="imprimirRegistro(r)"
                   class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-                  title="Imprimir Cupom">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">receipt</mat-icon>
+                  title="Imprimir Caixa">
+                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon>
                 </button>
               </div>
             </td>
@@ -189,7 +189,7 @@
 <!-- Dialog: Detalhes do Fechamento                          -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <p-dialog [(visible)]="detalhesDialogVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '460px', maxHeight: '90vh' }"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '800px', maxHeight: '90vh' }"
   [contentStyle]="{'padding':'0','overflow':'hidden'}"
   styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
 
@@ -258,7 +258,66 @@
         </div>
       </div>
 
-      <div class="border-t border-slate-200 pt-4 flex justify-end">
+      <!-- Detalhamento de Movimentações -->
+      <div class="mt-6">
+        <h3 class="text-sm font-bold text-slate-800 mb-3">Movimentações do Período</h3>
+        
+        <div *ngIf="loadingDetalhes" class="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
+          <mat-icon class="animate-spin !text-2xl">refresh</mat-icon>
+          <span class="text-sm">Carregando movimentações...</span>
+        </div>
+
+        <div *ngIf="!loadingDetalhes && movimentacoesFechadas.length === 0" class="py-8 text-center text-sm text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+          Nenhuma movimentação registrada neste caixa.
+        </div>
+
+        <div *ngIf="!loadingDetalhes && movimentacoesFechadas.length > 0" class="border border-slate-200 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200">
+                <th class="text-left py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Data</th>
+                <th class="text-left py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Descrição</th>
+                <th class="text-center py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Tipo</th>
+                <th class="text-right py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Valor</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngFor="let mov of movimentacoesFechadas" class="hover:bg-slate-50">
+                <td class="py-2.5 px-4 text-slate-700 whitespace-nowrap">{{ formatDateTime(mov.dataMovimento) }}</td>
+                <td class="py-2.5 px-4 text-slate-800 font-medium">
+                  {{ mov.descricao }}
+                  <div class="text-xs font-normal text-slate-500">{{ mov.categoria || 'Sem categoria' }}</div>
+                </td>
+                <td class="py-2.5 px-4 text-center">
+                  <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                    [ngClass]="{
+                      'bg-emerald-100 text-emerald-700': mov.tipoMovimentacao === 'ENTRADA',
+                      'bg-red-100 text-red-700': mov.tipoMovimentacao === 'SAIDA',
+                      'bg-slate-100 text-slate-600': mov.tipoMovimentacao === 'TRANSFERENCIA'
+                    }">
+                    {{ mov.tipoMovimentacao }}
+                  </span>
+                </td>
+                <td class="py-2.5 px-4 text-right font-bold"
+                  [ngClass]="{
+                    'text-emerald-700': mov.tipoMovimentacao === 'ENTRADA',
+                    'text-red-700': mov.tipoMovimentacao === 'SAIDA',
+                    'text-slate-700': mov.tipoMovimentacao === 'TRANSFERENCIA'
+                  }">
+                  {{ mov.tipoMovimentacao === 'SAIDA' ? '-' : (mov.tipoMovimentacao === 'ENTRADA' ? '+' : '') }} {{ formatCurrency(mov.valor) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-200 pt-4 flex justify-end gap-2.5 mt-4">
+        <button (click)="imprimirRegistro(f)"
+          class="px-5 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm">
+          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon>
+          Imprimir
+        </button>
         <button (click)="detalhesDialogVisible = false"
           class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm">
           Fechar

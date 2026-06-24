@@ -24,16 +24,17 @@ public class FluxoCaixaController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    @Operation(summary = "Listar lanÃ§amentos de fluxo de caixa")
+    @Operation(summary = "Listar lançamentos de fluxo de caixa")
     public ResponseEntity<Page<FluxoCaixaResponse>> findAll(
             @RequestParam(required = false) Long empresaId,
             @RequestParam(required = false) Long contaBancariaId,
             @RequestParam(required = false) Long centroCustoId,
             @RequestParam(required = false) java.time.LocalDate dataInicio,
             @RequestParam(required = false) java.time.LocalDate dataFim,
+            @RequestParam(required = false, defaultValue = "false") Boolean includeClosed,
             Pageable pageable) {
         Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        return ResponseEntity.ok(service.findAll(empresa, contaBancariaId, centroCustoId, dataInicio, dataFim, pageable));
+        return ResponseEntity.ok(service.findAll(empresa, contaBancariaId, centroCustoId, dataInicio, dataFim, includeClosed, pageable));
     }
 
     @GetMapping("/{id}")

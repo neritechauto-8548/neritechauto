@@ -17,7 +17,7 @@
 
        <!-- New Client Button -->
        <button (click)="cadastrarCliente()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
+          <i class="pi pi-plus text-[14px]"></i>
           <span>Novo Cliente</span>
        </button>
    </div>
@@ -35,71 +35,87 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white">
-                <tr *ngFor="let row of pagedData" class="group hover:bg-gray-50 transition-colors duration-200">
-                    <!-- Cliente -->
-                    <td class="py-2.5 px-6 align-middle">
-                        <div class="flex items-center gap-4">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                {{ row.nome.charAt(0).toUpperCase() }}
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="navigateToEdit(row)">{{ row.nome }}</span>
-                                <span class="text-[11px] text-slate-500">{{ getTipoClienteLabel(row.tipo) }}</span>
-                            </div>
-                        </div>
-                    </td>
+                @if (isLoading) {
+                    @for (i of [1, 2, 3, 4, 5]; track i) {
+                        <tr>
+                            <td class="py-2.5 px-6 align-middle">
+                                <div class="flex items-center gap-4">
+                                    <p-skeleton shape="circle" size="2.25rem"></p-skeleton>
+                                    <div class="flex flex-col gap-1.5">
+                                        <p-skeleton width="150px" height="1rem"></p-skeleton>
+                                        <p-skeleton width="80px" height="0.75rem"></p-skeleton>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-2.5 px-6 align-middle">
+                                <p-skeleton width="120px" height="1.25rem"></p-skeleton>
+                            </td>
+                            <td class="py-2.5 px-6 align-middle">
+                                <p-skeleton width="100px" height="1rem"></p-skeleton>
+                            </td>
+                            <td class="py-2.5 px-6 align-middle text-right pr-4">
+                                <p-skeleton shape="circle" size="1.75rem" styleClass="inline-block"></p-skeleton>
+                            </td>
+                        </tr>
+                    }
+                } @else {
+                    @for (row of pagedData; track row.uuid) {
+                        <tr class="group hover:bg-gray-50 transition-colors duration-200">
+                            <!-- Cliente -->
+                            <td class="py-2.5 px-6 align-middle">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
+                                        {{ row.nome.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="navigateToEdit(row)">{{ row.nome }}</span>
+                                        <span class="text-[11px] text-slate-500">{{ getTipoClienteLabel(row.tipo) }}</span>
+                                    </div>
+                                </div>
+                            </td>
 
-                    <!-- Documento -->
-                    <td class="py-2.5 px-6 align-middle">
-                        <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                            {{ formatCpfCnpj(row.cpfCnpj) }}
-                        </span>
-                    </td>
+                            <!-- Documento -->
+                            <td class="py-2.5 px-6 align-middle">
+                                <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+                                    {{ formatCpfCnpj(row.cpfCnpj) }}
+                                </span>
+                            </td>
 
-                    <!-- Contato -->
-                    <td class="py-2.5 px-6 align-middle">
-                        <div class="flex items-center gap-2 text-sm text-slate-600" *ngIf="row.contato">
-                            <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-400">phone</mat-icon>
-                            {{ row.contato }}
-                        </div>
-                        <span class="text-xs text-slate-400 italic" *ngIf="!row.contato">Sem contato</span>
-                    </td>
+                            <!-- Contato -->
+                            <td class="py-2.5 px-6 align-middle">
+                                @if (row.contato) {
+                                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                                        <i class="pi pi-phone text-xs text-slate-400"></i>
+                                        {{ row.contato }}
+                                    </div>
+                                } @else {
+                                    <span class="text-xs text-slate-400 italic">Sem contato</span>
+                                }
+                            </td>
 
-                    <!-- Actions -->
-                    <td class="py-2.5 px-6 align-middle text-right">
-                        <button mat-icon-button [matMenuTriggerFor]="menu" class="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors w-8 h-8 flex items-center justify-center">
-                            <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">more_vert</mat-icon>
-                        </button>
-                        <mat-menu #menu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white">
-                            <button mat-menu-item (click)="navigateToAddVeiculo(row)" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
-                                <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-indigo-600 transition-colors">directions_car</mat-icon>
-                                <span class="text-[13px] font-medium text-slate-700 group-hover:text-indigo-700">Cadastrar Veículo</span>
-                            </button>
-                            <button mat-menu-item (click)="navigateToEdit(row)" class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
-                                <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">edit</mat-icon>
-                                <span class="text-[13px] font-medium text-slate-700 group-hover:text-blue-700">Editar Cliente</span>
-                            </button>
-                        </mat-menu>
-                    </td>
-                </tr>
-                <tr *ngIf="clients.length === 0 && !isLoading">
-                    <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                        <div class="flex flex-col items-center gap-3 text-slate-400">
-                          <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                             <mat-icon class="!text-2xl text-slate-400">search</mat-icon>
-                          </div>
-                          <p class="text-sm font-medium text-slate-500">Nenhum cliente encontrado</p>
-                          <button (click)="cadastrarCliente()" class="text-xs text-blue-600 font-bold hover:underline">
-                              Cadastrar novo cliente
-                          </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr *ngIf="isLoading">
-                    <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                        <i class="pi pi-spin pi-spinner mr-2"></i> Carregando...
-                    </td>
-                </tr>
+                            <!-- Actions -->
+                            <td class="py-2.5 px-6 align-middle text-right">
+                                <button pButton icon="pi pi-ellipsis-v" class="p-button-text p-button-rounded p-button-secondary w-8 h-8 flex items-center justify-center" (click)="toggleMenu(row, $event, menu)"></button>
+                            </td>
+                        </tr>
+                    }
+
+                    @if (clients.length === 0) {
+                        <tr>
+                            <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
+                                <div class="flex flex-col items-center gap-3 text-slate-400">
+                                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                                     <i class="pi pi-search text-xl text-slate-400"></i>
+                                  </div>
+                                  <p class="text-sm font-medium text-slate-500">Nenhum cliente encontrado</p>
+                                  <button (click)="cadastrarCliente()" class="text-xs text-blue-600 font-bold hover:underline">
+                                      Cadastrar novo cliente
+                                  </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
       </div>
@@ -115,17 +131,20 @@
                 (click)="goPrev()"
                 class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
             >
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
+                <i class="pi pi-chevron-left text-xs"></i> Anterior
             </button>
             <button
                 [disabled]="first + rows >= totalRecords || isLoading"
                 (click)="goNext()"
                 class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
             >
-                Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
+                Próximo <i class="pi pi-chevron-right text-xs"></i>
             </button>
         </div>
       </div>
   </div>
 
 </div>
+
+<!-- Popup menu -->
+<p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>

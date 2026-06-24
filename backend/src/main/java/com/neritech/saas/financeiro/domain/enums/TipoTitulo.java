@@ -8,5 +8,6 @@ public enum TipoTitulo {
     CONVENIO,
     BOLETO,
     OS,
+    VENDA_BALCAO,
     OUTROS
 }

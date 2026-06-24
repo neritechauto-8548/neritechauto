@@ -3,7 +3,6 @@ package com.neritech.saas.financeiro.mapper;
 import com.neritech.saas.financeiro.domain.FluxoCaixa;
 import com.neritech.saas.financeiro.dto.FluxoCaixaRequest;
 import com.neritech.saas.financeiro.dto.FluxoCaixaResponse;
-import com.neritech.saas.empresa.domain.enums.FormaPagamento;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -17,11 +16,14 @@ public interface FluxoCaixaMapper {
 
     @Mapping(target = "contaBancariaNome", source = "contaBancaria.bancoNome")
     @Mapping(target = "centroCustoNome", source = "centroCusto.descricao")
+    @Mapping(target = "formaPagamentoNome", source = "formaPagamento.nome")
     @Mapping(target = "planoContasId", ignore = true)
     @Mapping(target = "planoContasNome", ignore = true)
     @Mapping(target = "pagamentoId", expression = "java(getPagamentoId(entity))")
     @Mapping(target = "recebimentoId", expression = "java(getRecebimentoId(entity))")
     @Mapping(target = "dataMovimento", source = "dataMovimentacao")
+    @Mapping(target = "dataVencimento", ignore = true)
+    @Mapping(target = "dataPagamento", ignore = true)
     FluxoCaixaResponse toResponse(FluxoCaixa entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

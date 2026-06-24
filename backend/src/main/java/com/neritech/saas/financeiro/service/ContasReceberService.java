@@ -26,11 +26,94 @@ public class ContasReceberService {
     private final DepartamentoContabioRepository departamentoContabioRepository;
     private final PlanoContaRepository planoContaRepository;
     private final ContasReceberMapper mapper;
+    private final FluxoCaixaRepository fluxoCaixaRepository;
+    private final FechamentoCaixaService fechamentoCaixaService;
 
     @Transactional(readOnly = true)
-    public Page<ContasReceberResponse> findAll(Long empresaId, Pageable pageable) {
-        return repository.findByEmpresaId(empresaId, pageable)
-                .map(mapper::toResponse);
+    public Page<ContasReceberResponse> findAll(
+            Long empresaId,
+            String termo,
+            java.time.LocalDate dataInicio,
+            java.time.LocalDate dataFim,
+            String status,
+            Long contaBancariaId,
+            Long centroCustoId,
+            Long planoContasId,
+            Long formaPagamentoId,
+            Pageable pageable) {
+        
+        org.springframework.data.jpa.domain.Specification<ContasReceber> spec = (root, query, cb) -> {
+            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                root.fetch("formaPagamento", jakarta.persistence.criteria.JoinType.LEFT);
+                root.fetch("contaBancaria", jakarta.persistence.criteria.JoinType.LEFT);
+                root.fetch("centroCusto", jakarta.persistence.criteria.JoinType.LEFT);
+                root.fetch("planoContas", jakarta.persistence.criteria.JoinType.LEFT);
+            }
+            return cb.equal(root.get("empresaId"), empresaId);
+        };
+
+        if (termo != null && !termo.trim().isEmpty()) {
+            String pattern = "%" + termo.trim().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                cb.like(cb.lower(root.get("descricao")), pattern),
+                cb.like(cb.lower(root.get("numeroTitulo")), pattern)
+            ));
+        }
+
+        if (dataInicio != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("dataVencimento"), dataInicio));
+        }
+        if (dataFim != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("dataVencimento"), dataFim));
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            switch (status) {
+                case "Todas Quitado":
+                case "Receita Quitado":
+                    spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), StatusTitulo.PAGO));
+                    break;
+                case "Todas Aberto":
+                case "Receita Aberto":
+                    spec = spec.and((root, query, cb) -> cb.and(
+                        cb.notEqual(root.get("status"), StatusTitulo.PAGO),
+                        cb.notEqual(root.get("status"), StatusTitulo.CANCELADO)
+                    ));
+                    break;
+                case "Transferencias":
+                    spec = spec.and((root, query, cb) -> {
+                        String transPattern = "%transferência%";
+                        return cb.or(
+                            cb.like(cb.lower(root.get("descricao")), transPattern),
+                            cb.like(cb.lower(root.get("observacoes")), transPattern)
+                        );
+                    });
+                    break;
+                default:
+                    try {
+                        StatusTitulo enumStatus = StatusTitulo.valueOf(status);
+                        spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), enumStatus));
+                    } catch (IllegalArgumentException e) {
+                        // Ignorar se não for um status válido
+                    }
+                    break;
+            }
+        }
+
+        if (contaBancariaId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("contaBancaria").get("id"), contaBancariaId));
+        }
+        if (centroCustoId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("centroCusto").get("id"), centroCustoId));
+        }
+        if (planoContasId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("planoContas").get("id"), planoContasId));
+        }
+        if (formaPagamentoId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("formaPagamento").get("id"), formaPagamentoId));
+        }
+
+        return repository.findAll(spec, pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
@@ -42,6 +125,10 @@ public class ContasReceberService {
 
     @Transactional
     public ContasReceberResponse create(Long empresaId, ContasReceberRequest request) {
+        if (request.status() == StatusTitulo.PAGO) {
+            fechamentoCaixaService.validarCaixaAberto(empresaId, request.dataRecebimento() != null ? request.dataRecebimento() : LocalDate.now());
+        }
+
         ContasReceber entity = mapper.toEntity(request);
         entity.setEmpresaId(empresaId);
         entity.setCriadoPor(1L); // TODO: Get from security context
@@ -52,13 +139,26 @@ public class ContasReceberService {
 
         updateRelationships(entity, request, empresaId);
 
-        return mapper.toResponse(repository.save(entity));
+        ContasReceber saved = repository.save(entity);
+        syncFluxoCaixa(saved);
+        return mapper.toResponse(saved);
     }
 
     @Transactional
     public ContasReceberResponse update(Long id, Long empresaId, ContasReceberRequest request) {
         ContasReceber entity = repository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new EntityNotFoundException("Conta a receber não encontrada"));
+
+        if (entity.getStatus() == StatusTitulo.PAGO) {
+            java.time.LocalDate dataRec = null;
+            if (entity.getRecebimentos() != null && !entity.getRecebimentos().isEmpty()) {
+                dataRec = entity.getRecebimentos().get(entity.getRecebimentos().size() - 1).getDataRecebimento();
+            }
+            fechamentoCaixaService.validarCaixaAberto(empresaId, dataRec != null ? dataRec : LocalDate.now());
+        }
+        if (request.status() == StatusTitulo.PAGO) {
+            fechamentoCaixaService.validarCaixaAberto(empresaId, request.dataRecebimento() != null ? request.dataRecebimento() : LocalDate.now());
+        }
 
         mapper.updateEntityFromDTO(request, entity);
         updateRelationships(entity, request, empresaId);
@@ -85,7 +185,9 @@ public class ContasReceberService {
             entity.setValorPendente(java.math.BigDecimal.ZERO);
         }
 
-        return mapper.toResponse(repository.save(entity));
+        ContasReceber saved = repository.save(entity);
+        syncFluxoCaixa(saved);
+        return mapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -176,6 +278,12 @@ public class ContasReceberService {
             throw new IllegalStateException("Apenas títulos pagos podem ter a quitação desfeita.");
         }
 
+        java.time.LocalDate dataRec = null;
+        if (entity.getRecebimentos() != null && !entity.getRecebimentos().isEmpty()) {
+            dataRec = entity.getRecebimentos().get(entity.getRecebimentos().size() - 1).getDataRecebimento();
+        }
+        fechamentoCaixaService.validarCaixaAberto(empresaId, dataRec != null ? dataRec : LocalDate.now());
+
         LocalDate hoje = LocalDate.now();
         if (entity.getDataVencimento().isBefore(hoje)) {
             entity.setStatus(StatusTitulo.VENCIDO);
@@ -193,14 +301,62 @@ public class ContasReceberService {
             entity.getRecebimentos().clear();
         }
 
-        return mapper.toResponse(repository.save(entity));
+        ContasReceber saved = repository.save(entity);
+        syncFluxoCaixa(saved);
+        return mapper.toResponse(saved);
     }
 
     @Transactional
     public void delete(Long id, Long empresaId) {
         ContasReceber entity = repository.findByIdAndEmpresaId(id, empresaId)
-                .orElseThrow(() -> new EntityNotFoundException("Conta a receber nÃ£o encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Conta a receber não encontrada"));
+
+        if (entity.getStatus() == StatusTitulo.PAGO) {
+            java.time.LocalDate dataRec = null;
+            if (entity.getRecebimentos() != null && !entity.getRecebimentos().isEmpty()) {
+                dataRec = entity.getRecebimentos().get(entity.getRecebimentos().size() - 1).getDataRecebimento();
+            }
+            fechamentoCaixaService.validarCaixaAberto(empresaId, dataRec != null ? dataRec : LocalDate.now());
+        }
+        
+        fluxoCaixaRepository.findByEmpresaIdAndDocumentoIdAndTipoMovimentacao(
+            empresaId, id, com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA
+        ).ifPresent(fluxoCaixaRepository::delete);
+
         repository.delete(entity);
+    }
+
+    public void syncFluxoCaixa(ContasReceber entity) {
+        if (entity.getStatus() == StatusTitulo.PAGO) {
+            FluxoCaixa fc = fluxoCaixaRepository.findByEmpresaIdAndDocumentoIdAndTipoMovimentacao(
+                entity.getEmpresaId(), entity.getId(), com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA
+            ).orElse(new FluxoCaixa());
+
+            fc.setEmpresaId(entity.getEmpresaId());
+            fc.setContaBancaria(entity.getContaBancaria());
+            fc.setTipoMovimentacao(com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA);
+            fc.setCategoria("RECEITA");
+            fc.setDescricao(entity.getDescricao());
+            fc.setValor(entity.getValorPago() != null && entity.getValorPago().compareTo(java.math.BigDecimal.ZERO) > 0 
+                ? entity.getValorPago() : entity.getValorNominal());
+            java.time.LocalDate dataRec = null;
+            if (entity.getRecebimentos() != null && !entity.getRecebimentos().isEmpty()) {
+                dataRec = entity.getRecebimentos().get(entity.getRecebimentos().size() - 1).getDataRecebimento();
+            }
+            fc.setDataMovimentacao(dataRec != null ? dataRec : LocalDate.now());
+            fc.setDataCompetencia(entity.getDataEmissao());
+            fc.setDocumentoTipo("RECEBIMENTO");
+            fc.setDocumentoId(entity.getId());
+            fc.setCentroCusto(entity.getCentroCusto());
+            fc.setClienteId(entity.getClienteId());
+            fc.setFormaPagamento(entity.getFormaPagamento());
+            fc.setUsuarioResponsavel(1L); // TODO: Get from security context
+            fluxoCaixaRepository.save(fc);
+        } else {
+            fluxoCaixaRepository.findByEmpresaIdAndDocumentoIdAndTipoMovimentacao(
+                entity.getEmpresaId(), entity.getId(), com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA
+            ).ifPresent(fluxoCaixaRepository::delete);
+        }
     }
 
     private void updateRelationships(ContasReceber entity, ContasReceberRequest request, Long empresaId) {

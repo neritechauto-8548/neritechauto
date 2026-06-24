@@ -27,4 +27,13 @@ export class UtilService {
     const cleanCep = (cep || '').replace(/\D/g, '');
     return this.http.get(`https://viacep.com.br/ws/${cleanCep}/json/`);
   }
+
+  /**
+   * Busca dados da empresa por CNPJ (BrasilAPI).
+   * @param cnpj O CNPJ a ser pesquisado
+   */
+  buscarCnpj(cnpj: string): Observable<any> {
+    const cleanCnpj = (cnpj || '').replace(/\D/g, '');
+    return this.http.get(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`);
+  }
 }

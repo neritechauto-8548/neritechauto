@@ -7,6 +7,7 @@ import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { NgApexchartsModule, ChartComponent } from 'ng-apexcharts';
 import { ApexOptions } from 'apexcharts';
@@ -28,7 +29,8 @@ import { LocalStorageService } from '@shared/services/storage.service';
     ButtonModule,
     TagModule,
     NgApexchartsModule,
-    TableModule
+    TableModule,
+    TooltipModule
   ],
 })
 export class Dashboard implements OnInit {
@@ -49,6 +51,19 @@ export class Dashboard implements OnInit {
   veiculosEntregues = 0;
   veiculosEmAtraso = 0;
   metaMesPercentual = 0;
+
+  // Novas Métricas de Status
+  abertosMes = 0;
+  abertosTotal = 0;
+  autorizadosMes = 0;
+  autorizadosTotal = 0;
+  canceladosMes = 0;
+  canceladosTotal = 0;
+  fechadosMes = 0;
+  fechadosTotal = 0;
+  entradasVeiculosMes = 0;
+  saidasVeiculosMes = 0;
+  mesAnoAtualLabel = '';
 
   // KPIs comparisons
   kpiGeral = '0%';
@@ -75,7 +90,14 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit() {
+    this.initMesAnoAtualLabel();
     this.carregarDados();
+  }
+
+  private initMesAnoAtualLabel() {
+    const data = new Date();
+    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    this.mesAnoAtualLabel = `${meses[data.getMonth()]}/${data.getFullYear()}`;
   }
 
   public insightsChartOptions: any;
@@ -84,33 +106,25 @@ export class Dashboard implements OnInit {
     this.chartOptions = {
       series: [
         {
-          name: 'Venda de Peças',
-          data: [28, 29, 33, 36, 42, 40, 39, 45, 50, 48, 52, 60]
+          name: 'Peças',
+          data: [2.8, 2.9, 3.3, 3.6, 4.2, 4.0]
         },
         {
-          name: 'Mão-de-obra',
-          data: [45, 52, 53, 49, 62, 58, 56, 68, 70, 75, 80, 85]
+          name: 'Serviços',
+          data: [4.5, 5.2, 5.3, 4.9, 6.2, 5.8]
         }
       ],
       chart: {
         height: 350,
-        type: 'bar',
-        stacked: false, // Pode ser alterado para true pelo usuário (toggle)
+        type: 'area',
         toolbar: { show: false },
         fontFamily: 'Inter, sans-serif'
       },
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: '45%',
-          borderRadius: 4
-        },
-      },
-      colors: ['#0f172a', '#3b82f6'], // Dark Slate (Venda), Blue (Mão de Obra)
+      colors: ['#f59e0b', '#3b82f6'], // Amber for Peças, Blue for Serviços
       dataLabels: { enabled: false },
-      stroke: { show: true, width: 2, colors: ['transparent'] },
+      stroke: { show: true, width: 3, curve: 'smooth' },
       xaxis: {
-        categories: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+        categories: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {
@@ -128,9 +142,17 @@ export class Dashboard implements OnInit {
         yaxis: { lines: { show: true } }
       },
       legend: { position: 'top', horizontalAlign: 'left', offsetX: 40 },
-      fill: { opacity: 1 },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.3,
+          opacityTo: 0.05,
+          stops: [0, 90, 100]
+        }
+      },
       tooltip: {
-        y: { formatter: function (val: any) { return 'R$ ' + val + 'k' } }
+        y: { formatter: function (val: any) { return 'R$ ' + val } }
       }
     };
 
@@ -200,6 +222,18 @@ export class Dashboard implements OnInit {
     this.veiculosEntregues = data.osConcluidas || 0;
     this.veiculosEmAtraso = data.veiculosEmAtraso || 0;
 
+    // Novas Métricas de Status
+    this.abertosMes = data.abertosMes || 0;
+    this.abertosTotal = data.abertosTotal || 0;
+    this.autorizadosMes = data.autorizadosMes || 0;
+    this.autorizadosTotal = data.autorizadosTotal || 0;
+    this.canceladosMes = data.canceladosMes || 0;
+    this.canceladosTotal = data.canceladosTotal || 0;
+    this.fechadosMes = data.fechadosMes || 0;
+    this.fechadosTotal = data.fechadosTotal || 0;
+    this.entradasVeiculosMes = data.entradasVeiculosMes || 0;
+    this.saidasVeiculosMes = data.saidasVeiculosMes || 0;
+
     // Meta (Exemplo: 50 veículos por mês)
     const metaEntregas = 50;
     this.metaMesPercentual = Math.min(Math.round((this.veiculosEntregues / metaEntregas) * 100), 100);
@@ -207,8 +241,8 @@ export class Dashboard implements OnInit {
     // Update Chart with Real Data
     if (this.chartOptions) {
       this.chartOptions.series = [
-        { name: 'Faturamento Total', data: data.historicoFaturamento },
-        { name: 'Mão-de-obra', data: data.historicoServicos }
+        { name: 'Peças', data: data.historicoFaturamento },
+        { name: 'Serviços', data: data.historicoServicos }
       ];
       this.chartOptions.xaxis.categories = data.historicoMeses;
     }

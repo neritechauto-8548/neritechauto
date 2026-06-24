@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
 public record ItemOSProdutoRequest(
-        @NotNull Long ordemServicoId,
+        Long ordemServicoId,
         Long produtoId,
         String descricao,
         @NotNull BigDecimal quantidade,

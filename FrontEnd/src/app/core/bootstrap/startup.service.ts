@@ -67,7 +67,26 @@ export class StartupService {
   }
 
   private setPermissions(user: User) {
-    const permissions = user.permissions || [];
+    let permissions = user.permissions || [];
+    
+    // Se o usuário possuir a função de ADMIN, garante que tenha todas as permissões no frontend
+    const hasAdmin = user.funcoes && user.funcoes.some((role: string) => {
+      const r = (role || '').toUpperCase();
+      return r === 'ADMIN' || r.includes('ADMIN') || r.includes('ADMINISTRADOR');
+    });
+    if (hasAdmin) {
+      const allPermissions = [
+        'CLIENTE_CRIAR', 'CLIENTE_EDITAR', 'CLIENTE_EXCLUIR', 'CLIENTE_EXPORTAR',
+        'VEICULO_CRIAR', 'VEICULO_EDITAR', 'VEICULO_EXCLUIR', 'VEICULO_EXPORTAR',
+        'AGENDAMENTO_CRIAR', 'AGENDAMENTO_EDITAR', 'AGENDAMENTO_EXCLUIR',
+        'OS_INCLUIR', 'OS_EDITAR', 'OS_EXCLUIR', 'OS_ALT_FUNCIONARIO', 'OS_ALT_STATUS',
+        'GERAL_USUARIO', 'GERAL_CALENDARIO', 'GERAL_AGENDAMENTO_VISUALIZAR', 'GERAL_FATURAS', 
+        'GERAL_CONFIG_SISTEMA', 'GERAL_MEU_CALENDARIO', 'GERAL_CONFIG_CHECKLIST', 'GERAL_ORCAMENTO', 
+        'GERAL_AGENDAMENTO_EDITAR', 'GERAL_CONFIG_SITE', 'FIN_VIS_CAIXA', 'FIN_FECHAMENTO'
+      ];
+      permissions = Array.from(new Set([...permissions, ...allPermissions]));
+    }
+
     this.permissonsService.loadPermissions(permissions);
     
     this.rolesService.flushRoles();

@@ -62,6 +62,27 @@ public class DashboardService {
 
         long veiculosEmAtraso = ordemServicoRepository.countAtrasadas(empresaId);
 
+        // Novas Métricas de Status e Entradas/Saídas
+        java.time.LocalDateTime startOfMonthDateTime = startOfMonth.atStartOfDay();
+        java.time.LocalDateTime endOfMonthDateTime = endOfMonth.atTime(23, 59, 59, 999999999);
+        List<String> codigosAberto = List.of("ABERTA", "DIAGNOSTICO", "AGUARDANDO_APROVACAO");
+        List<String> codigosAutorizado = List.of("APROVADA", "EM_EXECUCAO", "AGUARDANDO_PECAS");
+
+        long abertosMesVal = ordemServicoRepository.countByStatusCodesAndPeriod(empresaId, codigosAberto, startOfMonthDateTime, endOfMonthDateTime);
+        long abertosTotalVal = ordemServicoRepository.countByStatusCodes(empresaId, codigosAberto);
+
+        long autorizadosMesVal = ordemServicoRepository.countByStatusCodesAndPeriod(empresaId, codigosAutorizado, startOfMonthDateTime, endOfMonthDateTime);
+        long autorizadosTotalVal = ordemServicoRepository.countByStatusCodes(empresaId, codigosAutorizado);
+
+        long canceladosMesVal = ordemServicoRepository.countByCancelaOSAndPeriod(empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
+        long canceladosTotalVal = ordemServicoRepository.countByCancelaOS(empresaId, true);
+
+        long fechadosMesVal = ordemServicoRepository.countByFinalizaOSAndPeriod(empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
+        long fechadosTotalVal = ordemServicoRepository.countByFinalizaOS(empresaId, true);
+
+        long entradasVeiculosMesVal = ordemServicoRepository.countByPeriod(empresaId, startOfMonthDateTime, endOfMonthDateTime);
+        long saidasVeiculosMesVal = ordemServicoRepository.countSaidasByPeriod(empresaId, startOfMonthDateTime, endOfMonthDateTime);
+
         // Dados do Gráfico (Mock estruturado para evoluir para real)
         List<BigDecimal> historicoFaturamento = List.of(
                 new BigDecimal("2800"), new BigDecimal("2900"), new BigDecimal("3300"),
@@ -87,6 +108,16 @@ public class DashboardService {
                 veiculosEmAtraso,
                 historicoFaturamento,
                 historicoServicos,
-                historicoMeses);
+                historicoMeses,
+                abertosMesVal,
+                abertosTotalVal,
+                autorizadosMesVal,
+                autorizadosTotalVal,
+                canceladosMesVal,
+                canceladosTotalVal,
+                fechadosMesVal,
+                fechadosTotalVal,
+                entradasVeiculosMesVal,
+                saidasVeiculosMesVal);
     }
 }

@@ -18,5 +18,7 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, Long>, Jpa
     Optional<Pagamento> findByEmpresaIdAndNumeroPagamento(Long empresaId, String numeroPagamento);
 
     Page<Pagamento> findByEmpresaIdAndFatura_Id(Long empresaId, Long faturaId, Pageable pageable);
+
+    Page<Pagamento> findByEmpresaIdAndOsId(Long empresaId, Long osId, Pageable pageable);
 }
 

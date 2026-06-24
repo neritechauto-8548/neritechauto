@@ -38,6 +38,15 @@ public class PagamentoController {
         return ResponseEntity.ok(service.findByFatura(empresaId, faturaId, pageable));
     }
 
+    @GetMapping("/ordem-servico/{osId}")
+    @Operation(summary = "Listar pagamentos por ordem de serviço")
+    public ResponseEntity<Page<PagamentoResponse>> findByOsId(
+            @PathVariable Long osId,
+            @RequestParam Long empresaId,
+            Pageable pageable) {
+        return ResponseEntity.ok(service.findByOsId(empresaId, osId, pageable));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Buscar pagamento por ID")
     public ResponseEntity<PagamentoResponse> findById(

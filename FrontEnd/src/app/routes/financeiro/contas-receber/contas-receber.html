@@ -12,7 +12,7 @@
       <div class="flex items-center gap-2">
         <button pButton type="button" label="Imprimir" icon="pi pi-print" (click)="imprimir('pdf')" class="p-button-info p-button-sm shadow-sm"></button>
         <button pButton type="button" icon="pi pi-plus" label="Incluir conta" (click)="abrirNovo()" class="p-button-info p-button-sm shadow-sm"></button>
-        <button pButton type="button" icon="pi pi-arrow-circle-up" label="Quitar contas" (click)="quitarContas()" [disabled]="!selectedRows.length" class="p-button-success p-button-sm shadow-sm"></button>
+        <button pButton type="button" icon="pi pi-arrow-circle-up" label="Quitar" (click)="quitarContas()" [disabled]="!selectedRows.length" class="p-button-success p-button-sm shadow-sm"></button>
       </div>
     </div>
   </div>
@@ -71,7 +71,7 @@
           <label class="block text-xs font-semibold text-slate-500 mb-1.5">Pesquisa rápida</label>
           <div class="relative w-full">
             <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input [(ngModel)]="termo" type="text" placeholder="Buscar por descrição ou fatura..."
+            <input [(ngModel)]="termo" (ngModelChange)="onTermoChange()" type="text" placeholder="Buscar por descrição ou fatura..."
               class="w-full pl-9 pr-4 py-2 text-sm font-medium border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-colors placeholder:font-normal placeholder:text-slate-400" />
           </div>
         </div>
@@ -79,19 +79,19 @@
         <!-- Tipo -->
         <div class="col-span-12 sm:col-span-6 md:col-span-2">
           <label class="block text-xs font-semibold text-slate-500 mb-1.5">Tipo</label>
-          <p-select [options]="tiposFiltro" optionLabel="label" optionValue="value" [(ngModel)]="filtroTipo" styleClass="w-full font-medium" appendTo="body" />
+          <p-select [options]="tiposFiltro" optionLabel="label" optionValue="value" [(ngModel)]="filtroTipo" (onChange)="onFiltroChange()" styleClass="w-full font-medium" appendTo="body" />
         </div>
 
         <!-- Venc. inicio -->
         <div class="col-span-6 sm:col-span-3 md:col-span-3">
           <label class="block text-xs font-semibold text-slate-500 mb-1.5">Venc. início</label>
-          <p-datepicker [(ngModel)]="vencInicio" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" appendTo="body" />
+          <p-datepicker [(ngModel)]="vencInicio" (ngModelChange)="onFiltroChange()" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" appendTo="body" />
         </div>
 
         <!-- Venc. fim -->
         <div class="col-span-6 sm:col-span-3 md:col-span-3">
           <label class="block text-xs font-semibold text-slate-500 mb-1.5">Venc. fim</label>
-          <p-datepicker [(ngModel)]="vencFim" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" appendTo="body" />
+          <p-datepicker [(ngModel)]="vencFim" (ngModelChange)="onFiltroChange()" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" appendTo="body" />
         </div>
       </div>
 
@@ -105,7 +105,7 @@
         <!-- Filtro -->
         <div class="col-span-12 md:col-span-6">
           <label class="block text-xs font-semibold text-slate-500 mb-1.5">Filtro</label>
-          <p-select [options]="filtroValorOptions" optionLabel="label" optionValue="value" [(ngModel)]="filtroValor" styleClass="w-full font-medium" appendTo="body" />
+          <p-select [options]="filtroValorOptions" optionLabel="label" optionValue="value" [(ngModel)]="filtroValor" (onChange)="onFiltroChange()" styleClass="w-full font-medium" appendTo="body" />
         </div>
       </div>
     </div>
@@ -126,7 +126,7 @@
         </div>
       } @else {
         <p-table [value]="rowsFiltradas" [(selection)]="selectedRows" dataKey="id" [paginator]="true" [rows]="pageSize" [totalRecords]="totalElements" 
-                 (onPage)="onPage($event)" styleClass="p-datatable-sm" class="w-full">
+                 [lazy]="true" (onLazyLoad)="onPage($event)" styleClass="p-datatable-sm" class="w-full">
           <ng-template pTemplate="header">
             <tr class="bg-slate-50 border-b border-slate-200">
               <th class="w-12 py-3 px-4"><p-tableHeaderCheckbox /></th>
@@ -137,6 +137,7 @@
               <th class="w-36 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Origem / Documento</th>
               <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Vencimento</th>
               <th class="w-28 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Pagamento</th>
+              <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Status</th>
               <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Valor</th>
               <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Valor pg</th>
               <th alignFrozen="right" pFrozenColumn class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-center bg-slate-50 border-l border-slate-200">Ações</th>
@@ -178,20 +179,24 @@
               <!-- Vencimento -->
               <td class="py-3 px-4 text-xs text-slate-600 font-medium">
                 {{ formatDate(row.dataVencimento) }}
-                @if (getStatusClass(row.status, row.dataVencimento) === 'status-aberto') {
-                  <span class="nt-badge nt-badge--info ml-1 text-[9px] px-1 py-0.5">A receber</span>
-                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-vencido') {
-                  <span class="nt-badge nt-badge--danger ml-1 text-[9px] px-1 py-0.5">Vencido</span>
-                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-pago') {
-                  <span class="nt-badge nt-badge--success ml-1 text-[9px] px-1 py-0.5">Recebido</span>
-                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-cancelado') {
-                  <span class="nt-badge nt-badge--neutral ml-1 text-[9px] px-1 py-0.5">Cancel</span>
-                }
               </td>
 
               <!-- Pagamento -->
               <td class="py-3 px-4 text-xs text-slate-600 font-medium">
                 {{ formatDate(row.dataRecebimento) }}
+              </td>
+
+              <!-- Status -->
+              <td class="py-3 px-4 text-left">
+                @if (getStatusClass(row.status, row.dataVencimento) === 'status-aberto') {
+                  <span class="nt-badge nt-badge--info">A receber</span>
+                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-vencido') {
+                  <span class="nt-badge nt-badge--danger">Vencido</span>
+                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-pago') {
+                  <span class="nt-badge nt-badge--success">Recebido</span>
+                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-cancelado') {
+                  <span class="nt-badge nt-badge--neutral">Cancelado</span>
+                }
               </td>
 
               <!-- Valor -->
@@ -499,11 +504,11 @@
           <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase block">Status</span>
             <span class="nt-badge" [ngClass]="{
-              'nt-badge--info': detalhesRowSelected.status === 'ABERTO',
-              'nt-badge--success': detalhesRowSelected.status === 'PAGO',
-              'nt-badge--danger': detalhesRowSelected.status === 'VENCIDO',
-              'nt-badge--neutral': detalhesRowSelected.status === 'CANCELADO'
-            }">{{ detalhesRowSelected.status }}</span>
+              'nt-badge--info': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-aberto',
+              'nt-badge--success': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-pago',
+              'nt-badge--danger': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-vencido',
+              'nt-badge--neutral': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-cancelado'
+            }">{{ getStatusLabel(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) }}</span>
           </div>
         </div>
       </div>
@@ -512,9 +517,7 @@
       <p-tabs value="0" class="flex-1 overflow-hidden flex flex-col">
         <p-tablist class="bg-white px-4 border-b border-slate-200">
           <p-tab value="0" class="text-xs font-semibold"><i class="pi pi-info-circle mr-1.5"></i> Geral</p-tab>
-          <p-tab value="1" class="text-xs font-semibold"><i class="pi pi-dollar mr-1.5"></i> Recebimentos</p-tab>
-          <p-tab value="2" class="text-xs font-semibold"><i class="pi pi-history mr-1.5"></i> Histórico</p-tab>
-          <p-tab value="3" class="text-xs font-semibold"><i class="pi pi-paperclip mr-1.5"></i> Anexos</p-tab>
+          <p-tab value="1" class="text-xs font-semibold"><i class="pi pi-paperclip mr-1.5"></i> Anexos</p-tab>
         </p-tablist>
 
         <p-tabpanels class="flex-1 overflow-y-auto p-0 bg-slate-50">
@@ -545,16 +548,24 @@
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Nº Documento</span>
                     <span class="text-xs font-semibold text-slate-700 font-mono">{{ detalhesRowSelected.numeroTitulo || '-' }}</span>
                   </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Status</span>
+                    @if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-aberto') {
+                      <span class="nt-badge nt-badge--info">A receber</span>
+                    } @else if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-vencido') {
+                      <span class="nt-badge nt-badge--danger">Vencido</span>
+                    } @else if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-pago') {
+                      <span class="nt-badge nt-badge--success">Recebido</span>
+                    } @else if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-cancelado') {
+                      <span class="nt-badge nt-badge--neutral">Cancelado</span>
+                    }
+                  </div>
                 </div>
               </div>
               
               <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
                 <h3 class="text-xs font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Valores e Classificação</h3>
                 <div class="grid grid-cols-2 gap-y-4 gap-x-2">
-                  <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Plano de Contas</span>
-                    <span class="text-xs font-semibold text-slate-700 truncate block">{{ detalhesRowSelected.planoContasNome || 'N/A' }}</span>
-                  </div>
                   <div>
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Departamento</span>
                     <span class="text-xs font-semibold text-slate-700 truncate block">{{ detalhesRowSelected.centroCustoNome || 'N/A' }}</span>
@@ -568,57 +579,8 @@
             </div>
           </p-tabpanel>
 
-          <!-- Aba Recebimentos -->
-          <p-tabpanel value="1">
-            <div class="p-5">
-              @if (!detalhesRowSelected.recebimentos || detalhesRowSelected.recebimentos.length === 0) {
-                <div class="text-center py-8">
-                  <i class="pi pi-dollar text-3xl text-slate-300 mb-2"></i>
-                  <p class="text-xs font-semibold text-slate-500">Nenhum recebimento registrado</p>
-                </div>
-              } @else {
-                <div class="flex flex-col gap-3">
-                  @for (rec of detalhesRowSelected.recebimentos; track rec.id) {
-                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex justify-between items-center">
-                      <div>
-                        <div class="text-xs font-bold text-slate-800">{{ formatCurrency(rec.valorRecebido) }}</div>
-                        <div class="text-[10px] text-slate-500 mt-0.5">{{ formatDate(rec.dataRecebimento) }} via {{ rec.formaPagamentoNome || 'N/A' }}</div>
-                      </div>
-                      <span class="nt-badge nt-badge--success">Baixado</span>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </p-tabpanel>
-
-          <!-- Aba Histórico -->
-          <p-tabpanel value="2">
-            <div class="p-5">
-              @if (!detalhesRowSelected.historico || detalhesRowSelected.historico.length === 0) {
-                <div class="text-center py-8">
-                  <i class="pi pi-history text-3xl text-slate-300 mb-2"></i>
-                  <p class="text-xs font-semibold text-slate-500">Nenhum histórico encontrado</p>
-                </div>
-              } @else {
-                <ul class="relative border-l-2 border-slate-200 ml-3">
-                  @for (log of detalhesRowSelected.historico; track log.id) {
-                    <li class="mb-6 ml-6">
-                      <div class="absolute w-3 h-3 bg-emerald-500 rounded-full -left-[7px] border-2 border-slate-50"></div>
-                      <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
-                        <time class="text-[9px] font-bold text-slate-400 uppercase">{{ log.dataAlteracao | date:'dd/MM/yyyy HH:mm' }}</time>
-                        <h4 class="text-xs font-bold text-slate-800 mt-1">{{ log.operacao }}</h4>
-                        <p class="text-[10px] text-slate-600 mt-1">Por: {{ log.usuarioResponsavelNome }}</p>
-                      </div>
-                    </li>
-                  }
-                </ul>
-              }
-            </div>
-          </p-tabpanel>
-
           <!-- Aba Anexos -->
-          <p-tabpanel value="3">
+          <p-tabpanel value="1">
             <div class="p-5">
               <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors mb-4 cursor-pointer" (click)="fileInput.click()">
                 <i class="pi pi-cloud-upload text-2xl text-emerald-500 mb-2"></i>
@@ -667,7 +629,7 @@
 <!-- Dialog: Quitar Lote                                     -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <p-dialog [(visible)]="quitarLoteDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true"
-  header="ATENCAO!" [style]="{ width: '450px' }" appendTo="body">
+  header="Quitar em Lote" [style]="{ width: '450px' }" appendTo="body">
   
   <div class="pt-4 pb-2">
     <p class="text-slate-800 mb-4 text-sm font-medium">Deseja quitar as contas em um valor total de {{ formatCurrency(valorTotalQuitarLote) }}</p>
@@ -678,8 +640,8 @@
 
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2 pt-3">
-      <button pButton type="button" icon="pi pi-check" label="Sim" (click)="confirmarQuitar()" class="p-button-info" [loading]="loading"></button>
-      <button pButton type="button" icon="pi pi-check" label="Nao" (click)="quitarLoteDialogVisible = false" class="p-button-danger"></button>
+      <button pButton type="button" icon="pi pi-check" label="Quitar em Lote" (click)="confirmarQuitar()" class="p-button-emerald shadow-sm" [loading]="loading"></button>
+      <button pButton type="button" icon="pi pi-times" label="Cancelar" (click)="quitarLoteDialogVisible = false" class="p-button-outlined p-button-secondary"></button>
     </div>
   </ng-template>
 </p-dialog>

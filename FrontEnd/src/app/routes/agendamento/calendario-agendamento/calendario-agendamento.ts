@@ -7,6 +7,10 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { LocalStorageService } from '@shared/services/storage.service';
+import { environment } from '../../../../environments/environment';
+import { NgxPermissionsModule } from 'ngx-permissions';
 
 import { AgendamentoService, AgendamentoResponse } from '../agendamento.service';
 import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
@@ -23,7 +27,7 @@ interface EventoCalendario {
 @Component({
   selector: 'app-calendario-agendamento',
   standalone: true,
-  imports: [CommonModule, FormsModule, DialogModule, ToastModule, ConfirmDialogModule],
+  imports: [CommonModule, FormsModule, DialogModule, ToastModule, ConfirmDialogModule, NgxPermissionsModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './calendario-agendamento.html',
   styleUrls: ['./calendario-agendamento.scss'],
@@ -35,15 +39,24 @@ export class CalendarioAgendamento implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  private http = inject(HttpClient);
+  private storage = inject(LocalStorageService);
 
   @Input() embed = false;
   // Toolbar
   funcionarioOptions = ['TODOS'];
   funcionarioSelecionado = this.funcionarioOptions[0];
 
+  mecanicoMap = new Map<number, string>();
+
+  get tenantId(): string {
+    const v = this.storage.has('tenantId') ? (this.storage.get('tenantId') as any) : '7';
+    return String(v && typeof v !== 'object' ? v : '7');
+  }
+
   // Calendário
   hoje = new Date();
-  corrente = new Date(this.hoje.getFullYear(), this.hoje.getMonth(), 1);
+  corrente = new Date(this.hoje);
   viewMode: 'mes' | 'semana' | 'dia' = 'mes';
 
   eventos: EventoCalendario[] = [];
@@ -59,13 +72,37 @@ export class CalendarioAgendamento implements OnInit {
   }
 
   carregarFuncionarios() {
-    this.funcionarioService.list({}).subscribe({
+    const headers = new HttpHeaders({ 'X-Tenant-Id': this.tenantId, 'Accept': 'application/json' });
+    forkJoin({
+      funcionarios: this.funcionarioService.list({ size: 1000 }),
+      mecanicos: this.http.get<any>(`${environment.baseUrl}/v1/rh/mecanicos`, { params: { size: '1000' }, headers })
+    }).subscribe({
       next: (res: any) => {
-        const items = res?.content || res;
-        const nomes = Array.isArray(items) ? items.map((f: any) => f.nome).filter(Boolean) : [];
+        const funcList = res.funcionarios?.content || res.funcionarios || [];
+        const mecList = res.mecanicos?.content || res.mecanicos || [];
+
+        // Mapear funcionarioId -> nomeCompleto
+        const funcMap = new Map<number, string>();
+        funcList.forEach((f: any) => {
+          if (f.nomeCompleto) {
+            funcMap.set(f.id, f.nomeCompleto);
+          }
+        });
+
+        // Montar a lista de nomes para o dropdown
+        const nomes = funcList.map((f: any) => f.nomeCompleto).filter(Boolean);
         this.funcionarioOptions = ['TODOS', ...nomes];
+
+        // Mapear mecanicoId -> nomeCompleto
+        this.mecanicoMap.clear();
+        mecList.forEach((m: any) => {
+          const nome = funcMap.get(m.funcionarioId);
+          if (nome) {
+            this.mecanicoMap.set(m.id, nome);
+          }
+        });
       },
-      error: () => console.error('Falha ao carregar funcionários')
+      error: (err) => console.error('Falha ao carregar funcionários e mecânicos', err)
     });
   }
 
@@ -138,32 +175,117 @@ export class CalendarioAgendamento implements OnInit {
       'novembro',
       'dezembro',
     ];
-    return `${meses[this.corrente.getMonth()]} ${this.corrente.getFullYear()}`;
+    if (this.viewMode === 'mes') {
+      return `${meses[this.corrente.getMonth()]} ${this.corrente.getFullYear()}`;
+    } else if (this.viewMode === 'semana') {
+      const inicio = new Date(this.corrente);
+      inicio.setDate(this.corrente.getDate() - this.corrente.getDay());
+      const fim = new Date(inicio);
+      fim.setDate(inicio.getDate() + 6);
+      
+      const formatDia = (d: Date) => d.getDate();
+      const formatMes = (d: Date) => meses[d.getMonth()].substring(0, 3);
+      
+      if (inicio.getMonth() === fim.getMonth()) {
+        return `${formatDia(inicio)} a ${formatDia(fim)} de ${meses[inicio.getMonth()]} de ${inicio.getFullYear()}`;
+      } else if (inicio.getFullYear() === fim.getFullYear()) {
+        return `${formatDia(inicio)} de ${formatMes(inicio)}. a ${formatDia(fim)} de ${formatMes(fim)}. de ${inicio.getFullYear()}`;
+      } else {
+        return `${formatDia(inicio)} de ${formatMes(inicio)}. de ${inicio.getFullYear()} a ${formatDia(fim)} de ${formatMes(fim)}. de ${fim.getFullYear()}`;
+      }
+    } else {
+      const diasSemana = [
+        'domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'
+      ];
+      return `${diasSemana[this.corrente.getDay()]} ${this.corrente.getDate()} de ${meses[this.corrente.getMonth()]} de ${this.corrente.getFullYear()}`;
+    }
+  }
+
+  diasParaExibir(): Date[] {
+    if (this.viewMode === 'mes') {
+      const ano = this.corrente.getFullYear();
+      const mes = this.corrente.getMonth();
+      const primeiroDia = new Date(ano, mes, 1);
+      const inicioGrid = new Date(primeiroDia);
+      // Inicia no domingo da semana contendo o primeiro dia do mês
+      inicioGrid.setDate(primeiroDia.getDate() - primeiroDia.getDay());
+
+      const dias: Date[] = [];
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(inicioGrid);
+        d.setDate(inicioGrid.getDate() + i);
+        dias.push(d);
+      }
+      return dias;
+    } else if (this.viewMode === 'semana') {
+      const diaDaSemana = this.corrente.getDay();
+      const inicioSemana = new Date(this.corrente);
+      inicioSemana.setDate(this.corrente.getDate() - diaDaSemana);
+
+      const dias: Date[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(inicioSemana);
+        d.setDate(inicioSemana.getDate() + i);
+        dias.push(d);
+      }
+      return dias;
+    } else {
+      return [new Date(this.corrente)];
+    }
   }
 
   diasDoMes(): Date[] {
-    const ano = this.corrente.getFullYear();
-    const mes = this.corrente.getMonth();
-    const primeiroDia = new Date(ano, mes, 1);
-    const inicioGrid = new Date(primeiroDia);
-    inicioGrid.setDate(primeiroDia.getDate() - ((primeiroDia.getDay() + 6) % 7)); // inicia no domingo
+    return this.diasParaExibir();
+  }
 
-    const dias: Date[] = [];
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(inicioGrid);
-      d.setDate(inicioGrid.getDate() + i);
-      dias.push(d);
+  obterNomeDiaDaSemana(d: Date): string {
+    const diasSemana = [
+      'domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'
+    ];
+    return diasSemana[d.getDay()];
+  }
+
+  getStatusBadgeClass(status: string | undefined): string {
+    if (!status) return 'bg-slate-100 text-slate-700';
+
+    switch (status.toUpperCase()) {
+      case 'AGENDADO': return 'bg-blue-50 text-blue-700 border border-blue-100';
+      case 'CONFIRMADO': return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+      case 'EM_ANDAMENTO': return 'bg-sky-50 text-sky-700 border border-sky-100';
+      case 'CONCLUIDO': return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+      case 'REAGENDADO': return 'bg-amber-50 text-amber-700 border border-amber-100';
+      case 'CANCELADO':
+      case 'NAO_COMPARECEU': return 'bg-rose-50 text-rose-700 border border-rose-100';
+      default: return 'bg-slate-100 text-slate-700 border border-slate-200';
     }
-    return dias;
   }
 
   eventosDoDia(d: Date): EventoCalendario[] {
-    return this.eventos.filter(
+    let filteredList = this.eventos.filter(
       e =>
         e.inicio.getFullYear() === d.getFullYear() &&
         e.inicio.getMonth() === d.getMonth() &&
         e.inicio.getDate() === d.getDate()
     );
+
+    if (this.funcionarioSelecionado && this.funcionarioSelecionado !== 'TODOS') {
+      filteredList = filteredList.filter(e => {
+        const allocatedMechanicId = e.agendamento.mecanicoAlocadoId || e.agendamento.mecanicoPreferidoId;
+        if (!allocatedMechanicId) return false;
+        
+        const name = this.mecanicoMap.get(allocatedMechanicId);
+        return name === this.funcionarioSelecionado;
+      });
+    }
+
+    return filteredList;
+  }
+
+  onFilterChange() {
+    // This empty method just exists to ensure Angular's change detection cycle 
+    // runs fully and the calendar re-evaluates the `eventosDoDia` method.
+    // We can also trigger a small state mutation if needed.
+    this.hoje = new Date();
   }
 
   abrirEvento(e: EventoCalendario): void {
@@ -173,20 +295,44 @@ export class CalendarioAgendamento implements OnInit {
   }
 
   hojeClick(): void {
-    this.corrente = new Date(this.hoje.getFullYear(), this.hoje.getMonth(), 1);
+    this.hoje = new Date();
+    this.corrente = new Date(this.hoje);
   }
 
   anterior(): void {
-    this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth() - 1, 1);
+    if (this.viewMode === 'mes') {
+      this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth() - 1, 1);
+    } else if (this.viewMode === 'semana') {
+      this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth(), this.corrente.getDate() - 7);
+    } else {
+      this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth(), this.corrente.getDate() - 1);
+    }
   }
 
   proxima(): void {
-    this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth() + 1, 1);
+    if (this.viewMode === 'mes') {
+      this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth() + 1, 1);
+    } else if (this.viewMode === 'semana') {
+      this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth(), this.corrente.getDate() + 7);
+    } else {
+      this.corrente = new Date(this.corrente.getFullYear(), this.corrente.getMonth(), this.corrente.getDate() + 1);
+    }
   }
 
   gravarAlteracoes(): void {
     if (!this.eventoSelecionado) return;
     this.router.navigate(['/agendamento/cadastro', { id: this.eventoSelecionado.id }]);
+    this.mostrarDialogEvento = false;
+  }
+
+  criarOsParaAgendamentoSelecionado(): void {
+    if (!this.eventoSelecionado) return;
+    const a = this.eventoSelecionado.agendamento;
+    if (a.veiculoId) {
+      this.router.navigate(['/os/cadastro'], { queryParams: { veiculoId: a.veiculoId } });
+    } else {
+      this.router.navigate(['/os/cadastro'], { queryParams: { clienteId: a.clienteId } });
+    }
     this.mostrarDialogEvento = false;
   }
 

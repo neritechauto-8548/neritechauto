@@ -6,5 +6,7 @@ public enum StatusTitulo {
     PAGO,
     VENCIDO,
     PROTESTADO,
-    CANCELADO
+    CANCELADO,
+    PARCIALMENTE_PAGO,
+    PARCELADO
 }

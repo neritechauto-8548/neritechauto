@@ -179,7 +179,7 @@
       "name": "fiscal",
       "type": "sub",
       "icon": "pi pi-file-excel",
-      "minPlan": 2,
+      "minPlan": 3,
       "children": [
         {
           "route": "nfe",
@@ -325,12 +325,6 @@
           "name": "relatorios.relatorio-questionarios",
           "type": "link",
           "icon": "pi pi-info-circle"
-        },
-        {
-          "route": "relatorio-aniversariantes",
-          "name": "relatorios.relatorio-aniversariantes",
-          "type": "link",
-          "icon": "pi pi-gift"
         },
         {
           "route": "relatorio-produtos",

@@ -190,6 +190,8 @@ export class CadastroOS implements OnInit {
     // Verifica se veio ID na rota ou parametro
     const id = this.route.snapshot.params['id'] || this.route.snapshot.queryParams['id'];
     const tipo = this.route.snapshot.queryParams['tipo'];
+    const queryVeiculoId = this.route.snapshot.queryParams['veiculoId'];
+    const queryClienteId = this.route.snapshot.queryParams['clienteId'];
 
     if (id) {
         this.osId = Number(id);
@@ -200,6 +202,40 @@ export class CadastroOS implements OnInit {
         if (tipo && tipo === 'ORCAMENTO') {
              this.osForm.patchValue({ tipoOS: TipoOS.ORCAMENTO });
              this.lockTipoOS = true;
+        }
+        if (queryVeiculoId) {
+             const vId = Number(queryVeiculoId);
+             this.veiculoService.getById(vId).subscribe({
+                 next: (veiculo) => {
+                     if (veiculo && veiculo.clienteId) {
+                         this.clienteService.getById(veiculo.clienteId).subscribe({
+                             next: (c) => {
+                                 const clienteObj = {
+                                     ...c,
+                                     displayName: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || `Cliente #${c.id}`
+                                 };
+                                 this.osForm.patchValue({ cliente: clienteObj });
+                                 this.carregarVeiculos(veiculo.clienteId);
+                                 this.osForm.patchValue({ veiculoId: vId });
+                             }
+                         });
+                     }
+                 },
+                 error: (err) => console.error('Erro ao pré-carregar veículo para OS:', err)
+             });
+        } else if (queryClienteId) {
+             const cId = Number(queryClienteId);
+             this.clienteService.getById(cId).subscribe({
+                 next: (c) => {
+                     const clienteObj = {
+                         ...c,
+                         displayName: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || `Cliente #${c.id}`
+                     };
+                     this.osForm.patchValue({ cliente: clienteObj });
+                     this.carregarVeiculos(cId);
+                 },
+                 error: (err) => console.error('Erro ao pré-carregar cliente para OS:', err)
+             });
         }
     }
   }
@@ -340,18 +376,24 @@ export class CadastroOS implements OnInit {
     req$.pipe(finalize(() => this.loading = false))
         .subscribe({
             next: (res) => {
-              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.osId ? 'OS atualizada!' : 'OS criada! Adicione itens.' });
+              const msg = this.isOrcamento 
+                ? (this.osId ? 'Orçamento atualizado!' : 'Orçamento criado! Adicione itens.') 
+                : (this.osId ? 'OS atualizada!' : 'OS criada! Adicione itens.');
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: msg });
                 this.osId = res.id;
                 this.osData = res;
-                // Ao criar, navegar para Visualizar OS com o ID
                 if (!this.osData) this.activeIndex = 1;
                 if (this.osId) {
-                  this.router.navigate(['/os/visualizar-os', this.osId]);
+                  if (this.isOrcamento) {
+                    this.router.navigate(['/orcamento/visualizar-orcamento', this.osId]);
+                  } else {
+                    this.router.navigate(['/os/visualizar-os', this.osId]);
+                  }
                 }
             },
             error: (err) => {
                 console.error(err);
-                this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar OS.' });
+                this.messageService.add({ severity: 'error', summary: 'Erro', detail: this.isOrcamento ? 'Erro ao salvar orçamento.' : 'Erro ao salvar OS.' });
             }
         });
   }
@@ -603,9 +645,10 @@ export class CadastroOS implements OnInit {
 
   excluirOS() {
     if (!this.osId) return;
+    const msgLabel = this.isOrcamento ? 'o Orçamento' : 'a OS';
     this.confirmationService.confirm({
-      message: `Tem certeza que deseja excluir a OS #${this.osData?.numeroOS || this.osId}? Esta ação não pode ser desfeita.`,
-      header: 'Excluir Ordem de Serviço',
+      message: `Tem certeza que deseja excluir ${msgLabel} #${this.osData?.numeroOS || this.osId}? Esta ação não pode ser desfeita.`,
+      header: this.isOrcamento ? 'Excluir Orçamento' : 'Excluir Ordem de Serviço',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sim, excluir',
       rejectLabel: 'Cancelar',
@@ -614,16 +657,16 @@ export class CadastroOS implements OnInit {
         this.loading = true;
         this.osService.delete(this.osId!).pipe(finalize(() => this.loading = false)).subscribe({
           next: () => {
-            this.toast.success('OS excluída com sucesso!');
-            this.router.navigate(['/os']);
+            this.toast.success(this.isOrcamento ? 'Orçamento excluído com sucesso!' : 'OS excluída com sucesso!');
+            this.router.navigate([this.isOrcamento ? '/orcamento' : '/os']);
           },
-          error: () => this.toast.error('Erro ao excluir OS.')
+          error: () => this.toast.error(this.isOrcamento ? 'Erro ao excluir orçamento.' : 'Erro ao excluir OS.')
         });
       }
     });
   }
 
   voltar() {
-     this.router.navigate(['/os']);
+     this.router.navigate([this.isOrcamento ? '/orcamento' : '/os']);
   }
 }

@@ -111,6 +111,7 @@ export interface OrdemServicoRequest {
   solucaoAplicada?: string;
   observacoesInternas?: string;
   observacoesCliente?: string;
+  comentarios?: string;
   valorServicos?: number; // BigDecimal
   valorProdutos?: number; // BigDecimal
   valorDesconto?: number; // BigDecimal
@@ -149,6 +150,7 @@ export interface OrdemServicoResponse {
   solucaoAplicada?: string;
   observacoesInternas?: string;
   observacoesCliente?: string;
+  comentarios?: string;
   valorServicos?: number;
   valorProdutos?: number;
   valorDesconto?: number;

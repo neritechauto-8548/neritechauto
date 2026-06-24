@@ -25,8 +25,12 @@ public class PagamentoService {
     private final FormaPagamentoRepository formaPagamentoRepository;
     private final CondicaoPagamentoRepository condicaoPagamentoRepository;
     private final ContaBancariaRepository contaBancariaRepository;
+    private final FaturaRepository faturaRepository;
+    private final ContasReceberRepository contasReceberRepository;
+    private final com.neritech.saas.ordemservico.repository.OrdemServicoRepository ordemServicoRepository;
     private final PagamentoMapper mapper;
     private final ParcelaPagamentoMapper parcelaMapper;
+    private final ContasReceberService contasReceberService;
 
     @Transactional(readOnly = true)
     public Page<PagamentoResponse> findAll(Long empresaId, Pageable pageable) {
@@ -47,6 +51,12 @@ public class PagamentoService {
         return toResponseWithParcelas(pagamento);
     }
 
+    @Transactional(readOnly = true)
+    public Page<PagamentoResponse> findByOsId(Long empresaId, Long osId, Pageable pageable) {
+        return repository.findByEmpresaIdAndOsId(empresaId, osId, pageable)
+                .map(this::toResponseWithParcelas);
+    }
+
     @Transactional
     public PagamentoResponse create(Long empresaId, PagamentoRequest request) {
         Pagamento entity = mapper.toEntity(request);
@@ -59,6 +69,16 @@ public class PagamentoService {
         }
 
         // Set relationships
+        if (request.faturaId() != null) {
+            Fatura fatura = faturaRepository.findByIdAndEmpresaId(request.faturaId(), empresaId)
+                    .orElseThrow(() -> new EntityNotFoundException("Fatura não encontrada"));
+            entity.setFatura(fatura);
+            if (entity.getStatus() == com.neritech.saas.financeiro.domain.enums.StatusPagamento.CONFIRMADO) {
+                fatura.setStatus(com.neritech.saas.financeiro.domain.enums.StatusFatura.PAGA);
+                faturaRepository.save(fatura);
+            }
+        }
+
         if (request.formaPagamentoId() != null) {
             FormaPagamento forma = formaPagamentoRepository.findByIdAndEmpresaId(request.formaPagamentoId(), empresaId)
                     .orElseThrow(() -> new EntityNotFoundException("Forma de pagamento nÃ£o encontrada"));
@@ -76,6 +96,90 @@ public class PagamentoService {
             ContaBancaria conta = contaBancariaRepository.findByIdAndEmpresaId(request.contaBancariaId(), empresaId)
                     .orElseThrow(() -> new EntityNotFoundException("Conta bancÃ¡ria nÃ£o encontrada"));
             entity.setContaBancaria(conta);
+        }
+
+        if (request.osId() != null) {
+            com.neritech.saas.ordemservico.domain.OrdemServico os = ordemServicoRepository.findById(request.osId())
+                    .orElseThrow(() -> new EntityNotFoundException("Ordem de Serviço não encontrada"));
+
+            if (os.getStatus() == null || (
+                !Boolean.TRUE.equals(os.getStatus().getFinalizaOS()) &&
+                !os.getStatus().getNome().equalsIgnoreCase("FINALIZADA") &&
+                !os.getStatus().getNome().equalsIgnoreCase("ENTREGUE") &&
+                !os.getStatus().getNome().equalsIgnoreCase("CONCLUIDA") &&
+                !os.getStatus().getCodigo().equalsIgnoreCase("FINALIZADA") &&
+                !os.getStatus().getCodigo().equalsIgnoreCase("ENTREGUE") &&
+                !os.getStatus().getCodigo().equalsIgnoreCase("CONCLUIDA")
+            )) {
+                throw new IllegalArgumentException("Financeiro só pode ser gerado para OS com status FINALIZADA ou ENTREGUE.");
+            }
+
+            java.math.BigDecimal valorNominal = request.valorOriginal() != null ? request.valorOriginal() : 
+                                                (request.valorTotal() != null ? request.valorTotal() : 
+                                                (os.getValorTotal() != null ? os.getValorTotal() : java.math.BigDecimal.ZERO));
+
+            java.util.Optional<com.neritech.saas.financeiro.domain.ContasReceber> optCr = contasReceberRepository.findByEmpresaIdAndNumeroTitulo(empresaId, os.getNumeroOS());
+            com.neritech.saas.financeiro.domain.ContasReceber cr;
+            if (optCr.isPresent()) {
+                cr = optCr.get();
+                cr.setValorNominal(valorNominal);
+            } else {
+                cr = new com.neritech.saas.financeiro.domain.ContasReceber();
+                cr.setEmpresaId(empresaId);
+                cr.setNumeroTitulo(os.getNumeroOS());
+                cr.setDescricao("Recebimento OS " + os.getNumeroOS());
+                cr.setClienteId(request.clienteId());
+                cr.setDataEmissao(java.time.LocalDate.now());
+                cr.setDataVencimento(java.time.LocalDate.now());
+                cr.setValorNominal(valorNominal);
+                cr.setValorPago(java.math.BigDecimal.ZERO);
+                cr.setCriadoPor(1L);
+                cr.setTipoTitulo(com.neritech.saas.financeiro.domain.enums.TipoTitulo.OS);
+            }
+
+            cr.setValorDesconto(request.valorDesconto() != null ? request.valorDesconto() : java.math.BigDecimal.ZERO);
+            cr.setValorJuros(request.valorJuros() != null ? request.valorJuros() : java.math.BigDecimal.ZERO);
+            cr.setValorMulta(request.valorMulta() != null ? request.valorMulta() : java.math.BigDecimal.ZERO);
+
+            if (entity.getStatus() == com.neritech.saas.financeiro.domain.enums.StatusPagamento.CONFIRMADO || "CONFIRMADO".equalsIgnoreCase(String.valueOf(entity.getStatus()))) {
+                cr.setStatus(com.neritech.saas.financeiro.domain.enums.StatusTitulo.PAGO);
+                cr.setValorPago(request.valorTotal() != null ? request.valorTotal() : cr.getValorNominal());
+                cr.setValorPendente(java.math.BigDecimal.ZERO);
+
+                // Criar RecebimentoTitulo correspondente para manter integridade e o lançamento do caixa
+                if (cr.getRecebimentos() == null) {
+                    cr.setRecebimentos(new java.util.ArrayList<>());
+                }
+                cr.getRecebimentos().clear();
+                com.neritech.saas.financeiro.domain.RecebimentoTitulo rec = new com.neritech.saas.financeiro.domain.RecebimentoTitulo();
+                rec.setContaReceber(cr);
+                rec.setDataRecebimento(request.dataPagamento() != null ? request.dataPagamento() : java.time.LocalDate.now());
+                rec.setValorRecebido(cr.getValorPago());
+                rec.setValorJuros(cr.getValorJuros());
+                rec.setValorMulta(cr.getValorMulta());
+                rec.setValorDesconto(cr.getValorDesconto());
+                rec.setEmpresaId(empresaId);
+                rec.setFormaPagamento(cr.getFormaPagamento());
+                rec.setContaBancaria(cr.getContaBancaria());
+                cr.getRecebimentos().add(rec);
+            } else {
+                cr.setStatus(com.neritech.saas.financeiro.domain.enums.StatusTitulo.ABERTO);
+                cr.setValorPago(java.math.BigDecimal.ZERO);
+                cr.setValorPendente(cr.getValorNominal());
+                if (cr.getRecebimentos() != null) {
+                    cr.getRecebimentos().clear();
+                }
+            }
+            
+            if (entity.getFormaPagamento() != null) {
+                cr.setFormaPagamento(entity.getFormaPagamento());
+            }
+            if (entity.getContaBancaria() != null) {
+                cr.setContaBancaria(entity.getContaBancaria());
+            }
+
+            com.neritech.saas.financeiro.domain.ContasReceber savedCr = contasReceberRepository.save(cr);
+            contasReceberService.syncFluxoCaixa(savedCr);
         }
 
         Pagamento savedPagamento = repository.save(entity);
@@ -102,6 +206,18 @@ public class PagamentoService {
         mapper.updateEntityFromDTO(request, entity);
 
         // Update relationships
+        if (request.faturaId() != null) {
+            Fatura fatura = faturaRepository.findByIdAndEmpresaId(request.faturaId(), empresaId)
+                    .orElseThrow(() -> new EntityNotFoundException("Fatura não encontrada"));
+            entity.setFatura(fatura);
+            if (entity.getStatus() == com.neritech.saas.financeiro.domain.enums.StatusPagamento.CONFIRMADO) {
+                fatura.setStatus(com.neritech.saas.financeiro.domain.enums.StatusFatura.PAGA);
+                faturaRepository.save(fatura);
+            }
+        } else {
+            entity.setFatura(null);
+        }
+
         if (request.formaPagamentoId() != null) {
             FormaPagamento forma = formaPagamentoRepository.findByIdAndEmpresaId(request.formaPagamentoId(), empresaId)
                     .orElseThrow(() -> new EntityNotFoundException("Forma de pagamento nÃ£o encontrada"));
@@ -180,6 +296,7 @@ public class PagamentoService {
                 pagamento.getId(),
                 pagamento.getEmpresaId(),
                 pagamento.getFatura() != null ? pagamento.getFatura().getId() : null,
+                pagamento.getOsId(),
                 pagamento.getFatura() != null ? pagamento.getFatura().getNumeroFatura() : null,
                 null,
                 pagamento.getClienteId(),

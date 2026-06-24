@@ -33,7 +33,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Add Roles
         usuario.getFuncoes().forEach(funcao -> {
             if (funcao.getAtivo()) {
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + funcao.getNome()));
+                String nomeFuncao = funcao.getNome();
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + nomeFuncao));
+                
+                // Se for um perfil de administrador, também concede ROLE_ADMIN
+                if (nomeFuncao != null && (
+                    "ADMIN".equalsIgnoreCase(nomeFuncao) || 
+                    nomeFuncao.toUpperCase().contains("ADMIN") || 
+                    nomeFuncao.toUpperCase().contains("ADMINISTRADOR")
+                )) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                }
                 
                 // Add Permissions
                 funcao.getPermissoes().forEach(permissao -> {

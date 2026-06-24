@@ -55,6 +55,16 @@ export class OrdemServicoService {
     return this.http.post<OrdemServicoResponse>(this.base, body);
   }
 
+  createVendaBalcao(dto: { ordemServico: any, produtos: any[] }): Observable<OrdemServicoResponse> {
+    const tenantId = this.getTenantId();
+    const body = {
+      ordemServico: { ...dto.ordemServico, empresaId: tenantId },
+      produtos: dto.produtos
+    };
+    return this.http.post<OrdemServicoResponse>(`${this.base}/venda-balcao`, body);
+  }
+
+
   update(id: number | string, dto: Omit<OrdemServicoRequest, 'empresaId'>): Observable<OrdemServicoResponse> {
     const tenantId = this.getTenantId();
     const body: OrdemServicoRequest = { ...dto, empresaId: tenantId };
@@ -67,6 +77,18 @@ export class OrdemServicoService {
 
   imprimir(id: number): Observable<Blob> {
     return this.http.get(`${environment.baseUrl}/v1/relatorios/os/${id}`, {
+      responseType: 'blob'
+    });
+  }
+
+  imprimirOrcamento(id: number): Observable<Blob> {
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/orcamento/${id}`, {
+      responseType: 'blob'
+    });
+  }
+
+  imprimirComprovante(pagamentoId: number): Observable<Blob> {
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/comprovante-pagamento/${pagamentoId}`, {
       responseType: 'blob'
     });
   }
@@ -198,6 +220,12 @@ export class OrdemServicoService {
     return this.http.get<Page<any>>(`${this.pagamentosUrl}/fatura/${faturaId}`, { params });
   }
 
+  listPagamentosPorOS(osId: number): Observable<Page<any>> {
+    const empresaId = this.getTenantId();
+    const params = new HttpParams().set('empresaId', String(empresaId));
+    return this.http.get<Page<any>>(`${this.pagamentosUrl}/ordem-servico/${osId}`, { params });
+  }
+
   listOsFotos(osId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.osFotosUrl}/${osId}/fotos`);
   }
@@ -216,5 +244,11 @@ export class OrdemServicoService {
   emitirNFePdf(osId: number): Observable<Blob> {
     const headers = new HttpHeaders({ Accept: 'application/pdf' });
     return this.http.get(`${this.osFotosUrl}/${osId}/nfe/pdf`, { responseType: 'blob', headers });
+  }
+
+  enviarPorEmail(osId: number, emailDestino?: string): Observable<void> {
+    let params = new HttpParams();
+    if (emailDestino) params = params.set('emailDestino', emailDestino);
+    return this.http.post<void>(`${this.base}/${osId}/enviar-email`, null, { params });
   }
 }

@@ -242,30 +242,29 @@ export class VendaBalcaoPDV implements OnInit {
         metodoAprovacao: 'PRESENCIAL'
     };
 
-    // Submete a Ordem de Serviço, e após sucesso, submete os itens do carrinho atrelados ao novo ID
-    this.osService.create(dtoReq as any).pipe(
-        switchMap((osResult: any) => {
-            const requests = this.itens.map(it => {
-                const valorTotalBase = it.qtd * it.valorUnitario;
-                const descontoReais = valorTotalBase - it.total;
+    const produtosPayload = this.itens.map(it => {
+        const valorTotalBase = it.qtd * it.valorUnitario;
+        const descontoReais = valorTotalBase - it.total;
 
-                return this.osService.addProduto({
-                    ordemServicoId: osResult.id,
-                    produtoId: it.produtoId,
-                    quantidade: it.qtd,
-                    valorUnitario: it.valorUnitario,
-                    valorTotal: valorTotalBase,
-                    descontoPercentual: it.descontoPercent,
-                    descontoValor: descontoReais,
-                    valorFinal: it.total,
-                    descricao: it.descricao,
-                    observacoes: it.descricao
-                });
-            });
+        return {
+            produtoId: it.produtoId,
+            quantidade: it.qtd,
+            valorUnitario: it.valorUnitario,
+            valorTotal: valorTotalBase,
+            descontoPercentual: it.descontoPercent,
+            descontoValor: descontoReais,
+            valorFinal: it.total,
+            descricao: it.descricao,
+            observacoes: it.descricao
+        };
+    });
 
-            return requests.length ? forkJoin(requests).pipe(map(() => osResult)) : of(osResult);
-        })
-    ).subscribe({
+    const unifiedPayload = {
+        ordemServico: dtoReq,
+        produtos: produtosPayload
+    };
+
+    this.osService.createVendaBalcao(unifiedPayload).subscribe({
         next: (res) => {
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Venda #${res.id} computada!` });
             setTimeout(() => {

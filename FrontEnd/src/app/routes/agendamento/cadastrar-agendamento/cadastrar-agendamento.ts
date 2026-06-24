@@ -8,10 +8,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { SkeletonModule } from 'primeng/skeleton';
+import { SelectModule } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
 
 // Material Icons
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { NgxPermissionsModule } from 'ngx-permissions';
 
 // Serviços
 import { AgendamentoService, AgendamentoRequest, AgendamentoResponse } from '../agendamento.service';
@@ -31,7 +35,11 @@ import { VeiculoResponse } from '../../veiculo/models/veiculo.models';
     ButtonModule,
     ToastModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    NgxPermissionsModule,
+    SkeletonModule,
+    SelectModule,
+    TextareaModule
   ],
   providers: [MessageService],
   templateUrl: './cadastrar-agendamento.html',
@@ -95,10 +103,18 @@ export class CadastrarAgendamento implements OnInit {
 
   // UI Helpers
   dataSelecionada: string = '';
+  hojeLimit: string = '';
+  originalDataSelecionada: string = '';
   horaInicioSelecionada: string = '';
   horaFimSelecionada: string = '';
 
   ngOnInit(): void {
+    const hoje = new Date();
+    const y = hoje.getFullYear();
+    const m = String(hoje.getMonth() + 1).padStart(2, '0');
+    const d = String(hoje.getDate()).padStart(2, '0');
+    this.hojeLimit = `${y}-${m}-${d}`;
+
     // Pegar ID da URL se for edição
     this.route.paramMap.subscribe(params => {
       const idStr = params.get('id');
@@ -171,6 +187,7 @@ export class CadastrarAgendamento implements OnInit {
         // Setar vars de string p/ binding via nativo HTML5 datetime
         if (res.dataAgendamento) {
            this.dataSelecionada = res.dataAgendamento; // Format '2026-03-01'
+           this.originalDataSelecionada = res.dataAgendamento;
         }
         if (res.horaInicio) {
            this.horaInicioSelecionada = res.horaInicio.substring(0, 5); // Format 'HH:mm'
@@ -203,6 +220,26 @@ export class CadastrarAgendamento implements OnInit {
     if (!this.agendamento.clienteId) return this.showError('Obrigatório', 'Selecione um Cliente.');
     if (!this.dataSelecionada) return this.showError('Obrigatório', 'Informe a Data do Agendamento.');
     if (!this.horaInicioSelecionada) return this.showError('Obrigatório', 'Informe a Hora Inicial.');
+    if (!this.horaFimSelecionada) return this.showError('Obrigatório', 'Informe a Hora de Término.');
+
+    if (this.horaInicioSelecionada && this.horaFimSelecionada) {
+      if (this.horaFimSelecionada <= this.horaInicioSelecionada) {
+        return this.showError('Horário Inválido', 'A hora de término deve ser após a hora de início.');
+      }
+    }
+
+    // Validar se a data é retroativa
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const parts = this.dataSelecionada.split('-');
+    const dataAgendada = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    dataAgendada.setHours(0, 0, 0, 0);
+
+    const dataFoiAlterada = !this.idAgendamento || (this.dataSelecionada !== this.originalDataSelecionada);
+    if (dataFoiAlterada && dataAgendada < hoje) {
+      return this.showError('Data Inválida', 'Não é permitido realizar agendamentos para datas retroativas.');
+    }
 
     this.submitLoad = true;
 
@@ -214,7 +251,7 @@ export class CadastrarAgendamento implements OnInit {
       tipoAgendamentoId: this.agendamento.tipoAgendamentoId ? Number(this.agendamento.tipoAgendamentoId) : undefined,
       dataAgendamento: this.dataSelecionada,
       horaInicio: `${this.horaInicioSelecionada}:00`,
-      horaFim: this.horaFimSelecionada ? `${this.horaFimSelecionada}:00` : undefined,
+      horaFim: `${this.horaFimSelecionada}:00`,
       duracaoEstimadaMinutos: this.agendamento.duracaoEstimadaMinutos,
       servicosSolicitados: this.agendamento.servicosSolicitados,
       problemaRelatado: this.agendamento.problemaRelatado,

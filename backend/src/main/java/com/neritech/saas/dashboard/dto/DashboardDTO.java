@@ -18,5 +18,15 @@ public record DashboardDTO(
         Long veiculosEmAtraso,
         java.util.List<java.math.BigDecimal> historicoFaturamento,
         java.util.List<java.math.BigDecimal> historicoServicos,
-        java.util.List<String> historicoMeses) {
+        java.util.List<String> historicoMeses,
+        Long abertosMes,
+        Long abertosTotal,
+        Long autorizadosMes,
+        Long autorizadosTotal,
+        Long canceladosMes,
+        Long canceladosTotal,
+        Long fechadosMes,
+        Long fechadosTotal,
+        Long entradasVeiculosMes,
+        Long saidasVeiculosMes) {
 }

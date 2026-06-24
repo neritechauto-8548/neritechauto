@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -58,6 +58,7 @@ export class ContasReceberComponent implements OnInit {
   rows: ContasReceberResponse[] = [];
   selectedRows: ContasReceberResponse[] = [];
   termo = '';
+  private readonly searchSubject = new Subject<string>();
 
   printMenuOptions = [
     { label: 'Relatório PDF', icon: 'pi pi-file-pdf', command: () => this.imprimir('pdf') },
@@ -131,12 +132,32 @@ export class ContasReceberComponent implements OnInit {
       this.filtroValor = 'TODOS';
   }
 
+  isFirstLazyLoad = true;
+
   ngOnInit() {
     const hoje = new Date();
     this.vencInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     this.vencFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.page = 0;
+      this.carregar();
+    });
+
     this.carregar();
     this.carregarAuxiliares();
+  }
+
+  onTermoChange() {
+    this.searchSubject.next(this.termo);
+  }
+
+  onFiltroChange() {
+    this.page = 0;
+    this.carregar();
   }
   
   valorTotalQuitarLote = 0;
@@ -222,7 +243,55 @@ export class ContasReceberComponent implements OnInit {
   carregar() {
     this.loading = true;
     this.service.getDashboardReceber().subscribe(d => this.dashboard = d);
-    this.service.listReceber({ page: this.page, size: this.pageSize, sort: 'dataVencimento,asc' }).subscribe({
+
+    const query: any = {
+      page: this.page,
+      size: this.pageSize,
+      sort: 'dataVencimento,asc'
+    };
+
+    if (this.termo?.trim()) {
+      query.termo = this.termo.trim();
+    }
+
+    const formatDateISO = (d: Date | null) => {
+      if (!d) return undefined;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    if (this.vencInicio) {
+      query.dataInicio = formatDateISO(this.vencInicio);
+    }
+    if (this.vencFim) {
+      query.dataFim = formatDateISO(this.vencFim);
+    }
+
+    if (this.filtroTipo && this.filtroTipo !== 'Todas') {
+      query.status = this.filtroTipo;
+    }
+
+    if (this.buscarPor && this.filtroValor && this.filtroValor !== 'TODOS') {
+      const filterId = Number(this.filtroValor);
+      switch (this.buscarPor) {
+        case 'conta':
+          query.contaBancariaId = filterId;
+          break;
+        case 'centroCusto':
+          query.centroCustoId = filterId;
+          break;
+        case 'planoContas':
+          query.planoContasId = filterId;
+          break;
+        case 'formaPagamento':
+          query.formaPagamentoId = filterId;
+          break;
+      }
+    }
+
+    this.service.listReceber(query).subscribe({
       next: (res) => {
         this.rows = res.content || [];
         this.totalElements = res.totalElements || 0;
@@ -244,83 +313,7 @@ export class ContasReceberComponent implements OnInit {
   }
 
   get rowsFiltradas() {
-    let result = this.rows;
-    if (this.termo) {
-      const t = this.termo.toLowerCase();
-      result = result.filter(r =>
-        r.descricao?.toLowerCase().includes(t) ||
-        r.faturaNumero?.toLowerCase().includes(t)
-      );
-    }
-    
-    // 1. Filtro de Tipo
-    if (this.filtroTipo !== 'Todas') {
-        switch (this.filtroTipo) {
-            case 'Todas Quitado':
-            case 'Receita Quitado':
-                result = result.filter(r => r.status === StatusTitulo.PAGO);
-                break;
-            case 'Todas Aberto':
-            case 'Receita Aberto':
-                result = result.filter(r => r.status !== StatusTitulo.PAGO && r.status !== StatusTitulo.CANCELADO);
-                break;
-            case 'Todas Receita':
-                break;
-            case 'Todas Despesa':
-            case 'Despesa Quitado':
-            case 'Despesa Aberto':
-                result = [];
-                break;
-            case 'Transferencias':
-                result = result.filter(r => 
-                    r.descricao?.toLowerCase().includes('transferência') ||
-                    (r.observacoes && r.observacoes.toLowerCase().includes('transferência'))
-                );
-                break;
-        }
-    }
-
-    // 2. Filtros Avançados
-    // Filtro por data
-    if (this.vencInicio) {
-        const start = new Date(this.vencInicio);
-        start.setHours(0, 0, 0, 0);
-        result = result.filter(r => {
-            if (!r.dataVencimento) return false;
-            const d = new Date(r.dataVencimento + 'T00:00');
-            return d >= start;
-        });
-    }
-    if (this.vencFim) {
-        const end = new Date(this.vencFim);
-        end.setHours(23, 59, 59, 999);
-        result = result.filter(r => {
-            if (!r.dataVencimento) return false;
-            const d = new Date(r.dataVencimento + 'T00:00');
-            return d <= end;
-        });
-    }
-
-    // Filtro por Caixa, Centro de Custo, Plano de Contas, Forma de Pagamento
-    if (this.buscarPor && this.filtroValor && this.filtroValor !== 'TODOS') {
-        const filterId = Number(this.filtroValor);
-        switch (this.buscarPor) {
-            case 'conta':
-                result = result.filter(r => r.contaBancariaId === filterId);
-                break;
-            case 'centroCusto':
-                result = result.filter(r => r.centroCustoId === filterId);
-                break;
-            case 'planoContas':
-                result = result.filter(r => r.planoContasId === filterId);
-                break;
-            case 'formaPagamento':
-                result = result.filter(r => r.formaPagamentoId === filterId);
-                break;
-        }
-    }
-
-    return result;
+    return this.rows;
   }
 
   imprimir(tipo: string) {
@@ -708,6 +701,10 @@ export class ContasReceberComponent implements OnInit {
   onPage(event: any) {
     this.page = event.first / event.rows;
     this.pageSize = event.rows;
+    if (this.isFirstLazyLoad) {
+      this.isFirstLazyLoad = false;
+      return;
+    }
     this.carregar();
   }
 }

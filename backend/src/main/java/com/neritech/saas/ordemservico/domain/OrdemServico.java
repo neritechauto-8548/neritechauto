@@ -93,6 +93,10 @@ public class OrdemServico extends BaseEntity {
     @Column(name = "observacoes_cliente", columnDefinition = "TEXT")
     private String observacoesCliente;
 
+    @Column(name = "comentarios", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String comentarios;
+
     @Column(name = "valor_servicos", precision = 10, scale = 2)
     private BigDecimal valorServicos = BigDecimal.ZERO;
 
@@ -355,6 +359,14 @@ public class OrdemServico extends BaseEntity {
 
     public void setObservacoesCliente(String observacoesCliente) {
         this.observacoesCliente = observacoesCliente;
+    }
+
+    public String getComentarios() {
+        return comentarios;
+    }
+
+    public void setComentarios(String comentarios) {
+        this.comentarios = comentarios;
     }
 
     public BigDecimal getValorServicos() {

@@ -89,12 +89,31 @@ export class FinanceiroService {
 
   // --- Contas a Receber ---
 
-  listReceber(query: { empresaId?: number } & Pageable): Observable<Page<ContasReceberResponse>> {
+  listReceber(query: {
+    empresaId?: number;
+    termo?: string;
+    dataInicio?: string;
+    dataFim?: string;
+    status?: string;
+    contaBancariaId?: number;
+    centroCustoId?: number;
+    planoContasId?: number;
+    formaPagamentoId?: number;
+  } & Pageable): Observable<Page<ContasReceberResponse>> {
     let params = new HttpParams()
       .set('page', String(query.page ?? 0))
       .set('size', String(query.size ?? 10));
     const empresaId = query.empresaId ?? this.getTenantId();
     if (empresaId != null) params = params.set('empresaId', String(empresaId));
+
+    if (query.termo) params = params.set('termo', query.termo);
+    if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
+    if (query.dataFim) params = params.set('dataFim', query.dataFim);
+    if (query.status) params = params.set('status', query.status);
+    if (query.contaBancariaId) params = params.set('contaBancariaId', String(query.contaBancariaId));
+    if (query.centroCustoId) params = params.set('centroCustoId', String(query.centroCustoId));
+    if (query.planoContasId) params = params.set('planoContasId', String(query.planoContasId));
+    if (query.formaPagamentoId) params = params.set('formaPagamentoId', String(query.formaPagamentoId));
 
     if (query.sort) {
       const sortValue = Array.isArray(query.sort) ? query.sort.join(',') : query.sort;
@@ -182,7 +201,7 @@ export class FinanceiroService {
   }
 
   // --- Fluxo de Caixa ---
-  listFluxoCaixa(query: { empresaId?: number; contaBancariaId?: number; centroCustoId?: number; dataInicio?: string; dataFim?: string } & Pageable): Observable<Page<any>> {
+  listFluxoCaixa(query: { empresaId?: number; contaBancariaId?: number; centroCustoId?: number; dataInicio?: string; dataFim?: string; includeClosed?: boolean } & Pageable): Observable<Page<any>> {
     let params = new HttpParams()
       .set('page', String(query.page ?? 0))
       .set('size', String(query.size ?? 10));
@@ -192,6 +211,7 @@ export class FinanceiroService {
     if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
+    if (query.includeClosed) params = params.set('includeClosed', String(query.includeClosed));
 
     if (query.sort) {
       const sortValue = Array.isArray(query.sort) ? query.sort.join(',') : query.sort;

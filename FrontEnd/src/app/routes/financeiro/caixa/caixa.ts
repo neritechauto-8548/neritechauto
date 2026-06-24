@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { FinanceiroService } from '../financeiro.service';
 import { DepartamentoService } from '../../configuracoes/departamentos/departamento.service';
+import { AuthService } from '../../../core/authentication/auth.service';
+import { EmpresaService } from '../../configuracoes/empresa/services/empresa.service';
+import { LocalStorageService } from '@shared/services/storage.service';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -13,8 +16,8 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TextareaModule } from 'primeng/textarea';
-import { MatIconModule } from '@angular/material/icon';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { RelatoriosService } from '../../relatorios/relatorios.service';
 
 interface LinhaCaixa {
   id: number;
@@ -27,6 +30,9 @@ interface LinhaCaixa {
   entrada: number;
   saida: number;
   saldo: number;
+  dataVencimentoFmt?: string;
+  dataPagamentoFmt?: string;
+  formaPagamento: string;
 }
 
 @Component({
@@ -36,7 +42,7 @@ interface LinhaCaixa {
   imports: [
     CommonModule, FormsModule, ButtonModule, SelectModule,
     InputTextModule, InputNumberModule, DialogModule, DatePickerModule,
-    ToastModule, ConfirmDialogModule, TextareaModule, MatIconModule
+    ToastModule, ConfirmDialogModule, TextareaModule
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -46,17 +52,33 @@ export class CaixaComponent implements OnInit {
   private readonly departamentoService = inject(DepartamentoService);
   private readonly messageService = inject(MessageService);
   private readonly confirmService = inject(ConfirmationService);
+  private readonly authService = inject(AuthService);
+  private readonly empresaService = inject(EmpresaService);
+  private readonly storage = inject(LocalStorageService);
+  private readonly relatoriosService = inject(RelatoriosService);
 
   // ─── Estado ───────────────────────────────────────────────
   loading = false;
+  pdfLoading = false;
   linhas: LinhaCaixa[] = [];
   filtroTexto = '';
+  entradasPorForma: { forma: string; total: number }[] = [];
+  saidasPorForma: { forma: string; total: number }[] = [];
+  caixaFechado = false;
+  ultimoFechamentoData = '';
+
+  // Informações da Empresa & Usuário para Relatório Impresso
+  empresaInfo: any = null;
+  empresaEndereco = '';
+  usuarioAtual = '';
+  dataGeracao = new Date();
 
   // Filtros
-  dataInicial = new Date().toISOString().substring(0, 10);
-  dataFinal   = new Date().toISOString().substring(0, 10);
+  dataInicial = '';
+  dataFinal   = '';
   contaSelecionada: number | 'TODAS' = 'TODAS';
   centroCustoSelecionado: number | 'TODOS' = 'TODOS';
+  contasBancariasCompletas: any[] = [];
 
   // Auxiliares
   contaOptions: { label: string; value: number | 'TODAS' }[] = [
@@ -140,6 +162,22 @@ export class CaixaComponent implements OnInit {
     this.transferenciaDialog = true;
   }
 
+  getSaldoAtual(contaId: number | null | 'TODAS'): number {
+    if (!contaId || contaId === 'TODAS') return 0;
+    const conta = this.contasBancariasCompletas.find(c => Number(c.id) === Number(contaId));
+    return conta ? Number(conta.saldoAtual || 0) : 0;
+  }
+
+  getSaldoFinalOrigem(): number {
+    const atual = this.getSaldoAtual(this.transfOrigem);
+    return atual - (this.transfValor || 0);
+  }
+
+  getSaldoFinalDestino(): number {
+    const atual = this.getSaldoAtual(this.transfDestino);
+    return atual + (this.transfValor || 0);
+  }
+
   fazerTransferencia() {
     if (!this.transfOrigem || !this.transfDestino || this.transfValor <= 0) {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Informe conta origem, destino e valor > 0.' });
@@ -188,36 +226,39 @@ export class CaixaComponent implements OnInit {
   // ─── Fechamento de Caixa ──────────────────────────────────
   perguntaFechDialog = false;
   fechamentoDialog = false;
+  sucessoFechDialog = false;
   salvandoFech = false;
   fechData = new Date().toISOString().substring(0, 10);
   fechHora = new Date().toTimeString().substring(0, 5);
 
-  fecharCaixa() { this.perguntaFechDialog = true; }
-
-  confirmarFechamento() {
-    this.perguntaFechDialog = false;
+  fecharCaixa() {
     this.fechData = new Date().toISOString().substring(0, 10);
     this.fechHora = new Date().toTimeString().substring(0, 5);
-    this.fechamentoDialog = true;
+    this.fechamentoDialog = true; // Passo 1
   }
 
-  salvarFechamento() {
+  salvarDataHoraFechamento() {
+    this.fechamentoDialog = false;
+    this.perguntaFechDialog = true; // Passo 2
+  }
+
+  salvarFechamentoFinal() {
     this.salvandoFech = true;
     const req = {
-      dataAbertura:   `${this.dataInicial}T00:00:00`,
+      dataAbertura:   `${this.dataInicial || new Date().toISOString().split('T')[0]}T00:00:00`,
       dataFechamento: `${this.fechData}T${this.fechHora}:00`,
       saldoInicial:   this.saldoInicial,
       saldoFinal:     this.saldoFinal,
       totalEntradas:  this.totalEntrada,
       totalSaidas:    this.totalSaida,
-      observacoes:    `Fechamento — Período: ${this.dataInicial} a ${this.dataFinal}`,
+      observacoes:    `Fechamento — Período: ${this.dataInicial || 'Inicial'} a ${this.dataFinal || 'Final'}`,
       situacao:       'FECHADO',
     };
     this.finService.createFechamentoCaixa(req).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Caixa fechado!', detail: 'O fechamento foi registrado com sucesso.' });
-        this.fechamentoDialog = false;
+        this.perguntaFechDialog = false;
         this.salvandoFech = false;
+        this.sucessoFechDialog = true; // Passo 3
         this.buscar();
       },
       error: (e) => {
@@ -227,14 +268,34 @@ export class CaixaComponent implements OnInit {
     });
   }
 
+  verificarCaixaFechado() {
+    this.finService.listFechamentoCaixa({ page: 0, size: 1, sort: 'dataFechamento,desc' }).subscribe({
+      next: (page: any) => {
+        const content = page?.content || [];
+        if (content.length > 0) {
+          const ultimo = content[0];
+          this.ultimoFechamentoData = ultimo.dataHoraOperacao || ultimo.dataFechamento ? (ultimo.dataHoraOperacao || ultimo.dataFechamento).split('T')[0] : '';
+          
+          const dataFinalRef = this.dataFinal || new Date().toISOString().split('T')[0];
+          this.caixaFechado = !!(this.ultimoFechamentoData && dataFinalRef <= this.ultimoFechamentoData);
+        } else {
+          this.caixaFechado = false;
+        }
+      },
+      error: () => {
+        this.caixaFechado = false;
+      }
+    });
+  }
+
   // ─── Busca ────────────────────────────────────────────────
   buscar() {
     this.loading = true;
     const params: any = {
       page: 0, size: 200,
-      dataInicio: this.dataInicial,
-      dataFim:    this.dataFinal,
     };
+    if (this.dataInicial) params.dataInicio = this.dataInicial;
+    if (this.dataFinal)   params.dataFim    = this.dataFinal;
     if (typeof this.contaSelecionada === 'number')      params.contaBancariaId = this.contaSelecionada;
     if (typeof this.centroCustoSelecionado === 'number') params.centroCustoId   = this.centroCustoSelecionado;
 
@@ -266,7 +327,7 @@ export class CaixaComponent implements OnInit {
           let saldoLinha = entrada - saida;
 
           const fmtDate = (d: string) => {
-            if (!d) return '-';
+            if (!d) return '';
             const [y, m, day] = d.split('-');
             return `${day}/${m}/${y}`;
           };
@@ -281,6 +342,9 @@ export class CaixaComponent implements OnInit {
             entrada,
             saida,
             saldo: saldoLinha,
+            dataVencimentoFmt: fmtDate(r.dataVencimento),
+            dataPagamentoFmt: fmtDate(r.dataPagamento),
+            formaPagamento: r.formaPagamentoNome || 'SEM ESPECIFICAR'
           } as LinhaCaixa;
         });
 
@@ -290,6 +354,20 @@ export class CaixaComponent implements OnInit {
         this.totalSaida = this.linhas.reduce((acc, curr) => acc + curr.saida, 0);
         this.saldoFinal = this.saldoInicial + this.totalEntrada - this.totalSaida;
 
+        // Grouping pay method totals for print report
+        const entGroup: Record<string, number> = {};
+        const saiGroup: Record<string, number> = {};
+        this.linhas.forEach(l => {
+          if (l.tipo === 'ENTRADA') {
+            entGroup[l.formaPagamento] = (entGroup[l.formaPagamento] || 0) + l.entrada;
+          } else if (l.tipo === 'SAIDA') {
+            saiGroup[l.formaPagamento] = (saiGroup[l.formaPagamento] || 0) + l.saida;
+          }
+        });
+        this.entradasPorForma = Object.keys(entGroup).map(k => ({ forma: k, total: entGroup[k] }));
+        this.saidasPorForma = Object.keys(saiGroup).map(k => ({ forma: k, total: saiGroup[k] }));
+
+        this.verificarCaixaFechado();
         this.loading = false;
       },
       error: () => {
@@ -314,11 +392,45 @@ export class CaixaComponent implements OnInit {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
+  formatNumber(v: number): string {
+    return (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  imprimir() {
+    this.pdfLoading = true;
+    const params: any = {};
+    if (this.dataInicial) params.dataInicio = this.dataInicial;
+    if (this.dataFinal)   params.dataFim    = this.dataFinal;
+    if (typeof this.contaSelecionada === 'number')      params.contaBancariaId = this.contaSelecionada;
+    if (typeof this.centroCustoSelecionado === 'number') params.centroCustoId   = this.centroCustoSelecionado;
+    params.usuarioNome = this.usuarioAtual || 'ALEXANDRE ROMULO ALBUQUERQUE NERI';
+
+    this.relatoriosService.gerarRelatorio('caixa', params).subscribe({
+      next: (blob) => {
+        this.pdfLoading = false;
+        this.relatoriosService.abrirBlobEmNovaAba(blob);
+      },
+      error: (err) => {
+        this.pdfLoading = false;
+        console.error('Erro ao gerar relatório de caixa', err);
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o relatório.' });
+      }
+    });
+  }
+
+  getContaSelecionadaLabel(): string {
+    if (this.contaSelecionada === 'TODAS') return 'Todas as contas';
+    const c = this.contasBancariasCompletas.find(x => Number(x.id) === Number(this.contaSelecionada));
+    return c ? `${c.bancoNome} • ${c.agencia}/${c.conta}` : 'Todas as contas';
+  }
+
   private carregarAuxiliares() {
     this.finService.listContasBancarias().subscribe({
       next: (page) => {
-        const items = (page?.content || []).map((c: any) => ({
-          label: c.nome || `${c.bancoNome} • ${c.agencia}/${c.conta}`,
+        const rawItems = page?.content || [];
+        this.contasBancariasCompletas = rawItems;
+        const items = rawItems.map((c: any) => ({
+          label: `${c.bancoNome} • ${c.agencia}/${c.conta}`,
           value: Number(c.id)
         }));
         this.contaOptions = [{ label: 'Todas as contas', value: 'TODAS' }, ...items];
@@ -333,11 +445,45 @@ export class CaixaComponent implements OnInit {
     });
   }
 
+  private carregarEmpresaEUsuario() {
+    let tenantId = this.storage.get('tenantId');
+    if (!tenantId || (typeof tenantId === 'object' && Object.keys(tenantId).length === 0)) {
+      tenantId = this.storage.get('empresaId');
+    }
+    if (tenantId && typeof tenantId === 'object' && (tenantId as any).id) {
+      tenantId = (tenantId as any).id;
+    }
+    const id = Number(tenantId || 1);
+
+    this.empresaService.getEmpresa(id).subscribe({
+      next: (emp) => {
+        this.empresaInfo = emp;
+      }
+    });
+
+    this.empresaService.getEnderecos(id).subscribe({
+      next: (endrs) => {
+        const principal = (endrs || []).find(e => e.principal) || (endrs || [])[0];
+        if (principal) {
+          const comp = principal.complemento ? `, ${principal.complemento}` : '';
+          this.empresaEndereco = `${principal.logradouro}, N ${principal.numero}${comp}, ${principal.bairro}, ${principal.cidade} - ${principal.estado}`;
+        }
+      }
+    });
+
+    this.authService.user().subscribe({
+      next: (u) => {
+        this.usuarioAtual = u.name || '';
+      }
+    });
+  }
+
   ngOnInit() {
     const qp = this.route.snapshot.queryParamMap;
     if (qp.get('de'))  this.dataInicial = qp.get('de')!;
     if (qp.get('ate')) this.dataFinal   = qp.get('ate')!;
     this.carregarAuxiliares();
+    this.carregarEmpresaEUsuario();
     this.buscar();
   }
 }

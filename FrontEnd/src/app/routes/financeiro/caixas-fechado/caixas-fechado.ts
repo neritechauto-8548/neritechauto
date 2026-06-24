@@ -9,6 +9,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MatIconModule } from '@angular/material/icon';
 import { FinanceiroService } from '../financeiro.service';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { RelatoriosService } from '../../relatorios/relatorios.service';
 
 interface RegistroFechamento {
   cod: number;
@@ -20,6 +21,8 @@ interface RegistroFechamento {
   totalEntradas: number;
   totalSaidas: number;
   situacao: string;
+  dataAberturaRaw?: string;
+  dataFechamentoRaw?: string;
 }
 
 @Component({
@@ -42,10 +45,13 @@ interface RegistroFechamento {
 export class CaixasFechadoComponent implements OnInit {
   private service = inject(FinanceiroService);
   private messageService = inject(MessageService);
+  private relatoriosService = inject(RelatoriosService);
 
   // Dialog state
   detalhesDialogVisible = false;
   fechamentoSelecionado: RegistroFechamento | null = null;
+  movimentacoesFechadas: any[] = [];
+  loadingDetalhes = false;
 
   // Loading state
   loading = false;
@@ -53,8 +59,45 @@ export class CaixasFechadoComponent implements OnInit {
 
   // Toolbar
   imprimir() {
-    this.messageService.add({ severity: 'info', summary: 'Impressão', detail: 'Gerando relatório para impressão...' });
+    this.loading = true;
+    const params: any = {};
+    if (this.dataInicio) params.dataInicio = this.dataInicio;
+    if (this.dataFim)   params.dataFim    = this.dataFim;
+    params.usuarioNome = 'ALEXANDRE ROMULO ALBUQUERQUE NERI';
+
+    this.relatoriosService.gerarRelatorio('caixa', params).subscribe({
+      next: (blob) => {
+        this.loading = false;
+        this.relatoriosService.abrirBlobEmNovaAba(blob);
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error('Erro ao gerar relatório de caixa', err);
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o relatório.' });
+      }
+    });
   }
+
+  imprimirRegistro(r: RegistroFechamento) {
+    this.loading = true;
+    const params: any = {
+      dataInicio: r.dataAberturaRaw || '',
+      dataFim: r.dataFechamentoRaw || '',
+      usuarioNome: r.responsavel
+    };
+    this.relatoriosService.gerarRelatorio('caixa', params).subscribe({
+      next: (blob) => {
+        this.loading = false;
+        this.relatoriosService.abrirBlobEmNovaAba(blob);
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error('Erro ao gerar relatório do fechamento', err);
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o relatório do fechamento.' });
+      }
+    });
+  }
+
   imprimirCupom() {
     this.messageService.add({ severity: 'info', summary: 'Cupom', detail: 'Enviando fechamento para a impressora térmica...' });
   }
@@ -93,7 +136,9 @@ export class CaixasFechadoComponent implements OnInit {
                 saldoFinal: item.saldoFinal || 0,
                 totalEntradas: item.totalEntradas || 0,
                 totalSaidas: item.totalSaidas || 0,
-                situacao: item.situacao || 'FECHADO'
+                situacao: item.situacao || 'FECHADO',
+                dataAberturaRaw: item.dataAbertura ? item.dataAbertura.split('T')[0] : '',
+                dataFechamentoRaw: item.dataFechamento ? item.dataFechamento.split('T')[0] : ''
             }));
             this.totalRecords = page.totalElements || this.registros.length;
             this.loading = false;
@@ -109,6 +154,28 @@ export class CaixasFechadoComponent implements OnInit {
   visualizarDetalhes(registro: RegistroFechamento) {
     this.fechamentoSelecionado = registro;
     this.detalhesDialogVisible = true;
+    this.carregarDetalhesFechamento(registro);
+  }
+
+  carregarDetalhesFechamento(registro: RegistroFechamento) {
+    this.loadingDetalhes = true;
+    this.movimentacoesFechadas = [];
+    this.service.listFluxoCaixa({
+      dataInicio: registro.dataAberturaRaw || '',
+      dataFim: registro.dataFechamentoRaw || '',
+      includeClosed: true,
+      size: 500
+    }).subscribe({
+      next: (page: any) => {
+        this.movimentacoesFechadas = page.content || [];
+        this.loadingDetalhes = false;
+      },
+      error: (err: any) => {
+        console.error('Erro ao buscar detalhes', err);
+        this.loadingDetalhes = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar detalhamento do caixa.' });
+      }
+    });
   }
 
   formatDate(dateStr: string): string {

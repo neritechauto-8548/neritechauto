@@ -32,6 +32,15 @@ public class OrdemServicoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/venda-balcao")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PDV_REALIZAR_VENDAS')")
+    @Operation(summary = "Criar nova Venda Balcão (PDV)")
+    public ResponseEntity<OrdemServicoResponse> criarVendaBalcao(@Valid @RequestBody com.neritech.saas.ordemservico.dto.VendaBalcaoRequest request) {
+        OrdemServicoResponse response = service.criarVendaBalcao(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Buscar ordem de serviço por ID")
@@ -88,5 +97,15 @@ public class OrdemServicoController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/enviar-email")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EDITAR') or hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Enviar orçamento/OS por e-mail")
+    public ResponseEntity<Void> enviarEmail(
+            @PathVariable Long id,
+            @RequestParam(required = false) String emailDestino) {
+        service.enviarOrcamentoEmail(id, emailDestino);
+        return ResponseEntity.ok().build();
     }
 }

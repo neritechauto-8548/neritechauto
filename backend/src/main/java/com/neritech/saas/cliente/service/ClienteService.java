@@ -106,12 +106,26 @@ public class ClienteService {
 
     private void validateDocumento(Cliente c) {
         if (c.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
-            if (c.getCpf() != null && !c.getCpf().isBlank() && !DocumentoValidator.isValidCpf(c.getCpf())) {
-                throw new BusinessException("O CPF informado (" + c.getCpf() + ") é inválido.");
+            if (c.getCpf() != null && !c.getCpf().isBlank()) {
+                if (!DocumentoValidator.isValidCpf(c.getCpf())) {
+                    throw new BusinessException("O CPF informado (" + c.getCpf() + ") é inválido.");
+                }
+                repository.findByCpf(c.getCpf()).ifPresent(existing -> {
+                    if (!existing.getId().equals(c.getId())) {
+                        throw new BusinessException("Já existe um cliente cadastrado com este CPF (" + c.getCpf() + ").");
+                    }
+                });
             }
         } else if (c.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
-            if (c.getCnpj() != null && !c.getCnpj().isBlank() && !DocumentoValidator.isValidCnpj(c.getCnpj())) {
-                throw new BusinessException("O CNPJ informado (" + c.getCnpj() + ") é inválido.");
+            if (c.getCnpj() != null && !c.getCnpj().isBlank()) {
+                if (!DocumentoValidator.isValidCnpj(c.getCnpj())) {
+                    throw new BusinessException("O CNPJ informado (" + c.getCnpj() + ") é inválido.");
+                }
+                repository.findByCnpj(c.getCnpj()).ifPresent(existing -> {
+                    if (!existing.getId().equals(c.getId())) {
+                        throw new BusinessException("Já existe um cliente cadastrado com este CNPJ (" + c.getCnpj() + ").");
+                    }
+                });
             }
         }
     }
@@ -184,28 +198,10 @@ public class ClienteService {
             TipoCliente tipoCliente,
             StatusCliente status,
             Pageable pageable) {
-        if (cpf != null && !cpf.isBlank()) {
-            Optional<Cliente> opt = repository.findByCpf(cpf);
-            return opt.map(e -> new org.springframework.data.domain.PageImpl<>(java.util.List.of(e), pageable, 1))
-                    .orElse(new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0));
-        }
-        if (cnpj != null && !cnpj.isBlank()) {
-            Optional<Cliente> opt = repository.findByCnpj(cnpj);
-            return opt.map(e -> new org.springframework.data.domain.PageImpl<>(java.util.List.of(e), pageable, 1))
-                    .orElse(new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0));
-        }
-        if (nomeCompleto != null && !nomeCompleto.isBlank()) {
-            return repository.findByNomeCompletoContainingIgnoreCase(nomeCompleto, pageable);
-        }
-        if (razaoSocial != null && !razaoSocial.isBlank()) {
-            return repository.findByRazaoSocialContainingIgnoreCase(razaoSocial, pageable);
-        }
-        if (tipoCliente != null) {
-            return repository.findByTipoCliente(tipoCliente, pageable);
-        }
-        if (status != null) {
-            return repository.findByStatus(status, pageable);
-        }
-        return repository.findAll(pageable);
+        
+        org.springframework.data.jpa.domain.Specification<Cliente> spec = 
+            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status);
+            
+        return repository.findAll(spec, pageable);
     }
 }

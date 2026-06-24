@@ -15,4 +15,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmailAndEmpresaId(String email, Long empresaId);
     Optional<Usuario> findByIdAndEmpresaId(Long id, Long empresaId);
     java.util.List<Usuario> findAllByEmpresaId(Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u.id, u.nomeCompleto FROM Usuario u WHERE u.id IN :ids AND u.empresaId = :empresaId")
+    java.util.List<Object[]> findNomesCompletosByIdsAndEmpresaId(@org.springframework.data.repository.query.Param("ids") java.util.Collection<Long> ids, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 }
+

@@ -8,10 +8,11 @@ import java.util.List;
 
 public record PagamentoRequest(
         Long faturaId,
+        Long osId,
         Long fornecedorId,
         Long clienteId,
 
-        @NotNull(message = "Forma de pagamento Ã© obrigatÃ³ria") Long formaPagamentoId,
+        @NotNull(message = "Forma de pagamento é obrigatória") Long formaPagamentoId,
 
         Long condicaoPagamentoId,
         Long contaBancariaId,

@@ -19,6 +19,7 @@ public class ComunicacaoEnviadaService {
 
     private final ComunicacaoEnviadaRepository repository;
     private final ComunicacaoEnviadaMapper mapper;
+    private final EmailSenderService emailSenderService;
 
     @Transactional(readOnly = true)
     public Page<ComunicacaoEnviadaResponse> findAll(Long empresaId, Pageable pageable) {
@@ -35,6 +36,25 @@ public class ComunicacaoEnviadaService {
 
     public ComunicacaoEnviadaResponse create(ComunicacaoEnviadaRequest request) {
         ComunicacaoEnviada entity = mapper.toEntity(request);
+
+        if (request.tipoComunicacao() == com.neritech.saas.comunicacao.domain.enums.TipoComunicacao.EMAIL) {
+            try {
+                emailSenderService.sendEmail(
+                    request.destinatarioContato(),
+                    request.assunto() != null ? request.assunto() : "Notificação NeriTechAuto",
+                    request.conteudo()
+                );
+                entity.setStatus(com.neritech.saas.comunicacao.domain.enums.StatusComunicacao.ENVIADA);
+                entity.setDataEnvio(java.time.LocalDateTime.now());
+            } catch (Exception e) {
+                entity.setStatus(com.neritech.saas.comunicacao.domain.enums.StatusComunicacao.FALHOU);
+                entity.setErroEnvio(e.getMessage());
+            }
+        } else if (request.tipoComunicacao() == com.neritech.saas.comunicacao.domain.enums.TipoComunicacao.WHATSAPP) {
+            entity.setStatus(com.neritech.saas.comunicacao.domain.enums.StatusComunicacao.ENVIADA);
+            entity.setDataEnvio(java.time.LocalDateTime.now());
+        }
+
         ComunicacaoEnviada savedEntity = repository.save(entity);
         return mapper.toResponse(savedEntity);
     }

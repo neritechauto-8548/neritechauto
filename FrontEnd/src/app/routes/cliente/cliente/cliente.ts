@@ -12,9 +12,8 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { SkeletonModule } from 'primeng/skeleton';
+import { MenuModule } from 'primeng/menu';
 import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
 import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
 import { forkJoin, of } from 'rxjs';
@@ -46,10 +45,8 @@ import {
     TagModule,
     TooltipModule,
     ToastModule,
-    // Material
-    MatIconModule,
-    MatButtonModule,
-    MatMenuModule,
+    SkeletonModule,
+    MenuModule,
     RouterModule,
   ],
 })
@@ -70,6 +67,16 @@ export class Cliente implements OnInit {
   // Filtros
   searchTerm = '';
   isLoading = false;
+
+  // Menu popup
+  activeRow: any = null;
+  activeMenuItems: MenuItem[] = [];
+
+  toggleMenu(row: any, event: Event, menu: any) {
+    this.activeRow = row;
+    this.activeMenuItems = this.menuItemsFor(row);
+    menu.toggle(event);
+  }
   selectedTipo: TipoCliente | null = null;
   selectedStatus: StatusCliente | null = null;
 
@@ -174,12 +181,12 @@ export class Cliente implements OnInit {
 
   menuItemsFor(row: any): MenuItem[] {
     return [
-      { label: 'Visualizar / Editar Cliente', icon: 'person', routerLink: ['/cliente/editar', row.uuid] },
-      { label: 'Cadastrar Agendamento / Alerta', icon: 'notifications', command: () => {} },
-      { label: 'Visualizar / Editar Veículos', icon: 'directions_car', command: () => {} },
-      { label: 'Cadastrar OS', icon: 'edit_note', command: () => {} },
-      { label: 'Visualizar OS Veículo', icon: 'list', command: () => {} },
-      { label: 'Histórico Veículo', icon: 'history', command: () => {} },
+      { label: 'Visualizar / Editar Cliente', icon: 'pi pi-user', routerLink: ['/cliente/editar', row.uuid] },
+      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', command: () => {} },
+      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', command: () => {} },
+      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', command: () => {} },
+      { label: 'Visualizar OS Veículo', icon: 'pi pi-list', command: () => {} },
+      { label: 'Histórico Veículo', icon: 'pi pi-history', command: () => {} },
     ];
   }
 
@@ -270,12 +277,12 @@ export class Cliente implements OnInit {
 
     const filters: any = { page: pageIndex, size: this.rows, sort: 'id,desc' }; // Restaurado para id,desc
 
-    // Filtro de busca por nome
+    // Filtro de busca por nome ou documento
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.trim();
       filters.nomeCompleto = term;
-      filters.razaoSocial = term;
-      filters.nomeFantasia = term;
+      // Mandamos no cpf também para o backend procurar no CPF e CNPJ
+      filters.cpf = term.replace(/[^a-zA-Z0-9]/g, '');
     }
 
     // Filtro por tipo de cliente

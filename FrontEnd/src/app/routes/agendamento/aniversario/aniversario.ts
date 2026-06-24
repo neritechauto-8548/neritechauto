@@ -12,6 +12,7 @@ import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { ClienteResponse } from '../../cliente/models/cliente.models';
 import { ComunicacaoService, ComunicacaoEnviadaRequest } from '../comunicacao.service';
 import { RelatoriosService } from '../../relatorios/relatorios.service';
+import { EmpresaService } from '../../configuracoes/empresa/services/empresa.service';
 
 interface ClienteAniversariante extends ClienteResponse {
   nascimentoFormatado: string;
@@ -46,6 +47,7 @@ export class AniversarioAgendamento implements OnInit {
   private datePipe = inject(DatePipe);
   private router = inject(Router);
   private relatoriosService = inject(RelatoriosService);
+  private empresaService = inject(EmpresaService);
 
   meses = [
     { label: 'JANEIRO', value: 1 }, { label: 'FEVEREIRO', value: 2 }, { label: 'MARÇO', value: 3 },
@@ -68,9 +70,11 @@ export class AniversarioAgendamento implements OnInit {
   dataReagendamento: string = '';
   assuntoEmail = 'Feliz aniversário! 🎉';
 
+  oficinaNome = 'Sua Oficina';
+
   modelosMensagens = [
-    { nome: 'Desconto Aniversário', conteudo: 'Feliz aniversário! A equipe da AUTO CENTRO deseja um ótimo dia. Apresente esta mensagem e ganhe 15% de desconto no serviço!' },
-    { nome: 'Simples', conteudo: 'Oi! Queremos lhe parabenizar pelo seu aniversário! Que seu dia seja repleto de alegria, saúde e sucesso. \n\nAbraços,\nSua Oficina' }
+    { nome: 'Desconto Aniversário', conteudo: 'Feliz aniversário! A equipe da {OFICINA} deseja um ótimo dia. Apresente esta mensagem e ganhe 15% de desconto no serviço!' },
+    { nome: 'Simples', conteudo: 'Oi! Queremos lhe parabenizar pelo seu aniversário! Que seu dia seja repleto de alegria, saúde e sucesso. \n\nAbraços,\n{OFICINA}' }
   ];
   modeloEmail = 'Desconto Aniversário';
   mensagemTexto = '';
@@ -241,12 +245,26 @@ export class AniversarioAgendamento implements OnInit {
   }
 
   ngOnInit(): void {
-    this.onModeloMensagemChange(this.modeloEmail);
+    this.carregarNomeOficina();
     this.buscar(); // Traz listagem ao carregar a página inicialmente
+  }
+
+  carregarNomeOficina(): void {
+    const idEmpresa = this.comunicacaoService.tenantId;
+    this.empresaService.getEmpresa(idEmpresa).subscribe({
+      next: (emp) => {
+        if (emp && (emp.nomeFantasia || emp.razaoSocial)) {
+          this.oficinaNome = emp.nomeFantasia || emp.razaoSocial;
+          // Atualiza o texto da mensagem com a oficina carregada
+          this.onModeloMensagemChange(this.modeloEmail);
+        }
+      },
+      error: (err) => console.error('Erro ao buscar dados da empresa', err)
+    });
   }
 
   onModeloMensagemChange(nome: string): void {
     const m = this.modelosMensagens.find(x => x.nome === nome);
-    this.mensagemTexto = m ? m.conteudo : '';
+    this.mensagemTexto = m ? m.conteudo.replace(/{OFICINA}/g, this.oficinaNome) : '';
   }
 }

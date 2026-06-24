@@ -59,6 +59,9 @@ public class RelatorioImpressaoController {
     private final com.neritech.saas.cliente.repository.EnderecoClienteRepository enderecoRepository;
     private final com.neritech.saas.cliente.repository.ContatoClienteRepository contatoRepository;
     private final com.neritech.saas.empresa.repository.EnderecoEmpresaRepository enderecoEmpresaRepository;
+    private final com.neritech.saas.financeiro.repository.FluxoCaixaRepository fluxoCaixaRepository;
+    private final com.neritech.saas.financeiro.repository.ContaBancariaRepository contaBancariaRepository;
+    private final com.neritech.saas.financeiro.repository.PagamentoRepository pagamentoRepository;
 
     public RelatorioImpressaoController(JasperRelatorioService jasperService,
             OrdemServicoService osService,
@@ -77,7 +80,10 @@ public class RelatorioImpressaoController {
             com.neritech.saas.ordemservico.repository.ItemOSServicoRepository itemOSServicoRepository,
             com.neritech.saas.cliente.repository.EnderecoClienteRepository enderecoRepository,
             com.neritech.saas.cliente.repository.ContatoClienteRepository contatoRepository,
-            com.neritech.saas.empresa.repository.EnderecoEmpresaRepository enderecoEmpresaRepository) {
+            com.neritech.saas.empresa.repository.EnderecoEmpresaRepository enderecoEmpresaRepository,
+            com.neritech.saas.financeiro.repository.FluxoCaixaRepository fluxoCaixaRepository,
+            com.neritech.saas.financeiro.repository.ContaBancariaRepository contaBancariaRepository,
+            com.neritech.saas.financeiro.repository.PagamentoRepository pagamentoRepository) {
         this.jasperService = jasperService;
         this.osService = osService;
         this.itemProdutoService = itemProdutoService;
@@ -96,6 +102,9 @@ public class RelatorioImpressaoController {
         this.enderecoRepository = enderecoRepository;
         this.contatoRepository = contatoRepository;
         this.enderecoEmpresaRepository = enderecoEmpresaRepository;
+        this.fluxoCaixaRepository = fluxoCaixaRepository;
+        this.contaBancariaRepository = contaBancariaRepository;
+        this.pagamentoRepository = pagamentoRepository;
     }
 
     @GetMapping("/os/{id}")
@@ -127,6 +136,264 @@ public class RelatorioImpressaoController {
         byte[] pdfBytes = jasperService.gerarRelatorioPdf("os", params, itens);
 
         return retornarPdf(pdfBytes, "os-" + os.numeroOS());
+    }
+
+    @GetMapping("/orcamento/{id}")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Imprimir Orçamento (PDF Premium)")
+    public ResponseEntity<byte[]> imprimirOrcamento(@PathVariable Long id) {
+        Long empresaId = TenantContext.getCurrentTenant();
+
+        OrdemServico os = osRepository.findByIdAndEmpresaId(id, empresaId)
+                .orElseThrow(() -> new RuntimeException("OS/Orçamento não encontrado"));
+
+        Cliente cliente = os.getClienteId() != null ? clienteRepository.findById(os.getClienteId()).orElse(null) : null;
+        Veiculo veiculo = os.getVeiculoId() != null ? veiculoRepository.findById(os.getVeiculoId()).orElse(null) : null;
+        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        // ---- Empresa ----
+        Map<String, Object> params = new HashMap<>();
+        if (empresa != null) {
+            params.put("NOME_EMPRESA", empresa.getNomeFantasia() != null ? empresa.getNomeFantasia() : empresa.getRazaoSocial());
+            params.put("CNPJ_EMPRESA", empresa.getCnpj() != null ? empresa.getCnpj() : "—");
+            params.put("TELEFONE_EMPRESA", empresa.getTelefone() != null ? empresa.getTelefone() : "—");
+            params.put("EMAIL_EMPRESA", empresa.getEmail() != null ? empresa.getEmail() : "—");
+            var enderecos = enderecoEmpresaRepository.findByEmpresaId(empresaId);
+            if (!enderecos.isEmpty()) {
+                var e = enderecos.get(0);
+                String endStr = String.format("%s, %s%s, %s - %s/%s",
+                        e.getLogradouro(),
+                        e.getNumero() != null ? "Nº " + e.getNumero() : "S/N",
+                        e.getComplemento() != null && !e.getComplemento().isBlank() ? ", " + e.getComplemento() : "",
+                        e.getBairro(), e.getCidade(), e.getEstado());
+                params.put("ENDERECO_EMPRESA", endStr);
+            } else {
+                params.put("ENDERECO_EMPRESA", "—");
+            }
+        } else {
+            params.put("NOME_EMPRESA", "NeriTech Auto Center");
+            params.put("CNPJ_EMPRESA", "—");
+            params.put("TELEFONE_EMPRESA", "—");
+            params.put("EMAIL_EMPRESA", "—");
+            params.put("ENDERECO_EMPRESA", "—");
+        }
+        params.put("DATA_EMISSAO", sdf.format(new java.util.Date()));
+
+        // ---- Orçamento ----
+        params.put("NUMERO_ORCAMENTO", os.getNumeroOS() != null ? os.getNumeroOS() : "—");
+        params.put("STATUS_ORCAMENTO", os.getStatus() != null ? os.getStatus().getNome() : "—");
+        params.put("DATA_ABERTURA", os.getDataAbertura() != null ? os.getDataAbertura().format(dtf) : "—");
+        params.put("DATA_VALIDADE", os.getDataPromessa() != null ? os.getDataPromessa().format(dtf) : "—");
+        params.put("PROBLEMA_RELATADO", os.getProblemaRelatado() != null ? os.getProblemaRelatado() : "—");
+        params.put("OBSERVACOES", os.getObservacoesCliente() != null ? os.getObservacoesCliente() : "—");
+
+        // ---- Cliente ----
+        if (cliente != null) {
+            params.put("CLIENTE_NOME", cliente.getNomeCompleto() != null ? cliente.getNomeCompleto() : cliente.getRazaoSocial());
+            params.put("CLIENTE_DOCUMENTO", cliente.getCpf() != null ? cliente.getCpf() : (cliente.getCnpj() != null ? cliente.getCnpj() : "—"));
+            params.put("CLIENTE_EMAIL", cliente.getEmail() != null ? cliente.getEmail() : "—");
+            // Telefone principal
+            var contatosPage = contatoRepository.findByClienteId(cliente.getId(), org.springframework.data.domain.Pageable.ofSize(1));
+            var contatosList = contatosPage.getContent();
+            String tel = contatosList.isEmpty() ? "—" : contatosList.get(0).getContato();
+            params.put("CLIENTE_TELEFONE", tel);
+        } else {
+            params.put("CLIENTE_NOME", "—");
+            params.put("CLIENTE_DOCUMENTO", "—");
+            params.put("CLIENTE_EMAIL", "—");
+            params.put("CLIENTE_TELEFONE", "—");
+        }
+
+        // ---- Veículo ----
+        if (veiculo != null) {
+            params.put("VEICULO_PLACA", veiculo.getPlaca() != null ? veiculo.getPlaca() : "—");
+            params.put("VEICULO_MODELO", veiculo.getModelo() != null ? veiculo.getModelo().getNome() : "—");
+            params.put("VEICULO_MARCA", veiculo.getMarca() != null ? veiculo.getMarca().getNome() : "—");
+            params.put("VEICULO_ANO", veiculo.getAnoModelo() != null ? veiculo.getAnoModelo().getAnoModelo().toString() : "—");
+            params.put("VEICULO_KM", os.getQuilometragemEntrada() != null ? os.getQuilometragemEntrada() + " km" : "—");
+            params.put("VEICULO_COR", veiculo.getCorExterna() != null ? veiculo.getCorExterna() : "—");
+            params.put("VEICULO_CHASSI", veiculo.getChassi() != null ? veiculo.getChassi() : "—");
+        } else {
+            params.put("VEICULO_PLACA", "—");
+            params.put("VEICULO_MODELO", "—");
+            params.put("VEICULO_MARCA", "—");
+            params.put("VEICULO_ANO", "—");
+            params.put("VEICULO_KM", "—");
+            params.put("VEICULO_COR", "—");
+            params.put("VEICULO_CHASSI", "—");
+        }
+
+        // ---- Totais ----
+        params.put("VALOR_SERVICOS", os.getValorServicos() != null ? os.getValorServicos() : BigDecimal.ZERO);
+        params.put("VALOR_PRODUTOS", os.getValorProdutos() != null ? os.getValorProdutos() : BigDecimal.ZERO);
+        params.put("VALOR_DESCONTO", os.getValorDesconto() != null ? os.getValorDesconto() : BigDecimal.ZERO);
+        params.put("VALOR_TOTAL", os.getValorTotal() != null ? os.getValorTotal() : BigDecimal.ZERO);
+
+        // ---- Itens unificados (fields no jrxml) ----
+        java.util.List<Map<String, Object>> itens = new java.util.ArrayList<>();
+        itemOSServicoRepository.findByOrdemServicoId(id).forEach(s -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("tipo", "SERV");
+            m.put("descricao", s.getDescricao() != null ? s.getDescricao() : "Serviço");
+            m.put("quantidade", s.getQuantidade() != null ? s.getQuantidade() : BigDecimal.ONE);
+            m.put("valorUnitario", s.getValorUnitario() != null ? s.getValorUnitario() : BigDecimal.ZERO);
+            m.put("valorTotal", s.getValorFinal() != null ? s.getValorFinal() : (s.getValorTotal() != null ? s.getValorTotal() : BigDecimal.ZERO));
+            itens.add(m);
+        });
+        itemOSProdutoRepository.findByOrdemServicoId(id).forEach(p -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("tipo", "PRODUTO");
+            m.put("descricao", p.getDescricao() != null ? p.getDescricao() : "Produto");
+            m.put("quantidade", p.getQuantidade() != null ? p.getQuantidade() : BigDecimal.ONE);
+            m.put("valorUnitario", p.getValorUnitario() != null ? p.getValorUnitario() : BigDecimal.ZERO);
+            m.put("valorTotal", p.getValorFinal() != null ? p.getValorFinal() : (p.getValorTotal() != null ? p.getValorTotal() : BigDecimal.ZERO));
+            itens.add(m);
+        });
+
+        // Se não houver itens, adicionar linha vazia para evitar erro de DataSource vazio
+        if (itens.isEmpty()) {
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("tipo", "");
+            empty.put("descricao", "Nenhum item lançado neste orçamento.");
+            empty.put("quantidade", BigDecimal.ZERO);
+            empty.put("valorUnitario", BigDecimal.ZERO);
+            empty.put("valorTotal", BigDecimal.ZERO);
+            itens.add(empty);
+        }
+
+        byte[] pdf = jasperService.gerarRelatorioPdf("orcamento", params, itens);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=orcamento_" + os.getNumeroOS() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    @GetMapping("/comprovante-pagamento/{id}")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Imprimir Comprovante de Pagamento (PDF)")
+    public ResponseEntity<byte[]> imprimirComprovantePagamento(@PathVariable Long id) {
+        Long empresaId = TenantContext.getCurrentTenant();
+
+        com.neritech.saas.financeiro.domain.Pagamento pagamento = pagamentoRepository.findByIdAndEmpresaId(id, empresaId)
+                .orElseThrow(() -> new RuntimeException("Pagamento não encontrado"));
+
+        Cliente cliente = pagamento.getClienteId() != null 
+                ? clienteRepository.findById(pagamento.getClienteId()).orElse(null) 
+                : null;
+        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String dataEmis = sdf.format(new java.util.Date());
+
+        Map<String, Object> params = new HashMap<>();
+
+        // ---- Empresa ----
+        if (empresa != null) {
+            params.put("NOME_EMPRESA", empresa.getNomeFantasia() != null ? empresa.getNomeFantasia() : empresa.getRazaoSocial());
+            params.put("CNPJ_EMPRESA", empresa.getCnpj() != null ? empresa.getCnpj() : "—");
+            params.put("TELEFONE_EMPRESA", empresa.getTelefone() != null ? empresa.getTelefone() : "—");
+            params.put("EMAIL_EMPRESA", empresa.getEmail() != null ? empresa.getEmail() : "—");
+            var enderecos = enderecoEmpresaRepository.findByEmpresaId(empresaId);
+            if (!enderecos.isEmpty()) {
+                var e = enderecos.get(0);
+                String endStr = String.format("%s, %s%s, %s - %s/%s",
+                        e.getLogradouro(),
+                        e.getNumero() != null ? "Nº " + e.getNumero() : "S/N",
+                        e.getComplemento() != null && !e.getComplemento().isBlank() ? ", " + e.getComplemento() : "",
+                        e.getBairro(), e.getCidade(), e.getEstado());
+                params.put("ENDERECO_EMPRESA", endStr);
+            } else {
+                params.put("ENDERECO_EMPRESA", "—");
+            }
+        } else {
+            params.put("NOME_EMPRESA", "NeriTech Auto Center");
+            params.put("CNPJ_EMPRESA", "—");
+            params.put("TELEFONE_EMPRESA", "—");
+            params.put("EMAIL_EMPRESA", "—");
+            params.put("ENDERECO_EMPRESA", "—");
+        }
+
+        params.put("DATA_EMISSAO", dataEmis);
+        params.put("NUMERO_PAGAMENTO", pagamento.getNumeroPagamento() != null ? pagamento.getNumeroPagamento() : "PG-" + pagamento.getId());
+
+        // ---- Cliente ----
+        if (cliente != null) {
+            params.put("CLIENTE_NOME", cliente.getNomeCompleto() != null ? cliente.getNomeCompleto() : cliente.getRazaoSocial());
+            params.put("CLIENTE_DOCUMENTO", cliente.getCpf() != null ? cliente.getCpf() : (cliente.getCnpj() != null ? cliente.getCnpj() : "—"));
+            params.put("CLIENTE_EMAIL", cliente.getEmail() != null ? cliente.getEmail() : "—");
+        } else {
+            params.put("CLIENTE_NOME", "—");
+            params.put("CLIENTE_DOCUMENTO", "—");
+            params.put("CLIENTE_EMAIL", "—");
+        }
+
+        // ---- Pagamento ----
+        params.put("FORMA_PAGAMENTO", pagamento.getFormaPagamento() != null ? pagamento.getFormaPagamento().getNome() : "—");
+        params.put("CONTA_BANCARIA", pagamento.getContaBancaria() != null ? (pagamento.getContaBancaria().getBancoNome() + " • " + pagamento.getContaBancaria().getAgencia() + "/" + pagamento.getContaBancaria().getConta()) : "—");
+        params.put("DATA_PAGAMENTO", pagamento.getDataPagamento() != null ? pagamento.getDataPagamento().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "—");
+        params.put("OBSERVACOES", pagamento.getObservacoes() != null ? pagamento.getObservacoes() : "—");
+
+        // ---- Totais ----
+        String osNumero = "—";
+        BigDecimal desc = BigDecimal.ZERO;
+        BigDecimal juros = BigDecimal.ZERO;
+        BigDecimal multa = BigDecimal.ZERO;
+        BigDecimal original = pagamento.getValorPago();
+
+        if (pagamento.getFatura() != null) {
+            com.neritech.saas.financeiro.domain.Fatura fat = pagamento.getFatura();
+            desc = fat.getValorDescontos() != null ? fat.getValorDescontos() : BigDecimal.ZERO;
+            juros = fat.getValorAcrescimos() != null ? fat.getValorAcrescimos() : BigDecimal.ZERO;
+            if (fat.getOrdemServicoId() != null) {
+                OrdemServico os = osRepository.findByIdAndEmpresaId(fat.getOrdemServicoId(), empresaId).orElse(null);
+                if (os != null) {
+                    osNumero = os.getNumeroOS();
+                }
+            }
+        }
+        params.put("NUMERO_OS", osNumero);
+        params.put("VALOR_ORIGINAL", original != null ? original.add(desc).subtract(juros) : BigDecimal.ZERO);
+        params.put("VALOR_DESCONTO", desc);
+        params.put("VALOR_JUROS", juros);
+        params.put("VALOR_MULTA", multa);
+        params.put("VALOR_TOTAL", original != null ? original : BigDecimal.ZERO);
+
+        // ---- Parcelas ----
+        java.util.List<Map<String, Object>> parcelasList = new java.util.ArrayList<>();
+        if (pagamento.getParcelas() != null) {
+            pagamento.getParcelas().forEach(p -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("numeroParcela", p.getNumeroParcela());
+                m.put("valorParcela", p.getValorParcela());
+                m.put("dataVencimento", p.getDataVencimento() != null ? p.getDataVencimento().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "—");
+                m.put("dataPagamento", p.getDataPagamento() != null ? p.getDataPagamento().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "—");
+                m.put("valorPago", p.getValorPago() != null ? p.getValorPago() : BigDecimal.ZERO);
+                m.put("status", p.getStatus() != null ? p.getStatus().name() : "PENDENTE");
+                parcelasList.add(m);
+            });
+        }
+
+        if (parcelasList.isEmpty()) {
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("numeroParcela", 1);
+            empty.put("valorParcela", original != null ? original : BigDecimal.ZERO);
+            empty.put("dataVencimento", pagamento.getDataCompensacao() != null ? pagamento.getDataCompensacao().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : dataEmis.substring(0, 10));
+            empty.put("dataPagamento", pagamento.getDataPagamento() != null ? pagamento.getDataPagamento().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : dataEmis.substring(0, 10));
+            empty.put("valorPago", original != null ? original : BigDecimal.ZERO);
+            empty.put("status", pagamento.getStatus() != null ? pagamento.getStatus().name() : "CONFIRMADO");
+            parcelasList.add(empty);
+        }
+
+        byte[] pdf = jasperService.gerarRelatorioPdf("comprovante_pagamento", params, parcelasList);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=comprovante_pagamento_" + pagamento.getId() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     @GetMapping("/vendas")
@@ -1058,5 +1325,195 @@ public class RelatorioImpressaoController {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @GetMapping("/caixa")
+    @Operation(summary = "Relatório de Fluxo de Caixa")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> relatorioCaixa(
+            @RequestParam(required = false) String dataInicio,
+            @RequestParam(required = false) String dataFim,
+            @RequestParam(required = false) Long contaBancariaId,
+            @RequestParam(required = false) Long centroCustoId,
+            @RequestParam(required = false) String usuarioNome) {
+
+        Long empresaId = TenantContext.getCurrentTenant();
+
+        // 1. Parse Dates
+        java.time.LocalDate parsedInicio = null;
+        java.time.LocalDate parsedFim = null;
+        if (dataInicio != null && !dataInicio.isBlank()) {
+            try { parsedInicio = java.time.LocalDate.parse(dataInicio); } catch (Exception ignored) {}
+        }
+        if (dataFim != null && !dataFim.isBlank()) {
+            try { parsedFim = java.time.LocalDate.parse(dataFim); } catch (Exception ignored) {}
+        }
+        final java.time.LocalDate dtInicio = parsedInicio;
+        final java.time.LocalDate dtFim = parsedFim;
+
+        // 2. Query FluxoCaixa
+        org.springframework.data.jpa.domain.Specification<com.neritech.saas.financeiro.domain.FluxoCaixa> spec = 
+                (root, query, cb) -> cb.equal(root.get("empresaId"), empresaId);
+
+        if (contaBancariaId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("contaBancaria").get("id"), contaBancariaId));
+        }
+        if (centroCustoId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("centroCusto").get("id"), centroCustoId));
+        }
+        if (dtInicio != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("dataMovimentacao"), dtInicio));
+        }
+        if (dtFim != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("dataMovimentacao"), dtFim));
+        }
+
+        java.util.List<com.neritech.saas.financeiro.domain.FluxoCaixa> list = 
+                new java.util.ArrayList<>(fluxoCaixaRepository.findAll(spec));
+        
+        // Sort ascending
+        list.sort((a, b) -> {
+            int comp = a.getDataMovimentacao().compareTo(b.getDataMovimentacao());
+            if (comp == 0) return a.getId().compareTo(b.getId());
+            return comp;
+        });
+
+        // 3. Compute Saldo Inicial
+        BigDecimal saldoInicial = BigDecimal.ZERO;
+        if (!list.isEmpty()) {
+            var first = list.get(0);
+            BigDecimal val = first.getValor() != null ? first.getValor() : BigDecimal.ZERO;
+            BigDecimal ac = first.getSaldoAtual() != null ? first.getSaldoAtual() : BigDecimal.ZERO;
+            if (first.getTipoMovimentacao() == com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA) {
+                saldoInicial = ac.subtract(val);
+            } else {
+                saldoInicial = ac.add(val);
+            }
+        }
+
+        // 4. Map records & compute totals
+        java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        java.text.NumberFormat nf = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR"));
+
+        BigDecimal totalEntrada = BigDecimal.ZERO;
+        BigDecimal totalSaida = BigDecimal.ZERO;
+
+        Map<String, BigDecimal> entGroup = new HashMap<>();
+        Map<String, BigDecimal> saiGroup = new HashMap<>();
+
+        java.util.List<Map<String, Object>> dados = new java.util.ArrayList<>();
+        for (var fc : list) {
+            BigDecimal val = fc.getValor() != null ? fc.getValor() : BigDecimal.ZERO;
+            String forma = fc.getFormaPagamento() != null ? fc.getFormaPagamento().getNome() : null;
+            if (forma == null || forma.isBlank()) {
+                forma = "SEM ESPECIFICAR";
+            }
+
+            BigDecimal entradaVal = BigDecimal.ZERO;
+            BigDecimal saidaVal = BigDecimal.ZERO;
+
+            if (fc.getTipoMovimentacao() == com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA) {
+                entradaVal = val;
+                totalEntrada = totalEntrada.add(val);
+                entGroup.put(forma, entGroup.getOrDefault(forma, BigDecimal.ZERO).add(val));
+            } else {
+                saidaVal = val;
+                totalSaida = totalSaida.add(val);
+                saiGroup.put(forma, saiGroup.getOrDefault(forma, BigDecimal.ZERO).add(val));
+            }
+
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", fc.getId());
+            m.put("formaPagamento", forma);
+            m.put("dataPagamento", fc.getDataMovimentacao() != null ? fc.getDataMovimentacao().format(dateFormatter) : "");
+            
+            java.time.LocalDate vencDate = null;
+            if (fc.getDocumentoId() != null) {
+                if ("PAGAMENTO".equals(fc.getDocumentoTipo())) {
+                    vencDate = contasPagarRepository.findById(fc.getDocumentoId())
+                            .map(com.neritech.saas.financeiro.domain.ContasPagar::getDataVencimento)
+                            .orElse(null);
+                } else if ("RECEBIMENTO".equals(fc.getDocumentoTipo())) {
+                    vencDate = contasReceberRepository.findById(fc.getDocumentoId())
+                            .map(com.neritech.saas.financeiro.domain.ContasReceber::getDataVencimento)
+                            .orElse(null);
+                }
+            }
+            m.put("dataVencimento", vencDate != null ? vencDate.format(dateFormatter) : "-");
+
+            m.put("entrada", entradaVal.compareTo(BigDecimal.ZERO) > 0 ? nf.format(entradaVal) : "-");
+            m.put("saida", saidaVal.compareTo(BigDecimal.ZERO) > 0 ? nf.format(saidaVal) : "-");
+            m.put("descricao", fc.getDescricao() != null ? fc.getDescricao() : "");
+
+            dados.add(m);
+        }
+
+        BigDecimal saldoFinal = saldoInicial.add(totalEntrada).subtract(totalSaida);
+
+        // Build summaries
+        StringBuilder entStr = new StringBuilder();
+        entGroup.forEach((k, v) -> entStr.append(k.toUpperCase()).append(": ").append(nf.format(v)).append("\n"));
+        StringBuilder saiStr = new StringBuilder();
+        saiGroup.forEach((k, v) -> saiStr.append(k.toUpperCase()).append(": ").append(nf.format(v)).append("\n"));
+
+        // 5. Load Company info
+        Map<String, Object> params = new HashMap<>();
+        
+        Empresa empresa = empresaRepository.findById(empresaId).orElse(null);
+        if (empresa != null) {
+            params.put("NOME_EMPRESA", empresa.getNomeFantasia() != null ? empresa.getNomeFantasia() : empresa.getRazaoSocial());
+            params.put("CNPJ_EMPRESA", empresa.getCnpj() != null ? empresa.getCnpj() : "—");
+            params.put("TELEFONE_EMPRESA", empresa.getTelefone() != null ? empresa.getTelefone() : "—");
+            params.put("EMAIL_EMPRESA", empresa.getEmail() != null ? empresa.getEmail() : "—");
+            params.put("SITE_EMPRESA", empresa.getSite() != null ? empresa.getSite() : "—");
+            
+            var enderecos = enderecoEmpresaRepository.findByEmpresaId(empresaId);
+            if (!enderecos.isEmpty()) {
+                var e = enderecos.get(0);
+                String endStr = String.format("%s, N %s%s, %s, %s - %s", 
+                    e.getLogradouro(), 
+                    e.getNumero() != null ? e.getNumero() : "S/N",
+                    e.getComplemento() != null && !e.getComplemento().isBlank() ? ", " + e.getComplemento() : "",
+                    e.getBairro(), e.getCidade(), e.getEstado());
+                params.put("ENDERECO_EMPRESA", endStr);
+            } else {
+                params.put("ENDERECO_EMPRESA", "—");
+            }
+        } else {
+            params.put("NOME_EMPRESA", "Neritech Auto Center");
+            params.put("CNPJ_EMPRESA", "—");
+            params.put("TELEFONE_EMPRESA", "—");
+            params.put("EMAIL_EMPRESA", "—");
+            params.put("SITE_EMPRESA", "—");
+            params.put("ENDERECO_EMPRESA", "—");
+        }
+
+        // Account Label
+        String contaLabel = "Todas as contas";
+        if (contaBancariaId != null) {
+            var cbOpt = contaBancariaRepository.findByIdAndEmpresaId(contaBancariaId, empresaId);
+            if (cbOpt.isPresent()) {
+                var cb = cbOpt.get();
+                contaLabel = String.format("%s • %s/%s", cb.getBancoNome(), cb.getAgencia(), cb.getConta());
+            }
+        }
+        params.put("CONTA_LABEL", contaLabel);
+
+        // Date and time of generation
+        java.util.Date now = new java.util.Date();
+        params.put("DATA_GERACAO", new java.text.SimpleDateFormat("dd/MM/yyyy").format(now));
+        params.put("HORA_GERACAO", new java.text.SimpleDateFormat("HH:mm").format(now));
+
+        // Resumos e Totais
+        params.put("RESUMO_ENTRADA", entStr.toString());
+        params.put("RESUMO_SAIDA",   saiStr.toString());
+        params.put("TOTAL_ENTRADA",  nf.format(totalEntrada));
+        params.put("TOTAL_SAIDA",    nf.format(totalSaida));
+        params.put("SALDO_INICIAL",  nf.format(saldoInicial));
+        params.put("SALDO_FINAL",    nf.format(saldoFinal));
+        params.put("USUARIO_ATUAL",  (usuarioNome != null && !usuarioNome.isBlank()) ? usuarioNome : "ALEXANDRE ROMULO ALBUQUERQUE NERI");
+
+        byte[] pdfBytes = jasperService.gerarRelatorioPdf("caixa", params, dados);
+        return retornarPdf(pdfBytes, "relatorio-fluxo-caixa");
     }
 }

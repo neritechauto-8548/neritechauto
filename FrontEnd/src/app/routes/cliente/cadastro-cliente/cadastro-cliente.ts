@@ -26,6 +26,7 @@ import { forkJoin } from 'rxjs';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
+import { CnpjMaskDirective } from '@shared/directives/cnpj-mask';
 
 interface ContatoExtra {
   tipoContato: string;
@@ -65,7 +66,8 @@ interface DocumentoExtra {
     DialogModule,
     TagModule,
     InputMaskModule,
-    AutoCompleteModule
+    AutoCompleteModule,
+    CnpjMaskDirective
   ],
 })
 export class CadastroCliente implements OnInit {
@@ -280,10 +282,47 @@ export class CadastroCliente implements OnInit {
             summary: 'Atenção',
             detail: `O ${this.model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ'} informado não parece ser válido.`
           });
+          return;
+        }
+        
+        // Se for PJ e válido, busca na BrasilAPI para auto-preenchimento
+        if (this.model.tipoPessoa === 'Jurídica' && this.stripNonDigits(this.model.cpfCnpj).length === 14 && !this.isEditMode) {
+             this.buscarDadosCnpj(this.model.cpfCnpj);
         }
       },
       error: (err) => console.error('Erro ao validar documento no backend', err)
     });
+  }
+
+  private buscarDadosCnpj(cnpj: string) {
+     this.utilService.buscarCnpj(cnpj).subscribe({
+        next: (data) => {
+            if (data.razao_social) {
+                // Autocompleta se os campos estiverem vazios
+                if (!this.model.razaoSocial) this.model.razaoSocial = data.razao_social;
+                if (!this.model.nomeFantasia && data.nome_fantasia) this.model.nomeFantasia = data.nome_fantasia;
+                
+                if (data.cep && !this.model.cep) {
+                    this.model.cep = data.cep;
+                    this.model.logradouro = data.logradouro || '';
+                    this.model.numero = data.numero || '';
+                    this.model.complemento = data.complemento || '';
+                    this.model.bairro = data.bairro || '';
+                    this.model.cidade = data.municipio || '';
+                    this.model.estado = data.uf || '';
+                    this.model.uf = data.uf || '';
+                    
+                    this.messageService.add({ severity: 'success', summary: 'CNPJ Localizado', detail: 'Dados da empresa e endereço preenchidos automaticamente.' });
+                } else {
+                    this.messageService.add({ severity: 'success', summary: 'CNPJ Localizado', detail: 'Dados da empresa preenchidos automaticamente.' });
+                }
+            }
+        },
+        error: (err) => {
+            console.error('Erro ao buscar CNPJ na BrasilAPI', err);
+            // Silencioso para o usuário, permitindo digitação manual
+        }
+     });
   }
 
   // Máscara dinâmica CPF/CNPJ

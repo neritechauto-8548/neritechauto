@@ -20,6 +20,16 @@ export interface DashboardDTO {
   historicoFaturamento: number[];
   historicoServicos: number[];
   historicoMeses: string[];
+  abertosMes: number;
+  abertosTotal: number;
+  autorizadosMes: number;
+  autorizadosTotal: number;
+  canceladosMes: number;
+  canceladosTotal: number;
+  fechadosMes: number;
+  fechadosTotal: number;
+  entradasVeiculosMes: number;
+  saidasVeiculosMes: number;
 }
 
 @Injectable({ providedIn: 'root' })

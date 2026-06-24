@@ -39,7 +39,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 <button pButton type="button" label="Buscar" icon="pi pi-search" (click)="carregarDados()" [loading]="loading" class="p-button-info p-button-sm shadow-sm"></button>
                 <button pButton type="button" label="Nova Conta" icon="pi pi-plus" (click)="incluirConta()" class="p-button-success p-button-sm shadow-sm"></button>
-                <button pButton type="button" label="Quitar Selecionados" icon="pi pi-check-circle" [disabled]="!selectedRows.length" (click)="quitarContas()" class="p-button-warning p-button-sm shadow-sm"></button>
+                <button pButton type="button" label="Quitar" icon="pi pi-check-circle" [disabled]="!selectedRows.length" (click)="quitarContas()" class="p-button-warning p-button-sm shadow-sm"></button>
             </div>
         </div>
     </div>
@@ -121,14 +121,14 @@
     </div>
 
     <!-- DIALOG QUITAR -->
-    <p-dialog [(visible)]="quitarConfirmVisible" header="Confirmar Baixa" [modal]="true" [style]="{width:'400px'}">
+    <p-dialog [(visible)]="quitarConfirmVisible" header="Quitar em Lote" [modal]="true" [style]="{width:'400px'}">
         <div class="flex items-center gap-4 mb-4">
              <i class="pi pi-exclamation-triangle text-warning text-4xl"></i>
              <span>Deseja realmente baixar/quitar as <b>{{ selectedRows.length }}</b> contas selecionadas?</span>
         </div>
         <ng-template pTemplate="footer">
-            <button pButton label="Não" (click)="quitarConfirmVisible = false" class="p-button-text"></button>
-            <button pButton label="Sim, Baixar" (click)="confirmarQuitar()" class="p-button-success" autoFocus></button>
+            <button pButton label="Cancelar" (click)="quitarConfirmVisible = false" class="p-button-text"></button>
+            <button pButton label="Quitar em Lote" (click)="confirmarQuitar()" class="p-button-success" autoFocus></button>
         </ng-template>
     </p-dialog>
 

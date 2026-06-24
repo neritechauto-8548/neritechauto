@@ -13,10 +13,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { SkeletonModule } from 'primeng/skeleton';
+import { NgxPermissionsModule } from 'ngx-permissions';
 
 import { AgendamentoService, AgendamentoResponse } from '../agendamento.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { ComunicacaoService, ComunicacaoEnviadaRequest } from '../comunicacao.service';
+import { EmpresaService } from '../../configuracoes/empresa/services/empresa.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -33,7 +36,9 @@ import { forkJoin } from 'rxjs';
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
-    RouterModule
+    RouterModule,
+    SkeletonModule,
+    NgxPermissionsModule
   ],
   providers: [MessageService],
   templateUrl: './agendamentos-alertas.html',
@@ -45,12 +50,20 @@ export class AgendamentosAlertas implements OnInit {
   private clienteService = inject(ClientesService);
   private comunicacaoService = inject(ComunicacaoService);
   private messageService = inject(MessageService);
+  private empresaService = inject(EmpresaService);
 
   agendamentos: AgendamentoResponse[] = [];
   loading = false;
   searchTerm = '';
   // trigger web pack
   _triggerCache = 1;
+
+  oficinaNome = 'Sua Oficina';
+
+  // Filtros de Período
+  filtroPeriodo: 'todos' | 'dia' | 'semana' | 'mes' | 'custom' = 'todos';
+  dataFiltroInicio = '';
+  dataFiltroFim = '';
 
   // Paginação Frontend
   rows = 10;
@@ -68,8 +81,53 @@ export class AgendamentosAlertas implements OnInit {
     return Math.min(this.first + this.rows, this.totalRecords);
   }
 
+  get totalHoje(): number {
+    const hojeStr = this.formatDateYYYYMMDD(new Date());
+    return this.agendamentos.filter(a => a.dataAgendamento && a.dataAgendamento.substring(0, 10) === hojeStr).length;
+  }
+
+  get totalSemana(): number {
+    const hoje = new Date();
+    const startOfWeek = new Date(hoje);
+    startOfWeek.setDate(hoje.getDate() - hoje.getDay()); // Sunday as first day
+    startOfWeek.setHours(0,0,0,0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday as last day
+    endOfWeek.setHours(23,59,59,999);
+
+    return this.agendamentos.filter(a => {
+      if (!a.dataAgendamento) return false;
+      const cleanDateStr = a.dataAgendamento.substring(0, 10);
+      const parts = cleanDateStr.split('-');
+      const dataA = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      return dataA >= startOfWeek && dataA <= endOfWeek;
+    }).length;
+  }
+
+  get totalPendentes(): number {
+    return this.agendamentos.filter(a => a.status === 'AGENDADO' || a.status === 'PENDENTE').length;
+  }
+
+  get totalConfirmados(): number {
+    return this.agendamentos.filter(a => a.status === 'CONFIRMADO' || a.status === 'CONCLUIDO').length;
+  }
+
   ngOnInit(): void {
     this.carregarDados();
+    this.carregarNomeOficina();
+  }
+
+  carregarNomeOficina(): void {
+    const idEmpresa = this.comunicacaoService.tenantId;
+    this.empresaService.getEmpresa(idEmpresa).subscribe({
+      next: (emp) => {
+        if (emp && (emp.nomeFantasia || emp.razaoSocial)) {
+          this.oficinaNome = emp.nomeFantasia || emp.razaoSocial;
+        }
+      },
+      error: (err) => console.error('Erro ao buscar dados da empresa', err)
+    });
   }
 
   carregarDados(): void {
@@ -109,14 +167,82 @@ export class AgendamentosAlertas implements OnInit {
 
   // Filtragem
   get filtered() {
-    const term = this.searchTerm.trim().toLowerCase();
-    if (!term) return this.agendamentos || [];
+    let list = this.agendamentos || [];
 
-    return this.agendamentos.filter(a =>
+    // 1. Filtrar pelo período
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+
+    if (this.filtroPeriodo === 'dia') {
+      const hojeStr = this.formatDateYYYYMMDD(hoje);
+      list = list.filter(a => a.dataAgendamento && a.dataAgendamento.substring(0, 10) === hojeStr);
+    } else if (this.filtroPeriodo === 'semana') {
+      const startOfWeek = new Date(hoje);
+      startOfWeek.setDate(hoje.getDate() - hoje.getDay()); // Sunday as first day
+      startOfWeek.setHours(0,0,0,0);
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday as last day
+      endOfWeek.setHours(23,59,59,999);
+
+      list = list.filter(a => {
+        if (!a.dataAgendamento) return false;
+        const cleanDateStr = a.dataAgendamento.substring(0, 10);
+        const parts = cleanDateStr.split('-');
+        const dataA = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return dataA >= startOfWeek && dataA <= endOfWeek;
+      });
+    } else if (this.filtroPeriodo === 'mes') {
+      const mesAtual = hoje.getMonth();
+      const anoAtual = hoje.getFullYear();
+      list = list.filter(a => {
+        if (!a.dataAgendamento) return false;
+        const cleanDateStr = a.dataAgendamento.substring(0, 10);
+        const parts = cleanDateStr.split('-');
+        return Number(parts[0]) === anoAtual && (Number(parts[1]) - 1) === mesAtual;
+      });
+    } else if (this.filtroPeriodo === 'custom') {
+      if (this.dataFiltroInicio) {
+        const startParts = this.dataFiltroInicio.split('-');
+        const startLimit = new Date(Number(startParts[0]), Number(startParts[1]) - 1, Number(startParts[2]));
+        startLimit.setHours(0,0,0,0);
+        list = list.filter(a => {
+          if (!a.dataAgendamento) return false;
+          const cleanDateStr = a.dataAgendamento.substring(0, 10);
+          const parts = cleanDateStr.split('-');
+          const dataA = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          return dataA >= startLimit;
+        });
+      }
+      if (this.dataFiltroFim) {
+        const endParts = this.dataFiltroFim.split('-');
+        const endLimit = new Date(Number(endParts[0]), Number(endParts[1]) - 1, Number(endParts[2]));
+        endLimit.setHours(23,59,59,999);
+        list = list.filter(a => {
+          if (!a.dataAgendamento) return false;
+          const cleanDateStr = a.dataAgendamento.substring(0, 10);
+          const parts = cleanDateStr.split('-');
+          const dataA = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+          return dataA <= endLimit;
+        });
+      }
+    }
+
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return list;
+
+    return list.filter(a =>
       (a.clienteNome || '').toLowerCase().includes(term) ||
       (a.numeroAgendamento || '').toLowerCase().includes(term) ||
       (a.tipoAgendamentoNome || '').toLowerCase().includes(term)
     );
+  }
+
+  private formatDateYYYYMMDD(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   get pagedData() {
@@ -158,6 +284,14 @@ export class AgendamentosAlertas implements OnInit {
      this.router.navigate(['/agendamento/cadastro', { id: agendamento.id }]);
   }
 
+  criarOsParaAgendamento(agendamento: AgendamentoResponse): void {
+    if (agendamento.veiculoId) {
+      this.router.navigate(['/os/cadastro'], { queryParams: { veiculoId: agendamento.veiculoId } });
+    } else {
+      this.router.navigate(['/os/cadastro'], { queryParams: { clienteId: agendamento.clienteId } });
+    }
+  }
+
   deletar(agendamento: AgendamentoResponse): void {
     if (confirm(`Atenção! Você deseja mesmo cancelar o Agendamento de ${agendamento.clienteNome}?`)) {
       this.agendamentoService.delete(agendamento.id).subscribe({
@@ -177,7 +311,7 @@ export class AgendamentosAlertas implements OnInit {
   salvandoAlerta = false;
   alertaRecord: AgendamentoResponse | null = null;
   alertaNome = '';
-  alertaEnviarPorOptions = ['EMAIL', 'SMS', 'WHATSAPP'];
+  alertaEnviarPorOptions = ['EMAIL', 'WHATSAPP'];
   alertaEnviarPor = 'EMAIL';
   alertaAssunto = '';
   alertaEmail = '';
@@ -196,25 +330,38 @@ export class AgendamentosAlertas implements OnInit {
     this.alertaNome = record?.clienteNome || '';
     this.alertaEnviarPor = 'EMAIL';
     this.alertaAssunto = `Lembrete de Agendamento: ${record?.tipoAgendamentoNome || 'Serviço'}`;
-    this.alertaEmail = '';  // se backend mandasse email ppreencheriamos
+    this.alertaEmail = '';
     this.alertaCelular = '';
 
     if (record) {
-      this.alertaMensagem = `Olá ${record?.clienteNome || ''},\n\nEste é um lembrete do seu agendamento (${record?.tipoAgendamentoNome}) conosco marcado para o dia ${this.formatDate(record?.dataAgendamento)} às ${record?.horaInicio}.\nPor favor, nos confirme se poderá comparecer.\n\nAtenciosamente,\nSua Oficina.`;
+      const tipoServico = record?.tipoAgendamentoNome ? `de ${record.tipoAgendamentoNome}` : 'de serviço';
+      this.alertaMensagem = `Olá ${record?.clienteNome || ''},\n\nEste é um lembrete do seu agendamento ${tipoServico} conosco marcado para o dia ${this.formatDate(record?.dataAgendamento)} às ${record?.horaInicio}.\nPor favor, nos confirme se poderá comparecer.\n\nAtenciosamente,\n${this.oficinaNome}.`;
 
       // Buscar contatos ativamente do cadastro do Cliente
       this.clienteService.getById(record.clienteId).subscribe({
          next: (cliente: any) => {
             if (cliente) {
-               // Preenche com o telefone ou email que vieram da API
-               this.alertaCelular = cliente.telefoneVoz || cliente.telefoneWhatsapp || '';
-               this.alertaEmail = cliente.emailPrincipal || cliente.emailSecundario || '';
+               this.alertaEmail = cliente.email || '';
             }
+            // Buscar contatos telefônicos na sub-tabela de contatos
+            this.clienteService.listarContatos(record.clienteId).subscribe({
+               next: (contactsRes: any) => {
+                  const contatos = contactsRes.content || [];
+                  const wppOrCell = contatos.find((c: any) => c.tipoContato === 'WHATSAPP' || c.tipoContato === 'CELULAR');
+                  if (wppOrCell) {
+                     this.alertaCelular = wppOrCell.contato;
+                  } else {
+                     const fallbackCell = contatos.find((c: any) => c.tipoContato === 'TELEFONE_FIXO' || c.contato);
+                     this.alertaCelular = fallbackCell ? fallbackCell.contato : '';
+                  }
+               },
+               error: (err: any) => console.error('Aviso: Falha ao carregar contatos do cliente para o Alerta', err)
+            });
          },
          error: (err: any) => console.error('Aviso: Falha ao carregar metadados do cliente para o Alerta', err)
       });
     } else {
-      this.alertaMensagem = 'Olá\n\nVocê possui um agendamento marcado conosco.\nPor favor, entre em contato para confirmar.\n\nAtenciosamente,\nSua Oficina.';
+      this.alertaMensagem = `Olá\n\nVocê possui um agendamento marcado conosco.\nPor favor, entre em contato para confirmar.\n\nAtenciosamente,\n${this.oficinaNome}.`;
     }
   }
 
@@ -228,7 +375,7 @@ export class AgendamentosAlertas implements OnInit {
        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe um Email de destino adequado.' });
        return;
     }
-    if ((this.alertaEnviarPor === 'SMS' || this.alertaEnviarPor === 'WHATSAPP') && !this.alertaCelular) {
+    if (this.alertaEnviarPor === 'WHATSAPP' && !this.alertaCelular) {
        this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Por favor, informe um Celular de destino adequado.' });
        return;
     }
@@ -249,7 +396,7 @@ export class AgendamentosAlertas implements OnInit {
       assunto: this.alertaEnviarPor === 'EMAIL' ? this.alertaAssunto : undefined,
       conteudo: this.alertaMensagem,
       agendamentoId: this.alertaRecord?.id, // Vincula a comunicacao c o agendamento!
-      status: 'PENDENTE',
+      status: 'AGENDADA',
       automatica: false
     };
 
@@ -278,17 +425,17 @@ export class AgendamentosAlertas implements OnInit {
   }
 
   getStatusBadgeClass(status: string | undefined): string {
-    if (!status) return 'bg-gray-100 text-gray-700 ring-gray-600/20';
+    if (!status) return 'nt-badge';
 
     switch (status.toUpperCase()) {
-      case 'AGENDADO': return 'bg-yellow-100 text-yellow-700 ring-yellow-600/20';
-      case 'CONFIRMADO': return 'bg-blue-100 text-blue-700 ring-blue-600/20';
-      case 'EM_ANDAMENTO': return 'bg-indigo-100 text-indigo-700 ring-indigo-600/20';
-      case 'CONCLUIDO': return 'bg-green-100 text-green-700 ring-green-600/20';
-      case 'REAGENDADO': return 'bg-orange-100 text-orange-700 ring-orange-600/20';
+      case 'AGENDADO': return 'nt-badge nt-badge--info';
+      case 'CONFIRMADO': return 'nt-badge nt-badge--success';
+      case 'EM_ANDAMENTO': return 'nt-badge nt-badge--info';
+      case 'CONCLUIDO': return 'nt-badge nt-badge--success';
+      case 'REAGENDADO': return 'nt-badge nt-badge--warning';
       case 'CANCELADO':
-      case 'NAO_COMPARECEU': return 'bg-red-100 text-red-700 ring-red-600/20';
-      default: return 'bg-gray-100 text-gray-700 ring-gray-600/20';
+      case 'NAO_COMPARECEU': return 'nt-badge nt-badge--danger';
+      default: return 'nt-badge';
     }
   }
 }

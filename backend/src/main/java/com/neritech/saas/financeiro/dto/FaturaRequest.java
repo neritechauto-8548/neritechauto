@@ -27,6 +27,10 @@ public record FaturaRequest(
         Long condicaoPagamentoId,
         String observacoes,
         String observacoesInternas,
+        
+        BigDecimal valorServicos,
+        BigDecimal valorProdutos,
+        @NotNull(message = "Valor total é obrigatório") BigDecimal valorTotal,
 
         List<ItemFaturaRequest> itens) {
 }

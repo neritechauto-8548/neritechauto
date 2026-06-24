@@ -37,17 +37,23 @@ public class FechamentoCaixaService {
              page = repository.findByEmpresaId(empresaId, pageable);
         }
 
+        java.util.Set<Long> userIds = page.getContent().stream()
+                .map(FechamentoCaixa::getUsuarioResponsavel)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+
+        java.util.Map<Long, String> userNames = new java.util.HashMap<>();
+        if (!userIds.isEmpty()) {
+            java.util.List<Object[]> results = usuarioService.findNomesCompletosByIdsAndEmpresaId(userIds, empresaId);
+            for (Object[] row : results) {
+                userNames.put((Long) row[0], (String) row[1]);
+            }
+        }
+
         return page.map(entity -> {
             FechamentoCaixaResponse response = mapper.toResponse(entity);
             if (entity.getUsuarioResponsavel() != null) {
-                try {
-                    var user = usuarioService.findById(entity.getUsuarioResponsavel());
-                    if (user != null) {
-                        response.setResponsavelNome(user.getNomeCompleto());
-                    }
-                } catch (Exception e) {
-                    // Ignora se não achar o usuário para não quebrar a listagem
-                }
+                response.setResponsavelNome(userNames.get(entity.getUsuarioResponsavel()));
             }
             return response;
         });
@@ -112,5 +118,25 @@ public class FechamentoCaixaService {
                 .filter(e -> e.getEmpresaId().equals(empresaId))
                 .orElseThrow(() -> new RuntimeException("Fechamento de caixa não encontrado"));
         repository.delete(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public void validarCaixaAberto(Long empresaId, LocalDate dataMovimentacao) {
+        if (dataMovimentacao == null) return;
+        repository.findFirstByEmpresaIdAndSituacaoOrderByDataFechamentoDesc(empresaId, "FECHADO")
+                .ifPresent(ultimoFechamento -> {
+                    LocalDate limite = ultimoFechamento.getDataFechamento().toLocalDate();
+                    if (!dataMovimentacao.isAfter(limite)) {
+                        throw new RuntimeException("Não é possível realizar lançamentos ou alterações em um período de caixa fechado (" + 
+                            limite.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ")");
+                    }
+                });
+    }
+
+    @Transactional(readOnly = true)
+    public LocalDate getUltimaDataFechamento(Long empresaId) {
+        return repository.findFirstByEmpresaIdAndSituacaoOrderByDataFechamentoDesc(empresaId, "FECHADO")
+                .map(f -> f.getDataFechamento().toLocalDate())
+                .orElse(null);
     }
 }

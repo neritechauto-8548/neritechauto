@@ -8,34 +8,94 @@
     </div>
   }
 
-  <!-- Page Header (Analytics Dashboard) -->
-  <div class="bg-white border-b border-slate-200 dark:bg-slate-800 dark:border-slate-700 px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center text-sm font-medium text-slate-500 dark:text-slate-400">
-      <i class="pi pi-home mr-2 text-slate-400"></i>
-      <i class="pi pi-angle-right mx-2 text-xs opacity-50"></i>
-      <span class="text-slate-700 dark:text-slate-200">Analytics Dashboard</span>
-    </div>
-    <div class="flex gap-4 text-slate-400">
-      <button class="hover:text-slate-600"><i class="pi pi-chart-line"></i></button>
-      <button class="hover:text-slate-600"><i class="pi pi-bookmark"></i></button>
-      <button class="hover:text-slate-600"><i class="pi pi-power-off"></i></button>
-    </div>
-  </div>
+   <div class="p-6 md:p-8 space-y-6">
 
-  <div class="p-6 md:p-8 space-y-6">
+    <!-- Top Grid: Status Cards (Aberto, Autorizado, Cancelado, Fechado) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-    <!-- Top Grid: Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Monthly Comparison (Bar Chart) -->
-      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between mb-2">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Comparativo Mensal</h3>
-            <button class="text-sm font-semibold text-blue-500 hover:text-blue-600 transition-colors">
-              Vertical/Empilhado
-            </button>
+      <!-- Card 1: Aberto -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800/40 cursor-default">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50/50 text-blue-600 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-400">Aberto</span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Abertos - {{ mesAnoAtualLabel }}</p>
+          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ abertosMes }}</h3>
         </div>
-        <div id="chart" class="h-[350px]">
+        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
+          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ abertosTotal }}</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Autorizado -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-amber-200 dark:hover:border-amber-800/40 cursor-default">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-amber-200 bg-amber-50/50 text-amber-600 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">Autorizado</span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Autorizados - {{ mesAnoAtualLabel }}</p>
+          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ autorizadosMes }}</h3>
+        </div>
+        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
+          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ autorizadosTotal }}</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Cancelado -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-red-200 dark:hover:border-red-800/40 cursor-default">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50/50 text-red-600 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400">Cancelado</span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Cancelados - {{ mesAnoAtualLabel }}</p>
+          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ canceladosMes }}</h3>
+        </div>
+        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
+          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ canceladosTotal }}</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Fechado -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800/40 cursor-default">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-emerald-200 bg-emerald-50/50 text-emerald-600 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">Fechado</span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Fechados - {{ mesAnoAtualLabel }}</p>
+          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ fechadosMes }}</h3>
+        </div>
+        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
+          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ fechadosTotal }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Middle Grid: Chart + Entries/Exits and Informativos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Relatório de Peças e Serviços (Area Chart) -->
+      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h3 class="text-lg font-bold text-slate-800 dark:text-white">Relatório de Peças e Serviços</h3>
+              <p class="text-xs text-slate-400 dark:text-slate-500">Periodo: Últimos seis meses</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors">
+                <i class="pi pi-filter text-xs"></i>
+              </button>
+              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors" (click)="exportarRelatorio()">
+                <i class="pi pi-external-link text-xs"></i>
+              </button>
+            </div>
+          </div>
+          <div id="chart" class="h-[350px]">
             <apx-chart
               [series]="chartOptions.series!"
               [chart]="chartOptions.chart!"
@@ -48,211 +108,84 @@
               [colors]="chartOptions.colors!"
               [grid]="chartOptions.grid!"
               [fill]="chartOptions.fill!"
-              [plotOptions]="chartOptions.plotOptions!"
             />
+          </div>
         </div>
       </div>
 
-      <!-- Insights (Radial Chart) -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col">
-        <div class="flex items-center justify-between mb-2">
-           <h3 class="text-lg font-bold text-slate-800 dark:text-white">Insights</h3>
-           <button class="text-slate-400 hover:text-slate-600"><i class="pi pi-ellipsis-h"></i></button>
-        </div>
-        <div class="flex justify-between text-xs text-slate-400 font-medium mb-4">
-           <span>Novembro 22 - Novembro 29</span>
-           <span class="text-blue-500 font-semibold cursor-pointer">Parcial/Total</span>
+      <!-- Right Column: Entry/Exit counters & Informativos stacked -->
+      <div class="flex flex-col gap-6">
+
+        <!-- Entradas de veículos no mês -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
+          <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-center shadow-sm">
+            <i class="pi pi-arrow-down text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Entradas de veículos no mês</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ entradasVeiculosMes }}</h3>
+          </div>
         </div>
 
-        <div class="flex-1 flex flex-col justify-center">
-            <div id="insightsChart" class="flex justify-center -mt-8">
-              <apx-chart
-                [series]="insightsChartOptions.series!"
-                [chart]="insightsChartOptions.chart!"
-                [plotOptions]="insightsChartOptions.plotOptions!"
-                [labels]="insightsChartOptions.labels!"
-                [colors]="insightsChartOptions.colors!"
-                [fill]="insightsChartOptions.fill!"
-                [grid]="insightsChartOptions.grid!"
-              />
-            </div>
+        <!-- Saídas de veículos no mês -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
+          <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 border border-rose-100 dark:border-rose-900/40 flex items-center justify-center shadow-sm">
+            <i class="pi pi-arrow-up text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Saídas de veículos no mês</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ saidasVeiculosMes }}</h3>
+          </div>
+        </div>
 
-            <!-- Best/Worst Days -->
-            <div class="space-y-4 mt-2">
-              <div class="flex items-center justify-between">
+        <!-- Informativos (Últimos 7 dias) -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Informativos (Últimos 7 dias)</h3>
+            <div class="space-y-4">
+              
+              <!-- Item 1: Veículos em Atraso -->
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
-                    <i class="pi pi-thumbs-up"></i>
-                  </div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                   <div>
-                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Melhor Dia da Semana</p>
-                    <p class="text-xs text-slate-500">Sexta-feira</p>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Veículos com entrega atrasada</p>
+                    <p class="text-[10px] text-slate-400">Verifique os prazos prometidos</p>
                   </div>
                 </div>
-                <span class="text-indigo-500 font-bold text-lg">95</span>
+                <span class="text-xs font-bold px-2 py-0.5 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 rounded-md">{{ veiculosEmAtraso }}</span>
               </div>
-              <div class="flex items-center justify-between">
+
+              <!-- Item 2: Clientes Ativos -->
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
-                    <i class="pi pi-thumbs-down"></i>
-                  </div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
                   <div>
-                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Pior Dia da Semana</p>
-                    <p class="text-xs text-slate-500">Sábado</p>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Total de clientes ativos</p>
+                    <p class="text-[10px] text-slate-400">Expansão da base cadastral</p>
                   </div>
                 </div>
-                <span class="text-indigo-500 font-bold text-lg">6</span>
+                <span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-amber-400 rounded-md">{{ stats.totalClientes || 0 }}</span>
               </div>
+
+              <!-- Item 3: Ticket Médio -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                  <div>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ticket médio geral das OS</p>
+                    <p class="text-[10px] text-slate-400">Faturamento médio por ordem</p>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">R$ {{ (stats.ticketMedio || 0) | number:'1.2-2' }}</span>
+              </div>
+
             </div>
+          </div>
         </div>
+
       </div>
 
     </div>
-
-    <!-- Middle Grid: Stat Cards (Apollo Style) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-      <!-- Faturamento Card -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between mb-8">
-          <!-- Icon placeholder (using pi-wallet since it's Faturamento) -->
-          <i class="pi pi-wallet text-5xl text-slate-400 dark:text-slate-500"></i>
-          <div class="text-right">
-            <h3 class="text-3xl font-normal text-slate-800 dark:text-white">R$ {{ (stats.faturamentoMes || 0) | number:'1.2-2' }}</h3>
-            <p class="text-sm text-slate-400 font-medium">Faturamento Mensal</p>
-          </div>
-        </div>
-        <div class="flex justify-between gap-4">
-          <!-- Target -->
-          <div class="w-1/2">
-            <div class="text-center mb-1">
-              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Meta</span><br>
-              <span class="text-[10px] text-slate-400">R$ 100.000</span>
-            </div>
-            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500" style="width: 45%;"></div>
-            </div>
-          </div>
-          <!-- All Time Record -->
-          <div class="w-1/2">
-            <div class="text-center mb-1">
-              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Recorde Histórico</span><br>
-              <span class="text-[10px] text-slate-400">R$ 150.702</span>
-            </div>
-            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500" style="width: 30%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Serviços (Facebook equivalent in the image) -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between mb-8">
-          <i class="pi pi-wrench text-5xl text-slate-600 dark:text-slate-400"></i>
-          <div class="text-right">
-            <h3 class="text-3xl font-normal text-slate-800 dark:text-white">{{ veiculosEntregues }}</h3>
-            <p class="text-sm text-slate-400 font-medium">Serviços Entregues</p>
-          </div>
-        </div>
-        <div class="flex justify-between gap-4">
-          <!-- Target -->
-          <div class="w-1/2">
-            <div class="text-center mb-1">
-              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Meta</span><br>
-              <span class="text-[10px] text-slate-400">100</span>
-            </div>
-            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500" [style.width.%]="metaMesPercentual"></div>
-            </div>
-          </div>
-          <!-- All Time Record -->
-          <div class="w-1/2">
-            <div class="text-center mb-1">
-              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Recorde Histórico</span><br>
-              <span class="text-[10px] text-slate-400">189</span>
-            </div>
-            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500" style="width: 60%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ticket Medio (Github equivalent in the image) -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-        <div class="flex items-center justify-between mb-8">
-          <i class="pi pi-chart-bar text-5xl text-slate-800 dark:text-slate-200"></i>
-          <div class="text-right">
-            <h3 class="text-3xl font-normal text-slate-800 dark:text-white">R$ {{ ticketMedioGeral | number:'1.2-2' }}</h3>
-            <p class="text-sm text-slate-400 font-medium">Ticket Médio</p>
-          </div>
-        </div>
-        <div class="flex justify-between gap-4">
-          <!-- Target -->
-          <div class="w-1/2">
-            <div class="text-center mb-1">
-              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Meta</span><br>
-              <span class="text-[10px] text-slate-400">R$ 1.000</span>
-            </div>
-            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500" style="width: 80%;"></div>
-            </div>
-          </div>
-          <!-- All Time Record -->
-          <div class="w-1/2">
-            <div class="text-center mb-1">
-              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Recorde Histórico</span><br>
-              <span class="text-[10px] text-slate-400">R$ 1.625</span>
-            </div>
-            <div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500" style="width: 50%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Bottom Grid: Sales by Store (Apollo Style) -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-       <!-- Store A -->
-       <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 text-center">
-          <p class="text-sm font-semibold text-slate-500 mb-1">Unidade Matriz</p>
-          <div class="w-16 h-1 bg-slate-200 mx-auto rounded-full mb-4"></div>
-          <!-- placeholder content to match the bottom part of the image -->
-          <div class="h-20 flex items-center justify-center">
-             <span class="text-2xl font-light text-slate-300">Sem dados</span>
-          </div>
-       </div>
-       
-       <!-- Store B -->
-       <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 text-center">
-          <p class="text-sm font-semibold text-slate-500 mb-1">Unidade Centro</p>
-          <div class="w-16 h-1 bg-slate-200 mx-auto rounded-full mb-4"></div>
-          <div class="h-20 flex items-center justify-center">
-             <span class="text-2xl font-light text-slate-300">Sem dados</span>
-          </div>
-       </div>
-
-       <!-- Store C -->
-       <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 text-center">
-          <p class="text-sm font-semibold text-slate-500 mb-1">Unidade Sul</p>
-          <div class="w-16 h-1 bg-slate-200 mx-auto rounded-full mb-4"></div>
-          <div class="h-20 flex items-center justify-center">
-             <span class="text-2xl font-light text-slate-300">Sem dados</span>
-          </div>
-       </div>
-
-       <!-- Store D -->
-       <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 text-center">
-          <p class="text-sm font-semibold text-slate-500 mb-1">Unidade Norte</p>
-          <div class="w-16 h-1 bg-slate-200 mx-auto rounded-full mb-4"></div>
-          <div class="h-20 flex items-center justify-center">
-             <span class="text-2xl font-light text-slate-300">Sem dados</span>
-          </div>
-       </div>
-    </div>
-
   </div>
 </div>

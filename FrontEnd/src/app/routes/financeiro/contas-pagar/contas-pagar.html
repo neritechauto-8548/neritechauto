@@ -2,182 +2,228 @@
   <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
   <app-confirmation-dialog />
 
-  <!-- Header Stripe -->
-  <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 sticky top-0 z-20 shadow-sm">
+  <!-- Page Header -->
+  <div class="bg-white border-b border-slate-200 px-6 py-1.5 sticky top-0 z-20 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div>
-        <h1 class="text-lg font-bold text-slate-900">Contas a Pagar</h1>
-        <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Gerencie suas obrigações financeiras</p>
+        <h1 class="text-lg font-bold tracking-tight text-slate-900">Contas a Pagar</h1>
+        <p class="text-[11px] text-slate-500 mt-0.5 hidden sm:block">Gerencie suas obrigações financeiras e pagamentos da oficina</p>
       </div>
-      <button (click)="abrirNovo()"
-        class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
-        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
-        Novo Lançamento
-      </button>
-    </div>
-  </div>
-
-  <!-- Cards de Totais -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 px-4 sm:px-6 py-4">
-
-    <!-- Em Aberto -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Em Aberto</span>
-        <span class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-amber-500">schedule</mat-icon>
-        </span>
-      </div>
-      <p class="text-lg font-bold text-slate-800">{{ formatCurrency(totalAberto) }}</p>
-      <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wide">A Vencer</p>
-    </div>
-
-    <!-- Vencido -->
-    <div class="bg-white border border-red-200 rounded-xl p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold text-red-600 uppercase tracking-wider">Vencido</span>
-        <span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-red-600">warning</mat-icon>
-        </span>
-      </div>
-      <p class="text-lg font-bold text-red-700">{{ formatCurrency(totalVencido) }}</p>
-      <p class="text-[10px] text-red-400 mt-0.5 uppercase tracking-wide">Em Atraso</p>
-    </div>
-
-    <!-- Pago -->
-    <div class="bg-white border border-emerald-200 rounded-xl p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Total Pago</span>
-        <span class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-emerald-600">check_circle</mat-icon>
-        </span>
-      </div>
-      <p class="text-lg font-bold text-emerald-700">{{ formatCurrency(totalPago) }}</p>
-      <p class="text-[10px] text-emerald-500 mt-0.5 uppercase tracking-wide">Quitado</p>
-    </div>
-  </div>
-
-  <!-- Barra de Busca -->
-  <div class="px-4 sm:px-6 pb-3">
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-      <div class="relative flex-1 max-w-lg">
-        <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 !text-[18px] !w-[18px] !h-[18px] text-slate-400">search</mat-icon>
-        <input [(ngModel)]="termo" type="text" placeholder="Buscar por descrição ou documento..."
-          class="w-full pl-10 pr-4 py-2 text-sm font-medium border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-colors placeholder:font-normal placeholder:text-slate-400" />
+      <div class="flex items-center gap-2">
+        <button pButton type="button" label="Imprimir" icon="pi pi-print" (click)="imprimir('pdf')" class="p-button-info p-button-sm shadow-sm"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Incluir conta" (click)="abrirNovo()" class="p-button-info p-button-sm shadow-sm"></button>
+        <button pButton type="button" icon="pi pi-arrow-circle-up" label="Quitar" (click)="quitarContas()" [disabled]="!selectedRows.length" class="p-button-success p-button-sm shadow-sm"></button>
       </div>
     </div>
   </div>
 
-  <!-- Tabela Stripe -->
-  <div class="px-4 sm:px-6 pb-8 flex-1">
+  <!-- Content Area -->
+  <div class="px-6 py-4 flex flex-col gap-4">
+
+    <!-- KPI Totais Cards (Only 3 cards: Em Aberto, Vencido, Total Pago) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Em Aberto (A Vencer) -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Em Aberto</span>
+          <span class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+            <i class="pi pi-clock text-amber-500 text-sm"></i>
+          </span>
+        </div>
+        <p class="text-xl font-bold text-slate-800 mt-1">{{ formatCurrency(totalAberto) }}</p>
+        <p class="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wider">A Vencer</p>
+      </div>
+
+      <!-- Vencido (Em Atraso) -->
+      <div class="bg-white border border-red-100 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] font-semibold text-red-600 uppercase tracking-wider">Vencido</span>
+          <span class="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+            <i class="pi pi-exclamation-triangle text-red-500 text-sm"></i>
+          </span>
+        </div>
+        <p class="text-xl font-bold text-red-600 mt-1">{{ formatCurrency(totalVencido) }}</p>
+        <p class="text-[9px] text-red-400 mt-0.5 uppercase tracking-wider">Em Atraso</p>
+      </div>
+
+      <!-- Total Pago (Quitado) -->
+      <div class="bg-white border border-emerald-100 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">Total Pago</span>
+          <span class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <i class="pi pi-check-circle text-emerald-500 text-sm"></i>
+          </span>
+        </div>
+        <p class="text-xl font-bold text-emerald-700 mt-1">{{ formatCurrency(totalPago) }}</p>
+        <p class="text-[9px] text-emerald-400 mt-0.5 uppercase tracking-wider">Quitado</p>
+      </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-4">
+      <div class="grid grid-cols-12 gap-3 items-end">
+        <!-- Search bar -->
+        <div class="col-span-12 md:col-span-4">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">Pesquisa rápida</label>
+          <div class="relative w-full">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input [(ngModel)]="termo" type="text" placeholder="Buscar por descrição ou documento..."
+              class="w-full pl-9 pr-4 py-2 text-sm font-medium border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-colors placeholder:font-normal placeholder:text-slate-400" />
+          </div>
+        </div>
+
+        <!-- Tipo -->
+        <div class="col-span-12 sm:col-span-6 md:col-span-2">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">Tipo</label>
+          <p-select [options]="tiposFiltro" optionLabel="label" optionValue="value" [(ngModel)]="filtroTipo" styleClass="w-full font-medium" appendTo="body" />
+        </div>
+
+        <!-- Venc. inicio -->
+        <div class="col-span-6 sm:col-span-3 md:col-span-3">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">Venc. início</label>
+          <p-datepicker [(ngModel)]="vencInicio" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" appendTo="body" />
+        </div>
+
+        <!-- Venc. fim -->
+        <div class="col-span-6 sm:col-span-3 md:col-span-3">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">Venc. fim</label>
+          <p-datepicker [(ngModel)]="vencFim" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" appendTo="body" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-12 gap-3 items-end pt-3 border-t border-slate-100">
+        <!-- Buscar por -->
+        <div class="col-span-12 md:col-span-6">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">Buscar por</label>
+          <p-select [options]="buscarPorOptions" optionLabel="label" optionValue="value" [(ngModel)]="buscarPor" (onChange)="onBuscarPorChange()" styleClass="w-full font-medium" appendTo="body" />
+        </div>
+
+        <!-- Filtro -->
+        <div class="col-span-12 md:col-span-6">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">Filtro</label>
+          <p-select [options]="filtroValorOptions" optionLabel="label" optionValue="value" [(ngModel)]="filtroValor" styleClass="w-full font-medium" appendTo="body" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela de Contas -->
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      
+      @if (loading) {
+        <div class="py-16 flex flex-col items-center gap-3 text-slate-400">
+          <i class="pi pi-spin pi-spinner text-2xl text-emerald-600"></i>
+          <span class="text-sm">Carregando contas a pagar...</span>
+        </div>
+      } @else if (rowsFiltradas.length === 0) {
+        <div class="py-16 flex flex-col items-center gap-3 text-slate-400">
+          <i class="pi pi-inbox text-5xl text-slate-300"></i>
+          <p class="text-sm font-semibold text-slate-500">Nenhuma conta encontrada</p>
+          <button pButton type="button" label="Criar primeiro lançamento" (click)="abrirNovo()" class="p-button-text p-button-sm p-button-emerald"></button>
+        </div>
+      } @else {
+        <p-table [value]="rowsFiltradas" [(selection)]="selectedRows" dataKey="id" [paginator]="true" [rows]="pageSize" [totalRecords]="totalElements" 
+                 (onPage)="onPage($event)" styleClass="p-datatable-sm" class="w-full">
+          <ng-template pTemplate="header">
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="w-12 py-3 px-4"><p-tableHeaderCheckbox /></th>
+              <th class="w-16 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Cod</th>
+              <th class="w-24 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Tipo</th>
+              <th class="w-28 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Nº Doc</th>
+              <th class="py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Descrição</th>
+              <th class="w-36 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Origem / Documento</th>
+              <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Vencimento</th>
+              <th class="w-28 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Pagamento</th>
+              <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-left">Status</th>
+              <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Valor</th>
+              <th class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-right">Valor pg</th>
+              <th alignFrozen="right" pFrozenColumn class="w-32 py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider text-center bg-slate-50 border-l border-slate-200">Ações</th>
+            </tr>
+          </ng-template>
 
-      <!-- Loading -->
-      <div *ngIf="loading" class="py-16 flex flex-col items-center gap-3 text-slate-400">
-        <mat-icon class="animate-spin !text-2xl">refresh</mat-icon>
-        <span class="text-sm">Carregando...</span>
-      </div>
+          <ng-template pTemplate="body" let-row>
+            <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition-colors group">
+              <td class="py-3 px-4"><p-tableCheckbox [value]="row" /></td>
+              
+              <!-- Cod -->
+              <td class="py-3 px-4 text-xs text-slate-700 font-semibold">
+                {{ row.id }}
+              </td>
 
-      <!-- Empty -->
-      <div *ngIf="!loading && rowsFiltradas.length === 0" class="py-16 flex flex-col items-center gap-3 text-slate-400">
-        <mat-icon class="!text-4xl text-slate-300">receipt_long</mat-icon>
-        <p class="text-sm font-semibold text-slate-500">Nenhuma conta encontrada</p>
-        <button (click)="abrirNovo()" class="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline">
-          Criar primeiro lançamento
-        </button>
-      </div>
+              <!-- Tipo -->
+              <td class="py-3 px-4">
+                <p-tag value="Despesa" severity="danger" />
+              </td>
 
-      <!-- Table -->
-      <table *ngIf="!loading && rowsFiltradas.length > 0" class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-slate-100 bg-slate-50">
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Documento</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Descrição</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Vencimento</th>
-            <th class="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Valor</th>
-            <th class="text-center py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-            <th class="text-center py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of rowsFiltradas"
-              class="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition-colors group">
+              <!-- Nº Doc -->
+              <td class="py-3 px-4 text-xs font-mono text-slate-600">
+                {{ row.numeroDocumento || '-' }}
+              </td>
 
-            <!-- Documento -->
-            <td class="py-3 px-4">
-              <span class="font-mono text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded">
-                {{ row.numeroDocumento || '#' + row.id }}
-              </span>
-            </td>
+              <!-- Descrição -->
+              <td class="py-3 px-4 text-xs text-slate-800 font-semibold truncate max-w-[200px]" [title]="row.descricao">
+                {{ row.descricao }}
+              </td>
 
-            <!-- Descrição -->
-            <td class="py-3 px-4">
-              <p class="font-semibold text-slate-800 text-sm truncate max-w-[220px]">{{ row.descricao }}</p>
-              <p class="text-xs font-medium text-slate-500 mt-0.5">{{ row.tipoTitulo }}</p>
-            </td>
+              <!-- Origem / Documento -->
+              <td class="py-3 px-4 text-xs text-slate-600 font-medium">
+                {{ row.tipoTitulo || '-' }}
+                @if (row.numeroTitulo) {
+                  <span class="text-slate-400 font-mono ml-1">#{{ row.numeroTitulo }}</span>
+                }
+              </td>
 
-            <!-- Vencimento -->
-            <td class="py-3 px-4">
-              <div class="flex items-center gap-1.5" [class.text-red-600]="getStatusClass(row.status, row.dataVencimento) === 'status-vencido'" [class.text-slate-600]="getStatusClass(row.status, row.dataVencimento) !== 'status-vencido'">
-                <mat-icon *ngIf="getStatusClass(row.status, row.dataVencimento) === 'status-vencido'" class="!text-[14px] !w-[14px] !h-[14px]">warning</mat-icon>
-                <span class="text-xs font-medium">{{ formatDate(row.dataVencimento) }}</span>
-              </div>
-            </td>
+              <!-- Vencimento -->
+              <td class="py-3 px-4 text-xs text-slate-600 font-medium">
+                {{ formatDate(row.dataVencimento) }}
+              </td>
 
-            <!-- Valor -->
-            <td class="py-3 px-4 text-right truncate">
-              <p class="font-bold text-slate-800">{{ formatCurrency(row.valorOriginal) }}</p>
-              <p *ngIf="row.valorPago && row.status === 'PAGO'" class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">
-                Pago: {{ formatCurrency(row.valorPago) }}
-              </p>
-            </td>
+              <!-- Pagamento -->
+              <td class="py-3 px-4 text-xs text-slate-600 font-medium">
+                {{ formatDate(row.dataPagamento) }}
+              </td>
 
-            <!-- Status -->
-            <td class="py-3 px-4 text-center">
-              <!-- Aberto -->
-              <span *ngIf="getStatusClass(row.status, row.dataVencimento) === 'status-aberto'"
-                class="inline-flex items-center justify-center px-2 py-1 bg-amber-400 text-amber-950 text-[10px] font-bold uppercase tracking-wider rounded-md">
-                {{ getStatusLabel(row.status, row.dataVencimento) }}
-              </span>
-              <!-- Vencido -->
-              <span *ngIf="getStatusClass(row.status, row.dataVencimento) === 'status-vencido'"
-                class="inline-flex items-center justify-center px-2 py-1 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md">
-                {{ getStatusLabel(row.status, row.dataVencimento) }}
-              </span>
-              <!-- Pago -->
-              <span *ngIf="getStatusClass(row.status, row.dataVencimento) === 'status-pago'"
-                class="inline-flex items-center justify-center px-2 py-1 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md">
-                {{ getStatusLabel(row.status, row.dataVencimento) }}
-              </span>
-              <!-- Cancelado -->
-              <span *ngIf="getStatusClass(row.status, row.dataVencimento) === 'status-cancelado'"
-                class="inline-flex items-center justify-center px-2 py-1 bg-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-wider rounded-md border border-slate-300">
-                {{ getStatusLabel(row.status, row.dataVencimento) }}
-              </span>
-            </td>
+              <!-- Status -->
+              <td class="py-3 px-4 text-left">
+                @if (getStatusClass(row.status, row.dataVencimento) === 'status-aberto') {
+                  <span class="nt-badge nt-badge--info">Em aberto</span>
+                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-vencido') {
+                  <span class="nt-badge nt-badge--danger">Vencido</span>
+                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-pago') {
+                  <span class="nt-badge nt-badge--success">Pago</span>
+                } @else if (getStatusClass(row.status, row.dataVencimento) === 'status-cancelado') {
+                  <span class="nt-badge nt-badge--neutral">Cancelado</span>
+                }
+              </td>
 
-            <!-- Ações -->
-            <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button *ngIf="row.status !== 'PAGO' && row.status !== 'CANCELADO'"
-                  (click)="quitar(row)"
-                  title="Quitar"
-                  class="w-7 h-7 rounded-lg flex items-center justify-center text-emerald-600 hover:bg-emerald-100 transition-colors">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">check_circle</mat-icon>
-                </button>
-                <button (click)="abrirEditar(row)" title="Editar"
-                  class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">edit</mat-icon>
-                </button>
-                <button (click)="excluir(row)" title="Excluir"
-                  class="w-7 h-7 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-100 transition-colors">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <!-- Valor -->
+              <td class="py-3 px-4 text-right text-xs font-bold text-slate-800">
+                {{ formatCurrency(row.valorOriginal) }}
+              </td>
+
+              <!-- Valor pg -->
+              <td class="py-3 px-4 text-right text-xs font-bold text-emerald-600">
+                {{ row.valorPago ? formatCurrency(row.valorPago) : '-' }}
+              </td>
+
+              <!-- Ações -->
+              <td alignFrozen="right" pFrozenColumn class="py-3 px-4 text-center bg-white border-l border-slate-100 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
+                <div class="flex items-center justify-center gap-1.5">
+                  <button pButton type="button" icon="pi pi-eye" (click)="abrirDetalhes(row)" title="Detalhes do Título"
+                          class="p-button-text p-button-info p-button-sm !w-8 !h-8 !p-0"></button>
+                  @if (row.status !== 'PAGO' && row.status !== 'CANCELADO') {
+                    <button pButton type="button" icon="pi pi-dollar" (click)="quitar(row)" title="Registrar Pagamento"
+                            class="p-button-text p-button-success p-button-sm !w-8 !h-8 !p-0"></button>
+                  }
+                  <button pButton type="button" icon="pi pi-pencil" (click)="abrirEditar(row)" title="Editar"
+                          class="p-button-text p-button-secondary p-button-sm !w-8 !h-8 !p-0"></button>
+                  <button pButton type="button" icon="pi pi-trash" (click)="excluir(row)" title="Excluir"
+                          class="p-button-text p-button-danger p-button-sm !w-8 !h-8 !p-0"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
     </div>
   </div>
 </div>
@@ -186,113 +232,372 @@
 <!-- Dialog: Novo / Editar Lançamento                        -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <p-dialog [(visible)]="dialogVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '540px', maxHeight: '90vh' }"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '640px', maxHeight: '90vh' }"
   [contentStyle]="{'padding':'0','overflow':'hidden'}"
   styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
 
-  <ng-container>
-
-    <!-- Header Stripe -->
-    <div class="bg-slate-900 px-5 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
-          <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">{{ editandoId ? 'edit' : 'add_circle' }}</mat-icon>
-        </div>
-        <div>
-          <h2 class="text-base font-bold text-white">{{ editandoId ? 'Editar Lançamento' : 'Novo Lançamento' }}</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Preencha os detalhes da obrigação</p>
-        </div>
+  <!-- Header -->
+  <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-slate-200/60 rounded-xl flex items-center justify-center text-slate-700">
+        <i class="text-slate-600 text-lg" [class]="editandoId ? 'pi pi-pencil' : 'pi pi-plus-circle'"></i>
       </div>
-      <button (click)="dialogVisible = false" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-        <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
-      </button>
+      <div>
+        <h2 class="text-base font-bold text-slate-900">{{ editandoId ? 'Editar Lançamento' : 'Novo Lançamento de Despesa' }}</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Preencha os detalhes da obrigação financeira</p>
+      </div>
     </div>
+    <button (click)="dialogVisible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+      <i class="pi pi-times text-slate-500"></i>
+    </button>
+  </div>
 
-    <!-- Body -->
-    <div class="px-5 py-5 bg-white space-y-4 overflow-y-auto" style="max-height: calc(90vh - 140px)">
-
+  <!-- Body (Grid-12 layout) -->
+  <div class="px-6 py-5 bg-white overflow-y-auto" style="max-height: calc(90vh - 140px)">
+    <div class="grid grid-cols-12 gap-4">
+      
       <!-- Descrição -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-700">Descrição <span class="text-rose-500">*</span></label>
-        <input pInputText [(ngModel)]="form.descricao" placeholder="Ex: Aluguel de equipamento..." class="w-full text-sm font-medium border-slate-300" />
+      <div class="col-span-12">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Descrição <span class="text-rose-500">*</span></label>
+        <input pInputText [(ngModel)]="form.descricao" placeholder="Ex: Fornecimento de peças..." class="w-full text-sm font-medium border-slate-300" />
       </div>
 
-      <!-- Fornecedor -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-700">Fornecedor <span class="text-rose-500">*</span></label>
+      <!-- Fornecedor (Autocomplete) -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Fornecedor</label>
         <p-autoComplete [(ngModel)]="fornecedorNome" [suggestions]="fornecedoresFiltrados"
           (completeMethod)="filtrarFornecedores($event)"
           field="nomeFantasia" dataKey="id"
-          placeholder="Digite o nome do fornecedor..."
+          placeholder="Pesquisar fornecedor por nome..."
           [dropdown]="true" styleClass="w-full"
           inputStyleClass="w-full text-sm font-medium border-slate-300">
           <ng-template let-f pTemplate="item">
-            <div>
-              <span class="font-medium text-sm text-slate-800">{{ f.nomeFantasia }}</span>
-              <span *ngIf="f.cnpj" class="text-xs text-slate-400 ml-2 font-mono">{{ f.cnpj }}</span>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-slate-800 text-sm">{{ f.nomeFantasia || f.razaoSocial }}</span>
+              <span *ngIf="f.cnpj" class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{{ f.cnpj }}</span>
             </div>
           </ng-template>
         </p-autoComplete>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Nº Documento -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-slate-700">Nº Documento</label>
-          <input pInputText [(ngModel)]="form.numeroDocumento" placeholder="Opcional" class="w-full text-sm font-medium border-slate-300" />
-        </div>
-        <!-- Tipo -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-slate-700">Tipo</label>
-          <p-select [options]="tiposDocumento" [(ngModel)]="form.tipoTitulo" styleClass="w-full font-medium" />
-        </div>
+      <!-- Número do Documento -->
+      <div class="col-span-12 md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nº do Documento</label>
+        <input pInputText [(ngModel)]="form.numeroDocumento" placeholder="Ex: 12345..." class="w-full text-sm font-medium border-slate-300" />
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Emissão -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-slate-700">Data Emissão</label>
-          <p-datepicker [(ngModel)]="form.dataEmissao" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300" />
-        </div>
-        <!-- Vencimento -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold text-slate-700">Vencimento <span class="text-rose-500">*</span></label>
-          <p-datepicker [(ngModel)]="form.dataVencimento" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300" />
-        </div>
+      <!-- Tipo de Documento -->
+      <div class="col-span-12 md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Origem / Documento</label>
+        <p-select [options]="tiposDocumento" optionLabel="label" optionValue="value" [(ngModel)]="form.tipoTitulo" styleClass="w-full font-medium" appendTo="body" />
       </div>
 
-      <!-- Valor -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-700">Valor <span class="text-rose-500">*</span></label>
-        <p-inputnumber [(ngModel)]="form.valorOriginal" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-bold border-slate-300 text-slate-800" />
+      <!-- Data de Emissão -->
+      <div class="col-span-6 md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Data Emissão</label>
+        <p-datepicker [(ngModel)]="form.dataEmissao" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" />
+      </div>
+
+      <!-- Data de Vencimento -->
+      <div class="col-span-6 md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Vencimento <span class="text-rose-500">*</span></label>
+        <p-datepicker [(ngModel)]="form.dataVencimento" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" />
+      </div>
+
+      <!-- Valor Original -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor Original <span class="text-rose-500">*</span></label>
+        <p-inputnumber [(ngModel)]="form.valorOriginal" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-bold border-slate-300 text-slate-800 w-full" />
+      </div>
+
+      <!-- Conta Bancária de Origem -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Conta Bancária Origem</label>
+        <p-select [options]="contasBancarias" optionLabel="label" optionValue="value" [(ngModel)]="form.contaBancariaId" placeholder="Selecionar conta..." styleClass="w-full font-medium" appendTo="body" />
+      </div>
+
+      <!-- Forma de Pagamento -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Forma de Pagamento Padrão</label>
+        <p-select [options]="formasPagamento" optionLabel="label" optionValue="value" [(ngModel)]="form.formaPagamentoId" placeholder="Selecionar forma..." styleClass="w-full font-medium" appendTo="body" />
+      </div>
+
+      <!-- Departamento -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Departamento</label>
+        <p-select [options]="departamentos" optionLabel="label" optionValue="value" [(ngModel)]="form.centroCustoId" placeholder="Selecionar departamento..." styleClass="w-full font-medium" appendTo="body" />
       </div>
 
       <!-- Observações -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-bold text-slate-700">Observações</label>
-        <textarea pTextarea [(ngModel)]="form.observacoes" rows="2" class="w-full text-sm font-medium resize-none border-slate-300" placeholder="Opcional..."></textarea>
+      <div class="col-span-12">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Observações</label>
+        <textarea pTextarea [(ngModel)]="form.observacoes" rows="2" class="w-full text-sm font-medium resize-none border-slate-300" placeholder="Observações internas..."></textarea>
       </div>
 
       <!-- Quitar agora -->
-      <div class="flex items-center gap-2 py-3 px-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-        <input type="checkbox" id="quitarAgora" [(ngModel)]="form.quitarAgora" class="w-4 h-4 accent-emerald-600 rounded" />
-        <label for="quitarAgora" class="text-sm font-bold text-emerald-800 cursor-pointer select-none">
-          Quitar lançamento agora
-        </label>
+      @if (!editandoId) {
+        <div class="col-span-12 flex items-center gap-2 py-3.5 px-4 bg-emerald-50 border border-emerald-100 rounded-lg">
+          <input type="checkbox" id="quitarAgora" [(ngModel)]="form.quitarAgora" class="w-4 h-4 accent-emerald-600 rounded" />
+          <label for="quitarAgora" class="text-sm font-bold text-emerald-800 cursor-pointer select-none">
+            Registrar pagamento como PAGO agora
+          </label>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex gap-3 justify-end items-center">
+    <button pButton type="button" label="Cancelar" (click)="dialogVisible = false" class="p-button-outlined p-button-secondary"></button>
+    <button pButton type="button" icon="pi pi-check" [label]="salvando ? 'Salvando...' : 'Salvar Lançamento'" [loading]="salvando" (click)="salvar()" class="p-button-emerald shadow-sm"></button>
+  </div>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Dialog: Baixar Título (Registrar Pagamento)             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="quitarDialogVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '540px', maxHeight: '90vh' }"
+  [contentStyle]="{'padding':'0','overflow':'hidden'}"
+  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
+
+  <!-- Header -->
+  <div class="bg-emerald-50/60 border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-emerald-100/60 rounded-xl flex items-center justify-center text-emerald-700">
+        <i class="pi pi-dollar text-emerald-600 text-lg"></i>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-emerald-900">Baixar Título (Pagamento)</h2>
+        <p class="text-xs text-emerald-600 mt-0.5">Registre a saída do valor do caixa da oficina</p>
       </div>
     </div>
+    <button (click)="quitarDialogVisible = false" class="w-8 h-8 rounded-lg bg-emerald-100/40 hover:bg-emerald-100/80 flex items-center justify-center transition-colors">
+      <i class="pi pi-times text-emerald-700"></i>
+    </button>
+  </div>
 
-    <!-- Footer Stripe -->
-    <div class="bg-slate-50 px-5 py-4 border-t border-slate-200 flex gap-3 justify-end items-center">
-      <button (click)="dialogVisible = false"
-        class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 text-sm font-bold flex items-center justify-center transition-colors shadow-sm">
-        Cancelar
-      </button>
-      <button (click)="salvar()" [disabled]="salvando"
-        class="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
-        <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">check</mat-icon>
-        {{ salvando ? 'Salvando...' : 'Salvar' }}
-      </button>
+  <!-- Body (Grid-12 layout) -->
+  <div class="px-6 py-5 bg-white overflow-y-auto" style="max-height: calc(90vh - 140px)">
+    <div class="grid grid-cols-12 gap-4">
+
+      <!-- Detalhes do Título -->
+      @if (quitarRowSelected) {
+        <div class="col-span-12 bg-slate-50 border border-slate-200 rounded-lg p-3.5 mb-2">
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Descrição do Título</div>
+          <div class="text-sm font-bold text-slate-800 mt-0.5">{{ formPagamento.descricao }}</div>
+          <div class="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-slate-200">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Valor Original</span>
+              <span class="text-sm font-bold text-slate-700">{{ formatCurrency(formPagamento.valorOriginal) }}</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Vencimento</span>
+              <span class="text-sm font-bold text-slate-700" [class.text-red-600]="getStatusClass(quitarRowSelected.status, quitarRowSelected.dataVencimento) === 'status-vencido'">
+                {{ formatDate(quitarRowSelected.dataVencimento) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Data Pagamento -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Data de Pagamento</label>
+        <p-datepicker [(ngModel)]="formPagamento.dataPagamento" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" inputStyleClass="font-medium border-slate-300 w-full" />
+      </div>
+
+      <!-- Multa -->
+      <div class="col-span-6 md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Multa por Atraso</label>
+        <p-inputnumber [(ngModel)]="formPagamento.valorMulta" (onInput)="recalcularTotalPagamento()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-semibold border-slate-300 text-slate-800 w-full" />
+      </div>
+
+      <!-- Juros -->
+      <div class="col-span-6 md:col-span-3">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Juros de Mora</label>
+        <p-inputnumber [(ngModel)]="formPagamento.valorJuros" (onInput)="recalcularTotalPagamento()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-semibold border-slate-300 text-slate-800 w-full" />
+      </div>
+
+      <!-- Desconto -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Desconto / Abatimento</label>
+        <p-inputnumber [(ngModel)]="formPagamento.valorDesconto" (onInput)="recalcularTotalPagamento()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="font-semibold border-slate-300 text-slate-800 w-full" />
+      </div>
+
+      <!-- Valor Total do Pagamento -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor Total Pago <span class="text-rose-500">*</span></label>
+        <p-inputnumber [(ngModel)]="formPagamento.valorTotal" mode="currency" currency="BRL" locale="pt-BR" [disabled]="true" styleClass="w-full" inputStyleClass="font-black border-emerald-300 bg-emerald-50 text-emerald-800 w-full" />
+      </div>
+
+      <!-- Conta Bancária Origem -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Conta de Origem <span class="text-rose-500">*</span></label>
+        <p-select [options]="contasBancarias" optionLabel="label" optionValue="value" [(ngModel)]="formPagamento.contaBancariaId" placeholder="Selecionar conta..." styleClass="w-full font-medium" appendTo="body" />
+      </div>
+
+      <!-- Forma de Pagamento -->
+      <div class="col-span-12 md:col-span-6">
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Forma de Pagamento <span class="text-rose-500">*</span></label>
+        <p-select [options]="formasPagamento" optionLabel="label" optionValue="value" [(ngModel)]="formPagamento.formaPagamentoId" placeholder="Selecionar forma..." styleClass="w-full font-medium" appendTo="body" />
+      </div>
+
     </div>
-  </ng-container>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex gap-3 justify-end items-center">
+    <button pButton type="button" label="Cancelar" (click)="quitarDialogVisible = false" class="p-button-outlined p-button-secondary"></button>
+    <button pButton type="button" icon="pi pi-check" label="Confirmar Pagamento" [loading]="salvando" (click)="salvarPagamento()" class="p-button-emerald shadow-sm"></button>
+  </div>
+</p-dialog>
+
+<!-- Dialog: Quitar Lote                                     -->
+<p-dialog [(visible)]="quitarLoteDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true"
+  header="Quitar em Lote" [style]="{ width: '450px' }" appendTo="body">
+  
+  <div class="pt-4 pb-2">
+    <p class="text-slate-800 mb-4 text-sm font-medium">Deseja quitar as contas em um valor total de {{ formatCurrency(valorTotalQuitarLote) }}?</p>
+    
+    <label class="block text-slate-500 mb-1.5 text-sm">Conta Bancária</label>
+    <p-select [options]="contasBancarias" optionLabel="label" optionValue="value" [(ngModel)]="contaQuitarLoteId" styleClass="w-full font-medium" appendTo="body" />
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2 pt-3">
+      <button pButton type="button" icon="pi pi-check" label="Quitar em Lote" (click)="confirmarQuitar()" class="p-button-emerald shadow-sm" [loading]="loading"></button>
+      <button pButton type="button" icon="pi pi-times" label="Cancelar" (click)="quitarLoteDialogVisible = false" class="p-button-outlined p-button-secondary"></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- Dialog: Detalhes do Título (Abas)                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="dialogDetalhesVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
+  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '580px', maxHeight: '90vh' }"
+  [contentStyle]="{'padding':'0','overflow':'hidden'}"
+  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
+
+  <!-- Header -->
+  <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-slate-200/60 rounded-xl flex items-center justify-center text-slate-700">
+        <i class="pi pi-file-invoice text-slate-600 text-lg"></i>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Visualizar Conta</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Detalhamento completo do lançamento</p>
+      </div>
+    </div>
+    <button (click)="dialogDetalhesVisible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+      <i class="pi pi-times text-slate-500"></i>
+    </button>
+  </div>
+
+  @if (detalhesRowSelected) {
+    <div class="flex flex-col bg-slate-50 overflow-hidden" style="max-height: calc(90vh - 140px)">
+      
+      <!-- Cabeçalho Rápido do Dialog -->
+      <div class="px-6 py-4 bg-white border-b border-slate-200">
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Descrição</div>
+        <div class="text-sm font-bold text-slate-800 mt-0.5">{{ detalhesRowSelected.descricao }}</div>
+        
+        <div class="flex gap-4 mt-3">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Valor Original</span>
+            <span class="text-sm font-bold text-slate-700">{{ formatCurrency(detalhesRowSelected.valorOriginal) }}</span>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Status</span>
+            <span class="nt-badge" [ngClass]="{
+              'nt-badge--info': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-aberto',
+              'nt-badge--success': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-pago',
+              'nt-badge--danger': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-vencido',
+              'nt-badge--neutral': getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-cancelado'
+            }">{{ getStatusLabel(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Abas (Tabs) -->
+      <p-tabs value="0" class="flex-1 overflow-hidden flex flex-col">
+        <p-tablist class="bg-white px-4 border-b border-slate-200">
+          <p-tab value="0" class="text-xs font-semibold"><i class="pi pi-info-circle mr-1.5"></i> Geral</p-tab>
+        </p-tablist>
+
+        <p-tabpanels class="flex-1 overflow-y-auto p-0 bg-slate-50">
+          
+          <!-- Aba Geral -->
+          <p-tabpanel value="0">
+            <div class="p-5 grid grid-cols-1 gap-4">
+              <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Informações Principais</h3>
+                <div class="grid grid-cols-2 gap-y-4 gap-x-2">
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Emissão</span>
+                    <span class="text-xs font-semibold text-slate-700">{{ formatDate(detalhesRowSelected.dataEmissao) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Vencimento</span>
+                    <span class="text-xs font-semibold text-slate-700">{{ formatDate(detalhesRowSelected.dataVencimento) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Fornecedor</span>
+                    <span class="text-xs font-semibold text-slate-700 truncate block">{{ detalhesRowSelected.fornecedorId ? 'Fornecedor #' + detalhesRowSelected.fornecedorId : 'N/A' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Tipo Título</span>
+                    <span class="text-xs font-semibold text-slate-700">{{ detalhesRowSelected.tipoTitulo }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Nº Documento</span>
+                    <span class="text-xs font-semibold text-slate-700 font-mono">{{ detalhesRowSelected.numeroDocumento || '-' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Status</span>
+                    @if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-aberto') {
+                      <span class="nt-badge nt-badge--info">Em aberto</span>
+                    } @else if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-vencido') {
+                      <span class="nt-badge nt-badge--danger">Vencido</span>
+                    } @else if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-pago') {
+                      <span class="nt-badge nt-badge--success">Pago</span>
+                    } @else if (getStatusClass(detalhesRowSelected.status, detalhesRowSelected.dataVencimento) === 'status-cancelado') {
+                      <span class="nt-badge nt-badge--neutral">Cancelado</span>
+                    }
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Valores e Classificação</h3>
+                <div class="grid grid-cols-2 gap-y-4 gap-x-2">
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Departamento</span>
+                    <span class="text-xs font-semibold text-slate-700 truncate block">{{ detalhesRowSelected.centroCustoNome || 'N/A' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Plano de Contas</span>
+                    <span class="text-xs font-semibold text-slate-700 truncate block">{{ detalhesRowSelected.planoContasNome || 'N/A' }}</span>
+                  </div>
+                  <div class="col-span-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Observações</span>
+                    <span class="text-xs text-slate-600 block bg-slate-50 p-2 rounded border border-slate-100 min-h-[40px]">{{ detalhesRowSelected.observacoes || 'Nenhuma observação registrada.' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </p-tabpanel>
+
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+  }
+
+  <!-- Footer Actions -->
+  <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex gap-3 justify-end items-center">
+    <button pButton type="button" label="Fechar" (click)="dialogDetalhesVisible = false" class="p-button-secondary p-button-outlined"></button>
+  </div>
 </p-dialog>

@@ -7,11 +7,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
+import { SkeletonModule } from 'primeng/skeleton';
+import { MenuModule } from 'primeng/menu';
+import { NgxPermissionsService } from 'ngx-permissions';
 
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { VeiculoService } from './veiculo.service';
 import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
 
@@ -27,9 +27,8 @@ import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
     ButtonModule,
     TooltipModule,
     ToastModule,
-    MatMenuModule,
-    MatButtonModule,
-    MatIconModule,
+    SkeletonModule,
+    MenuModule,
     RouterModule
   ],
   providers: [MessageService]
@@ -38,6 +37,7 @@ export class Veiculo implements OnInit {
   private readonly router = inject(Router);
   private readonly veiculoService = inject(VeiculoService);
   private readonly messageService = inject(MessageService);
+  private readonly permissionsService = inject(NgxPermissionsService);
 
   // Estado
   loading = false;
@@ -142,30 +142,79 @@ export class Veiculo implements OnInit {
     }
   }
 
+  // Menu popup
+  activeRow: any = null;
+  activeMenuItems: MenuItem[] = [];
+
+  toggleMenu(row: any, event: Event, menu: any) {
+    this.currentVeiculo = row;
+    this.activeMenuItems = this.menuItemsFor(row);
+    menu.toggle(event);
+  }
+
+  menuItemsFor(row: any): MenuItem[] {
+    const items: MenuItem[] = [];
+    if (this.permissionsService.getPermission('VEICULO_EDITAR')) {
+      items.push({
+        label: 'Editar Veículo',
+        icon: 'pi pi-pencil',
+        routerLink: ['/veiculo/editar', row.id]
+      });
+    }
+    items.push({
+      label: 'Visualizar Cliente',
+      icon: 'pi pi-user',
+      routerLink: ['/cliente/editar', row.clienteId]
+    });
+    items.push({
+      label: 'Nova OS',
+      icon: 'pi pi-file-edit',
+      routerLink: ['/os/cadastro'],
+      queryParams: { veiculoId: row.id }
+    });
+    return items;
+  }
+
   cadastrarVeiculo() {
+    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Seu perfil não possui permissão para realizar esta operação.'
+      });
+      return;
+    }
     this.router.navigate(['/veiculo/cadastro']);
   }
 
   editarVeiculo(veiculo: VeiculoResponse) {
+    if (!this.permissionsService.getPermission('VEICULO_EDITAR')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Seu perfil não possui permissão para realizar esta operação.'
+      });
+      return;
+    }
     this.router.navigate(['/veiculo/editar', veiculo.id]);
   }
 
   // Helpers
   getStatusBadgeClass(status: StatusVeiculo | string | undefined | null): string {
-    if (!status) return 'bg-gray-100 text-gray-700 ring-gray-600/20';
+    if (!status) return 'nt-badge nt-badge--neutral';
 
     switch (status) {
       case StatusVeiculo.ATIVO:
-      case 'ATIVO': return 'bg-green-100 text-green-700 ring-green-600/20';
+      case 'ATIVO': return 'nt-badge nt-badge--success';
       case StatusVeiculo.INATIVO:
-      case 'INATIVO': return 'bg-gray-100 text-gray-700 ring-gray-600/20';
+      case 'INATIVO': return 'nt-badge nt-badge--neutral';
       case StatusVeiculo.VENDIDO:
-      case 'VENDIDO': return 'bg-blue-100 text-blue-700 ring-blue-600/20';
+      case 'VENDIDO': return 'nt-badge nt-badge--info';
       case StatusVeiculo.SINISTRO:
       case 'SINISTRO':
       case StatusVeiculo.BLOQUEADO:
-      case 'BLOQUEADO': return 'bg-red-100 text-red-700 ring-red-600/20';
-      default: return 'bg-gray-100 text-gray-700 ring-gray-600/20';
+      case 'BLOQUEADO': return 'nt-badge nt-badge--danger';
+      default: return 'nt-badge nt-badge--neutral';
     }
   }
 

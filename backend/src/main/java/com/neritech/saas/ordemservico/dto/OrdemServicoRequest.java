@@ -30,6 +30,7 @@ public record OrdemServicoRequest(
         String solucaoAplicada,
         String observacoesInternas,
         String observacoesCliente,
+        String comentarios,
         BigDecimal valorServicos,
         BigDecimal valorProdutos,
         BigDecimal valorDesconto,

@@ -5,6 +5,7 @@ import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
+import com.neritech.saas.gestaoUsuarios.repository.PermissaoRepository;
 import com.neritech.saas.gestaoUsuarios.domain.Funcao;
 import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
 import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
@@ -30,6 +31,7 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final FuncaoRepository funcaoRepository;
+    private final PermissaoRepository permissaoRepository;
     private final PasswordEncoder passwordEncoder;
     private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
     private final StripeService stripeService;
@@ -152,6 +154,37 @@ public class UsuarioService {
         return response;
     }
 
+    private java.util.Set<String> obterPermissoesUsuario(Usuario usuario) {
+        if (usuario.getFuncoes() == null) {
+            return java.util.Collections.emptySet();
+        }
+
+        boolean isAdmin = usuario.getFuncoes().stream()
+                .anyMatch(f -> f.getNome() != null && (
+                    "ADMIN".equalsIgnoreCase(f.getNome()) ||
+                    f.getNome().toUpperCase().contains("ADMIN") ||
+                    f.getNome().toUpperCase().contains("ADMINISTRADOR")
+                ));
+
+        if (isAdmin) {
+            try {
+                return permissaoRepository.findAll().stream()
+                        .filter(p -> p.getValor() != null)
+                        .map(p -> p.getValor())
+                        .collect(java.util.stream.Collectors.toSet());
+            } catch (Exception e) {
+                log.error("Erro ao carregar todas as permissões para o ADMIN", e);
+            }
+        }
+
+        return usuario.getFuncoes().stream()
+                .filter(f -> f.getPermissoes() != null)
+                .flatMap(f -> f.getPermissoes().stream())
+                .filter(p -> p.getValor() != null)
+                .map(p -> p.getValor())
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
     private UsuarioResponse toResponse(Usuario usuario) {
         Long empresaId = usuario.getEmpresaId();
         boolean assinaturaAtiva = false;
@@ -202,12 +235,7 @@ public class UsuarioService {
                         .preferencias(usuario.getPerfil() != null ? usuario.getPerfil().getPreferencias() : null)
                         .funcoes(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getNome()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
                         .funcoesIds(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
-                        .permissions(usuario.getFuncoes() != null ? usuario.getFuncoes().stream()
-                            .filter(f -> f.getPermissoes() != null)
-                            .flatMap(f -> f.getPermissoes().stream())
-                            .filter(p -> p.getChave() != null)
-                            .map(p -> p.getChave())
-                            .collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
+                        .permissions(obterPermissoesUsuario(usuario))
                         .assinaturaAtiva(assinaturaAtiva)
                         .subscriptionStatus(status)
                         .planoNivel(planoNivel)
@@ -249,18 +277,19 @@ public class UsuarioService {
                 .funcoesIds(usuario.getFuncoes() != null 
                     ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(Collectors.toSet()) 
                     : Collections.emptySet())
-                .permissions(usuario.getFuncoes() != null
-                    ? usuario.getFuncoes().stream()
-                        .filter(f -> f.getPermissoes() != null)
-                        .flatMap(f -> f.getPermissoes().stream())
-                        .filter(p -> p.getChave() != null)
-                        .map(p -> p.getChave())
-                        .collect(Collectors.toSet())
-                    : Collections.emptySet())
+                .permissions(obterPermissoesUsuario(usuario))
                 .planoNivel(planoNivel)
                 .assinaturaAtiva(false)
                 .subscriptionStatus(com.neritech.saas.empresa.domain.enums.StatusAssinatura.INATIVO)
                 .stripeUrl(stripeUrl)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Object[]> findNomesCompletosByIdsAndEmpresaId(java.util.Collection<Long> ids, Long empresaId) {
+        if (ids == null || ids.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return usuarioRepository.findNomesCompletosByIdsAndEmpresaId(ids, empresaId);
     }
 }

@@ -3,14 +3,14 @@
 <!-- Barra de Ações Superior (Sticky Top) -->
 <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 mb-6">
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton label="Editar" icon="pi pi-pencil" class="btn-stripe-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('editar')"></button>
     <button pButton [label]="isOrcamento ? 'Salvar Orçamento' : 'Salvar OS'" icon="pi pi-check" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm flex items-center gap-2" (click)="onAction('salvar')"></button>
   </div>
   <div class="flex flex-wrap items-center gap-2">
     <button pButton label="Imprimir" icon="pi pi-print" class="btn-secondary px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('imprimir')" [disabled]="isGeneratingPdf"></button>
-    <button pButton label="Via WhatsApp" icon="pi pi-send" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('enviar')"></button>
+    <button pButton label="Enviar" icon="pi pi-send" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirEnviarDialog()"></button>
     <div class="w-[1px] h-6 bg-slate-200 mx-2 hidden sm:block"></div>
-    <button *ngIf="!isOrcamento" pButton label="Receber" icon="pi pi-money-bill" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')"></button>
+    <button *ngIf="!isOrcamento && !isPagamentoPago()" pButton label="Gerar Financeiro" icon="pi pi-money-bill" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')" [disabled]="!isOSFinalizada()" [pTooltip]="!isOSFinalizada() ? 'Finalize a OS primeiro para liberar o financeiro' : ''"></button>
+    <button *ngIf="!isOrcamento && isPagamentoPago()" pButton label="Comprovante" icon="pi pi-check-circle" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="mostrarRecibo()"></button>
     <button pButton label="Fotos" icon="pi pi-camera" class="btn-stripe-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('fotos')"></button>
     <button *ngIf="!isOrcamento" pButton label="NF-e" icon="pi pi-file" class="btn-stripe-purple px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
     <button *ngIf="isOrcamento" pButton label="Aprovar/Converter" icon="pi pi-exchange" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
@@ -32,8 +32,13 @@
         <p class="text-[11px] text-slate-500 font-medium">Informações do cliente e do veículo</p>
       </div>
     </div>
-    <div class="text-xs font-bold text-slate-500 flex items-center gap-2 bg-white px-3 py-1.5 rounded border border-slate-200 shadow-sm">
-      <i class="pi pi-calendar"></i> Entrada: <span class="text-slate-800">{{ dataEntrada.data }} às {{ dataEntrada.hora }}</span>
+    <div class="flex items-center gap-2">
+      <div *ngIf="isPagamentoPago()" class="text-xs font-bold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm">
+        <i class="pi pi-check-circle"></i> Pago em: <span class="text-emerald-800">{{ dataPagamentoRealizado }}</span>
+      </div>
+      <div class="text-xs font-bold text-slate-500 flex items-center gap-2 bg-white px-3 py-1.5 rounded border border-slate-200 shadow-sm">
+        <i class="pi pi-calendar"></i> Entrada: <span class="text-slate-800">{{ dataEntrada.data }} às {{ dataEntrada.hora }}</span>
+      </div>
     </div>
   </div>
 
@@ -100,17 +105,17 @@
       <!-- Situação -->
       <div class="space-y-1">
         <label class="text-xs font-bold text-slate-700">Situação Oficina</label>
-        <p-select [(ngModel)]="situacao" [options]="[{label:'ALINHAMENTO', value:'ALINHAMENTO'}]" [disabled]="!editing" styleClass="w-full modern-select" />
+        <p-select [(ngModel)]="situacao" [options]="situacaoOptions" [disabled]="!editing" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
       </div>
       <!-- Localização -->
       <div class="space-y-1">
         <label class="text-xs font-bold text-slate-700">Localização no Pátio</label>
-        <p-select [(ngModel)]="localizacao" [options]="[{label:'ALINHAMENTO', value:'ALINHAMENTO'}]" [disabled]="!editing" styleClass="w-full modern-select" />
+        <p-select [(ngModel)]="localizacao" [options]="localizacaoOptions" [disabled]="!editing" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
       </div>
       <!-- Responsável -->
       <div class="space-y-1">
         <label class="text-xs font-bold text-slate-700">Responsável Técnico</label>
-        <p-select [(ngModel)]="responsavel" [options]="[{label:'1 - ALEXANDRE ROM', value:'1 - ALEXANDRE ROM'}]" [disabled]="!editing" styleClass="w-full modern-select" />
+        <p-select [(ngModel)]="responsavel" [options]="responsavelOptions" [disabled]="!editing" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
       </div>
     </div>
   </div>
@@ -298,7 +303,7 @@
           <p class="text-[11px] text-slate-500 font-medium">Histórico financeiro desta ordem de serviço</p>
       </div>
     </div>
-    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()"></button>
+    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()" [disabled]="isPagamentoPago() || (status?.toUpperCase() !== 'FINALIZADA' && status?.toUpperCase() !== 'ENTREGUE')" [pTooltip]="(status?.toUpperCase() !== 'FINALIZADA' && status?.toUpperCase() !== 'ENTREGUE') ? 'Finalize a OS primeiro para liberar o pagamento' : ''"></button>
   </div>
 
   <div *ngIf="!pagamentosExistentes.length" class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhum pagamento registrado para esta OS.</div>
@@ -310,6 +315,7 @@
         <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:160px">Data</th>
         <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-right" style="width:160px">Valor</th>
         <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-center" style="width:140px">Status</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-center" style="width:100px">Ações</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-p>
@@ -321,6 +327,9 @@
           <span class="px-2 py-0.5 text-[10px] font-bold rounded-md" [ngClass]="{'bg-emerald-50 text-emerald-700 border border-emerald-200': p.status === 'CONFIRMADO', 'bg-red-50 text-red-700 border border-red-200': p.status === 'CANCELADO', 'bg-blue-50 text-blue-700 border border-blue-200': p.status !== 'CONFIRMADO' && p.status !== 'CANCELADO'}">
             {{ p.status || 'PENDENTE' }}
           </span>
+        </td>
+        <td class="text-center !py-0.5">
+          <button pButton icon="pi pi-print" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-6 w-6 p-0" (click)="imprimirComprovante(p.id)" pTooltip="Imprimir Comprovante"></button>
         </td>
       </tr>
     </ng-template>
@@ -412,22 +421,47 @@
   </ng-template>
 </p-dialog>
 
-<!-- Observações / Abas Internas -->
+<!-- Observações / Sempre Visíveis -->
 <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <p-tabs>
-    <p-tablist>
-      <p-tab [value]="0"><span class="font-bold text-sm px-2">Observação Interna</span></p-tab>
-      <p-tab [value]="1"><span class="font-bold text-sm px-2">Descrição para o Cliente</span></p-tab>
-    </p-tablist>
-    <p-tabpanels>
-      <p-tabpanel [value]="0">
-        <textarea pTextarea rows="4" [(ngModel)]="observacaoInterna" [disabled]="!editing" class="w-full modern-input !h-auto resize-none p-4" placeholder="Anotações visíveis apenas para a oficina..."></textarea>
-      </p-tabpanel>
-      <p-tabpanel [value]="1">
-        <textarea pTextarea rows="4" [(ngModel)]="descricaoCliente" [disabled]="!editing" class="w-full modern-input !h-auto resize-none p-4" placeholder="Ficará visível no comprovante impresso..."></textarea>
-      </p-tabpanel>
-    </p-tabpanels>
-  </p-tabs>
+  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shadow-sm">
+      <i class="pi pi-file-edit text-sm"></i>
+    </div>
+    <div>
+      <h3 class="font-bold text-slate-800 text-sm">Anotações e Observações</h3>
+      <p class="text-[11px] text-slate-500 font-medium">Gerencie as observações internas e as descrições destinadas ao cliente</p>
+    </div>
+  </div>
+  <div class="p-6">
+    <p-tabs [value]="0">
+      <p-tablist class="border-b border-slate-100 mb-4">
+        <p-tab [value]="0" class="flex items-center gap-2">
+          <i class="pi pi-lock text-xs text-slate-500"></i>
+          <span class="font-bold text-sm">Observação Interna</span>
+        </p-tab>
+        <p-tab [value]="1" class="flex items-center gap-2">
+          <i class="pi pi-user text-xs text-slate-500"></i>
+          <span class="font-bold text-sm">Descrição para o Cliente</span>
+        </p-tab>
+      </p-tablist>
+      
+      <p-tabpanels class="pt-2 pb-0">
+        <p-tabpanel [value]="0">
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-slate-500">Anotações visíveis apenas para a oficina.</label>
+            <textarea pTextarea rows="4" [(ngModel)]="observacaoInterna" [disabled]="!editing" class="w-full modern-input !h-auto resize-none p-4" placeholder="Anotações visíveis apenas para a oficina..."></textarea>
+          </div>
+        </p-tabpanel>
+        
+        <p-tabpanel [value]="1">
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-slate-500">Ficará visível no comprovante impresso.</label>
+            <textarea pTextarea rows="4" [(ngModel)]="descricaoCliente" [disabled]="!editing" class="w-full modern-input !h-auto resize-none p-4" placeholder="Ficará visível no comprovante impresso..."></textarea>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
 </div>
 
 <!-- Comentarios -->
@@ -463,6 +497,77 @@
     <button pButton icon="pi pi-send" label="Enviar" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm shrink-0" (click)="adicionarComentario()"></button>
   </div>
 </div>
+
+<!-- Modal: Enviar Orçamento/OS -->
+<p-dialog [(visible)]="enviarDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '480px' }" styleClass="modern-dialog">
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+        <i class="pi pi-send text-white text-sm"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 text-base m-0">Enviar {{ isOrcamento ? 'Orçamento' : 'OS' }}</h3>
+        <p class="text-[11px] text-slate-400 m-0">Escolha o canal de envio para o cliente</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="flex flex-col gap-5 pt-2">
+    <!-- Seleção de Canal -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
+           [ngClass]="enviarCanal === 'whatsapp' ? 'border-emerald-400 bg-emerald-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+           (click)="enviarCanal = 'whatsapp'">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" [ngClass]="enviarCanal === 'whatsapp' ? 'bg-emerald-500' : 'bg-slate-100'">
+          <i class="pi pi-whatsapp text-lg" [ngClass]="enviarCanal === 'whatsapp' ? 'text-white' : 'text-slate-400'"></i>
+        </div>
+        <span class="text-sm font-bold" [ngClass]="enviarCanal === 'whatsapp' ? 'text-emerald-700' : 'text-slate-600'">WhatsApp</span>
+        <span class="text-[10px]" [ngClass]="enviarCanal === 'whatsapp' ? 'text-emerald-500' : 'text-slate-400'">Link direto</span>
+        <div *ngIf="enviarCanal === 'whatsapp'" class="absolute top-2 right-2 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-check text-white" style="font-size:8px"></i>
+        </div>
+      </div>
+      <div class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
+           [ngClass]="enviarCanal === 'email' ? 'border-blue-400 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+           (click)="enviarCanal = 'email'">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" [ngClass]="enviarCanal === 'email' ? 'bg-blue-500' : 'bg-slate-100'">
+          <i class="pi pi-envelope text-lg" [ngClass]="enviarCanal === 'email' ? 'text-white' : 'text-slate-400'"></i>
+        </div>
+        <span class="text-sm font-bold" [ngClass]="enviarCanal === 'email' ? 'text-blue-700' : 'text-slate-600'">E-mail</span>
+        <span class="text-[10px]" [ngClass]="enviarCanal === 'email' ? 'text-blue-500' : 'text-slate-400'">Envio automático</span>
+        <div *ngIf="enviarCanal === 'email'" class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-check text-white" style="font-size:8px"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campo de e-mail (só aparece quando canal = email) -->
+    <div *ngIf="enviarCanal === 'email'" class="flex flex-col gap-2">
+      <label class="text-xs font-bold text-slate-700">E-mail do destinatário</label>
+      <div class="p-inputgroup">
+        <span class="p-inputgroup-addon bg-white border-slate-200"><i class="pi pi-envelope text-slate-400"></i></span>
+        <input pInputText [(ngModel)]="enviarEmail" type="email" placeholder="cliente@email.com" class="border-l-0 modern-input" />
+      </div>
+      <span class="text-[11px] text-slate-400">Se deixar em branco, usará o e-mail cadastrado no perfil do cliente.</span>
+    </div>
+
+    <!-- Info WhatsApp -->
+    <div *ngIf="enviarCanal === 'whatsapp'" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+      <i class="pi pi-info-circle text-emerald-600 text-lg shrink-0"></i>
+      <p class="text-sm text-emerald-700 m-0">Será aberto um link do WhatsApp com um resumo da {{ isOrcamento ? 'orçamento' : 'OS' }} para o telefone cadastrado no cliente.</p>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 w-full mt-2 bg-slate-50 -mx-[1.5rem] px-[1.5rem] -mb-[1.5rem] py-4 rounded-b-xl">
+      <button pButton label="Cancelar" class="p-button-text text-slate-600 hover:bg-slate-100 font-semibold px-4" (click)="enviarDialogVisible = false"></button>
+      <button pButton [label]="enviarCanal === 'email' ? 'Enviar por E-mail' : 'Abrir WhatsApp'" 
+              [icon]="enviarCanal === 'email' ? 'pi pi-envelope' : 'pi pi-whatsapp'"
+              [class]="enviarCanal === 'email' ? 'btn-stripe-blue font-semibold px-6 shadow-sm' : 'btn-success font-semibold px-6 shadow-sm'"
+              (click)="confirmarEnvio()" [disabled]="isSendingEmail"></button>
+    </div>
+  </ng-template>
+</p-dialog>
 
 <!-- Dialogs -->
 <p-dialog header="Status da OS" [(visible)]="statusDialogVisible" [modal]="true" [closable]="true" [style]="{ width: '480px' }" [dismissableMask]="true" styleClass="modern-dialog">
@@ -586,11 +691,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Responsável pela execução</label>
-              <p-select [(ngModel)]="incluir.funcionario" [options]="funcionarioOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." />
+              <p-select [(ngModel)]="incluir.funcionario" [options]="funcionarioOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." appendTo="body" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Setor</label>
-              <p-select [(ngModel)]="incluir.setor" [options]="setorOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." />
+              <p-select [(ngModel)]="incluir.setor" [options]="setorOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." appendTo="body" />
             </div>
           </div>
           <div class="mb-4">
@@ -604,15 +709,15 @@
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor Unitário</label>
-              <input pInputText type="number" [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" class="w-full modern-input" />
+              <p-inputnumber [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor de Custo</label>
-              <input pInputText type="number" [(ngModel)]="incluir.valorCusto" class="w-full modern-input" />
+              <p-inputnumber [(ngModel)]="incluir.valorCusto" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Total</label>
-              <input pInputText [value]="incluir.total | number:'1.2-2'" disabled class="w-full modern-input bg-slate-100 font-bold text-slate-900 cursor-not-allowed" />
+              <p-inputnumber [(ngModel)]="incluir.total" [disabled]="true" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input bg-slate-100 font-bold text-slate-900 cursor-not-allowed" />
             </div>
           </div>
         </p-tabpanel>
@@ -637,7 +742,7 @@
               <ng-template pTemplate="body" let-s>
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   <td class="font-medium text-slate-700 text-sm py-2">{{ s.nome }}</td>
-                  <td class="text-right font-bold text-slate-800 text-sm py-2">{{ s.valorVenda | currency:'BRL' }}</td>
+                  <td class="text-right font-bold text-slate-800 text-sm py-2">{{ s.precoBase | currency:'BRL' }}</td>
                   <td class="text-center py-2">
                     <button pButton icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" (click)="selecionarServico(s)"></button>
                   </td>
@@ -660,15 +765,15 @@
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor Unitário</label>
-              <input pInputText type="number" [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" class="w-full modern-input" />
+              <p-inputnumber [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor de Custo</label>
-              <input pInputText type="number" [(ngModel)]="incluir.valorCusto" class="w-full modern-input" />
+              <p-inputnumber [(ngModel)]="incluir.valorCusto" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">Total</label>
-              <input pInputText [value]="incluir.total | number:'1.2-2'" disabled class="w-full modern-input bg-slate-100 font-bold text-slate-900 cursor-not-allowed" />
+              <p-inputnumber [(ngModel)]="incluir.total" [disabled]="true" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input bg-slate-100 font-bold text-slate-900 cursor-not-allowed" />
             </div>
           </div>
         </p-tabpanel>
@@ -713,8 +818,8 @@
   </ng-template>
 </p-dialog>
 
-<!-- Diálogo: Negociar Pagamento -->
-<p-dialog header="Negociar Pagamento" [(visible)]="pagamentoDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '700px' }" styleClass="modern-dialog">
+<!-- Diálogo: Gerar Financeiro -->
+<p-dialog header="Gerar Financeiro" [(visible)]="pagamentoDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '700px' }" styleClass="modern-dialog">
   <div class="flex flex-col gap-5 pt-2">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -757,23 +862,23 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 w-full mt-4">
       <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharPagamentoDialog()"></button>
-      <button pButton label="Finalizar Recebimento" icon="pi pi-check" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="salvarPagamento()"></button>
+      <button pButton label="Gerar Financeiro" icon="pi pi-check" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="salvarPagamento()"></button>
     </div>
   </ng-template>
 </p-dialog>
 
 <!-- Diálogo: Recibo / Sucesso -->
-<p-dialog header="Pagamento Confirmado" [(visible)]="reciboDialogVisible" [modal]="true" [closable]="true" [style]="{ width: '400px' }" styleClass="modern-dialog">
+<p-dialog header="Financeiro Gerado" [(visible)]="reciboDialogVisible" [modal]="true" [closable]="true" [style]="{ width: '400px' }" styleClass="modern-dialog">
   <div class="text-center py-6">
     <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border-4 border-emerald-50">
       <i class="pi pi-check text-4xl font-bold"></i>
     </div>
     <h3 class="text-xl font-bold text-slate-800 mb-2">Tudo Certo!</h3>
-    <p class="text-sm text-slate-500 leading-relaxed px-4">O pagamento foi registrado com sucesso e a OS foi atualizada.</p>
+    <p class="text-sm text-slate-500 leading-relaxed px-4">O financeiro foi gerado com sucesso e a OS foi atualizada.</p>
   </div>
   <ng-template pTemplate="footer">
     <div class="flex flex-col gap-3 w-full pt-2">
-      <button pButton label="Imprimir Comprovante" icon="pi pi-print" class="w-full justify-center px-4 py-3 rounded-xl !bg-blue-600 !border-blue-600 hover:!bg-blue-700 hover:!border-blue-700 text-white font-bold shadow-sm transition-all text-sm"></button>
+      <button pButton label="Imprimir Comprovante" icon="pi pi-print" class="w-full justify-center px-4 py-3 rounded-xl !bg-blue-600 !border-blue-600 hover:!bg-blue-700 hover:!border-blue-700 text-white font-bold shadow-sm transition-all text-sm" (click)="imprimirComprovante()"></button>
       <button pButton label="Fechar" class="w-full justify-center px-4 py-3 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="reciboDialogVisible = false"></button>
     </div>
   </ng-template>

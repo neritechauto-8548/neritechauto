@@ -9,22 +9,35 @@ import { DialogModule } from 'primeng/dialog';
 import { MenuItem } from 'primeng/api';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { ActivatedRoute, Router } from '@angular/router';
+import { OrdemServicoService } from '../os/ordem-servico.service';
+import { ItemOSService } from '../os/item-os.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 interface ItemOrcamento { quant: number; descricao: string; valor: number; valorTotal: number; }
 
 @Component({
   standalone: true,
   selector: 'app-visualizar-editar-orcamento',
-  imports: [CommonModule, FormsModule, PanelModule, ButtonModule, SelectModule, InputTextModule, DialogModule, SplitButtonModule],
+  imports: [CommonModule, FormsModule, PanelModule, ButtonModule, SelectModule, InputTextModule, DialogModule, SplitButtonModule, ToastModule],
   templateUrl: './visualizar-editar-orcamento.html',
   styleUrls: ['./visualizar-editar-orcamento.scss'],
+  providers: [MessageService]
 })
 export class VisualizarEditarOrcamentoComponent implements OnInit {
-  numero = 1;
+  id: number = 0;
+  osData: any = null;
+  loading = false;
 
-  constructor(private route: ActivatedRoute, private router: Router) {
-    const n = this.route.snapshot.paramMap.get('numero');
-    this.numero = n ? Number(n) : 1;
+  constructor(
+    private route: ActivatedRoute, 
+    private router: Router,
+    private osService: OrdemServicoService,
+    private itemService: ItemOSService,
+    private messageService: MessageService
+  ) {
+    const idStr = this.route.snapshot.paramMap.get('numero');
+    this.id = idStr ? Number(idStr) : 0;
   }
 
   // Toolbar actions
@@ -57,16 +70,46 @@ export class VisualizarEditarOrcamentoComponent implements OnInit {
     this.recalcularTotal();
   }
 
-  itens: ItemOrcamento[] = [
-    { quant: 1, descricao: 'CORREIA DENTADA', valor: 45, valorTotal: 45 },
-    { quant: 2, descricao: 'AMORTECEDOR DIANTEIRO', valor: 250, valorTotal: 500 },
-    { quant: 2, descricao: 'AMORTECEDOR TRASEIRO', valor: 250, valorTotal: 500 },
-    { quant: 1, descricao: 'COIFA DA HOMOCINETICA', valor: 27, valorTotal: 54 },
-    { quant: 1, descricao: 'TRIZETA DO CAMBIO AUTOMATICO', valor: 780, valorTotal: 780 },
-    { quant: 10, descricao: 'DSADSA', valor: 0.2, valorTotal: 2 },
-  ];
+  itens: any[] = [];
   total = 0;
-  ngOnInit() { this.recalcularTotal(); }
+  
+  ngOnInit() { 
+    if (this.id) {
+      this.carregarOS();
+    }
+  }
+
+  carregarOS() {
+    this.loading = true;
+    this.osService.getById(this.id).subscribe({
+      next: (os) => {
+        this.osData = os;
+        this.form.veiculo = os.nomeVeiculo || 'N/A';
+        this.form.cliente = os.nomeCliente || 'N/A';
+        this.form.descricao = os.observacoesCliente || '';
+        this.carregarItens();
+      },
+      error: () => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar o orçamento.' });
+      }
+    });
+  }
+
+  carregarItens() {
+    this.itemService.listProdutos(this.id).subscribe(produtos => {
+      this.itens = produtos.map((p: any) => ({
+        id: p.id,
+        quant: p.quantidade,
+        descricao: p.descricao || p.nomeProduto || 'Produto',
+        valor: p.valorUnitario,
+        valorTotal: p.valorFinal
+      }));
+      this.recalcularTotal();
+      this.loading = false;
+    });
+  }
+
   recalcularTotal() { this.total = this.itens.reduce((s, i) => s + i.valorTotal, 0); }
 
   funcionarios = [ { label: 'ALEXANDRE ROMULO A', value: 'alexandre' } ];
@@ -82,5 +125,28 @@ export class VisualizarEditarOrcamentoComponent implements OnInit {
   };
 
   cancelar() { this.router.navigate(['/orcamento/orcamento']); }
-  salvar() { alert('Orçamento atualizado com sucesso'); }
+  
+  salvar() { 
+    this.osService.update(this.id, {
+      ...this.osData,
+      observacoesCliente: this.form.descricao
+    }).subscribe({
+      next: () => this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Orçamento atualizado!' }),
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar.' })
+    });
+  }
+
+  aprovar() {
+    // Regra de negócio: Converter Orçamento para Manutenção
+    this.osService.update(this.id, {
+      ...this.osData,
+      tipoOS: 'MANUTENCAO' as any
+    }).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Aprovado', detail: 'Orçamento convertido em Ordem de Serviço!' });
+        setTimeout(() => this.router.navigate(['/os/visualizar-os', this.id]), 1500);
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao aprovar.' })
+    });
+  }
 }

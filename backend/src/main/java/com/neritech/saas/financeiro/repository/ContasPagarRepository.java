@@ -24,5 +24,8 @@ public interface ContasPagarRepository extends JpaRepository<ContasPagar, Long>,
 
     @org.springframework.data.jpa.repository.Query("SELECT SUM(c.valorPendente) FROM ContasPagar c WHERE c.empresaId = :empresaId AND c.status <> 'PAGO' AND c.status <> 'CANCELADO'")
     java.math.BigDecimal calculateTotalPendentes(@org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM ContasPagar c WHERE c.id IN :ids AND c.empresaId = :empresaId")
+    java.util.List<ContasPagar> findAllByIdsAndEmpresaId(@org.springframework.data.repository.query.Param("ids") java.util.Collection<Long> ids, @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 }
 
