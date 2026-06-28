@@ -19,7 +19,9 @@
           "options": {
             "allowedCommonJsDependencies": [
               "base64-js",
-              "moment"
+              "moment",
+              "quill-delta",
+              "quill"
             ],
             "outputPath": "dist/ng-matero",
             "index": "src/index.html",
@@ -48,12 +50,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "4mb",
+                  "maximumError": "6mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb"
+                  "maximumWarning": "30kb",
+                  "maximumError": "50kb"
                 }
               ],
               "fileReplacements": [
