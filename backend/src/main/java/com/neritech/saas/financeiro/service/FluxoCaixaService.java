@@ -39,16 +39,16 @@ public class FluxoCaixaService {
 
         if (dto.pagamentoId() != null) {
             var pg = cpMap.containsKey(dto.pagamentoId())
-                ? cpMap.get(dto.pagamentoId())
-                : contasPagarRepository.findById(dto.pagamentoId()).orElse(null);
+                    ? cpMap.get(dto.pagamentoId())
+                    : contasPagarRepository.findById(dto.pagamentoId()).orElse(null);
             if (pg != null) {
                 dataVenc = pg.getDataVencimento();
                 dataPag = pg.getDataPagamento();
             }
         } else if (dto.recebimentoId() != null) {
             var rec = crMap.containsKey(dto.recebimentoId())
-                ? crMap.get(dto.recebimentoId())
-                : contasReceberRepository.findById(dto.recebimentoId()).orElse(null);
+                    ? crMap.get(dto.recebimentoId())
+                    : contasReceberRepository.findById(dto.recebimentoId()).orElse(null);
             if (rec != null) {
                 dataVenc = rec.getDataVencimento();
                 java.time.LocalDate dataRec = null;
@@ -97,7 +97,8 @@ public class FluxoCaixaService {
         };
 
         if (Boolean.TRUE.equals(includeClosed)) {
-            // Se deseja incluir fechados (ex: buscando detalhamento de um caixa fechado específico),
+            // Se deseja incluir fechados (ex: buscando detalhamento de um caixa fechado
+            // específico),
             // não limitamos a dataInicio pela data do último fechamento.
         } else {
             LocalDate ultimaDataFechamento = fechamentoCaixaService.getUltimaDataFechamento(empresaId);
@@ -116,7 +117,8 @@ public class FluxoCaixaService {
         }
         if (dataInicio != null) {
             LocalDate finalDataInicio = dataInicio;
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("dataMovimentacao"), finalDataInicio));
+            spec = spec
+                    .and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("dataMovimentacao"), finalDataInicio));
         }
         if (dataFim != null) {
             spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("dataMovimentacao"), dataFim));
@@ -125,13 +127,15 @@ public class FluxoCaixaService {
         Page<FluxoCaixa> page = repository.findAll(spec, pageable);
 
         java.util.Set<Long> pagamentoIds = page.getContent().stream()
-                .filter(e -> e.getTipoMovimentacao() == com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.SAIDA)
+                .filter(e -> e
+                        .getTipoMovimentacao() == com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.SAIDA)
                 .map(FluxoCaixa::getDocumentoId)
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
 
         java.util.Set<Long> recebimentoIds = page.getContent().stream()
-                .filter(e -> e.getTipoMovimentacao() == com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA)
+                .filter(e -> e
+                        .getTipoMovimentacao() == com.neritech.saas.financeiro.domain.enums.TipoMovimentacao.ENTRADA)
                 .map(FluxoCaixa::getDocumentoId)
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
