@@ -7,8 +7,8 @@
           <span class="section-label">FAQ</span>
           <h2 class="faq-title">Perguntas <span class="text-gradient">frequentes.</span></h2>
           <p class="faq-subtitle">Tudo o que você precisa saber antes de começar. Não encontrou sua dúvida? Fale com nosso time.</p>
-          <a href="https://wa.me/5511987654321" target="_blank" rel="noopener" class="btn btn-outline-dark btn-lg" id="faq-wpp-btn">
-            💬 Falar no WhatsApp
+          <a href="https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm" target="_blank" rel="noopener" @click="openChat($event)" class="btn btn-outline-dark btn-lg" id="faq-wpp-btn">
+            💬 Iniciar Chat Online
           </a>
         </div>
 
@@ -53,7 +53,7 @@ const faqs = [
   },
   {
     q: 'Como funciona o suporte?',
-    a: 'Nosso suporte é humano e real — respondemos via WhatsApp em tempo médio de menos de 2 minutos durante o horário comercial. Nos planos neri pro e neri elite, o suporte é prioritário com canal dedicado.',
+    a: 'Nosso suporte é humano e real — respondemos via Chat Online (Tawk.to) em tempo médio de menos de 2 minutos durante o horário comercial. O suporte é prioritário e disponível a todos os nossos clientes.',
   },
   {
     q: 'O NeriTechAuto serve para qualquer tipo de oficina?',
@@ -64,6 +64,12 @@ const faqs = [
     a: 'Totalmente. Utilizamos a infraestrutura da AWS (Amazon Web Services), a mesma utilizada pelos maiores bancos do mundo. Seus dados contam com backup diário automático e criptografia de ponta a ponta, em total conformidade com a LGPD. Seus dados são seus — sempre.',
   },
 ];
+const openChat = (e) => {
+  if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+    e.preventDefault();
+    window.Tawk_API.maximize();
+  }
+};
 </script>
 
 <style scoped>

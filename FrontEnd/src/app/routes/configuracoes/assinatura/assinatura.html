@@ -149,8 +149,14 @@
               PLANO ATUAL
             </div>
 
+            <!-- Promo Badge -->
+            <div *ngIf="plano.badge && !isPlanoAtual(plano)"
+              class="absolute -top-px left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[9px] font-extrabold px-3 py-0.5 rounded-b-md shadow-sm tracking-wider uppercase">
+              {{ plano.badge }}
+            </div>
+
             <!-- Popular Badge -->
-            <div *ngIf="plano.destaque && !isPlanoAtual(plano)"
+            <div *ngIf="plano.destaque && !plano.badge && !isPlanoAtual(plano)"
               class="absolute -top-px left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-b-md shadow-sm">
               MAIS POPULAR
             </div>
@@ -158,13 +164,23 @@
             <div class="p-5 pt-6">
               <!-- Plan Name -->
               <h4 class="text-base font-extrabold text-slate-900 tracking-tight">{{ plano.nome }}</h4>
-              <p class="text-xs text-slate-500 mt-0.5 mb-4 leading-relaxed">{{ plano.descricao }}</p>
+              <p class="text-xs text-slate-500 mt-0.5 mb-3 leading-relaxed">{{ plano.descricao }}</p>
 
               <!-- Price -->
-              <div class="flex items-baseline gap-1 mb-5">
-                <span class="text-xs font-bold text-slate-400">R$</span>
-                <span class="text-3xl font-extrabold text-slate-900 tracking-tighter">{{ plano.preco }}</span>
-                <span class="text-xs text-slate-400">/mês</span>
+              <div class="flex items-baseline gap-1 mb-2">
+                <ng-container *ngIf="plano.preco !== 'Sob Consulta'">
+                  <span class="text-xs font-bold text-slate-400">R$</span>
+                  <span class="text-3xl font-extrabold text-slate-900 tracking-tighter">{{ plano.preco }}</span>
+                  <span class="text-xs text-slate-400">/mês</span>
+                </ng-container>
+                <ng-container *ngIf="plano.preco === 'Sob Consulta'">
+                  <span class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ plano.preco }}</span>
+                </ng-container>
+              </div>
+
+              <!-- Promo Info Box -->
+              <div *ngIf="plano.promoInfo" class="mb-4 p-2.5 bg-amber-50 border border-amber-100 text-[#d97706] text-[11px] font-semibold rounded-lg leading-normal">
+                {{ plano.promoInfo }}
               </div>
 
               <!-- Action Button -->
@@ -175,8 +191,9 @@
                   : plano.destaque
                     ? 'bg-[#635bff] text-white hover:bg-[#5147e5] shadow-sm'
                     : 'border border-slate-200 text-slate-700 hover:border-[#635bff] hover:text-[#635bff]'">
-                {{ isPlanoAtual(plano) ? 'Seu plano atual' : 'Alterar para este plano' }}
+                {{ isPlanoAtual(plano) ? 'Seu plano atual' : (plano.buttonLabel || 'Alterar para este plano') }}
               </button>
+
 
               <!-- Divider -->
               <div class="border-t border-slate-100 my-4"></div>
@@ -207,13 +224,13 @@
             </div>
             <div>
               <p class="text-xs font-bold text-slate-800">Precisa de ajuda com sua assinatura?</p>
-              <p class="text-[11px] text-slate-500">Nosso time está disponível via WhatsApp de Seg. a Sex. das 8:30 às 18:00</p>
+              <p class="text-[11px] text-slate-500">Nosso time está disponível via Chat Online de Seg. a Sex. das 8:30 às 18:00</p>
             </div>
           </div>
-          <a href="https://wa.me/5511987654321" target="_blank" rel="noopener"
+          <a href="https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm" target="_blank" rel="noopener" (click)="openChat($event)"
             class="px-3 py-1.5 rounded-md border border-emerald-200 text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors text-xs flex items-center gap-1.5">
             <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">chat</mat-icon>
-            Falar no WhatsApp
+            Iniciar Chat Online
           </a>
         </div>
       </div>

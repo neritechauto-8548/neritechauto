@@ -16,6 +16,9 @@ interface Plano {
   destaque: boolean;
   features: string[];
   productId: string;
+  badge?: string;
+  promoInfo?: string;
+  buttonLabel?: string;
 }
 
 @Component({
@@ -29,6 +32,7 @@ export class AssinaturaComponent implements OnInit {
   private service = inject(AssinaturaService);
   private toast = inject(MessageService);
   private storage = inject(LocalStorageService);
+  private auth = inject(AuthService);
 
   loading = false;
   portalLoading = false;
@@ -50,41 +54,43 @@ export class AssinaturaComponent implements OnInit {
 
   planos: Plano[] = [
     {
-      id: 'pro',
-      nome: 'Neri Pro',
-      preco: '99,90',
-      descricao: 'A gestão completa para oficinas que buscam performance e organização.',
-      destaque: false,
+      id: 'basic',
+      nome: 'Neri Basic',
+      preco: '79,90',
+      descricao: 'A gestão essencial para sua oficina que busca performance e organização.',
+      destaque: true,
       productId: 'prod_UMeRIYKOYS5enM',
+      badge: '🎉 SUPER PROMOÇÃO',
+      promoInfo: 'Promoção por tempo limitado: os próximos 50 assinantes ganham 6 meses GRÁTIS! E depois, mais 6 meses pagando apenas a metade do valor (R$ 39,95/mês).',
+      buttonLabel: 'Aproveitar Promoção',
       features: [
         'Cadastros Ilimitados',
         'Ordens de Serviço e PDV',
         'Financeiro Operacional',
-        'Emissão de NF-e e NFC-e',
         'Estoque e Insumos',
         'Relatórios Gerenciais',
-        'Dashboards Iniciais'
+        'Dashboards Iniciais',
+        '❌ Sem Emissão de Notas Fiscais'
       ]
     },
     {
-      id: 'elite',
-      nome: 'Neri Elite',
-      preco: '199,90',
-      descricao: 'O nível máximo de controle com inteligência de dados e gestão fiscal.',
-      destaque: true,
-      productId: 'prod_UMeS5gEJzxET8x',
+      id: 'pro',
+      nome: 'Neri Pro',
+      preco: 'Sob Consulta',
+      descricao: 'O nível máximo de controle com inteligência de dados, gestão fiscal e emissão de notas.',
+      destaque: false,
+      productId: 'pro_consult',
+      buttonLabel: 'Falar com Consultor',
       features: [
-        'Tudo do Neri Pro',
-        'Módulo Fiscal Avançado (DRE)',
-        'Cálculo de Custo Hora',
-        'Portal do Cliente',
-        'Auditoria e Logs de Acesso',
-        'Suporte Prioritário'
+        'Tudo do Neri Basic',
+        'Emissão de Notas Fiscais ilimitadas (NF-e, NFS-e e NFC-e)',
+        'SAT/MF-e e Importação de XML automática',
+        'Módulo Fiscal Avançado (DRE completo)',
+        'Suporte especializado em Configuração Fiscal',
+        'Portal do Cliente e Auditoria de Acesso',
       ]
     }
   ];
-
-  private auth = inject(AuthService);
 
   ngOnInit() {
     this.auth.user().subscribe(user => {
@@ -98,7 +104,6 @@ export class AssinaturaComponent implements OnInit {
         this.empresaId = Number(id);
         this.loadStatus();
       } else {
-        // Fallback for LocalStorage if user profile is still loading or incomplete
         const stored = this.storage.get('tenantId') || this.storage.get('empresaId');
         if (stored) {
           this.empresaId = Number(stored);
@@ -137,6 +142,15 @@ export class AssinaturaComponent implements OnInit {
 
   selecionarPlano(plano: Plano) {
     if (!this.empresaId) return;
+    if (plano.preco === 'Sob Consulta') {
+      const tawk = (window as any).Tawk_API;
+      if (tawk && typeof tawk.maximize === 'function') {
+        tawk.maximize();
+      } else {
+        window.open('https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm', '_blank');
+      }
+      return;
+    }
     if (this.isPlanoAtual(plano)) {
       this.abrirPortal();
       return;
@@ -160,6 +174,18 @@ export class AssinaturaComponent implements OnInit {
           });
         }
       });
+  }
+
+  openChat(e: Event | null) {
+    if (e) {
+      e.preventDefault();
+    }
+    const tawk = (window as any).Tawk_API;
+    if (tawk && typeof tawk.maximize === 'function') {
+      tawk.maximize();
+    } else {
+      window.open('https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm', '_blank');
+    }
   }
 
   isPlanoAtual(plano: Plano): boolean {

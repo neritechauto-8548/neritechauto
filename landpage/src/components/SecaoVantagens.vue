@@ -54,8 +54,8 @@ const cards = [
   {
     icon: '🤝',
     iconBg: 'linear-gradient(135deg, rgba(99,91,255,0.08), rgba(139,92,246,0.05))',
-    title: 'Suporte Humano via WhatsApp',
-    desc: 'Nada de robôs ou filas intermináveis. Nosso time técnico atende diretamente pelo WhatsApp para resolver qualquer dúvida operacional na hora.',
+    title: 'Suporte Humano via Chat Online',
+    desc: 'Nada de robôs ou filas intermináveis. Nosso time técnico atende diretamente pelo Chat Online (Tawk) para resolver qualquer dúvida operacional na hora.',
     highlight: 'Suporte humanizado em horário comercial',
     highlightIcon: '⚡',
     accent: '',
@@ -91,7 +91,7 @@ const cards = [
 
 const compares = [
   { them: 'Sistemas antigos e complexos com instalação local', us: 'Sistema na nuvem moderno e rápido' },
-  { them: 'Suporte demorado por e-mail ou tickets burocráticos', us: 'Atendimento humanizado direto no WhatsApp' },
+  { them: 'Suporte demorado por e-mail ou tickets burocráticos', us: 'Atendimento humanizado direto no Chat Online' },
   { them: 'Contratos rígidos com 12 meses de fidelidade', us: 'Assinatura flexível sem fidelidade ou multa' },
   { them: 'Checklists e vistorias feitos em fichas de papel', us: 'Vistoria digital integrada com envio de fotos' },
 ];

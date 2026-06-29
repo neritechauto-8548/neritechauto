@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   baseUrl: '/api',
-  supportUrl: 'http://localhost:8081',
+  supportUrl: 'https://neritechauto.atlassian.net/servicedesk/customer/portal/1',
   useHash: false,
 };
 

@@ -48,8 +48,8 @@
           <router-link to="/teste-gratis" class="btn-cta-primary">
             Experimentar 30 dias grátis →
           </router-link>
-          <a href="https://wa.me/5511999999999" target="_blank" rel="noopener" class="btn-cta-secondary">
-            WhatsApp
+          <a href="https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm" target="_blank" rel="noopener" @click="openChat($event)" class="btn-cta-secondary">
+            Chat Online
           </a>
         </div>
       </div>
@@ -68,6 +68,13 @@ import SecaoRodape from '../components/SecaoRodape.vue';
 import { useScrollAnimation } from '../composables/useScrollAnimation.js';
 
 useScrollAnimation();
+
+const openChat = (e) => {
+  if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+    e.preventDefault();
+    window.Tawk_API.maximize();
+  }
+};
 
 const trustItems = [
   '🔒 Pagamento seguro',

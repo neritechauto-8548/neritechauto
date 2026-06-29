@@ -11,15 +11,16 @@
 
           <div class="contact-channels">
             <a
-              href="https://wa.me/5511987654321"
+              href="https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm"
               target="_blank"
               rel="noopener"
+              @click="openChat($event)"
               class="channel-card channel-whatsapp"
             >
               <div class="channel-icon">💬</div>
               <div class="channel-text">
-                <strong>WhatsApp</strong>
-                <span>Resposta mais rápida</span>
+                <strong>Chat Online (Tawk)</strong>
+                <span>Resposta Instantânea</span>
               </div>
               <span class="channel-arrow">→</span>
             </a>
@@ -66,7 +67,7 @@
 
             <Button type="submit" class="btn-submit" :disabled="submitted" :label="submitted ? 'Mensagem enviada! ✓' : 'Enviar Mensagem'" icon="pi pi-send" iconPos="right" />
 
-            <p class="form-note">Respondemos em até 2 horas úteis via WhatsApp ou e-mail.</p>
+            <p class="form-note">Respondemos em até 2 horas úteis via Chat Online ou e-mail.</p>
           </form>
         </div>
 
@@ -91,6 +92,13 @@ const handleSubmit = () => {
     form.value = { name: '', email: '', phone: '', message: '' };
     submitted.value = false;
   }, 4000);
+};
+
+const openChat = (e) => {
+  if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+    e.preventDefault();
+    window.Tawk_API.maximize();
+  }
 };
 </script>
 

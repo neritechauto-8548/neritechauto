@@ -4,9 +4,7 @@
       <div v-if="!hideHeader" class="pricing-header aos-init">
         <span class="section-label">Preços</span>
         <h2 class="pricing-title">Preço justo para <span class="text-gradient">escalar seu negócio.</span></h2>
-        <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece grátis por 30 dias.</p>
-
-
+        <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece a usar hoje mesmo.</p>
       </div>
 
       <div class="pricing-grid">
@@ -17,16 +15,31 @@
           :class="{ featured: plan.featured }"
         >
           <template #content>
+            <!-- Badge de Promoção -->
+            <div v-if="plan.badge" class="promo-tag">
+              {{ plan.badge }}
+            </div>
+            
             <div class="plan-top">
               <div class="plan-name">{{ plan.name }}</div>
               <p class="plan-desc">{{ plan.description }}</p>
             </div>
 
             <div class="plan-price-block">
-              <div class="plan-price">
-                <span class="currency">R$</span>
-                <span class="amount">{{ plan.price }}</span>
-                <span class="period">/mês</span>
+              <div class="plan-price" :class="{ 'price-consult': plan.price === 'Sob Consulta' }">
+                <template v-if="plan.price !== 'Sob Consulta'">
+                  <span class="currency">R$</span>
+                  <span class="amount">{{ plan.price }}</span>
+                  <span class="period">/mês</span>
+                </template>
+                <template v-else>
+                  <span class="amount amount--consult">{{ plan.price }}</span>
+                </template>
+              </div>
+              
+              <!-- Texto Informativo da Campanha -->
+              <div v-if="plan.promoInfo" class="plan-promo-info">
+                {{ plan.promoInfo }}
               </div>
             </div>
 
@@ -34,10 +47,10 @@
               class="btn-plan"
               :severity="plan.featured ? 'primary' : 'secondary'"
               :outlined="!plan.featured"
-              @click="initiateCheckout(plan.id)"
+              @click="plan.price === 'Sob Consulta' ? contactSales() : initiateCheckout(plan.id)"
               rounded
             >
-              Começar grátis por 30 dias <i class="pi pi-arrow-right ml-1"></i>
+              {{ plan.buttonLabel }} <i class="pi pi-arrow-right ml-1"></i>
             </Button>
 
             <div class="plan-divider"></div>
@@ -59,9 +72,9 @@
       <div v-if="!hideHeader" class="pricing-footer aos-init">
         <div class="trust-row">
           <span class="trust-item">🔒 Pagamento seguro via Stripe</span>
-          <span class="trust-item">✓ Cancele a qualquer momento</span>
-          <span class="trust-item">🎁 30 dias grátis sem cartão</span>
-          <span class="trust-item">💬 Suporte incluído em todos os planos</span>
+          <span class="trust-item">✓ Sem fidelidade, cancele quando quiser</span>
+          <span class="trust-item">🎁 6 meses grátis na promoção Basic</span>
+          <span class="trust-item">💬 Suporte humanizado incluído</span>
         </div>
       </div>
     </div>
@@ -77,15 +90,16 @@ defineProps({
   hideHeader: { type: Boolean, default: false },
 });
 
-
-
 const plans = ref([
   {
-    id: 'price_pro',
-    name: 'Neri Pro',
-    price: '99,90',
-    description: 'Sistema completo de gestão, controle e relacionamento para sua oficina.',
-    featured: false,
+    id: 'price_basic',
+    name: 'Neri Basic',
+    price: '79,90',
+    description: 'Sistema essencial de gestão, controle e relacionamento para sua oficina.',
+    featured: true,
+    badge: '🔥 Campanha Especial',
+    promoInfo: 'Promoção por tempo limitado: os próximos 50 assinantes ganham 6 meses GRÁTIS! E depois, mais 6 meses pagando apenas a metade do valor (R$ 39,95/mês).',
+    buttonLabel: 'Aproveitar 6 Meses Grátis',
     features: [
       'Usuários Ilimitados',
       'Suporte via Chat, Telefone e WhatsApp',
@@ -98,63 +112,38 @@ const plans = ref([
     ],
   },
   {
-    id: 'price_elite',
-    name: 'Neri Elite',
-    price: '199,90',
-    description: 'Ideal para oficinas que precisam emitir notas fiscais diretamente pelo sistema.',
-    featured: true,
+    id: 'price_pro',
+    name: 'Neri Pro',
+    price: 'Sob Consulta',
+    description: 'Ideal para oficinas em crescimento que precisam de emissão de notas fiscais e relatórios fiscais avançados.',
+    featured: false,
+    badge: null,
+    promoInfo: null,
+    buttonLabel: 'Falar com Consultor',
     features: [
-      'Todos os recursos do plano Pro',
+      'Todos os recursos do plano Basic',
       'Emissão de Notas Fiscais ilimitadas (NF-e e NFS-e)',
       'NF de Consumidor (NFC-e) e SAT/MF-e',
       'NF de Devolução, Garantia e Retorno',
       'Importação automática de XML de Compra',
       'Manifestação de Destinatário e Busca na SEFAZ',
       'Suporte especializado em Configuração Fiscal',
+      'Módulo Fiscal Avançado (DRE completo)',
     ],
   },
 ]);
 
-const initiateCheckout = async (planId) => {
-  try {
-    const publishableKey = import.meta.env.VITE_STRIPE_CHAVE_PUBLICA;
-    const priceMap = {
-      'price_pro':   import.meta.env.VITE_STRIPE_PRECO_PRO,
-      'price_elite': import.meta.env.VITE_STRIPE_PRECO_ELITE,
-    };
+const initiateCheckout = () => {
+  // Redireciona para o fluxo de cadastro/teste grátis do sistema
+  // onde o cupom ou trial de 6 meses será aplicado.
+  window.location.href = '/teste-gratis';
+};
 
-    const targetPriceId = priceMap[planId];
-
-    if (!publishableKey || publishableKey.includes('sua_chave_aqui')) {
-      alert('Configuração necessária: adicione sua VITE_STRIPE_CHAVE_PUBLICA no arquivo .env');
-      return;
-    }
-
-    if (!targetPriceId || targetPriceId === 'price_...') {
-      alert('Configuração necessária: configure o ID do preço do Stripe no arquivo .env');
-      return;
-    }
-
-    if (!window.Stripe) {
-      alert('Erro: Stripe.js não carregado. Verifique sua conexão.');
-      return;
-    }
-
-    const stripe = window.Stripe(publishableKey);
-    const { error } = await stripe.redirectToCheckout({
-      lineItems: [{ price: targetPriceId, quantity: 1 }],
-      mode: 'subscription',
-      successUrl: window.location.origin + '/success',
-      cancelUrl:  window.location.origin + '/cancel',
-    });
-
-    if (error) {
-      console.error('Stripe error:', error);
-      alert(`Erro no Checkout: ${error.message}`);
-    }
-  } catch (err) {
-    console.error('Checkout error:', err);
-    alert('Ocorreu um erro ao processar o checkout.');
+const contactSales = () => {
+  if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+    window.Tawk_API.maximize();
+  } else {
+    window.open('https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm', '_blank');
   }
 };
 </script>
@@ -200,8 +189,6 @@ const initiateCheckout = async (planId) => {
   margin-bottom: 2rem;
 }
 
-
-
 /* ── Grid ── */
 .pricing-grid {
   display: grid;
@@ -240,19 +227,19 @@ const initiateCheckout = async (planId) => {
   gap: 1.5rem;
 }
 
-.popular-tag {
+.promo-tag {
   position: absolute;
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--primary);
+  background: #f59e0b; /* Amber 500 */
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 18px;
   border-radius: 99px;
   white-space: nowrap;
-  box-shadow: var(--shadow-indigo);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -281,6 +268,10 @@ const initiateCheckout = async (planId) => {
   margin-bottom: 0.25rem;
 }
 
+.plan-price.price-consult {
+  margin-bottom: 0.75rem;
+}
+
 .currency {
   font-size: 1.25rem;
   font-weight: 700;
@@ -296,15 +287,25 @@ const initiateCheckout = async (planId) => {
   line-height: 1;
 }
 
+.amount--consult {
+  font-size: 2.5rem;
+  color: var(--midnight-navy);
+}
+
 .period {
   font-size: 0.9375rem;
   color: var(--text-light);
 }
 
-.annual-note {
-  font-size: 0.75rem;
-  color: #059669;
+.plan-promo-info {
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: #d97706; /* Amber 600 */
+  background: #fef3c7; /* Amber 100 */
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  line-height: 1.4;
+  margin-top: 0.5rem;
 }
 
 .btn-plan {
@@ -388,6 +389,7 @@ const initiateCheckout = async (planId) => {
     max-width: 480px;
     margin-left: auto;
     margin-right: auto;
+    gap: 2.5rem;
   }
 }
 </style>
