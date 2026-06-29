@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="produtos" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abcd">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="produtos" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="11223344-5566-7788-9900-1234567890ab">
     <queryString>
         <![CDATA[]]>
     </queryString>
@@ -11,7 +11,7 @@
     <title>
         <band height="79" splitType="Stretch">
             <staticText>
-                <reportElement x="0" y="0" width="555" height="79" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abce"/>
+                <reportElement x="0" y="0" width="555" height="79" uuid="11223344-5566-7788-9900-1234567890ac"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
                     <font size="24" isBold="true"/>
                 </textElement>
@@ -22,11 +22,11 @@
     <detail>
         <band height="30" splitType="Stretch">
             <textField>
-                <reportElement x="0" y="0" width="300" height="30" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abcf"/>
+                <reportElement x="0" y="0" width="300" height="30" uuid="11223344-5566-7788-9900-1234567890ad"/>
                 <textFieldExpression><![CDATA[$F{nome}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="300" y="0" width="100" height="30" uuid="p1r2o3d4-u5t6-o7s8-9012-34567890abd0"/>
+                <reportElement x="300" y="0" width="100" height="30" uuid="11223344-5566-7788-9900-1234567890ae"/>
                 <textFieldExpression><![CDATA[$F{precoVenda}]]></textFieldExpression>
             </textField>
         </band>

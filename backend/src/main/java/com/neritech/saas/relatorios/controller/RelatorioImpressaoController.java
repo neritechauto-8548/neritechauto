@@ -761,11 +761,15 @@ public class RelatorioImpressaoController {
 
 
     @GetMapping("/financeiro")
-    @Operation(summary = "Relatório Financeiro")
+    @Operation(summary = "Relatório Financeiro / Contas")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<byte[]> relatorioFinanceiro(
             @RequestParam(required = false) String dataInicio,
-            @RequestParam(required = false) String dataFim) {
+            @RequestParam(required = false) String dataFim,
+            @RequestParam(required = false, defaultValue = "VENCIMENTO") String dataDe,
+            @RequestParam(required = false, defaultValue = "TODOS") String situacaoTipo,
+            @RequestParam(required = false, defaultValue = "TODOS") String departamento,
+            @RequestParam(required = false, defaultValue = "VENCIMENTO") String ordenarPor) {
         
         Long empresaId = TenantContext.getCurrentTenant();
         
@@ -786,9 +790,9 @@ public class RelatorioImpressaoController {
         java.time.LocalDate end = dateFim != null ? dateFim : java.time.LocalDate.of(2099, 12, 31);
         
         java.util.List<com.neritech.saas.financeiro.domain.ContasReceber> receitas = 
-                contasReceberRepository.findByEmpresaIdAndDataVencimentoBetween(empresaId, start, end);
+                contasReceberRepository.findByEmpresaIdAndDataVencimentoBetween(empresaId, java.time.LocalDate.of(1970, 1, 1), java.time.LocalDate.of(2099, 12, 31));
         java.util.List<com.neritech.saas.financeiro.domain.ContasPagar> despesas = 
-                contasPagarRepository.findByEmpresaIdAndDataVencimentoBetween(empresaId, start, end);
+                contasPagarRepository.findByEmpresaIdAndDataVencimentoBetween(empresaId, java.time.LocalDate.of(1970, 1, 1), java.time.LocalDate.of(2099, 12, 31));
         
         java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
         java.text.NumberFormat nf = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR"));
@@ -805,18 +809,94 @@ public class RelatorioImpressaoController {
         java.util.List<Object> todasAsContas = new java.util.ArrayList<>();
         todasAsContas.addAll(receitas);
         todasAsContas.addAll(despesas);
-        
-        todasAsContas.sort((a, b) -> {
-            java.time.LocalDate d1 = a instanceof com.neritech.saas.financeiro.domain.ContasReceber ? 
-                    ((com.neritech.saas.financeiro.domain.ContasReceber) a).getDataVencimento() : 
-                    ((com.neritech.saas.financeiro.domain.ContasPagar) a).getDataVencimento();
-            java.time.LocalDate d2 = b instanceof com.neritech.saas.financeiro.domain.ContasReceber ? 
-                    ((com.neritech.saas.financeiro.domain.ContasReceber) b).getDataVencimento() : 
-                    ((com.neritech.saas.financeiro.domain.ContasPagar) b).getDataVencimento();
-            return d1.compareTo(d2);
+
+        // 1. Aplicar Filtros (data, situacaoTipo, departamento)
+        todasAsContas = todasAsContas.stream().filter(obj -> {
+            boolean isReceber = obj instanceof com.neritech.saas.financeiro.domain.ContasReceber;
+            com.neritech.saas.financeiro.domain.ContasReceber r = isReceber ? (com.neritech.saas.financeiro.domain.ContasReceber) obj : null;
+            com.neritech.saas.financeiro.domain.ContasPagar d = !isReceber ? (com.neritech.saas.financeiro.domain.ContasPagar) obj : null;
+            
+            // Filtro de Departamento
+            String centroCusto = isReceber 
+                ? (r.getCentroCusto() != null ? r.getCentroCusto().getDescricao() : "") 
+                : (d.getCentroCusto() != null ? d.getCentroCusto().getDescricao() : "");
+            if (!"TODOS".equalsIgnoreCase(departamento) && !departamento.equalsIgnoreCase(centroCusto)) {
+                return false;
+            }
+
+            // Filtro de Situação/Tipo
+            String status = isReceber ? r.getStatus().name() : d.getStatus().name();
+            if (!"TODOS".equalsIgnoreCase(situacaoTipo)) {
+                if ("A_RECEBER".equalsIgnoreCase(situacaoTipo) && !isReceber) return false;
+                if ("A_PAGAR".equalsIgnoreCase(situacaoTipo) && isReceber) return false;
+                if ("PAGO".equalsIgnoreCase(situacaoTipo) && !"PAGO".equalsIgnoreCase(status)) return false;
+                if ("PENDENTE".equalsIgnoreCase(situacaoTipo) && ("PAGO".equalsIgnoreCase(status) || "CANCELADO".equalsIgnoreCase(status))) return false;
+                if ("CANCELADO".equalsIgnoreCase(situacaoTipo) && !"CANCELADO".equalsIgnoreCase(status)) return false;
+            }
+
+            // Filtro de Data
+            java.time.LocalDate dtComparar = null;
+            if ("EMISSAO".equalsIgnoreCase(dataDe)) {
+                dtComparar = isReceber ? r.getDataEmissao() : d.getDataEmissao();
+            } else if ("PAGAMENTO".equalsIgnoreCase(dataDe)) {
+                if (isReceber && !r.getRecebimentos().isEmpty()) {
+                    dtComparar = r.getRecebimentos().get(r.getRecebimentos().size() - 1).getDataRecebimento();
+                } else if (!isReceber) {
+                    dtComparar = d.getDataPagamento();
+                }
+            } else {
+                // VENCIMENTO default
+                dtComparar = isReceber ? r.getDataVencimento() : d.getDataVencimento();
+            }
+
+            if (dtComparar != null) {
+                if (dtComparar.isBefore(start) || dtComparar.isAfter(end)) return false;
+            } else {
+                // Se o filtro for pagamento e não tem data, remove.
+                if ("PAGAMENTO".equalsIgnoreCase(dataDe)) return false; 
+            }
+
+            return true;
+        }).toList();
+
+        // 2. Ordenar
+        java.util.List<Object> mutableContas = new java.util.ArrayList<>(todasAsContas);
+        mutableContas.sort((a, b) -> {
+            boolean isReceberA = a instanceof com.neritech.saas.financeiro.domain.ContasReceber;
+            boolean isReceberB = b instanceof com.neritech.saas.financeiro.domain.ContasReceber;
+            
+            if ("CLIENTE".equalsIgnoreCase(ordenarPor)) {
+                String cA = isReceberA ? ((com.neritech.saas.financeiro.domain.ContasReceber) a).getDescricao() : ((com.neritech.saas.financeiro.domain.ContasPagar) a).getDescricao();
+                String cB = isReceberB ? ((com.neritech.saas.financeiro.domain.ContasReceber) b).getDescricao() : ((com.neritech.saas.financeiro.domain.ContasPagar) b).getDescricao();
+                return (cA != null ? cA : "").compareToIgnoreCase(cB != null ? cB : "");
+            } else if ("VALOR".equalsIgnoreCase(ordenarPor)) {
+                BigDecimal vA = isReceberA ? ((com.neritech.saas.financeiro.domain.ContasReceber) a).getValorNominal() : ((com.neritech.saas.financeiro.domain.ContasPagar) a).getValorNominal();
+                BigDecimal vB = isReceberB ? ((com.neritech.saas.financeiro.domain.ContasReceber) b).getValorNominal() : ((com.neritech.saas.financeiro.domain.ContasPagar) b).getValorNominal();
+                return (vA != null ? vA : BigDecimal.ZERO).compareTo(vB != null ? vB : BigDecimal.ZERO);
+            } else if ("EMISSAO".equalsIgnoreCase(ordenarPor)) {
+                java.time.LocalDate dA = isReceberA ? ((com.neritech.saas.financeiro.domain.ContasReceber) a).getDataEmissao() : ((com.neritech.saas.financeiro.domain.ContasPagar) a).getDataEmissao();
+                java.time.LocalDate dB = isReceberB ? ((com.neritech.saas.financeiro.domain.ContasReceber) b).getDataEmissao() : ((com.neritech.saas.financeiro.domain.ContasPagar) b).getDataEmissao();
+                if (dA == null) return 1; if (dB == null) return -1; return dA.compareTo(dB);
+            } else if ("PAGAMENTO".equalsIgnoreCase(ordenarPor)) {
+                java.time.LocalDate dA = null;
+                if (isReceberA && !((com.neritech.saas.financeiro.domain.ContasReceber) a).getRecebimentos().isEmpty()) {
+                    dA = ((com.neritech.saas.financeiro.domain.ContasReceber) a).getRecebimentos().get(0).getDataRecebimento();
+                } else if (!isReceberA) dA = ((com.neritech.saas.financeiro.domain.ContasPagar) a).getDataPagamento();
+                
+                java.time.LocalDate dB = null;
+                if (isReceberB && !((com.neritech.saas.financeiro.domain.ContasReceber) b).getRecebimentos().isEmpty()) {
+                    dB = ((com.neritech.saas.financeiro.domain.ContasReceber) b).getRecebimentos().get(0).getDataRecebimento();
+                } else if (!isReceberB) dB = ((com.neritech.saas.financeiro.domain.ContasPagar) b).getDataPagamento();
+                
+                if (dA == null) return 1; if (dB == null) return -1; return dA.compareTo(dB);
+            }
+            // VENCIMENTO default
+            java.time.LocalDate d1 = isReceberA ? ((com.neritech.saas.financeiro.domain.ContasReceber) a).getDataVencimento() : ((com.neritech.saas.financeiro.domain.ContasPagar) a).getDataVencimento();
+            java.time.LocalDate d2 = isReceberB ? ((com.neritech.saas.financeiro.domain.ContasReceber) b).getDataVencimento() : ((com.neritech.saas.financeiro.domain.ContasPagar) b).getDataVencimento();
+            if (d1 == null) return 1; if (d2 == null) return -1; return d1.compareTo(d2);
         });
         
-        for (Object obj : todasAsContas) {
+        for (Object obj : mutableContas) {
             Map<String, Object> m = new HashMap<>();
             if (obj instanceof com.neritech.saas.financeiro.domain.ContasReceber) {
                 com.neritech.saas.financeiro.domain.ContasReceber r = (com.neritech.saas.financeiro.domain.ContasReceber) obj;

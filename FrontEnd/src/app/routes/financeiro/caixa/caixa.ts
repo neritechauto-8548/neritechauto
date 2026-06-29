@@ -74,8 +74,8 @@ export class CaixaComponent implements OnInit {
   dataGeracao = new Date();
 
   // Filtros
-  dataInicial = '';
-  dataFinal   = '';
+  dataInicial: Date | null = null;
+  dataFinal:   Date | null = null;
   contaSelecionada: number | 'TODAS' = 'TODAS';
   centroCustoSelecionado: number | 'TODOS' = 'TODOS';
   contasBancariasCompletas: any[] = [];
@@ -244,14 +244,15 @@ export class CaixaComponent implements OnInit {
 
   salvarFechamentoFinal() {
     this.salvandoFech = true;
+    const iniStr = this.toISO(this.dataInicial) || new Date().toISOString().split('T')[0];
     const req = {
-      dataAbertura:   `${this.dataInicial || new Date().toISOString().split('T')[0]}T00:00:00`,
+      dataAbertura:   `${iniStr}T00:00:00`,
       dataFechamento: `${this.fechData}T${this.fechHora}:00`,
       saldoInicial:   this.saldoInicial,
       saldoFinal:     this.saldoFinal,
       totalEntradas:  this.totalEntrada,
       totalSaidas:    this.totalSaida,
-      observacoes:    `Fechamento — Período: ${this.dataInicial || 'Inicial'} a ${this.dataFinal || 'Final'}`,
+      observacoes:    `Fechamento — Período: ${iniStr} a ${this.toISO(this.dataFinal) || 'Final'}`,
       situacao:       'FECHADO',
     };
     this.finService.createFechamentoCaixa(req).subscribe({
@@ -276,7 +277,7 @@ export class CaixaComponent implements OnInit {
           const ultimo = content[0];
           this.ultimoFechamentoData = ultimo.dataHoraOperacao || ultimo.dataFechamento ? (ultimo.dataHoraOperacao || ultimo.dataFechamento).split('T')[0] : '';
           
-          const dataFinalRef = this.dataFinal || new Date().toISOString().split('T')[0];
+          const dataFinalRef = this.toISO(this.dataFinal) || new Date().toISOString().split('T')[0];
           this.caixaFechado = !!(this.ultimoFechamentoData && dataFinalRef <= this.ultimoFechamentoData);
         } else {
           this.caixaFechado = false;
@@ -289,13 +290,23 @@ export class CaixaComponent implements OnInit {
   }
 
   // ─── Busca ────────────────────────────────────────────────
+  private toISO(d: Date | null): string | undefined {
+    if (!d) return undefined;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   buscar() {
     this.loading = true;
     const params: any = {
       page: 0, size: 200,
     };
-    if (this.dataInicial) params.dataInicio = this.dataInicial;
-    if (this.dataFinal)   params.dataFim    = this.dataFinal;
+    const ini = this.toISO(this.dataInicial);
+    const fim = this.toISO(this.dataFinal);
+    if (ini) params.dataInicio = ini;
+    if (fim) params.dataFim    = fim;
     if (typeof this.contaSelecionada === 'number')      params.contaBancariaId = this.contaSelecionada;
     if (typeof this.centroCustoSelecionado === 'number') params.centroCustoId   = this.centroCustoSelecionado;
 
@@ -399,8 +410,10 @@ export class CaixaComponent implements OnInit {
   imprimir() {
     this.pdfLoading = true;
     const params: any = {};
-    if (this.dataInicial) params.dataInicio = this.dataInicial;
-    if (this.dataFinal)   params.dataFim    = this.dataFinal;
+    const ini = this.toISO(this.dataInicial);
+    const fim = this.toISO(this.dataFinal);
+    if (ini) params.dataInicio = ini;
+    if (fim) params.dataFim    = fim;
     if (typeof this.contaSelecionada === 'number')      params.contaBancariaId = this.contaSelecionada;
     if (typeof this.centroCustoSelecionado === 'number') params.centroCustoId   = this.centroCustoSelecionado;
     params.usuarioNome = this.usuarioAtual || 'ALEXANDRE ROMULO ALBUQUERQUE NERI';
@@ -480,8 +493,16 @@ export class CaixaComponent implements OnInit {
 
   ngOnInit() {
     const qp = this.route.snapshot.queryParamMap;
-    if (qp.get('de'))  this.dataInicial = qp.get('de')!;
-    if (qp.get('ate')) this.dataFinal   = qp.get('ate')!;
+    const parseDate = (d: string | null) => {
+      if (!d) return null;
+      const parts = d.split('-');
+      return parts.length === 3 ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])) : null;
+    };
+    const deStr = qp.get('de');
+    if (deStr) this.dataInicial = parseDate(deStr);
+    
+    const ateStr = qp.get('ate');
+    if (ateStr) this.dataFinal = parseDate(ateStr);
     this.carregarAuxiliares();
     this.carregarEmpresaEUsuario();
     this.buscar();

@@ -1,148 +1,189 @@
-<div class="toolbar">
-  <button pButton type="button" class="p-button-success p-button-sm" icon="pi pi-file-excel" label="Exportar tabela"></button>
+<div class="toolbar flex justify-between items-center mb-4">
+  <button pButton type="button" class="p-button-success p-button-sm" icon="pi pi-file-excel" label="Exportar Excel (CSV)" (click)="exportExcel()"></button>
 </div>
 
-<div class="filters">
-  <div class="title">Fluxo caixa</div>
-  <div class="controls">
-    <div class="segmented">
-      <button pButton type="button" [class.active]="isDaily" (click)="setPeriod('Diário')" label="Diário"></button>
-      <button pButton type="button" [class.active]="!isDaily" (click)="setPeriod('Mensal')" label="Mensal"></button>
+<!-- Premium Filter Bar -->
+<div class="filters-container bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-6">
+  <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+    <div class="title-section">
+      <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+        <i class="pi pi-chart-line text-blue-600"></i>
+        Relatório de Fluxo de Caixa
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">Acompanhe as movimentações previstas e realizadas da sua oficina</p>
     </div>
+    
+    <div class="controls-section flex flex-wrap items-end gap-3 w-full xl:w-auto">
+      <div class="filter-item">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Período</label>
+        <div class="segmented-control bg-slate-100 p-1 rounded-lg flex items-center h-[38px]">
+          <button type="button" class="seg-btn px-3 py-1 font-semibold text-xs rounded transition-all" 
+                  [class.active]="isDaily"
+                  (click)="setPeriod('Diário')">Diário</button>
+          <button type="button" class="seg-btn px-3 py-1 font-semibold text-xs rounded transition-all" 
+                  [class.active]="!isDaily"
+                  (click)="setPeriod('Mensal')">Mensal</button>
+        </div>
+      </div>
 
-    <select *ngIf="!isDaily" [(ngModel)]="year">
-      <option [value]="2024">2024</option>
-      <option [value]="2025">2025</option>
-      <option [value]="2026">2026</option>
-    </select>
+      <!-- Year select -->
+      <div class="filter-item">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
+        <select [(ngModel)]="year" (ngModelChange)="setYear($event)" class="filter-select w-24">
+          <option [value]="2024">2024</option>
+          <option [value]="2025">2025</option>
+          <option [value]="2026">2026</option>
+          <option [value]="2027">2027</option>
+        </select>
+      </div>
 
-    <select *ngIf="isDaily" [(ngModel)]="monthIndex" (ngModelChange)="setMonth($event)">
-      <option [value]="0">Janeiro</option>
-      <option [value]="1">Fevereiro</option>
-      <option [value]="2">Março</option>
-      <option [value]="3">Abril</option>
-      <option [value]="4">Maio</option>
-      <option [value]="5">Junho</option>
-      <option [value]="6">Julho</option>
-      <option [value]="7">Agosto</option>
-      <option [value]="8">Setembro</option>
-      <option [value]="9">Outubro</option>
-      <option [value]="10">Novembro</option>
-      <option [value]="11">Dezembro</option>
-    </select>
+      <!-- Month select (Daily mode) -->
+      <div class="filter-item" *ngIf="isDaily">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Mês</label>
+        <select [(ngModel)]="monthIndex" (ngModelChange)="setMonth($event)" class="filter-select w-32">
+          <option [value]="0">Janeiro</option>
+          <option [value]="1">Fevereiro</option>
+          <option [value]="2">Março</option>
+          <option [value]="3">Abril</option>
+          <option [value]="4">Maio</option>
+          <option [value]="5">Junho</option>
+          <option [value]="6">Julho</option>
+          <option [value]="7">Agosto</option>
+          <option [value]="8">Setembro</option>
+          <option [value]="9">Outubro</option>
+          <option [value]="10">Novembro</option>
+          <option [value]="11">Dezembro</option>
+        </select>
+      </div>
 
-    <select [(ngModel)]="account">
-      <option>TODAS AS CONTAS</option>
-      <option>Conta corrente</option>
-      <option>Cartão</option>
-    </select>
+      <!-- Account select -->
+      <div class="filter-item">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Conta Bancária</label>
+        <select [(ngModel)]="selectedAccountId" (ngModelChange)="buscar()" class="filter-select w-48">
+          <option [ngValue]="null">TODAS AS CONTAS</option>
+          <option *ngFor="let acc of contasBancarias" [ngValue]="acc.id">{{ acc.label }}</option>
+        </select>
+      </div>
 
-    <select [(ngModel)]="mode">
-      <option>PREVISTO E REALIZADO</option>
-      <option>Somente previsto</option>
-      <option>Somente realizado</option>
-    </select>
+      <!-- Mode select -->
+      <div class="filter-item">
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Visualização</label>
+        <select [(ngModel)]="mode" (ngModelChange)="buscar()" class="filter-select w-56">
+          <option value="PREVISTO E REALIZADO">PREVISTO E REALIZADO</option>
+          <option value="Somente previsto">Somente previsto</option>
+          <option value="Somente realizado">Somente realizado</option>
+        </select>
+      </div>
 
-    <button pButton type="button" class="p-button-primary" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
+      <div class="filter-item flex items-end">
+        <button pButton type="button" class="p-button-primary p-button-sm h-[38px] px-4 font-semibold text-xs" icon="pi pi-search" label="Buscar" (click)="buscar()"></button>
+      </div>
+    </div>
   </div>
 </div>
 
-<p-panel [toggleable]="true" [collapsed]="false">
-  <ng-template pTemplate="header">
-    <div class="panel-header">
-      <div class="header-left">
-        <span class="material-icons icon-success">insights</span>
-        <span class="title">FLUXO CAIXA <small class="muted">últimos 12 meses</small></span>
+<!-- Loading state indicator -->
+<div *ngIf="isLoading" class="loading-overlay shadow-sm">
+  <i class="pi pi-spin pi-spinner text-4xl text-blue-500"></i>
+  <span class="ml-3 text-slate-600 font-medium">Processando e estruturando fluxo de caixa...</span>
+</div>
+
+<!-- Main Content Area -->
+<div *ngIf="!isLoading">
+  <!-- Dynamic ApexChart Panel -->
+  <p-panel [toggleable]="true" [collapsed]="false" class="block mb-6 shadow-sm">
+    <ng-template pTemplate="header">
+      <div class="panel-header w-full">
+        <div class="header-left">
+          <span class="material-icons icon-success">insights</span>
+          <span class="title">RESUMO GRÁFICO DO FLUXO <small class="muted">{{ period }} ({{ year }})</small></span>
+        </div>
+        <div class="header-actions">
+          <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text" (click)="menu.toggle($event)" aria-label="Menu de download"></button>
+          <p-menu #menu [popup]="true" [model]="menuItems" />
+        </div>
       </div>
-      <div class="header-actions">
-        <button pButton type="button" icon="pi pi-download" class="p-button-rounded p-button-text" (click)="menu.toggle($event)" aria-label="Menu de download"></button>
-        <p-menu #menu [popup]="true" [model]="menuItems" />
-      </div>
+    </ng-template>
+
+    <div class="chart-wrapper p-3 bg-white rounded-lg">
+      <apx-chart *ngIf="chartOptions"
+        [series]="chartOptions.series"
+        [chart]="chartOptions.chart"
+        [xaxis]="chartOptions.xaxis"
+        [yaxis]="chartOptions.yaxis"
+        [stroke]="chartOptions.stroke"
+        [tooltip]="chartOptions.tooltip"
+        [legend]="chartOptions.legend"
+        [colors]="chartOptions.colors"
+        [grid]="chartOptions.grid"
+        [plotOptions]="chartOptions.plotOptions"
+      />
     </div>
-  </ng-template>
+  </p-panel>
 
-  <div class="chart-area">
-    <div class="zero-line"></div>
-
-    <div class="bar bar-receita" title="Recebimentos realizados">
-      <div class="value-label top">100,00</div>
+  <!-- Structured Cash Flow Table Card -->
+  <p-card class="block shadow-sm">
+    <div class="table-header-bar flex justify-between items-center px-4 py-3 bg-slate-50 border-b border-slate-200 rounded-t-lg">
+      <span class="text-sm font-bold text-slate-700">Demonstrativo de Fluxo de Caixa</span>
+      <span class="text-xs text-slate-500 font-medium">* Valores previstos exibidos em itálico abaixo dos valores realizados</span>
     </div>
+    
+    <div class="table-scroll">
+      <table class="fc-table w-full">
+        <thead>
+          <tr>
+            <th class="text-left font-semibold py-3 px-4 bg-slate-100 text-slate-700 border border-slate-200">Categorias de Lançamentos</th>
+            <th *ngFor="let col of columnsList; let i = index" class="text-right font-semibold py-3 px-4 bg-slate-100 text-slate-700 border border-slate-200 min-w-[120px]">
+              {{ columnsLabels[i] }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cat of categories" 
+              [class.highlight-row]="isSumCategory(cat)"
+              class="hover:bg-slate-50 transition-colors border-b border-slate-200">
+            
+            <td class="category-name font-medium py-3 px-4 text-slate-800 border-l border-r border-slate-200"
+                [class.pl-8]="cat !== 'Saldo do mês anterior' && cat !== 'Total de receitas' && cat !== 'Total de despesas' && cat !== 'Saldo líquido' && cat !== 'Saldo acumulado'">
+              {{ cat }}
+            </td>
+            
+            <td *ngFor="let col of columnsList" class="text-right py-3 px-4 border-r border-slate-200">
+              <!-- Mode: Realized Only -->
+              <div *ngIf="mode === 'Somente realizado'" 
+                   class="font-medium"
+                   [class.negative-val]="value(cat, col, 'realizado') < 0"
+                   [class.positive-val]="value(cat, col, 'realizado') > 0 && cat === 'Saldo acumulado'">
+                {{ formatBR(value(cat, col, 'realizado')) }}
+              </div>
+              
+              <!-- Mode: Predicted Only -->
+              <div *ngIf="mode === 'Somente previsto'" 
+                   class="font-medium"
+                   [class.negative-val]="value(cat, col, 'previsto') < 0"
+                   [class.positive-val]="value(cat, col, 'previsto') > 0 && cat === 'Saldo acumulado'">
+                {{ formatBR(value(cat, col, 'previsto')) }}
+              </div>
 
-    <div class="bar bar-despesa" title="Pagamentos realizados">
-      <div class="value-label bottom">-5.000,00</div>
+              <!-- Mode: Both (Realized and Predicted Stacked) -->
+              <div *ngIf="mode === 'PREVISTO E REALIZADO'">
+                <div class="font-bold" 
+                     [class.negative-val]="value(cat, col, 'realizado') < 0"
+                     [class.positive-val]="value(cat, col, 'realizado') > 0 && cat === 'Saldo acumulado'"
+                     [class.text-slate-800]="value(cat, col, 'realizado') >= 0 && cat !== 'Saldo acumulado'">
+                  {{ formatBR(value(cat, col, 'realizado')) }}
+                </div>
+                <div class="text-xs text-slate-500 font-medium italic mt-0.5"
+                     [class.text-red-500]="value(cat, col, 'previsto') < 0"
+                     [class.text-emerald-500]="value(cat, col, 'previsto') > 0 && cat === 'Saldo acumulado'">
+                  Prev: {{ formatBR(value(cat, col, 'previsto')) }}
+                </div>
+              </div>
+            </td>
+            
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <svg class="result-line-svg" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-label="Saldo">
-      <polyline points="0,200 820,200 950,380" stroke="#22c55e" stroke-width="3" fill="none" />
-      <circle cx="950" cy="380" r="6" fill="#22c55e" />
-    </svg>
-
-    <div class="months" *ngIf="!isDaily">
-      <span>Janeiro</span><span>Fevereiro</span><span>Março</span><span>Abril</span><span>Maio</span><span>Junho</span><span>Julho</span><span>Agosto</span><span>Setembro</span><span>Outubro</span><span>Novembro</span><span>Dezembro</span>
-    </div>
-    <div class="days" *ngIf="isDaily">
-      <span *ngFor="let d of days">{{ d }}</span>
-    </div>
-  </div>
-
-  <div class="legend multi">
-    <div class="legend-item"><span class="marker red"></span>Pagamentos realizados</div>
-    <div class="legend-item"><span class="marker red-soft"></span>Pagamentos previstos</div>
-    <div class="legend-item"><span class="marker blue"></span>Recebimentos realizados</div>
-    <div class="legend-item"><span class="marker blue-soft"></span>Recebimentos previstos</div>
-    <div class="legend-item"><span class="marker green-line"></span>Saldo realizado</div>
-    <div class="legend-item"><span class="marker green-line soft"></span>Saldo previsto</div>
-  </div>
-</p-panel>
-
-<div class="table-box">
-  <div class="table-scroll">
-    <table class="fc-table">
-      <thead *ngIf="!isDaily">
-        <tr>
-          <th>Categorias de Lançamentos</th>
-          <th>Agosto</th>
-          <th>Setembro</th>
-          <th>Outubro</th>
-          <th>Novembro</th>
-          <th>Dezembro</th>
-        </tr>
-      </thead>
-      <thead *ngIf="isDaily">
-        <tr>
-          <th>Categorias de Lançamentos</th>
-          <ng-container *ngFor="let d of days">
-            <th [attr.colspan]="2">{{ d }}</th>
-          </ng-container>
-        </tr>
-        <tr>
-          <th></th>
-          <ng-container *ngFor="let d of days">
-            <th>Previsto</th>
-            <th>Realizado</th>
-          </ng-container>
-        </tr>
-      </thead>
-      <tbody *ngIf="!isDaily">
-        <tr><td>Saldo do mês anterior</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Outras receitas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 100,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Receitas de vendas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Receitas de serviços</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Total de receitas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 100,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Outras despesas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>-R$ 4.900,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Despesas com comissões</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Total de despesas</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>-R$ 4.900,00</td><td>R$ 0,00</td></tr>
-        <tr><td>Saldo</td><td>R$ 0,00</td><td>R$ 0,00</td><td>R$ 0,00</td><td>-R$ 4.900,00</td><td>R$ 0,00</td></tr>
-      </tbody>
-      <tbody *ngIf="isDaily">
-        <tr *ngFor="let cat of categories">
-          <td>{{ cat }}</td>
-          <ng-container *ngFor="let d of days">
-            <td>{{ formatBR(value(cat, d, 'previsto')) }}</td>
-            <td>{{ formatBR(value(cat, d, 'realizado')) }}</td>
-          </ng-container>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  </p-card>
 </div>

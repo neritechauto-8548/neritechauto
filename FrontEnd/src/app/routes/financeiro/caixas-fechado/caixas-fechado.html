@@ -2,327 +2,466 @@
   <p-toast [style]="{top:'90px'}" [baseZIndex]="99999" />
   <p-confirmDialog />
 
-  <!-- Header Stripe -->
+  <!-- ═══ Header ═══════════════════════════════════════ -->
   <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 sticky top-0 z-20 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div>
-        <h1 class="text-lg font-bold text-slate-900">Caixas Fechados</h1>
-        <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Gerencie o histórico de fechamentos de caixa</p>
+        <h1 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="pi pi-lock-open text-indigo-600"></i>
+          Caixas Fechados
+        </h1>
+        <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Histórico completo de fechamentos de caixa</p>
       </div>
-      <div class="flex items-center gap-2 flex-wrap justify-end">
-        <button (click)="imprimir()"
-          class="flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors">
-          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">print</mat-icon>
+      <div class="flex items-center gap-2">
+        <button (click)="imprimir()" [disabled]="loading"
+          class="flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50">
+          <i class="pi pi-print text-sm"></i>
           <span class="hidden sm:inline">Imprimir</span>
-        </button>
-        <button (click)="imprimirCupom()"
-          class="flex items-center gap-1.5 px-3 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors">
-          <mat-icon class="!text-[17px] !w-[17px] !h-[17px]">receipt</mat-icon>
-          <span class="hidden sm:inline">Cupom</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Cards de Totais -->
+  <!-- ═══ Cards de Totais ══════════════════════════════ -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 px-4 sm:px-6 py-4">
-
-    <!-- Saldo Inicial -->
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Inicial Total</span>
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Saldo Inicial</span>
         <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-600">account_balance_wallet</mat-icon>
+          <i class="pi pi-wallet text-slate-600"></i>
         </span>
       </div>
       <p class="text-lg font-bold text-slate-800">{{ formatCurrency(totalSaldoInicial) }}</p>
     </div>
-
-    <!-- Entradas -->
     <div class="bg-white border border-emerald-200 rounded-xl p-4 shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Total Entradas</span>
         <span class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-emerald-600">arrow_downward</mat-icon>
+          <i class="pi pi-arrow-down text-emerald-600"></i>
         </span>
       </div>
       <p class="text-lg font-bold text-emerald-700">{{ formatCurrency(totalEntradas) }}</p>
     </div>
-
-    <!-- Saídas -->
     <div class="bg-white border border-red-200 rounded-xl p-4 shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-semibold text-red-600 uppercase tracking-wider">Total Saídas</span>
         <span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-red-600">arrow_upward</mat-icon>
+          <i class="pi pi-arrow-up text-red-600"></i>
         </span>
       </div>
       <p class="text-lg font-bold text-red-700">{{ formatCurrency(totalSaidas) }}</p>
     </div>
-
-    <!-- Saldo Final -->
     <div class="bg-white rounded-xl p-4 shadow-sm border-2 border-indigo-300">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-700">Saldo Final Total</span>
-        <span class="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-100">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-indigo-600">check_circle</mat-icon>
+        <span class="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Saldo Final</span>
+        <span class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+          <i class="pi pi-check-circle text-indigo-600"></i>
         </span>
       </div>
-      <p class="text-lg font-bold text-indigo-700">
-        {{ formatCurrency(totalSaldoFinal) }}
-      </p>
+      <p class="text-lg font-bold text-indigo-700">{{ formatCurrency(totalSaldoFinal) }}</p>
     </div>
   </div>
 
-  <!-- Filtros -->
+  <!-- ═══ Filtros ════════════════════════════════════════ -->
   <div class="px-4 sm:px-6 pb-3">
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap items-end gap-3">
-
-        <div class="flex flex-col gap-1 min-w-[140px]">
+        <div class="flex flex-col gap-1 w-[160px]">
           <label class="text-xs font-semibold text-slate-700">Data Início</label>
-          <input type="date" [(ngModel)]="dataInicio"
-            class="px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+          <p-datepicker [(ngModel)]="dataInicio" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full text-sm" appendTo="body" />
         </div>
-        <div class="flex flex-col gap-1 min-w-[140px]">
+        <div class="flex flex-col gap-1 w-[160px]">
           <label class="text-xs font-semibold text-slate-700">Data Fim</label>
-          <input type="date" [(ngModel)]="dataFim"
-            class="px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+          <p-datepicker [(ngModel)]="dataFim" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full text-sm" appendTo="body" />
         </div>
-
-        <div class="flex flex-col gap-1 min-w-[200px]">
+        <div class="flex flex-col gap-1 w-[220px]">
           <label class="text-xs font-semibold text-slate-700">Responsável</label>
-          <p-select [options]="responsavelOptions" optionLabel="label" optionValue="value"
-            [(ngModel)]="responsavel" styleClass="w-full text-sm" />
+          <p-select [options]="responsavelOptions" optionLabel="label" optionValue="value" [(ngModel)]="responsavel" styleClass="w-full text-sm" />
         </div>
-
         <button (click)="buscar()" [disabled]="loading"
-          class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">search</mat-icon>
-          Buscar
+          class="flex items-center justify-center gap-1.5 px-5 py-2 h-[38px] bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50">
+          <i class="pi pi-search text-sm"></i>
+          {{ loading ? 'Buscando...' : 'Buscar' }}
         </button>
-
       </div>
+
     </div>
   </div>
 
-  <!-- Tabela -->
-  <div class="px-4 sm:px-6 pb-8 flex-1">
-    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+  <!-- ═══ Tabela de Fechamentos ═══════════════════════════ -->
+  <div class="px-4 sm:px-6 pb-6 flex-1">
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
 
-      <!-- Loading -->
-      <div *ngIf="loading" class="py-16 flex flex-col items-center gap-3 text-slate-400">
-        <mat-icon class="animate-spin !text-2xl">refresh</mat-icon>
-        <span class="text-sm">Buscando fechamentos...</span>
-      </div>
+      @if (loading) {
+        <div class="p-6 space-y-3">
+          @for (_ of [1,2,3,4]; track $index) { <p-skeleton height="48px" /> }
+        </div>
+      } @else if (registros.length === 0) {
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+            <i class="pi pi-inbox text-3xl text-slate-400"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-700 mb-1">Nenhum fechamento encontrado</h3>
+          <p class="text-xs text-slate-500">Ajuste os filtros e tente novamente.</p>
+        </div>
+      } @else {
+        <!-- Header da tabela -->
+        <div class="grid grid-cols-12 gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <div class="col-span-1">#</div>
+          <div class="col-span-2">Período</div>
+          <div class="col-span-2 hidden sm:block">Fechamento</div>
+          <div class="col-span-2 hidden md:block">Responsável</div>
+          <div class="col-span-1 text-right">Entradas</div>
+          <div class="col-span-1 text-right">Saídas</div>
+          <div class="col-span-2 sm:col-span-1 text-right">Saldo Final</div>
+          <div class="col-span-1 text-center">Status</div>
+          <div class="col-span-1 text-center">Ações</div>
+        </div>
 
-      <!-- Empty -->
-      <div *ngIf="!loading && registros.length === 0" class="py-16 flex flex-col items-center gap-3">
-        <mat-icon class="!text-4xl text-slate-300">inbox</mat-icon>
-        <p class="text-sm font-semibold text-slate-500">Nenhum fechamento encontrado no período</p>
-        <p class="text-xs text-slate-400">Ajuste as datas para visualizar o histórico de caixas fechados.</p>
-      </div>
+        @for (r of registros; track r.cod) {
+          <div class="grid grid-cols-12 gap-2 px-4 py-3 border-b border-slate-100 hover:bg-slate-50/70 transition-colors items-center">
+            <div class="col-span-1 text-xs font-mono text-slate-500">#{{ r.cod }}</div>
+            <div class="col-span-2">
+              <p class="text-sm font-semibold text-slate-800">{{ r.dataReferente }}</p>
+            </div>
+            <div class="col-span-2 hidden sm:block">
+              <p class="text-xs text-slate-600">{{ r.dataHoraOperacao }}</p>
+            </div>
+            <div class="col-span-2 hidden md:block">
+              <p class="text-xs text-slate-700 font-medium truncate" [title]="r.responsavel">{{ r.responsavel }}</p>
+            </div>
+            <div class="col-span-1 text-right">
+              <span class="text-xs font-bold text-emerald-700 whitespace-nowrap">{{ formatCurrency(r.totalEntradas) }}</span>
+            </div>
+            <div class="col-span-1 text-right">
+              <span class="text-xs font-bold text-red-600 whitespace-nowrap">{{ formatCurrency(r.totalSaidas) }}</span>
+            </div>
+            <div class="col-span-2 sm:col-span-1 text-right">
+              <span class="text-sm font-bold whitespace-nowrap" [class]="r.saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
+                {{ formatCurrency(r.saldoFinal) }}
+              </span>
+            </div>
+            <div class="col-span-1 text-center">
+              <p-tag [value]="r.situacao" [severity]="getSituacaoSeverity(r.situacao)" styleClass="text-xs" />
+            </div>
+            <div class="col-span-1 flex items-center justify-center gap-1.5">
+              <button (click)="visualizarDetalhes(r)" title="Ver detalhes"
+                class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-colors">
+                <i class="pi pi-eye text-sm"></i>
+              </button>
+              <button (click)="imprimirRegistro(r)" title="Imprimir"
+                class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-colors">
+                <i class="pi pi-print text-sm"></i>
+              </button>
+            </div>
+          </div>
+        }
 
-      <!-- Table -->
-      <table *ngIf="!loading && registros.length > 0" class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-slate-100 bg-slate-50">
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Código</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Data Ref.</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider hidden md:table-cell">Fechamento</th>
-            <th class="text-left py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Responsável</th>
-            <th class="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Saldo Inicial</th>
-            <th class="text-right py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Saldo Final</th>
-            <th class="text-center py-3 px-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let r of registros"
-              class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-
-            <!-- Código -->
-            <td class="py-3 px-4">
-              <span class="font-bold text-slate-800">#{{ r.cod }}</span>
-            </td>
-
-            <td class="py-3 px-4 text-slate-700 font-mono text-xs whitespace-nowrap">{{ r.dataReferente }}</td>
-
-            <td class="py-3 px-4 text-slate-500 text-xs hidden md:table-cell whitespace-nowrap">{{ r.dataHoraOperacao }}</td>
-
-            <td class="py-3 px-4">
-              <div class="flex items-center gap-1.5 text-slate-700">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-400">person</mat-icon>
-                <span class="font-medium text-xs">{{ r.responsavel }}</span>
-              </div>
-            </td>
-
-            <td class="py-3 px-4 text-right">
-              <span class="font-medium text-slate-700">{{ formatCurrency(r.saldoInicial) }}</span>
-            </td>
-
-            <td class="py-3 px-4 text-right">
-              <span class="font-bold text-indigo-700">{{ formatCurrency(r.saldoFinal) }}</span>
-            </td>
-
-            <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-1">
-                <button (click)="visualizarDetalhes(r)"
-                  class="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
-                  title="Detalhes">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">visibility</mat-icon>
-                </button>
-                <button (click)="imprimirRegistro(r)"
-                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-                  title="Imprimir Caixa">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Footer de totais -->
+        <div class="grid grid-cols-12 gap-2 px-4 py-3 bg-indigo-50 border-t-2 border-indigo-200 text-xs font-bold text-indigo-900">
+          <div class="col-span-7">TOTAIS DO PERÍODO</div>
+          <div class="col-span-1 text-right text-emerald-700">{{ formatCurrency(totalEntradas) }}</div>
+          <div class="col-span-1 text-right text-red-600">{{ formatCurrency(totalSaidas) }}</div>
+          <div class="col-span-1 text-right text-indigo-700">{{ formatCurrency(totalSaldoFinal) }}</div>
+          <div class="col-span-2"></div>
+        </div>
+      }
     </div>
   </div>
+
+  <!-- ═══ Dialog: Detalhes do Fechamento ═══════════════════ -->
+  <p-dialog
+    [(visible)]="detalhesDialogVisible"
+    [modal]="true"
+    [closable]="true"
+    [dismissableMask]="true"
+    [style]="{ width: '95vw', maxWidth: '1100px' }"
+    [contentStyle]="{ padding: '0', overflow: 'hidden' }"
+    styleClass="shadow-2xl rounded-2xl"
+    appendTo="body">
+
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-3 py-1">
+        <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+          <i class="pi pi-lock text-indigo-600 text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Fechamento de Caixa</h2>
+          @if (fechamentoSelecionado) {
+            <p class="text-xs text-slate-500">
+              Período: {{ fechamentoSelecionado.dataReferente }} &bull; Encerrado em: {{ fechamentoSelecionado.dataHoraOperacao }}
+            </p>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    @if (fechamentoSelecionado) {
+      <!-- Mini cards de resumo no topo do dialog -->
+      <div class="grid grid-cols-4 gap-0 border-b border-slate-200">
+        <div class="p-4 text-center border-r border-slate-200">
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-1">Saldo Inicial</p>
+          <p class="text-lg font-bold text-slate-800">{{ formatCurrency(fechamentoSelecionado.saldoInicial) }}</p>
+        </div>
+        <div class="p-4 text-center border-r border-slate-200">
+          <p class="text-xs font-semibold text-emerald-600 uppercase mb-1">Entradas</p>
+          <p class="text-lg font-bold text-emerald-700">{{ formatCurrency(fechamentoSelecionado.totalEntradas) }}</p>
+        </div>
+        <div class="p-4 text-center border-r border-slate-200">
+          <p class="text-xs font-semibold text-red-500 uppercase mb-1">Saídas</p>
+          <p class="text-lg font-bold text-red-600">{{ formatCurrency(fechamentoSelecionado.totalSaidas) }}</p>
+        </div>
+        <div class="p-4 text-center">
+          <p class="text-xs font-semibold uppercase mb-1"
+            [class]="fechamentoSelecionado.saldoFinal >= 0 ? 'text-indigo-600' : 'text-red-500'">Saldo Final</p>
+          <p class="text-lg font-bold"
+            [class]="fechamentoSelecionado.saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-600'">
+            {{ formatCurrency(fechamentoSelecionado.saldoFinal) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── Tabs ─────────────────────── -->
+      <p-tabs [(value)]="activeTab">
+        <p-tablist>
+          <p-tab [value]="0"><i class="pi pi-chart-bar mr-2 text-xs"></i>Resumo</p-tab>
+          <p-tab [value]="1">
+            <i class="pi pi-list mr-2 text-xs"></i>Movimentações
+            @if (!loadingDetalhes) {
+              <span class="ml-1.5 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">{{ movimentacoesFechadas.length }}</span>
+            }
+          </p-tab>
+          <p-tab [value]="2"><i class="pi pi-info-circle mr-2 text-xs"></i>Informações</p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+
+          <!-- ABA 0: RESUMO -->
+          <p-tabpanel [value]="0">
+            @if (loadingDetalhes) {
+              <div class="p-6 space-y-3">
+                @for (_ of [1,2,3]; track $index) { <p-skeleton height="40px" /> }
+              </div>
+            } @else {
+              <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <!-- Entradas por Forma de Pagamento -->
+                <div>
+                  <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                    Entradas por Forma de Pagamento
+                  </h3>
+                  @if (entradasPorForma.length === 0) {
+                    <p class="text-xs text-slate-400 italic">Nenhuma entrada registrada.</p>
+                  } @else {
+                    <div class="rounded-xl border border-slate-200 overflow-hidden">
+                      @for (item of entradasPorForma; track item.forma) {
+                        <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 last:border-0">
+                          <span class="text-sm text-slate-700">{{ item.forma }}</span>
+                          <span class="text-sm font-bold text-emerald-700">{{ formatCurrency(item.total) }}</span>
+                        </div>
+                      }
+                      <div class="flex items-center justify-between px-4 py-2.5 bg-emerald-50 border-t-2 border-emerald-200">
+                        <span class="text-xs font-bold text-emerald-800 uppercase">Total Entradas</span>
+                        <span class="text-sm font-bold text-emerald-800">{{ formatCurrency(totalEntradasFech) }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Saídas por Forma de Pagamento -->
+                <div>
+                  <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                    Saídas por Forma de Pagamento
+                  </h3>
+                  @if (saidasPorForma.length === 0) {
+                    <p class="text-xs text-slate-400 italic">Nenhuma saída registrada.</p>
+                  } @else {
+                    <div class="rounded-xl border border-slate-200 overflow-hidden">
+                      @for (item of saidasPorForma; track item.forma) {
+                        <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 last:border-0">
+                          <span class="text-sm text-slate-700">{{ item.forma }}</span>
+                          <span class="text-sm font-bold text-red-600">{{ formatCurrency(item.total) }}</span>
+                        </div>
+                      }
+                      <div class="flex items-center justify-between px-4 py-2.5 bg-red-50 border-t-2 border-red-200">
+                        <span class="text-xs font-bold text-red-800 uppercase">Total Saídas</span>
+                        <span class="text-sm font-bold text-red-800">{{ formatCurrency(totalSaidasFech) }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Entradas por Conta Bancária -->
+                <div>
+                  <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="pi pi-building text-slate-400 text-xs"></i>
+                    Entradas por Conta Bancária
+                  </h3>
+                  @if (entradasPorConta.length === 0) {
+                    <p class="text-xs text-slate-400 italic">Nenhum dado disponível.</p>
+                  } @else {
+                    <div class="rounded-xl border border-slate-200 overflow-hidden">
+                      @for (item of entradasPorConta; track item.conta) {
+                        <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-100 last:border-0">
+                          <span class="text-sm text-slate-700">{{ item.conta }}</span>
+                          <span class="text-sm font-bold text-emerald-700">{{ formatCurrency(item.total) }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- DRE do Período -->
+                <div>
+                  <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="pi pi-chart-line text-slate-400 text-xs"></i>
+                    Resultado do Período (DRE)
+                  </h3>
+                  <div class="rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                      <span class="text-sm text-slate-600">Saldo Inicial</span>
+                      <span class="text-sm font-bold text-slate-800">{{ formatCurrency(fechamentoSelecionado.saldoInicial) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                      <span class="text-sm text-emerald-700">(+) Total de Entradas</span>
+                      <span class="text-sm font-bold text-emerald-700">{{ formatCurrency(totalEntradasFech) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                      <span class="text-sm text-red-600">(-) Total de Saídas</span>
+                      <span class="text-sm font-bold text-red-600">{{ formatCurrency(totalSaidasFech) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                      <span class="text-sm font-semibold text-slate-700">(=) Resultado Líquido</span>
+                      <span class="text-sm font-bold" [class]="resultadoFech >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                        {{ formatCurrency(resultadoFech) }}
+                      </span>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-3.5 border-t-2 border-indigo-200 bg-indigo-50">
+                      <span class="text-sm font-bold text-indigo-900 uppercase tracking-wide">Saldo Final</span>
+                      <span class="text-base font-bold" [class]="fechamentoSelecionado.saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
+                        {{ formatCurrency(fechamentoSelecionado.saldoFinal) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            }
+          </p-tabpanel>
+
+          <!-- ABA 1: MOVIMENTAÇÕES -->
+          <p-tabpanel [value]="1">
+            @if (loadingDetalhes) {
+              <div class="p-6 space-y-3">
+                @for (_ of [1,2,3,4,5]; track $index) { <p-skeleton height="44px" /> }
+              </div>
+            } @else if (movimentacoesFechadas.length === 0) {
+              <div class="flex flex-col items-center justify-center py-12 text-center">
+                <i class="pi pi-inbox text-4xl text-slate-300 mb-3"></i>
+                <p class="text-sm text-slate-500">Nenhuma movimentação encontrada para este período.</p>
+              </div>
+            } @else {
+              <div class="overflow-auto" style="max-height: 420px;">
+                <table class="w-full text-sm border-collapse">
+                  <thead class="sticky top-0 z-10">
+                    <tr class="bg-slate-50 border-b-2 border-slate-200">
+                      <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Data</th>
+                      <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Tipo</th>
+                      <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Descrição</th>
+                      <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase hidden md:table-cell">Conta</th>
+                      <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase hidden lg:table-cell">Forma Pgto.</th>
+                      <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Entrada</th>
+                      <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Saída</th>
+                      <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (m of movimentacoesFechadas; track m.id) {
+                      <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition-colors">
+                        <td class="px-4 py-2.5 text-xs text-slate-600 whitespace-nowrap">{{ m.data }}</td>
+                        <td class="px-4 py-2.5">
+                          <p-tag [value]="getTipoLabel(m.tipo)" [severity]="getTipoSeverity(m.tipo)" styleClass="text-xs" />
+                        </td>
+                        <td class="px-4 py-2.5">
+                          <p class="text-xs font-medium text-slate-800 max-w-[200px] truncate" [title]="m.descricao">{{ m.descricao }}</p>
+                          @if (m.centroCusto) {
+                            <p class="text-xs text-slate-400">{{ m.centroCusto }}</p>
+                          }
+                        </td>
+                        <td class="px-4 py-2.5 text-xs text-slate-600 hidden md:table-cell">{{ m.conta }}</td>
+                        <td class="px-4 py-2.5 text-xs text-slate-500 hidden lg:table-cell">{{ m.formaPagamento }}</td>
+                        <td class="px-4 py-2.5 text-right">
+                          @if (m.entrada > 0) {
+                            <span class="text-xs font-bold text-emerald-700">{{ formatCurrency(m.entrada) }}</span>
+                          }
+                        </td>
+                        <td class="px-4 py-2.5 text-right">
+                          @if (m.saida > 0) {
+                            <span class="text-xs font-bold text-red-600">{{ formatCurrency(m.saida) }}</span>
+                          }
+                        </td>
+                        <td class="px-4 py-2.5 text-right">
+                          <span class="text-xs font-bold" [class]="m.saldoAcumulado >= 0 ? 'text-slate-700' : 'text-red-600'">
+                            {{ formatCurrency(m.saldoAcumulado) }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <tr class="bg-indigo-50 border-t-2 border-indigo-200">
+                      <td colspan="5" class="px-4 py-3 text-xs font-bold text-indigo-900 uppercase">TOTAL</td>
+                      <td class="px-4 py-3 text-right text-xs font-bold text-emerald-700">{{ formatCurrency(totalEntradasFech) }}</td>
+                      <td class="px-4 py-3 text-right text-xs font-bold text-red-600">{{ formatCurrency(totalSaidasFech) }}</td>
+                      <td class="px-4 py-3 text-right text-xs font-bold"
+                        [class]="fechamentoSelecionado.saldoFinal >= 0 ? 'text-indigo-700' : 'text-red-700'">
+                        {{ formatCurrency(fechamentoSelecionado.saldoFinal) }}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            }
+          </p-tabpanel>
+
+          <!-- ABA 2: INFORMAÇÕES -->
+          <p-tabpanel [value]="2">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Código</span>
+                <span class="text-sm font-bold text-slate-800">#{{ fechamentoSelecionado.cod }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Situação</span>
+                <p-tag [value]="fechamentoSelecionado.situacao" [severity]="getSituacaoSeverity(fechamentoSelecionado.situacao)" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Início do Período</span>
+                <span class="text-sm text-slate-700">{{ fechamentoSelecionado.dataReferente }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Data/Hora do Fechamento</span>
+                <span class="text-sm text-slate-700">{{ fechamentoSelecionado.dataHoraOperacao }}</span>
+              </div>
+              <div class="flex flex-col gap-1 sm:col-span-2">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Responsável</span>
+                <span class="text-sm font-semibold text-slate-800">{{ fechamentoSelecionado.responsavel }}</span>
+              </div>
+            </div>
+            <div class="px-5 pb-5 flex justify-end">
+              <button (click)="imprimirRegistro(fechamentoSelecionado)"
+                class="flex items-center gap-2 px-4 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold shadow-sm transition-colors">
+                <i class="pi pi-print"></i>Imprimir Relatório
+              </button>
+            </div>
+          </p-tabpanel>
+
+        </p-tabpanels>
+      </p-tabs>
+    }
+
+  </p-dialog>
+
 </div>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- Dialog: Detalhes do Fechamento                          -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<p-dialog [(visible)]="detalhesDialogVisible" [modal]="true" [closable]="false" [dismissableMask]="true"
-  [showHeader]="false" [style]="{ width: '95vw', maxWidth: '800px', maxHeight: '90vh' }"
-  [contentStyle]="{'padding':'0','overflow':'hidden'}"
-  styleClass="!rounded-2xl overflow-hidden !p-0" [baseZIndex]="99999" appendTo="body">
-
-  <ng-container *ngIf="fechamentoSelecionado as f">
-
-    <!-- Header Stripe -->
-    <div class="bg-indigo-600 px-5 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-black/10 rounded-xl flex items-center justify-center">
-          <mat-icon class="!text-[20px] !w-[20px] !h-[20px] text-white">receipt_long</mat-icon>
-        </div>
-        <div>
-          <h2 class="text-base font-bold text-white">Detalhes do Caixa</h2>
-          <p class="text-xs text-white/80 mt-0.5">Fechamento #{{ f.cod }}</p>
-        </div>
-      </div>
-      <button (click)="detalhesDialogVisible = false" class="w-8 h-8 rounded-lg bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors">
-        <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-white">close</mat-icon>
-      </button>
-    </div>
-
-    <!-- Body -->
-    <div class="px-5 py-5 bg-white space-y-4 overflow-y-auto" style="max-height: calc(90vh - 76px)">
-
-      <!-- Metadados -->
-      <div class="grid grid-cols-2 gap-4 bg-slate-50 rounded-xl p-4 border border-slate-100">
-        <div>
-          <p class="text-[10px] font-bold text-slate-500 uppercase">Data Ref.</p>
-          <p class="text-sm font-semibold text-slate-800">{{ f.dataReferente }}</p>
-        </div>
-        <div>
-          <p class="text-[10px] font-bold text-slate-500 uppercase">Hora de Fech.</p>
-          <p class="text-sm font-semibold text-slate-800">{{ f.dataHoraOperacao }}</p>
-        </div>
-        <div class="col-span-2">
-          <p class="text-[10px] font-bold text-slate-500 uppercase">Responsável</p>
-          <div class="flex items-center gap-1.5 mt-0.5">
-            <mat-icon class="!text-[14px] !w-[14px] !h-[14px] text-slate-400">person</mat-icon>
-            <p class="text-sm font-semibold text-slate-800">{{ f.responsavel }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sumário financeiro -->
-      <div class="border border-slate-200 rounded-xl overflow-hidden mt-4">
-        <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200">
-          <p class="text-xs font-bold text-slate-600 uppercase tracking-wider">Resumo Financeiro</p>
-        </div>
-        <div class="divide-y divide-slate-100">
-          <div class="flex justify-between items-center px-4 py-3">
-            <span class="text-sm font-medium text-slate-600">Saldo Inicial</span>
-            <span class="text-sm font-bold text-slate-800">{{ formatCurrency(f.saldoInicial) }}</span>
-          </div>
-          <div class="flex justify-between items-center px-4 py-3">
-            <span class="text-sm font-medium text-emerald-700">Total Entradas</span>
-            <span class="text-sm font-bold text-emerald-700">+ {{ formatCurrency(f.totalEntradas) }}</span>
-          </div>
-          <div class="flex justify-between items-center px-4 py-3">
-            <span class="text-sm font-medium text-red-600">Total Saídas</span>
-            <span class="text-sm font-bold text-red-700">- {{ formatCurrency(f.totalSaidas) }}</span>
-          </div>
-          <div class="flex justify-between items-center px-4 py-3 bg-slate-50">
-            <span class="text-sm font-bold text-slate-700">Saldo Final</span>
-            <span class="text-lg font-bold text-indigo-700">{{ formatCurrency(f.saldoFinal) }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Detalhamento de Movimentações -->
-      <div class="mt-6">
-        <h3 class="text-sm font-bold text-slate-800 mb-3">Movimentações do Período</h3>
-        
-        <div *ngIf="loadingDetalhes" class="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
-          <mat-icon class="animate-spin !text-2xl">refresh</mat-icon>
-          <span class="text-sm">Carregando movimentações...</span>
-        </div>
-
-        <div *ngIf="!loadingDetalhes && movimentacoesFechadas.length === 0" class="py-8 text-center text-sm text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
-          Nenhuma movimentação registrada neste caixa.
-        </div>
-
-        <div *ngIf="!loadingDetalhes && movimentacoesFechadas.length > 0" class="border border-slate-200 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="bg-slate-50 border-b border-slate-200">
-                <th class="text-left py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Data</th>
-                <th class="text-left py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Descrição</th>
-                <th class="text-center py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Tipo</th>
-                <th class="text-right py-2.5 px-4 text-xs font-bold text-slate-600 uppercase">Valor</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr *ngFor="let mov of movimentacoesFechadas" class="hover:bg-slate-50">
-                <td class="py-2.5 px-4 text-slate-700 whitespace-nowrap">{{ formatDateTime(mov.dataMovimento) }}</td>
-                <td class="py-2.5 px-4 text-slate-800 font-medium">
-                  {{ mov.descricao }}
-                  <div class="text-xs font-normal text-slate-500">{{ mov.categoria || 'Sem categoria' }}</div>
-                </td>
-                <td class="py-2.5 px-4 text-center">
-                  <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-                    [ngClass]="{
-                      'bg-emerald-100 text-emerald-700': mov.tipoMovimentacao === 'ENTRADA',
-                      'bg-red-100 text-red-700': mov.tipoMovimentacao === 'SAIDA',
-                      'bg-slate-100 text-slate-600': mov.tipoMovimentacao === 'TRANSFERENCIA'
-                    }">
-                    {{ mov.tipoMovimentacao }}
-                  </span>
-                </td>
-                <td class="py-2.5 px-4 text-right font-bold"
-                  [ngClass]="{
-                    'text-emerald-700': mov.tipoMovimentacao === 'ENTRADA',
-                    'text-red-700': mov.tipoMovimentacao === 'SAIDA',
-                    'text-slate-700': mov.tipoMovimentacao === 'TRANSFERENCIA'
-                  }">
-                  {{ mov.tipoMovimentacao === 'SAIDA' ? '-' : (mov.tipoMovimentacao === 'ENTRADA' ? '+' : '') }} {{ formatCurrency(mov.valor) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="border-t border-slate-200 pt-4 flex justify-end gap-2.5 mt-4">
-        <button (click)="imprimirRegistro(f)"
-          class="px-5 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm">
-          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">print</mat-icon>
-          Imprimir
-        </button>
-        <button (click)="detalhesDialogVisible = false"
-          class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm">
-          Fechar
-        </button>
-      </div>
-    </div>
-  </ng-container>
-</p-dialog>

@@ -243,6 +243,34 @@ export class FinanceiroService {
     return this.http.get(url, { responseType: 'blob' });
   }
 
+  imprimirContas(query: {
+    dataInicio?: string;
+    dataFim?: string;
+    dataDe?: string;
+    situacaoTipo?: string;
+    departamento?: string;
+    ordenarPor?: string;
+  }): Observable<Blob> {
+    let params = new HttpParams();
+    if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
+    if (query.dataFim) params = params.set('dataFim', query.dataFim);
+    if (query.dataDe) params = params.set('dataDe', query.dataDe);
+    if (query.situacaoTipo) params = params.set('situacaoTipo', query.situacaoTipo);
+    if (query.departamento && query.departamento !== 'TODOS') params = params.set('departamento', query.departamento);
+    if (query.ordenarPor) params = params.set('ordenarPor', query.ordenarPor);
+    
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/financeiro`, { params, responseType: 'blob' });
+  }
+
+  imprimirFluxoCaixa(query: { dataInicio?: string; dataFim?: string; contaBancariaId?: number; centroCustoId?: number }): Observable<Blob> {
+    let params = new HttpParams();
+    if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
+    if (query.dataFim) params = params.set('dataFim', query.dataFim);
+    if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
+    if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/caixa`, { params, responseType: 'blob' });
+  }
+
   // --- Fechamento de Caixa ---
   listFechamentoCaixa(query: { empresaId?: number; dataInicio?: string; dataFim?: string } & Pageable): Observable<Page<any>> {
     let params = new HttpParams()

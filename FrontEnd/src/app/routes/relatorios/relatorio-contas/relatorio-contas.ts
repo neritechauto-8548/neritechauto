@@ -1,12 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { PanelModule } from 'primeng/panel';
+import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { DatePickerModule } from 'primeng/datepicker';
+import { FinanceiroService } from '../../financeiro/financeiro.service';
 
 @Component({
   selector: 'app-relatorio-contas',
@@ -15,16 +19,22 @@ import { CheckboxModule } from 'primeng/checkbox';
     CommonModule,
     FormsModule,
     RouterModule,
-    PanelModule,
+    CardModule,
     SelectModule,
     InputTextModule,
     ButtonModule,
     CheckboxModule,
+    ToastModule,
+    DatePickerModule
   ],
+  providers: [MessageService],
   templateUrl: './relatorio-contas.html',
   styleUrls: ['./relatorio-contas.scss'],
 })
 export class RelatorioContas {
+  private financeiroService = inject(FinanceiroService);
+  private messageService = inject(MessageService);
+
   // Campos conforme imagem de referência
   dataDe = 'VENCIMENTO';
   dataDeOptions = [
@@ -33,8 +43,8 @@ export class RelatorioContas {
     { label: 'Pagamento', value: 'PAGAMENTO' },
   ];
 
-  dataInicial = '';
-  dataFinal = '';
+  dataInicial: Date | null = null;
+  dataFinal: Date | null = null;
 
   situacaoTipo = 'TODOS';
   situacaoTipoOptions = [
@@ -54,7 +64,7 @@ export class RelatorioContas {
     { label: 'COMERCIAL', value: 'COMERCIAL' },
   ];
 
-  ordenarPor = 'DATA DE VENCIMENTO';
+  ordenarPor = 'VENCIMENTO';
   ordenarOptions = [
     { label: 'DATA DE VENCIMENTO', value: 'VENCIMENTO' },
     { label: 'DATA DE EMISSÃO', value: 'EMISSAO' },
@@ -65,7 +75,7 @@ export class RelatorioContas {
 
   filtroAvancado = false;
 
-  filtrarPor = 'TODOS - NAO USAR FILTRO';
+  filtrarPor = 'TODOS';
   filtrarPorOptions = [
     { label: 'TODOS - NAO USAR FILTRO', value: 'TODOS' },
     { label: 'CODIGO', value: 'CODIGO' },
@@ -77,19 +87,51 @@ export class RelatorioContas {
 
   filtro = '';
 
+  isLoading = false;
+
+  // Helper para formatar Date para "yyyy-mm-dd"
+  private formatDateToIso(date: Date | null | undefined): string | undefined {
+    if (!date) return undefined;
+    if (typeof date === 'string') return date;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   gerarRelatorio() {
-    const payload = {
+    this.isLoading = true;
+
+    const query = {
+      dataInicio: this.formatDateToIso(this.dataInicial),
+      dataFim: this.formatDateToIso(this.dataFinal),
       dataDe: this.dataDe,
-      dataInicial: this.dataInicial,
-      dataFinal: this.dataFinal,
       situacaoTipo: this.situacaoTipo,
       departamento: this.departamento,
-      ordenarPor: this.ordenarPor,
-      filtroAvancado: this.filtroAvancado,
-      filtrarPor: this.filtrarPor,
-      filtro: this.filtro,
+      ordenarPor: this.ordenarPor
     };
-    console.log('Gerar relatório de contas', payload);
-    alert('Relatório de contas gerado com sucesso (demo).');
+
+    this.financeiroService.imprimirContas(query).subscribe({
+      next: (blob) => {
+        this.isLoading = false;
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank');
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: 'Relatório aberto em nova aba!'
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Erro ao gerar relatório', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Falha ao gerar o relatório. Tente novamente mais tarde.'
+        });
+      }
+    });
   }
 }

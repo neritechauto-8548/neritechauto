@@ -1,66 +1,64 @@
-<p-panel [toggleable]="true" [collapsed]="false">
-  <ng-template pTemplate="header">
-    <div class="panel-header">
-      <span class="title">Relatório de contas</span>
-    </div>
-  </ng-template>
+<p-card styleClass="shadow-sm rounded-xl border border-slate-200">
+  <div class="mb-5 border-b border-slate-100 pb-4">
+    <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+      <i class="pi pi-file-pdf text-blue-600"></i>
+      Relatório de Contas Financeiras
+    </h1>
+    <p class="text-xs text-slate-500 mt-1">Defina os filtros abaixo para gerar um relatório detalhado de contas a pagar e receber.</p>
+  </div>
 
-  <!-- Linha 1: Data de / Data inicial / Data final -->
-  <div class="row mb-3">
-    <div class="col col-md-4">
-      <label class="block mb-1">Data de</label>
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
+    <div class="col-span-12 md:col-span-4">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Data Referência</label>
       <p-select [(ngModel)]="dataDe" [options]="dataDeOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
     </div>
-    <div class="col col-md-4">
-      <label class="block mb-1">Data inicial</label>
-      <input pInputText [(ngModel)]="dataInicial" placeholder="dd/mm/aaaa" />
+    <div class="col-span-12 md:col-span-4">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Data Inicial</label>
+      <p-datepicker [(ngModel)]="dataInicial" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" appendTo="body" />
     </div>
-    <div class="col col-md-4">
-      <label class="block mb-1">Data final</label>
-      <input pInputText [(ngModel)]="dataFinal" placeholder="dd/mm/aaaa" />
+    <div class="col-span-12 md:col-span-4">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Data Final</label>
+      <p-datepicker [(ngModel)]="dataFinal" dateFormat="dd/mm/yy" [showIcon]="true" styleClass="w-full" appendTo="body" />
     </div>
   </div>
 
-  <!-- Linha 2: Situação e tipo / Departamento -->
-  <div class="row mb-3">
-    <div class="col col-md-3">
-      <label class="block mb-1">Situação e tipo</label>
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
+    <div class="col-span-12 md:col-span-4">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Situação e Tipo</label>
       <p-select [(ngModel)]="situacaoTipo" [options]="situacaoTipoOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
     </div>
-    <div class="col col-md-6">
-      <label class="block mb-1">Departamento</label>
+    <div class="col-span-12 md:col-span-8">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Centro de Custo / Departamento</label>
       <p-select [(ngModel)]="departamento" [options]="departamentoOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
     </div>
   </div>
 
-  <!-- Linha 3: Ordenar por / Filtro avançado -->
-  <div class="row mb-3">
-    <div class="col col-md-3">
-      <label class="block mb-1">Ordenar por</label>
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-2">
+    <div class="col-span-12 md:col-span-4">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Ordenar por</label>
       <p-select [(ngModel)]="ordenarPor" [options]="ordenarOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
     </div>
-    <div class="col col-md-3 d-flex align-items-end">
-      <div class="mt-1">
-        <p-checkbox [(ngModel)]="filtroAvancado" binary="true" inputId="filtro-avancado" />
-        <label for="filtro-avancado" class="ml-2">Filtro avançado</label>
-      </div>
+    <div class="col-span-12 md:col-span-4 flex items-end pb-2">
+      <p-checkbox [(ngModel)]="filtroAvancado" binary="true" inputId="filtro-avancado" />
+      <label for="filtro-avancado" class="ml-2 text-sm font-semibold text-slate-700 cursor-pointer">Ativar filtro textual avançado</label>
     </div>
   </div>
 
-  <!-- Linha 4: Filtrar por / Filtro -->
-  <div class="row mb-3">
-    <div class="col col-md-4">
-      <label class="block mb-1">Filtrar por</label>
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mt-4 mb-5 p-4 bg-slate-50 rounded-lg border border-slate-200" *ngIf="filtroAvancado">
+    <div class="col-span-12 md:col-span-4">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Filtrar por</label>
       <p-select [(ngModel)]="filtrarPor" [options]="filtrarPorOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
     </div>
-    <div class="col col-md-4">
-      <label class="block mb-1">Filtro</label>
-      <input pInputText [(ngModel)]="filtro" [disabled]="!filtroAvancado" />
+    <div class="col-span-12 md:col-span-8">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Termo de Busca</label>
+      <input pInputText [(ngModel)]="filtro" placeholder="Digite o termo (ex: Código, Nome, CPF...)" class="w-full" />
     </div>
   </div>
 
-  <div class="actions">
-    <button pButton type="button" class="p-button-secondary mr-2" label="Fechar"></button>
-    <button pButton type="button" class="p-button-primary" icon="pi pi-chart-bar" label="Gerar relatorio" (click)="gerarRelatorio()"></button>
+  <div class="flex justify-end pt-5 border-t border-slate-100 gap-3 mt-6">
+    <button pButton type="button" class="p-button-outlined p-button-secondary font-medium" icon="pi pi-times" label="Fechar"></button>
+    <button pButton type="button" class="p-button-primary font-medium" icon="pi pi-print" label="Gerar e Imprimir Relatório" (click)="gerarRelatorio()" [loading]="isLoading"></button>
   </div>
-</p-panel>
+</p-card>
+
+<p-toast></p-toast>

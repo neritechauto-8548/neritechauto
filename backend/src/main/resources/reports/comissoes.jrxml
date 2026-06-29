@@ -17,59 +17,10 @@
 	<background>
 		<band splitType="Stretch"/>
 	</background>
-	<pageHeader>
-		<band height="100" splitType="Stretch">
-			<staticText>
-				<reportElement x="0" y="20" width="160" height="30" forecolor="#CC0000" uuid="logo-text"/>
-				<textElement verticalAlignment="Middle">
-					<font size="16" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Oficina Exemplo]]></text>
-			</staticText>
-			<textField isBlankWhenNull="true">
-				<reportElement x="200" y="0" width="355" height="15" uuid="comp-fantasia"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="10" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{NOME_EMPRESA}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="200" y="15" width="355" height="15" uuid="comp-tel"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{TELEFONE_EMPRESA}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="200" y="30" width="355" height="15" uuid="comp-email"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{EMAIL_EMPRESA}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="200" y="45" width="355" height="15" uuid="comp-site"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{SITE_EMPRESA}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="200" y="60" width="355" height="15" uuid="comp-end"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{ENDERECO_EMPRESA}]]></textFieldExpression>
-			</textField>
-			<line>
-				<reportElement x="0" y="85" width="555" height="1" forecolor="#7F7F7F" uuid="header-line"/>
-			</line>
-		</band>
-	</pageHeader>
 	<title>
 		<band height="45" splitType="Stretch">
 			<textField>
-				<reportElement x="0" y="5" width="555" height="30" uuid="rep-title"/>
+				<reportElement x="0" y="5" width="555" height="30" uuid="a5123456-1234-1234-1234-1234567890b2"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="15" isBold="false"/>
 				</textElement>
@@ -77,95 +28,144 @@
 			</textField>
 		</band>
 	</title>
+	<pageHeader>
+		<band height="100" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="20" width="160" height="30" forecolor="#CC0000" uuid="a5123456-1234-1234-1234-1234567890ab"/>
+				<textElement verticalAlignment="Middle">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Oficina Exemplo]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="0" width="355" height="15" uuid="a5123456-1234-1234-1234-1234567890ac"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NOME_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="15" width="355" height="15" uuid="a5123456-1234-1234-1234-1234567890ad"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TELEFONE_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="30" width="355" height="15" uuid="a5123456-1234-1234-1234-1234567890ae"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{EMAIL_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="45" width="355" height="15" uuid="a5123456-1234-1234-1234-1234567890af"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SITE_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="200" y="60" width="355" height="15" uuid="a5123456-1234-1234-1234-1234567890b0"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ENDERECO_EMPRESA}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="85" width="555" height="1" forecolor="#7F7F7F" uuid="a5123456-1234-1234-1234-1234567890b1"/>
+			</line>
+		</band>
+	</pageHeader>
 	<detail>
 		<band height="145" splitType="Stretch">
 			<rectangle>
-				<reportElement x="0" y="0" width="555" height="25" backcolor="#FFFFFF" uuid="func-border"/>
+				<reportElement x="0" y="0" width="555" height="25" backcolor="#FFFFFF" uuid="a5123456-1234-1234-1234-1234567890b3"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#7F7F7F"/>
 				</graphicElement>
 			</rectangle>
 			<textField>
-				<reportElement x="10" y="0" width="535" height="25" uuid="func-text"/>
+				<reportElement x="10" y="0" width="535" height="25" uuid="a5123456-1234-1234-1234-1234567890b4"/>
 				<textElement verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Funcionário: " + $F{funcionarioId} + "   " + $F{funcionarioNome}]]></textFieldExpression>
 			</textField>
 			<rectangle>
-				<reportElement x="0" y="35" width="555" height="100" backcolor="#FFFFFF" uuid="details-border"/>
+				<reportElement x="0" y="35" width="555" height="100" backcolor="#FFFFFF" uuid="a5123456-1234-1234-1234-1234567890b5"/>
 				<graphicElement>
 					<pen lineWidth="0.75" lineColor="#7F7F7F"/>
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="10" y="40" width="200" height="15" uuid="det-header"/>
+				<reportElement x="10" y="40" width="200" height="15" forecolor="#333333" uuid="a5123456-1234-1234-1234-1234567890b6"/>
 				<textElement verticalAlignment="Middle">
-					<font size="9" isBold="true" forecolor="#333333"/>
+					<font size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[DETALHES DAS COMISSÕES]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="10" y="60" width="130" height="20" backcolor="#CCCCCC" uuid="col1"/>
+				<reportElement mode="Opaque" x="10" y="60" width="130" height="20" backcolor="#CCCCCC" uuid="a5123456-1234-1234-1234-1234567890b7"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Comissao GeralProdutos]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="140" y="60" width="130" height="20" backcolor="#CCCCCC" uuid="col2"/>
+				<reportElement mode="Opaque" x="140" y="60" width="130" height="20" backcolor="#CCCCCC" uuid="a5123456-1234-1234-1234-1234567890b8"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Comissão Geral Servicos]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="270" y="60" width="135" height="20" backcolor="#CCCCCC" uuid="col3"/>
+				<reportElement mode="Opaque" x="270" y="60" width="135" height="20" backcolor="#CCCCCC" uuid="a5123456-1234-1234-1234-1234567890b9"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Comissão Servicos]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="405" y="60" width="140" height="20" backcolor="#CCCCCC" uuid="col4"/>
+				<reportElement mode="Opaque" x="405" y="60" width="140" height="20" backcolor="#CCCCCC" uuid="a5123456-1234-1234-1234-1234567890ba"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Comissão Produtos]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="10" y="85" width="130" height="25" uuid="val1"/>
+				<reportElement x="10" y="85" width="130" height="25" uuid="a5123456-1234-1234-1234-1234567890bb"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{comissaoGeralProdutos}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="140" y="85" width="130" height="25" uuid="val2"/>
+				<reportElement x="140" y="85" width="130" height="25" uuid="a5123456-1234-1234-1234-1234567890bc"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{comissaoGeralServicos}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="270" y="85" width="135" height="25" uuid="val3"/>
+				<reportElement x="270" y="85" width="135" height="25" uuid="a5123456-1234-1234-1234-1234567890bd"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{comissaoServicos}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="405" y="85" width="140" height="25" uuid="val4"/>
+				<reportElement x="405" y="85" width="140" height="25" uuid="a5123456-1234-1234-1234-1234567890be"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{comissaoProdutos}]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="80" y="112" width="465" height="1" forecolor="#000000" uuid="val-underline"/>
+				<reportElement x="80" y="112" width="465" height="1" forecolor="#000000" uuid="a5123456-1234-1234-1234-1234567890bf"/>
 			</line>
 			<textField>
-				<reportElement x="300" y="115" width="245" height="18" uuid="total-text"/>
+				<reportElement x="300" y="115" width="245" height="18" uuid="a5123456-1234-1234-1234-1234567890c0"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>

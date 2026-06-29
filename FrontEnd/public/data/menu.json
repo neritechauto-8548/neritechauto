@@ -275,6 +275,7 @@
         {
           "route": "relatorio-vendas",
           "name": "relatorios.relatorio-vendas",
+          "minPlan": 3,
           "type": "link",
           "icon": "pi pi-chart-pie"
         },
@@ -287,6 +288,7 @@
         {
           "route": "relatorio-estoque",
           "name": "relatorios.relatorio-estoque",
+          "minPlan": 3,
           "type": "link",
           "icon": "pi pi-box"
         },
@@ -294,12 +296,14 @@
           "route": "relatorio-receitas",
           "name": "relatorios.relatorio-receitas",
           "type": "link",
+          "minPlan": 3,
           "icon": "pi pi-arrow-up-right"
         },
         {
           "route": "relatorio-despesas",
           "name": "relatorios.relatorio-despesas",
           "type": "link",
+          "minPlan": 3,
           "icon": "pi pi-arrow-down-right"
         },
         {
@@ -317,18 +321,21 @@
         {
           "route": "relatorio-uso-sistema",
           "name": "relatorios.relatorio-uso-sistema",
+          "minPlan": 3,
           "type": "link",
           "icon": "pi pi-desktop"
         },
         {
           "route": "relatorio-questionarios",
           "name": "relatorios.relatorio-questionarios",
+          "minPlan": 3,
           "type": "link",
           "icon": "pi pi-info-circle"
         },
         {
           "route": "relatorio-produtos",
           "name": "relatorios.relatorio-produtos",
+          "minPlan": 3,
           "type": "link",
           "icon": "pi pi-box"
         },

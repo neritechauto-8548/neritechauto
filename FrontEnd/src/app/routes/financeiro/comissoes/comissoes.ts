@@ -2,12 +2,11 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
-import { InputTextModule } from 'primeng/inputtext';
+import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MatIconModule } from '@angular/material/icon';
 import { MessageService } from 'primeng/api';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { LocalStorageService } from '@shared/services/storage.service';
 
@@ -28,7 +27,7 @@ export interface LinhaComissao {
   selector: 'app-comissoes',
   templateUrl: './comissoes.html',
   imports: [
-    CommonModule, FormsModule, SelectModule, InputTextModule, ButtonModule,
+    CommonModule, FormsModule, SelectModule, DatePickerModule, ButtonModule,
     ToastModule, MatIconModule
   ],
   providers: [MessageService]
@@ -37,18 +36,17 @@ export class ComissoesComponent implements OnInit {
   private relatoriosService = inject(RelatoriosService);
   private funcionarioService = inject(FuncionarioService);
   private messageService = inject(MessageService);
-  private router = inject(Router);
   private http = inject(HttpClient);
   private storage = inject(LocalStorageService);
 
   funcionarios: { label: string; value: number | null }[] = [];
   funcionario: number | null = null;
-  dataInicial = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-    .toISOString()
-    .substring(0, 10);
-  dataFinal = new Date().toISOString().substring(0, 10);
+  
+  dataInicial: Date | null = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  dataFinal: Date | null = new Date();
 
   gerando = false;
+  pdfLoading = false;
   resumoVisivel = false;
   linhas: LinhaComissao[] = [];
 
@@ -60,6 +58,7 @@ export class ComissoesComponent implements OnInit {
 
   ngOnInit() {
     this.carregarFuncionarios();
+    this.gerarRelatorio();
   }
 
   carregarFuncionarios() {
@@ -72,6 +71,14 @@ export class ComissoesComponent implements OnInit {
       },
       error: err => console.error('Erro ao listar funcionários', err),
     });
+  }
+
+  private toISO(d: Date | null): string | undefined {
+    if (!d) return undefined;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   gerarRelatorio(): void {
@@ -97,11 +104,14 @@ export class ComissoesComponent implements OnInit {
     this.http.get<any>('/v1/financeiro/comissoes', { params }).subscribe({
       next: (res) => {
         const list = res.content || [];
+        const iniStr = this.toISO(this.dataInicial);
+        const fimStr = this.toISO(this.dataFinal);
+
         const filtered = list.filter((c: any) => {
           const matchesFunc = !this.funcionario || c.funcionario?.id === this.funcionario;
           const dateComp = c.dataCompetencia; // YYYY-MM-DD
-          const matchesDate = (!this.dataInicial || dateComp >= this.dataInicial) && 
-                              (!this.dataFinal || dateComp <= this.dataFinal);
+          const matchesDate = (!iniStr || dateComp >= iniStr) && 
+                              (!fimStr || dateComp <= fimStr);
           return matchesFunc && matchesDate;
         });
 
@@ -130,7 +140,6 @@ export class ComissoesComponent implements OnInit {
         this.linhas = Object.values(grupos);
         this.gerando = false;
         this.resumoVisivel = true;
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Relatório gerado com sucesso.' });
       },
       error: (err) => {
         console.error(err);
@@ -141,26 +150,38 @@ export class ComissoesComponent implements OnInit {
   }
 
   imprimirRelatorio(): void {
+    this.pdfLoading = true;
     const payload: any = {};
     if (this.funcionario) {
       payload.funcionarioId = this.funcionario;
     }
-    if (this.dataInicial) {
-      payload.dataInicio = this.dataInicial;
+    const iniStr = this.toISO(this.dataInicial);
+    const fimStr = this.toISO(this.dataFinal);
+    if (iniStr) {
+      payload.dataInicio = iniStr;
     }
-    if (this.dataFinal) {
-      payload.dataFim = this.dataFinal;
+    if (fimStr) {
+      payload.dataFim = fimStr;
     }
 
     this.relatoriosService.gerarRelatorio('comissoes', payload).subscribe({
       next: blob => {
+        this.pdfLoading = false;
         this.relatoriosService.abrirBlobEmNovaAba(blob);
       },
       error: err => {
         console.error(err);
+        this.pdfLoading = false;
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o PDF.' });
       }
     });
+  }
+
+  limparFiltros() {
+    this.funcionario = null;
+    this.dataInicial = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    this.dataFinal = new Date();
+    this.gerarRelatorio();
   }
 
   formatCurrency(v: number): string {

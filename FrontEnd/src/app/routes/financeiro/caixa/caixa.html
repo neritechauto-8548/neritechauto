@@ -112,15 +112,15 @@
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
       <div class="flex flex-wrap items-end gap-3">
 
-        <div class="flex flex-col gap-1 min-w-[120px]">
+        <div class="flex flex-col gap-1">
           <label class="text-xs font-semibold text-slate-700">De (Pagamento)</label>
-          <input type="date" [(ngModel)]="dataInicial"
-            class="px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+          <p-datepicker [(ngModel)]="dataInicial" dateFormat="dd/mm/yy" [showIcon]="true"
+            styleClass="text-sm" appendTo="body" (onSelect)="buscar()" />
         </div>
-        <div class="flex flex-col gap-1 min-w-[120px]">
+        <div class="flex flex-col gap-1">
           <label class="text-xs font-semibold text-slate-700">Até (Pagamento)</label>
-          <input type="date" [(ngModel)]="dataFinal"
-            class="px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+          <p-datepicker [(ngModel)]="dataFinal" dateFormat="dd/mm/yy" [showIcon]="true"
+            styleClass="text-sm" appendTo="body" (onSelect)="buscar()" />
         </div>
 
         <div class="flex flex-col gap-1 min-w-[160px]">
