@@ -64,7 +64,7 @@ class UsuarioServiceTest {
         @DisplayName("Deve criar usuário com sucesso")
         void deveCriarUsuarioComSucesso() {
             // Arrange
-            when(usuarioRepository.existsByEmail(anyString())).thenReturn(false);
+            when(usuarioRepository.existsByEmailIgnoreCase(anyString())).thenReturn(false);
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(usuarioMapper.toEntity(any(UsuarioRequest.class))).thenReturn(usuario);
             when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
@@ -87,7 +87,7 @@ class UsuarioServiceTest {
         @DisplayName("Deve lançar exceção quando email já existe")
         void deveLancarExcecaoQuandoEmailExiste() {
             // Arrange
-            when(usuarioRepository.existsByEmail(anyString())).thenReturn(true);
+            when(usuarioRepository.existsByEmailIgnoreCase(anyString())).thenReturn(true);
 
             // Act & Assert
             assertThatThrownBy(() -> usuarioService.create(usuarioRequest))

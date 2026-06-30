@@ -82,7 +82,7 @@ class AuthServiceTest {
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn(userDetails);
-            when(usuarioRepository.findByEmail(usuario.getEmail())).thenReturn(Optional.of(usuario));
+            when(usuarioRepository.findByEmailIgnoreCase(usuario.getEmail())).thenReturn(Optional.of(usuario));
             
             // Corrigido: generateToken recebe apenas UserDetails (ou Map + UserDetails)
             when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access.token");
@@ -130,7 +130,7 @@ class AuthServiceTest {
             when(tentativaLoginRepository.countByEmailAndEmpresaIdAndSucessoFalseAndDataTentativaAfter(
                     anyString(), anyLong(), any(LocalDateTime.class)))
                     .thenReturn(5L); // Limite excedido
-            when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuario));
+            when(usuarioRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.of(usuario));
 
             // Act & Assert
             assertThatThrownBy(() -> authService.login(loginRequest))
@@ -152,7 +152,7 @@ class AuthServiceTest {
             String email = usuario.getEmail();
             
             when(jwtService.extractUsername(request.getRefreshToken())).thenReturn(email);
-            when(usuarioRepository.findByEmail(email)).thenReturn(Optional.of(usuario));
+            when(usuarioRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.of(usuario));
             when(jwtService.isTokenValid(eq(request.getRefreshToken()), any(UserDetails.class))).thenReturn(true);
             when(jwtService.generateToken(any(UserDetails.class))).thenReturn("new.access.token");
             when(jwtService.getExpirationTime()).thenReturn(3600000L);

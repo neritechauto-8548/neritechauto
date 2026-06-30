@@ -34,7 +34,7 @@ class CustomUserDetailsServiceTest {
     void deveCarregarUsuarioPorUsername() {
         // Arrange
         Usuario usuario = TestDataBuilder.umUsuario().build();
-        when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.of(usuario));
 
         // Act
         UserDetails userDetails = userDetailsService.loadUserByUsername("test@email.com");
@@ -49,7 +49,7 @@ class CustomUserDetailsServiceTest {
     @DisplayName("Deve lançar exceção quando usuário não encontrado")
     void deveLancarExcecaoQuandoUsuarioNaoEncontrado() {
         // Arrange
-        when(usuarioRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(usuarioRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername("notfound@email.com"))

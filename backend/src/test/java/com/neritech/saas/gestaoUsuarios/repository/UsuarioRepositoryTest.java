@@ -24,7 +24,7 @@ class UsuarioRepositoryTest extends BaseRepositoryTest {
         usuarioRepository.save(usuario);
 
         // Act
-        Optional<Usuario> found = usuarioRepository.findByEmailAndEmpresaId(usuario.getEmail(), usuario.getEmpresaId());
+        Optional<Usuario> found = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(usuario.getEmail(), usuario.getEmpresaId());
 
         // Assert
         assertThat(found).isPresent();
@@ -39,7 +39,7 @@ class UsuarioRepositoryTest extends BaseRepositoryTest {
         usuarioRepository.save(usuario);
 
         // Act
-        boolean exists = usuarioRepository.existsByEmailAndEmpresaId(usuario.getEmail(), usuario.getEmpresaId());
+        boolean exists = usuarioRepository.existsByEmailIgnoreCaseAndEmpresaId(usuario.getEmail(), usuario.getEmpresaId());
 
         // Assert
         assertThat(exists).isTrue();
@@ -53,7 +53,7 @@ class UsuarioRepositoryTest extends BaseRepositoryTest {
         usuarioRepository.save(usuario);
 
         // Act
-        Optional<Usuario> found = usuarioRepository.findByEmailAndEmpresaId(usuario.getEmail(), 1L);
+        Optional<Usuario> found = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(usuario.getEmail(), 1L);
 
         // Assert
         assertThat(found).isEmpty();

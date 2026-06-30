@@ -43,11 +43,11 @@ class MultitenancyIntegrationTest extends AbstractIntegrationTest {
 
         // Act - Simular contexto da Empresa 1
         // Nota: Repositórios usam o TenantContext? Se usarem @Filter do Hibernate ou AOP, sim.
-        // Se usarem apenas métodos com empresaId explícito (como findByEmailAndEmpresaId), o teste é direto.
+        // Se usarem apenas métodos com empresaId explícito (como findByEmailIgnoreCaseAndEmpresaId), o teste é direto.
         // Assumindo que o sistema usa métodos explícitos ou filtro global.
         
         // Teste via método explícito
-        Optional<Usuario> buscaEmpresa1 = usuarioRepository.findByEmailAndEmpresaId("user2@empresa2.com", 1L);
+        Optional<Usuario> buscaEmpresa1 = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId("user2@empresa2.com", 1L);
         
         // Assert
         assertThat(buscaEmpresa1).isEmpty();
