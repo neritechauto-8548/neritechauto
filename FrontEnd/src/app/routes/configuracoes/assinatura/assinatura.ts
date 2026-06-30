@@ -55,11 +55,11 @@ export class AssinaturaComponent implements OnInit {
   planos: Plano[] = [
     {
       id: 'basic',
-      nome: 'Neri Basic',
+      nome: 'NeriTech Pro',
       preco: '79,90',
       descricao: 'A gestão essencial para sua oficina que busca performance e organização.',
       destaque: true,
-      productId: 'prod_UMeRIYKOYS5enM',
+      productId: 'prod_Uni268aevR5Yvy',
       badge: '🎉 SUPER PROMOÇÃO',
       promoInfo: 'Promoção por tempo limitado: os próximos 50 assinantes ganham 6 meses GRÁTIS! E depois, mais 6 meses pagando apenas a metade do valor (R$ 39,95/mês).',
       buttonLabel: 'Aproveitar Promoção',
@@ -75,14 +75,14 @@ export class AssinaturaComponent implements OnInit {
     },
     {
       id: 'pro',
-      nome: 'Neri Pro',
+      nome: 'NeriTech Ultra',
       preco: 'Sob Consulta',
       descricao: 'O nível máximo de controle com inteligência de dados, gestão fiscal e emissão de notas.',
       destaque: false,
       productId: 'pro_consult',
       buttonLabel: 'Falar com Consultor',
       features: [
-        'Tudo do Neri Basic',
+        'Tudo do NeriTech Pro',
         'Emissão de Notas Fiscais ilimitadas (NF-e, NFS-e e NFC-e)',
         'SAT/MF-e e Importação de XML automática',
         'Módulo Fiscal Avançado (DRE completo)',

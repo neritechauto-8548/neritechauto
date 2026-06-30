@@ -4,9 +4,9 @@
     <section class="page-hero trial-hero">
       <div class="container">
         <span class="section-label">Teste Grátis</span>
-        <h1 class="page-hero__title">Comece 30 dias grátis</h1>
+        <h1 class="page-hero__title">Comece 180 dias grátis</h1>
         <p class="page-hero__subtitle">
-          Configuramos sua oficina em segundos. Sem cartão de crédito, sem compromisso.
+          Configuramos sua oficina em segundos. Sem cartão de crédito
         </p>
       </div>
     </section>
@@ -151,7 +151,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
             </div>
             <h3>Sem Compromisso</h3>
-            <p>Teste todas as funcionalidades Master por 30 dias sem precisar de cartão de crédito.</p>
+            <p>Teste todas as funcionalidades Master por 180 dias sem precisar de cartão de crédito.</p>
           </div>
         </div>
       </div>

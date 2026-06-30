@@ -33,7 +33,7 @@
         </div>
 
         <div class="hero-trust aos-init aos-delay-4">
-          <span>✓ 30 dias grátis</span>
+          <span>✓ 180 dias grátis</span>
           <span>✓ Sem cartão de crédito</span>
           <span>✓ Suporte via Chat</span>
         </div>

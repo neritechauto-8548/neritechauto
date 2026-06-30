@@ -48,11 +48,11 @@ public class StripeService {
     private String defaultPriceId;
 
 
-    @Value("${stripe.products.pro:}")
-    private String productIdPro;
+    @Value("${stripe.products.neritech-pro:}")
+    private String productIdNeriTechPro;
 
-    @Value("${stripe.products.elite:}")
-    private String productIdElite;
+    @Value("${stripe.products.neritech-ultra:}")
+    private String productIdNeriTechUltra;
 
     @PostConstruct
     public void init() {
@@ -114,7 +114,7 @@ public class StripeService {
                                 .setPrice(defaultPriceId)
                                 .build()
                 )
-                .setTrialPeriodDays(7L) // 7 days trial
+                .setTrialPeriodDays(180L) // 180 days trial (6 months)
                 .build();
 
         log.info("Criando nova assinatura Trial para o cliente {}", customerId);
@@ -155,6 +155,12 @@ public class StripeService {
                 .setMode(com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION)
                 .setSuccessUrl(successUrl)
                 .setCancelUrl(cancelUrl)
+                .setAllowPromotionCodes(true) // Habilita cupons de desconto no checkout
+                .setSubscriptionData(
+                        com.stripe.param.checkout.SessionCreateParams.SubscriptionData.builder()
+                                .setTrialPeriodDays(180L) // Trial de 6 meses (180 dias)
+                                .build()
+                )
                 .addLineItem(
                         com.stripe.param.checkout.SessionCreateParams.LineItem.builder()
                                 .setPrice(priceId)
@@ -192,15 +198,15 @@ public class StripeService {
      */
     public String resolvePlanName(String productId) {
         if (productId == null) return "Sem plano";
-        // Mapeando Pro para Nível 1
-        if (productId.equals(productIdPro)) return "Pro";
-        // Mapeando Elite para Nível 2
-        if (productId.equals(productIdElite)) return "Elite";
+        // Mapeando NeriTech Pro para Nível 1
+        if (productId.equals(productIdNeriTechPro)) return "NeriTech Pro";
+        // Mapeando NeriTech Ultra para Nível 2
+        if (productId.equals(productIdNeriTechUltra)) return "NeriTech Ultra";
         return "Plano desconhecido";
     }
 
-    public String getProductIdPro() { return productIdPro; }
-    public String getProductIdElite() { return productIdElite; }
+    public String getProductIdNeriTechPro() { return productIdNeriTechPro; }
+    public String getProductIdNeriTechUltra() { return productIdNeriTechUltra; }
 
     public void handleWebhookEvent(com.stripe.model.Event event) {
         String type = event.getType();

@@ -49,7 +49,7 @@ const faqs = [
   },
   {
     q: 'Posso emitir nota fiscal pelo sistema?',
-    a: 'Sim! Emitimos NF-e (produtos) e NFS-e (serviços) integrado diretamente à SEFAZ. Tudo com poucos cliques, sem precisar acessar outro sistema. Disponível nos planos neri pro e neri elite.',
+    a: 'Sim! Emitimos NF-e (produtos) e NFS-e (serviços) integrado diretamente à SEFAZ. Tudo com poucos cliques, sem precisar acessar outro sistema. Disponível no plano NeriTech Ultra.',
   },
   {
     q: 'Como funciona o suporte?',

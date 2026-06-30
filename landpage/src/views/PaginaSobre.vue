@@ -80,7 +80,7 @@
       <div class="container cta-content aos-init">
         <span class="section-label">Começar agora</span>
         <h2 class="cta-title">Sua oficina mais organizada a partir de hoje</h2>
-        <p class="cta-desc">30 dias grátis, sem cartão de crédito. Teste todos os recursos sem compromisso.</p>
+        <p class="cta-desc">180 dias grátis, sem cartão de crédito. Teste todos os recursos sem compromisso.</p>
         <div class="cta-actions">
           <router-link to="/teste-gratis" class="btn-cta-primary">
             Começar teste grátis

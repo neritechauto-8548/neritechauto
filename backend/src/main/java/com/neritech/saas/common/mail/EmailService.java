@@ -79,7 +79,7 @@ public class EmailService {
                 "    <p style='color: #1e293b; font-size: 18px; font-weight: 600; margin-bottom: 16px;'>Olá " + name + ",</p>" +
                 "    <p style='color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 30px;'>" +
                 "      Estamos muito felizes em ter você conosco! Você acaba de dar o primeiro passo para modernizar a sua gestão. " +
-                "      Aproveite os seus <strong>7 dias de acesso total gratuito</strong> para explorar todas as nossas ferramentas." +
+                "      Aproveite os seus <strong>180 dias de acesso total gratuito</strong> para explorar todas as nossas ferramentas." +
                 "    </p>" +
                 "    " +
                 "    <div style='background-color: #f1f5f9; border-radius: 8px; padding: 24px; margin-bottom: 35px; border: 1px solid #e2e8f0;'>" +

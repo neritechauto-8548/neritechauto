@@ -35,7 +35,7 @@
                 </li>
               </ul>
               <router-link to="/teste-gratis" class="btn btn-primary" id="seg-cta-btn">
-                Experimente grátis por 30 dias →
+                Experimente grátis por 180 dias →
               </router-link>
             </div>
             <div class="seg-panel-visual">

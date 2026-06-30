@@ -199,7 +199,7 @@ public class ProdutoService {
             org.springframework.security.core.Authentication auth = 
                 org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-                var userOpt = usuarioRepository.findByEmail(auth.getName());
+                var userOpt = usuarioRepository.findByEmailIgnoreCase(auth.getName());
                 if (userOpt.isPresent()) {
                     return userOpt.get().getId();
                 }

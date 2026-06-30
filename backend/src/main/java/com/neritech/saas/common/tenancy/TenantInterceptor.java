@@ -36,6 +36,12 @@ public class TenantInterceptor implements HandlerInterceptor {
         log.info("TenantInterceptor processing request: {}", requestURI);
         log.debug("TenantInterceptor processing request: {}", requestURI);
         
+        // Permitir requisições públicas, de autenticação ou de erro sem aplicar tenantFilter
+        if (requestURI.contains("/public/") || requestURI.contains("/error") || requestURI.contains("/auth/") || requestURI.contains("/usuarios/me") || requestURI.contains("/logo")) {
+            log.info("Public, Auth or Error request detected, skipping tenant check and filter: {}", requestURI);
+            return true;
+        }
+
         String tenantHeader = request.getHeader(TENANT_HEADER);
         String tenantParam = request.getParameter("tenantId");
         String empresaParam = request.getParameter("empresaId");
@@ -60,12 +66,6 @@ public class TenantInterceptor implements HandlerInterceptor {
                 tenantSource = "jwt";
                 log.info("Resolved tenant from JWT claims for request: {}", requestURI);
             } else {
-                // Permitir requisições públicas, de autenticação ou de erro sem tenantId
-                if (requestURI.contains("/public/") || requestURI.contains("/error") || requestURI.contains("/auth/") || requestURI.contains("/usuarios/me") || requestURI.contains("/logo")) {
-                    log.info("Public, Auth or Error request detected, skipping mandatory tenant check: {}", requestURI);
-                    return true;
-                }
-                
                 log.warn("Missing X-Tenant-Id header for request: {}", requestURI);
                 response.sendError(HttpStatus.BAD_REQUEST.value(), "Cabeçalho X-Tenant-Id é obrigatório (ou informe ?tenantId=..., ou use JWT com empresaId)");
                 return false;
@@ -88,7 +88,7 @@ public class TenantInterceptor implements HandlerInterceptor {
             boolean skipTenantUserValidation = requestURI.contains("/usuarios/me");
             if (!skipTenantUserValidation && auth != null && auth.isAuthenticated()) {
                 String username = auth.getName();
-                usuarioRepository.findByEmail(username).ifPresent(usuario -> {
+                usuarioRepository.findByEmailIgnoreCase(username).ifPresent(usuario -> {
                     if (usuario.getEmpresaId() == null || !usuario.getEmpresaId().equals(tenantId)) {
                         try {
                             response.sendError(HttpStatus.FORBIDDEN.value(), "Usuário não pertence à empresa informada");

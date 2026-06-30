@@ -38,7 +38,7 @@ public class TrialService {
 
     @Transactional
     public TrialRegisterResponse registerTrial(TrialRegisterRequest request) {
-        if (usuarioRepository.existsByEmail(request.getEmail())) {
+        if (usuarioRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new IllegalArgumentException("O e-mail informado já está em uso.");
         }
 
@@ -48,7 +48,7 @@ public class TrialService {
             Customer stripeCustomer = stripeService.createCustomer(request.getEmail(), request.getNomeCompleto(), request.getTelefone());
             if (stripeCustomer != null) {
                 customerId = stripeCustomer.getId();
-                // Inicia assinatura com 7 dias de trial se tiver configurado preço padrão
+                // Inicia assinatura com 180 dias de trial se tiver configurado preço padrão
                 stripeService.createTrialSubscription(customerId);
             }
         } catch (Exception e) {

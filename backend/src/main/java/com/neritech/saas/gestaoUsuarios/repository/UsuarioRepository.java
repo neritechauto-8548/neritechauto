@@ -8,11 +8,11 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    Optional<Usuario> findByEmail(String email);
-    boolean existsByEmail(String email);
+    Optional<Usuario> findByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(String email);
     
-    boolean existsByEmailAndEmpresaId(String email, Long empresaId);
-    Optional<Usuario> findByEmailAndEmpresaId(String email, Long empresaId);
+    boolean existsByEmailIgnoreCaseAndEmpresaId(String email, Long empresaId);
+    Optional<Usuario> findByEmailIgnoreCaseAndEmpresaId(String email, Long empresaId);
     Optional<Usuario> findByIdAndEmpresaId(Long id, Long empresaId);
     java.util.List<Usuario> findAllByEmpresaId(Long empresaId);
 

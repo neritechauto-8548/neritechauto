@@ -109,14 +109,14 @@
     {
       "type": "heading",
       "name": "gestao-e-fiscal",
-      "minPlan": 2
+      "minPlan": 1
     },
     {
       "route": "financeiro",
       "name": "financeiro",
       "type": "sub",
       "icon": "pi pi-wallet",
-      "minPlan": 2,
+      "minPlan": 1,
       "permissions": {
         "only": "FIN_VIS_CAIXA"
       },
@@ -158,7 +158,7 @@
       "name": "fornecedor",
       "type": "sub",
       "icon": "pi pi-truck",
-      "minPlan": 2,
+      "minPlan": 1,
       "children": [
         {
           "route": "",

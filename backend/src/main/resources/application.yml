@@ -49,8 +49,7 @@ stripe:
     price:
       id: ${STRIPE_TRIAL_PRICE_ID}
   products:
-    start: ${STRIPE_PRODUCT_START}
-    pro: ${STRIPE_PRODUCT_PRO}
-    elite: ${STRIPE_PRODUCT_ELITE}
+    neritech-pro: ${STRIPE_PRODUCT_NERITECH_PRO}
+    neritech-ultra: ${STRIPE_PRODUCT_NERITECH_ULTRA}
   webhook:
     secret: ${STRIPE_WEBHOOK_SECRET}

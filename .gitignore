@@ -9,6 +9,7 @@
 .env.local
 .env.*.local
 .env.portainer
+.env.portainer_producao
 
 
 # ── Node / JavaScript ──

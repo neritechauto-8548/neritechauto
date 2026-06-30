@@ -50,7 +50,7 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponse create(UsuarioRequest request) {
-        if (usuarioRepository.existsByEmail(request.getEmail())) {
+        if (usuarioRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new RuntimeException("Email já cadastrado");
         }
 
@@ -146,7 +146,7 @@ public class UsuarioService {
         }
         
         String email = authentication.getName();
-        Usuario usuario = usuarioRepository.findByEmail(email)
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
         
         UsuarioResponse response = toResponse(usuario);

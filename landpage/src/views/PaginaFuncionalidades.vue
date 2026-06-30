@@ -97,7 +97,7 @@
       <div class="container cta-content aos-init">
         <span class="section-label">Comece agora</span>
         <h2 class="cta-title">Pronto para testar todas as funcionalidades?</h2>
-        <p class="cta-desc">30 dias grátis, sem cartão de crédito. Configure em minutos e use ainda hoje.</p>
+        <p class="cta-desc">180 dias grátis, sem cartão de crédito. Configure em minutos e use ainda hoje.</p>
         <div class="cta-actions">
           <router-link to="/teste-gratis" class="btn-cta-primary" id="func-cta-final">
             Começar teste grátis

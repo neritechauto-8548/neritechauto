@@ -28,12 +28,12 @@
             <span class="category-indicator">{{ nomeAbaAtiva }}</span>
           </div>
           <div class="plan-header">
-            <span class="plan-name">Neri Pro</span>
-            <span class="plan-price">R$ 99,90/mês</span>
+            <span class="plan-name">NeriTech Pro</span>
+            <span class="plan-price">R$ 79,90/mês</span>
           </div>
           <div class="plan-header featured">
-            <span class="plan-name">Neri Elite</span>
-            <span class="plan-price">R$ 199,90/mês</span>
+            <span class="plan-name">NeriTech Ultra</span>
+            <span class="plan-price">R$ 230,00/mês</span>
           </div>
         </div>
         

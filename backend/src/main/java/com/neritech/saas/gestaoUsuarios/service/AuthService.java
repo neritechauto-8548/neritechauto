@@ -62,7 +62,7 @@ public class AuthService {
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+            Usuario usuario = usuarioRepository.findByEmailIgnoreCase(request.getEmail())
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
             // 3. Generate Tokens
@@ -117,7 +117,12 @@ public class AuthService {
 
         } catch (BadCredentialsException e) {
             try {
-                usuarioRepository.findByEmail(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
+                java.util.Optional<Usuario> userOpt = usuarioRepository.findByEmailIgnoreCase(request.getEmail());
+                if (userOpt.isPresent()) {
+                    TenantContext.setCurrentTenant(userOpt.get().getEmpresaId());
+                } else {
+                    TenantContext.clear(); // Clear potentially invalid tenant ID from header
+                }
                 logLoginAttempt(request, false);
                 logAccess(null, LogAcesso.TipoEvento.LOGIN_FAIL, "Falha de login: credenciais inválidas para " + request.getEmail(), request.getIpAddress(), request.getUserAgent());
             } finally {
@@ -126,7 +131,12 @@ public class AuthService {
             throw e;
         } catch (Exception e) {
             try {
-                usuarioRepository.findByEmail(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
+                java.util.Optional<Usuario> userOpt = usuarioRepository.findByEmailIgnoreCase(request.getEmail());
+                if (userOpt.isPresent()) {
+                    TenantContext.setCurrentTenant(userOpt.get().getEmpresaId());
+                } else {
+                    TenantContext.clear();
+                }
                 logAccess(null, LogAcesso.TipoEvento.LOGIN_FAIL, "Erro no login: " + e.getMessage(), request.getIpAddress(), request.getUserAgent());
             } finally {
                 TenantContext.clear();
@@ -141,7 +151,7 @@ public class AuthService {
         String userEmail = jwtService.extractUsername(refreshToken);
         
         if (userEmail != null) {
-            Usuario usuario = usuarioRepository.findByEmail(userEmail)
+            Usuario usuario = usuarioRepository.findByEmailIgnoreCase(userEmail)
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
             // Validate token matches session
@@ -225,7 +235,7 @@ public class AuthService {
 
     @Transactional
     public void recoverPassword(String email) {
-        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
         
         // Se o usuário não existir, por segurança, não revelamos isso
         if (usuario != null) {

@@ -40,7 +40,7 @@ public class AuthController {
         if (tenantHeader != null && !tenantHeader.isEmpty()) {
             try { TenantContext.setCurrentTenant(Long.parseLong(tenantHeader)); } catch (NumberFormatException ignored) {}
         } else if (request.getEmail() != null) {
-            usuarioRepository.findByEmail(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
+            usuarioRepository.findByEmailIgnoreCase(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
         }
         try {
             return ResponseEntity.ok(authService.login(request));

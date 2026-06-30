@@ -93,7 +93,7 @@ defineProps({
 const plans = ref([
   {
     id: 'price_basic',
-    name: 'Neri Basic',
+    name: 'NeriTech Pro',
     price: '79,90',
     description: 'Sistema essencial de gestão, controle e relacionamento para sua oficina.',
     featured: true,
@@ -113,7 +113,7 @@ const plans = ref([
   },
   {
     id: 'price_pro',
-    name: 'Neri Pro',
+    name: 'NeriTech Ultra',
     price: 'Sob Consulta',
     description: 'Ideal para oficinas em crescimento que precisam de emissão de notas fiscais e relatórios fiscais avançados.',
     featured: false,
@@ -121,7 +121,7 @@ const plans = ref([
     promoInfo: null,
     buttonLabel: 'Falar com Consultor',
     features: [
-      'Todos os recursos do plano Basic',
+      'Todos os recursos do plano NeriTech Pro',
       'Emissão de Notas Fiscais ilimitadas (NF-e e NFS-e)',
       'NF de Consumidor (NFC-e) e SAT/MF-e',
       'NF de Devolução, Garantia e Retorno',

@@ -36,14 +36,14 @@
         <p>A NeriTechAuto funciona sob o modelo de assinatura mensal. Os pagamentos são processados via Stripe.</p>
         <ul>
           <li><strong>Cobrança:</strong> As faturas são geradas no início de cada período de faturamento mensal.</li>
-          <li><strong>Preços:</strong> Reservamo-nos o direito de alterar nossos planos de preços, notificando os usuários com pelo menos 30 dias de antecedência.</li>
+          <li><strong>Preços:</strong> Reservamo-nos o direito de alterar nossos planos de preços, notificando os usuários com pelo menos 180 dias de antecedência.</li>
           <li><strong>Impostos:</strong> Você é responsável por todos os impostos aplicáveis relacionados à sua assinatura.</li>
         </ul>
       </section>
 
       <section id="trial">
         <h2>5. Período de Teste (Free Trial)</h2>
-        <p>Oferecemos um período de teste gratuito de 30 dias para novos usuários. Após esse período, o acesso será restrito a menos que uma assinatura paga seja ativada.</p>
+        <p>Oferecemos um período de teste gratuito de 180 dias para novos usuários. Após esse período, o acesso será restrito a menos que uma assinatura paga seja ativada.</p>
       </section>
 
       <section id="proibido">
