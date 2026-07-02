@@ -3,8 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="/favicon.png" type="image/png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
 
     <!-- SEO -->
     <title>NeriTechAuto — Gestão Inteligente para Oficinas Mecânicas</title>
@@ -12,6 +14,41 @@
     <meta name="keywords" content="sistema para oficina mecânica, gestão oficina, ordem de serviço, controle financeiro oficina, software oficina" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://neritechauto.com.br" />
+
+    <!-- JSON-LD Structured Data para o Google (Sitelinks e Logotipo) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "NeriTechAuto",
+      "alternateName": ["NeriTech Auto", "Neritech"],
+      "url": "https://neritechauto.com.br",
+      "logo": "https://neritechauto.com.br/favicon.png",
+      "description": "O sistema de gestão mais completo para oficinas mecânicas. Controle financeiro, ordens de serviço, estoque, clientes e emissão de notas fiscais.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://neritechauto.com.br/teste-gratis?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "NeriTechAuto",
+      "url": "https://neritechauto.com.br",
+      "logo": "https://neritechauto.com.br/favicon.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "contato@neritechauto.com.br",
+        "contactType": "customer support"
+      },
+      "sameAs": [
+        "https://instagram.com/neritechauto"
+      ]
+    }
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -34,7 +71,22 @@
     <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <!-- Fallback de Carregamento e SEO para Motores de Busca -->
+      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 100px auto; text-align: center; padding: 20px;">
+        <h1 style="color: #1e3a8a; font-size: 2.2rem; font-weight: 800; margin-bottom: 20px;">NeriTechAuto</h1>
+        <p style="color: #4b5563; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
+          O sistema de gestão mais completo para oficinas mecânicas. Controle financeiro, ordens de serviço (O.S. digital), controle de estoque, cadastro de clientes e emissão de notas fiscais (NFe/NFSe) tudo em um só lugar.
+        </p>
+        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      </div>
+    </div>
     <script type="module" src="/src/main.js"></script>
     <!-- Start of Tawk.to Script -->
     <script type="text/javascript">
