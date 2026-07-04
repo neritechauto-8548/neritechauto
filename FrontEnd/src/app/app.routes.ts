@@ -102,6 +102,10 @@ export const routes: Routes = [
         path: 'orcamento',
         loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
       },
+      {
+        path: 'admin',
+        loadChildren: () => import('./routes/admin/admin.routes').then(m => m.routes),
+      },
     ],
   },
   {

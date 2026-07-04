@@ -1,5 +1,7 @@
 {
   "menu": {
+    "administração": "Administração",
+    "dashboard_admin": "Dashboard Global",
     "configuracoes.config-geral": "GERAL",
     "configuracoes.config-rh": "RECURSOS HUMANOS",
     "configuracoes.config-financeiro": "FINANCEIRO",

@@ -2,6 +2,25 @@
   "menu": [
     {
       "type": "heading",
+      "name": "administração",
+      "minPlan": 3
+    },
+    {
+      "route": "admin/dashboard",
+      "name": "dashboard_admin",
+      "type": "link",
+      "icon": "pi pi-chart-pie",
+      "minPlan": 3
+    },
+    {
+      "route": "configuracoes/administrador",
+      "name": "administrador",
+      "type": "link",
+      "icon": "pi pi-shield",
+      "minPlan": 3
+    },
+    {
+      "type": "heading",
       "name": "geral"
     },
     {
@@ -489,12 +508,6 @@
         {
           "type": "heading",
           "name": "config-sistema"
-        },
-        {
-          "route": "administrador",
-          "name": "administrador",
-          "type": "link",
-          "icon": "pi pi-shield"
         }
       ]
     }
