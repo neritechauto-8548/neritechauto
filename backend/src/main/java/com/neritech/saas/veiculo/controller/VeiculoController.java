@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -75,6 +76,22 @@ public class VeiculoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PatchMapping("/{id}/inativar")
+    @PreAuthorize("hasAuthority('VEICULO_EXCLUIR')")
+    public ResponseEntity<VeiculoResponse> deactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(service.deactivate(id));
+    }
+
+    @PatchMapping("/{id}/reativar")
+    @PreAuthorize("hasAuthority('VEICULO_EDITAR')")
+    public ResponseEntity<VeiculoResponse> reactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(service.reactivate(id));
+    }
+
+    /**
+     * Compatibilidade com clientes legados: DELETE não remove fisicamente.
+     * A operação inativa o veículo e preserva o histórico.
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('VEICULO_EXCLUIR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
