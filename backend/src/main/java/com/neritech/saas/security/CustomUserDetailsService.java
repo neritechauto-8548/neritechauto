@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,35 +29,33 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Set<GrantedAuthority> authorities = new HashSet<>();
 
-        // Add Roles
-        usuario.getFuncoes().forEach(funcao -> {
-            if (funcao.getAtivo()) {
-                String nomeFuncao = funcao.getNome();
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + nomeFuncao));
-                
-                // Se for um perfil de administrador, também concede ROLE_ADMIN
-                if (nomeFuncao != null && (
-                    "ADMIN".equalsIgnoreCase(nomeFuncao) || 
-                    nomeFuncao.toUpperCase().contains("ADMIN") || 
-                    nomeFuncao.toUpperCase().contains("ADMINISTRADOR")
-                )) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                }
-                
-                // Add Permissions
-                funcao.getPermissoes().forEach(permissao -> {
-                    authorities.add(new SimpleGrantedAuthority(permissao.getValor()));
-                });
-            }
-        });
+        if (usuario.getFuncoes() != null) {
+            usuario.getFuncoes().stream()
+                    .filter(funcao -> Boolean.TRUE.equals(funcao.getAtivo()))
+                    .forEach(funcao -> {
+                        String nomeFuncao = funcao.getNome();
+                        if (nomeFuncao != null && !nomeFuncao.isBlank()) {
+                            // A função persistida é uma autoridade explícita. Não existe promoção
+                            // implícita baseada em "contains ADMIN".
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + nomeFuncao));
+                        }
+
+                        if (funcao.getPermissoes() != null) {
+                            funcao.getPermissoes().stream()
+                                    .filter(permissao -> permissao.getValor() != null && !permissao.getValor().isBlank())
+                                    .forEach(permissao -> authorities.add(
+                                            new SimpleGrantedAuthority(permissao.getValor())));
+                        }
+                    });
+        }
 
         return User.builder()
                 .username(usuario.getEmail())
                 .password(usuario.getSenha())
-                .disabled(!usuario.getAtivo())
+                .disabled(!Boolean.TRUE.equals(usuario.getAtivo()))
                 .accountExpired(false)
                 .credentialsExpired(false)
-                .accountLocked(usuario.getBloqueado())
+                .accountLocked(Boolean.TRUE.equals(usuario.getBloqueado()))
                 .authorities(authorities)
                 .build();
     }
