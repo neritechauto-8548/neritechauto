@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuthService, User } from '@core/authentication';
 import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
 import { switchMap, tap } from 'rxjs';
-import { Menu, MenuService } from './menu.service';
+import { Menu, MenuChildrenItem, MenuPermissions, MenuService } from './menu.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,27 +10,24 @@ import { Menu, MenuService } from './menu.service';
 export class StartupService {
   private readonly authService = inject(AuthService);
   private readonly menuService = inject(MenuService);
-  private readonly permissonsService = inject(NgxPermissionsService);
+  private readonly permissionsService = inject(NgxPermissionsService);
   private readonly rolesService = inject(NgxRolesService);
 
   load() {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(resolve => {
       this.authService
         .change()
         .pipe(
-          tap((user: any) => {
-            console.log('[StartupService] User profile received:', user);
+          tap((user: User) => {
             this.setPermissions(user);
-            
-            // Verificação de Assinatura Stripe
+
             if (user && user.assinaturaAtiva === false && user.stripeUrl) {
-               console.warn('Assinatura inativa. Redirecionando para o Stripe...');
-               window.location.href = user.stripeUrl;
+              window.location.href = user.stripeUrl;
             }
           }),
-          switchMap((user: User) => this.authService.menu().pipe(
-            tap((menu: Menu[]) => this.setMenu(menu, user))
-          ))
+          switchMap((user: User) =>
+            this.authService.menu().pipe(tap((menu: Menu[]) => this.setMenu(menu, user)))
+          )
         )
         .subscribe({
           next: () => resolve(),
@@ -41,59 +38,71 @@ export class StartupService {
 
   private setMenu(menu: Menu[], user: User) {
     const planLevel = user?.planoNivel || 1;
-    const filteredMenu = this.filterMenuByPlan(menu, planLevel);
-    
+    const grantedPermissions = new Set((user?.permissions || []).map(permission => String(permission)));
+    const filteredMenu = this.filterMenu(menu || [], planLevel, grantedPermissions);
+
     this.menuService.addNamespace(filteredMenu, 'menu');
     this.menuService.set(filteredMenu);
   }
 
-  private filterMenuByPlan(menu: any[], planLevel: number): any[] {
-    return menu.filter(item => {
-      // Filtro por Nível de Plano (única restrição que esconde o menu)
-      if (item.minPlan && item.minPlan > planLevel) {
-        return false;
-      }
-      
-      // Recursividade para filhos
-      if (item.children && item.children.length > 0) {
-        item.children = this.filterMenuByPlan(item.children, planLevel);
-        if (item.type === 'sub' && item.children.length === 0) {
-          return false;
+  private filterMenu<T extends Menu | MenuChildrenItem>(
+    menu: T[],
+    planLevel: number,
+    grantedPermissions: Set<string>
+  ): T[] {
+    return menu
+      .filter(item => !('minPlan' in item) || !(item as any).minPlan || (item as any).minPlan <= planLevel)
+      .filter(item => this.hasDeclaredPermission(item.permissions, grantedPermissions))
+      .map(item => {
+        const copy = { ...item } as T;
+        if (copy.children?.length) {
+          copy.children = this.filterMenu(copy.children, planLevel, grantedPermissions);
         }
-      }
-      
+        return copy;
+      })
+      .filter(item => item.type !== 'sub' || Boolean(item.children?.length));
+  }
+
+  private hasDeclaredPermission(
+    permissions: MenuPermissions | undefined,
+    grantedPermissions: Set<string>
+  ): boolean {
+    if (!permissions) {
       return true;
-    });
+    }
+
+    const only = this.asArray(permissions.only);
+    const except = this.asArray(permissions.except);
+
+    if (except.some(permission => grantedPermissions.has(permission))) {
+      return false;
+    }
+
+    if (only.length === 0) {
+      return true;
+    }
+
+    return only.some(permission => grantedPermissions.has(permission));
+  }
+
+  private asArray(value?: string | string[]): string[] {
+    if (!value) {
+      return [];
+    }
+    return Array.isArray(value) ? value : [value];
   }
 
   private setPermissions(user: User) {
-    let permissions = user.permissions || [];
-    
-    // Se o usuário possuir a função de ADMIN, garante que tenha todas as permissões no frontend
-    const hasAdmin = user.funcoes && user.funcoes.some((role: string) => {
-      const r = (role || '').toUpperCase();
-      return r === 'ADMIN' || r.includes('ADMIN') || r.includes('ADMINISTRADOR');
-    });
-    if (hasAdmin) {
-      const allPermissions = [
-        'CLIENTE_CRIAR', 'CLIENTE_EDITAR', 'CLIENTE_EXCLUIR', 'CLIENTE_EXPORTAR',
-        'VEICULO_CRIAR', 'VEICULO_EDITAR', 'VEICULO_EXCLUIR', 'VEICULO_EXPORTAR',
-        'AGENDAMENTO_CRIAR', 'AGENDAMENTO_EDITAR', 'AGENDAMENTO_EXCLUIR',
-        'OS_INCLUIR', 'OS_EDITAR', 'OS_EXCLUIR', 'OS_ALT_FUNCIONARIO', 'OS_ALT_STATUS',
-        'GERAL_USUARIO', 'GERAL_CALENDARIO', 'GERAL_AGENDAMENTO_VISUALIZAR', 'GERAL_FATURAS', 
-        'GERAL_CONFIG_SISTEMA', 'GERAL_MEU_CALENDARIO', 'GERAL_CONFIG_CHECKLIST', 'GERAL_ORCAMENTO', 
-        'GERAL_AGENDAMENTO_EDITAR', 'GERAL_CONFIG_SITE', 'FIN_VIS_CAIXA', 'FIN_FECHAMENTO'
-      ];
-      permissions = Array.from(new Set([...permissions, ...allPermissions]));
-    }
+    const permissions = (user?.permissions || []).map(permission => String(permission));
 
-    this.permissonsService.loadPermissions(permissions);
-    
+    // O frontend nunca amplia autoridade. As permissoes efetivas sao exatamente
+    // as retornadas pelo backend para a identidade/sessao atual.
+    this.permissionsService.flushPermissions();
+    this.permissionsService.loadPermissions(permissions);
+
     this.rolesService.flushRoles();
-    if (user.funcoes) {
-      user.funcoes.forEach((role: string) => {
-        this.rolesService.addRole(role, permissions);
-      });
-    }
+    (user?.funcoes || []).forEach((role: string) => {
+      this.rolesService.addRole(role, permissions);
+    });
   }
 }
