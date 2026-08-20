@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, catchError, iif, map, merge, of, share, switchMap, tap, take, timeout } from 'rxjs';
-import { base64, filterObject, isEmptyObject } from './helpers';
+import { filterObject, isEmptyObject } from './helpers';
 import { User } from './interface';
 import { LoginService } from './login.service';
 import { TokenService } from './token.service';
@@ -39,10 +39,7 @@ export class AuthService {
 
   login(username: string, password: string, rememberMe = false) {
     return this.loginService.login(username, password, rememberMe).pipe(
-      tap(token => {
-        this.setTenantFromToken(token.access_token);
-        this.tokenService.set(token);
-      }),
+      tap(token => this.tokenService.set(token)),
       map(() => this.check())
     );
   }
@@ -52,25 +49,14 @@ export class AuthService {
       .refresh(filterObject({ refresh_token: this.tokenService.getRefreshToken() }))
       .pipe(
         catchError(() => of(undefined)),
-        tap(token => {
-          if (token?.access_token) {
-            this.setTenantFromToken(token.access_token);
-          }
-          this.tokenService.set(token);
-        }),
+        tap(token => this.tokenService.set(token)),
         map(() => this.check())
       );
   }
 
   logout() {
     return this.loginService.logout().pipe(
-      tap(() => {
-        this.tokenService.clear();
-        this.storage.remove('tenantId');
-        this.storage.remove('empresaId');
-        localStorage.removeItem('tenantId');
-        localStorage.removeItem('empresaId');
-      }),
+      tap(() => this.clearSession()),
       map(() => !this.check())
     );
   }
@@ -85,6 +71,7 @@ export class AuthService {
 
   private assignUser() {
     if (!this.check()) {
+      this.clearLegacyTenantStorage();
       return of({}).pipe(tap(user => this.user$.next(user)));
     }
 
@@ -95,31 +82,17 @@ export class AuthService {
     return this.loginService.user().pipe(
       take(1),
       timeout(1000),
-      catchError(() => {
-        // Silenciosamente falha e retorna objeto vazio — o guard tratará o acesso
-        return of({} as User);
-      }),
+      catchError(() => of({} as User)),
       tap((user: User) => {
         this.user$.next(user);
+        this.clearLegacyTenantStorage();
+
         if (isEmptyObject(user as any)) {
           return;
         }
-        // Salva o tenantId (empresaId) no LocalStorage
+
         const u = user as any;
-        let tenantId = u.empresaId || u.tenantId || u.idEmpresa || u.id_empresa || u.companyId;
-        
-        if (tenantId && typeof tenantId === 'object' && tenantId.id) {
-          tenantId = tenantId.id;
-        }
-
-        if (tenantId) {
-          this.storage.set('tenantId', String(tenantId));
-          this.storage.set('empresaId', String(tenantId)); // Dual storage for compatibility
-        }
-
-        // Aplica as preferências de tema do usuário se existirem
         if (u.preferencias && !isEmptyObject(u.preferencias)) {
-          console.log('🎨 Applying user theme preferences:', u.preferencias);
           this.settings.setOptions(u.preferencias);
           if (u.preferencias.theme) {
             this.settings.setTheme(u.preferencias.theme);
@@ -132,25 +105,16 @@ export class AuthService {
     );
   }
 
-  private setTenantFromToken(accessToken: string) {
-    try {
-      if (!accessToken || !accessToken.includes('.')) {
-        return;
-      }
-      const payloadPart = accessToken.split('.')[1];
-      const payload = JSON.parse(atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/')));
-      const tenantId = payload.empresaId || payload.tenantId;
-      if (tenantId) {
-        console.log('🏢 Setting Tenant ID from token payload:', tenantId);
-        const cleanId = String(tenantId);
-        this.storage.set('tenantId', cleanId);
-        this.storage.set('empresaId', cleanId);
-        // Direct write to ensure immediate visibility
-        localStorage.setItem('tenantId', cleanId);
-        localStorage.setItem('empresaId', cleanId);
-      }
-    } catch (e) {
-      console.error('Error parsing token payload', e);
-    }
+  private clearSession() {
+    this.tokenService.clear();
+    this.user$.next({});
+    this.clearLegacyTenantStorage();
+  }
+
+  private clearLegacyTenantStorage() {
+    this.storage.remove('tenantId');
+    this.storage.remove('empresaId');
+    localStorage.removeItem('tenantId');
+    localStorage.removeItem('empresaId');
   }
 }

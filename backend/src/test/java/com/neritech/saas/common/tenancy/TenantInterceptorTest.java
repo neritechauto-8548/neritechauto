@@ -95,8 +95,6 @@ class TenantInterceptorTest {
         when(request.getMethod()).thenReturn("GET");
         when(request.getRequestURI()).thenReturn("/api/v1/clientes");
         when(request.getHeader("X-Tenant-Id")).thenReturn(null);
-        when(request.getParameter("tenantId")).thenReturn("20");
-        when(request.getParameter("empresaId")).thenReturn("30");
         when(entityManager.unwrap(Session.class)).thenReturn(session);
         when(session.enableFilter("tenantFilter")).thenReturn(filter);
 
@@ -104,5 +102,7 @@ class TenantInterceptorTest {
 
         assertThat(allowed).isTrue();
         verify(filter).setParameter("tenantId", 10L);
+        verify(request, never()).getParameter("tenantId");
+        verify(request, never()).getParameter("empresaId");
     }
 }
