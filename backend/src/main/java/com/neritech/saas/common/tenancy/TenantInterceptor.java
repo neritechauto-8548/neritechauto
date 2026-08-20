@@ -3,113 +3,101 @@ package com.neritech.saas.common.tenancy;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 
 /**
- * Interceptor para extrair o ID do tenant (empresa) do cabeÃ§alho da requisiÃ§Ã£o
- * e configurÃ¡-lo no TenantContext
+ * Aplica o isolamento de tenant usando exclusivamente o contexto autenticado.
+ *
+ * <p>O header X-Tenant-Id existe apenas como seletor/compatibilidade de contexto:
+ * ele nunca concede acesso a um tenant. No modelo atual, em que o usuario possui
+ * uma empresa ativa por sessao, um header diferente do tenant autenticado e
+ * rejeitado.</p>
  */
 @Component
 public class TenantInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(TenantInterceptor.class);
     private static final String TENANT_HEADER = "X-Tenant-Id";
-    private final EntityManager entityManager;
-    private final UsuarioRepository usuarioRepository;
 
-    public TenantInterceptor(EntityManager entityManager, UsuarioRepository usuarioRepository) {
+    private final EntityManager entityManager;
+
+    public TenantInterceptor(EntityManager entityManager) {
         this.entityManager = entityManager;
-        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String requestURI = request.getRequestURI();
-        log.info("TenantInterceptor processing request: {}", requestURI);
-        log.debug("TenantInterceptor processing request: {}", requestURI);
-        
-        // Permitir requisições públicas, de autenticação ou de erro sem aplicar tenantFilter
-        if (requestURI.contains("/public/") || requestURI.contains("/error") || requestURI.contains("/auth/") || requestURI.contains("/usuarios/me") || requestURI.contains("/logo")) {
-            log.info("Public, Auth or Error request detected, skipping tenant check and filter: {}", requestURI);
+        if (isRequestWithoutTenantContext(request)) {
             return true;
         }
 
-        String tenantHeader = request.getHeader(TENANT_HEADER);
-        String tenantParam = request.getParameter("tenantId");
-        String empresaParam = request.getParameter("empresaId");
-        String tenantValue = null;
-        String tenantSource = null;
+        Long authenticatedTenantId = TenantContext.getCurrentTenant();
+        if (authenticatedTenantId == null) {
+            log.warn("Requisicao autenticada sem TenantContext confiavel: {} {}",
+                    request.getMethod(), request.getRequestURI());
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Contexto de empresa autenticado ausente");
+            return false;
+        }
 
-        if (tenantHeader != null && !tenantHeader.isEmpty()) {
-            tenantValue = tenantHeader;
-            tenantSource = "header";
-        } else if ((tenantParam != null && !tenantParam.isEmpty()) || (empresaParam != null && !empresaParam.isEmpty())) {
-            tenantValue = (tenantParam != null && !tenantParam.isEmpty()) ? tenantParam : empresaParam;
-            tenantSource = (tenantParam != null && !tenantParam.isEmpty()) ? "param" : "empresaParam";
-            if ("param".equals(tenantSource)) {
-                log.warn("Missing X-Tenant-Id header for request: {}. Using tenantId from query param.", requestURI);
-            } else {
-                log.warn("Missing X-Tenant-Id header for request: {}. Using empresaId from query param.", requestURI);
+        String requestedTenant = request.getHeader(TENANT_HEADER);
+        if (StringUtils.hasText(requestedTenant)) {
+            Long requestedTenantId;
+            try {
+                requestedTenantId = Long.valueOf(requestedTenant.trim());
+            } catch (NumberFormatException ex) {
+                response.sendError(HttpStatus.BAD_REQUEST.value(), "Valor invalido para X-Tenant-Id");
+                return false;
             }
-        } else {
-            Long currentFromJwt = TenantContext.getCurrentTenant();
-            if (currentFromJwt != null) {
-                tenantValue = currentFromJwt.toString();
-                tenantSource = "jwt";
-                log.info("Resolved tenant from JWT claims for request: {}", requestURI);
-            } else {
-                log.warn("Missing X-Tenant-Id header for request: {}", requestURI);
-                response.sendError(HttpStatus.BAD_REQUEST.value(), "Cabeçalho X-Tenant-Id é obrigatório (ou informe ?tenantId=..., ou use JWT com empresaId)");
+
+            if (!authenticatedTenantId.equals(requestedTenantId)) {
+                log.warn("Tentativa de troca de tenant negada. tenantAutenticado={}, tenantSolicitado={}, uri={}",
+                        authenticatedTenantId, requestedTenantId, request.getRequestURI());
+                response.sendError(HttpStatus.FORBIDDEN.value(), "Contexto de empresa nao autorizado");
                 return false;
             }
         }
 
-        try {
-            Long tenantId = Long.parseLong(tenantValue);
-            log.debug("Resolved tenantId={} from {}", tenantId, tenantSource);
-            TenantContext.setCurrentTenant(tenantId);
+        // Query params tenantId/empresaId nunca sao usados como fonte de autoridade.
+        // Eles podem existir como filtros de negocio em endpoints legados, mas o
+        // isolamento continua preso ao tenant derivado do token/sessao validos.
+        enableTenantFilter(authenticatedTenantId);
+        return true;
+    }
 
-            // Habilita o filtro Hibernate para isolar por id_empresa
-            Session session = entityManager.unwrap(Session.class);
-            session.enableFilter("tenantFilter")
-                   .setParameter("tenantId", tenantId);
+    private void enableTenantFilter(Long tenantId) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("tenantFilter");
+        filter.setParameter("tenantId", tenantId);
+    }
 
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            // Para /usuarios/me não validamos se o usuário pertence ao tenant
-            // pois esse endpoint é usado justamente para descobrir o tenant do usuário
-            boolean skipTenantUserValidation = requestURI.contains("/usuarios/me");
-            if (!skipTenantUserValidation && auth != null && auth.isAuthenticated()) {
-                String username = auth.getName();
-                usuarioRepository.findByEmailIgnoreCase(username).ifPresent(usuario -> {
-                    if (usuario.getEmpresaId() == null || !usuario.getEmpresaId().equals(tenantId)) {
-                        try {
-                            response.sendError(HttpStatus.FORBIDDEN.value(), "Usuário não pertence à empresa informada");
-                        } catch (Exception ignored) {}
-                    }
-                });
-                if (response.isCommitted()) {
-                    return false;
-                }
-            }
-
+    private boolean isRequestWithoutTenantContext(HttpServletRequest request) {
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
             return true;
-        } catch (NumberFormatException e) {
-            response.sendError(HttpStatus.BAD_REQUEST.value(), "Valor invÃ¡lido para X-Tenant-Id");
-            return false;
         }
+
+        String uri = request.getRequestURI();
+        return uri.contains("/auth/")
+                || uri.contains("/public/")
+                || uri.endsWith("/error")
+                || uri.contains("/v3/api-docs")
+                || uri.contains("/api-docs")
+                || uri.contains("/swagger-ui")
+                || uri.contains("/ordens-servico/fotos/") && uri.endsWith("/download")
+                || uri.contains("/empresas/") && uri.endsWith("/logo")
+                || uri.contains("/rh/funcionarios/") && uri.endsWith("/foto")
+                || uri.contains("/produtos/") && uri.endsWith("/foto");
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        // Limpa o contexto do tenant apÃ³s a conclusÃ£o da requisiÃ§Ã£o
         TenantContext.clear();
     }
 }

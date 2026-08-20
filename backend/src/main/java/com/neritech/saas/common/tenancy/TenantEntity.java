@@ -14,6 +14,8 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 
+import java.util.Objects;
+
 /**
  * Classe base para entidades com escopo de tenant (empresa).
  * Estende BaseEntity e adiciona o campo empresaId para multi-tenancy.
@@ -33,23 +35,29 @@ public abstract class TenantEntity extends BaseEntity {
 
     @PrePersist
     public void prePersistTenant() {
-        if (this.empresaId == null) {
-            Long current = TenantContext.getCurrentTenant();
-            if (current == null) {
-                throw new IllegalStateException("Cabeçalho X-Tenant-Id é obrigatório para criar entidades");
-            }
-            this.empresaId = current;
+        Long current = requireAuthenticatedTenant("criar");
+        if (empresaId == null) {
+            empresaId = current;
+            return;
+        }
+        if (!Objects.equals(empresaId, current)) {
+            throw new IllegalStateException("Nao e permitido criar entidade para empresa diferente do contexto autenticado");
         }
     }
 
     @PreUpdate
     public void preUpdateTenant() {
+        Long current = requireAuthenticatedTenant("atualizar");
+        if (!Objects.equals(empresaId, current)) {
+            throw new IllegalStateException("Nao e permitido alterar entidade de outra empresa");
+        }
+    }
+
+    private Long requireAuthenticatedTenant(String operation) {
         Long current = TenantContext.getCurrentTenant();
         if (current == null) {
-            throw new IllegalStateException("Cabeçalho X-Tenant-Id é obrigatório para atualizar entidades");
+            throw new IllegalStateException("Contexto de empresa autenticado e obrigatorio para " + operation + " entidades");
         }
-        if (!java.util.Objects.equals(this.empresaId, current)) {
-            throw new IllegalStateException("Não é permitido alterar o empresaId de uma entidade");
-        }
+        return current;
     }
 }
