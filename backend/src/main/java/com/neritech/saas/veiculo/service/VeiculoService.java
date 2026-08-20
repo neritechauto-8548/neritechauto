@@ -203,12 +203,28 @@ public class VeiculoService {
         });
     }
 
+    /**
+     * Compatibilidade com o endpoint legado DELETE: a operação é lógica.
+     * O registro, seus vínculos e histórico permanecem preservados.
+     */
     public void delete(Long id) {
+        deactivate(id);
+    }
+
+    public VeiculoResponse deactivate(Long id) {
         Long tenantId = requireTenant();
-        int affected = repository.deleteByIdAndEmpresaId(id, tenantId);
-        if (affected == 0) {
-            throw new EntityNotFoundException("Veículo não encontrado");
-        }
+        Veiculo entity = repository.findByIdAndEmpresaId(id, tenantId)
+                .orElseThrow(() -> new EntityNotFoundException("Veículo não encontrado"));
+        entity.setStatus(StatusVeiculo.INATIVO);
+        return mapper.toResponse(repository.save(entity));
+    }
+
+    public VeiculoResponse reactivate(Long id) {
+        Long tenantId = requireTenant();
+        Veiculo entity = repository.findByIdAndEmpresaId(id, tenantId)
+                .orElseThrow(() -> new EntityNotFoundException("Veículo não encontrado"));
+        entity.setStatus(StatusVeiculo.ATIVO);
+        return mapper.toResponse(repository.save(entity));
     }
 
     private Cliente requireClienteDoTenant(Long clienteId) {
