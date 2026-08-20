@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, subscriptionGuard } from '@core';
+import { authGuard, permissionGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
 import { Dashboard } from './routes/dashboard/dashboard';
@@ -52,6 +52,8 @@ export const routes: Routes = [
       },
       {
         path: 'cliente',
+        canActivate: [permissionGuard],
+        data: { permissions: ['GERAL_USUARIO'] },
         loadChildren: () => import('./routes/cliente/cliente.routes').then(m => m.routes),
       },
       {
