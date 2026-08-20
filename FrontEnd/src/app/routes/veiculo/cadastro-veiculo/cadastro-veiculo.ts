@@ -1,34 +1,30 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { ButtonModule } from 'primeng/button';
-import { TextareaModule } from 'primeng/textarea';
-import { AutoCompleteModule } from 'primeng/autocomplete';
-import { TabsModule } from 'primeng/tabs'; // Importando TabsModule completo para garantir compatibilidade
-import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
-import { DialogModule } from 'primeng/dialog';
-import { FileUploadModule } from 'primeng/fileupload';
-import { TagModule } from 'primeng/tag';
-import { MessageService } from 'primeng/api';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { NgxPermissionsService } from 'ngx-permissions';
+import { MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
 
-import { VeiculoService } from '../veiculo/veiculo.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import {
-  VeiculoRequest,
-  VeiculoResponse,
+  AnoModeloResponse,
   MarcaVeiculoResponse,
   ModeloVeiculoResponse,
-  AnoModeloResponse,
   TipoCombustivelResponse,
-  getStatusVeiculoOptions
+  VeiculoRequest,
+  VeiculoResponse,
+  getStatusVeiculoOptions,
 } from '../models/veiculo.models';
+import { VeiculoService } from '../veiculo/veiculo.service';
 
 @Component({
   selector: 'cadastro-veiculo',
@@ -45,9 +41,9 @@ import {
     AutoCompleteModule,
     ToastModule,
     TagModule,
-    SkeletonModule
+    SkeletonModule,
   ],
-  providers: [MessageService]
+  providers: [MessageService],
 })
 export class CadastroVeiculo implements OnInit {
   private readonly router = inject(Router);
@@ -59,13 +55,13 @@ export class CadastroVeiculo implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly permissionsService = inject(NgxPermissionsService);
 
-  // Estado Geral
   loading = false;
   saving = false;
+  checkingPlate = false;
   error: string | null = null;
+  duplicateVehicleId: number | null = null;
 
-  // Dados do Veículo
-  id: number | null = null; // ID do veículo se estiver editando ou após salvar
+  id: number | null = null;
   form: VeiculoRequest = {
     clienteId: 0,
     placa: '',
@@ -82,10 +78,9 @@ export class CadastroVeiculo implements OnInit {
     proximaRevisaoKm: undefined,
     proximaRevisaoData: undefined,
     observacoes: '',
-    status: undefined
+    status: undefined,
   };
 
-  // Listas de apoio
   marcas: MarcaVeiculoResponse[] = [];
   modelos: ModeloVeiculoResponse[] = [];
   anosModelos: AnoModeloResponse[] = [];
@@ -96,7 +91,6 @@ export class CadastroVeiculo implements OnInit {
   loadingCombustiveis = false;
   statusOptions = getStatusVeiculoOptions();
 
-  // Busca de Cliente
   filteredClientes: any[] = [];
   selectedCliente: any | null = null;
 
@@ -104,91 +98,93 @@ export class CadastroVeiculo implements OnInit {
     this.loadMarcas();
     this.loadCombustiveis();
 
-    // Verificar se é edição (tem ID na rota)
     this.route.paramMap.subscribe(params => {
       const idStr = params.get('id');
       if (idStr) {
         this.id = Number(idStr);
         this.loadVeiculo(this.id);
-      } else {
-        // Modo criação: verifica se há um cliente pré-selecionado na URL (via listagem de clientes)
-        this.route.queryParamMap.subscribe(qParams => {
-          const cId = qParams.get('clienteId');
-          if (cId) {
-            this.form.clienteId = Number(cId);
-            this.clientesService.getById(Number(cId)).subscribe(c => {
-               this.selectedCliente = {
-                   ...c,
-                   nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-                   cpfCnpj: c.cpf || c.cnpj || ''
-               };
-            });
-          }
-        });
+        return;
       }
+
+      this.route.queryParamMap.subscribe(qParams => {
+        const cId = qParams.get('clienteId');
+        if (!cId) {
+          return;
+        }
+
+        this.form.clienteId = Number(cId);
+        this.clientesService.getById(Number(cId)).subscribe(c => {
+          this.selectedCliente = {
+            ...c,
+            nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
+            cpfCnpj: c.cpf || c.cnpj || '',
+          };
+        });
+      });
     });
   }
-
-  // ========== CARREGAMENTO DADOS ==========
 
   loadVeiculo(id: number) {
     this.loading = true;
     this.veiculoService.getById(id).subscribe({
-      next: (res) => {
+      next: res => {
         this.form = { ...res };
-        // Buscar cliente para preencher o AutoComplete
+        this.duplicateVehicleId = null;
+
         if (res.clienteId) {
-            this.clientesService.getById(res.clienteId).subscribe(c => {
-                this.selectedCliente = {
-                    ...c,
-                    nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-                    cpfCnpj: c.cpf || c.cnpj || ''
-                };
-            });
+          this.clientesService.getById(res.clienteId).subscribe(c => {
+            this.selectedCliente = {
+              ...c,
+              nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
+              cpfCnpj: c.cpf || c.cnpj || '',
+            };
+          });
         }
-        // Carregar modelos se houver marca
         if (res.marcaId) {
-            this.loadModelos(res.marcaId);
+          this.loadModelos(res.marcaId);
         }
         if (res.modeloId) {
-            this.loadAnosModelos(res.modeloId);
+          this.loadAnosModelos(res.modeloId);
         }
-
         this.loading = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Erro ao carregar veículo', err);
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar veículo.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: err.error?.message || 'Erro ao carregar veículo.',
+        });
         this.loading = false;
-      }
+      },
     });
   }
 
   loadMarcas() {
     this.loadingMarcas = true;
     this.veiculoService.listMarcas({ ativo: true, size: 1000 }).subscribe({
-      next: (page) => {
+      next: page => {
         this.marcas = page.content;
         this.loadingMarcas = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Erro ao carregar marcas:', err);
         this.loadingMarcas = false;
-      }
+      },
     });
   }
 
   loadCombustiveis() {
     this.loadingCombustiveis = true;
     this.veiculoService.listTiposCombustivel().subscribe({
-      next: (res) => {
+      next: res => {
         this.combustiveis = res;
         this.loadingCombustiveis = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Erro ao carregar tipos de combustível:', err);
         this.loadingCombustiveis = false;
-      }
+      },
     });
   }
 
@@ -204,54 +200,97 @@ export class CadastroVeiculo implements OnInit {
   }
 
   onPlacaBlur() {
-    if (this.id) return; // Não busca se já estamos editando um veículo existente
-    
-    const placa = this.form.placa?.trim();
-    if (!placa || placa.length < 7) return;
+    if (this.id) {
+      return;
+    }
 
+    const placa = this.normalizePlate(this.form.placa);
+    this.form.placa = placa;
+    this.duplicateVehicleId = null;
+
+    if (placa.length < 7) {
+      return;
+    }
+
+    this.checkingPlate = true;
     this.veiculoService.getByPlaca(placa).subscribe({
-      next: (res) => {
-        if (res) {
-          this.aplicarDadosVeiculo(res);
-        }
+      next: existing => {
+        this.checkingPlate = false;
+        this.duplicateVehicleId = existing.id;
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Veículo já cadastrado',
+          detail: `A placa ${placa} já pertence ao veículo #${existing.id}. Abra o cadastro existente em vez de criar uma duplicidade.`,
+          life: 7000,
+        });
       },
-      error: (err) => {
-          // 404 é esperado se for um veículo novo no sistema
-          if (err.status !== 404) {
-              console.error('Erro ao buscar placa no servidor', err);
-          }
-      }
+      error: err => {
+        if (err.status === 404) {
+          this.loadExternalPlateSuggestion(placa);
+          return;
+        }
+
+        this.checkingPlate = false;
+        console.error('Erro ao verificar placa no cadastro canônico', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Não foi possível verificar a placa',
+          detail: 'Tente novamente antes de salvar o veículo.',
+        });
+      },
     });
   }
 
-  private aplicarDadosVeiculo(res: VeiculoResponse) {
-      this.form.marcaId = res.marcaId;
-      this.form.modeloId = res.modeloId;
-      this.form.anoModeloId = res.anoModeloId;
-      this.form.combustivelId = res.combustivelId;
-      this.form.chassi = res.chassi || this.form.chassi;
-      this.form.renavam = res.renavam || this.form.renavam;
-      this.form.corExterna = res.corExterna || this.form.corExterna;
-      this.form.numeroMotor = res.numeroMotor || this.form.numeroMotor;
-      
-      // Carregar dependências (modelos e anos) para popular os selects
-      if (res.marcaId) this.loadModelos(res.marcaId);
-      if (res.modeloId) this.loadAnosModelos(res.modeloId);
-      
-      this.messageService.add({ severity: 'success', summary: 'Dados Carregados', detail: `Informações do veículo ${res.placa} foram preenchidas.` });
+  private loadExternalPlateSuggestion(placa: string) {
+    this.veiculoService.lookupExternalByPlaca(placa).subscribe({
+      next: suggestion => {
+        this.checkingPlate = false;
+        this.aplicarSugestaoExterna(suggestion);
+      },
+      error: err => {
+        this.checkingPlate = false;
+        // Enriquecimento externo é opcional; 404/indisponibilidade não bloqueia cadastro manual.
+        if (err.status !== 404) {
+          console.warn('Consulta externa indisponível; cadastro manual permanece habilitado', err);
+        }
+      },
+    });
+  }
+
+  private aplicarSugestaoExterna(res: VeiculoResponse) {
+    this.form.marcaId = res.marcaId;
+    this.form.modeloId = res.modeloId;
+    this.form.anoModeloId = res.anoModeloId;
+    this.form.combustivelId = res.combustivelId;
+    this.form.corExterna = res.corExterna || this.form.corExterna;
+
+    // Defesa em profundidade: sugestões externas nunca preenchem automaticamente
+    // VIN/chassi, RENAVAM ou número do motor, mesmo que um provider os devolva.
+    if (res.marcaId) {
+      this.loadModelos(res.marcaId);
+    }
+    if (res.modeloId) {
+      this.loadAnosModelos(res.modeloId);
+    }
+
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Sugestão encontrada',
+      detail: `Alguns dados de ${res.placa} foram sugeridos por fonte externa. Confirme as informações antes de salvar.`,
+    });
   }
 
   loadModelos(marcaId: number) {
     this.loadingModelos = true;
     this.veiculoService.listModelos(marcaId).subscribe({
-      next: (data) => {
+      next: data => {
         this.modelos = data;
         this.loadingModelos = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Erro ao carregar modelos:', err);
         this.loadingModelos = false;
-      }
+      },
     });
   }
 
@@ -267,22 +306,22 @@ export class CadastroVeiculo implements OnInit {
   loadAnosModelos(modeloId: number) {
     this.loadingAnosModelos = true;
     this.veiculoService.listAnosModelo(modeloId).subscribe({
-      next: (data) => {
+      next: data => {
         this.anosModelos = data;
         this.loadingAnosModelos = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Erro ao carregar anos modelo:', err);
         this.loadingAnosModelos = false;
-      }
+      },
     });
   }
 
   searchCliente(event: any) {
     const query = event.query;
     const isNumeric = /^\d+$/.test(query.replace(/[.-]/g, ''));
-
     const filter: any = {};
+
     if (isNumeric) {
       const cleanQuery = query.replace(/\D/g, '');
       if (cleanQuery.length > 11) {
@@ -297,16 +336,14 @@ export class CadastroVeiculo implements OnInit {
     }
 
     this.clientesService.list(filter).subscribe({
-      next: (page) => {
+      next: page => {
         this.filteredClientes = page.content.map(c => ({
           ...c,
           nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-          cpfCnpj: c.cpf || c.cnpj || ''
+          cpfCnpj: c.cpf || c.cnpj || '',
         }));
       },
-      error: (err) => {
-        console.error('Erro ao buscar clientes:', err);
-      }
+      error: err => console.error('Erro ao buscar clientes:', err),
     });
   }
 
@@ -319,23 +356,43 @@ export class CadastroVeiculo implements OnInit {
   }
 
   get anoModeloOptions() {
-    return this.anosModelos.map(a => ({ label: `${a.anoModelo} / ${a.anoFabricacao} ${a.descricao ? '- '+a.descricao : ''}`, value: a.id }));
+    return this.anosModelos.map(a => ({
+      label: `${a.anoModelo} / ${a.anoFabricacao} ${a.descricao ? `- ${a.descricao}` : ''}`,
+      value: a.id,
+    }));
   }
 
   get combustivelOptions() {
     return this.combustiveis.map(c => ({ label: c.nome, value: c.id }));
   }
 
-  // ========== SALVAR VEÍCULO ==========
-
   salvar() {
     const isNew = !this.id;
-    const reqPerm = isNew ? 'VEICULO_CRIAR' : 'VEICULO_EDITAR';
-    if (!this.permissionsService.getPermission(reqPerm)) {
+    const requiredPermission = isNew ? 'VEICULO_CRIAR' : 'VEICULO_EDITAR';
+
+    if (!this.permissionsService.getPermission(requiredPermission)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Seu perfil não possui permissão para realizar esta operação.'
+        detail: 'Seu perfil não possui permissão para realizar esta operação.',
+      });
+      return;
+    }
+
+    if (isNew && this.duplicateVehicleId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cadastro duplicado bloqueado',
+        detail: `A placa já pertence ao veículo #${this.duplicateVehicleId}. Abra o registro existente.`,
+      });
+      return;
+    }
+
+    if (this.checkingPlate) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Verificando placa',
+        detail: 'Conclua a verificação da placa antes de salvar.',
       });
       return;
     }
@@ -346,13 +403,13 @@ export class CadastroVeiculo implements OnInit {
     }
     this.form.clienteId = this.selectedCliente.id;
 
-    if (!this.form.placa || this.form.placa.trim() === '') {
+    this.form.placa = this.normalizePlate(this.form.placa);
+    if (!this.form.placa) {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'A placa é obrigatória.' });
       return;
     }
 
     this.saving = true;
-
     const requestBody: VeiculoRequest = {
       placa: this.form.placa,
       chassi: this.form.chassi,
@@ -370,30 +427,38 @@ export class CadastroVeiculo implements OnInit {
       dataUltimaRevisao: this.form.dataUltimaRevisao,
       proximaRevisaoData: this.form.proximaRevisaoData,
       proximaRevisaoKm: this.form.proximaRevisaoKm,
-      observacoes: this.form.observacoes
+      observacoes: this.form.observacoes,
     };
 
     const request = this.id
-        ? this.veiculoService.update(this.id, requestBody)
-        : this.veiculoService.create(requestBody);
+      ? this.veiculoService.update(this.id, requestBody)
+      : this.veiculoService.create(requestBody);
 
     request.subscribe({
-      next: (response) => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Veículo salvo com sucesso!' });
-        
+      next: response => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: 'Veículo salvo com sucesso!',
+        });
+
         if (!this.id && response.id) {
-           this.router.navigate(['/veiculo/editar', response.id], { replaceUrl: true });
+          this.router.navigate(['/veiculo/editar', response.id], { replaceUrl: true });
         }
 
-        this.id = response.id; 
+        this.id = response.id;
+        this.duplicateVehicleId = null;
         this.saving = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Erro ao salvar veículo:', err);
-        const msg = err.error?.message || 'Erro ao salvar veículo.';
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: err.error?.message || 'Erro ao salvar veículo.',
+        });
         this.saving = false;
-      }
+      },
     });
   }
 
@@ -402,36 +467,53 @@ export class CadastroVeiculo implements OnInit {
   }
 
   excluirVeiculo() {
-    if (!this.id) return;
+    if (!this.id) {
+      return;
+    }
     if (!this.permissionsService.getPermission('VEICULO_EXCLUIR')) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Seu perfil não possui permissão para realizar esta operação.'
+        detail: 'Seu perfil não possui permissão para inativar este veículo.',
       });
       return;
     }
 
     this.confirmationService.confirm({
-      title: 'Excluir Veículo',
-      message: `Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.`,
-      confirmText: 'Excluir Veículo',
+      title: 'Inativar veículo',
+      message: 'O veículo será inativado, mas seu cadastro, vínculos e histórico serão preservados. Deseja continuar?',
+      confirmText: 'Inativar veículo',
       cancelText: 'Cancelar',
       type: 'danger',
-      icon: 'warning'
+      icon: 'warning',
     }).subscribe(confirmed => {
-      if (confirmed) {
-        this.veiculoService.delete(this.id!).subscribe({
-            next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Veículo excluído com sucesso!' });
-                this.router.navigate(['/veiculo']);
-            },
-            error: (err) => {
-                console.error(err);
-                this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir veículo.' });
-            }
-        });
+      if (!confirmed) {
+        return;
       }
+
+      // DELETE é mantido por compatibilidade, mas o backend executa inativação lógica.
+      this.veiculoService.delete(this.id!).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Veículo inativado',
+            detail: 'O histórico foi preservado.',
+          });
+          this.router.navigate(['/veiculo']);
+        },
+        error: err => {
+          console.error(err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: err.error?.message || 'Erro ao inativar veículo.',
+          });
+        },
+      });
     });
+  }
+
+  private normalizePlate(value?: string): string {
+    return (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   }
 }
