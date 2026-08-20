@@ -24,8 +24,8 @@ export class VeiculoService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.baseUrl;
 
-  // Headers são gerenciados pelos interceptors (tenant-interceptor e token-interceptor)
-  // Não precisamos adicionar manualmente X-Tenant-Id e Authorization
+  // Authorization é gerenciada pelo token interceptor.
+  // O frontend não envia tenant como autoridade; o backend deriva o tenant da sessão autenticada.
 
   // ========== VEÍCULOS ==========
 
@@ -58,8 +58,15 @@ export class VeiculoService {
     return this.http.delete<void>(url);
   }
 
+  /** Busca o registro canônico já cadastrado no tenant atual. */
   getByPlaca(placa: string): Observable<VeiculoResponse> {
-    const url = `${this.base}/v1/veiculos/placa/${placa}`;
+    const url = `${this.base}/v1/veiculos/placa/${encodeURIComponent(placa)}`;
+    return this.http.get<VeiculoResponse>(url);
+  }
+
+  /** Sugere dados externos não sensíveis para um veículo ainda não cadastrado. */
+  lookupExternalByPlaca(placa: string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/placa/${encodeURIComponent(placa)}/consulta-externa`;
     return this.http.get<VeiculoResponse>(url);
   }
 
