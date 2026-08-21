@@ -40,146 +40,148 @@
     </div>
   </div>
 
-  <ng-container *ngIf="!loading && data">
-    <section class="dashboard-section" aria-labelledby="summary-title">
-      <div class="section-heading">
-        <div>
-          <span class="section-heading__eyebrow">Resumo executivo</span>
-          <h2 id="summary-title">Indicadores disponíveis</h2>
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="data as dashboard">
+      <section class="dashboard-section" aria-labelledby="summary-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-heading__eyebrow">Resumo executivo</span>
+            <h2 id="summary-title">Indicadores disponíveis</h2>
+          </div>
+          <span class="section-heading__hint">Sem cálculos adicionais no frontend</span>
         </div>
-        <span class="section-heading__hint">Sem cálculos adicionais no frontend</span>
-      </div>
 
-      <div class="metric-grid metric-grid--primary">
-        <article class="metric-card" *ngFor="let metric of primaryMetrics">
-          <div class="metric-card__icon"><i [class]="metric.icon" aria-hidden="true"></i></div>
-          <div class="metric-card__body">
-            <span class="metric-card__label">{{ metric.label }}</span>
-            <strong class="metric-card__value">{{ metric.value }}</strong>
-            <span class="metric-card__helper">{{ metric.helper }}</span>
+        <div class="metric-grid metric-grid--primary">
+          <article class="metric-card" *ngFor="let metric of primaryMetrics">
+            <div class="metric-card__icon"><i [class]="metric.icon" aria-hidden="true"></i></div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">{{ metric.label }}</span>
+              <strong class="metric-card__value">{{ metric.value }}</strong>
+              <span class="metric-card__helper">{{ metric.helper }}</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="dashboard-grid dashboard-grid--attention">
+        <article class="panel-card" aria-labelledby="attention-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Atenção</span>
+              <h2 id="attention-title">Pontos que exigem ação</h2>
+            </div>
+          </div>
+
+          <div class="attention-list">
+            <a class="attention-item" routerLink="/os">
+              <span class="attention-item__icon attention-item__icon--warning">
+                <i class="pi pi-clock" aria-hidden="true"></i>
+              </span>
+              <span class="attention-item__content">
+                <strong>{{ formatNumber(dashboard.veiculosEmAtraso) }} veículos em atraso</strong>
+                <span>Abrir Ordens de Serviço para investigar a origem.</span>
+              </span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+
+            <a class="attention-item" routerLink="/financeiro/receber">
+              <span class="attention-item__icon attention-item__icon--danger">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              </span>
+              <span class="attention-item__content">
+                <strong>{{ formatMoney(dashboard.valoresVencidos) }} em valores vencidos</strong>
+                <span>Consultar a fonte autoritativa em Contas a Receber.</span>
+              </span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
           </div>
         </article>
-      </div>
-    </section>
 
-    <section class="dashboard-grid dashboard-grid--attention">
-      <article class="panel-card" aria-labelledby="attention-title">
-        <div class="panel-card__header">
-          <div>
-            <span class="section-heading__eyebrow">Atenção</span>
-            <h2 id="attention-title">Pontos que exigem ação</h2>
+        <article class="panel-card" aria-labelledby="financial-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Financeiro</span>
+              <h2 id="financial-title">Saldos retornados pelo backend</h2>
+            </div>
           </div>
-        </div>
 
-        <div class="attention-list">
-          <a class="attention-item" routerLink="/os">
-            <span class="attention-item__icon attention-item__icon--warning">
-              <i class="pi pi-clock" aria-hidden="true"></i>
-            </span>
-            <span class="attention-item__content">
-              <strong>{{ formatNumber(data.veiculosEmAtraso) }} veículos em atraso</strong>
-              <span>Abrir Ordens de Serviço para investigar a origem.</span>
-            </span>
-            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          <dl class="money-list">
+            <div>
+              <dt>Contas a receber</dt>
+              <dd>{{ formatMoney(dashboard.contasReceber) }}</dd>
+            </div>
+            <div>
+              <dt>Contas a pagar</dt>
+              <dd>{{ formatMoney(dashboard.contasPagar) }}</dd>
+            </div>
+            <div>
+              <dt>Despesas do mês</dt>
+              <dd>{{ formatMoney(dashboard.despesasMes) }}</dd>
+            </div>
+          </dl>
+
+          <a class="text-link" routerLink="/financeiro/receber">
+            Abrir Financeiro <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </a>
+        </article>
+      </section>
 
-          <a class="attention-item" routerLink="/financeiro/receber">
-            <span class="attention-item__icon attention-item__icon--danger">
-              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-            </span>
-            <span class="attention-item__content">
-              <strong>{{ formatMoney(data.valoresVencidos) }} em valores vencidos</strong>
-              <span>Consultar a fonte autoritativa em Contas a Receber.</span>
-            </span>
-            <i class="pi pi-arrow-right" aria-hidden="true"></i>
-          </a>
-        </div>
-      </article>
-
-      <article class="panel-card" aria-labelledby="financial-title">
-        <div class="panel-card__header">
+      <section class="dashboard-section" aria-labelledby="operations-title">
+        <div class="section-heading">
           <div>
-            <span class="section-heading__eyebrow">Financeiro</span>
-            <h2 id="financial-title">Saldos retornados pelo backend</h2>
+            <span class="section-heading__eyebrow">Operação</span>
+            <h2 id="operations-title">Movimento do mês</h2>
           </div>
         </div>
 
-        <dl class="money-list">
-          <div>
-            <dt>Contas a receber</dt>
-            <dd>{{ formatMoney(data.contasReceber) }}</dd>
-          </div>
-          <div>
-            <dt>Contas a pagar</dt>
-            <dd>{{ formatMoney(data.contasPagar) }}</dd>
-          </div>
-          <div>
-            <dt>Despesas do mês</dt>
-            <dd>{{ formatMoney(data.despesasMes) }}</dd>
-          </div>
-        </dl>
-
-        <a class="text-link" routerLink="/financeiro/receber">
-          Abrir Financeiro <i class="pi pi-arrow-right" aria-hidden="true"></i>
-        </a>
-      </article>
-    </section>
-
-    <section class="dashboard-section" aria-labelledby="operations-title">
-      <div class="section-heading">
-        <div>
-          <span class="section-heading__eyebrow">Operação</span>
-          <h2 id="operations-title">Movimento do mês</h2>
+        <div class="metric-grid metric-grid--secondary">
+          <article class="metric-card metric-card--compact" *ngFor="let metric of operationalMetrics">
+            <div class="metric-card__icon"><i [class]="metric.icon" aria-hidden="true"></i></div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">{{ metric.label }}</span>
+              <strong class="metric-card__value">{{ metric.value }}</strong>
+              <span class="metric-card__helper">{{ metric.helper }}</span>
+            </div>
+          </article>
         </div>
-      </div>
+      </section>
 
-      <div class="metric-grid metric-grid--secondary">
-        <article class="metric-card metric-card--compact" *ngFor="let metric of operationalMetrics">
-          <div class="metric-card__icon"><i [class]="metric.icon" aria-hidden="true"></i></div>
-          <div class="metric-card__body">
-            <span class="metric-card__label">{{ metric.label }}</span>
-            <strong class="metric-card__value">{{ metric.value }}</strong>
-            <span class="metric-card__helper">{{ metric.helper }}</span>
+      <section class="dashboard-grid">
+        <article class="panel-card" aria-labelledby="trend-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Tendência</span>
+              <h2 id="trend-title">Histórico temporal</h2>
+            </div>
+          </div>
+
+          <div *ngIf="!historyAvailable" class="state-card state-card--pending">
+            <div class="state-card__icon"><i class="pi pi-chart-line" aria-hidden="true"></i></div>
+            <div class="state-card__content">
+              <h3>Read model ainda não disponível</h3>
+              <p>
+                O histórico anterior era simulado e foi removido. O gráfico será reativado quando a API devolver uma série temporal autoritativa, com período e freshness.
+              </p>
+            </div>
           </div>
         </article>
-      </div>
-    </section>
 
-    <section class="dashboard-grid">
-      <article class="panel-card" aria-labelledby="trend-title">
-        <div class="panel-card__header">
-          <div>
-            <span class="section-heading__eyebrow">Tendência</span>
-            <h2 id="trend-title">Histórico temporal</h2>
+        <article class="panel-card" aria-labelledby="quick-actions-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Atalhos</span>
+              <h2 id="quick-actions-title">Ir para a fonte</h2>
+            </div>
           </div>
-        </div>
 
-        <div *ngIf="!historyAvailable" class="state-card state-card--pending">
-          <div class="state-card__icon"><i class="pi pi-chart-line" aria-hidden="true"></i></div>
-          <div class="state-card__content">
-            <h3>Read model ainda não disponível</h3>
-            <p>
-              O histórico anterior era simulado e foi removido. O gráfico será reativado quando a API devolver uma série temporal autoritativa, com período e freshness.
-            </p>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel-card" aria-labelledby="quick-actions-title">
-        <div class="panel-card__header">
-          <div>
-            <span class="section-heading__eyebrow">Atalhos</span>
-            <h2 id="quick-actions-title">Ir para a fonte</h2>
-          </div>
-        </div>
-
-        <nav class="quick-links" aria-label="Atalhos do dashboard">
-          <a routerLink="/os"><i class="pi pi-briefcase" aria-hidden="true"></i><span>Ordens de Serviço</span></a>
-          <a routerLink="/orcamento"><i class="pi pi-file-edit" aria-hidden="true"></i><span>Orçamentos</span></a>
-          <a routerLink="/clientes"><i class="pi pi-users" aria-hidden="true"></i><span>Clientes</span></a>
-          <a routerLink="/financeiro/receber"><i class="pi pi-wallet" aria-hidden="true"></i><span>Financeiro</span></a>
-        </nav>
-      </article>
-    </section>
+          <nav class="quick-links" aria-label="Atalhos do dashboard">
+            <a routerLink="/os"><i class="pi pi-briefcase" aria-hidden="true"></i><span>Ordens de Serviço</span></a>
+            <a routerLink="/orcamento"><i class="pi pi-file-edit" aria-hidden="true"></i><span>Orçamentos</span></a>
+            <a routerLink="/clientes"><i class="pi pi-users" aria-hidden="true"></i><span>Clientes</span></a>
+            <a routerLink="/financeiro/receber"><i class="pi pi-wallet" aria-hidden="true"></i><span>Financeiro</span></a>
+          </nav>
+        </article>
+      </section>
+    </ng-container>
   </ng-container>
 </section>
