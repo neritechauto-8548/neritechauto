@@ -24,34 +24,23 @@
       titleId="customer-detail-title"
     >
       <div pageHeaderMeta class="customer-detail-identity-meta">
-        <span class="nt-badge" [class.nt-badge--success]="!isInactive" [class.nt-badge--neutral]="isInactive">
-          {{ statusLabel }}
-        </span>
-        <span class="customer-detail-protected-value">
-          <i class="pi pi-shield" aria-hidden="true"></i>
-          {{ maskedTaxId }}
-        </span>
-        <span class="customer-detail-protected-value">
-          <i class="pi pi-phone" aria-hidden="true"></i>
-          {{ primaryContact }}
-        </span>
+        <span class="nt-badge" [class.nt-badge--success]="!isInactive" [class.nt-badge--neutral]="isInactive">{{ statusLabel }}</span>
+        <span class="customer-detail-protected-value"><i class="pi pi-shield" aria-hidden="true"></i>{{ maskedTaxId }}</span>
+        <span class="customer-detail-protected-value"><i class="pi pi-phone" aria-hidden="true"></i>{{ primaryContact }}</span>
       </div>
 
       <div pageHeaderActions class="customer-detail-header-actions">
         <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">
-          <i class="pi pi-arrow-left" aria-hidden="true"></i>
-          Clientes
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>Clientes
         </button>
         @if (canEdit) {
           <button type="button" class="nt-button nt-button--secondary" (click)="editCustomer()">
-            <i class="pi pi-pencil" aria-hidden="true"></i>
-            Editar
+            <i class="pi pi-pencil" aria-hidden="true"></i>Editar
           </button>
         }
         @if (canCreateVehicle) {
           <button type="button" class="nt-button nt-button--primary" (click)="createVehicle()">
-            <i class="pi pi-car" aria-hidden="true"></i>
-            Novo veículo
+            <i class="pi pi-car" aria-hidden="true"></i>Novo veículo
           </button>
         }
       </div>
@@ -78,8 +67,7 @@
           [attr.aria-controls]="'customer-detail-panel-' + tab.key"
           (click)="selectTab(tab.key)"
         >
-          <i [class]="tab.icon" aria-hidden="true"></i>
-          {{ tab.label }}
+          <i [class]="tab.icon" aria-hidden="true"></i>{{ tab.label }}
         </button>
       }
     </nav>
@@ -89,10 +77,7 @@
         <section id="customer-detail-panel-resumo" role="tabpanel" class="customer-detail-summary-grid">
           <article class="customer-detail-card customer-detail-card--identity">
             <header class="customer-detail-card__header">
-              <div>
-                <span class="customer-detail-card__eyebrow">Identidade</span>
-                <h2>Dados essenciais</h2>
-              </div>
+              <div><span class="customer-detail-card__eyebrow">Identidade</span><h2>Dados essenciais</h2></div>
               <i class="pi pi-id-card" aria-hidden="true"></i>
             </header>
             <dl class="customer-detail-data-list">
@@ -105,23 +90,17 @@
 
           <article class="customer-detail-card">
             <header class="customer-detail-card__header">
-              <div>
-                <span class="customer-detail-card__eyebrow">Veículos</span>
-                <h2>{{ activeVehicles.length }} {{ activeVehicles.length === 1 ? 'veículo ativo' : 'veículos ativos' }}</h2>
-              </div>
+              <div><span class="customer-detail-card__eyebrow">Veículos</span><h2>{{ activeVehicles.length }} {{ activeVehicles.length === 1 ? 'veículo ativo' : 'veículos ativos' }}</h2></div>
               <i class="pi pi-car" aria-hidden="true"></i>
             </header>
             @if (partialFailures.vehicles) {
-              <div class="customer-detail-inline-state customer-detail-inline-state--error">
-                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-                A fonte de veículos está temporariamente indisponível.
-              </div>
+              <div class="customer-detail-inline-state customer-detail-inline-state--error"><i class="pi pi-exclamation-circle" aria-hidden="true"></i>A fonte de veículos está temporariamente indisponível.</div>
             } @else if (activeVehicles.length) {
               <div class="customer-detail-mini-list">
                 @for (vehicle of activeVehicles.slice(0, 3); track vehicle.id) {
-                  <button type="button" class="customer-detail-mini-item" (click)="openVehicle(vehicle)">
-                    <span><strong>{{ vehicleTitle(vehicle) }}</strong><small>{{ maskedPlate(vehicle) }}</small></span>
-                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                  <button type="button" class="customer-detail-mini-item" (click)="openVehicle(vehicle)" [disabled]="!canOpenVehicle">
+                    <span><strong>{{ vehicleTitle(vehicle) }}</strong><small>{{ vehicle.maskedPlate }}</small></span>
+                    @if (canOpenVehicle) { <i class="pi pi-chevron-right" aria-hidden="true"></i> }
                   </button>
                 }
               </div>
@@ -132,24 +111,15 @@
 
           <article class="customer-detail-card">
             <header class="customer-detail-card__header">
-              <div>
-                <span class="customer-detail-card__eyebrow">Próximos compromissos</span>
-                <h2>Agenda e revisões</h2>
-              </div>
+              <div><span class="customer-detail-card__eyebrow">Próximos compromissos</span><h2>Agenda e revisões</h2></div>
               <i class="pi pi-calendar" aria-hidden="true"></i>
             </header>
-            <div class="customer-detail-inline-state customer-detail-inline-state--pending">
-              <i class="pi pi-clock" aria-hidden="true"></i>
-              Read model de próximo agendamento e serviços futuros ainda não está implementado.
-            </div>
+            <div class="customer-detail-inline-state customer-detail-inline-state--pending"><i class="pi pi-clock" aria-hidden="true"></i>Read model de próximo agendamento e serviços futuros ainda não está implementado.</div>
           </article>
 
           <article class="customer-detail-card">
             <header class="customer-detail-card__header">
-              <div>
-                <span class="customer-detail-card__eyebrow">Relacionamento</span>
-                <h2>Resumo permitido</h2>
-              </div>
+              <div><span class="customer-detail-card__eyebrow">Relacionamento</span><h2>Resumo permitido</h2></div>
               <i class="pi pi-chart-line" aria-hidden="true"></i>
             </header>
             <dl class="customer-detail-data-list">
@@ -161,26 +131,20 @@
 
           <article class="customer-detail-card customer-detail-card--actions">
             <header class="customer-detail-card__header">
-              <div>
-                <span class="customer-detail-card__eyebrow">Ações contextuais</span>
-                <h2>Próximos passos</h2>
-              </div>
+              <div><span class="customer-detail-card__eyebrow">Ações contextuais</span><h2>Próximos passos</h2></div>
               <i class="pi pi-bolt" aria-hidden="true"></i>
             </header>
             <div class="customer-detail-action-list">
               @if (canCreateVehicle) {
                 <button type="button" class="customer-detail-action" (click)="createVehicle()">
-                  <i class="pi pi-car" aria-hidden="true"></i>
-                  <span><strong>Novo veículo</strong><small>Abre o owner Veículo com customerId</small></span>
+                  <i class="pi pi-car" aria-hidden="true"></i><span><strong>Novo veículo</strong><small>Abre o owner Veículo com customerId</small></span>
                 </button>
               }
               <button type="button" class="customer-detail-action" disabled title="Fluxo de orçamento precisa ser reconciliado com o tenant autenticado">
-                <i class="pi pi-file-edit" aria-hidden="true"></i>
-                <span><strong>Novo orçamento</strong><small>Indisponível até reconciliação do fluxo legado</small></span>
+                <i class="pi pi-file-edit" aria-hidden="true"></i><span><strong>Novo orçamento</strong><small>Indisponível até reconciliação do fluxo legado</small></span>
               </button>
               <button type="button" class="customer-detail-action" disabled title="Fluxo de agendamento precisa ser reconciliado com o tenant autenticado">
-                <i class="pi pi-calendar-plus" aria-hidden="true"></i>
-                <span><strong>Agendar</strong><small>Indisponível até reconciliação do fluxo legado</small></span>
+                <i class="pi pi-calendar-plus" aria-hidden="true"></i><span><strong>Agendar</strong><small>Indisponível até reconciliação do fluxo legado</small></span>
               </button>
             </div>
           </article>
@@ -190,40 +154,24 @@
       @if (activeTab === 'contatos') {
         <section id="customer-detail-panel-contatos" role="tabpanel" class="customer-detail-panel">
           <header class="customer-detail-panel__header">
-            <div>
-              <span>Contatos</span>
-              <h2>Canais operacionais</h2>
-              <p>Valores permanecem mascarados nesta visão enquanto não houver capability persistida específica para leitura completa de PII.</p>
-            </div>
+            <div><span>Contatos</span><h2>Canais operacionais</h2><p>O backend já entrega somente valores mascarados para esta visão.</p></div>
           </header>
-
           @if (partialFailures.contacts) {
-            <div class="customer-detail-state customer-detail-state--error">
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-              <strong>Contatos parcialmente indisponíveis</strong>
-              <span>A ficha continua utilizável sem ocultar os demais dados válidos.</span>
-            </div>
+            <div class="customer-detail-state customer-detail-state--error"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><strong>Contatos parcialmente indisponíveis</strong><span>A ficha continua utilizável sem ocultar os demais dados válidos.</span></div>
           } @else if (contacts.length) {
             <div class="customer-detail-list-grid">
               @for (contact of contacts; track contact.id) {
                 <article class="customer-detail-list-card">
                   <div class="customer-detail-list-card__icon"><i class="pi pi-phone" aria-hidden="true"></i></div>
                   <div>
-                    <div class="customer-detail-list-card__title">
-                      <strong>{{ contactTypeLabel(contact) }}</strong>
-                      @if (contact.principal) { <span class="nt-badge nt-badge--info">Principal</span> }
-                    </div>
-                    <span>{{ maskedContact(contact) }}</span>
+                    <div class="customer-detail-list-card__title"><strong>{{ contactTypeLabel(contact) }}</strong>@if (contact.principal) { <span class="nt-badge nt-badge--info">Principal</span> }</div>
+                    <span>{{ contact.maskedValue }}</span>
                   </div>
                 </article>
               }
             </div>
           } @else {
-            <div class="customer-detail-state">
-              <i class="pi pi-phone" aria-hidden="true"></i>
-              <strong>Nenhum contato cadastrado</strong>
-              <span>O cadastro pode ser enriquecido pela ação Editar.</span>
-            </div>
+            <div class="customer-detail-state"><i class="pi pi-phone" aria-hidden="true"></i><strong>Nenhum contato cadastrado</strong><span>O cadastro pode ser enriquecido pela ação Editar.</span></div>
           }
         </section>
       }
@@ -231,36 +179,21 @@
       @if (activeTab === 'enderecos') {
         <section id="customer-detail-panel-enderecos" role="tabpanel" class="customer-detail-panel">
           <header class="customer-detail-panel__header">
-            <div>
-              <span>Endereços</span>
-              <h2>Referências de localização</h2>
-              <p>Número e CEP são protegidos nesta visão resumida.</p>
-            </div>
+            <div><span>Endereços</span><h2>Referências de localização</h2><p>O contrato de leitura já entrega número e CEP protegidos.</p></div>
           </header>
-
           @if (partialFailures.addresses) {
-            <div class="customer-detail-state customer-detail-state--error">
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-              <strong>Endereços temporariamente indisponíveis</strong>
-            </div>
+            <div class="customer-detail-state customer-detail-state--error"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><strong>Endereços temporariamente indisponíveis</strong></div>
           } @else if (addresses.length) {
             <div class="customer-detail-list-grid">
               @for (address of addresses; track address.id) {
                 <article class="customer-detail-list-card customer-detail-list-card--address">
                   <div class="customer-detail-list-card__icon"><i class="pi pi-map-marker" aria-hidden="true"></i></div>
-                  <div>
-                    <strong>{{ addressSummary(address) }}</strong>
-                    <span>{{ maskedCep(address) }} · {{ address.pais || 'Brasil' }}</span>
-                  </div>
+                  <div><strong>{{ address.locationSummary }}</strong><span>{{ address.maskedPostalCode }} · {{ address.country || 'Brasil' }}</span></div>
                 </article>
               }
             </div>
           } @else {
-            <div class="customer-detail-state">
-              <i class="pi pi-map-marker" aria-hidden="true"></i>
-              <strong>Nenhum endereço cadastrado</strong>
-              <span>Endereço é opcional e pode ser preenchido posteriormente.</span>
-            </div>
+            <div class="customer-detail-state"><i class="pi pi-map-marker" aria-hidden="true"></i><strong>Nenhum endereço cadastrado</strong><span>Endereço é opcional e pode ser preenchido posteriormente.</span></div>
           }
         </section>
       }
@@ -268,87 +201,49 @@
       @if (activeTab === 'veiculos') {
         <section id="customer-detail-panel-veiculos" role="tabpanel" class="customer-detail-panel">
           <header class="customer-detail-panel__header customer-detail-panel__header--actions">
-            <div>
-              <span>Veículos</span>
-              <h2>Vínculos vigentes</h2>
-              <p>A fonte canônica permanece no módulo Veículo.</p>
-            </div>
+            <div><span>Veículos</span><h2>Vínculos vigentes</h2><p>A fonte canônica permanece no módulo Veículo e o resumo não transporta RENAVAM, chassi ou motor.</p></div>
             @if (canCreateVehicle) {
-              <button type="button" class="nt-button nt-button--primary" (click)="createVehicle()">
-                <i class="pi pi-plus" aria-hidden="true"></i>
-                Novo veículo
-              </button>
+              <button type="button" class="nt-button nt-button--primary" (click)="createVehicle()"><i class="pi pi-plus" aria-hidden="true"></i>Novo veículo</button>
             }
           </header>
-
           @if (partialFailures.vehicles) {
-            <div class="customer-detail-state customer-detail-state--error">
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-              <strong>Veículos temporariamente indisponíveis</strong>
-              <span>O restante da ficha continua disponível.</span>
-            </div>
+            <div class="customer-detail-state customer-detail-state--error"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><strong>Veículos temporariamente indisponíveis</strong><span>O restante da ficha continua disponível.</span></div>
           } @else if (vehicles.length) {
             <div class="customer-detail-vehicle-grid">
               @for (vehicle of vehicles; track vehicle.id) {
-                <button type="button" class="customer-detail-vehicle-card" (click)="openVehicle(vehicle)">
+                <button type="button" class="customer-detail-vehicle-card" (click)="openVehicle(vehicle)" [disabled]="!canOpenVehicle">
                   <div class="customer-detail-vehicle-card__icon"><i class="pi pi-car" aria-hidden="true"></i></div>
-                  <div class="customer-detail-vehicle-card__body">
-                    <strong>{{ vehicleTitle(vehicle) }}</strong>
-                    <span>{{ maskedPlate(vehicle) }} · {{ vehicleYear(vehicle) }}</span>
-                    <small>{{ vehicleStatus(vehicle) }}</small>
-                  </div>
-                  <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+                  <div class="customer-detail-vehicle-card__body"><strong>{{ vehicleTitle(vehicle) }}</strong><span>{{ vehicle.maskedPlate }} · {{ vehicleYear(vehicle) }}</span><small>{{ vehicleStatus(vehicle) }}</small></div>
+                  @if (canOpenVehicle) { <i class="pi pi-arrow-up-right" aria-hidden="true"></i> }
                 </button>
               }
             </div>
           } @else {
-            <div class="customer-detail-state">
-              <i class="pi pi-car" aria-hidden="true"></i>
-              <strong>Nenhum veículo vinculado</strong>
-              <span>Cadastre um veículo pelo owner Veículo quando permitido.</span>
-            </div>
+            <div class="customer-detail-state"><i class="pi pi-car" aria-hidden="true"></i><strong>Nenhum veículo vinculado</strong><span>Cadastre um veículo pelo owner Veículo quando permitido.</span></div>
           }
         </section>
       }
 
       @if (activeTab === 'historico') {
         <section id="customer-detail-panel-historico" role="tabpanel" class="customer-detail-panel">
-          <header class="customer-detail-panel__header">
-            <div>
-              <span>Histórico</span>
-              <h2>Timeline operacional</h2>
-              <p>Esta área não reutiliza logs técnicos nem fabrica eventos a partir de tabelas desconectadas.</p>
-            </div>
-          </header>
-          <div class="customer-detail-state customer-detail-state--pending">
-            <i class="pi pi-history" aria-hidden="true"></i>
-            <strong>Read model de timeline pendente</strong>
-            <span>Será conectado a agendamentos, orçamentos, aprovações, inspeções, OS, entregas e retornos quando `/overview` e `/timeline` tiverem contratos implementados.</span>
-          </div>
+          <header class="customer-detail-panel__header"><div><span>Histórico</span><h2>Timeline operacional</h2><p>Esta área não reutiliza logs técnicos nem fabrica eventos a partir de tabelas desconectadas.</p></div></header>
+          <div class="customer-detail-state customer-detail-state--pending"><i class="pi pi-history" aria-hidden="true"></i><strong>Read model de timeline pendente</strong><span>Será conectado a agendamentos, orçamentos, aprovações, inspeções, OS, entregas e retornos quando `/overview` e `/timeline` tiverem contratos implementados.</span></div>
         </section>
       }
 
       @if (activeTab === 'preferencias') {
         <section id="customer-detail-panel-preferencias" role="tabpanel" class="customer-detail-panel">
-          <header class="customer-detail-panel__header">
-            <div>
-              <span>Preferências</span>
-              <h2>Relacionamento operacional</h2>
-              <p>Preferência operacional e consentimento de marketing continuam sendo conceitos separados.</p>
-            </div>
-          </header>
-
+          <header class="customer-detail-panel__header"><div><span>Preferências</span><h2>Relacionamento operacional</h2><p>Preferência operacional e consentimento de marketing continuam sendo conceitos separados.</p></div></header>
           <dl class="customer-detail-preferences">
             <div><dt>Origem</dt><dd>{{ originLabel }}</dd></div>
             <div><dt>Canal operacional preferido</dt><dd>Contrato ainda não persistido</dd></div>
             <div><dt>Horário preferido</dt><dd>Contrato ainda não persistido</dd></div>
             <div><dt>Consentimentos</dt><dd>Não inferidos por esta ficha</dd></div>
           </dl>
-
           <article class="customer-detail-notes">
             <span>Observações de atendimento</span>
-            @if (relationshipNotes) {
-              <p>{{ relationshipNotes }}</p>
+            @if (hasRelationshipNotes) {
+              <p>Há observações operacionais registradas. O texto completo não é transportado por este read model minimizado; usuários autorizados podem revisá-lo na edição.</p>
             } @else {
               <p class="customer-detail-notes__empty">Nenhuma observação operacional registrada.</p>
             }
