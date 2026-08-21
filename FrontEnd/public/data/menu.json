@@ -1,7 +1,18 @@
 {
   "menu": [
     { "route": "gestao-patio", "name": "gestao-patio", "type": "link", "icon": "pi pi-th-large" },
-    { "route": "home", "name": "home", "type": "link", "icon": "pi pi-home" },
+    {
+      "route": "home",
+      "name": "home",
+      "type": "sub",
+      "icon": "pi pi-home",
+      "children": [
+        { "route": "gerencial", "name": "gerencial", "type": "link", "icon": "pi pi-chart-bar" },
+        { "route": "financeiro", "name": "financeiro", "type": "link", "icon": "pi pi-wallet" },
+        { "route": "orcamentos", "name": "orcamentos", "type": "link", "icon": "pi pi-file-edit" },
+        { "route": "operacional", "name": "operacional", "type": "link", "icon": "pi pi-wrench" }
+      ]
+    },
     {
       "route": "",
       "name": "clientes",
