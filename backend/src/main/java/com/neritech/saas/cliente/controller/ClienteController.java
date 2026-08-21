@@ -48,10 +48,10 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
     @Operation(
             summary = "Buscar cliente por ID (legado)",
-            description = "Contrato completo mantido temporariamente para consumidores legados. Não deve ser usado por novas superfícies; migração para /resumo ou /edicao está em andamento.")
+            description = "Contrato completo legado restrito a perfis de edição. Novas leituras devem usar /resumo e novos formulários devem usar /edicao.")
     public ResponseEntity<ClienteResponse> getById(
             @Parameter(description = "ID do cliente", required = true) @PathVariable Long id) {
         Cliente cliente = service.findById(id);
