@@ -3,6 +3,7 @@ package com.neritech.saas.cliente.controller;
 import com.neritech.saas.cliente.domain.Cliente;
 import com.neritech.saas.cliente.domain.enums.StatusCliente;
 import com.neritech.saas.cliente.domain.enums.TipoCliente;
+import com.neritech.saas.cliente.dto.ClienteDetailResponse;
 import com.neritech.saas.cliente.dto.ClienteListResponse;
 import com.neritech.saas.cliente.dto.ClienteRequest;
 import com.neritech.saas.cliente.dto.ClienteResponse;
@@ -30,9 +31,18 @@ public class ClienteController {
         this.service = service;
     }
 
+    @GetMapping("/{id}/resumo")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Resumo seguro do cliente", description = "Retorna identidade minimizada e PII mascarada para a visão 360°.")
+    public ResponseEntity<ClienteDetailResponse> getSummary(@PathVariable Long id) {
+        return ResponseEntity.ok(ClienteMapper.toDetailResponse(service.findById(id)));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Buscar cliente por ID", description = "Retorna os dados detalhados de um cliente específico.")
+    @Operation(
+            summary = "Buscar cliente por ID (legado)",
+            description = "Contrato completo mantido temporariamente para fluxos legados. Novas superfícies de leitura devem usar /resumo; a migração para capability específica de PII permanece pendente.")
     public ResponseEntity<ClienteResponse> getById(
             @Parameter(description = "ID do cliente", required = true) @PathVariable Long id) {
         Cliente cliente = service.findById(id);
@@ -43,7 +53,7 @@ public class ClienteController {
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
     @Operation(
             summary = "Listar clientes",
-            description = "Retorna clientes paginados com PII mascarada por padrão. Dados completos pertencem ao endpoint de detalhe e às permissões específicas.")
+            description = "Retorna clientes paginados com PII mascarada por padrão.")
     public Page<ClienteListResponse> search(
             @RequestParam(required = false) String nomeCompleto,
             @RequestParam(required = false) String razaoSocial,
