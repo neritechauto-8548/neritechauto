@@ -3,6 +3,7 @@ package com.neritech.saas.cliente.controller;
 import com.neritech.saas.cliente.domain.Cliente;
 import com.neritech.saas.cliente.domain.enums.StatusCliente;
 import com.neritech.saas.cliente.domain.enums.TipoCliente;
+import com.neritech.saas.cliente.dto.ClienteListResponse;
 import com.neritech.saas.cliente.dto.ClienteRequest;
 import com.neritech.saas.cliente.dto.ClienteResponse;
 import com.neritech.saas.cliente.mapper.ClienteMapper;
@@ -40,8 +41,10 @@ public class ClienteController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar clientes", description = "Retorna clientes paginados de acordo com os filtros informados.")
-    public Page<ClienteResponse> search(
+    @Operation(
+            summary = "Listar clientes",
+            description = "Retorna clientes paginados com PII mascarada por padrão. Dados completos pertencem ao endpoint de detalhe e às permissões específicas.")
+    public Page<ClienteListResponse> search(
             @RequestParam(required = false) String nomeCompleto,
             @RequestParam(required = false) String razaoSocial,
             @RequestParam(required = false) String cpf,
@@ -53,7 +56,7 @@ public class ClienteController {
                     sort = "nomeCompleto",
                     direction = org.springframework.data.domain.Sort.Direction.ASC) Pageable pageable) {
         return service.search(nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, pageable)
-                .map(ClienteMapper::toResponse);
+                .map(ClienteMapper::toListResponse);
     }
 
     @PostMapping
