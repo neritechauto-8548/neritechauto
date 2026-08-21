@@ -2,6 +2,7 @@ package com.neritech.saas.veiculo.controller;
 
 import com.neritech.saas.veiculo.dto.VeiculoRequest;
 import com.neritech.saas.veiculo.dto.VeiculoResponse;
+import com.neritech.saas.veiculo.dto.VeiculoSummaryResponse;
 import com.neritech.saas.veiculo.service.VeiculoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,14 @@ public class VeiculoController {
             @PathVariable Long id,
             @RequestBody @Valid VeiculoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @GetMapping("/resumo")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    public ResponseEntity<List<VeiculoSummaryResponse>> findSummaryByCliente(@RequestParam Long clienteId) {
+        return ResponseEntity.ok(service.findByCliente(clienteId).stream()
+                .map(VeiculoController::toSummary)
+                .toList());
     }
 
     @GetMapping("/{id}")
@@ -88,14 +97,29 @@ public class VeiculoController {
         return ResponseEntity.ok(service.reactivate(id));
     }
 
-    /**
-     * Compatibilidade com clientes legados: DELETE não remove fisicamente.
-     * A operação inativa o veículo e preserva o histórico.
-     */
+    /** Compatibilidade: DELETE apenas inativa e preserva histórico. */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('VEICULO_EXCLUIR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private static VeiculoSummaryResponse toSummary(VeiculoResponse vehicle) {
+        return new VeiculoSummaryResponse(
+                vehicle.id(),
+                vehicle.marcaNome(),
+                vehicle.modeloNome(),
+                vehicle.anoFabricacao(),
+                vehicle.anoModelo(),
+                maskPlate(vehicle.placa()),
+                vehicle.status());
+    }
+
+    private static String maskPlate(String value) {
+        if (value == null || value.isBlank()) return "Placa protegida";
+        String normalized = value.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        if (normalized.length() < 4) return "Placa protegida";
+        return normalized.substring(0, Math.min(3, normalized.length())) + "••" + normalized.substring(normalized.length() - 2);
     }
 }
