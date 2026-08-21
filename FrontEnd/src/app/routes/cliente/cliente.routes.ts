@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '@core';
 import { CadastroCliente } from './cadastro-cliente/cadastro-cliente';
 import { Cliente } from './cliente/cliente';
+import { DetalheCliente } from './detalhe-cliente/detalhe-cliente';
 
 export const routes: Routes = [
   {
@@ -22,6 +23,12 @@ export const routes: Routes = [
     component: CadastroCliente,
     canActivate: [permissionGuard],
     data: { title: 'Editar Cliente', permissions: ['CLIENTE_EDITAR'] },
+  },
+  {
+    path: ':uuid',
+    component: DetalheCliente,
+    canActivate: [permissionGuard],
+    data: { title: 'Detalhe do Cliente', permissions: ['GERAL_USUARIO'] },
   },
   { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
   {
