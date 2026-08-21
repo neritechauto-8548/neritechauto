@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import com.neritech.saas.cliente.domain.ContatoCliente;
 import com.neritech.saas.cliente.dto.ContatoClienteRequest;
 import com.neritech.saas.cliente.dto.ContatoClienteResponse;
+import com.neritech.saas.cliente.dto.ContatoClienteSummaryResponse;
 import com.neritech.saas.cliente.mapper.ContatoClienteMapper;
 import com.neritech.saas.cliente.service.ContatoClienteService;
 
@@ -27,9 +28,16 @@ public class ContatoClienteController {
         this.service = service;
     }
 
+    @GetMapping("/resumo")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Listar contatos mascarados para visão 360°")
+    public Page<ContatoClienteSummaryResponse> listarResumo(@PathVariable Long clienteId, Pageable pageable) {
+        return service.listarPorCliente(clienteId, pageable).map(ContatoClienteMapper::toSummaryResponse);
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar contatos do cliente")
+    @Operation(summary = "Listar contatos completos do cliente (legado)")
     public Page<ContatoClienteResponse> listar(@PathVariable Long clienteId, Pageable pageable) {
         Page<ContatoCliente> page = service.listarPorCliente(clienteId, pageable);
         return page.map(ContatoClienteMapper::toResponse);
