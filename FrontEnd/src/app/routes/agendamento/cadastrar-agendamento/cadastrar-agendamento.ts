@@ -1,28 +1,25 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-
-// PrimeNG
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { SkeletonModule } from 'primeng/skeleton';
-import { SelectModule } from 'primeng/select';
-import { TextareaModule } from 'primeng/textarea';
-
-// Material Icons
-import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { NgxPermissionsModule } from 'ngx-permissions';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TextareaModule } from 'primeng/textarea';
+import { ToastModule } from 'primeng/toast';
 
-// Serviços
-import { AgendamentoService, AgendamentoRequest, AgendamentoResponse } from '../agendamento.service';
+import {
+  AgendamentoRequest,
+  AgendamentoService,
+  AgendamentoVehicleSummary,
+} from '../agendamento.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
-import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
-import { ClienteResponse } from '../../cliente/models/cliente.models';
-import { VeiculoResponse } from '../../veiculo/models/veiculo.models';
+import { StatusCliente } from '../../cliente/models/cliente.models';
 
 @Component({
   selector: 'app-cadastrar-agendamento',
@@ -39,58 +36,50 @@ import { VeiculoResponse } from '../../veiculo/models/veiculo.models';
     NgxPermissionsModule,
     SkeletonModule,
     SelectModule,
-    TextareaModule
+    TextareaModule,
   ],
   providers: [MessageService],
   templateUrl: './cadastrar-agendamento.html',
   styleUrls: ['./cadastrar-agendamento.scss'],
 })
 export class CadastrarAgendamento implements OnInit {
-  // Injections
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private messageService = inject(MessageService);
-  private agendamentoService = inject(AgendamentoService);
-  private clienteService = inject(ClientesService);
-  private veiculoService = inject(VeiculoService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly messageService = inject(MessageService);
+  private readonly agendamentoService = inject(AgendamentoService);
+  private readonly clienteService = inject(ClientesService);
 
-  // States
   titulo = 'Novo Agendamento';
   loading = false;
   idAgendamento: number | null = null;
   submitLoad = false;
 
-  // Dropdowns Lists
-  clientes: any[] = [];
-  veiculos: any[] = [];
-  veiculosFiltrados: any[] = [];
+  clientes: { label: string; value: number; status: StatusCliente }[] = [];
+  veiculosFiltrados: { label: string; value: number }[] = [];
 
-  // Options
-  statusOptions = [
+  readonly statusOptions = [
     { label: 'Agendado', value: 'AGENDADO' },
     { label: 'Confirmado', value: 'CONFIRMADO' },
     { label: 'Em Andamento', value: 'EM_ANDAMENTO' },
     { label: 'Concluído', value: 'CONCLUIDO' },
     { label: 'Cancelado', value: 'CANCELADO' },
     { label: 'Não Compareceu', value: 'NAO_COMPARECEU' },
-    { label: 'Reagendado', value: 'REAGENDADO' }
+    { label: 'Reagendado', value: 'REAGENDADO' },
   ];
 
-  canaisOptions = [
+  readonly canaisOptions = [
     { label: 'Telefone', value: 'TELEFONE' },
     { label: 'WhatsApp', value: 'WHATSAPP' },
     { label: 'Presencial', value: 'PRESENCIAL' },
     { label: 'Site', value: 'SITE' },
     { label: 'Indicação', value: 'INDICACAO' },
-    { label: 'Aplicativo', value: 'APP' }
+    { label: 'Aplicativo', value: 'APP' },
   ];
 
-  // Forms
   agendamento: AgendamentoRequest = {
-    empresaId: 1, // Sera sobrescrito pelo getTenantId no Service
-    clienteId: null as any,
-    veiculoId: null as any,
-    tipoAgendamentoId: null as any, // Nullable no DTO (pode ser hardcoded placeholder depois)
+    clienteId: null as unknown as number,
+    veiculoId: null,
+    tipoAgendamentoId: null,
     dataAgendamento: '',
     horaInicio: '',
     horaFim: '',
@@ -98,15 +87,14 @@ export class CadastrarAgendamento implements OnInit {
     canalAgendamento: 'PRESENCIAL',
     observacoesCliente: '',
     observacoesInternas: '',
-    problemaRelatado: ''
+    problemaRelatado: '',
   };
 
-  // UI Helpers
-  dataSelecionada: string = '';
-  hojeLimit: string = '';
-  originalDataSelecionada: string = '';
-  horaInicioSelecionada: string = '';
-  horaFimSelecionada: string = '';
+  dataSelecionada = '';
+  hojeLimit = '';
+  originalDataSelecionada = '';
+  horaInicioSelecionada = '';
+  horaFimSelecionada = '';
 
   ngOnInit(): void {
     const hoje = new Date();
@@ -115,219 +103,231 @@ export class CadastrarAgendamento implements OnInit {
     const d = String(hoje.getDate()).padStart(2, '0');
     this.hojeLimit = `${y}-${m}-${d}`;
 
-    // Pegar ID da URL se for edição
     this.route.paramMap.subscribe(params => {
       const idStr = params.get('id');
-      if (idStr) {
-        this.idAgendamento = Number(idStr);
-        this.titulo = 'Editar Agendamento';
-      }
-      this.carregarListas(() => {
+      this.idAgendamento = idStr ? Number(idStr) : null;
+      this.titulo = this.idAgendamento ? 'Editar Agendamento' : 'Novo Agendamento';
+
+      this.carregarClientes(() => {
         if (this.idAgendamento) {
           this.carregarAgendamentoParaEdicao(this.idAgendamento);
+          return;
+        }
+
+        const clienteId = Number(this.route.snapshot.queryParamMap.get('clienteId'));
+        if (Number.isInteger(clienteId) && clienteId > 0 && this.clientes.some(c => c.value === clienteId)) {
+          this.agendamento.clienteId = clienteId;
+          this.onClienteSelecionado();
         }
       });
     });
   }
 
-  carregarListas(callback?: () => void): void {
+  carregarClientes(callback?: () => void): void {
     this.loading = true;
-
-    // Busca clientes para o Dropdown
-    this.clienteService.list({}).subscribe({
-      next: (res: any) => {
-        const list = res.content || res;
-        this.clientes = list.map((c: any) => {
-           let label = c.nome || c.nomeCompleto || c.nomeFantasia || c.razaoSocial || 'Cliente sem nome';
-           if (c.cpfCnpj) label += ` (${c.cpfCnpj})`;
-           return { label, value: c.id };
-        });
-
-        // Busca veiculos
-        this.veiculoService.list().subscribe({
-          next: (resV: any) => {
-             const listV = resV.content || resV;
-             this.veiculos = listV;
-             this.loading = false;
-             if (callback) callback();
-          },
-          error: () => this.loading = false
+    this.clienteService.list({ page: 0, size: 100, status: StatusCliente.ATIVO }).subscribe({
+      next: res => {
+        this.clientes = (res.content || []).map(customer => ({
+          label: customer.maskedTaxId
+            ? `${customer.displayName} (${customer.maskedTaxId})`
+            : customer.displayName,
+          value: customer.id,
+          status: customer.status,
+        }));
+        this.loading = false;
+        callback?.();
+      },
+      error: () => {
+        this.loading = false;
+        this.clientes = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Clientes indisponíveis',
+          detail: 'Não foi possível carregar clientes autorizados para o agendamento.',
         });
       },
-      error: () => this.loading = false
     });
   }
 
-  onClienteSelecionado(): void {
-    // Filtra os veículos do dropdown dependendo de qual cliente foi escolhido
-    this.agendamento.veiculoId = null as any;
-    if (this.agendamento.clienteId) {
-      this.veiculosFiltrados = this.veiculos
-        .filter(v => Number(v.clienteId) === Number(this.agendamento.clienteId))
-        .map(v => ({
-           label: `${v.placa} - ${v.modeloNome || v.chassi || 'S/ Modelo'}`,
-           value: v.id
-        }));
+  onClienteSelecionado(callback?: () => void): void {
+    const clienteId = Number(this.agendamento.clienteId);
+    this.agendamento.veiculoId = null;
+    this.veiculosFiltrados = [];
 
-      // Se o cliente possuir apenas UM veículo cadastrado, autoseleciona.
-      if (this.veiculosFiltrados.length === 1) {
-          this.agendamento.veiculoId = this.veiculosFiltrados[0].value;
-      }
-    } else {
-      this.veiculosFiltrados = [];
+    if (!Number.isInteger(clienteId) || clienteId <= 0) {
+      callback?.();
+      return;
     }
+
+    this.agendamentoService.listVehiclesForCustomer(clienteId).subscribe({
+      next: vehicles => {
+        this.veiculosFiltrados = vehicles
+          .filter(vehicle => vehicle.status !== 'INATIVO')
+          .map(vehicle => ({
+            label: this.vehicleLabel(vehicle),
+            value: vehicle.id,
+          }));
+
+        if (this.veiculosFiltrados.length === 1) {
+          this.agendamento.veiculoId = this.veiculosFiltrados[0].value;
+        }
+        callback?.();
+      },
+      error: () => {
+        this.veiculosFiltrados = [];
+        callback?.();
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Veículos indisponíveis',
+          detail: 'O cliente foi mantido; selecione o veículo depois quando a fonte estiver disponível.',
+        });
+      },
+    });
   }
 
   carregarAgendamentoParaEdicao(id: number): void {
     this.loading = true;
     this.agendamentoService.getById(id).subscribe({
-      next: (res) => {
-        this.agendamento = { ...this.agendamento, ...res };
+      next: res => {
+        this.agendamento = {
+          clienteId: res.clienteId,
+          veiculoId: res.veiculoId ?? null,
+          tipoAgendamentoId: res.tipoAgendamentoId ?? null,
+          dataAgendamento: res.dataAgendamento,
+          horaInicio: res.horaInicio,
+          horaFim: res.horaFim,
+          duracaoEstimadaMinutos: res.duracaoEstimadaMinutos,
+          servicosSolicitados: res.servicosSolicitados,
+          problemaRelatado: res.problemaRelatado,
+          observacoesCliente: res.observacoesCliente,
+          observacoesInternas: res.observacoesInternas,
+          status: res.status,
+          canalAgendamento: res.canalAgendamento,
+        };
 
-        // Setar vars de string p/ binding via nativo HTML5 datetime
-        if (res.dataAgendamento) {
-           this.dataSelecionada = res.dataAgendamento; // Format '2026-03-01'
-           this.originalDataSelecionada = res.dataAgendamento;
-        }
-        if (res.horaInicio) {
-           this.horaInicioSelecionada = res.horaInicio.substring(0, 5); // Format 'HH:mm'
-        }
-        if (res.horaFim) {
-           this.horaFimSelecionada = res.horaFim.substring(0, 5); // Format 'HH:mm'
-        }
+        this.dataSelecionada = res.dataAgendamento;
+        this.originalDataSelecionada = res.dataAgendamento;
+        this.horaInicioSelecionada = res.horaInicio?.substring(0, 5) || '';
+        this.horaFimSelecionada = res.horaFim?.substring(0, 5) || '';
 
-        // Simular evento do dropdown pra carregar os carros filhos
-        this.onClienteSelecionado();
-
-        // Recuperar o ID do veiculo apos filtrar
-        this.agendamento.veiculoId = res.veiculoId;
-
-        this.loading = false;
+        const originalVehicleId = res.veiculoId ?? null;
+        this.onClienteSelecionado(() => {
+          this.agendamento.veiculoId = originalVehicleId;
+          this.loading = false;
+        });
       },
-      error: (err) => {
-        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'Falha ao buscar agendamento.'});
-        this.router.navigate(['/agendamento/agendamentos-alertas']); // voltar
-      }
+      error: () => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao buscar agendamento no contexto autenticado.' });
+        this.cancelar();
+      },
     });
   }
 
   cancelar(): void {
-    this.router.navigate(['/agendamento/agendamentos-alertas']);
+    this.router.navigate(['/agendamentos/agendamentos-alertas']);
   }
 
   salvar(): void {
-    // Validações simples
-    if (!this.agendamento.clienteId) return this.showError('Obrigatório', 'Selecione um Cliente.');
-    if (!this.dataSelecionada) return this.showError('Obrigatório', 'Informe a Data do Agendamento.');
-    if (!this.horaInicioSelecionada) return this.showError('Obrigatório', 'Informe a Hora Inicial.');
-    if (!this.horaFimSelecionada) return this.showError('Obrigatório', 'Informe a Hora de Término.');
-
-    if (this.horaInicioSelecionada && this.horaFimSelecionada) {
-      if (this.horaFimSelecionada <= this.horaInicioSelecionada) {
-        return this.showError('Horário Inválido', 'A hora de término deve ser após a hora de início.');
-      }
+    if (!this.agendamento.clienteId) return this.showError('Obrigatório', 'Selecione um cliente.');
+    if (!this.dataSelecionada) return this.showError('Obrigatório', 'Informe a data do agendamento.');
+    if (!this.horaInicioSelecionada) return this.showError('Obrigatório', 'Informe a hora inicial.');
+    if (!this.horaFimSelecionada) return this.showError('Obrigatório', 'Informe a hora de término.');
+    if (this.horaFimSelecionada <= this.horaInicioSelecionada) {
+      return this.showError('Horário inválido', 'A hora de término deve ser posterior à hora de início.');
     }
 
-    // Validar se a data é retroativa
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const parts = this.dataSelecionada.split('-');
-    const dataAgendada = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-    dataAgendada.setHours(0, 0, 0, 0);
-
-    const dataFoiAlterada = !this.idAgendamento || (this.dataSelecionada !== this.originalDataSelecionada);
-    if (dataFoiAlterada && dataAgendada < hoje) {
-      return this.showError('Data Inválida', 'Não é permitido realizar agendamentos para datas retroativas.');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [year, month, day] = this.dataSelecionada.split('-').map(Number);
+    const scheduledDate = new Date(year, month - 1, day);
+    scheduledDate.setHours(0, 0, 0, 0);
+    const dateChanged = !this.idAgendamento || this.dataSelecionada !== this.originalDataSelecionada;
+    if (dateChanged && scheduledDate < today) {
+      return this.showError('Data inválida', 'Não é permitido realizar agendamentos para datas retroativas.');
     }
 
-    this.submitLoad = true;
+    const startMinutes = this.timeToMinutes(this.horaInicioSelecionada);
+    const endMinutes = this.timeToMinutes(this.horaFimSelecionada);
 
-    // Constrói payload estrito apenas com os campos que a API Java espera (evita erro Unrecognized field)
     const requestPayload: AgendamentoRequest = {
-      empresaId: this.agendamento.empresaId,
       clienteId: Number(this.agendamento.clienteId),
-      veiculoId: Number(this.agendamento.veiculoId),
-      tipoAgendamentoId: this.agendamento.tipoAgendamentoId ? Number(this.agendamento.tipoAgendamentoId) : undefined,
+      veiculoId: this.agendamento.veiculoId ? Number(this.agendamento.veiculoId) : null,
+      tipoAgendamentoId: this.agendamento.tipoAgendamentoId ? Number(this.agendamento.tipoAgendamentoId) : null,
       dataAgendamento: this.dataSelecionada,
       horaInicio: `${this.horaInicioSelecionada}:00`,
       horaFim: `${this.horaFimSelecionada}:00`,
-      duracaoEstimadaMinutos: this.agendamento.duracaoEstimadaMinutos,
-      servicosSolicitados: this.agendamento.servicosSolicitados,
-      problemaRelatado: this.agendamento.problemaRelatado,
-      observacoesCliente: this.agendamento.observacoesCliente,
-      observacoesInternas: this.agendamento.observacoesInternas,
-      status: this.agendamento.status,
-      canalAgendamento: this.agendamento.canalAgendamento
+      duracaoEstimadaMinutos: endMinutes - startMinutes,
+      servicosSolicitados: this.clean(this.agendamento.servicosSolicitados),
+      problemaRelatado: this.clean(this.agendamento.problemaRelatado),
+      observacoesCliente: this.clean(this.agendamento.observacoesCliente),
+      observacoesInternas: this.clean(this.agendamento.observacoesInternas),
+      status: this.idAgendamento ? this.agendamento.status : 'AGENDADO',
+      canalAgendamento: this.agendamento.canalAgendamento || 'PRESENCIAL',
     };
 
-    // Remove propriedades undefined para um JSON limpo
-    Object.keys(requestPayload).forEach(key => {
-      if ((requestPayload as any)[key] === undefined) {
-        delete (requestPayload as any)[key];
-      }
-    });
+    this.submitLoad = true;
+    const request$ = this.idAgendamento
+      ? this.agendamentoService.update(this.idAgendamento, requestPayload)
+      : this.agendamentoService.create(requestPayload);
 
-    if (this.idAgendamento) {
-       this.agendamentoService.update(this.idAgendamento, requestPayload).subscribe({
-         next: () => this.handleSuccess('Agendamento Atualizado!'),
-         error: err => this.handleError(err)
-       });
-    } else {
-       this.agendamentoService.create(requestPayload).subscribe({
-         next: (res: any) => {
-            if (res && res.id) {
-               this.idAgendamento = res.id;
-               this.titulo = 'Editar Agendamento';
-               // Adiciona o ID na URL para nao perder num reload
-               this.router.navigate(['/agendamento/cadastro', { id: res.id }]);
-            }
-            this.handleSuccess('Agendamento Criado!');
-         },
-         error: err => this.handleError(err)
-       });
-    }
+    request$.subscribe({
+      next: response => {
+        this.submitLoad = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: this.idAgendamento ? 'Agendamento atualizado.' : 'Agendamento criado.',
+        });
+
+        if (!this.idAgendamento && response?.id) {
+          this.idAgendamento = response.id;
+          this.titulo = 'Editar Agendamento';
+          this.router.navigate(['/agendamentos', response.id, 'editar'], { replaceUrl: true });
+        }
+      },
+      error: err => this.handleError(err),
+    });
   }
 
   excluirAgendamento(): void {
     if (!this.idAgendamento) return;
-    if (confirm('Atenção: Tem certeza que deseja excluir definitivamente este Agendamento?')) {
-       this.agendamentoService.delete(this.idAgendamento).subscribe({
-          next: () => {
-             this.messageService.add({severity:'success', summary: 'Removido', detail: 'Registro excluído com sucesso!'});
-             setTimeout(() => this.cancelar(), 1200); // Voltar pra lista após excluir
-          },
-          error: () => this.messageService.add({severity:'error', summary: 'Erro', detail: 'Houve uma falha ao tentar excluir.'})
-       });
-    }
+    if (!confirm('Cancelar este agendamento? O histórico será preservado.')) return;
+
+    this.agendamentoService.delete(this.idAgendamento).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Cancelado', detail: 'Agendamento cancelado com histórico preservado.' });
+        setTimeout(() => this.cancelar(), 600);
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível cancelar o agendamento.' }),
+    });
   }
 
-  // --- HELPERS ---
-  private formatDateOnly(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+  private vehicleLabel(vehicle: AgendamentoVehicleSummary) {
+    const name = [vehicle.marcaNome, vehicle.modeloNome].filter(Boolean).join(' ') || `Veículo #${vehicle.id}`;
+    return [name, vehicle.maskedPlate, vehicle.anoModelo || vehicle.anoFabricacao].filter(Boolean).join(' · ');
   }
 
-  private formatTimeOnly(d: Date): string {
-    const h = String(d.getHours()).padStart(2, '0');
-    const m = String(d.getMinutes()).padStart(2, '0');
-    return `${h}:${m}:00`; // Segundos default 00 backendsafe
+  private timeToMinutes(value: string) {
+    const [hours, minutes] = value.split(':').map(Number);
+    return hours * 60 + minutes;
   }
 
-  private handleSuccess(msg: string) {
-    this.submitLoad = false;
-    this.messageService.add({severity:'success', summary: 'Sucesso', detail: msg});
+  private clean(value?: string) {
+    const trimmed = (value || '').trim();
+    return trimmed || undefined;
   }
 
   private handleError(err: any) {
     this.submitLoad = false;
-    console.error(err);
-    this.messageService.add({severity:'error', summary: 'Erro', detail: 'Ocorreu um problema ao salvar. Verifique se o Cliente/Veiculo ja não estão agendados nessa data ou a conexao com servidor.'});
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Não foi possível salvar',
+      detail: err?.error?.message || 'Revise cliente, veículo, horário e tente novamente.',
+    });
   }
 
-  private showError(sum: string, det: string) {
-    this.messageService.add({severity: 'warn', summary: sum, detail: det});
+  private showError(summary: string, detail: string) {
+    this.messageService.add({ severity: 'warn', summary, detail });
   }
 }
