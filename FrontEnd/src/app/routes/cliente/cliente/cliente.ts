@@ -176,7 +176,7 @@ export class Cliente implements OnInit {
       this.warnPermission();
       return;
     }
-    this.router.navigate(['/clientes/cadastro']);
+    this.router.navigate(['/clientes/novo']);
   }
 
   navigateToEdit(row: ClientListRow) {
@@ -184,7 +184,7 @@ export class Cliente implements OnInit {
       this.warnPermission();
       return;
     }
-    this.router.navigate(['/clientes/editar', row.id]);
+    this.router.navigate(['/clientes', row.id, 'editar']);
   }
 
   navigateToAddVeiculo(row: ClientListRow) {
