@@ -28,6 +28,7 @@ export class PageHeader implements OnInit {
   private readonly menu = inject(MenuService);
 
   @Input() title = '';
+  @Input() titleId = 'page-title';
   @Input() subtitle = '';
   @Input() description = '';
   @Input() eyebrow = '';
