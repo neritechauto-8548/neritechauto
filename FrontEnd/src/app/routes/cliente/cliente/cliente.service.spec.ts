@@ -34,6 +34,16 @@ describe('ClientesService', () => {
     request.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 10 });
   });
 
+  it('loads full customer data only through the dedicated edit endpoint', () => {
+    service.getForEdit(15).subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/clientes/15/edicao');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.has('tenantId')).toBeFalse();
+    expect(request.request.params.has('empresaId')).toBeFalse();
+    request.flush({ id: 15, tipoCliente: 'PESSOA_FISICA', nomeCompleto: 'Cliente', status: 'ATIVO' });
+  });
+
   it('deactivates customer through logical lifecycle endpoint', () => {
     service.deactivate(15).subscribe();
 
