@@ -74,9 +74,23 @@ public class ClienteController {
         return ResponseEntity.ok(ClienteMapper.toResponse(saved));
     }
 
+    @PatchMapping("/{id}/inativar")
+    @PreAuthorize("hasAuthority('CLIENTE_EXCLUIR')")
+    @Operation(summary = "Inativar cliente", description = "Inativa logicamente o cliente e preserva seus vínculos e histórico.")
+    public ResponseEntity<ClienteResponse> deactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(ClienteMapper.toResponse(service.deactivate(id)));
+    }
+
+    @PatchMapping("/{id}/reativar")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
+    @Operation(summary = "Reativar cliente", description = "Reativa um cliente previamente inativado dentro da empresa autenticada.")
+    public ResponseEntity<ClienteResponse> reactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(ClienteMapper.toResponse(service.reactivate(id)));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('CLIENTE_EXCLUIR')")
-    @Operation(summary = "Excluir cliente", description = "Remove ou inativa um cliente conforme as regras de negócio.")
+    @Operation(summary = "Inativar cliente (compatibilidade)", description = "Endpoint legado mantido para compatibilidade. A operação é lógica e não remove histórico.")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
