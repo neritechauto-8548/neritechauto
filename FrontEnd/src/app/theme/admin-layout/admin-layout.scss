@@ -1,8 +1,10 @@
-@use '@angular/material' as mat;
-@use '../../../styles/grid/breakpoints';
-
 .matero-container-wrap,
 .matero-container {
+  --sidenav-width: 264px;
+  --sidenav-collapsed-width: 72px;
+  --shell-header-height: 64px;
+  --shell-mobile-header-height: 56px;
+  --gutter: 32px;
   --mat-sidenav-content-background-color: transparent;
 
   height: 100%;
@@ -14,21 +16,14 @@
   position: absolute;
   overflow-x: hidden;
   border-width: 0 !important;
+  border-right: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
   transition-property: transform, width !important;
-  background-color: #fff !important;
-  border-right: 1px solid #e2e8f0 !important; // Adiciona uma borda sutil
 }
 
-// Controle de layout
 .matero-header-above {
   .matero-container {
-    height: calc(100% - var(--mat-toolbar-standard-height)) !important;
-
-    @include breakpoints.bp-lt(small) {
-      & {
-        height: calc(100% - var(--mat-toolbar-mobile-height)) !important;
-      }
-    }
+    height: calc(100% - var(--shell-header-height)) !important;
   }
 
   .matero-sidebar-main {
@@ -37,29 +32,22 @@
   }
 }
 
-// Layout control - Menu Colapsado
 .matero-sidenav-collapsed,
 .matero-sidenav-collapsed-fix {
   .matero-sidenav {
     width: var(--sidenav-collapsed-width);
-    transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 
-    // Centralizar ícones quando colapsado
     .menu-heading {
       justify-content: center;
       padding: 0.75rem 0.5rem;
-      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .menu-icon {
       margin-right: 0;
       margin-left: 0;
-      font-size: 1.5rem;
-      transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-
-      &:not(.submenu-icon) {
-        opacity: 1;
-      }
+      font-size: 1.25rem;
     }
 
     .menu-name,
@@ -72,30 +60,13 @@
     }
 
     .menu-icon.submenu-icon {
-      opacity: 1;
       left: 50%;
+      opacity: 1;
       transform: translateX(-50%);
     }
-
-    .matero-user-panel-avatar {
-      transform: scale(0.5);
-    }
   }
 }
 
-// Animação do tooltip
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-}
-
-// Controle de layout
 .matero-sidenav-collapsed {
   .matero-content {
     margin-left: var(--sidenav-collapsed-width) !important;
@@ -112,7 +83,6 @@
   }
 }
 
-// Controle de layout
 .matero-navbar-top {
   .matero-topmenu {
     top: 0;
@@ -128,7 +98,6 @@
   }
 }
 
-// Controle de layout
 .matero-header-fixed {
   .matero-header {
     position: sticky;
@@ -136,17 +105,10 @@
   }
 
   .matero-topmenu {
-    top: var(--mat-toolbar-standard-height);
-
-    @include breakpoints.bp-lt(small) {
-      & {
-        top: var(--mat-toolbar-mobile-height);
-      }
-    }
+    top: var(--shell-header-height);
   }
 }
 
-// Corrigir a largura inicial do conteúdo
 .matero-content-width-fix {
   .matero-content {
     margin-left: var(--sidenav-width) !important;
@@ -160,11 +122,48 @@
 
 .matero-page-content {
   position: relative;
+  min-height: calc(100vh - var(--shell-header-height));
   padding: var(--gutter);
+  background: #f8fafc;
 
-  .matero-header+&,
+  .matero-header + &,
   .matero-header-above &,
   .matero-navbar-top & {
     padding-top: var(--gutter);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .matero-container-wrap,
+  .matero-container {
+    --gutter: 24px;
+  }
+}
+
+@media (max-width: 767px) {
+  .matero-container-wrap,
+  .matero-container {
+    --gutter: 16px;
+  }
+
+  .matero-header-above .matero-container {
+    height: calc(100% - var(--shell-mobile-header-height)) !important;
+  }
+
+  .matero-page-content {
+    min-height: calc(100vh - var(--shell-mobile-header-height));
+  }
+
+  .matero-content-width-fix .matero-content,
+  .matero-sidenav-collapsed .matero-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matero-sidenav,
+  .matero-sidenav .menu-heading {
+    transition: none !important;
   }
 }
