@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -66,6 +66,16 @@ export interface AgendamentoResponse {
   dataCadastro?: string;
 }
 
+export interface AgendamentoVehicleSummary {
+  id: number;
+  marcaNome?: string | null;
+  modeloNome?: string | null;
+  anoFabricacao?: number | null;
+  anoModelo?: number | null;
+  maskedPlate: string;
+  status?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AgendamentoService {
   private readonly http = inject(HttpClient);
@@ -74,6 +84,11 @@ export class AgendamentoService {
   listPorEmpresa(): Observable<AgendamentoResponse[]> {
     // Nome mantido por compatibilidade; o tenant é resolvido exclusivamente no backend.
     return this.http.get<AgendamentoResponse[]>(this.api);
+  }
+
+  listVehiclesForCustomer(clienteId: number): Observable<AgendamentoVehicleSummary[]> {
+    const params = new HttpParams().set('clienteId', String(clienteId));
+    return this.http.get<AgendamentoVehicleSummary[]>(`${environment.baseUrl}/v1/veiculos/resumo`, { params });
   }
 
   getById(id: number): Observable<AgendamentoResponse> {
