@@ -145,18 +145,14 @@ export class Cliente implements OnInit {
   }
 
   goPrev() {
-    if (this.first === 0 || this.isLoading) {
-      return;
-    }
+    if (this.first === 0 || this.isLoading) return;
     this.first = Math.max(0, this.first - this.rows);
     this.syncNonSensitiveQueryState();
     this.fetchPage();
   }
 
   goNext() {
-    if (this.first + this.rows >= this.totalRecords || this.isLoading) {
-      return;
-    }
+    if (this.first + this.rows >= this.totalRecords || this.isLoading) return;
     this.first += this.rows;
     this.syncNonSensitiveQueryState();
     this.fetchPage();
@@ -170,6 +166,10 @@ export class Cliente implements OnInit {
     this.router.navigate(['/clientes/novo']);
   }
 
+  navigateToDetail(row: ClientListRow) {
+    this.router.navigate(['/clientes', row.id]);
+  }
+
   navigateToEdit(row: ClientListRow) {
     if (!this.canEditCliente) {
       this.warnPermission();
@@ -179,7 +179,7 @@ export class Cliente implements OnInit {
   }
 
   navigateToAddVeiculo(row: ClientListRow) {
-    if (!this.canCreateVehicle) {
+    if (!this.canCreateVehicle || row.status === StatusCliente.INATIVO) {
       this.warnPermission();
       return;
     }
@@ -192,7 +192,13 @@ export class Cliente implements OnInit {
   }
 
   menuItemsFor(row: ClientListRow): MenuItem[] {
-    const items: MenuItem[] = [];
+    const items: MenuItem[] = [
+      {
+        label: 'Abrir ficha',
+        icon: 'pi pi-id-card',
+        command: () => this.navigateToDetail(row),
+      },
+    ];
 
     if (this.canEditCliente) {
       items.push({
@@ -202,7 +208,7 @@ export class Cliente implements OnInit {
       });
     }
 
-    if (this.canCreateVehicle) {
+    if (this.canCreateVehicle && row.status !== StatusCliente.INATIVO) {
       items.push({
         label: 'Cadastrar veículo',
         icon: 'pi pi-car',
@@ -214,7 +220,7 @@ export class Cliente implements OnInit {
   }
 
   hasRowActions() {
-    return this.canEditCliente || this.canCreateVehicle;
+    return true;
   }
 
   getTipoClienteLabel(tipo: TipoCliente) {
@@ -231,6 +237,8 @@ export class Cliente implements OnInit {
         return 'status-badge--success';
       case StatusCliente.BLOQUEADO:
         return 'status-badge--danger';
+      case StatusCliente.PROSPECTO:
+        return 'status-badge--info';
       default:
         return 'status-badge--neutral';
     }
@@ -246,12 +254,8 @@ export class Cliente implements OnInit {
 
     this.applySearchFilter(filters);
 
-    if (this.selectedTipo) {
-      filters['tipoCliente'] = this.selectedTipo;
-    }
-    if (this.selectedStatus) {
-      filters['status'] = this.selectedStatus;
-    }
+    if (this.selectedTipo) filters['tipoCliente'] = this.selectedTipo;
+    if (this.selectedStatus) filters['status'] = this.selectedStatus;
 
     this.isLoading = true;
     this.loadError = false;
@@ -281,9 +285,7 @@ export class Cliente implements OnInit {
 
   private applySearchFilter(filters: Record<string, string | number>) {
     const term = this.searchTerm.trim();
-    if (!term) {
-      return;
-    }
+    if (!term) return;
 
     const digits = term.replace(/\D/g, '');
     if (digits.length === 11) {
@@ -295,8 +297,6 @@ export class Cliente implements OnInit {
       return;
     }
 
-    // O contrato atual do backend ainda não possui `q`; nomeCompleto também cobre
-    // nome, razão social e nome fantasia na Specification tenant-scoped.
     filters['nomeCompleto'] = term;
   }
 
