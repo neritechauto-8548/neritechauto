@@ -117,7 +117,10 @@ export class ClientesService {
   }
 
   criarContato(clienteId: number | string, contato: ContatoClienteRequest): Observable<ContatoClienteResponse> {
-    return this.http.post<ContatoClienteResponse>(`${this.base}/v1/clientes/${clienteId}/contatos`, contato);
+    return this.http.post<ContatoClienteResponse>(
+      `${this.base}/v1/clientes/${clienteId}/contatos`,
+      this.normalizeContactPayload(contato)
+    );
   }
 
   atualizarContato(
@@ -127,7 +130,7 @@ export class ClientesService {
   ): Observable<ContatoClienteResponse> {
     return this.http.put<ContatoClienteResponse>(
       `${this.base}/v1/clientes/${clienteId}/contatos/${id}`,
-      contato
+      this.normalizeContactPayload(contato)
     );
   }
 
@@ -189,6 +192,14 @@ export class ClientesService {
 
   excluirDocumento(clienteId: number | string, id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.base}/v1/clientes/${clienteId}/documentos/${id}`);
+  }
+
+  private normalizeContactPayload(contact: ContatoClienteRequest) {
+    return {
+      tipoContato: contact.tipoContato,
+      contato: contact.contato ?? contact.valor ?? '',
+      principal: Boolean(contact.principal),
+    };
   }
 }
 
