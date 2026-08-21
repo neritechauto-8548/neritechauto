@@ -18,6 +18,13 @@ export const routes: Routes = [
     canActivate: [permissionGuard],
     data: { title: 'Novo Cliente', permissions: ['CLIENTE_CRIAR'] },
   },
+  { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
+  {
+    path: 'editar/:uuid',
+    component: CadastroCliente,
+    canActivate: [permissionGuard],
+    data: { title: 'Editar Cliente', permissions: ['CLIENTE_EDITAR'], legacyRoute: true },
+  },
   {
     path: ':uuid/editar',
     component: CadastroCliente,
@@ -29,12 +36,5 @@ export const routes: Routes = [
     component: DetalheCliente,
     canActivate: [permissionGuard],
     data: { title: 'Detalhe do Cliente', permissions: ['GERAL_USUARIO'] },
-  },
-  { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
-  {
-    path: 'editar/:uuid',
-    component: CadastroCliente,
-    canActivate: [permissionGuard],
-    data: { title: 'Editar Cliente', permissions: ['CLIENTE_EDITAR'], legacyRoute: true },
   },
 ];
