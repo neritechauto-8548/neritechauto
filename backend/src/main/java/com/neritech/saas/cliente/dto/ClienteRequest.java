@@ -7,7 +7,6 @@ import com.neritech.saas.rh.domain.enums.Sexo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -18,15 +17,16 @@ public class ClienteRequest {
     @NotNull
     private TipoCliente tipoCliente;
 
-    @Schema(description = "Nome completo (PF)", example = "João da Silva")
-    @NotBlank
+    @Schema(description = "Nome completo (obrigatório para PF)", example = "João da Silva")
     @Size(max = 255)
     private String nomeCompleto;
 
     @Schema(description = "Nome fantasia (PJ)", example = "Loja XPTO")
+    @Size(max = 255)
     private String nomeFantasia;
 
-    @Schema(description = "Razão social (PJ)", example = "Loja XPTO LTDA")
+    @Schema(description = "Razão social (obrigatória para PJ)", example = "Loja XPTO LTDA")
+    @Size(max = 255)
     private String razaoSocial;
 
     @Schema(description = "Email do cliente", example = "joao@email.com")
@@ -34,10 +34,10 @@ public class ClienteRequest {
     @Size(max = 100)
     private String email;
 
-    @Schema(description = "CPF (PF)", example = "123.456.789-00")
+    @Schema(description = "CPF (PF, condicional conforme política operacional)", example = "123.456.789-00")
     private String cpf;
 
-    @Schema(description = "CNPJ (PJ)", example = "12.345.678/0001-90")
+    @Schema(description = "CNPJ (PJ, condicional conforme política operacional)", example = "12.345.678/0001-90")
     private String cnpj;
 
     @Schema(description = "Inscrição estadual", example = "1234567890")
@@ -55,122 +55,38 @@ public class ClienteRequest {
     @Schema(description = "Origem do cliente", example = "INDICACAO")
     private OrigemCliente origemCliente;
 
-    @Schema(description = "Status do cliente", example = "ATIVO")
+    @Schema(description = "Status legado. Criação força ATIVO e lifecycle usa endpoints próprios.", accessMode = Schema.AccessMode.READ_ONLY)
     private StatusCliente status;
 
     @Schema(description = "Observações gerais")
     private String observacoesGerais;
 
-    // Getters e Setters
-    public TipoCliente getTipoCliente() {
-        return tipoCliente;
-    }
-
-    public void setTipoCliente(TipoCliente tipoCliente) {
-        this.tipoCliente = tipoCliente;
-    }
-
-    public String getNomeCompleto() {
-        return nomeCompleto;
-    }
-
-    public void setNomeCompleto(String nomeCompleto) {
-        this.nomeCompleto = nomeCompleto;
-    }
-
-    public String getNomeFantasia() {
-        return nomeFantasia;
-    }
-
-    public void setNomeFantasia(String nomeFantasia) {
-        this.nomeFantasia = nomeFantasia;
-    }
-
-    public String getRazaoSocial() {
-        return razaoSocial;
-    }
-
-    public void setRazaoSocial(String razaoSocial) {
-        this.razaoSocial = razaoSocial;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getCpf() {
-        return cpf;
-    }
-
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
-    public String getCnpj() {
-        return cnpj;
-    }
-
-    public void setCnpj(String cnpj) {
-        this.cnpj = cnpj;
-    }
-
-    public String getInscricaoEstadual() {
-        return inscricaoEstadual;
-    }
-
-    public void setInscricaoEstadual(String inscricaoEstadual) {
-        this.inscricaoEstadual = inscricaoEstadual;
-    }
-
-    public String getInscricaoMunicipal() {
-        return inscricaoMunicipal;
-    }
-
-    public void setInscricaoMunicipal(String inscricaoMunicipal) {
-        this.inscricaoMunicipal = inscricaoMunicipal;
-    }
-
-    public LocalDate getDataNascimento() {
-        return dataNascimento;
-    }
-
-    public void setDataNascimento(LocalDate dataNascimento) {
-        this.dataNascimento = dataNascimento;
-    }
-
-    public Sexo getSexo() {
-        return sexo;
-    }
-
-    public void setSexo(Sexo sexo) {
-        this.sexo = sexo;
-    }
-
-    public OrigemCliente getOrigemCliente() {
-        return origemCliente;
-    }
-
-    public void setOrigemCliente(OrigemCliente origemCliente) {
-        this.origemCliente = origemCliente;
-    }
-
-    public StatusCliente getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusCliente status) {
-        this.status = status;
-    }
-
-    public String getObservacoesGerais() {
-        return observacoesGerais;
-    }
-
-    public void setObservacoesGerais(String observacoesGerais) {
-        this.observacoesGerais = observacoesGerais;
-    }
+    public TipoCliente getTipoCliente() { return tipoCliente; }
+    public void setTipoCliente(TipoCliente tipoCliente) { this.tipoCliente = tipoCliente; }
+    public String getNomeCompleto() { return nomeCompleto; }
+    public void setNomeCompleto(String nomeCompleto) { this.nomeCompleto = nomeCompleto; }
+    public String getNomeFantasia() { return nomeFantasia; }
+    public void setNomeFantasia(String nomeFantasia) { this.nomeFantasia = nomeFantasia; }
+    public String getRazaoSocial() { return razaoSocial; }
+    public void setRazaoSocial(String razaoSocial) { this.razaoSocial = razaoSocial; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
+    public String getCnpj() { return cnpj; }
+    public void setCnpj(String cnpj) { this.cnpj = cnpj; }
+    public String getInscricaoEstadual() { return inscricaoEstadual; }
+    public void setInscricaoEstadual(String inscricaoEstadual) { this.inscricaoEstadual = inscricaoEstadual; }
+    public String getInscricaoMunicipal() { return inscricaoMunicipal; }
+    public void setInscricaoMunicipal(String inscricaoMunicipal) { this.inscricaoMunicipal = inscricaoMunicipal; }
+    public LocalDate getDataNascimento() { return dataNascimento; }
+    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
+    public Sexo getSexo() { return sexo; }
+    public void setSexo(Sexo sexo) { this.sexo = sexo; }
+    public OrigemCliente getOrigemCliente() { return origemCliente; }
+    public void setOrigemCliente(OrigemCliente origemCliente) { this.origemCliente = origemCliente; }
+    public StatusCliente getStatus() { return status; }
+    public void setStatus(StatusCliente status) { this.status = status; }
+    public String getObservacoesGerais() { return observacoesGerais; }
+    public void setObservacoesGerais(String observacoesGerais) { this.observacoesGerais = observacoesGerais; }
 }
