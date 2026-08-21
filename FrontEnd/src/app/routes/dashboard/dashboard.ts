@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { PageHeader } from '@shared';
 import { finalize } from 'rxjs/operators';
 import { DashboardDTO, DashboardService } from './dashboard.service';
 
@@ -16,7 +17,7 @@ interface DashboardMetric {
   standalone: true,
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, PageHeader],
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
