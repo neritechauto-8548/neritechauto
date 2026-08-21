@@ -85,7 +85,13 @@ export class ClientesService {
     return this.http.post<ClienteResponse>(`${this.base}/v1/clientes`, dto);
   }
 
-  /** Contrato completo legado. Novas superfícies somente-leitura devem usar getSummary. */
+  getForEdit(id: number | string): Observable<ClienteResponse> {
+    return this.http
+      .get<any>(`${this.base}/v1/clientes/${id}/edicao`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
+  }
+
+  /** @deprecated Contrato completo legado. Novas leituras usam getSummary e edição usa getForEdit. */
   getById(id: number | string): Observable<ClienteResponse> {
     return this.http
       .get<any>(`${this.base}/v1/clientes/${id}`)
