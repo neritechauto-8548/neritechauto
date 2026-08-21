@@ -11,21 +11,16 @@ import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { NgxPermissionsService } from 'ngx-permissions';
-import { catchError, forkJoin, map, of } from 'rxjs';
 
 import {
-  ClienteResponse,
-  ContatoClienteResponse,
-  Page,
   StatusCliente,
   StatusClienteLabels,
   TipoCliente,
   TipoClienteLabels,
-  TipoContato,
   getStatusClienteOptions,
   getTipoClienteOptions,
 } from '../models/cliente.models';
-import { ClientesService } from './cliente.service';
+import { ClienteListResponseDTO, ClientesService, Page } from './cliente.service';
 
 interface ClientListRow {
   id: number;
@@ -61,9 +56,6 @@ export class Cliente implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
 
-  readonly TipoClienteLabels = TipoClienteLabels;
-  readonly StatusClienteLabels = StatusClienteLabels;
-
   searchTerm = '';
   selectedTipo: TipoCliente | null = null;
   selectedStatus: StatusCliente | null = null;
@@ -74,11 +66,10 @@ export class Cliente implements OnInit {
   readonly statusOptions = [{ label: 'Todos os status', value: null }, ...getStatusClienteOptions()];
 
   clients: ClientListRow[] = [];
-  backendPage: Page<ClienteResponse> | null = null;
+  backendPage: Page<ClienteListResponseDTO> | null = null;
 
   rows = 10;
   first = 0;
-
   activeMenuItems: MenuItem[] = [];
 
   ngOnInit() {
@@ -269,7 +260,6 @@ export class Cliente implements OnInit {
       next: response => {
         this.backendPage = response;
         this.clients = (response.content || []).map(dto => this.mapToRow(dto));
-        this.loadContactsForRows();
         this.isLoading = false;
       },
       error: error => {
@@ -310,87 +300,15 @@ export class Cliente implements OnInit {
     filters['nomeCompleto'] = term;
   }
 
-  private mapToRow(dto: ClienteResponse): ClientListRow {
+  private mapToRow(dto: ClienteListResponseDTO): ClientListRow {
     return {
       id: dto.id,
-      nome: dto.nomeCompleto || dto.nomeFantasia || dto.razaoSocial || `Cliente #${dto.id}`,
-      documento: this.maskDocument(dto.cpf || dto.cnpj || ''),
-      tipo: dto.tipoCliente || TipoCliente.PESSOA_FISICA,
-      status: dto.status || StatusCliente.ATIVO,
-      contato: this.maskEmail(dto.email || ''),
+      nome: dto.displayName || `Cliente #${dto.id}`,
+      documento: dto.maskedTaxId || 'Não informado',
+      tipo: dto.type,
+      status: dto.status,
+      contato: dto.primaryContactSummary || '',
     };
-  }
-
-  private loadContactsForRows() {
-    if (!this.clients.length) {
-      return;
-    }
-
-    const requests = this.clients.map(row =>
-      this.clientesService.listarContatos(row.id).pipe(
-        map((response: Page<ContatoClienteResponse>) => ({
-          id: row.id,
-          contatos: response.content || [],
-        })),
-        catchError(() => of({ id: row.id, contatos: [] as ContatoClienteResponse[] }))
-      )
-    );
-
-    forkJoin(requests).subscribe(results => {
-      const contactsByClient = new Map(results.map(result => [result.id, result.contatos]));
-      this.clients = this.clients.map(row => ({
-        ...row,
-        contato: this.primaryMaskedContact(contactsByClient.get(row.id) || [], row.contato),
-      }));
-    });
-  }
-
-  private primaryMaskedContact(contatos: ContatoClienteResponse[], fallbackEmail: string) {
-    const priority = [TipoContato.CELULAR, TipoContato.WHATSAPP, TipoContato.TELEFONE_FIXO, TipoContato.OUTROS];
-    const chosen = priority
-      .map(tipo => contatos.find(contato => contato.tipoContato === tipo))
-      .find(Boolean) || contatos[0];
-
-    if (!chosen?.valor) {
-      return fallbackEmail;
-    }
-
-    if ([TipoContato.CELULAR, TipoContato.WHATSAPP, TipoContato.TELEFONE_FIXO, TipoContato.TELEGRAM].includes(chosen.tipoContato)) {
-      return this.maskPhone(chosen.valor);
-    }
-
-    return this.maskEmail(chosen.valor);
-  }
-
-  private maskDocument(value: string) {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length === 11) {
-      return `***.***.***-${digits.slice(-2)}`;
-    }
-    if (digits.length === 14) {
-      return `**.***.***/****-${digits.slice(-2)}`;
-    }
-    return value ? 'Documento protegido' : 'Não informado';
-  }
-
-  private maskPhone(value: string) {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length < 4) {
-      return 'Contato protegido';
-    }
-    return `(**) *****-${digits.slice(-4)}`;
-  }
-
-  private maskEmail(value: string) {
-    const trimmed = value.trim();
-    const at = trimmed.indexOf('@');
-    if (at <= 0) {
-      return trimmed ? 'Contato protegido' : '';
-    }
-
-    const local = trimmed.slice(0, at);
-    const domain = trimmed.slice(at + 1);
-    return `${local.charAt(0)}***@${domain}`;
   }
 
   private syncNonSensitiveQueryState() {
