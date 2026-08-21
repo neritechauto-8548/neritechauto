@@ -2,23 +2,24 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxPermissionsService } from 'ngx-permissions';
-import { catchError, finalize, forkJoin, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, finalize, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { PageHeader } from '@shared';
-import { VeiculoResponse, StatusVeiculoLabels } from '../../veiculo/models/veiculo.models';
-import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
-import { ClientesService } from '../cliente/cliente.service';
+import { StatusVeiculo, StatusVeiculoLabels } from '../../veiculo/models/veiculo.models';
 import {
-  ClienteResponse,
-  ContatoClienteResponse,
-  EnderecoClienteResponse,
   OrigemClienteLabels,
   StatusCliente,
   StatusClienteLabels,
-  TipoCliente,
   TipoClienteLabels,
   TipoContatoLabels,
 } from '../models/cliente.models';
+import {
+  CustomerAddressSummary,
+  CustomerContactSummary,
+  CustomerDetailReadService,
+  CustomerDetailSummary,
+  CustomerVehicleSummary,
+} from './detalhe-cliente.service';
 
 type DetailTab = 'resumo' | 'contatos' | 'enderecos' | 'veiculos' | 'historico' | 'preferencias';
 
@@ -37,8 +38,7 @@ interface PartialResource<T> {
 export class DetalheCliente implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly clientesService = inject(ClientesService);
-  private readonly veiculoService = inject(VeiculoService);
+  private readonly readService = inject(CustomerDetailReadService);
   private readonly permissions = inject(NgxPermissionsService);
 
   readonly tabs: { key: DetailTab; label: string; icon: string }[] = [
@@ -53,15 +53,11 @@ export class DetalheCliente implements OnInit {
   activeTab: DetailTab = 'resumo';
   loading = true;
   fatalError = false;
-  customer?: ClienteResponse;
-  contacts: ContatoClienteResponse[] = [];
-  addresses: EnderecoClienteResponse[] = [];
-  vehicles: VeiculoResponse[] = [];
-  partialFailures = {
-    contacts: false,
-    addresses: false,
-    vehicles: false,
-  };
+  customer?: CustomerDetailSummary;
+  contacts: CustomerContactSummary[] = [];
+  addresses: CustomerAddressSummary[] = [];
+  vehicles: CustomerVehicleSummary[] = [];
+  partialFailures = { contacts: false, addresses: false, vehicles: false };
 
   ngOnInit() {
     this.load();
@@ -72,18 +68,15 @@ export class DetalheCliente implements OnInit {
   }
 
   get displayName() {
-    if (!this.customer) return 'Cliente';
-    return this.customer.tipoCliente === TipoCliente.PESSOA_JURIDICA
-      ? this.customer.razaoSocial || this.customer.nomeFantasia || this.customer.nomeCompleto || `Cliente #${this.customer.id}`
-      : this.customer.nomeCompleto || `Cliente #${this.customer.id}`;
+    return this.customer?.displayName || 'Cliente';
   }
 
   get typeLabel() {
-    return this.customer ? TipoClienteLabels[this.customer.tipoCliente] || 'Cliente' : 'Cliente';
+    return this.customer ? TipoClienteLabels[this.customer.type] || 'Cliente' : 'Cliente';
   }
 
   get statusLabel() {
-    return this.customer?.status ? StatusClienteLabels[this.customer.status] || this.customer.status : 'Não informado';
+    return this.customer ? StatusClienteLabels[this.customer.status] || this.customer.status : 'Não informado';
   }
 
   get isInactive() {
@@ -98,29 +91,30 @@ export class DetalheCliente implements OnInit {
     return !this.isInactive && Boolean(this.permissions.getPermission('VEICULO_CRIAR'));
   }
 
+  get canOpenVehicle() {
+    return Boolean(this.permissions.getPermission('VEICULO_EDITAR'));
+  }
+
   get maskedTaxId() {
-    const value = this.customer?.tipoCliente === TipoCliente.PESSOA_JURIDICA
-      ? this.customer?.cnpj
-      : this.customer?.cpf;
-    return this.maskDocument(value || '');
+    return this.customer?.maskedTaxId || 'Não informado';
   }
 
   get primaryContact() {
     const primary = this.contacts.find(contact => contact.principal) || this.contacts[0];
-    return primary ? this.maskContact(this.contactValue(primary)) : 'Não informado';
+    return primary?.maskedValue || this.customer?.maskedEmail || 'Não informado';
   }
 
   get activeVehicles() {
-    return this.vehicles.filter(vehicle => vehicle.status !== 'INATIVO');
+    return this.vehicles.filter(vehicle => vehicle.status !== StatusVeiculo.INATIVO);
   }
 
   get originLabel() {
-    const origin = this.customer?.origemCliente;
+    const origin = this.customer?.origin;
     return origin ? OrigemClienteLabels[origin] || origin : 'Não informada';
   }
 
-  get relationshipNotes() {
-    return this.customer?.observacoesGerais?.trim() || '';
+  get hasRelationshipNotes() {
+    return Boolean(this.customer?.hasRelationshipNotes);
   }
 
   selectTab(tab: DetailTab) {
@@ -137,7 +131,8 @@ export class DetalheCliente implements OnInit {
     this.router.navigate(['/veiculos/cadastro'], { queryParams: { clienteId: this.customerId } });
   }
 
-  openVehicle(vehicle: VeiculoResponse) {
+  openVehicle(vehicle: CustomerVehicleSummary) {
+    if (!this.canOpenVehicle) return;
     this.router.navigate(['/veiculos/editar', vehicle.id]);
   }
 
@@ -149,50 +144,21 @@ export class DetalheCliente implements OnInit {
     this.load();
   }
 
-  contactTypeLabel(contact: ContatoClienteResponse) {
+  contactTypeLabel(contact: CustomerContactSummary) {
     return TipoContatoLabels[contact.tipoContato] || 'Contato';
   }
 
-  maskedContact(contact: ContatoClienteResponse) {
-    return this.maskContact(this.contactValue(contact));
-  }
-
-  addressSummary(address: EnderecoClienteResponse) {
-    const parts = [
-      address.logradouro,
-      address.numero ? 'nº •••' : '',
-      address.bairro,
-      address.cidade,
-      address.estado?.toUpperCase(),
-    ].filter(Boolean);
-    return parts.join(', ');
-  }
-
-  maskedCep(address: EnderecoClienteResponse) {
-    const digits = (address.cep || '').replace(/\D/g, '');
-    if (digits.length !== 8) return 'CEP protegido';
-    return `${digits.slice(0, 2)}***-${digits.slice(-3)}`;
-  }
-
-  vehicleTitle(vehicle: VeiculoResponse) {
+  vehicleTitle(vehicle: CustomerVehicleSummary) {
     return [vehicle.marcaNome, vehicle.modeloNome].filter(Boolean).join(' ') || `Veículo #${vehicle.id}`;
   }
 
-  vehicleYear(vehicle: VeiculoResponse) {
-    if (vehicle.anoFabricacao && vehicle.anoModelo) {
-      return `${vehicle.anoFabricacao}/${vehicle.anoModelo}`;
-    }
+  vehicleYear(vehicle: CustomerVehicleSummary) {
+    if (vehicle.anoFabricacao && vehicle.anoModelo) return `${vehicle.anoFabricacao}/${vehicle.anoModelo}`;
     return vehicle.anoModelo ? String(vehicle.anoModelo) : 'Ano não informado';
   }
 
-  vehicleStatus(vehicle: VeiculoResponse) {
+  vehicleStatus(vehicle: CustomerVehicleSummary) {
     return vehicle.status ? StatusVeiculoLabels[vehicle.status] || vehicle.status : 'Não informado';
-  }
-
-  maskedPlate(vehicle: VeiculoResponse) {
-    const plate = (vehicle.placa || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (plate.length < 4) return 'Placa protegida';
-    return `${plate.slice(0, 3)}••${plate.slice(-2)}`;
   }
 
   private load() {
@@ -207,19 +173,19 @@ export class DetalheCliente implements OnInit {
     this.fatalError = false;
     this.partialFailures = { contacts: false, addresses: false, vehicles: false };
 
-    this.clientesService.getById(id).pipe(
+    this.readService.getCustomer(id).pipe(
       switchMap(customer => {
         this.customer = customer;
         return forkJoin({
           contacts: this.partial(
-            this.clientesService.listarContatos(id).pipe(map(response => response.content || [])),
-            [] as ContatoClienteResponse[]
+            this.readService.getContacts(id).pipe(map(response => response.content || [])),
+            [] as CustomerContactSummary[]
           ),
           addresses: this.partial(
-            this.clientesService.listarEnderecos(id).pipe(map(response => response.content || [])),
-            [] as EnderecoClienteResponse[]
+            this.readService.getAddresses(id).pipe(map(response => response.content || [])),
+            [] as CustomerAddressSummary[]
           ),
-          vehicles: this.partial(this.veiculoService.list(Number(id)), [] as VeiculoResponse[]),
+          vehicles: this.partial(this.readService.getVehicles(id), [] as CustomerVehicleSummary[]),
         });
       }),
       finalize(() => (this.loading = false))
@@ -244,41 +210,10 @@ export class DetalheCliente implements OnInit {
     });
   }
 
-  private partial<T>(source: import('rxjs').Observable<T>, fallback: T) {
+  private partial<T>(source: Observable<T>, fallback: T) {
     return source.pipe(
       map(data => ({ data, failed: false }) as PartialResource<T>),
       catchError(() => of({ data: fallback, failed: true } as PartialResource<T>))
     );
-  }
-
-  private contactValue(contact: ContatoClienteResponse) {
-    return contact.contato ?? contact.valor ?? '';
-  }
-
-  private maskDocument(value: string) {
-    const clean = value.replace(/[^a-zA-Z0-9]/g, '');
-    if (!clean) return 'Não informado';
-    if (clean.length === 11) return `***.${clean.slice(3, 6)}.${clean.slice(6, 9)}-**`;
-    if (clean.length === 14) return `**.${clean.slice(2, 5)}.${clean.slice(5, 8)}/****-**`;
-    return `${clean.slice(0, 2)}••••${clean.slice(-2)}`;
-  }
-
-  private maskContact(value: string) {
-    const trimmed = (value || '').trim();
-    if (!trimmed) return 'Não informado';
-
-    if (trimmed.includes('@')) {
-      const [local, domain = ''] = trimmed.split('@');
-      const maskedLocal = local.length <= 1 ? '*' : `${local[0]}***`;
-      const [host, ...rest] = domain.split('.');
-      const maskedHost = host ? `${host[0] || '*'}***` : '***';
-      return `${maskedLocal}@${maskedHost}${rest.length ? `.${rest.join('.')}` : ''}`;
-    }
-
-    const digits = trimmed.replace(/\D/g, '');
-    if (digits.length >= 8) {
-      return `(**) *****-${digits.slice(-4)}`;
-    }
-    return `${trimmed.slice(0, 1)}•••${trimmed.slice(-1)}`;
   }
 }
