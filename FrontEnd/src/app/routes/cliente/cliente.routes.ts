@@ -12,15 +12,22 @@ export const routes: Routes = [
   },
   { path: 'listar', redirectTo: '', pathMatch: 'full' },
   {
-    path: 'cadastro',
+    path: 'novo',
     component: CadastroCliente,
     canActivate: [permissionGuard],
     data: { title: 'Novo Cliente', permissions: ['CLIENTE_CRIAR'] },
   },
   {
-    path: 'editar/:uuid',
+    path: ':uuid/editar',
     component: CadastroCliente,
     canActivate: [permissionGuard],
     data: { title: 'Editar Cliente', permissions: ['CLIENTE_EDITAR'] },
+  },
+  { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
+  {
+    path: 'editar/:uuid',
+    component: CadastroCliente,
+    canActivate: [permissionGuard],
+    data: { title: 'Editar Cliente', permissions: ['CLIENTE_EDITAR'], legacyRoute: true },
   },
 ];
