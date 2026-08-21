@@ -1,29 +1,249 @@
-// Header moderno com efeitos especiais (Stripe Style)
 .matero-header {
   position: sticky;
   top: 0;
   z-index: 1000;
   display: block;
-  background: rgba(246, 249, 252, 0.8) !important; /* Ice Gray com Transparência */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-mat-toolbar {
-  background: transparent !important; /* Deixa o fundo do .matero-header brilhar */
-  height: 64px !important;
-  padding: 0 1.5rem !important;
+.neritech-topbar.p-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(310px, auto) minmax(260px, 620px) minmax(260px, auto);
+  gap: 20px;
+  width: 100%;
+  height: 64px;
+  padding: 0 20px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
 }
 
-// Icon Button Hover Effects
-button[mat-icon-button] {
-  @apply rounded-lg;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.03);
+.neritech-topbar__left,
+.neritech-topbar__actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.neritech-topbar__left {
+  gap: 10px;
+}
+
+.neritech-topbar__actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.neritech-topbar__brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.neritech-topbar__brand-mark {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 2px 7px rgba(37, 99, 235, 0.2);
+}
+
+.neritech-topbar__brand-name {
+  overflow: hidden;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.neritech-topbar__brand-name strong {
+  color: #0f172a;
+}
+
+.neritech-topbar__separator {
+  width: 1px;
+  height: 24px;
+  margin: 0 2px;
+  background: #e2e8f0;
+}
+
+.neritech-topbar__context-wrap,
+.neritech-topbar__search-wrap {
+  display: block;
+  min-width: 0;
+}
+
+.neritech-topbar__context {
+  display: inline-flex;
+  max-width: 220px;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #475569;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.neritech-topbar__context span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.neritech-topbar__context:disabled {
+  cursor: not-allowed;
+  opacity: 0.76;
+}
+
+.neritech-topbar__context .pi-chevron-down {
+  color: #94a3b8;
+  font-size: 9px;
+}
+
+.neritech-topbar__search-wrap {
+  width: 100%;
+}
+
+.neritech-topbar__search {
+  display: flex;
+  width: 100%;
+  height: 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.neritech-topbar__search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #64748b;
+  font: inherit;
+  font-size: 13px;
+}
+
+.neritech-topbar__search input::placeholder {
+  color: #94a3b8;
+}
+
+.neritech-topbar__search kbd {
+  padding: 2px 5px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  background: #fff;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+}
+
+.neritech-topbar__support {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.neritech-topbar__support:hover,
+.neritech-topbar__support:focus-visible {
+  outline: none;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.neritech-topbar__icon-button.p-button {
+  width: 36px !important;
+  height: 36px !important;
+  color: #64748b !important;
+}
+
+.neritech-topbar__icon-button.p-button:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+@media (max-width: 1279px) {
+  .neritech-topbar.p-toolbar {
+    grid-template-columns: minmax(260px, auto) minmax(220px, 1fr) auto;
+    gap: 12px;
+    padding: 0 16px !important;
+  }
+
+  .neritech-topbar__support span {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .neritech-topbar.p-toolbar {
+    grid-template-columns: minmax(230px, 1fr) auto;
+  }
+
+  .neritech-topbar__search-wrap {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .neritech-topbar.p-toolbar {
+    height: 56px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0 10px !important;
+  }
+
+  .neritech-topbar__brand-name,
+  .neritech-topbar__separator,
+  .neritech-topbar__context-wrap,
+  .neritech-topbar__support {
+    display: none;
+  }
+
+  .neritech-topbar__left,
+  .neritech-topbar__actions {
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neritech-topbar__support,
+  .neritech-topbar__icon-button.p-button {
+    transition: none;
   }
 }
