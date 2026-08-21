@@ -61,8 +61,8 @@
         { "route": "caixas-fechado", "name": "caixas-fechados", "type": "link", "icon": "pi pi-lock" },
         { "route": "pagar", "name": "contas-pagar", "type": "link", "icon": "pi pi-arrow-circle-down" },
         { "route": "receber", "name": "contas-receber", "type": "link", "icon": "pi pi-arrow-circle-up" },
-        { "route": "transferencia", "name": "transferencias", "type": "link", "icon": "pi pi-arrow-right-arrow-left" },
-        { "route": "notas-compra", "name": "notas-compra", "type": "link", "icon": "pi pi-file-import" },
+        { "route": "transferencia", "name": "transferência entre contas", "type": "link", "icon": "pi pi-arrow-right-arrow-left" },
+        { "route": "notas-compra", "name": "notas de compra", "type": "link", "icon": "pi pi-file-import" },
         { "route": "comissoes", "name": "comissoes", "type": "link", "icon": "pi pi-percentage" }
       ]
     },
