@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import com.neritech.saas.cliente.domain.EnderecoCliente;
 import com.neritech.saas.cliente.dto.EnderecoClienteRequest;
 import com.neritech.saas.cliente.dto.EnderecoClienteResponse;
+import com.neritech.saas.cliente.dto.EnderecoClienteSummaryResponse;
 import com.neritech.saas.cliente.mapper.EnderecoClienteMapper;
 import com.neritech.saas.cliente.service.EnderecoClienteService;
 
@@ -27,12 +28,18 @@ public class EnderecoClienteController {
         this.service = service;
     }
 
+    @GetMapping("/resumo")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Listar endereços minimizados para visão 360°")
+    public Page<EnderecoClienteSummaryResponse> listSummary(@PathVariable Long clienteId, Pageable pageable) {
+        return service.listByCliente(clienteId, pageable).map(EnderecoClienteMapper::toSummaryResponse);
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar endereços do cliente")
+    @Operation(summary = "Listar endereços completos do cliente (legado)")
     public Page<EnderecoClienteResponse> list(@PathVariable Long clienteId, Pageable pageable) {
-        return service.listByCliente(clienteId, pageable)
-                .map(EnderecoClienteMapper::toResponse);
+        return service.listByCliente(clienteId, pageable).map(EnderecoClienteMapper::toResponse);
     }
 
     @GetMapping("/{id}")
