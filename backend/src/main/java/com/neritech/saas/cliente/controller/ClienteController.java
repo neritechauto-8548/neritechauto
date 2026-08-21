@@ -38,11 +38,20 @@ public class ClienteController {
         return ResponseEntity.ok(ClienteMapper.toDetailResponse(service.findById(id)));
     }
 
+    @GetMapping("/{id}/edicao")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
+    @Operation(
+            summary = "Carregar cliente para edição",
+            description = "Retorna o contrato completo somente para o fluxo de edição autorizado. Novas superfícies de consulta devem usar /resumo.")
+    public ResponseEntity<ClienteResponse> getForEdit(@PathVariable Long id) {
+        return ResponseEntity.ok(ClienteMapper.toResponse(service.findById(id)));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
     @Operation(
             summary = "Buscar cliente por ID (legado)",
-            description = "Contrato completo mantido temporariamente para fluxos legados. Novas superfícies de leitura devem usar /resumo; a migração para capability específica de PII permanece pendente.")
+            description = "Contrato completo mantido temporariamente para consumidores legados. Não deve ser usado por novas superfícies; migração para /resumo ou /edicao está em andamento.")
     public ResponseEntity<ClienteResponse> getById(
             @Parameter(description = "ID do cliente", required = true) @PathVariable Long id) {
         Cliente cliente = service.findById(id);
@@ -51,9 +60,7 @@ public class ClienteController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(
-            summary = "Listar clientes",
-            description = "Retorna clientes paginados com PII mascarada por padrão.")
+    @Operation(summary = "Listar clientes", description = "Retorna clientes paginados com PII mascarada por padrão.")
     public Page<ClienteListResponse> search(
             @RequestParam(required = false) String nomeCompleto,
             @RequestParam(required = false) String razaoSocial,
@@ -71,7 +78,7 @@ public class ClienteController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('CLIENTE_CRIAR')")
-    @Operation(summary = "Criar cliente", description = "Cadastra um cliente após validar as regras de negócio.")
+    @Operation(summary = "Criar cliente", description = "Cadastra um cliente ativo após validar identidade e regras de negócio.")
     public ResponseEntity<ClienteResponse> create(@Valid @RequestBody ClienteRequest request) {
         Cliente saved = service.create(ClienteMapper.toEntity(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(ClienteMapper.toResponse(saved));
@@ -79,7 +86,7 @@ public class ClienteController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
-    @Operation(summary = "Atualizar cliente", description = "Atualiza os dados cadastrais de um cliente da empresa autenticada.")
+    @Operation(summary = "Atualizar cliente", description = "Atualiza dados cadastrais sem alterar o lifecycle/status do cliente.")
     public ResponseEntity<ClienteResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody ClienteRequest request) {
