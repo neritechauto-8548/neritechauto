@@ -29,6 +29,12 @@ export interface Menu extends MenuChildrenItem {
   icon: string;
 }
 
+interface MenuTraversalNode {
+  item: MenuChildrenItem;
+  parentNamePathList: string[];
+  realRouteArr: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -92,14 +98,12 @@ export class MenuService {
     let matchedLevel: string[] = [];
 
     this.menu$.value.forEach(item => {
-      let unhandledLayer = [{ item, parentNamePathList: [] as string[], realRouteArr: [] as string[] }];
+      let unhandledLayer: MenuTraversalNode[] = [
+        { item, parentNamePathList: [], realRouteArr: [] },
+      ];
 
       while (unhandledLayer.length > 0) {
-        let nextUnhandledLayer: Array<{
-          item: MenuChildrenItem;
-          parentNamePathList: string[];
-          realRouteArr: string[];
-        }> = [];
+        let nextUnhandledLayer: MenuTraversalNode[] = [];
 
         for (const element of unhandledLayer) {
           const eachItem = element.item;
@@ -112,7 +116,7 @@ export class MenuService {
           }
 
           if (!this.isLeafItem(eachItem)) {
-            const wrappedChildren = (eachItem.children || []).map(child => ({
+            const wrappedChildren: MenuTraversalNode[] = (eachItem.children || []).map(child => ({
               item: child,
               parentNamePathList: currentNamePathList,
               realRouteArr: currentRealRouteArr,
