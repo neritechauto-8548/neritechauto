@@ -2,6 +2,10 @@
   "menu": {
     "gestao-patio": "Gestão de Pátio",
     "home": "Home",
+    "home.gerencial": "Dashboard Gerencial",
+    "home.financeiro": "Dashboard Financeiro",
+    "home.orcamentos": "Dashboard de Orçamentos",
+    "home.operacional": "Dashboard Operacional",
     "clientes": "Clientes",
     "clientes.lista": "Clientes",
     "clientes.veiculos": "Veículos",
