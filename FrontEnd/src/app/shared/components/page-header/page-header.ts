@@ -28,13 +28,23 @@ export class PageHeader implements OnInit {
 
   @Input() title = '';
   @Input() subtitle = '';
+  @Input() description = '';
+  @Input() eyebrow = '';
   @Input() nav: string[] = [];
   @Input({ transform: booleanAttribute }) hideBreadcrumb = false;
+  @Input({ transform: booleanAttribute }) canonical = false;
 
   ngOnInit() {
+    if (this.title) {
+      return;
+    }
+
     const routes = this.router.url.slice(1).split('/');
     const menuLevel = this.menu.getLevel(routes);
+    this.title = menuLevel[menuLevel.length - 1] || '';
+  }
 
-    this.title = this.title || menuLevel[menuLevel.length - 1];
+  get supportingText() {
+    return this.description || this.subtitle;
   }
 }
