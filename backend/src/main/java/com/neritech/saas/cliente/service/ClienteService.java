@@ -23,8 +23,12 @@ import java.util.Optional;
 public class ClienteService {
 
     private final ClienteRepository repository;
+    // Mantidos temporariamente no construtor para compatibilidade estrutural durante o rebuild.
+    @SuppressWarnings("unused")
     private final ContatoClienteRepository contatoRepository;
+    @SuppressWarnings("unused")
     private final EnderecoClienteRepository enderecoRepository;
+    @SuppressWarnings("unused")
     private final VeiculoRepository veiculoRepository;
 
     public ClienteService(ClienteRepository repository,
@@ -44,47 +48,73 @@ public class ClienteService {
     }
 
     @Transactional
-    public Cliente create(Cliente c) {
-        validateDocumento(c);
-        return repository.save(c);
+    public Cliente create(Cliente cliente) {
+        validateIdentity(cliente);
+        validateDocumento(cliente);
+        // Lifecycle é autoridade do backend: criação operacional sempre inicia ativa.
+        cliente.setStatus(StatusCliente.ATIVO);
+        return repository.save(cliente);
     }
 
     @Transactional
-    public Cliente update(Long id, Cliente c) {
-        validateDocumento(c);
+    public Cliente update(Long id, Cliente cliente) {
         Cliente current = findById(id);
-        c.setId(current.getId());
-        c.setEmpresaId(current.getEmpresaId());
-        return repository.save(c);
+        cliente.setId(current.getId());
+        cliente.setEmpresaId(current.getEmpresaId());
+        cliente.setStatus(current.getStatus());
+        validateIdentity(cliente);
+        validateDocumento(cliente);
+        return repository.save(cliente);
     }
 
     @Transactional
     public Cliente update(Long id, ClienteRequest request) {
         Cliente current = findById(id);
+        StatusCliente lifecycleStatus = current.getStatus();
         ClienteMapper.updateEntity(current, request);
+        current.setStatus(lifecycleStatus);
+        validateIdentity(current);
         validateDocumento(current);
         return repository.save(current);
     }
 
-    private void validateDocumento(Cliente c) {
-        if (c.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
-            if (c.getCpf() != null && !c.getCpf().isBlank()) {
-                if (!DocumentoValidator.isValidCpf(c.getCpf())) {
+    private void validateIdentity(Cliente cliente) {
+        if (cliente == null || cliente.getTipoCliente() == null) {
+            throw new BusinessException("Informe o tipo do cliente.");
+        }
+
+        if (cliente.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
+            if (cliente.getNomeCompleto() == null || cliente.getNomeCompleto().isBlank()) {
+                throw new BusinessException("Informe o nome completo do cliente.");
+            }
+            return;
+        }
+
+        if (cliente.getTipoCliente() == TipoCliente.PESSOA_JURIDICA
+                && (cliente.getRazaoSocial() == null || cliente.getRazaoSocial().isBlank())) {
+            throw new BusinessException("Informe a razão social do cliente.");
+        }
+    }
+
+    private void validateDocumento(Cliente cliente) {
+        if (cliente.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
+            if (cliente.getCpf() != null && !cliente.getCpf().isBlank()) {
+                if (!DocumentoValidator.isValidCpf(cliente.getCpf())) {
                     throw new BusinessException("O CPF informado é inválido.");
                 }
-                repository.findByCpf(c.getCpf()).ifPresent(existing -> {
-                    if (!existing.getId().equals(c.getId())) {
+                repository.findByCpf(cliente.getCpf()).ifPresent(existing -> {
+                    if (!existing.getId().equals(cliente.getId())) {
                         throw new BusinessException("Já existe um cliente cadastrado com este CPF.");
                     }
                 });
             }
-        } else if (c.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
-            if (c.getCnpj() != null && !c.getCnpj().isBlank()) {
-                if (!DocumentoValidator.isValidCnpj(c.getCnpj())) {
+        } else if (cliente.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
+            if (cliente.getCnpj() != null && !cliente.getCnpj().isBlank()) {
+                if (!DocumentoValidator.isValidCnpj(cliente.getCnpj())) {
                     throw new BusinessException("O CNPJ informado é inválido.");
                 }
-                repository.findByCnpj(c.getCnpj()).ifPresent(existing -> {
-                    if (!existing.getId().equals(c.getId())) {
+                repository.findByCnpj(cliente.getCnpj()).ifPresent(existing -> {
+                    if (!existing.getId().equals(cliente.getId())) {
                         throw new BusinessException("Já existe um cliente cadastrado com este CNPJ.");
                     }
                 });
