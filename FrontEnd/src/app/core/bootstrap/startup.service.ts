@@ -45,21 +45,24 @@ export class StartupService {
     this.menuService.set(filteredMenu);
   }
 
-  private filterMenu<T extends Menu | MenuChildrenItem>(
+  private filterMenu<T extends MenuChildrenItem>(
     menu: T[],
     planLevel: number,
     grantedPermissions: Set<string>
   ): T[] {
     return menu
-      .filter(item => !('minPlan' in item) || !(item as any).minPlan || (item as any).minPlan <= planLevel)
+      .filter(item => !item.minPlan || item.minPlan <= planLevel)
       .filter(item => this.hasDeclaredPermission(item.permissions, grantedPermissions))
       .map(item => {
         const copy = { ...item } as T;
+
         if (copy.children?.length) {
           copy.children = this.filterMenu(copy.children, planLevel, grantedPermissions);
         }
+
         return copy;
       })
+      // Grupos que perderam todos os filhos por plano/permissão desaparecem da navegação.
       .filter(item => item.type !== 'sub' || Boolean(item.children?.length));
   }
 
@@ -89,14 +92,15 @@ export class StartupService {
     if (!value) {
       return [];
     }
+
     return Array.isArray(value) ? value : [value];
   }
 
   private setPermissions(user: User) {
     const permissions = (user?.permissions || []).map(permission => String(permission));
 
-    // O frontend nunca amplia autoridade. As permissoes efetivas sao exatamente
-    // as retornadas pelo backend para a identidade/sessao atual.
+    // O frontend nunca amplia autoridade. As permissões efetivas são exatamente
+    // as retornadas pelo backend para a identidade/sessão atual.
     this.permissionsService.flushPermissions();
     this.permissionsService.loadPermissions(permissions);
 
