@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -23,6 +23,16 @@ export interface OrcamentoDraftResponse {
   criadoEm: string;
 }
 
+export interface OrcamentoVehicleSummary {
+  id: number;
+  marcaNome?: string | null;
+  modeloNome?: string | null;
+  anoFabricacao?: number | null;
+  anoModelo?: number | null;
+  maskedPlate: string;
+  status?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrcamentoDraftService {
   private readonly http = inject(HttpClient);
@@ -31,5 +41,10 @@ export class OrcamentoDraftService {
   create(request: OrcamentoDraftRequest): Observable<OrcamentoDraftResponse> {
     // Tenant e número comercial não fazem parte deste contrato por desenho.
     return this.http.post<OrcamentoDraftResponse>(this.base, request);
+  }
+
+  listVehiclesForCustomer(clienteId: number): Observable<OrcamentoVehicleSummary[]> {
+    const params = new HttpParams().set('clienteId', String(clienteId));
+    return this.http.get<OrcamentoVehicleSummary[]>(`${environment.baseUrl}/v1/veiculos/resumo`, { params });
   }
 }
