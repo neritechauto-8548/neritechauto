@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard, permissionGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
-import { Dashboard } from './routes/dashboard/dashboard';
 import { Error403 } from './routes/sessions/error-403';
 import { Error404 } from './routes/sessions/error-404';
 import { Error500 } from './routes/sessions/error-500';
@@ -23,9 +22,12 @@ export const routes: Routes = [
     canActivate: [authGuard, subscriptionGuard],
     canActivateChild: [authGuard, subscriptionGuard],
     children: [
-      { path: '', redirectTo: 'home', pathMatch: 'full' },
-      { path: 'home', component: Dashboard, data: { title: 'Home' } },
-      { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' },
+      { path: '', redirectTo: 'home/gerencial', pathMatch: 'full' },
+      {
+        path: 'home',
+        loadChildren: () => import('./routes/home/home.routes').then(m => m.routes),
+      },
+      { path: 'dashboard', redirectTo: 'home/gerencial', pathMatch: 'full' },
 
       { path: '403', component: Error403, data: { title: 'Acesso negado' } },
       { path: '404', component: Error404, data: { title: 'Página não encontrada' } },
@@ -40,7 +42,7 @@ export const routes: Routes = [
         ),
       },
 
-      // 02. Home -> /home
+      // 02. Home -> /home/*
 
       // 03. Clientes
       {
@@ -49,7 +51,6 @@ export const routes: Routes = [
         data: { permissions: ['GERAL_USUARIO'], title: 'Clientes' },
         loadChildren: () => import('./routes/cliente/cliente.routes').then(m => m.routes),
       },
-      // Alias legado temporário para links internos existentes.
       {
         path: 'cliente',
         canActivate: [permissionGuard],
@@ -133,7 +134,6 @@ export const routes: Routes = [
         ),
       },
 
-      // PDV continua roteável, mas não é promovido como raiz fora da árvore oficial.
       {
         path: 'pdv',
         loadChildren: () => import('./routes/pdv/pdv.routes').then(m => m.routes),
@@ -187,7 +187,6 @@ export const routes: Routes = [
         loadChildren: () => import('./routes/relatorios/relatorios.routes').then(m => m.routes),
       },
 
-      // Ação global da topbar. Mantida fora da árvore raiz do menu.
       {
         path: 'suporte',
         ...placeholder(
@@ -196,7 +195,6 @@ export const routes: Routes = [
         ),
       },
 
-      // Administração técnica permanece roteável, porém fora da raiz visual oficial.
       {
         path: 'admin',
         loadChildren: () => import('./routes/admin/admin.routes').then(m => m.routes),
@@ -213,5 +211,5 @@ export const routes: Routes = [
       { path: 'reset-password', component: ResetPassword, data: { title: 'Redefinir senha' } },
     ],
   },
-  { path: '**', redirectTo: 'home' },
+  { path: '**', redirectTo: 'home/gerencial' },
 ];
