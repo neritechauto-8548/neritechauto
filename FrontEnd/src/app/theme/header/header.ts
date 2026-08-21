@@ -1,17 +1,13 @@
 import { Component, EventEmitter, Input, Output, ViewEncapsulation, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { filter, map, mergeMap } from 'rxjs/operators';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
-import screenfull from 'screenfull';
 
+import { AuthService, User } from '@core/authentication';
 import { NotificationButton } from '../widgets/notification-button';
 import { UserButton } from '../widgets/user-button';
-import { SettingsService } from '@core';
 
 @Component({
   selector: 'app-header',
@@ -21,16 +17,7 @@ import { SettingsService } from '@core';
     class: 'matero-header',
   },
   encapsulation: ViewEncapsulation.None,
-  imports: [
-    CommonModule,
-    ToolbarModule,
-    ButtonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    NotificationButton,
-    UserButton,
-  ],
+  imports: [RouterLink, ToolbarModule, ButtonModule, MatTooltipModule, NotificationButton, UserButton],
 })
 export class Header {
   @Input() showToggle = true;
@@ -39,37 +26,27 @@ export class Header {
   @Output() toggleSidenav = new EventEmitter<void>();
   @Output() toggleSidenavNotice = new EventEmitter<void>();
 
-  public readonly settings = inject(SettingsService);
-  private readonly router = inject(Router);
-  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly auth = inject(AuthService);
 
-  pageTitle = 'Dashboard';
+  companyLabel = 'Empresa atual';
 
   constructor() {
-    this.router.events
-      .pipe(
-        filter(event => event instanceof NavigationEnd),
-        map(() => this.activatedRoute),
-        map(route => {
-          while (route.firstChild) {
-            route = route.firstChild;
-          }
-          return route;
-        }),
-        mergeMap(route => route.data)
-      )
-      .subscribe(event => {
-        this.pageTitle = event['title'] || 'NeriTechAuto';
+    this.auth
+      .user()
+      .pipe(takeUntilDestroyed())
+      .subscribe(user => {
+        this.companyLabel = this.resolveCompanyLabel(user);
       });
   }
 
-  toggleTheme() {
-    this.settings.setTheme(this.settings.getThemeColor() === 'dark' ? 'light' : 'dark');
-  }
+  private resolveCompanyLabel(user: User): string {
+    const candidate =
+      user?.empresaNome ||
+      user?.nomeEmpresa ||
+      user?.empresa?.nomeFantasia ||
+      user?.empresa?.razaoSocial ||
+      user?.empresa?.nome;
 
-  toggleFullscreen() {
-    if (screenfull.isEnabled) {
-      screenfull.toggle();
-    }
+    return candidate ? String(candidate) : 'Empresa atual';
   }
 }
