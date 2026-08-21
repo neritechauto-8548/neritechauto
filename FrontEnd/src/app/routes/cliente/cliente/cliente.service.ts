@@ -13,8 +13,10 @@ import {
   ContatoClienteResponse,
   DocumentoClienteRequest,
   DocumentoClienteResponse,
+  OrigemCliente,
   StatusCliente,
-  TipoCliente
+  TipoCliente,
+  TipoContato
 } from '../models/cliente.models';
 
 export interface ClienteListResponseDTO {
@@ -26,13 +28,35 @@ export interface ClienteListResponseDTO {
   status: StatusCliente;
 }
 
+export interface ClienteDetailResponseDTO {
+  id: number;
+  displayName: string;
+  type: TipoCliente;
+  status: StatusCliente;
+  maskedTaxId?: string | null;
+  maskedEmail?: string | null;
+  origin?: OrigemCliente | null;
+  hasRelationshipNotes: boolean;
+}
+
+export interface ContatoClienteSummaryDTO {
+  id: number;
+  tipoContato: TipoContato;
+  maskedValue: string;
+  principal: boolean;
+}
+
+export interface EnderecoClienteSummaryDTO {
+  id: number;
+  locationSummary: string;
+  maskedPostalCode: string;
+  country: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.baseUrl;
-
-  // O frontend envia apenas autenticação. Tenant e escopo são resolvidos e validados
-  // pelo backend a partir da sessão; nenhum header/query de tenant é autoridade.
 
   list(filters: Record<string, any>): Observable<Page<ClienteListResponseDTO>> {
     const url = `${this.base}/v1/clientes`;
@@ -45,10 +69,23 @@ export class ClientesService {
     return this.http.get<any>(url, { params }).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
+  getSummary(id: number | string): Observable<ClienteDetailResponseDTO> {
+    return this.http.get<ClienteDetailResponseDTO>(`${this.base}/v1/clientes/${id}/resumo`);
+  }
+
+  listContactSummaries(clienteId: number | string): Observable<Page<ContatoClienteSummaryDTO>> {
+    return this.http.get<Page<ContatoClienteSummaryDTO>>(`${this.base}/v1/clientes/${clienteId}/contatos/resumo`);
+  }
+
+  listAddressSummaries(clienteId: number | string): Observable<Page<EnderecoClienteSummaryDTO>> {
+    return this.http.get<Page<EnderecoClienteSummaryDTO>>(`${this.base}/v1/clientes/${clienteId}/enderecos/resumo`);
+  }
+
   create(dto: ClienteRequest): Observable<ClienteResponse> {
     return this.http.post<ClienteResponse>(`${this.base}/v1/clientes`, dto);
   }
 
+  /** Contrato completo legado. Novas superfícies somente-leitura devem usar getSummary. */
   getById(id: number | string): Observable<ClienteResponse> {
     return this.http
       .get<any>(`${this.base}/v1/clientes/${id}`)
@@ -175,9 +212,7 @@ export class ClientesService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tipoDocumento', tipoDocumento);
-    if (descricao) {
-      formData.append('descricao', descricao);
-    }
+    if (descricao) formData.append('descricao', descricao);
     return this.http.post<DocumentoClienteResponse>(
       `${this.base}/v1/clientes/${clienteId}/documentos/upload`,
       formData
