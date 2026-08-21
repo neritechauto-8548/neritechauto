@@ -18,6 +18,7 @@ import { Breadcrumb } from '../breadcrumb/breadcrumb';
   styleUrl: './page-header.scss',
   host: {
     class: 'matero-page-header',
+    '[class.matero-page-header--canonical]': 'canonical',
   },
   encapsulation: ViewEncapsulation.None,
   imports: [Breadcrumb, TranslateModule],
