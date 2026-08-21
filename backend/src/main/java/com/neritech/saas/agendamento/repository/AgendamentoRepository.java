@@ -22,6 +22,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     List<Agendamento> findByEmpresaId(Long empresaId);
 
+    boolean existsByNumeroAgendamento(String numeroAgendamento);
+
     @Query("select a from Agendamento a where a.numeroAgendamento = :numero and a.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
     Optional<Agendamento> findByNumeroAgendamentoScoped(@Param("numero") String numeroAgendamento);
 
@@ -31,9 +33,14 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     @Query("select a from Agendamento a where a.veiculoId = :veiculoId and a.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
     List<Agendamento> findByVeiculoIdScoped(@Param("veiculoId") Long veiculoId);
 
-    List<Agendamento> findByStatus(StatusAgendamento status);
-    List<Agendamento> findByDataAgendamento(LocalDate dataAgendamento);
-    List<Agendamento> findByMecanicoAlocadoId(Long mecanicoId);
+    @Query("select a from Agendamento a where a.status = :status and a.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
+    List<Agendamento> findByStatus(@Param("status") StatusAgendamento status);
+
+    @Query("select a from Agendamento a where a.dataAgendamento = :data and a.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
+    List<Agendamento> findByDataAgendamento(@Param("data") LocalDate dataAgendamento);
+
+    @Query("select a from Agendamento a where a.mecanicoAlocadoId = :mecanicoId and a.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
+    List<Agendamento> findByMecanicoAlocadoId(@Param("mecanicoId") Long mecanicoId);
 
     @Query("SELECT a FROM Agendamento a WHERE a.empresaId = :empresaId AND a.dataAgendamento BETWEEN :dataInicio AND :dataFim")
     List<Agendamento> findByEmpresaAndPeriodo(@Param("empresaId") Long empresaId,
