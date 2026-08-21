@@ -1,6 +1,7 @@
 package com.neritech.saas.cliente.mapper;
 
 import com.neritech.saas.cliente.domain.Cliente;
+import com.neritech.saas.cliente.dto.ClienteDetailResponse;
 import com.neritech.saas.cliente.dto.ClienteListResponse;
 import com.neritech.saas.cliente.dto.ClienteRequest;
 import com.neritech.saas.cliente.dto.ClienteResponse;
@@ -64,52 +65,69 @@ public class ClienteMapper {
     }
 
     public static ClienteListResponse toListResponse(Cliente c) {
-        String displayName = firstNonBlank(c.getNomeCompleto(), c.getNomeFantasia(), c.getRazaoSocial(), "Cliente #" + c.getId());
-        String taxId = firstNonBlank(c.getCpf(), c.getCnpj(), null);
-
         return new ClienteListResponse(
                 c.getId(),
-                displayName,
+                displayName(c),
                 c.getTipoCliente(),
-                maskDocument(taxId),
+                maskDocument(firstNonBlank(c.getCpf(), c.getCnpj(), null)),
                 maskEmail(c.getEmail()),
                 c.getStatus());
     }
 
-    private static String firstNonBlank(String... values) {
-        if (values == null) {
-            return null;
+    public static ClienteDetailResponse toDetailResponse(Cliente c) {
+        return new ClienteDetailResponse(
+                c.getId(),
+                displayName(c),
+                c.getTipoCliente(),
+                c.getStatus(),
+                maskDocument(firstNonBlank(c.getCpf(), c.getCnpj(), null)),
+                maskEmail(c.getEmail()),
+                c.getOrigemCliente(),
+                c.getObservacoesGerais() != null && !c.getObservacoesGerais().isBlank());
+    }
+
+    private static String displayName(Cliente c) {
+        if (c == null) {
+            return "Cliente";
         }
+        return switch (c.getTipoCliente()) {
+            case PESSOA_JURIDICA -> firstNonBlank(c.getRazaoSocial(), c.getNomeFantasia(), c.getNomeCompleto(), "Cliente #" + c.getId());
+            default -> firstNonBlank(c.getNomeCompleto(), c.getNomeFantasia(), c.getRazaoSocial(), "Cliente #" + c.getId());
+        };
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values == null) return null;
         for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
+            if (value != null && !value.isBlank()) return value;
         }
         return null;
     }
 
     private static String maskDocument(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String normalized = value.replaceAll("\\D", "");
+        if (value == null || value.isBlank()) return null;
+        String normalized = value.replaceAll("[^A-Za-z0-9]", "");
         if (normalized.length() == 11) {
-            return "***.***.***-" + normalized.substring(9);
+            return "***." + normalized.substring(3, 6) + "." + normalized.substring(6, 9) + "-**";
         }
         if (normalized.length() == 14) {
-            return "**.***.***/****-" + normalized.substring(12);
+            return "**." + normalized.substring(2, 5) + "." + normalized.substring(5, 8) + "/****-**";
+        }
+        if (normalized.length() >= 4) {
+            return normalized.substring(0, 2) + "••••" + normalized.substring(normalized.length() - 2);
         }
         return "Documento protegido";
     }
 
     private static String maskEmail(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
+        if (value == null || value.isBlank()) return null;
         int at = value.indexOf('@');
-        if (at <= 0 || at == value.length() - 1) {
-            return "Contato protegido";
-        }
-        return value.substring(0, 1) + "***" + value.substring(at);
+        if (at <= 0 || at == value.length() - 1) return "Contato protegido";
+        String local = value.substring(0, at);
+        String domain = value.substring(at + 1);
+        int dot = domain.indexOf('.');
+        String host = dot >= 0 ? domain.substring(0, dot) : domain;
+        String suffix = dot >= 0 ? domain.substring(dot) : "";
+        return local.substring(0, 1) + "***@" + (host.isBlank() ? "***" : host.substring(0, 1) + "***") + suffix;
     }
 }
