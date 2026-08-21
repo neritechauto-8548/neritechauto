@@ -39,7 +39,8 @@ export class ResetPassword implements OnInit {
 
   readonly resetForm = this.fb.nonNullable.group(
     {
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      // Mantém o frontend alinhado ao contrato atual do backend (@Size(min = 6)).
+      password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
     },
     { validators: [passwordMatchValidator] }
