@@ -2,7 +2,7 @@
   <page-header
     [canonical]="true"
     [title]="pageTitle"
-    [supportingText]="pageDescription"
+    [description]="pageDescription"
     [hideBreadcrumb]="true"
     titleId="customer-form-title"
   >
@@ -412,12 +412,12 @@
             <strong>{{ statusLabel }}</strong>
             <p>Inativação preserva veículos, contatos e histórico. Exclusão física não é uma ação operacional desta tela.</p>
 
-            @if (model.status === 'INATIVO' && canReactivate) {
+            @if (statusLabel === 'Inativo' && canReactivate) {
               <button type="button" class="nt-button nt-button--secondary nt-button--full" (click)="reactivate()">
                 <i class="pi pi-refresh" aria-hidden="true"></i>
                 Reativar cliente
               </button>
-            } @else if (model.status !== 'INATIVO' && canDeactivate) {
+            } @else if (statusLabel !== 'Inativo' && canDeactivate) {
               <button type="button" class="nt-button nt-button--danger-outline nt-button--full" (click)="deactivate()">
                 <i class="pi pi-ban" aria-hidden="true"></i>
                 Inativar cliente
