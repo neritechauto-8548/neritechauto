@@ -56,6 +56,7 @@ export class Cliente implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
 
+  readonly StatusCliente = StatusCliente;
   searchTerm = '';
   selectedTipo: TipoCliente | null = null;
   selectedStatus: StatusCliente | null = null;
@@ -78,50 +79,21 @@ export class Cliente implements OnInit {
     const tipo = query.get('tipo') as TipoCliente | null;
     const page = Number(query.get('page'));
 
-    if (status && Object.values(StatusCliente).includes(status)) {
-      this.selectedStatus = status;
-    }
-    if (tipo && Object.values(TipoCliente).includes(tipo)) {
-      this.selectedTipo = tipo;
-    }
-    if (Number.isInteger(page) && page > 0) {
-      this.first = (page - 1) * this.rows;
-    }
+    if (status && Object.values(StatusCliente).includes(status)) this.selectedStatus = status;
+    if (tipo && Object.values(TipoCliente).includes(tipo)) this.selectedTipo = tipo;
+    if (Number.isInteger(page) && page > 0) this.first = (page - 1) * this.rows;
 
     this.fetchPage();
   }
 
-  get totalRecords() {
-    return this.backendPage?.totalElements ?? 0;
-  }
-
-  get rangeStart() {
-    return this.totalRecords === 0 ? 0 : this.first + 1;
-  }
-
-  get rangeEnd() {
-    return Math.min(this.first + this.clients.length, this.totalRecords);
-  }
-
-  get currentPage() {
-    return Math.floor(this.first / this.rows) + 1;
-  }
-
-  get totalPages() {
-    return Math.max(1, this.backendPage?.totalPages ?? Math.ceil(this.totalRecords / this.rows));
-  }
-
-  get canCreateCliente() {
-    return Boolean(this.permissionsService.getPermission('CLIENTE_CRIAR'));
-  }
-
-  get canEditCliente() {
-    return Boolean(this.permissionsService.getPermission('CLIENTE_EDITAR'));
-  }
-
-  get canCreateVehicle() {
-    return Boolean(this.permissionsService.getPermission('VEICULO_CRIAR'));
-  }
+  get totalRecords() { return this.backendPage?.totalElements ?? 0; }
+  get rangeStart() { return this.totalRecords === 0 ? 0 : this.first + 1; }
+  get rangeEnd() { return Math.min(this.first + this.clients.length, this.totalRecords); }
+  get currentPage() { return Math.floor(this.first / this.rows) + 1; }
+  get totalPages() { return Math.max(1, this.backendPage?.totalPages ?? Math.ceil(this.totalRecords / this.rows)); }
+  get canCreateCliente() { return Boolean(this.permissionsService.getPermission('CLIENTE_CRIAR')); }
+  get canEditCliente() { return Boolean(this.permissionsService.getPermission('CLIENTE_EDITAR')); }
+  get canCreateVehicle() { return Boolean(this.permissionsService.getPermission('VEICULO_CRIAR')); }
 
   onSearch() {
     this.first = 0;
@@ -193,43 +165,20 @@ export class Cliente implements OnInit {
 
   menuItemsFor(row: ClientListRow): MenuItem[] {
     const items: MenuItem[] = [
-      {
-        label: 'Abrir ficha',
-        icon: 'pi pi-id-card',
-        command: () => this.navigateToDetail(row),
-      },
+      { label: 'Abrir ficha', icon: 'pi pi-id-card', command: () => this.navigateToDetail(row) },
     ];
 
     if (this.canEditCliente) {
-      items.push({
-        label: 'Editar cliente',
-        icon: 'pi pi-pencil',
-        command: () => this.navigateToEdit(row),
-      });
+      items.push({ label: 'Editar cliente', icon: 'pi pi-pencil', command: () => this.navigateToEdit(row) });
     }
-
     if (this.canCreateVehicle && row.status !== StatusCliente.INATIVO) {
-      items.push({
-        label: 'Cadastrar veículo',
-        icon: 'pi pi-car',
-        command: () => this.navigateToAddVeiculo(row),
-      });
+      items.push({ label: 'Cadastrar veículo', icon: 'pi pi-car', command: () => this.navigateToAddVeiculo(row) });
     }
-
     return items;
   }
 
-  hasRowActions() {
-    return true;
-  }
-
-  getTipoClienteLabel(tipo: TipoCliente) {
-    return TipoClienteLabels[tipo] || 'Cliente';
-  }
-
-  getStatusLabel(status: StatusCliente) {
-    return StatusClienteLabels[status] || status;
-  }
+  getTipoClienteLabel(tipo: TipoCliente) { return TipoClienteLabels[tipo] || 'Cliente'; }
+  getStatusLabel(status: StatusCliente) { return StatusClienteLabels[status] || status; }
 
   getStatusClass(status: StatusCliente) {
     switch (status) {
@@ -237,8 +186,6 @@ export class Cliente implements OnInit {
         return 'status-badge--success';
       case StatusCliente.BLOQUEADO:
         return 'status-badge--danger';
-      case StatusCliente.PROSPECTO:
-        return 'status-badge--info';
       default:
         return 'status-badge--neutral';
     }
@@ -246,14 +193,8 @@ export class Cliente implements OnInit {
 
   private fetchPage() {
     const pageIndex = Math.floor(this.first / this.rows);
-    const filters: Record<string, string | number> = {
-      page: pageIndex,
-      size: this.rows,
-      sort: 'nomeCompleto,asc',
-    };
-
+    const filters: Record<string, string | number> = { page: pageIndex, size: this.rows, sort: 'nomeCompleto,asc' };
     this.applySearchFilter(filters);
-
     if (this.selectedTipo) filters['tipoCliente'] = this.selectedTipo;
     if (this.selectedStatus) filters['status'] = this.selectedStatus;
 
@@ -271,7 +212,6 @@ export class Cliente implements OnInit {
         this.backendPage = null;
         this.isLoading = false;
         this.loadError = true;
-
         if (error?.status !== 403) {
           this.messageService.add({
             severity: 'error',
@@ -286,7 +226,6 @@ export class Cliente implements OnInit {
   private applySearchFilter(filters: Record<string, string | number>) {
     const term = this.searchTerm.trim();
     if (!term) return;
-
     const digits = term.replace(/\D/g, '');
     if (digits.length === 11) {
       filters['cpf'] = digits;
@@ -296,7 +235,6 @@ export class Cliente implements OnInit {
       filters['cnpj'] = digits;
       return;
     }
-
     filters['nomeCompleto'] = term;
   }
 
@@ -325,10 +263,6 @@ export class Cliente implements OnInit {
   }
 
   private warnPermission() {
-    this.messageService.add({
-      severity: 'warn',
-      summary: 'Acesso restrito',
-      detail: 'Seu perfil não possui permissão para esta ação.',
-    });
+    this.messageService.add({ severity: 'warn', summary: 'Acesso restrito', detail: 'Seu perfil não possui permissão para esta ação.' });
   }
 }
