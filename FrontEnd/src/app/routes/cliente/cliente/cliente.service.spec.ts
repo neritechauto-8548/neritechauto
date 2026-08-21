@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { TipoContato } from '../models/cliente.models';
 import { ClientesService } from './cliente.service';
 
 describe('ClientesService', () => {
@@ -47,5 +48,29 @@ describe('ClientesService', () => {
     const request = httpTesting.expectOne('/api/v1/clientes/15/reativar');
     expect(request.request.method).toBe('PATCH');
     request.flush({ id: 15, status: 'ATIVO' });
+  });
+
+  it('normalizes legacy contact value to the backend contato contract', () => {
+    service.criarContato(15, {
+      tipoContato: TipoContato.WHATSAPP,
+      valor: '81999998888',
+      principal: true,
+    }).subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/clientes/15/contatos');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      tipoContato: TipoContato.WHATSAPP,
+      contato: '81999998888',
+      principal: true,
+    });
+
+    request.flush({
+      id: 1,
+      clienteId: 15,
+      tipoContato: TipoContato.WHATSAPP,
+      contato: '81999998888',
+      principal: true,
+    });
   });
 });
