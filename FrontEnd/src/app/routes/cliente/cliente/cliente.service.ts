@@ -12,8 +12,19 @@ import {
   ContatoClienteRequest,
   ContatoClienteResponse,
   DocumentoClienteRequest,
-  DocumentoClienteResponse
+  DocumentoClienteResponse,
+  StatusCliente,
+  TipoCliente
 } from '../models/cliente.models';
+
+export interface ClienteListResponseDTO {
+  id: number;
+  displayName: string;
+  type: TipoCliente;
+  maskedTaxId?: string | null;
+  primaryContactSummary?: string | null;
+  status: StatusCliente;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
@@ -23,7 +34,7 @@ export class ClientesService {
   // O frontend envia apenas autenticação. Tenant e escopo são resolvidos e validados
   // pelo backend a partir da sessão; nenhum header/query de tenant é autoridade.
 
-  list(filters: Record<string, any>): Observable<Page<ClienteResponse>> {
+  list(filters: Record<string, any>): Observable<Page<ClienteListResponseDTO>> {
     const url = `${this.base}/v1/clientes`;
     let params = new HttpParams();
     Object.entries(filters || {}).forEach(([k, v]) => {
