@@ -50,4 +50,23 @@ describe('OrcamentoDraftService', () => {
       criadoEm: '2026-08-21T14:30:00',
     });
   });
+
+  it('loads only minimized vehicles for the selected customer', () => {
+    service.listVehiclesForCustomer(15).subscribe();
+
+    const request = http.expectOne(req => req.url === '/api/v1/veiculos/resumo');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('clienteId')).toBe('15');
+    expect(request.request.params.has('empresaId')).toBeFalse();
+    expect(request.request.params.has('tenantId')).toBeFalse();
+    request.flush([
+      {
+        id: 8,
+        marcaNome: 'Volkswagen',
+        modeloNome: 'Polo',
+        maskedPlate: 'ABC••23',
+        status: 'ATIVO',
+      },
+    ]);
+  });
 });
