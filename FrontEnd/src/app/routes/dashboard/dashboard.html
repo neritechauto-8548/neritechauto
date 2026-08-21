@@ -1,23 +1,26 @@
 <section class="dashboard-page" aria-labelledby="dashboard-title">
-  <header class="page-header">
-    <div>
-      <span class="page-header__eyebrow">Home</span>
-      <h1 id="dashboard-title">Dashboard Gerencial</h1>
-      <p>
-        Visão executiva da oficina usando somente indicadores disponíveis no contrato atual do backend.
-      </p>
-    </div>
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Home"
+    title="Dashboard Gerencial"
+    description="Visão executiva da oficina usando somente indicadores disponíveis no contrato atual do backend."
+  >
+    <span pageHeaderMeta class="contract-badge" title="O read model D4 completo ainda está em implementação">
+      Contrato atual
+    </span>
 
-    <div class="page-header__actions">
-      <span class="contract-badge" title="O read model D4 completo ainda está em implementação">
-        Contrato atual
-      </span>
-      <button type="button" class="button button--secondary" (click)="load()" [disabled]="loading">
-        <i class="pi" [ngClass]="loading ? 'pi-spinner pi-spin' : 'pi-refresh'" aria-hidden="true"></i>
-        {{ loading ? 'Atualizando…' : 'Atualizar' }}
-      </button>
-    </div>
-  </header>
+    <button
+      pageHeaderActions
+      type="button"
+      class="button button--secondary"
+      (click)="load()"
+      [disabled]="loading"
+    >
+      <i class="pi" [ngClass]="loading ? 'pi-spinner pi-spin' : 'pi-refresh'" aria-hidden="true"></i>
+      {{ loading ? 'Atualizando…' : 'Atualizar' }}
+    </button>
+  </page-header>
 
   <div class="context-banner" role="note">
     <i class="pi pi-shield" aria-hidden="true"></i>
