@@ -1,13 +1,11 @@
-// Estilo do PageHeader: fundo branco, texto preto e linhas/sombras laterais e inferior
 .matero-page-header {
   display: block;
   padding: 1rem;
   margin-bottom: 1rem;
-  color: #111827; // texto preto (gray-900)
-  background-color: #ffffff; // fundo branco
-  border-radius: 0; // sem borda arredondada
-  // sombras: esquerda, direita e abaixo
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);  // sombra abaixo
+  color: #111827;
+  background-color: #ffffff;
+  border-radius: 0;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 
   .matero-breadcrumb {
     margin-top: 0.5rem;
@@ -15,8 +13,95 @@
   }
 }
 
+.matero-page-header--canonical {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.nt-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+}
+
+.nt-page-header__content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nt-page-header__eyebrow {
+  color: var(--nt-primary-600, #2563eb);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nt-page-header__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nt-page-header__title-group {
+  min-width: 0;
+}
+
+.nt-page-header__title {
+  margin: 0;
+  color: var(--nt-text-primary, #0f172a);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.nt-page-header__description {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--nt-text-secondary, #64748b);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.nt-page-header__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.nt-page-header__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nt-page-header .matero-breadcrumb {
+  margin: 0;
+}
+
 .matero-page-title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 400;
+}
+
+@media (max-width: 767px) {
+  .nt-page-header {
+    flex-direction: column;
+  }
+
+  .nt-page-header__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
