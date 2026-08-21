@@ -64,8 +64,8 @@ export interface Page<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // current page index (0-based)
-  size: number;   // page size
+  number: number;
+  size: number;
 }
 
 // ========== INTERFACES - CLIENTE ==========
@@ -80,14 +80,14 @@ export interface ClienteRequest {
   cnpj?: string;
   inscricaoEstadual?: string;
   inscricaoMunicipal?: string;
-  dataNascimento?: string; // YYYY-MM-DD
+  dataNascimento?: string;
   sexo?: Sexo;
   estadoCivil?: EstadoCivil;
   profissao?: string;
   origemCliente?: OrigemCliente;
   detalhesOrigem?: string;
   status?: StatusCliente;
-  dataBloqueio?: string; // ISO datetime
+  dataBloqueio?: string;
   motivoBloqueio?: string;
   observacoesGerais?: string;
 }
@@ -95,6 +95,15 @@ export interface ClienteRequest {
 export interface ClienteResponse extends ClienteRequest {
   id: number;
   empresaId: number;
+}
+
+export interface ClienteListItemResponse {
+  id: number;
+  displayName: string;
+  tipoCliente: TipoCliente;
+  maskedTaxId?: string | null;
+  primaryContactSummary?: string | null;
+  status: StatusCliente;
 }
 
 // ========== INTERFACES - ENDEREÇO ==========
@@ -106,7 +115,7 @@ export interface EnderecoClienteRequest {
   complemento?: string;
   bairro: string;
   cidade: string;
-  estado: string; // UF (2 letras)
+  estado: string;
   pais?: string;
 }
 
@@ -119,7 +128,11 @@ export interface EnderecoClienteResponse extends EnderecoClienteRequest {
 
 export interface ContatoClienteRequest {
   tipoContato: TipoContato;
-  valor: string; // Obrigatório (UI)
+  /** Campo canônico aceito pelo backend. */
+  contato?: string;
+  /** Alias legado de UI; o service converte para `contato` antes da chamada. */
+  valor?: string;
+  principal?: boolean;
 }
 
 export interface ContatoClienteResponse extends ContatoClienteRequest {
@@ -133,8 +146,8 @@ export interface DocumentoClienteRequest {
   tipoDocumento: TipoDocumento;
   descricao?: string;
   numeroDocumento?: string;
-  dataEmissao?: string; // YYYY-MM-DD
-  dataValidade?: string; // YYYY-MM-DD
+  dataEmissao?: string;
+  dataValidade?: string;
   orgaoEmissor?: string;
   observacoes?: string;
 }
@@ -195,7 +208,7 @@ export const TipoContatoLabels: Record<TipoContato, string> = {
   [TipoContato.CELULAR]: 'Celular',
   [TipoContato.WHATSAPP]: 'WhatsApp',
   [TipoContato.TELEGRAM]: 'Telegram',
-  [TipoContato.OUTROS]: 'Outros'
+  [TipoContato.OUTROS]: 'Outro contato'
 };
 
 export const TipoDocumentoLabels: Record<TipoDocumento, string> = {
@@ -208,7 +221,6 @@ export const TipoDocumentoLabels: Record<TipoDocumento, string> = {
   [TipoDocumento.OUTROS]: 'Outros'
 };
 
-// Helper para obter opções de select
 export const getTipoClienteOptions = () =>
   Object.values(TipoCliente).map(value => ({ label: TipoClienteLabels[value], value }));
 
