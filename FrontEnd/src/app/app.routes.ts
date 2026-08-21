@@ -25,15 +25,13 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: Dashboard, data: { title: 'Home' } },
-
-      // Aliases mantidos durante a reorganização para não quebrar links internos legados.
       { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' },
 
       { path: '403', component: Error403, data: { title: 'Acesso negado' } },
       { path: '404', component: Error404, data: { title: 'Página não encontrada' } },
       { path: '500', component: Error500, data: { title: 'Erro inesperado' } },
 
-      // 01. Gestão de Pátio — raiz prevista no UI Master; implementação funcional ainda pendente.
+      // 01. Gestão de Pátio
       {
         path: 'gestao-patio',
         ...placeholder(
@@ -42,8 +40,7 @@ export const routes: Routes = [
         ),
       },
 
-      // 02. Home
-      // /home definido acima.
+      // 02. Home -> /home
 
       // 03. Clientes
       {
@@ -52,6 +49,7 @@ export const routes: Routes = [
         data: { permissions: ['GERAL_USUARIO'], title: 'Clientes' },
         loadChildren: () => import('./routes/cliente/cliente.routes').then(m => m.routes),
       },
+      // Alias legado temporário para links internos existentes.
       {
         path: 'cliente',
         canActivate: [permissionGuard],
@@ -135,7 +133,7 @@ export const routes: Routes = [
         ),
       },
 
-      // PDV continua disponível no produto, mas não é promovido como raiz fora da árvore oficial.
+      // PDV continua roteável, mas não é promovido como raiz fora da árvore oficial.
       {
         path: 'pdv',
         loadChildren: () => import('./routes/pdv/pdv.routes').then(m => m.routes),
@@ -187,6 +185,15 @@ export const routes: Routes = [
       {
         path: 'relatorios',
         loadChildren: () => import('./routes/relatorios/relatorios.routes').then(m => m.routes),
+      },
+
+      // Ação global da topbar. Mantida fora da árvore raiz do menu.
+      {
+        path: 'suporte',
+        ...placeholder(
+          'Suporte',
+          'A central de suporte será conectada ao canal oficial definido para atendimento sem alterar a navegação principal.'
+        ),
       },
 
       // Administração técnica permanece roteável, porém fora da raiz visual oficial.
