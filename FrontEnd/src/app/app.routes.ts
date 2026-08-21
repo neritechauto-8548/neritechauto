@@ -98,6 +98,10 @@ export const routes: Routes = [
 
       // 06. Movimentação
       {
+        path: 'orcamentos',
+        loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
+      },
+      {
         path: 'orcamento',
         loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
       },
