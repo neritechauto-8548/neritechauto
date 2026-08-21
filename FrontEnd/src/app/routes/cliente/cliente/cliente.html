@@ -35,9 +35,7 @@
           </button>
         }
       </div>
-      <button type="submit" class="nt-button nt-button--secondary" [disabled]="isLoading">
-        Buscar
-      </button>
+      <button type="submit" class="nt-button nt-button--secondary" [disabled]="isLoading">Buscar</button>
     </form>
 
     <div class="filter-row">
@@ -80,15 +78,10 @@
     <header class="results-header">
       <div>
         <span class="results-header__eyebrow">Resultado</span>
-        <h2 id="customer-results-title">
-          {{ totalRecords }} {{ totalRecords === 1 ? 'cliente' : 'clientes' }}
-        </h2>
+        <h2 id="customer-results-title">{{ totalRecords }} {{ totalRecords === 1 ? 'cliente' : 'clientes' }}</h2>
       </div>
       <div class="results-header__meta">
-        <span class="privacy-badge">
-          <i class="pi pi-shield" aria-hidden="true"></i>
-          PII mascarada
-        </span>
+        <span class="privacy-badge"><i class="pi pi-shield" aria-hidden="true"></i>PII mascarada</span>
         <span class="contract-note">Paginação atual por página · cursor pendente</span>
       </div>
     </header>
@@ -132,11 +125,7 @@
                     <div class="customer-identity">
                       <span class="customer-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() }}</span>
                       <div>
-                        @if (canEditCliente) {
-                          <button type="button" class="customer-name" (click)="navigateToEdit(row)">{{ row.nome }}</button>
-                        } @else {
-                          <span class="customer-name customer-name--static">{{ row.nome }}</span>
-                        }
+                        <button type="button" class="customer-name" (click)="navigateToDetail(row)">{{ row.nome }}</button>
                         <span class="customer-type">{{ getTipoClienteLabel(row.tipo) }}</span>
                       </div>
                     </div>
@@ -156,16 +145,14 @@
                     </span>
                   </td>
                   <td class="actions-column">
-                    @if (hasRowActions()) {
-                      <button
-                        pButton
-                        type="button"
-                        icon="pi pi-ellipsis-v"
-                        class="p-button-text p-button-rounded p-button-secondary row-action-button"
-                        [attr.aria-label]="'Ações para ' + row.nome"
-                        (click)="toggleMenu(row, $event, menu)"
-                      ></button>
-                    }
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-ellipsis-v"
+                      class="p-button-text p-button-rounded p-button-secondary row-action-button"
+                      [attr.aria-label]="'Ações para ' + row.nome"
+                      (click)="toggleMenu(row, $event, menu)"
+                    ></button>
                   </td>
                 </tr>
               }
@@ -186,11 +173,7 @@
                 <div class="customer-identity">
                   <span class="customer-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() }}</span>
                   <div>
-                    @if (canEditCliente) {
-                      <button type="button" class="customer-name" (click)="navigateToEdit(row)">{{ row.nome }}</button>
-                    } @else {
-                      <span class="customer-name customer-name--static">{{ row.nome }}</span>
-                    }
+                    <button type="button" class="customer-name" (click)="navigateToDetail(row)">{{ row.nome }}</button>
                     <span class="customer-type">{{ getTipoClienteLabel(row.tipo) }}</span>
                   </div>
                 </div>
@@ -205,20 +188,21 @@
                 <div><dt>Contato</dt><dd>{{ row.contato || 'Não informado' }}</dd></div>
               </dl>
 
-              @if (hasRowActions()) {
-                <div class="customer-card__actions">
-                  @if (canEditCliente) {
-                    <button type="button" class="text-action" (click)="navigateToEdit(row)">
-                      <i class="pi pi-pencil" aria-hidden="true"></i> Editar
-                    </button>
-                  }
-                  @if (canCreateVehicle) {
-                    <button type="button" class="text-action" (click)="navigateToAddVeiculo(row)">
-                      <i class="pi pi-car" aria-hidden="true"></i> Veículo
-                    </button>
-                  }
-                </div>
-              }
+              <div class="customer-card__actions">
+                <button type="button" class="text-action" (click)="navigateToDetail(row)">
+                  <i class="pi pi-id-card" aria-hidden="true"></i> Abrir ficha
+                </button>
+                @if (canEditCliente) {
+                  <button type="button" class="text-action" (click)="navigateToEdit(row)">
+                    <i class="pi pi-pencil" aria-hidden="true"></i> Editar
+                  </button>
+                }
+                @if (canCreateVehicle && row.status !== StatusCliente.INATIVO) {
+                  <button type="button" class="text-action" (click)="navigateToAddVeiculo(row)">
+                    <i class="pi pi-car" aria-hidden="true"></i> Veículo
+                  </button>
+                }
+              </div>
             </article>
           }
         }
@@ -246,20 +230,13 @@
 
     @if (!loadError && totalRecords > 0) {
       <footer class="pagination-bar" aria-label="Paginação de clientes">
-        <span>
-          Mostrando <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> de <strong>{{ totalRecords }}</strong>
-        </span>
+        <span>Mostrando <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> de <strong>{{ totalRecords }}</strong></span>
         <div class="pagination-bar__controls">
           <span>Página {{ currentPage }} de {{ totalPages }}</span>
           <button type="button" class="pagination-button" [disabled]="first === 0 || isLoading" (click)="goPrev()">
             <i class="pi pi-chevron-left" aria-hidden="true"></i><span class="sr-only">Página anterior</span>
           </button>
-          <button
-            type="button"
-            class="pagination-button"
-            [disabled]="first + rows >= totalRecords || isLoading"
-            (click)="goNext()"
-          >
+          <button type="button" class="pagination-button" [disabled]="first + rows >= totalRecords || isLoading" (click)="goNext()">
             <i class="pi pi-chevron-right" aria-hidden="true"></i><span class="sr-only">Próxima página</span>
           </button>
         </div>
