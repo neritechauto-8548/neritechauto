@@ -24,13 +24,44 @@ export class DetalheOrcamentoComponent implements OnInit {
   loadError = false;
   forbidden = false;
 
+  readonly tabs = [
+    { label: 'Resumo', contract: 'ORC-003', active: true },
+    { label: 'Itens', contract: 'ORC-004', active: false },
+    { label: 'Aprovação', contract: 'ORC-007', active: false },
+    { label: 'Comunicação', contract: 'ORC-005', active: false },
+    { label: 'Versões', contract: 'ORC-006', active: false },
+    { label: 'Atividade', contract: 'ORC-003', active: false },
+  ];
+
   ngOnInit() {
+    this.load();
+  }
+
+  get versionLabel() {
+    const version = this.budget?.versaoAtual;
+    return version && version > 0 ? `Versão ${version}` : 'Sem versão enviada';
+  }
+
+  get validityLabel() {
+    return this.budget?.validadeEm ? 'Validade persistida' : 'Contrato de validade pendente';
+  }
+
+  get hasMutableCapability() {
+    return Boolean(this.budget?.allowedActions?.some(action => action !== 'OPEN'));
+  }
+
+  private load() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!Number.isInteger(id) || id <= 0) {
       this.isLoading = false;
       this.loadError = true;
       return;
     }
+
+    this.budget = null;
+    this.isLoading = true;
+    this.loadError = false;
+    this.forbidden = false;
 
     this.service.getById(id).subscribe({
       next: budget => {
@@ -63,7 +94,7 @@ export class DetalheOrcamentoComponent implements OnInit {
   }
 
   tentarNovamente() {
-    this.ngOnInit();
+    this.load();
   }
 
   formatCurrency() {
@@ -73,7 +104,28 @@ export class DetalheOrcamentoComponent implements OnInit {
 
   statusLabel() {
     const status = this.budget?.status || 'RASCUNHO';
-    return status.toLowerCase().replaceAll('_', ' ').replace(/^./, char => char.toUpperCase());
+    return status
+      .toLowerCase()
+      .replaceAll('_', ' ')
+      .replace(/^./, char => char.toUpperCase());
+  }
+
+  statusClass() {
+    switch (this.budget?.status) {
+      case 'APROVADO':
+      case 'CONVERTIDO':
+        return 'object-status--success';
+      case 'ENVIADO':
+      case 'AGUARDANDO_APROVACAO':
+      case 'PARCIAL':
+        return 'object-status--warning';
+      case 'RECUSADO':
+      case 'EXPIRADO':
+      case 'CANCELADO':
+        return 'object-status--danger';
+      default:
+        return 'object-status--neutral';
+    }
   }
 
   nextActionLabel() {
