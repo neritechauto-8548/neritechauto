@@ -101,8 +101,12 @@ export class CadastroOrcamentoComponent implements OnInit {
     });
   }
 
-  onCustomerSelected(event: { value?: CustomerOption } | CustomerOption) {
-    const selected = 'value' in event ? event.value || null : event;
+  onCustomerSelected(event: { value?: CustomerOption } | CustomerOption | null) {
+    const selected = this.isCustomerOption(event)
+      ? event
+      : this.isCustomerOption(event?.value)
+        ? event.value
+        : null;
     this.selectedCliente = selected;
     this.form.veiculoId = null;
     this.vehicleOptions = [];
@@ -247,6 +251,12 @@ export class CadastroOrcamentoComponent implements OnInit {
     };
   }
 
+  private isCustomerOption(value: unknown): value is CustomerOption {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as Partial<CustomerOption>;
+    return typeof candidate.id === 'number' && typeof candidate.nome === 'string';
+  }
+
   private vehicleLabel(vehicle: OrcamentoVehicleSummary) {
     const name = [vehicle.marcaNome, vehicle.modeloNome].filter(Boolean).join(' ') || `Veículo #${vehicle.id}`;
     const year = vehicle.anoModelo || vehicle.anoFabricacao;
@@ -258,3 +268,4 @@ export class CadastroOrcamentoComponent implements OnInit {
     return trimmed || undefined;
   }
 }
+

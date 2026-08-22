@@ -3,7 +3,6 @@ import { permissionGuard } from '@core';
 import { AgendamentosAlertas } from './agendamentos-alertas/agendamentos-alertas';
 import { CadastrarAgendamento } from './cadastrar-agendamento/cadastrar-agendamento';
 import { CalendarioAgendamento } from './calendario-agendamento/calendario-agendamento';
-import { AniversarioAgendamento } from './aniversario-agendamento/aniversario-agendamento';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'calendario', pathMatch: 'full' },
@@ -22,5 +21,14 @@ export const routes: Routes = [
   { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
   { path: 'agendamentos-alertas', component: AgendamentosAlertas },
   { path: 'calendario', component: CalendarioAgendamento },
-  { path: 'aniversario', component: AniversarioAgendamento },
+  {
+    path: 'aniversario',
+    loadComponent: () => import('../system/module-placeholder').then(m => m.ModulePlaceholder),
+    data: {
+      title: 'Aniversários',
+      description:
+        'A experiência será habilitada quando o read model de aniversariantes e o envio de comunicações estiverem reconciliados sem empresaId controlado pelo navegador.',
+    },
+  },
 ];
+

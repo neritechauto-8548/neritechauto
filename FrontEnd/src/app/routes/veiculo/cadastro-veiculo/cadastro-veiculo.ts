@@ -14,7 +14,12 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 
-import { ClientesService } from '../../cliente/cliente/cliente.service';
+import {
+  ClienteDetailResponseDTO,
+  ClienteListResponseDTO,
+  ClientesService,
+} from '../../cliente/cliente/cliente.service';
+import { StatusCliente } from '../../cliente/models/cliente.models';
 import {
   AnoModeloResponse,
   MarcaVeiculoResponse,
@@ -25,6 +30,13 @@ import {
   getStatusVeiculoOptions,
 } from '../models/veiculo.models';
 import { VeiculoService } from '../veiculo/veiculo.service';
+
+interface CustomerOption {
+  id: number;
+  nome: string;
+  cpfCnpj: string;
+  status: StatusCliente;
+}
 
 @Component({
   selector: 'cadastro-veiculo',
@@ -91,8 +103,8 @@ export class CadastroVeiculo implements OnInit {
   loadingCombustiveis = false;
   statusOptions = getStatusVeiculoOptions();
 
-  filteredClientes: any[] = [];
-  selectedCliente: any | null = null;
+  filteredClientes: CustomerOption[] = [];
+  selectedCliente: CustomerOption | null = null;
 
   ngOnInit() {
     this.loadMarcas();
@@ -113,12 +125,8 @@ export class CadastroVeiculo implements OnInit {
         }
 
         this.form.clienteId = Number(cId);
-        this.clientesService.getById(Number(cId)).subscribe(c => {
-          this.selectedCliente = {
-            ...c,
-            nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-            cpfCnpj: c.cpf || c.cnpj || '',
-          };
+        this.clientesService.getSummary(Number(cId)).subscribe(c => {
+          this.selectedCliente = this.toCustomerOption(c);
         });
       });
     });
@@ -132,12 +140,8 @@ export class CadastroVeiculo implements OnInit {
         this.duplicateVehicleId = null;
 
         if (res.clienteId) {
-          this.clientesService.getById(res.clienteId).subscribe(c => {
-            this.selectedCliente = {
-              ...c,
-              nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-              cpfCnpj: c.cpf || c.cnpj || '',
-            };
+          this.clientesService.getSummary(res.clienteId).subscribe(c => {
+            this.selectedCliente = this.toCustomerOption(c);
           });
         }
         if (res.marcaId) {
@@ -317,10 +321,10 @@ export class CadastroVeiculo implements OnInit {
     });
   }
 
-  searchCliente(event: any) {
-    const query = event.query;
+  searchCliente(event: { query?: string }) {
+    const query = (event.query || '').trim();
     const isNumeric = /^\d+$/.test(query.replace(/[.-]/g, ''));
-    const filter: any = {};
+    const filter: Record<string, string | number> = { page: 0, size: 10 };
 
     if (isNumeric) {
       const cleanQuery = query.replace(/\D/g, '');
@@ -330,18 +334,14 @@ export class CadastroVeiculo implements OnInit {
         filter.cpf = cleanQuery;
       }
     } else {
-      filter.nomeCompleto = query;
-      filter.nomeFantasia = query;
-      filter.razaoSocial = query;
+      filter['nomeCompleto'] = query;
     }
 
     this.clientesService.list(filter).subscribe({
       next: page => {
-        this.filteredClientes = page.content.map(c => ({
-          ...c,
-          nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-          cpfCnpj: c.cpf || c.cnpj || '',
-        }));
+        this.filteredClientes = page.content
+          .filter(c => Boolean(this.id) || c.status !== StatusCliente.INATIVO)
+          .map(c => this.toCustomerOption(c));
       },
       error: err => console.error('Erro ao buscar clientes:', err),
     });
@@ -349,6 +349,17 @@ export class CadastroVeiculo implements OnInit {
 
   get marcaOptions() {
     return this.marcas.map(m => ({ label: m.nome, value: m.id }));
+  }
+
+  private toCustomerOption(
+    customer: ClienteListResponseDTO | ClienteDetailResponseDTO
+  ): CustomerOption {
+    return {
+      id: customer.id,
+      nome: customer.displayName || `Cliente #${customer.id}`,
+      cpfCnpj: customer.maskedTaxId || 'Documento não informado',
+      status: customer.status,
+    };
   }
 
   get modeloOptions() {
@@ -517,3 +528,4 @@ export class CadastroVeiculo implements OnInit {
     return (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   }
 }
+

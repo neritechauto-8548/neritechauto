@@ -44,6 +44,23 @@ describe('ClientesService', () => {
     request.flush({ id: 15, tipoCliente: 'PESSOA_FISICA', nomeCompleto: 'Cliente', status: 'ATIVO' });
   });
 
+  it('loads vehicle/customer context only through the minimized summary endpoint', () => {
+    service.getSummary(15).subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/clientes/15/resumo');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.has('tenantId')).toBeFalse();
+    expect(request.request.params.has('empresaId')).toBeFalse();
+    request.flush({
+      id: 15,
+      displayName: 'Cliente Teste',
+      type: 'PESSOA_FISICA',
+      status: 'ATIVO',
+      maskedTaxId: '***.***.***-00',
+      hasRelationshipNotes: false,
+    });
+  });
+
   it('deactivates customer through logical lifecycle endpoint', () => {
     service.deactivate(15).subscribe();
 
@@ -84,3 +101,4 @@ describe('ClientesService', () => {
     });
   });
 });
+
