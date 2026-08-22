@@ -5,9 +5,21 @@ import com.neritech.saas.ordemservico.domain.enums.TipoOS;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 
 public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long> {
     java.util.Optional<OrdemServico> findByIdAndEmpresaId(Long id, Long empresaId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT o FROM OrdemServico o
+            WHERE o.id = :id AND o.empresaId = :empresaId AND o.tipoOS = :tipo
+            """)
+    java.util.Optional<OrdemServico> findBudgetForCompositionUpdate(
+            @org.springframework.data.repository.query.Param("id") Long id,
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("tipo") TipoOS tipo);
 
     Page<OrdemServico> findByEmpresaId(Long empresaId, Pageable pageable);
 

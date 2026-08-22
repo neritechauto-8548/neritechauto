@@ -20,6 +20,12 @@ export const routes: Routes = [
   { path: 'visualizar-orcamento/:numero', loadComponent: () => import('../os/visualizar-os/visualizar-os').then(m => m.VisualizarOS) },
   { path: 'editar-orcamento/:id', loadComponent: () => import('../os/cadastro-os/cadastro-os').then(m => m.CadastroOS) },
   {
+    path: ':id/itens',
+    canActivate: [permissionGuard],
+    data: { title: 'Itens do Orçamento', permissions: ['GERAL_USUARIO'] },
+    loadComponent: () => import('./itens-orcamento').then(m => m.ItensOrcamentoComponent),
+  },
+  {
     path: ':id',
     canActivate: [permissionGuard],
     data: { title: 'Detalhe do Orçamento', permissions: ['GERAL_USUARIO'] },

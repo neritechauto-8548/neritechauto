@@ -106,6 +106,17 @@
 
   <nav class="detail-tabs" role="tablist" aria-label="Seções do orçamento">
     @for (tab of tabs; track tab.label) {
+    @if (tab.route) {
+    <a
+      role="tab"
+      class="detail-tab"
+      [routerLink]="['/orcamentos', budgetId, tab.route]"
+      [attr.aria-selected]="false"
+      title="Abrir composição de itens"
+    >
+      {{ tab.label }} <span>{{ tab.contract }}</span>
+    </a>
+    } @else {
     <button
       type="button"
       role="tab"
@@ -120,6 +131,7 @@
       <span>{{ tab.contract }}</span>
       }
     </button>
+    }
     }
   </nav>
 

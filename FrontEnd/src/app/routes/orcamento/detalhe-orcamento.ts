@@ -1,6 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageHeader } from '@shared';
 import { SkeletonModule } from 'primeng/skeleton';
 
@@ -9,7 +9,7 @@ import { OrcamentoListItem, OrcamentoListService } from './orcamento-list.servic
 @Component({
   selector: 'app-detalhe-orcamento',
   standalone: true,
-  imports: [CommonModule, PageHeader, SkeletonModule],
+  imports: [CommonModule, RouterLink, PageHeader, SkeletonModule],
   templateUrl: './detalhe-orcamento.html',
   styleUrl: './detalhe-orcamento.scss',
 })
@@ -24,9 +24,9 @@ export class DetalheOrcamentoComponent implements OnInit {
   loadError = false;
   forbidden = false;
 
-  readonly tabs = [
+  readonly tabs: { label: string; contract: string; active: boolean; route?: string }[] = [
     { label: 'Resumo', contract: 'ORC-003', active: true },
-    { label: 'Itens', contract: 'ORC-004', active: false },
+    { label: 'Itens', contract: 'ORC-004', active: false, route: 'itens' },
     { label: 'Aprovação', contract: 'ORC-007', active: false },
     { label: 'Comunicação', contract: 'ORC-005', active: false },
     { label: 'Versões', contract: 'ORC-006', active: false },
@@ -100,6 +100,10 @@ export class DetalheOrcamentoComponent implements OnInit {
   formatCurrency() {
     const amount = Number(this.budget?.total?.amount ?? 0);
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+  }
+
+  get budgetId() {
+    return this.budget?.id ?? null;
   }
 
   statusLabel() {

@@ -4,6 +4,11 @@ import com.neritech.saas.orcamento.dto.OrcamentoDraftRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoDraftResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoListResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoListItemResponse;
+import com.neritech.saas.orcamento.dto.OrcamentoCompositionResponse;
+import com.neritech.saas.orcamento.dto.OrcamentoCreateGroupRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoAddCatalogItemRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoCatalogSearchResponse;
+import com.neritech.saas.orcamento.service.OrcamentoCompositionService;
 import com.neritech.saas.orcamento.service.OrcamentoDraftService;
 import com.neritech.saas.orcamento.service.OrcamentoQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,10 +32,15 @@ public class OrcamentoController {
 
     private final OrcamentoDraftService service;
     private final OrcamentoQueryService queryService;
+    private final OrcamentoCompositionService compositionService;
 
-    public OrcamentoController(OrcamentoDraftService service, OrcamentoQueryService queryService) {
+    public OrcamentoController(
+            OrcamentoDraftService service,
+            OrcamentoQueryService queryService,
+            OrcamentoCompositionService compositionService) {
         this.service = service;
         this.queryService = queryService;
+        this.compositionService = compositionService;
     }
 
     @GetMapping
@@ -54,6 +64,40 @@ public class OrcamentoController {
             description = "Retorna o mesmo read model minimizado da lista e nega registros de outro tenant ou de outro tipo.")
     public ResponseEntity<OrcamentoListItemResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(queryService.findById(id));
+    }
+
+    @GetMapping("/catalog")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Buscar pecas e servicos ativos sem expor custo")
+    public ResponseEntity<OrcamentoCatalogSearchResponse> searchCatalog(@RequestParam(name = "q") String query) {
+        return ResponseEntity.ok(compositionService.searchCatalog(query));
+    }
+
+    @GetMapping("/{id}/composition")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Consultar composicao canonica do orcamento")
+    public ResponseEntity<OrcamentoCompositionResponse> getComposition(@PathVariable Long id) {
+        return ResponseEntity.ok(compositionService.get(id));
+    }
+
+    @PostMapping("/{id}/composition/groups")
+    @PreAuthorize("hasAuthority('OS_INCLUIR')")
+    @Operation(summary = "Adicionar grupo ao draft do orcamento")
+    public ResponseEntity<OrcamentoCompositionResponse> createGroup(
+            @PathVariable Long id,
+            @Valid @RequestBody OrcamentoCreateGroupRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(compositionService.createGroup(id, request));
+    }
+
+    @PostMapping("/{id}/composition/groups/{groupId}/items")
+    @PreAuthorize("hasAuthority('OS_INCLUIR')")
+    @Operation(summary = "Adicionar snapshot de catalogo ao grupo")
+    public ResponseEntity<OrcamentoCompositionResponse> addCatalogItem(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @Valid @RequestBody OrcamentoAddCatalogItemRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(compositionService.addCatalogItem(id, groupId, request));
     }
 
     @PostMapping

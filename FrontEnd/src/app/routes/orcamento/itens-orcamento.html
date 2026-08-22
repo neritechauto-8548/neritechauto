@@ -1,0 +1,371 @@
+<section class="builder-page" aria-labelledby="page-title">
+  <page-header
+    title="Composição do orçamento"
+    eyebrow="Orçamentos · ORC-004"
+    description="Agrupe peças e mão de obra em uma proposta clara, calculada pelo servidor."
+    [nav]="['Movimentação', 'Orçamentos', 'Itens']"
+    canonical
+  />
+
+  @if (isLoading) {
+    <div class="builder-skeleton" aria-label="Carregando composição">
+      <p-skeleton height="128px" borderRadius="14px" />
+      <div class="builder-skeleton__grid">
+        <p-skeleton height="420px" borderRadius="14px" />
+        <p-skeleton height="320px" borderRadius="14px" />
+      </div>
+    </div>
+  } @else if (loadError) {
+    <section class="state-panel" [class.state-panel--forbidden]="forbidden" role="alert">
+      <span><i class="pi" [class.pi-lock]="forbidden" [class.pi-cloud-off]="!forbidden"></i></span>
+      <div>
+        <h2>{{ forbidden ? 'Composição restrita' : 'Não foi possível carregar os itens' }}</h2>
+        <p>
+          {{
+            forbidden
+              ? 'Seu perfil não possui acesso a este orçamento.'
+              : 'Nenhum dado anterior foi substituído. Tente novamente quando a conexão estiver estável.'
+          }}
+        </p>
+        <button type="button" class="nt-button nt-button--secondary" (click)="load()">
+          <i class="pi pi-refresh" aria-hidden="true"></i> Tentar novamente
+        </button>
+      </div>
+    </section>
+  } @else if (budget && composition) {
+    <header class="object-header">
+      <div class="object-header__identity">
+        <span class="object-kicker">Rascunho comercial</span>
+        <div>
+          <h1 id="page-title">{{ budget.numero }}</h1>
+          <span class="status-pill"><i aria-hidden="true"></i>{{ budget.status }}</span>
+        </div>
+        <p>
+          {{ budget.cliente?.nome || 'Cliente não informado' }}
+          @if (budget.veiculo) {
+            <span aria-hidden="true">·</span> {{ budget.veiculo.descricao }} · {{ budget.veiculo.placa }}
+          }
+        </p>
+      </div>
+      <div class="object-header__metrics">
+        <div>
+          <span>Total necessário</span>
+          <strong>{{ formatCurrency(composition.requiredTotal) }}</strong>
+        </div>
+        <div>
+          <span>Revisão da composição</span>
+          <strong>#{{ composition.revision }}</strong>
+        </div>
+      </div>
+    </header>
+
+    <nav class="object-tabs" aria-label="Seções do orçamento">
+      @for (tab of tabs; track tab.label) {
+        @if (tab.route === '') {
+          <a class="object-tab" [routerLink]="['/orcamentos', budgetId]">
+            {{ tab.label }} <small>{{ tab.contract }}</small>
+          </a>
+        } @else {
+          <button
+            type="button"
+            class="object-tab"
+            [class.object-tab--active]="tab.active"
+            [disabled]="!tab.active"
+            [attr.aria-current]="tab.active ? 'page' : null"
+          >
+            {{ tab.label }} <small>{{ tab.contract }}</small>
+          </button>
+        }
+      }
+    </nav>
+
+    @if (conflict || mutationError) {
+      <div class="inline-alert" [class.inline-alert--conflict]="conflict" role="alert">
+        <i class="pi" [class.pi-sync]="conflict" [class.pi-exclamation-circle]="!conflict" aria-hidden="true"></i>
+        <span>{{ mutationError }}</span>
+        @if (conflict) {
+          <button type="button" (click)="load()">Recarregar</button>
+        }
+      </div>
+    }
+
+    <section class="builder-toolbar" aria-labelledby="catalog-search-title">
+      <div class="catalog-search">
+        <label id="catalog-search-title" for="catalog-search">Buscar no catálogo</label>
+        <div class="catalog-search__control">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <input
+            id="catalog-search"
+            type="search"
+            autocomplete="off"
+            [formControl]="searchControl"
+            placeholder="Peça, serviço, código interno ou fabricante…"
+            aria-describedby="catalog-search-help"
+          />
+          @if (isSearching) {
+            <i class="pi pi-spin pi-spinner" aria-label="Buscando"></i>
+          }
+        </div>
+        <small id="catalog-search-help">
+          Digite ao menos 2 caracteres. O preço exibido será confirmado pelo servidor ao adicionar.
+        </small>
+
+        @if (catalogResponse) {
+          <div class="catalog-results" aria-live="polite">
+            <header>
+              <strong>Resultados para “{{ catalogResponse.query }}”</strong>
+              <span>{{ catalogResponse.items.length }} encontrado(s)</span>
+            </header>
+            @if (!catalogResponse.items.length) {
+              <div class="catalog-empty">
+                <i class="pi pi-search-minus" aria-hidden="true"></i>
+                <span>Nenhum item ativo encontrado neste catálogo.</span>
+              </div>
+            } @else {
+              <ul role="listbox" aria-label="Resultados do catálogo">
+                @for (item of catalogResponse.items; track item.lineType + '-' + item.id) {
+                  <li role="option">
+                    <span class="type-badge" [class.type-badge--labor]="item.lineType === 'LABOR'">
+                      {{ lineTypeLabel(item.lineType) }}
+                    </span>
+                    <div>
+                      <strong>{{ item.description }}</strong>
+                      <small>
+                        {{ item.reference || 'Sem referência comercial' }}
+                        @if (item.lineType === 'PART') {
+                          · {{ availabilityLabel(item.availabilityStatus) }}
+                        }
+                      </small>
+                    </div>
+                    <span class="catalog-price">{{ formatCurrency(item.suggestedPrice) }}</span>
+                    <button
+                      type="button"
+                      [disabled]="!selectedGroupId || isSaving"
+                      (click)="addCatalogItem(item)"
+                      [attr.aria-label]="'Adicionar ' + item.description + ' ao grupo selecionado'"
+                    >
+                      <i
+                        class="pi"
+                        [class.pi-plus]="activeAddingCatalogId !== item.id"
+                        [class.pi-spin]="activeAddingCatalogId === item.id"
+                        [class.pi-spinner]="activeAddingCatalogId === item.id"
+                        aria-hidden="true"
+                      ></i>
+                      Adicionar
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+      <div class="toolbar-actions">
+        <button type="button" class="nt-button nt-button--secondary" disabled title="Contrato de kits pendente">
+          <i class="pi pi-box" aria-hidden="true"></i> Adicionar kit
+        </button>
+        <button type="button" class="nt-button nt-button--primary" (click)="showGroupForm = true">
+          <i class="pi pi-plus" aria-hidden="true"></i> Novo grupo
+        </button>
+      </div>
+    </section>
+
+    @if (showGroupForm) {
+      <form class="group-form" [formGroup]="groupForm" (ngSubmit)="createGroup()">
+        <header>
+          <div>
+            <span>Novo trabalho</span>
+            <h2>Adicionar grupo de serviço</h2>
+          </div>
+          <button type="button" class="icon-button" (click)="showGroupForm = false" aria-label="Fechar formulário">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </header>
+        <div class="group-form__fields">
+          <label>
+            <span>Título do grupo</span>
+            <input formControlName="title" placeholder="Ex.: Revisão do sistema de freios" />
+            @if (groupForm.controls.title.touched && groupForm.controls.title.invalid) {
+              <small class="field-error">Informe de 3 a 120 caracteres.</small>
+            }
+          </label>
+          <label>
+            <span>Descrição para o cliente <em>Opcional</em></span>
+            <input formControlName="customerDescription" placeholder="Explique o trabalho em linguagem simples" />
+          </label>
+          <label class="recommended-toggle">
+            <input type="checkbox" formControlName="recommended" />
+            <span>
+              <strong>Serviço recomendado</strong>
+              <small>Fica separado do total necessário.</small>
+            </span>
+          </label>
+        </div>
+        <footer>
+          <button type="button" class="nt-button nt-button--secondary" (click)="showGroupForm = false">Cancelar</button>
+          <button type="submit" class="nt-button nt-button--primary" [disabled]="groupForm.invalid || isSaving">
+            @if (isSaving) { <i class="pi pi-spin pi-spinner" aria-hidden="true"></i> }
+            Criar grupo
+          </button>
+        </footer>
+      </form>
+    }
+
+    <div class="builder-layout">
+      <main class="group-column" aria-label="Grupos e itens do orçamento">
+        @if (!composition.groups.length) {
+          <section class="empty-builder">
+            <span><i class="pi pi-wrench" aria-hidden="true"></i></span>
+            <div>
+              <small>Composição vazia</small>
+              <h2>Organize o primeiro trabalho</h2>
+              <p>
+                Crie um grupo para reunir as peças e a mão de obra que o cliente entenderá como uma
+                única decisão comercial.
+              </p>
+              <button type="button" class="nt-button nt-button--primary" (click)="showGroupForm = true">
+                <i class="pi pi-plus" aria-hidden="true"></i> Criar primeiro grupo
+              </button>
+            </div>
+          </section>
+        } @else {
+          @for (group of composition.groups; track trackGroup($index, group); let index = $index) {
+            <article
+              class="service-group"
+              [class.service-group--selected]="selectedGroupId === group.id"
+              [class.service-group--recommended]="group.recommended"
+            >
+              <header>
+                <button type="button" class="group-selector" (click)="selectGroup(group)">
+                  <span>{{ index + 1 | number: '2.0' }}</span>
+                  <div>
+                    <small>{{ group.recommended ? 'Recomendado' : 'Serviço necessário' }}</small>
+                    <h2>{{ group.title }}</h2>
+                    @if (group.customerDescription) { <p>{{ group.customerDescription }}</p> }
+                  </div>
+                </button>
+                <div class="group-subtotal">
+                  <span>Subtotal</span>
+                  <strong>{{ formatCurrency(group.subtotal) }}</strong>
+                  @if (selectedGroupId === group.id) { <small>Grupo selecionado</small> }
+                </div>
+              </header>
+
+              @if (!group.lines.length) {
+                <button type="button" class="group-empty" (click)="selectGroup(group); searchControl.setValue('')">
+                  <i class="pi pi-plus-circle" aria-hidden="true"></i>
+                  <span>
+                    <strong>Adicione peças ou mão de obra</strong>
+                    <small>Selecione este grupo e use a busca do catálogo acima.</small>
+                  </span>
+                </button>
+              } @else {
+                <div class="line-list" role="table" [attr.aria-label]="'Itens de ' + group.title">
+                  <div class="line-list__header" role="row">
+                    <span role="columnheader">Item</span>
+                    <span role="columnheader">Qtd.</span>
+                    <span role="columnheader">Unitário</span>
+                    <span role="columnheader">Total</span>
+                  </div>
+                  @for (line of group.lines; track line.id) {
+                    <div class="line-row" role="row">
+                      <div class="line-identity" role="cell">
+                        <span class="type-badge" [class.type-badge--labor]="line.lineType === 'LABOR'">
+                          {{ lineTypeLabel(line.lineType) }}
+                        </span>
+                        <div>
+                          <strong>{{ line.description }}</strong>
+                          <small>
+                            {{ line.reference || 'Catálogo de serviços' }} · snapshot v{{ line.catalogVersion ?? 0 }}
+                          </small>
+                          @if (line.lineType === 'PART') {
+                            <span class="availability" [attr.data-status]="line.availabilityStatus">
+                              <i class="pi pi-circle-fill" aria-hidden="true"></i>
+                              {{ availabilityLabel(line.availabilityStatus) }} · não reservado
+                            </span>
+                          }
+                        </div>
+                      </div>
+                      <span class="line-value" role="cell" data-label="Quantidade">{{ line.quantity | number: '1.0-3' }}</span>
+                      <span class="line-value" role="cell" data-label="Unitário">{{ formatCurrency(line.unitPrice) }}</span>
+                      <strong class="line-total" role="cell" data-label="Total">{{ formatCurrency(line.totalAmount) }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+            </article>
+          }
+        }
+      </main>
+
+      <aside class="summary-column" aria-label="Totais e integridade">
+        <section class="totals-card">
+          <header>
+            <div>
+              <span>Resumo canônico</span>
+              <h2>Totais da proposta</h2>
+            </div>
+            <span class="calculation-status" [attr.data-status]="composition.calculationStatus">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              {{ composition.calculationStatus === 'CURRENT' ? 'Calculado' : 'Aguardando itens' }}
+            </span>
+          </header>
+          <dl>
+            <div><dt>Mão de obra</dt><dd>{{ formatCurrency(composition.laborTotal) }}</dd></div>
+            <div><dt>Peças</dt><dd>{{ formatCurrency(composition.partsTotal) }}</dd></div>
+            <div class="totals-card__main"><dt>Total necessário</dt><dd>{{ formatCurrency(composition.requiredTotal) }}</dd></div>
+            <div class="totals-card__recommended">
+              <dt>Recomendado</dt><dd>{{ formatCurrency(composition.recommendedTotal) }}</dd>
+            </div>
+          </dl>
+          <p><i class="pi pi-server" aria-hidden="true"></i> Totais retornados pela revisão #{{ composition.revision }} do servidor.</p>
+        </section>
+
+        <section class="issues-card">
+          <header>
+            <span><i class="pi pi-shield" aria-hidden="true"></i></span>
+            <div>
+              <small>Integridade</small>
+              <h2>Pendências da revisão</h2>
+            </div>
+          </header>
+          @if (composition.blockers.length) {
+            <ul>
+              @for (blocker of composition.blockers; track blocker) {
+                <li><i class="pi pi-exclamation-circle" aria-hidden="true"></i>{{ blocker }}</li>
+              }
+            </ul>
+          } @else {
+            <div class="issues-card__ready">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              <span><strong>Composição calculável</strong><small>Sem bloqueios estruturais nesta etapa.</small></span>
+            </div>
+          }
+        </section>
+
+        <section class="save-card" aria-live="polite">
+          <span [class.save-card__pulse]="isSaving"><i class="pi pi-cloud" aria-hidden="true"></i></span>
+          <div>
+            <strong>{{ saveMessage }}</strong>
+            <small>O navegador não calcula nem persiste valores comerciais sozinho.</small>
+          </div>
+        </section>
+
+        <div class="aside-actions">
+          <a class="nt-button nt-button--secondary" [routerLink]="['/orcamentos', budgetId]">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i> Voltar ao resumo
+          </a>
+          <button type="button" class="nt-button nt-button--primary" [disabled]="!composition.canReview">
+            Revisar e enviar <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </button>
+          <small>O envio pertence à ORC-005 e ainda não publica versão nesta tela.</small>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="mobile-action-bar">
+      <div><span>Total necessário</span><strong>{{ formatCurrency(composition.requiredTotal) }}</strong></div>
+      <button type="button" class="nt-button nt-button--primary" [disabled]="!composition.canReview">Revisar</button>
+    </footer>
+  }
+</section>

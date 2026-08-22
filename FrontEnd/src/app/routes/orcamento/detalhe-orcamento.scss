@@ -139,9 +139,15 @@
   font-weight: 650;
   color: #64748b;
   white-space: nowrap;
+  text-decoration: none;
   background: transparent;
   border: 0;
   border-radius: 7px;
+}
+
+a.detail-tab:hover {
+  color: #1d4ed8;
+  background: #eff6ff;
 }
 
 .detail-tab span {

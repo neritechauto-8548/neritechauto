@@ -68,10 +68,12 @@ describe('DetalheOrcamentoComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/veiculos', 20]);
   });
 
-  it('keeps unavailable tabs disabled and exposes no silent mutation commands', () => {
+  it('opens ORC-004 while keeping unavailable contracts without silent mutation commands', () => {
     component.ngOnInit();
 
     expect(component.tabs.filter(tab => tab.active).map(tab => tab.label)).toEqual(['Resumo']);
+    expect(component.tabs.find(tab => tab.label === 'Itens')?.route).toBe('itens');
+    expect(component.tabs.filter(tab => !tab.active && !tab.route)).toHaveSize(4);
     expect('salvar' in component).toBeFalse();
     expect('cancelar' in component).toBeFalse();
     expect('converter' in component).toBeFalse();
