@@ -1,20 +1,11 @@
 name: CI NeriTech Auto Rebuild
 
+# Durante a reconstrução, a validação completa fica deliberadamente manual.
+# Isso evita consumir tempo/créditos a cada commit enquanto o projeto ainda está
+# em implementação. No checkpoint final, este workflow deve ser disparado por
+# workflow_dispatch e, depois da estabilização, os gatilhos automáticos podem
+# ser reativados para PRs e para a branch principal.
 on:
-  push:
-    branches:
-      - 'feature/**'
-    paths:
-      - 'backend/**'
-      - 'FrontEnd/**'
-      - '.github/workflows/ci-rebuild.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - 'FrontEnd/**'
-
   workflow_dispatch:
 
 permissions:
