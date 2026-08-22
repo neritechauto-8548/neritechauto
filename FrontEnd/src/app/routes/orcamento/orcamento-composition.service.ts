@@ -27,6 +27,7 @@ export interface CompositionGroup {
   id: number;
   title: string;
   customerDescription: string | null;
+  internalNote: string | null;
   recommended: boolean;
   visibility: 'CUSTOMER_VISIBLE' | 'INTERNAL_ONLY';
   position: number;
@@ -90,7 +91,10 @@ export class OrcamentoCompositionService {
       visibility: 'CUSTOMER_VISIBLE' | 'INTERNAL_ONLY';
     }
   ): Observable<BudgetComposition> {
-    return this.http.post<BudgetComposition>(`${this.baseUrl}/${budgetId}/composition/groups`, request);
+    return this.http.post<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups`,
+      request
+    );
   }
 
   addCatalogItem(
@@ -108,4 +112,108 @@ export class OrcamentoCompositionService {
       request
     );
   }
+
+  updateGroup(
+    budgetId: number,
+    groupId: number,
+    request: {
+      expectedRevision: number;
+      title: string;
+      customerDescription: string | null;
+      internalNote: string | null;
+      recommended: boolean;
+      visibility: 'CUSTOMER_VISIBLE' | 'INTERNAL_ONLY';
+    }
+  ): Observable<BudgetComposition> {
+    return this.http.put<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}`,
+      request
+    );
+  }
+
+  duplicateGroup(
+    budgetId: number,
+    groupId: number,
+    expectedRevision: number
+  ): Observable<BudgetComposition> {
+    return this.http.post<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/duplicate`,
+      { expectedRevision }
+    );
+  }
+
+  deleteGroup(
+    budgetId: number,
+    groupId: number,
+    expectedRevision: number
+  ): Observable<BudgetComposition> {
+    return this.http.delete<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}`,
+      { params: new HttpParams().set('expectedRevision', expectedRevision) }
+    );
+  }
+
+  reorderGroups(
+    budgetId: number,
+    expectedRevision: number,
+    orderedIds: number[]
+  ): Observable<BudgetComposition> {
+    return this.http.put<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/reorder`,
+      {
+        expectedRevision,
+        orderedIds,
+      }
+    );
+  }
+
+  updateLine(
+    budgetId: number,
+    groupId: number,
+    itemId: number,
+    expectedRevision: number,
+    quantity: number
+  ): Observable<BudgetComposition> {
+    return this.http.put<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/items/${itemId}`,
+      { expectedRevision, quantity }
+    );
+  }
+
+  duplicateLine(
+    budgetId: number,
+    groupId: number,
+    itemId: number,
+    expectedRevision: number
+  ): Observable<BudgetComposition> {
+    return this.http.post<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/items/${itemId}/duplicate`,
+      { expectedRevision }
+    );
+  }
+
+  deleteLine(
+    budgetId: number,
+    groupId: number,
+    itemId: number,
+    expectedRevision: number
+  ): Observable<BudgetComposition> {
+    return this.http.delete<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/items/${itemId}`,
+      { params: new HttpParams().set('expectedRevision', expectedRevision) }
+    );
+  }
+
+  reorderLines(
+    budgetId: number,
+    groupId: number,
+    expectedRevision: number,
+    orderedIds: number[]
+  ): Observable<BudgetComposition> {
+    return this.http.put<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/items/reorder`,
+      { expectedRevision, orderedIds }
+    );
+  }
 }
+

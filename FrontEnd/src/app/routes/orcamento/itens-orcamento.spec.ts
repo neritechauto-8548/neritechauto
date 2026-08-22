@@ -50,6 +50,7 @@ describe('ItensOrcamentoComponent', () => {
         id: 15,
         title: 'Sistema de freios',
         customerDescription: 'Revisão segura',
+        internalNote: null,
         recommended: false,
         visibility: 'CUSTOMER_VISIBLE',
         position: 0,
@@ -62,7 +63,20 @@ describe('ItensOrcamentoComponent', () => {
   beforeEach(() => {
     compositionService = jasmine.createSpyObj<OrcamentoCompositionService>(
       'OrcamentoCompositionService',
-      ['get', 'searchCatalog', 'createGroup', 'addCatalogItem']
+      [
+        'get',
+        'searchCatalog',
+        'createGroup',
+        'addCatalogItem',
+        'updateGroup',
+        'duplicateGroup',
+        'deleteGroup',
+        'reorderGroups',
+        'updateLine',
+        'duplicateLine',
+        'deleteLine',
+        'reorderLines',
+      ]
     );
     budgetService = jasmine.createSpyObj<OrcamentoListService>('OrcamentoListService', ['getById']);
     compositionService.get.and.returnValue(of(composition));
@@ -154,4 +168,60 @@ describe('ItensOrcamentoComponent', () => {
     expect(component.conflict).toBeTrue();
     expect(component.mutationError).toContain('Recarregue');
   });
+
+  it('updates group metadata against the current revision without sending prices', () => {
+    compositionService.updateGroup.and.returnValue(of({ ...composition, revision: 5 }));
+    component.ngOnInit();
+    component.startEditGroup(composition.groups[0]);
+    component.editGroupForm.patchValue({
+      title: 'Freios dianteiros',
+      internalNote: 'Validar ruído no teste de rodagem',
+      visibility: 'INTERNAL_ONLY',
+    });
+
+    component.saveGroup(15);
+
+    expect(compositionService.updateGroup).toHaveBeenCalledWith(91, 15, {
+      expectedRevision: 4,
+      title: 'Freios dianteiros',
+      customerDescription: 'Revisão segura',
+      internalNote: 'Validar ruído no teste de rodagem',
+      recommended: false,
+      visibility: 'INTERNAL_ONLY',
+    });
+    expect(component.editingGroupId).toBeNull();
+  });
+
+  it('moves a group with a complete ordered id list as the accessible drag alternative', () => {
+    const secondGroup = { ...composition.groups[0], id: 16, title: 'Suspensão', position: 1 };
+    const twoGroups = {
+      ...composition,
+      groups: [composition.groups[0], secondGroup],
+      groupCount: 2,
+    };
+    compositionService.get.and.returnValue(of(twoGroups));
+    compositionService.reorderGroups.and.returnValue(
+      of({ ...twoGroups, revision: 5, groups: [secondGroup, composition.groups[0]] })
+    );
+    component.ngOnInit();
+
+    component.moveGroup(0, 1);
+
+    expect(compositionService.reorderGroups).toHaveBeenCalledWith(91, 4, [16, 15]);
+  });
+
+  it('requires explicit confirmation before deleting a group', () => {
+    compositionService.deleteGroup.and.returnValue(
+      of({ ...composition, revision: 5, groups: [], groupCount: 0 })
+    );
+    component.ngOnInit();
+
+    component.requestDeleteGroup(composition.groups[0]);
+    expect(compositionService.deleteGroup).not.toHaveBeenCalled();
+
+    component.confirmDeletion();
+    expect(compositionService.deleteGroup).toHaveBeenCalledOnceWith(91, 15, 4);
+    expect(component.pendingDeletion).toBeNull();
+  });
 });
+

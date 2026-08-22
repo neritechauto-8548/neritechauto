@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrcamentoLineItemRepository extends JpaRepository<OrcamentoLineItem, Long> {
     @Query("""
@@ -20,4 +21,13 @@ public interface OrcamentoLineItemRepository extends JpaRepository<OrcamentoLine
             @Param("orcamentoId") Long orcamentoId);
 
     long countByEmpresaIdAndGroupId(Long empresaId, Long groupId);
+
+    List<OrcamentoLineItem> findByEmpresaIdAndGroupIdOrderByPositionAsc(Long empresaId, Long groupId);
+
+    Optional<OrcamentoLineItem> findByIdAndEmpresaIdAndGroupIdAndGroupOrcamentoId(
+            Long id,
+            Long empresaId,
+            Long groupId,
+            Long orcamentoId);
 }
+

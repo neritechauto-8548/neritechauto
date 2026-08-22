@@ -8,6 +8,10 @@ import com.neritech.saas.orcamento.dto.OrcamentoCompositionResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoCreateGroupRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoAddCatalogItemRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoCatalogSearchResponse;
+import com.neritech.saas.orcamento.dto.OrcamentoReorderRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateGroupRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
 import com.neritech.saas.orcamento.service.OrcamentoCompositionService;
 import com.neritech.saas.orcamento.service.OrcamentoDraftService;
 import com.neritech.saas.orcamento.service.OrcamentoQueryService;
@@ -19,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -89,6 +95,46 @@ public class OrcamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(compositionService.createGroup(id, request));
     }
 
+    @PutMapping("/{id}/composition/groups/{groupId}")
+    @PreAuthorize("hasAuthority('OS_ALTERAR')")
+    @Operation(summary = "Editar metadados do grupo e recalcular a composicao")
+    public ResponseEntity<OrcamentoCompositionResponse> updateGroup(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @Valid @RequestBody OrcamentoUpdateGroupRequest request) {
+        return ResponseEntity.ok(compositionService.updateGroup(id, groupId, request));
+    }
+
+    @PostMapping("/{id}/composition/groups/{groupId}/duplicate")
+    @PreAuthorize("hasAuthority('OS_INCLUIR')")
+    @Operation(summary = "Duplicar grupo preservando os snapshots comerciais")
+    public ResponseEntity<OrcamentoCompositionResponse> duplicateGroup(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @Valid @RequestBody OrcamentoRevisionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(compositionService.duplicateGroup(id, groupId, request));
+    }
+
+    @DeleteMapping("/{id}/composition/groups/{groupId}")
+    @PreAuthorize("hasAuthority('OS_EXCLUIR')")
+    @Operation(summary = "Remover grupo e recalcular a composicao")
+    public ResponseEntity<OrcamentoCompositionResponse> deleteGroup(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @RequestParam Long expectedRevision) {
+        return ResponseEntity.ok(compositionService.deleteGroup(id, groupId, expectedRevision));
+    }
+
+    @PutMapping("/{id}/composition/groups/reorder")
+    @PreAuthorize("hasAuthority('OS_ALTERAR')")
+    @Operation(summary = "Reordenar todos os grupos com revisao explicita")
+    public ResponseEntity<OrcamentoCompositionResponse> reorderGroups(
+            @PathVariable Long id,
+            @Valid @RequestBody OrcamentoReorderRequest request) {
+        return ResponseEntity.ok(compositionService.reorderGroups(id, request));
+    }
+
     @PostMapping("/{id}/composition/groups/{groupId}/items")
     @PreAuthorize("hasAuthority('OS_INCLUIR')")
     @Operation(summary = "Adicionar snapshot de catalogo ao grupo")
@@ -100,6 +146,50 @@ public class OrcamentoController {
                 .body(compositionService.addCatalogItem(id, groupId, request));
     }
 
+    @PutMapping("/{id}/composition/groups/{groupId}/items/{itemId}")
+    @PreAuthorize("hasAuthority('OS_ALTERAR')")
+    @Operation(summary = "Atualizar quantidade e recalcular pelo servidor")
+    public ResponseEntity<OrcamentoCompositionResponse> updateLine(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody OrcamentoUpdateLineRequest request) {
+        return ResponseEntity.ok(compositionService.updateLine(id, groupId, itemId, request));
+    }
+
+    @PostMapping("/{id}/composition/groups/{groupId}/items/{itemId}/duplicate")
+    @PreAuthorize("hasAuthority('OS_INCLUIR')")
+    @Operation(summary = "Duplicar item preservando seu snapshot comercial")
+    public ResponseEntity<OrcamentoCompositionResponse> duplicateLine(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody OrcamentoRevisionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(compositionService.duplicateLine(id, groupId, itemId, request));
+    }
+
+    @DeleteMapping("/{id}/composition/groups/{groupId}/items/{itemId}")
+    @PreAuthorize("hasAuthority('OS_EXCLUIR')")
+    @Operation(summary = "Remover item e recalcular a composicao")
+    public ResponseEntity<OrcamentoCompositionResponse> deleteLine(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @PathVariable Long itemId,
+            @RequestParam Long expectedRevision) {
+        return ResponseEntity.ok(compositionService.deleteLine(id, groupId, itemId, expectedRevision));
+    }
+
+    @PutMapping("/{id}/composition/groups/{groupId}/items/reorder")
+    @PreAuthorize("hasAuthority('OS_ALTERAR')")
+    @Operation(summary = "Reordenar todos os itens do grupo com revisao explicita")
+    public ResponseEntity<OrcamentoCompositionResponse> reorderLines(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @Valid @RequestBody OrcamentoReorderRequest request) {
+        return ResponseEntity.ok(compositionService.reorderLines(id, groupId, request));
+    }
+
     @PostMapping
     @PreAuthorize("hasAuthority('OS_INCLUIR')")
     @Operation(
@@ -109,3 +199,4 @@ public class OrcamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 }
+

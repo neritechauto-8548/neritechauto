@@ -12,6 +12,10 @@ import com.neritech.saas.orcamento.dto.OrcamentoCompositionResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoCreateGroupRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoCatalogItemResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoCatalogSearchResponse;
+import com.neritech.saas.orcamento.dto.OrcamentoReorderRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateGroupRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
 import com.neritech.saas.orcamento.repository.OrcamentoLineItemRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoServiceGroupRepository;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
@@ -30,9 +34,11 @@ import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class OrcamentoCompositionService {
@@ -108,9 +114,7 @@ public class OrcamentoCompositionService {
         group.setPosition(Math.toIntExact(groupRepository.countByEmpresaIdAndOrcamentoId(tenantId, budgetId)));
         groupRepository.save(group);
 
-        advanceRevision(budget);
-        budgetRepository.saveAndFlush(budget);
-        return buildResponse(tenantId, budget);
+        return finishMutation(tenantId, budget);
     }
 
     @Transactional
@@ -130,10 +134,164 @@ public class OrcamentoCompositionService {
         item.setPosition(Math.toIntExact(lineRepository.countByEmpresaIdAndGroupId(tenantId, groupId)));
         lineRepository.save(item);
 
-        advanceRevision(budget);
-        recalculateBudget(tenantId, budget);
-        budgetRepository.saveAndFlush(budget);
-        return buildResponse(tenantId, budget);
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse updateGroup(
+            Long budgetId,
+            Long groupId,
+            OrcamentoUpdateGroupRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoServiceGroup group = requireGroup(tenantId, budgetId, groupId);
+
+        group.setTitle(normalizeTitle(request.title()));
+        group.setCustomerDescription(trimToNull(request.customerDescription()));
+        group.setInternalNote(trimToNull(request.internalNote()));
+        group.setRecommended(request.recommended());
+        group.setVisibility(parseVisibility(request.visibility()));
+        groupRepository.save(group);
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse duplicateGroup(
+            Long budgetId,
+            Long groupId,
+            OrcamentoRevisionRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoServiceGroup source = requireGroup(tenantId, budgetId, groupId);
+
+        OrcamentoServiceGroup duplicate = new OrcamentoServiceGroup();
+        duplicate.setEmpresaId(tenantId);
+        duplicate.setOrcamento(budget);
+        duplicate.setTitle(copyTitle(source.getTitle()));
+        duplicate.setCustomerDescription(source.getCustomerDescription());
+        duplicate.setInternalNote(source.getInternalNote());
+        duplicate.setRecommended(source.isRecommended());
+        duplicate.setVisibility(source.getVisibility());
+        duplicate.setPosition(Math.toIntExact(groupRepository.countByEmpresaIdAndOrcamentoId(tenantId, budgetId)));
+        groupRepository.saveAndFlush(duplicate);
+
+        List<OrcamentoLineItem> sourceLines =
+                lineRepository.findByEmpresaIdAndGroupIdOrderByPositionAsc(tenantId, groupId);
+        List<OrcamentoLineItem> duplicateLines = sourceLines.stream()
+                .map(line -> copyLine(tenantId, duplicate, line, line.getPosition()))
+                .toList();
+        lineRepository.saveAll(duplicateLines);
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse deleteGroup(Long budgetId, Long groupId, Long expectedRevision) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, expectedRevision);
+        OrcamentoServiceGroup group = requireGroup(tenantId, budgetId, groupId);
+
+        groupRepository.delete(group);
+        groupRepository.flush();
+        normalizeGroupPositions(tenantId, budgetId);
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse reorderGroups(Long budgetId, OrcamentoReorderRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        List<OrcamentoServiceGroup> groups =
+                groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(tenantId, budgetId);
+        validateExactOrder(request.orderedIds(), groups.stream().map(OrcamentoServiceGroup::getId).toList(), "grupos");
+
+        Map<Long, OrcamentoServiceGroup> byId = new LinkedHashMap<>();
+        groups.forEach(group -> byId.put(group.getId(), group));
+        persistGroupOrder(request.orderedIds().stream().map(byId::get).toList());
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse updateLine(
+            Long budgetId,
+            Long groupId,
+            Long itemId,
+            OrcamentoUpdateLineRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoLineItem item = requireLine(tenantId, budgetId, groupId, itemId);
+
+        BigDecimal quantity = request.quantity().setScale(3, RoundingMode.HALF_UP);
+        item.setQuantity(quantity);
+        item.setAvailabilityStatus(refreshAvailability(tenantId, item, quantity));
+        item.setTotalAmount(calculateLineTotal(quantity, item.getUnitPrice(), item.getDiscountAmount()));
+        lineRepository.save(item);
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse duplicateLine(
+            Long budgetId,
+            Long groupId,
+            Long itemId,
+            OrcamentoRevisionRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoServiceGroup group = requireGroup(tenantId, budgetId, groupId);
+        OrcamentoLineItem source = requireLine(tenantId, budgetId, groupId, itemId);
+
+        int position = Math.toIntExact(lineRepository.countByEmpresaIdAndGroupId(tenantId, groupId));
+        lineRepository.save(copyLine(tenantId, group, source, position));
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse deleteLine(
+            Long budgetId,
+            Long groupId,
+            Long itemId,
+            Long expectedRevision) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, expectedRevision);
+        OrcamentoLineItem item = requireLine(tenantId, budgetId, groupId, itemId);
+
+        lineRepository.delete(item);
+        lineRepository.flush();
+        normalizeLinePositions(tenantId, groupId);
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse reorderLines(
+            Long budgetId,
+            Long groupId,
+            OrcamentoReorderRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        requireGroup(tenantId, budgetId, groupId);
+        List<OrcamentoLineItem> lines =
+                lineRepository.findByEmpresaIdAndGroupIdOrderByPositionAsc(tenantId, groupId);
+        validateExactOrder(request.orderedIds(), lines.stream().map(OrcamentoLineItem::getId).toList(), "itens");
+
+        Map<Long, OrcamentoLineItem> byId = new LinkedHashMap<>();
+        lines.forEach(line -> byId.put(line.getId(), line));
+        persistLineOrder(request.orderedIds().stream().map(byId::get).toList());
+
+        return finishMutation(tenantId, budget);
     }
 
     private OrcamentoLineItem resolveCatalogSnapshot(
@@ -181,6 +339,18 @@ public class OrcamentoCompositionService {
         if (safeAvailable.compareTo(requested) >= 0) return OrcamentoLineItem.AvailabilityStatus.AVAILABLE;
         if (safeAvailable.signum() > 0) return OrcamentoLineItem.AvailabilityStatus.PARTIAL;
         return OrcamentoLineItem.AvailabilityStatus.NEEDED;
+    }
+
+    private OrcamentoLineItem.AvailabilityStatus refreshAvailability(
+            Long tenantId,
+            OrcamentoLineItem item,
+            BigDecimal requested) {
+        if (item.getLineType() != OrcamentoLineItem.LineType.PART || item.getCatalogItemId() == null) {
+            return OrcamentoLineItem.AvailabilityStatus.NOT_APPLICABLE;
+        }
+        return productRepository.findByIdAndEmpresaId(item.getCatalogItemId(), tenantId)
+                .map(product -> resolveAvailability(product.getQuantidadeEstoque(), requested))
+                .orElse(OrcamentoLineItem.AvailabilityStatus.NEEDED);
     }
 
     private void recalculateBudget(Long tenantId, OrdemServico budget) {
@@ -263,6 +433,7 @@ public class OrcamentoCompositionService {
                 group.getId(),
                 group.getTitle(),
                 group.getCustomerDescription(),
+                group.getInternalNote(),
                 group.isRecommended(),
                 group.getVisibility().name(),
                 group.getPosition(),
@@ -288,6 +459,84 @@ public class OrcamentoCompositionService {
     private OrdemServico lockBudget(Long tenantId, Long budgetId) {
         return budgetRepository.findBudgetForCompositionUpdate(budgetId, tenantId, TipoOS.ORCAMENTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Orcamento nao encontrado no contexto autenticado."));
+    }
+
+    private OrcamentoServiceGroup requireGroup(Long tenantId, Long budgetId, Long groupId) {
+        return groupRepository.findByIdAndEmpresaIdAndOrcamentoId(groupId, tenantId, budgetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Grupo nao encontrado no orcamento autenticado."));
+    }
+
+    private OrcamentoLineItem requireLine(Long tenantId, Long budgetId, Long groupId, Long itemId) {
+        return lineRepository
+                .findByIdAndEmpresaIdAndGroupIdAndGroupOrcamentoId(itemId, tenantId, groupId, budgetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item nao encontrado no grupo autenticado."));
+    }
+
+    private OrcamentoCompositionResponse finishMutation(Long tenantId, OrdemServico budget) {
+        advanceRevision(budget);
+        recalculateBudget(tenantId, budget);
+        budgetRepository.saveAndFlush(budget);
+        return buildResponse(tenantId, budget);
+    }
+
+    private void normalizeGroupPositions(Long tenantId, Long budgetId) {
+        persistGroupOrder(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(tenantId, budgetId));
+    }
+
+    private void normalizeLinePositions(Long tenantId, Long groupId) {
+        persistLineOrder(lineRepository.findByEmpresaIdAndGroupIdOrderByPositionAsc(tenantId, groupId));
+    }
+
+    private void persistGroupOrder(List<OrcamentoServiceGroup> groups) {
+        for (int index = 0; index < groups.size(); index++) groups.get(index).setPosition(1_000_000 + index);
+        groupRepository.saveAllAndFlush(groups);
+        for (int index = 0; index < groups.size(); index++) groups.get(index).setPosition(index);
+        groupRepository.saveAll(groups);
+    }
+
+    private void persistLineOrder(List<OrcamentoLineItem> lines) {
+        for (int index = 0; index < lines.size(); index++) lines.get(index).setPosition(1_000_000 + index);
+        lineRepository.saveAllAndFlush(lines);
+        for (int index = 0; index < lines.size(); index++) lines.get(index).setPosition(index);
+        lineRepository.saveAll(lines);
+    }
+
+    private void validateExactOrder(List<Long> requested, List<Long> current, String resourceLabel) {
+        Set<Long> unique = new HashSet<>(requested);
+        if (requested.size() != current.size() || unique.size() != requested.size() || !unique.equals(new HashSet<>(current))) {
+            throw new BusinessException("A ordem de " + resourceLabel + " nao corresponde a composicao atual.");
+        }
+    }
+
+    private OrcamentoLineItem copyLine(
+            Long tenantId,
+            OrcamentoServiceGroup group,
+            OrcamentoLineItem source,
+            int position) {
+        OrcamentoLineItem copy = new OrcamentoLineItem();
+        copy.setEmpresaId(tenantId);
+        copy.setGroup(group);
+        copy.setLineType(source.getLineType());
+        copy.setCatalogItemId(source.getCatalogItemId());
+        copy.setCatalogVersion(source.getCatalogVersion());
+        copy.setSource(source.getSource());
+        copy.setDescriptionSnapshot(source.getDescriptionSnapshot());
+        copy.setReferenceSnapshot(source.getReferenceSnapshot());
+        copy.setQuantity(source.getQuantity());
+        copy.setUnitPrice(source.getUnitPrice());
+        copy.setDiscountAmount(source.getDiscountAmount());
+        copy.setTotalAmount(source.getTotalAmount());
+        copy.setAvailabilityStatus(source.getAvailabilityStatus());
+        copy.setPosition(position);
+        return copy;
+    }
+
+    private String copyTitle(String source) {
+        String suffix = " (copia)";
+        String base = source.length() + suffix.length() <= 120
+                ? source
+                : source.substring(0, 120 - suffix.length()).trim();
+        return base + suffix;
     }
 
     private void assertRevision(OrdemServico budget, Long expectedRevision) {
@@ -345,3 +594,4 @@ public class OrcamentoCompositionService {
         return tenantId;
     }
 }
+

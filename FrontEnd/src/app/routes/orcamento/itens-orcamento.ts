@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -13,6 +13,7 @@ import {
   filter,
   finalize,
   forkJoin,
+  Observable,
   switchMap,
   tap,
 } from 'rxjs';
@@ -22,9 +23,14 @@ import {
   CatalogSearchItem,
   CatalogSearchResponse,
   CompositionGroup,
+  CompositionLine,
   OrcamentoCompositionService,
 } from './orcamento-composition.service';
 import { OrcamentoListItem, OrcamentoListService } from './orcamento-list.service';
+
+type PendingDeletion =
+  | { kind: 'group'; groupId: number; label: string }
+  | { kind: 'line'; groupId: number; itemId: number; label: string };
 
 @Component({
   selector: 'app-itens-orcamento',
@@ -34,6 +40,8 @@ import { OrcamentoListItem, OrcamentoListService } from './orcamento-list.servic
   styleUrl: './itens-orcamento.scss',
 })
 export class ItensOrcamentoComponent implements OnInit {
+  @ViewChild('cancelDeletion') private cancelDeletionButton?: ElementRef<HTMLButtonElement>;
+
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly budgetService = inject(OrcamentoListService);
@@ -54,6 +62,9 @@ export class ItensOrcamentoComponent implements OnInit {
   activeAddingCatalogId: number | null = null;
   catalogResponse: CatalogSearchResponse | null = null;
   isSearching = false;
+  editingGroupId: number | null = null;
+  editingLineId: number | null = null;
+  pendingDeletion: PendingDeletion | null = null;
 
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly groupForm = new FormGroup({
@@ -66,6 +77,28 @@ export class ItensOrcamentoComponent implements OnInit {
       validators: [Validators.maxLength(2000)],
     }),
     recommended: new FormControl(false, { nonNullable: true }),
+  });
+  readonly editGroupForm = new FormGroup({
+    title: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(3), Validators.maxLength(120)],
+    }),
+    customerDescription: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(2000)],
+    }),
+    internalNote: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(4000)],
+    }),
+    recommended: new FormControl(false, { nonNullable: true }),
+    visibility: new FormControl<'CUSTOMER_VISIBLE' | 'INTERNAL_ONLY'>('CUSTOMER_VISIBLE', {
+      nonNullable: true,
+    }),
+  });
+  readonly lineQuantityControl = new FormControl(1, {
+    nonNullable: true,
+    validators: [Validators.required, Validators.min(0.001), Validators.max(999_999_999)],
   });
 
   readonly tabs = [
@@ -177,6 +210,163 @@ export class ItensOrcamentoComponent implements OnInit {
       });
   }
 
+  startEditGroup(group: CompositionGroup) {
+    this.selectGroup(group);
+    this.editingLineId = null;
+    this.editingGroupId = group.id;
+    this.editGroupForm.setValue({
+      title: group.title,
+      customerDescription: group.customerDescription ?? '',
+      internalNote: group.internalNote ?? '',
+      recommended: group.recommended,
+      visibility: group.visibility,
+    });
+  }
+
+  saveGroup(groupId: number) {
+    if (!this.composition || this.editGroupForm.invalid || this.isSaving) {
+      this.editGroupForm.markAllAsTouched();
+      return;
+    }
+    const value = this.editGroupForm.getRawValue();
+    this.runMutation(
+      this.compositionService.updateGroup(this.budgetId, groupId, {
+        expectedRevision: this.composition.revision,
+        title: value.title,
+        customerDescription: value.customerDescription || null,
+        internalNote: value.internalNote || null,
+        recommended: value.recommended,
+        visibility: value.visibility,
+      }),
+      'Atualizando grupo…',
+      'Grupo atualizado e totais recalculados',
+      () => (this.editingGroupId = null)
+    );
+  }
+
+  duplicateGroup(group: CompositionGroup) {
+    if (!this.composition) return;
+    this.runMutation(
+      this.compositionService.duplicateGroup(this.budgetId, group.id, this.composition.revision),
+      'Duplicando snapshots do grupo…',
+      'Grupo duplicado sem reler preços do catálogo',
+      composition => (this.selectedGroupId = composition.groups.at(-1)?.id ?? null)
+    );
+  }
+
+  moveGroup(index: number, offset: -1 | 1) {
+    if (!this.composition) return;
+    const target = index + offset;
+    if (target < 0 || target >= this.composition.groups.length) return;
+    const orderedIds = this.composition.groups.map(group => group.id);
+    [orderedIds[index], orderedIds[target]] = [orderedIds[target], orderedIds[index]];
+    this.runMutation(
+      this.compositionService.reorderGroups(this.budgetId, this.composition.revision, orderedIds),
+      'Reordenando grupos…',
+      'Ordem dos grupos salva no servidor'
+    );
+  }
+
+  startEditLine(line: CompositionLine) {
+    this.editingGroupId = null;
+    this.editingLineId = line.id;
+    this.lineQuantityControl.setValue(line.quantity);
+  }
+
+  saveLine(groupId: number, lineId: number) {
+    if (!this.composition || this.lineQuantityControl.invalid || this.isSaving) {
+      this.lineQuantityControl.markAsTouched();
+      return;
+    }
+    this.runMutation(
+      this.compositionService.updateLine(
+        this.budgetId,
+        groupId,
+        lineId,
+        this.composition.revision,
+        this.lineQuantityControl.getRawValue()
+      ),
+      'Recalculando quantidade…',
+      'Quantidade e disponibilidade recalculadas',
+      () => (this.editingLineId = null)
+    );
+  }
+
+  duplicateLine(groupId: number, line: CompositionLine) {
+    if (!this.composition) return;
+    this.runMutation(
+      this.compositionService.duplicateLine(
+        this.budgetId,
+        groupId,
+        line.id,
+        this.composition.revision
+      ),
+      'Duplicando snapshot do item…',
+      'Item duplicado com o snapshot comercial preservado'
+    );
+  }
+
+  moveLine(group: CompositionGroup, index: number, offset: -1 | 1) {
+    if (!this.composition) return;
+    const target = index + offset;
+    if (target < 0 || target >= group.lines.length) return;
+    const orderedIds = group.lines.map(line => line.id);
+    [orderedIds[index], orderedIds[target]] = [orderedIds[target], orderedIds[index]];
+    this.runMutation(
+      this.compositionService.reorderLines(
+        this.budgetId,
+        group.id,
+        this.composition.revision,
+        orderedIds
+      ),
+      'Reordenando itens…',
+      'Ordem dos itens salva no servidor'
+    );
+  }
+
+  requestDeleteGroup(group: CompositionGroup) {
+    this.pendingDeletion = { kind: 'group', groupId: group.id, label: group.title };
+    this.focusDeletionDialog();
+  }
+
+  requestDeleteLine(groupId: number, line: CompositionLine) {
+    this.pendingDeletion = {
+      kind: 'line',
+      groupId,
+      itemId: line.id,
+      label: line.description,
+    };
+    this.focusDeletionDialog();
+  }
+
+  confirmDeletion() {
+    if (!this.composition || !this.pendingDeletion) return;
+    const pending = this.pendingDeletion;
+    const request$ =
+      pending.kind === 'group'
+        ? this.compositionService.deleteGroup(
+            this.budgetId,
+            pending.groupId,
+            this.composition.revision
+          )
+        : this.compositionService.deleteLine(
+            this.budgetId,
+            pending.groupId,
+            pending.itemId,
+            this.composition.revision
+          );
+    this.runMutation(
+      request$,
+      'Removendo da composição…',
+      'Remoção concluída e totais recalculados',
+      () => {
+        this.pendingDeletion = null;
+        this.editingGroupId = null;
+        this.editingLineId = null;
+      }
+    );
+  }
+
   formatCurrency(value: number | null | undefined) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
       Number(value ?? 0)
@@ -262,6 +452,33 @@ export class ItensOrcamentoComponent implements OnInit {
     this.saveMessage = message;
   }
 
+  private focusDeletionDialog() {
+    setTimeout(() => this.cancelDeletionButton?.nativeElement.focus());
+  }
+
+  private runMutation(
+    request$: Observable<BudgetComposition>,
+    progressMessage: string,
+    successMessage: string,
+    afterSuccess?: (composition: BudgetComposition) => void
+  ) {
+    if (this.isSaving) return;
+    this.beginMutation(progressMessage);
+    request$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => (this.isSaving = false))
+      )
+      .subscribe({
+        next: composition => {
+          this.applyComposition(composition);
+          afterSuccess?.(composition);
+          this.saveMessage = successMessage;
+        },
+        error: error => this.handleMutationError(error),
+      });
+  }
+
   private handleMutationError(error: { status?: number }) {
     if (error?.status === 409) {
       this.conflict = true;
@@ -278,3 +495,4 @@ export class ItensOrcamentoComponent implements OnInit {
     this.saveMessage = 'Falha ao sincronizar';
   }
 }
+

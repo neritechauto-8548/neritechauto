@@ -7,9 +7,11 @@ public record OrcamentoCompositionGroupResponse(
         Long id,
         String title,
         String customerDescription,
+        String internalNote,
         boolean recommended,
         String visibility,
         int position,
         BigDecimal subtotal,
         List<OrcamentoCompositionLineResponse> lines) {
 }
+
