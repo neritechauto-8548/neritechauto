@@ -9,7 +9,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoginService } from '@core/authentication/login.service';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { finalize } from 'rxjs/operators';
@@ -29,12 +29,15 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 })
 export class ResetPassword implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly loginService = inject(LoginService);
   private readonly toast = inject(HotToastService);
 
   isSubmitting = false;
+  invalidToken = false;
+  passwordUpdated = false;
+  showPassword = false;
+  showConfirmPassword = false;
   token = '';
 
   readonly resetForm = this.fb.nonNullable.group(
@@ -56,15 +59,20 @@ export class ResetPassword implements OnInit {
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
+    this.invalidToken = !this.token;
+  }
 
-    if (!this.token) {
-      this.toast.error('Link de recuperação inválido ou incompleto.', { duration: 5000 });
-      this.router.navigateByUrl('/auth/login');
+  togglePasswordVisibility(field: 'password' | 'confirmPassword') {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+      return;
     }
+
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   resetPassword() {
-    if (!this.token) {
+    if (!this.token || this.invalidToken || this.passwordUpdated) {
       return;
     }
 
@@ -80,8 +88,9 @@ export class ResetPassword implements OnInit {
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: () => {
-          this.toast.success('Senha atualizada. Faça login novamente para continuar.', { duration: 5000 });
-          this.router.navigateByUrl('/auth/login');
+          this.passwordUpdated = true;
+          this.resetForm.disable();
+          this.toast.success('Senha atualizada com segurança.', { duration: 5000 });
         },
         error: (error: HttpErrorResponse) => this.handleResetError(error),
       });
@@ -89,6 +98,8 @@ export class ResetPassword implements OnInit {
 
   private handleResetError(error: HttpErrorResponse) {
     if ([400, 401, 404, 410].includes(error.status)) {
+      this.invalidToken = true;
+      this.resetForm.disable();
       this.toast.error('Este link de recuperação é inválido, já foi utilizado ou expirou.', {
         duration: 6500,
       });

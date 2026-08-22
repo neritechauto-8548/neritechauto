@@ -20,6 +20,7 @@
     [formGroup]="recoverForm"
     (ngSubmit)="recover()"
     class="auth-card__form"
+    [attr.aria-busy]="isSubmitting"
     novalidate
   >
     <div class="auth-field">

@@ -5,7 +5,13 @@
     Use seu e-mail corporativo e sua senha para acessar o ambiente da sua oficina.
   </p>
 
-  <form [formGroup]="loginForm" (ngSubmit)="login()" class="auth-card__form" novalidate>
+  <form
+    [formGroup]="loginForm"
+    (ngSubmit)="login()"
+    class="auth-card__form"
+    [attr.aria-busy]="isSubmitting"
+    novalidate
+  >
     <div class="auth-field">
       <label for="email">E-mail</label>
       <input
