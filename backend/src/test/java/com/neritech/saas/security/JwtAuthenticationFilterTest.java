@@ -2,6 +2,7 @@ package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +44,8 @@ class JwtAuthenticationFilterTest {
     @Mock
     private UsuarioRepository usuarioRepository;
     @Mock
+    private SessaoUsuarioRepository sessaoUsuarioRepository;
+    @Mock
     private FilterChain filterChain;
 
     private JwtAuthenticationFilter filter;
@@ -51,7 +55,11 @@ class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new JwtAuthenticationFilter(jwtService, userDetailsService, usuarioRepository);
+        filter = new JwtAuthenticationFilter(
+                jwtService,
+                userDetailsService,
+                usuarioRepository,
+                sessaoUsuarioRepository);
         request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + TOKEN);
         response = new MockHttpServletResponse();
@@ -77,6 +85,7 @@ class JwtAuthenticationFilterTest {
                 .build();
 
         when(jwtService.extractUsername(TOKEN)).thenReturn(EMAIL);
+        when(sessaoUsuarioRepository.existsByTokenSessaoAndAtivoTrue(TOKEN)).thenReturn(true);
         when(userDetailsService.loadUserByUsername(EMAIL)).thenReturn(userDetails);
         when(jwtService.isTokenValid(TOKEN, userDetails)).thenReturn(true);
         when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(usuario));
@@ -96,6 +105,25 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    @DisplayName("Token de sessão revogada nunca deve autenticar mesmo que o JWT ainda esteja assinado")
+    void sessaoRevogadaNaoAutentica() throws Exception {
+        when(jwtService.extractUsername(TOKEN)).thenReturn(EMAIL);
+        when(sessaoUsuarioRepository.existsByTokenSessaoAndAtivoTrue(TOKEN)).thenReturn(false);
+
+        doAnswer(invocation -> {
+            assertThat(TenantContext.getCurrentTenant()).isNull();
+            assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+            return null;
+        }).when(filterChain).doFilter(request, response);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(userDetailsService, never()).loadUserByUsername(any());
+        verify(usuarioRepository, never()).findByEmailIgnoreCase(any());
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
     @DisplayName("Claim empresaId divergente do vinculo atual deve ser rejeitado")
     void claimDeOutroTenantNaoAutentica() throws Exception {
         Usuario usuario = Usuario.builder()
@@ -108,6 +136,7 @@ class JwtAuthenticationFilterTest {
                 .build();
 
         when(jwtService.extractUsername(TOKEN)).thenReturn(EMAIL);
+        when(sessaoUsuarioRepository.existsByTokenSessaoAndAtivoTrue(TOKEN)).thenReturn(true);
         when(userDetailsService.loadUserByUsername(EMAIL)).thenReturn(userDetails);
         when(jwtService.isTokenValid(TOKEN, userDetails)).thenReturn(true);
         when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(usuario));
@@ -137,6 +166,23 @@ class JwtAuthenticationFilterTest {
 
         filter.doFilterInternal(request, response, filterChain);
 
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("Requisição pública também deve limpar tenant residual da thread")
+    void requisicaoSemBearerLimpaTenantResidual() throws Exception {
+        TenantContext.setCurrentTenant(999L);
+        request = new MockHttpServletRequest();
+
+        doAnswer(invocation -> {
+            assertThat(TenantContext.getCurrentTenant()).isNull();
+            return null;
+        }).when(filterChain).doFilter(request, response);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(TenantContext.getCurrentTenant()).isNull();
         verify(filterChain).doFilter(request, response);
     }
 }
