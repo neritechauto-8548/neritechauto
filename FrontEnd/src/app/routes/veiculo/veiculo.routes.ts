@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from '@core';
 import { Veiculo } from './veiculo/veiculo';
-import { CadastroVeiculo } from './cadastro-veiculo/cadastro-veiculo';
+import {
+  CadastroVeiculo,
+  pendingVehicleChangesGuard,
+} from './cadastro-veiculo/cadastro-veiculo';
 
 export const routes: Routes = [
   {
@@ -14,6 +17,7 @@ export const routes: Routes = [
     path: 'novo',
     component: CadastroVeiculo,
     canActivate: [permissionGuard],
+    canDeactivate: [pendingVehicleChangesGuard],
     data: { title: 'Novo Veículo', permissions: ['VEICULO_CRIAR'] },
   },
   { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
@@ -21,6 +25,7 @@ export const routes: Routes = [
     path: ':id/editar',
     component: CadastroVeiculo,
     canActivate: [permissionGuard],
+    canDeactivate: [pendingVehicleChangesGuard],
     data: { title: 'Editar Veículo', permissions: ['VEICULO_EDITAR'] },
   },
   { path: 'editar/:id', redirectTo: ':id/editar', pathMatch: 'full' },

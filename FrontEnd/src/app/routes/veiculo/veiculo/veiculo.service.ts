@@ -53,6 +53,17 @@ export class VeiculoService {
     return this.http.put<VeiculoResponse>(url, dto);
   }
 
+  deactivate(id: number | string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/${id}/inativar`;
+    return this.http.patch<VeiculoResponse>(url, {});
+  }
+
+  reactivate(id: number | string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/${id}/reativar`;
+    return this.http.patch<VeiculoResponse>(url, {});
+  }
+
+  /** @deprecated Compatibilidade legada. Prefira deactivate para explicitar o ciclo de vida. */
   delete(id: number | string): Observable<void> {
     const url = `${this.base}/v1/veiculos/${id}`;
     return this.http.delete<void>(url);
@@ -205,7 +216,10 @@ export class VeiculoService {
     return this.http.post<DocumentoVeiculoResponse>(url, dto);
   }
 
-  updateDocumento(id: number | string, dto: DocumentoVeiculoRequest): Observable<DocumentoVeiculoResponse> {
+  updateDocumento(
+    id: number | string,
+    dto: DocumentoVeiculoRequest
+  ): Observable<DocumentoVeiculoResponse> {
     const url = `${this.base}/v1/documentos-veiculos/${id}`;
     return this.http.put<DocumentoVeiculoResponse>(url, dto);
   }

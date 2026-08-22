@@ -37,4 +37,23 @@ describe('VeiculoService', () => {
     expect(request.request.params.has('empresaId')).toBeFalse();
     request.flush([]);
   });
+
+  it('deactivates through the explicit logical lifecycle endpoint', () => {
+    service.deactivate(9).subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/veiculos/9/inativar');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({});
+    request.flush({ id: 9, clienteId: 42, placa: 'ABC1D23', status: 'INATIVO' });
+  });
+
+  it('reactivates without browser-controlled tenant parameters', () => {
+    service.reactivate(9).subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/veiculos/9/reativar');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.params.has('tenantId')).toBeFalse();
+    expect(request.request.params.has('empresaId')).toBeFalse();
+    request.flush({ id: 9, clienteId: 42, placa: 'ABC1D23', status: 'ATIVO' });
+  });
 });
