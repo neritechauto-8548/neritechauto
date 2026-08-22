@@ -90,9 +90,7 @@ public class TenantInterceptor implements HandlerInterceptor {
                 || uri.contains("/v3/api-docs")
                 || uri.contains("/api-docs")
                 || uri.contains("/swagger-ui")
-                || uri.contains("/ordens-servico/fotos/") && uri.endsWith("/download")
                 || uri.contains("/empresas/") && uri.endsWith("/logo")
-                || uri.contains("/rh/funcionarios/") && uri.endsWith("/foto")
                 || uri.contains("/produtos/") && uri.endsWith("/foto");
     }
 
