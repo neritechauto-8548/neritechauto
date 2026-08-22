@@ -225,7 +225,7 @@ export class CadastrarAgendamento implements OnInit {
   }
 
   cancelar(): void {
-    this.router.navigate(['/agendamentos/agendamentos-alertas']);
+    this.router.navigate(['/agenda']);
   }
 
   salvar(): void {
@@ -283,7 +283,7 @@ export class CadastrarAgendamento implements OnInit {
         if (!this.idAgendamento && response?.id) {
           this.idAgendamento = response.id;
           this.titulo = 'Editar Agendamento';
-          this.router.navigate(['/agendamentos', response.id, 'editar'], { replaceUrl: true });
+          this.router.navigate(['/agenda', response.id, 'editar'], { replaceUrl: true });
         }
       },
       error: err => this.handleError(err),

@@ -173,7 +173,12 @@ export const routes: Routes = [
         ),
       },
 
-      // 11. Agendamentos
+      // 11. Agenda
+      {
+        path: 'agenda',
+        loadChildren: () =>
+          import('./routes/agendamento/agendamento.routes').then(m => m.routes),
+      },
       {
         path: 'agendamentos',
         loadChildren: () =>

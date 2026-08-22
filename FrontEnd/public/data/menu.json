@@ -93,7 +93,7 @@
     { "route": "historico", "name": "historico", "type": "link", "icon": "pi pi-history" },
     { "route": "graficos", "name": "graficos", "type": "link", "icon": "pi pi-chart-bar" },
     {
-      "route": "agendamentos",
+      "route": "agenda",
       "name": "agendamentos",
       "type": "sub",
       "icon": "pi pi-calendar",

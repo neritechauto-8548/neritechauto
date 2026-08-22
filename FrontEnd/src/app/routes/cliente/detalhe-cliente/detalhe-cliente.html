@@ -140,12 +140,16 @@
                   <i class="pi pi-car" aria-hidden="true"></i><span><strong>Novo veículo</strong><small>Abre o owner Veículo com customerId</small></span>
                 </button>
               }
-              <button type="button" class="customer-detail-action" disabled title="Fluxo de orçamento precisa ser reconciliado com o tenant autenticado">
-                <i class="pi pi-file-edit" aria-hidden="true"></i><span><strong>Novo orçamento</strong><small>Indisponível até reconciliação do fluxo legado</small></span>
-              </button>
-              <button type="button" class="customer-detail-action" disabled title="Fluxo de agendamento precisa ser reconciliado com o tenant autenticado">
-                <i class="pi pi-calendar-plus" aria-hidden="true"></i><span><strong>Agendar</strong><small>Indisponível até reconciliação do fluxo legado</small></span>
-              </button>
+              @if (canCreateEstimate) {
+                <button type="button" class="customer-detail-action" (click)="createEstimate()">
+                  <i class="pi pi-file-edit" aria-hidden="true"></i><span><strong>Novo orçamento</strong><small>Abre o owner Orçamento com customerId</small></span>
+                </button>
+              }
+              @if (canSchedule) {
+                <button type="button" class="customer-detail-action" (click)="schedule()">
+                  <i class="pi pi-calendar-plus" aria-hidden="true"></i><span><strong>Agendar</strong><small>Abre a Agenda com customerId</small></span>
+                </button>
+              }
             </div>
           </article>
         </section>

@@ -68,6 +68,18 @@ jobs:
         working-directory: FrontEnd
         run: yarn install --frozen-lockfile --non-interactive
 
+      - name: Run critical frontend security tests
+        working-directory: FrontEnd
+        run: |
+          yarn ng test --watch=false --browsers=ChromeHeadless \
+            --include='src/app/core/authentication/permission-guard.spec.ts' \
+            --include='src/app/routes/cliente/cliente/cliente.service.spec.ts' \
+            --include='src/app/routes/cliente/detalhe-cliente/detalhe-cliente.service.spec.ts' \
+            --include='src/app/routes/cliente/detalhe-cliente/detalhe-cliente.spec.ts' \
+            --include='src/app/routes/orcamento/orcamento-draft.service.spec.ts' \
+            --include='src/app/routes/agendamento/agendamento.service.spec.ts' \
+            --include='src/app/routes/dashboard/dashboard.service.spec.ts'
+
       - name: Build Angular application
         working-directory: FrontEnd
         run: yarn build

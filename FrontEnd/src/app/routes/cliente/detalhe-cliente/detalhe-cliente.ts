@@ -91,6 +91,14 @@ export class DetalheCliente implements OnInit {
     return !this.isInactive && Boolean(this.permissions.getPermission('VEICULO_CRIAR'));
   }
 
+  get canCreateEstimate() {
+    return !this.isInactive && Boolean(this.permissions.getPermission('OS_INCLUIR'));
+  }
+
+  get canSchedule() {
+    return !this.isInactive && Boolean(this.permissions.getPermission('GERAL_AGENDAMENTO_EDITAR'));
+  }
+
   get canOpenVehicle() {
     return Boolean(this.permissions.getPermission('VEICULO_EDITAR'));
   }
@@ -129,6 +137,16 @@ export class DetalheCliente implements OnInit {
   createVehicle() {
     if (!this.customerId || !this.canCreateVehicle) return;
     this.router.navigate(['/veiculos/cadastro'], { queryParams: { clienteId: this.customerId } });
+  }
+
+  createEstimate() {
+    if (!this.customerId || !this.canCreateEstimate) return;
+    this.router.navigate(['/orcamentos/novo'], { queryParams: { clienteId: this.customerId } });
+  }
+
+  schedule() {
+    if (!this.customerId || !this.canSchedule) return;
+    this.router.navigate(['/agenda/novo'], { queryParams: { clienteId: this.customerId } });
   }
 
   openVehicle(vehicle: CustomerVehicleSummary) {
