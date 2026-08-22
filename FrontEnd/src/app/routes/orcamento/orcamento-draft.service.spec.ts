@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { OrcamentoDraftService } from './orcamento-draft.service';
+import { OrcamentoDraftRequest, OrcamentoDraftService } from './orcamento-draft.service';
 
 describe('OrcamentoDraftService', () => {
   let service: OrcamentoDraftService;
@@ -28,6 +28,7 @@ describe('OrcamentoDraftService', () => {
 
     const request = http.expectOne('/api/v1/orcamentos');
     expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Idempotency-Key')).toBeTruthy();
     expect(request.request.params.has('tenantId')).toBeFalse();
     expect(request.request.params.has('empresaId')).toBeFalse();
     expect(request.request.body['tenantId']).toBeUndefined();
@@ -42,6 +43,32 @@ describe('OrcamentoDraftService', () => {
     });
 
     request.flush({
+      id: 99,
+      numeroOrcamento: 'ORC-20260821-ABC123',
+      status: 'RASCUNHO',
+      clienteId: 15,
+      veiculoId: 8,
+      criadoEm: '2026-08-21T14:30:00',
+    });
+  });
+
+  it('reuses the same idempotency key when the same draft is retried after a network failure', () => {
+    const body: OrcamentoDraftRequest = {
+      clienteId: 15,
+      veiculoId: 8,
+      relatoCliente: 'Ruído ao frear',
+    };
+
+    service.create(body).subscribe({ error: () => undefined });
+    const first = http.expectOne('/api/v1/orcamentos');
+    const firstKey = first.request.headers.get('Idempotency-Key');
+    expect(firstKey).toBeTruthy();
+    first.flush('network failure', { status: 0, statusText: 'Network error' });
+
+    service.create(body).subscribe();
+    const retry = http.expectOne('/api/v1/orcamentos');
+    expect(retry.request.headers.get('Idempotency-Key')).toBe(firstKey);
+    retry.flush({
       id: 99,
       numeroOrcamento: 'ORC-20260821-ABC123',
       status: 'RASCUNHO',
