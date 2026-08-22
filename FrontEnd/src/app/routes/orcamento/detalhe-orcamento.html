@@ -1,0 +1,103 @@
+<section class="budget-detail-page" aria-labelledby="budget-detail-title">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Orçamentos"
+    [title]="budget?.numero || 'Detalhe do orçamento'"
+    titleId="budget-detail-title"
+    description="Resumo operacional seguro. Itens, versões, aprovações e conversão serão conectados somente pelos contratos canônicos."
+  >
+    <button pageHeaderActions type="button" class="nt-button nt-button--secondary" (click)="voltar()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i> Voltar à lista
+    </button>
+  </page-header>
+
+  @if (isLoading) {
+    <div class="detail-skeleton" aria-label="Carregando orçamento">
+      <p-skeleton width="100%" height="154px"></p-skeleton>
+      <div class="detail-skeleton__grid">
+        <p-skeleton width="100%" height="330px"></p-skeleton>
+        <p-skeleton width="100%" height="330px"></p-skeleton>
+      </div>
+    </div>
+  } @else if (loadError || !budget) {
+    <div class="state-panel" [class.state-panel--forbidden]="forbidden" role="alert">
+      <span class="state-panel__icon"><i class="pi" [ngClass]="forbidden ? 'pi-lock' : 'pi-exclamation-triangle'" aria-hidden="true"></i></span>
+      <div>
+        <h2>{{ forbidden ? 'Acesso restrito' : 'Orçamento não encontrado' }}</h2>
+        <p>{{ forbidden ? 'Seu perfil não pode consultar este orçamento.' : 'O registro não existe neste contexto autenticado ou deixou de estar disponível.' }}</p>
+        @if (!forbidden) { <button type="button" class="nt-button nt-button--secondary" (click)="tentarNovamente()">Tentar novamente</button> }
+      </div>
+    </div>
+  } @else {
+    <section class="commercial-hero" aria-label="Resumo comercial">
+      <div class="commercial-hero__status">
+        <span class="status-dot" aria-hidden="true"></span>
+        {{ statusLabel() }}
+      </div>
+      <div class="commercial-hero__main">
+        <div>
+          <span class="hero-label">Total atual</span>
+          <strong>{{ formatCurrency() }}</strong>
+          <small>Valor persistido no backend · sem custo ou margem</small>
+        </div>
+        <div class="hero-action">
+          <span>Próxima ação recomendada</span>
+          <strong>{{ nextActionLabel() }}</strong>
+          <small>Execução indisponível até o contrato específico validar estado e permissão.</small>
+        </div>
+      </div>
+    </section>
+
+    <nav class="detail-tabs" aria-label="Seções do orçamento">
+      <button type="button" class="detail-tab detail-tab--active" aria-current="page">Resumo</button>
+      <button type="button" class="detail-tab" disabled>Itens <span>ORC-004</span></button>
+      <button type="button" class="detail-tab" disabled>Envio <span>ORC-005</span></button>
+      <button type="button" class="detail-tab" disabled>Versões <span>ORC-006</span></button>
+      <button type="button" class="detail-tab" disabled>Aprovações <span>ORC-007</span></button>
+    </nav>
+
+    <div class="detail-grid">
+      <section class="detail-card" aria-labelledby="context-title">
+        <header><span class="section-icon"><i class="pi pi-users" aria-hidden="true"></i></span><div><span>Contexto canônico</span><h2 id="context-title">Cliente e veículo</h2></div></header>
+        <div class="entity-card">
+          <div>
+            <span class="entity-card__label">Cliente</span>
+            <strong>{{ budget.cliente?.nome || 'Não disponível' }}</strong>
+          </div>
+          @if (budget.cliente?.id) { <button type="button" (click)="abrirCliente()">Abrir ficha <i class="pi pi-arrow-up-right" aria-hidden="true"></i></button> }
+        </div>
+        <div class="entity-card">
+          <div>
+            <span class="entity-card__label">Veículo</span>
+            <strong>{{ budget.veiculo?.descricao || 'Não vinculado' }}</strong>
+            @if (budget.veiculo?.placa) { <small class="plate-value">{{ budget.veiculo?.placa }}</small> }
+          </div>
+          @if (budget.veiculo?.id) { <button type="button" (click)="abrirVeiculo()">Abrir passaporte <i class="pi pi-arrow-up-right" aria-hidden="true"></i></button> }
+        </div>
+        <dl class="metadata-grid">
+          <div><dt>Versão persistida</dt><dd>{{ budget.versaoAtual ?? 0 }}</dd></div>
+          <div><dt>Criado em</dt><dd>{{ budget.criadoEm ? (budget.criadoEm | date:'dd/MM/yyyy HH:mm') : 'Não disponível' }}</dd></div>
+          <div><dt>Atualizado em</dt><dd>{{ budget.atualizadoEm ? (budget.atualizadoEm | date:'dd/MM/yyyy HH:mm') : 'Não disponível' }}</dd></div>
+          <div><dt>Validade</dt><dd>{{ budget.validadeEm ? (budget.validadeEm | date:'dd/MM/yyyy') : 'Contrato pendente' }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="detail-card" aria-labelledby="integrity-title">
+        <header><span class="section-icon section-icon--green"><i class="pi pi-shield" aria-hidden="true"></i></span><div><span>Integridade operacional</span><h2 id="integrity-title">Contratos e disponibilidade</h2></div></header>
+        <div class="integrity-list">
+          <div class="integrity-row integrity-row--ready"><i class="pi pi-check-circle" aria-hidden="true"></i><div><strong>Identidade e escopo</strong><span>Tenant derivado da sessão; cliente e veículo revalidados no servidor.</span></div></div>
+          <div class="integrity-row"><i class="pi pi-clock" aria-hidden="true"></i><div><strong>Itens e totais detalhados</strong><span>Sem leitura canônica ainda. Nenhuma peça, serviço ou desconto é simulado.</span></div><em>ORC-004</em></div>
+          <div class="integrity-row"><i class="pi pi-clock" aria-hidden="true"></i><div><strong>Entrega e visualização</strong><span>Canal e visualização permanecem indisponíveis até a trilha de comunicação.</span></div><em>ORC-005</em></div>
+          <div class="integrity-row"><i class="pi pi-clock" aria-hidden="true"></i><div><strong>Versões e decisões</strong><span>Histórico comercial não é inferido a partir do registro atual.</span></div><em>ORC-006/007</em></div>
+          <div class="integrity-row"><i class="pi pi-clock" aria-hidden="true"></i><div><strong>Conversão em OS</strong><span>A ação será liberada somente com itens aprovados e idempotência backend.</span></div><em>ORC-008</em></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="truth-banner" role="note">
+      <i class="pi pi-lock" aria-hidden="true"></i>
+      <div><strong>Visão deliberadamente minimizada</strong><span>Este resumo não serializa observações internas, custo, margem, dados completos do cliente ou qualquer autoridade de tenant vinda do navegador.</span></div>
+    </aside>
+  }
+</section>

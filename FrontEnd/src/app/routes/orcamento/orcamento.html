@@ -1,153 +1,274 @@
-<div class="flex flex-col h-full gap-6">
+<section class="budget-page" aria-labelledby="budgets-title">
   <p-toast />
 
-  <!-- Actions Bar — padrão veículo/cliente -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Movimentação"
+    title="Orçamentos"
+    titleId="budgets-title"
+    description="Acompanhe propostas, decisões e o próximo passo comercial com escopo protegido pela sessão autenticada."
+  >
+    @if (canCreateBudget) {
+      <button pageHeaderActions type="button" class="nt-button nt-button--primary" (click)="novo()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Novo orçamento
+      </button>
+    }
+  </page-header>
 
-    <!-- Search -->
-    <div class="relative w-full sm:max-w-md group">
-      <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
-      <input pInputText [(ngModel)]="termo" (ngModelChange)="onSearch()"
-        placeholder="Buscar por Nº OS, cliente ou placa..."
-        class="w-full !pl-12 pr-16 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none" />
-      <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">Ctrl+K</div>
+  <section class="summary-grid" aria-label="Resumo do funil de orçamentos">
+    @for (card of summaryCards; track card.label) {
+      <article class="summary-card">
+        <div class="summary-card__top">
+          <span class="summary-card__icon" aria-hidden="true"><i class="pi" [ngClass]="card.icon"></i></span>
+          <span class="summary-card__availability">Contrato pendente</span>
+        </div>
+        <strong aria-label="Indicador ainda indisponível">—</strong>
+        <span class="summary-card__label">{{ card.label }}</span>
+        <small>{{ card.hint }}</small>
+      </article>
+    }
+  </section>
+
+  <div class="contract-alert" role="status">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <div>
+      <strong>Indicadores preservados sem estimativas locais</strong>
+      <span>Os quatro totais serão exibidos quando o backend materializar versões, validade, decisão e conversão canônicas.</span>
     </div>
-
-    <!-- New Button -->
-    <button (click)="novo()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">add</mat-icon>
-      <span>Novo Orçamento</span>
-    </button>
   </div>
 
-  <!-- Data Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-    <div class="overflow-x-auto flex-1">
-      <table class="w-full text-left border-collapse">
-        <thead class="bg-gray-50 border-b border-gray-200">
-          <tr>
-            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Orçamento</th>
-            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Cliente</th>
-            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Veículo</th>
-            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Data</th>
-            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[15%] align-middle">Status</th>
-            <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100 bg-white">
+  <section class="budget-toolbar" aria-label="Busca, filtros e ordenação de orçamentos">
+    <form class="budget-search" (ngSubmit)="submitSearch()" role="search">
+      <label class="sr-only" for="budget-search-input">Buscar orçamentos</label>
+      <div class="search-control">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          id="budget-search-input"
+          pInputText
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchTermChange($event)"
+          name="searchTerm"
+          type="search"
+          autocomplete="off"
+          placeholder="Número, cliente ou placa"
+        />
+        @if (searchTerm) {
+          <button type="button" class="icon-button" aria-label="Limpar busca" (click)="searchTerm = ''; submitSearch()">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+      <button type="submit" class="nt-button nt-button--secondary" [disabled]="isLoading">Buscar</button>
+    </form>
 
-          <!-- Rows -->
-          <tr *ngFor="let os of pagedData" class="group hover:bg-gray-50 transition-colors duration-200">
+    <div class="filter-row">
+      <div class="filter-field">
+        <label for="budget-status-filter">Status comercial</label>
+        <p-select
+          inputId="budget-status-filter"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onFilterChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
 
-            <!-- Nº OS -->
-            <td class="py-2.5 px-6 align-middle">
-              <div class="flex items-center gap-4">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600 ring-4 ring-white shadow-sm shrink-0">
-                  <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">request_quote</mat-icon>
+      <div class="filter-field filter-field--sort">
+        <label for="budget-sort-filter">Ordenar por</label>
+        <p-select
+          inputId="budget-sort-filter"
+          [options]="sortOptions"
+          [(ngModel)]="selectedSort"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onFilterChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
+
+      @if (hasActiveFilters) {
+        <button type="button" class="filter-clear" (click)="clearFilters()">
+          <i class="pi pi-filter-slash" aria-hidden="true"></i>
+          Limpar filtros
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="results-card" aria-labelledby="budget-results-title" aria-live="polite">
+    <header class="results-header">
+      <div>
+        <span class="results-header__eyebrow">Funil comercial</span>
+        <h2 id="budget-results-title">{{ totalRecords }} {{ totalRecords === 1 ? 'orçamento' : 'orçamentos' }}</h2>
+      </div>
+      <div class="results-header__meta">
+        <span class="security-badge"><i class="pi pi-shield" aria-hidden="true"></i>Tenant derivado da sessão</span>
+        <span class="contract-note">Sem custo, margem ou nota interna no payload</span>
+      </div>
+    </header>
+
+    @if (loadError && !isLoading) {
+      <div class="state-panel" [class.state-panel--error]="!forbidden" [class.state-panel--forbidden]="forbidden" role="alert">
+        <div class="state-panel__icon">
+          <i class="pi" [ngClass]="forbidden ? 'pi-lock' : 'pi-exclamation-triangle'" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h3>{{ forbidden ? 'Acesso restrito aos orçamentos' : 'Não foi possível carregar os orçamentos' }}</h3>
+          <p>
+            {{ forbidden
+              ? 'Seu perfil não possui a permissão de leitura exigida. Nenhum dado comercial foi carregado.'
+              : 'A consulta falhou sem exibir dados de outro contexto. Busca, filtros e ordenação foram preservados.' }}
+          </p>
+          @if (!forbidden) {
+            <button type="button" class="nt-button nt-button--secondary" (click)="submitSearch()">Tentar novamente</button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="budget-table-wrap desktop-only">
+        <table class="budget-table">
+          <thead>
+            <tr>
+              <th scope="col">Orçamento</th>
+              <th scope="col">Cliente e veículo</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="money-column">Total atual</th>
+              <th scope="col">Validade</th>
+              <th scope="col">Próxima ação</th>
+              <th scope="col" class="actions-column"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading) {
+              @for (item of [1, 2, 3, 4, 5]; track item) {
+                <tr>
+                  <td><p-skeleton width="132px" height="2rem"></p-skeleton></td>
+                  <td><p-skeleton width="185px" height="2rem"></p-skeleton></td>
+                  <td><p-skeleton width="92px" height="1.5rem"></p-skeleton></td>
+                  <td><p-skeleton width="92px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="88px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="135px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton shape="circle" size="2rem"></p-skeleton></td>
+                </tr>
+              }
+            } @else {
+              @for (item of items; track item.id) {
+                <tr>
+                  <td>
+                    <div class="budget-identity">
+                      <span class="budget-icon" aria-hidden="true"><i class="pi pi-file-edit"></i></span>
+                      <div>
+                        <button type="button" class="budget-number" (click)="abrir(item)">{{ item.numero }}</button>
+                        <span>Versão {{ item.versaoAtual ?? 0 }} · {{ item.atualizadoEm || item.criadoEm | date:'dd/MM/yyyy' }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="context-cell">
+                      <strong>{{ item.cliente?.nome || 'Cliente não disponível' }}</strong>
+                      <span>
+                        <i class="pi pi-car" aria-hidden="true"></i>
+                        {{ item.veiculo?.descricao || 'Sem veículo' }}
+                        @if (item.veiculo?.placa) { · <span class="plate-value">{{ item.veiculo?.placa }}</span> }
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="statusClass(item.status)">
+                      <span class="status-badge__dot" aria-hidden="true"></span>
+                      {{ statusLabel(item.status) }}
+                    </span>
+                  </td>
+                  <td class="money-column"><strong>{{ formatCurrency(item.total) }}</strong></td>
+                  <td>
+                    @if (item.validadeEm) {
+                      <span>{{ item.validadeEm | date:'dd/MM/yyyy' }}</span>
+                    } @else {
+                      <span class="pending-value" title="A validade canônica ainda não existe no contrato persistido">— <small>pendente</small></span>
+                    }
+                  </td>
+                  <td><span class="next-action"><i class="pi pi-arrow-right" aria-hidden="true"></i>{{ nextActionLabel(item.proximaAcao) }}</span></td>
+                  <td class="actions-column">
+                    <button type="button" class="row-action" [attr.aria-label]="'Abrir ' + item.numero" (click)="abrir(item)">
+                      <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="budget-cards mobile-only">
+        @if (isLoading) {
+          @for (item of [1, 2, 3]; track item) {
+            <article class="budget-card"><p-skeleton width="100%" height="190px"></p-skeleton></article>
+          }
+        } @else {
+          @for (item of items; track item.id) {
+            <article class="budget-card">
+              <div class="budget-card__top">
+                <div>
+                  <span class="budget-card__eyebrow">Orçamento</span>
+                  <button type="button" class="budget-number" (click)="abrir(item)">{{ item.numero }}</button>
                 </div>
-                <div class="flex flex-col">
-                  <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer"
-                    (click)="visualizar(os.id)">{{ os.numeroOS }}</span>
-                  <span class="text-[11px] text-slate-500">{{ formatCurrency(os.valorTotal) }}</span>
-                </div>
+                <span class="status-badge" [ngClass]="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
               </div>
-            </td>
-
-            <!-- Cliente -->
-            <td class="py-2.5 px-6 align-middle">
-              <div class="flex items-center gap-2 text-sm text-slate-600">
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px] text-slate-400">person</mat-icon>
-                {{ os.nomeCliente || 'Sem cliente' }}
+              <div class="budget-card__context">
+                <strong>{{ item.cliente?.nome || 'Cliente não disponível' }}</strong>
+                <span><i class="pi pi-car" aria-hidden="true"></i>{{ item.veiculo?.descricao || 'Sem veículo' }} {{ item.veiculo?.placa || '' }}</span>
               </div>
-            </td>
-
-            <!-- Veículo -->
-            <td class="py-2.5 px-6 align-middle">
-              <div class="flex flex-col">
-                <span class="font-mono text-xs font-semibold text-slate-700">{{ os.placaVeiculo || '—' }}</span>
-                <span *ngIf="os.nomeVeiculo" class="text-[11px] text-slate-500">{{ os.nomeVeiculo }}</span>
-              </div>
-            </td>
-
-            <!-- Data -->
-            <td class="py-2.5 px-6 align-middle text-sm text-slate-600">
-              {{ formatDate(os.dataAbertura) }}
-            </td>
-
-            <!-- Status -->
-            <td class="py-2.5 px-6 align-middle">
-              <span class="font-medium text-[10px] px-2.5 py-1 rounded-full border"
-                [ngClass]="os.statusCor ? '' : getStatusBadgeClass(os.statusNome)"
-                [style.background-color]="os.statusCor ? os.statusCor + '20' : null"
-                [style.color]="os.statusCor ? os.statusCor : null"
-                [style.border-color]="os.statusCor ? os.statusCor + '50' : null">
-                {{ os.statusNome || 'Pendente' }}
-              </span>
-            </td>
-
-            <!-- Actions -->
-            <td class="py-2.5 px-6 align-middle text-right pr-4">
-              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" (click)="setCurrent(os)"
-                class="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors w-8 h-8 flex items-center justify-center">
-                <mat-icon class="!text-[20px] !w-[20px] !h-[20px]">more_vert</mat-icon>
+              <dl>
+                <div><dt>Total atual</dt><dd>{{ formatCurrency(item.total) }}</dd></div>
+                <div><dt>Validade</dt><dd>{{ item.validadeEm ? (item.validadeEm | date:'dd/MM/yyyy') : 'Contrato pendente' }}</dd></div>
+              </dl>
+              <button type="button" class="next-action-button" (click)="abrir(item)">
+                <span><small>Próxima ação</small>{{ nextActionLabel(item.proximaAcao) }}</span>
+                <i class="pi pi-arrow-right" aria-hidden="true"></i>
               </button>
-            </td>
-          </tr>
-
-          <!-- Empty State -->
-          <tr *ngIf="pagedData.length === 0 && !loading">
-            <td colspan="6" class="py-12 text-center text-slate-500 text-sm">
-              <div class="flex flex-col items-center gap-3 text-slate-400">
-                <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                  <mat-icon class="!text-2xl text-slate-400">request_quote</mat-icon>
-                </div>
-                <p class="text-sm font-medium text-slate-500">Nenhum orçamento encontrado</p>
-                <button (click)="novo()" class="text-xs text-blue-600 font-bold hover:underline">
-                  Criar novo orçamento
-                </button>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Loading -->
-          <tr *ngIf="loading">
-            <td colspan="6" class="py-12 text-center text-slate-500 text-sm">
-              <i class="pi pi-spin pi-spinner mr-2 text-blue-600"></i> Carregando...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10" *ngIf="totalRecords > 0">
-      <div class="text-xs text-slate-500">
-        Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
+            </article>
+          }
+        }
       </div>
-      <div class="flex gap-2">
-        <button [disabled]="first === 0 || loading" (click)="goPrev()"
-          class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5">
-          <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
-        </button>
-        <button [disabled]="first + rows >= totalRecords || loading" (click)="goNext()"
-          class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5">
-          Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Actions Menu — padrão mat-menu do veículo -->
-<mat-menu #actionsMenu="matMenu" class="!rounded-xl !border !border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] !py-1.5 min-w-[200px] !bg-white" xPosition="before">
-  <button mat-menu-item (click)="currentOS && visualizar(currentOS.id)"
-    class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
-    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">visibility</mat-icon>
-    <span class="text-[13px] font-medium text-slate-700 group-hover:text-blue-700">Visualizar Orcamento</span>
-  </button>
-  <button mat-menu-item (click)="currentOS && editar(currentOS.id)"
-    class="!px-4 !py-2.5 !h-auto flex items-center gap-3 hover:!bg-slate-50 group transition-colors">
-    <mat-icon class="!text-[18px] !w-[18px] !h-[18px] text-slate-400 group-hover:text-indigo-600 transition-colors">edit</mat-icon>
-    <span class="text-[13px] font-medium text-slate-700 group-hover:text-indigo-700">Editar</span>
-  </button>
-</mat-menu>
+      @if (!isLoading && items.length === 0) {
+        <div class="state-panel state-panel--empty">
+          <div class="state-panel__icon"><i class="pi pi-file-edit" aria-hidden="true"></i></div>
+          <div>
+            <h3>{{ hasActiveFilters ? 'Nenhum orçamento encontrado' : 'Nenhum orçamento criado ainda' }}</h3>
+            <p>
+              {{ hasActiveFilters
+                ? 'Revise o termo ou os filtros. A busca considera número, cliente e placa dentro do contexto autorizado.'
+                : 'Crie o primeiro rascunho para iniciar o fluxo comercial com cliente e veículo validados pelo backend.' }}
+            </p>
+            @if (hasActiveFilters) {
+              <button type="button" class="nt-button nt-button--secondary" (click)="clearFilters()">Limpar filtros</button>
+            } @else if (canCreateBudget) {
+              <button type="button" class="nt-button nt-button--primary" (click)="novo()">Novo orçamento</button>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (!loadError && totalRecords > 0) {
+      <footer class="pagination-bar" aria-label="Paginação de orçamentos">
+        <span>Mostrando <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> de <strong>{{ totalRecords }}</strong></span>
+        <div class="pagination-bar__controls">
+          <span>Página {{ currentPage }} de {{ totalPages }}</span>
+          <button type="button" class="pagination-button" [disabled]="first === 0 || isLoading" (click)="goPrev()">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i><span class="sr-only">Página anterior</span>
+          </button>
+          <button type="button" class="pagination-button" [disabled]="first + rows >= totalRecords || isLoading" (click)="goNext()">
+            <i class="pi pi-chevron-right" aria-hidden="true"></i><span class="sr-only">Próxima página</span>
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+</section>

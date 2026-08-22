@@ -30,6 +30,40 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
             @org.springframework.data.repository.query.Param("tipos") java.util.List<TipoOS> tipos,
             Pageable pageable);
 
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT o FROM OrdemServico o
+            LEFT JOIN o.status s
+            WHERE o.empresaId = :empresaId
+              AND o.tipoOS = :tipo
+              AND (:status IS NULL OR UPPER(COALESCE(s.codigo, 'RASCUNHO')) = :status)
+              AND (
+                    :search IS NULL
+                    OR LOWER(o.numeroOS) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR REPLACE(REPLACE(LOWER(o.numeroOS), '-', ''), ' ', '') LIKE CONCAT('%', :normalizedSearch, '%')
+                    OR o.clienteId IN (
+                        SELECT c.id FROM Cliente c
+                        WHERE c.empresaId = :empresaId
+                          AND (
+                            LOWER(c.nomeCompleto) LIKE LOWER(CONCAT('%', :search, '%'))
+                            OR LOWER(c.nomeFantasia) LIKE LOWER(CONCAT('%', :search, '%'))
+                            OR LOWER(c.razaoSocial) LIKE LOWER(CONCAT('%', :search, '%'))
+                          )
+                    )
+                    OR o.veiculoId IN (
+                        SELECT v.id FROM Veiculo v
+                        WHERE v.empresaId = :empresaId
+                          AND REPLACE(REPLACE(LOWER(v.placa), '-', ''), ' ', '') LIKE CONCAT('%', :normalizedSearch, '%')
+                    )
+              )
+            """)
+    Page<OrdemServico> searchBudgets(
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("tipo") TipoOS tipo,
+            @org.springframework.data.repository.query.Param("status") String status,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("normalizedSearch") String normalizedSearch,
+            Pageable pageable);
+
     Page<OrdemServico> findByClienteId(Long clienteId, Pageable pageable);
 
     Page<OrdemServico> findByVeiculoId(Long veiculoId, Pageable pageable);
