@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 
@@ -37,10 +37,23 @@ export interface OrcamentoVehicleSummary {
 export class OrcamentoDraftService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.baseUrl}/v1/orcamentos`;
+  private readonly pendingCreationKeys = new Map<string, string>();
 
   create(request: OrcamentoDraftRequest): Observable<OrcamentoDraftResponse> {
     // Tenant e número comercial não fazem parte deste contrato por desenho.
-    return this.http.post<OrcamentoDraftResponse>(this.base, request);
+    // A mesma carga mantém a chave após falha de rede para que um retry não
+    // consuma outro número nem crie um segundo orçamento no servidor.
+    const fingerprint = JSON.stringify(request);
+    const idempotencyKey = this.pendingCreationKeys.get(fingerprint) ?? crypto.randomUUID();
+    this.pendingCreationKeys.set(fingerprint, idempotencyKey);
+
+    return this.http.post<OrcamentoDraftResponse>(this.base, request, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    }).pipe(
+      tap({
+        next: () => this.pendingCreationKeys.delete(fingerprint),
+      }),
+    );
   }
 
   listVehiclesForCustomer(clienteId: number): Observable<OrcamentoVehicleSummary[]> {
