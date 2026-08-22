@@ -62,12 +62,9 @@ public class VeiculoService {
         Long tenantId = requireTenant();
         Cliente cliente = requireClienteDoTenant(request.clienteId());
         String placaNormalizada = normalizePlate(request.placa());
+        String chassiNormalizado = normalizeUpperIdentifier(request.chassi());
 
-        repository.findByEmpresaIdAndPlaca(tenantId, placaNormalizada)
-                .ifPresent(existing -> {
-                    throw new BusinessException("Já existe um veículo com esta placa para esta empresa");
-                });
-
+        validateUniqueIdentity(tenantId, null, placaNormalizada, chassiNormalizado);
         validateOdometerForCreate(request);
 
         Veiculo entity = mapper.toEntity(request);
@@ -78,7 +75,7 @@ public class VeiculoService {
         entity.setAnoModelo(resolveAnoModelo(request.anoModeloId()));
         entity.setTipoCombustivel(resolveCombustivel(request.combustivelId()));
         entity.setPlaca(placaNormalizada);
-        entity.setChassi(normalizeUpperIdentifier(request.chassi()));
+        entity.setChassi(chassiNormalizado);
         entity.setRenavam(normalizeDigits(request.renavam()));
 
         if (entity.getStatus() == null) {
@@ -95,13 +92,9 @@ public class VeiculoService {
 
         Cliente cliente = requireClienteDoTenant(request.clienteId());
         String placaNormalizada = normalizePlate(request.placa());
+        String chassiNormalizado = normalizeUpperIdentifier(request.chassi());
 
-        repository.findByEmpresaIdAndPlaca(tenantId, placaNormalizada)
-                .filter(existing -> !existing.getId().equals(id))
-                .ifPresent(existing -> {
-                    throw new BusinessException("Já existe um veículo com esta placa para esta empresa");
-                });
-
+        validateUniqueIdentity(tenantId, id, placaNormalizada, chassiNormalizado);
         validateOdometerForUpdate(entity, request);
 
         mapper.updateEntityFromRequest(request, entity);
@@ -111,7 +104,7 @@ public class VeiculoService {
         entity.setAnoModelo(resolveAnoModelo(request.anoModeloId()));
         entity.setTipoCombustivel(resolveCombustivel(request.combustivelId()));
         entity.setPlaca(placaNormalizada);
-        entity.setChassi(normalizeUpperIdentifier(request.chassi()));
+        entity.setChassi(chassiNormalizado);
         entity.setRenavam(normalizeDigits(request.renavam()));
 
         return mapper.toResponse(repository.save(entity));
@@ -227,6 +220,28 @@ public class VeiculoService {
         return mapper.toResponse(repository.save(entity));
     }
 
+    private void validateUniqueIdentity(
+            Long tenantId,
+            Long currentVehicleId,
+            String normalizedPlate,
+            String normalizedChassis) {
+        repository.findByEmpresaIdAndPlaca(tenantId, normalizedPlate)
+                .filter(existing -> currentVehicleId == null || !existing.getId().equals(currentVehicleId))
+                .ifPresent(existing -> {
+                    throw new BusinessException("Já existe um veículo com esta placa para esta empresa");
+                });
+
+        if (normalizedChassis == null) {
+            return;
+        }
+
+        repository.findByEmpresaIdAndChassi(tenantId, normalizedChassis)
+                .filter(existing -> currentVehicleId == null || !existing.getId().equals(currentVehicleId))
+                .ifPresent(existing -> {
+                    throw new BusinessException("Já existe um veículo com este chassi para esta empresa");
+                });
+    }
+
     private Cliente requireClienteDoTenant(Long clienteId) {
         if (clienteId == null) {
             throw new BusinessException("Cliente é obrigatório");
@@ -295,7 +310,7 @@ public class VeiculoService {
         return normalized;
     }
 
-    private static String normalizeUpperIdentifier(String value) {
+    static String normalizeUpperIdentifier(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
