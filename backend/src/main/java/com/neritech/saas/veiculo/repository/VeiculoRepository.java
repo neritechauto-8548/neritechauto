@@ -28,6 +28,8 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long>, JpaSpec
 
     Optional<Veiculo> findByEmpresaIdAndPlaca(Long empresaId, String placa);
 
+    Optional<Veiculo> findByEmpresaIdAndChassi(Long empresaId, String chassi);
+
     List<Veiculo> findByEmpresaId(Long empresaId);
 
     List<Veiculo> findByClienteIdAndEmpresaId(Long clienteId, Long empresaId);
