@@ -1,5 +1,6 @@
 package com.neritech.saas.security;
 
+import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,21 @@ class JwtServiceTest {
 
         assertThat(token).isNotBlank();
         assertThat(jwtService.isTokenValid(token, userDetails)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Cada token deve possuir jti unico mesmo para o mesmo usuario")
+    void deveGerarJtiUnicoPorToken() {
+        String primeiro = jwtService.generateToken(userDetails);
+        String segundo = jwtService.generateToken(userDetails);
+
+        String primeiroJti = jwtService.extractClaim(primeiro, Claims::getId);
+        String segundoJti = jwtService.extractClaim(segundo, Claims::getId);
+
+        assertThat(primeiroJti).isNotBlank();
+        assertThat(segundoJti).isNotBlank();
+        assertThat(segundoJti).isNotEqualTo(primeiroJti);
+        assertThat(segundo).isNotEqualTo(primeiro);
     }
 
     @Test
