@@ -528,4 +528,3 @@ export class CadastroVeiculo implements OnInit {
     return (value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   }
 }
-
