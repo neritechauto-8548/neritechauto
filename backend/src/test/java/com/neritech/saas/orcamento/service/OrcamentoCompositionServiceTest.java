@@ -9,18 +9,25 @@ import com.neritech.saas.orcamento.domain.CatalogKit;
 import com.neritech.saas.orcamento.domain.CatalogKitVersion;
 import com.neritech.saas.orcamento.domain.CatalogKitVersionItem;
 import com.neritech.saas.orcamento.domain.OrcamentoKitInstantiation;
+import com.neritech.saas.orcamento.domain.OrcamentoCommercialAdjustment;
+import com.neritech.saas.orcamento.domain.OrcamentoDiscountApprovalRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoAddCatalogItemRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoCompositionResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoReorderRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoInstantiateKitRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoPackagePriceRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineCommercialRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoDiscountDecisionRequest;
 import com.neritech.saas.orcamento.repository.CatalogKitRepository;
 import com.neritech.saas.orcamento.repository.CatalogKitVersionItemRepository;
 import com.neritech.saas.orcamento.repository.CatalogKitVersionRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoKitInstantiationRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoLineItemRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoServiceGroupRepository;
+import com.neritech.saas.orcamento.repository.OrcamentoCommercialAdjustmentRepository;
+import com.neritech.saas.orcamento.repository.OrcamentoDiscountApprovalRequestRepository;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.ordemservico.domain.enums.TipoOS;
 import com.neritech.saas.ordemservico.repository.OrdemServicoRepository;
@@ -48,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,15 +73,25 @@ class OrcamentoCompositionServiceTest {
     @Mock private CatalogKitVersionRepository kitVersionRepository;
     @Mock private CatalogKitVersionItemRepository kitItemRepository;
     @Mock private OrcamentoKitInstantiationRepository kitInstantiationRepository;
+    @Mock private OrcamentoCommercialAdjustmentRepository commercialAdjustmentRepository;
+    @Mock private OrcamentoDiscountApprovalRequestRepository discountApprovalRepository;
+    @Mock private OrcamentoCommercialAuthorityService commercialAuthorityService;
+
+    private final OrcamentoCommercialCalculationService commercialCalculationService =
+            new OrcamentoCommercialCalculationService();
 
     private OrcamentoCompositionService service;
 
     @BeforeEach
     void setUp() {
         TenantContext.setCurrentTenant(TENANT_ID);
+        lenient().when(commercialAuthorityService.current()).thenReturn(new OrcamentoCommercialAuthorityService.AuthoritySnapshot(
+                null, false, false, false, false, BigDecimal.ZERO.setScale(4)));
         service = new OrcamentoCompositionService(
                 budgetRepository, groupRepository, lineRepository, productRepository, serviceRepository,
-                kitRepository, kitVersionRepository, kitItemRepository, kitInstantiationRepository);
+                kitRepository, kitVersionRepository, kitItemRepository, kitInstantiationRepository,
+                commercialAdjustmentRepository, discountApprovalRepository,
+                commercialAuthorityService, commercialCalculationService);
     }
 
     @AfterEach
@@ -494,6 +512,175 @@ class OrcamentoCompositionServiceTest {
         verify(kitInstantiationRepository).save(any());
     }
 
+    @Test
+    void appliesClosedPackageWithExactWeightedDistributionAndAudit() {
+        OrdemServico budget = budget(10L, 4L);
+        OrcamentoServiceGroup group = group(20L, budget, false);
+        OrcamentoLineItem part = line(31L, group, new BigDecimal("100.0000"), BigDecimal.ONE);
+        OrcamentoLineItem labor = line(32L, group, new BigDecimal("50.0000"), BigDecimal.ONE);
+        labor.setLineType(OrcamentoLineItem.LineType.LABOR);
+        var authority = authority(true, true, false, "10.0000");
+        AtomicReference<OrcamentoCommercialAdjustment> audit = new AtomicReference<>();
+
+        when(budgetRepository.findBudgetForCompositionUpdate(10L, TENANT_ID, TipoOS.ORCAMENTO))
+                .thenReturn(Optional.of(budget));
+        when(groupRepository.findByIdAndEmpresaIdAndOrcamentoId(20L, TENANT_ID, 10L))
+                .thenReturn(Optional.of(group));
+        when(lineRepository.findByEmpresaIdAndGroupIdOrderByPositionAsc(TENANT_ID, 20L))
+                .thenReturn(List.of(part, labor));
+        when(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(TENANT_ID, 10L))
+                .thenReturn(List.of(group));
+        when(lineRepository.findCompositionLines(TENANT_ID, 10L)).thenReturn(List.of(part, labor));
+        when(commercialAuthorityService.requireAuthenticated()).thenReturn(authority);
+        when(commercialAuthorityService.current()).thenReturn(authority);
+        when(commercialAdjustmentRepository.save(any())).thenAnswer(invocation -> {
+            audit.set(invocation.getArgument(0));
+            return invocation.getArgument(0);
+        });
+
+        OrcamentoCompositionResponse response = service.updatePackagePrice(
+                10L,
+                20L,
+                new OrcamentoPackagePriceRequest(
+                        4L, new BigDecimal("120.00"), "WEIGHTED", null, null,
+                        "Condicao comercial negociada"));
+
+        assertThat(response.revision()).isEqualTo(5L);
+        assertThat(response.requiredTotal()).isEqualByComparingTo("120.00");
+        assertThat(response.groups().getFirst().packageOriginalSubtotal()).isEqualByComparingTo("150.00");
+        assertThat(response.groups().getFirst().packageAdjustmentAmount()).isEqualByComparingTo("-30.00");
+        assertThat(part.getAllocatedPackageAmount()).isEqualByComparingTo("80.00");
+        assertThat(labor.getAllocatedPackageAmount()).isEqualByComparingTo("40.00");
+        assertThat(part.getAllocatedPackageAmount().add(labor.getAllocatedPackageAmount()))
+                .isEqualByComparingTo("120.00");
+        assertThat(audit.get().getAdjustmentType())
+                .isEqualTo(OrcamentoCommercialAdjustment.AdjustmentType.PACKAGE_PRICE);
+        assertThat(audit.get().getActorId()).isEqualTo(77L);
+        assertThat(audit.get().getEstimateRevision()).isEqualTo(5L);
+    }
+
+    @Test
+    void appliesDiscountWithinAuthorityWithoutBlockingReview() {
+        OrdemServico budget = budget(10L, 2L);
+        OrcamentoServiceGroup group = group(20L, budget, false);
+        OrcamentoLineItem line = line(31L, group, new BigDecimal("100.0000"), BigDecimal.ONE);
+        var authority = authority(false, true, false, "10.0000");
+
+        when(budgetRepository.findBudgetForCompositionUpdate(10L, TENANT_ID, TipoOS.ORCAMENTO))
+                .thenReturn(Optional.of(budget));
+        when(lineRepository.findByIdAndEmpresaIdAndGroupIdAndGroupOrcamentoId(31L, TENANT_ID, 20L, 10L))
+                .thenReturn(Optional.of(line));
+        when(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(TENANT_ID, 10L))
+                .thenReturn(List.of(group));
+        when(lineRepository.findCompositionLines(TENANT_ID, 10L)).thenReturn(List.of(line));
+        when(commercialAuthorityService.requireAuthenticated()).thenReturn(authority);
+        when(commercialAuthorityService.current()).thenReturn(authority);
+
+        OrcamentoCompositionResponse response = service.updateLineCommercial(
+                10L,
+                20L,
+                31L,
+                new OrcamentoUpdateLineCommercialRequest(
+                        2L, BigDecimal.ONE, new BigDecimal("100.0000"), null,
+                        "PERCENT", new BigDecimal("5.0000"), "Fidelizacao do cliente"));
+
+        assertThat(response.requiredTotal()).isEqualByComparingTo("95.00");
+        assertThat(response.canReview()).isTrue();
+        assertThat(line.getDiscountAmount()).isEqualByComparingTo("5.00");
+        assertThat(line.getDiscountAuthorityStatus())
+                .isEqualTo(OrcamentoLineItem.DiscountAuthorityStatus.APPROVED);
+        verify(discountApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    void createsApprovalAndBlocksReviewWhenDiscountExceedsAuthority() {
+        OrdemServico budget = budget(10L, 7L);
+        OrcamentoServiceGroup group = group(20L, budget, false);
+        OrcamentoLineItem line = line(31L, group, new BigDecimal("100.0000"), BigDecimal.ONE);
+        var authority = authority(false, true, false, "5.0000");
+        AtomicReference<OrcamentoDiscountApprovalRequest> pending = new AtomicReference<>();
+
+        when(budgetRepository.findBudgetForCompositionUpdate(10L, TENANT_ID, TipoOS.ORCAMENTO))
+                .thenReturn(Optional.of(budget));
+        when(lineRepository.findByIdAndEmpresaIdAndGroupIdAndGroupOrcamentoId(31L, TENANT_ID, 20L, 10L))
+                .thenReturn(Optional.of(line));
+        when(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(TENANT_ID, 10L))
+                .thenReturn(List.of(group));
+        when(lineRepository.findCompositionLines(TENANT_ID, 10L)).thenReturn(List.of(line));
+        when(discountApprovalRepository.findFirstByEmpresaIdAndLineItemIdAndStatusOrderByDataCadastroDesc(
+                TENANT_ID, 31L, OrcamentoDiscountApprovalRequest.Status.PENDING))
+                .thenReturn(Optional.empty());
+        when(discountApprovalRepository.save(any())).thenAnswer(invocation -> {
+            OrcamentoDiscountApprovalRequest value = invocation.getArgument(0);
+            value.setId(91L);
+            pending.set(value);
+            return value;
+        });
+        when(discountApprovalRepository.findByEmpresaIdAndOrcamentoIdAndStatus(
+                TENANT_ID, 10L, OrcamentoDiscountApprovalRequest.Status.PENDING))
+                .thenAnswer(ignored -> pending.get() == null ? List.of() : List.of(pending.get()));
+        when(commercialAuthorityService.requireAuthenticated()).thenReturn(authority);
+        when(commercialAuthorityService.current()).thenReturn(authority);
+
+        OrcamentoCompositionResponse response = service.updateLineCommercial(
+                10L,
+                20L,
+                31L,
+                new OrcamentoUpdateLineCommercialRequest(
+                        7L, BigDecimal.ONE, new BigDecimal("100.0000"), null,
+                        "PERCENT", new BigDecimal("12.0000"), "Recuperacao de proposta"));
+
+        assertThat(response.revision()).isEqualTo(8L);
+        assertThat(response.requiredTotal()).isEqualByComparingTo("88.00");
+        assertThat(response.canReview()).isFalse();
+        assertThat(response.blockers()).contains("Desconto pendente de aprovacao gerencial.");
+        assertThat(response.groups().getFirst().lines().getFirst().discountApprovalRequestId())
+                .isEqualTo(91L);
+        assertThat(pending.get().getEquivalentPercentage()).isEqualByComparingTo("12.0000");
+        assertThat(pending.get().getAuthorityLimitPercentage()).isEqualByComparingTo("5.0000");
+    }
+
+    @Test
+    void managerRejectionRestoresGrossTotalAndClosesPendingApproval() {
+        OrdemServico budget = budget(10L, 8L);
+        OrcamentoServiceGroup group = group(20L, budget, false);
+        OrcamentoLineItem line = line(31L, group, new BigDecimal("100.0000"), BigDecimal.ONE);
+        line.setDiscountType(OrcamentoLineItem.DiscountType.PERCENT);
+        line.setDiscountValue(new BigDecimal("12.0000"));
+        line.setDiscountReason("Recuperacao de proposta");
+        line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.PENDING_APPROVAL);
+        commercialCalculationService.recalculateLine(line);
+        OrcamentoDiscountApprovalRequest approval = new OrcamentoDiscountApprovalRequest();
+        approval.setId(91L);
+        approval.setEmpresaId(TENANT_ID);
+        approval.setOrcamento(budget);
+        approval.setGroup(group);
+        approval.setLineItem(line);
+        approval.setCalculatedAmount(new BigDecimal("12.00"));
+        approval.setStatus(OrcamentoDiscountApprovalRequest.Status.PENDING);
+        var manager = authority(true, true, true, "100.0000");
+
+        when(budgetRepository.findBudgetForCompositionUpdate(10L, TENANT_ID, TipoOS.ORCAMENTO))
+                .thenReturn(Optional.of(budget));
+        when(discountApprovalRepository.findByIdAndEmpresaIdAndOrcamentoId(91L, TENANT_ID, 10L))
+                .thenReturn(Optional.of(approval));
+        when(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(TENANT_ID, 10L))
+                .thenReturn(List.of(group));
+        when(lineRepository.findCompositionLines(TENANT_ID, 10L)).thenReturn(List.of(line));
+        when(commercialAuthorityService.requireAuthenticated()).thenReturn(manager);
+        when(commercialAuthorityService.current()).thenReturn(manager);
+
+        OrcamentoCompositionResponse response = service.decideDiscount(
+                10L, 91L, new OrcamentoDiscountDecisionRequest(8L, "REJECT", "Margem minima da oficina"));
+
+        assertThat(response.requiredTotal()).isEqualByComparingTo("100.00");
+        assertThat(response.canReview()).isTrue();
+        assertThat(approval.getStatus()).isEqualTo(OrcamentoDiscountApprovalRequest.Status.REJECTED);
+        assertThat(line.getDiscountAuthorityStatus())
+                .isEqualTo(OrcamentoLineItem.DiscountAuthorityStatus.REJECTED);
+        assertThat(line.getDiscountAmount()).isEqualByComparingTo("0.00");
+    }
+
     private OrdemServico budget(Long id, Long revision) {
         OrdemServico budget = new OrdemServico();
         budget.setId(id);
@@ -504,6 +691,20 @@ class OrcamentoCompositionServiceTest {
         budget.setValorServicos(BigDecimal.ZERO);
         budget.setValorTotal(BigDecimal.ZERO);
         return budget;
+    }
+
+    private OrcamentoCommercialAuthorityService.AuthoritySnapshot authority(
+            boolean canEditPrice,
+            boolean canApplyDiscount,
+            boolean canApproveDiscount,
+            String limit) {
+        return new OrcamentoCommercialAuthorityService.AuthoritySnapshot(
+                77L,
+                canEditPrice,
+                canApplyDiscount,
+                canApproveDiscount,
+                false,
+                new BigDecimal(limit));
     }
 
     private OrcamentoServiceGroup group(Long id, OrdemServico budget, boolean recommended) {
@@ -591,3 +792,4 @@ class OrcamentoCompositionServiceTest {
         return line;
     }
 }
+

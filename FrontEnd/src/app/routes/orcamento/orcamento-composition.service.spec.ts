@@ -132,6 +132,88 @@ describe('OrcamentoCompositionService', () => {
     request.flush({ groups: [] });
   });
 
+  it('sets a closed package price without accepting browser-owned tenant authority', () => {
+    service
+      .updatePackagePrice(91, 15, {
+        expectedRevision: 4,
+        packagePrice: 220,
+        distributionMethod: 'WEIGHTED',
+        priceSourceId: null,
+        priceSourceVersion: null,
+        overrideReason: 'Condição negociada na recepção',
+      })
+      .subscribe();
+
+    const request = http.expectOne(
+      '/api/v1/orcamentos/91/composition/groups/15/package-price'
+    );
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({
+      expectedRevision: 4,
+      packagePrice: 220,
+      distributionMethod: 'WEIGHTED',
+      priceSourceId: null,
+      priceSourceVersion: null,
+      overrideReason: 'Condição negociada na recepção',
+    });
+    expect(request.request.body.tenantId).toBeUndefined();
+    expect(request.request.body.authorityPercent).toBeUndefined();
+    request.flush({ groups: [] });
+  });
+
+  it('sends one atomic commercial line mutation for canonical server calculation', () => {
+    service
+      .updateLineCommercial(91, 15, 22, {
+        expectedRevision: 4,
+        quantity: 2,
+        unitPrice: 95,
+        priceOverrideReason: 'Ajuste negociado com cliente',
+        discountType: 'PERCENT',
+        discountValue: 4,
+        discountReason: 'Fidelidade comprovada do cliente',
+      })
+      .subscribe();
+
+    const request = http.expectOne(
+      '/api/v1/orcamentos/91/composition/groups/15/items/22/commercial'
+    );
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({
+      expectedRevision: 4,
+      quantity: 2,
+      unitPrice: 95,
+      priceOverrideReason: 'Ajuste negociado com cliente',
+      discountType: 'PERCENT',
+      discountValue: 4,
+      discountReason: 'Fidelidade comprovada do cliente',
+    });
+    expect(request.request.body.tenantId).toBeUndefined();
+    expect(request.request.body.approved).toBeUndefined();
+    request.flush({ groups: [] });
+  });
+
+  it('sends a manager decision with revision and reason only', () => {
+    service
+      .decideDiscount(91, 77, {
+        expectedRevision: 9,
+        decision: 'REJECT',
+        reason: 'Margem mínima da oficina',
+      })
+      .subscribe();
+
+    const request = http.expectOne(
+      '/api/v1/orcamentos/91/composition/discount-approvals/77/decision'
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      expectedRevision: 9,
+      decision: 'REJECT',
+      reason: 'Margem mínima da oficina',
+    });
+    expect(request.request.body.tenantId).toBeUndefined();
+    request.flush({ groups: [] });
+  });
+
   it('sends revision as a query parameter when deleting an item', () => {
     service.deleteLine(91, 15, 22, 4).subscribe();
 
@@ -142,3 +224,4 @@ describe('OrcamentoCompositionService', () => {
     request.flush({ groups: [] });
   });
 });
+

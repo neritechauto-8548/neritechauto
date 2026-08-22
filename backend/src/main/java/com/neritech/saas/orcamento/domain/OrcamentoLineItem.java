@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "estimate_line_items")
@@ -19,6 +20,8 @@ public class OrcamentoLineItem extends TenantEntity {
     public enum LineType { PART, LABOR, FEE, SUBLET, DISCOUNT, NOTE }
     public enum Source { PRODUCT_CATALOG, SERVICE_CATALOG, KIT, MANUAL }
     public enum AvailabilityStatus { AVAILABLE, PARTIAL, NEEDED, NOT_APPLICABLE }
+    public enum DiscountType { NONE, FIXED, PERCENT }
+    public enum DiscountAuthorityStatus { NONE, APPROVED, PENDING_APPROVAL, REJECTED }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "service_group_id", nullable = false)
@@ -69,6 +72,53 @@ public class OrcamentoLineItem extends TenantEntity {
     @Column(name = "kit_origin_version")
     private Integer kitOriginVersion;
 
+    @Column(name = "gross_amount", nullable = false, precision = 14, scale = 2)
+    private BigDecimal grossAmount = BigDecimal.ZERO;
+
+    @Column(name = "allocated_package_amount", precision = 14, scale = 2)
+    private BigDecimal allocatedPackageAmount;
+
+    @Column(name = "package_adjustment_amount", nullable = false, precision = 14, scale = 2)
+    private BigDecimal packageAdjustmentAmount = BigDecimal.ZERO;
+
+    @Column(name = "price_source_type", nullable = false, length = 40)
+    private String priceSourceType;
+
+    @Column(name = "price_source_id")
+    private Long priceSourceId;
+
+    @Column(name = "price_source_version")
+    private Integer priceSourceVersion;
+
+    @Column(name = "price_applied_at", nullable = false)
+    private LocalDateTime priceAppliedAt;
+
+    @Column(name = "price_overridden", nullable = false)
+    private boolean priceOverridden;
+
+    @Column(name = "price_override_reason", length = 500)
+    private String priceOverrideReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discount_type", nullable = false, length = 20)
+    private DiscountType discountType = DiscountType.NONE;
+
+    @Column(name = "discount_value", nullable = false, precision = 14, scale = 4)
+    private BigDecimal discountValue = BigDecimal.ZERO;
+
+    @Column(name = "discount_reason", length = 500)
+    private String discountReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discount_authority_status", nullable = false, length = 24)
+    private DiscountAuthorityStatus discountAuthorityStatus = DiscountAuthorityStatus.NONE;
+
+    @Column(name = "discount_authority_limit_percent", precision = 7, scale = 4)
+    private BigDecimal discountAuthorityLimitPercent;
+
+    @Column(name = "discount_requested_by")
+    private Long discountRequestedBy;
+
     public OrcamentoServiceGroup getGroup() { return group; }
     public void setGroup(OrcamentoServiceGroup group) { this.group = group; }
     public LineType getLineType() { return lineType; }
@@ -99,4 +149,35 @@ public class OrcamentoLineItem extends TenantEntity {
     public void setKitOriginId(Long kitOriginId) { this.kitOriginId = kitOriginId; }
     public Integer getKitOriginVersion() { return kitOriginVersion; }
     public void setKitOriginVersion(Integer kitOriginVersion) { this.kitOriginVersion = kitOriginVersion; }
+    public BigDecimal getGrossAmount() { return grossAmount; }
+    public void setGrossAmount(BigDecimal grossAmount) { this.grossAmount = grossAmount; }
+    public BigDecimal getAllocatedPackageAmount() { return allocatedPackageAmount; }
+    public void setAllocatedPackageAmount(BigDecimal allocatedPackageAmount) { this.allocatedPackageAmount = allocatedPackageAmount; }
+    public BigDecimal getPackageAdjustmentAmount() { return packageAdjustmentAmount; }
+    public void setPackageAdjustmentAmount(BigDecimal packageAdjustmentAmount) { this.packageAdjustmentAmount = packageAdjustmentAmount; }
+    public String getPriceSourceType() { return priceSourceType; }
+    public void setPriceSourceType(String priceSourceType) { this.priceSourceType = priceSourceType; }
+    public Long getPriceSourceId() { return priceSourceId; }
+    public void setPriceSourceId(Long priceSourceId) { this.priceSourceId = priceSourceId; }
+    public Integer getPriceSourceVersion() { return priceSourceVersion; }
+    public void setPriceSourceVersion(Integer priceSourceVersion) { this.priceSourceVersion = priceSourceVersion; }
+    public LocalDateTime getPriceAppliedAt() { return priceAppliedAt; }
+    public void setPriceAppliedAt(LocalDateTime priceAppliedAt) { this.priceAppliedAt = priceAppliedAt; }
+    public boolean isPriceOverridden() { return priceOverridden; }
+    public void setPriceOverridden(boolean priceOverridden) { this.priceOverridden = priceOverridden; }
+    public String getPriceOverrideReason() { return priceOverrideReason; }
+    public void setPriceOverrideReason(String priceOverrideReason) { this.priceOverrideReason = priceOverrideReason; }
+    public DiscountType getDiscountType() { return discountType; }
+    public void setDiscountType(DiscountType discountType) { this.discountType = discountType; }
+    public BigDecimal getDiscountValue() { return discountValue; }
+    public void setDiscountValue(BigDecimal discountValue) { this.discountValue = discountValue; }
+    public String getDiscountReason() { return discountReason; }
+    public void setDiscountReason(String discountReason) { this.discountReason = discountReason; }
+    public DiscountAuthorityStatus getDiscountAuthorityStatus() { return discountAuthorityStatus; }
+    public void setDiscountAuthorityStatus(DiscountAuthorityStatus discountAuthorityStatus) { this.discountAuthorityStatus = discountAuthorityStatus; }
+    public BigDecimal getDiscountAuthorityLimitPercent() { return discountAuthorityLimitPercent; }
+    public void setDiscountAuthorityLimitPercent(BigDecimal discountAuthorityLimitPercent) { this.discountAuthorityLimitPercent = discountAuthorityLimitPercent; }
+    public Long getDiscountRequestedBy() { return discountRequestedBy; }
+    public void setDiscountRequestedBy(Long discountRequestedBy) { this.discountRequestedBy = discountRequestedBy; }
 }
+

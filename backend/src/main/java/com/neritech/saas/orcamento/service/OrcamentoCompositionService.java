@@ -9,6 +9,8 @@ import com.neritech.saas.orcamento.domain.CatalogKit;
 import com.neritech.saas.orcamento.domain.CatalogKitVersion;
 import com.neritech.saas.orcamento.domain.CatalogKitVersionItem;
 import com.neritech.saas.orcamento.domain.OrcamentoKitInstantiation;
+import com.neritech.saas.orcamento.domain.OrcamentoCommercialAdjustment;
+import com.neritech.saas.orcamento.domain.OrcamentoDiscountApprovalRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoAddCatalogItemRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoCompositionGroupResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoCompositionLineResponse;
@@ -21,12 +23,17 @@ import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateGroupRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoInstantiateKitRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoPackagePriceRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineCommercialRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoDiscountDecisionRequest;
 import com.neritech.saas.orcamento.repository.CatalogKitRepository;
 import com.neritech.saas.orcamento.repository.CatalogKitVersionItemRepository;
 import com.neritech.saas.orcamento.repository.CatalogKitVersionRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoKitInstantiationRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoLineItemRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoServiceGroupRepository;
+import com.neritech.saas.orcamento.repository.OrcamentoCommercialAdjustmentRepository;
+import com.neritech.saas.orcamento.repository.OrcamentoDiscountApprovalRequestRepository;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.ordemservico.domain.enums.TipoOS;
 import com.neritech.saas.ordemservico.repository.OrdemServicoRepository;
@@ -35,6 +42,7 @@ import com.neritech.saas.produtoServico.domain.Servico;
 import com.neritech.saas.produtoServico.repository.ProdutoRepository;
 import com.neritech.saas.produtoServico.repository.ServicoRepository;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +53,7 @@ import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HexFormat;
@@ -68,6 +77,10 @@ public class OrcamentoCompositionService {
     private final CatalogKitVersionRepository kitVersionRepository;
     private final CatalogKitVersionItemRepository kitItemRepository;
     private final OrcamentoKitInstantiationRepository kitInstantiationRepository;
+    private final OrcamentoCommercialAdjustmentRepository commercialAdjustmentRepository;
+    private final OrcamentoDiscountApprovalRequestRepository discountApprovalRepository;
+    private final OrcamentoCommercialAuthorityService commercialAuthorityService;
+    private final OrcamentoCommercialCalculationService commercialCalculationService;
 
     public OrcamentoCompositionService(
             OrdemServicoRepository budgetRepository,
@@ -78,7 +91,11 @@ public class OrcamentoCompositionService {
             CatalogKitRepository kitRepository,
             CatalogKitVersionRepository kitVersionRepository,
             CatalogKitVersionItemRepository kitItemRepository,
-            OrcamentoKitInstantiationRepository kitInstantiationRepository) {
+            OrcamentoKitInstantiationRepository kitInstantiationRepository,
+            OrcamentoCommercialAdjustmentRepository commercialAdjustmentRepository,
+            OrcamentoDiscountApprovalRequestRepository discountApprovalRepository,
+            OrcamentoCommercialAuthorityService commercialAuthorityService,
+            OrcamentoCommercialCalculationService commercialCalculationService) {
         this.budgetRepository = budgetRepository;
         this.groupRepository = groupRepository;
         this.lineRepository = lineRepository;
@@ -88,6 +105,10 @@ public class OrcamentoCompositionService {
         this.kitVersionRepository = kitVersionRepository;
         this.kitItemRepository = kitItemRepository;
         this.kitInstantiationRepository = kitInstantiationRepository;
+        this.commercialAdjustmentRepository = commercialAdjustmentRepository;
+        this.discountApprovalRepository = discountApprovalRepository;
+        this.commercialAuthorityService = commercialAuthorityService;
+        this.commercialCalculationService = commercialCalculationService;
     }
 
     @Transactional(readOnly = true)
@@ -300,6 +321,16 @@ public class OrcamentoCompositionService {
         duplicate.setVisibility(source.getVisibility());
         duplicate.setKitOriginId(source.getKitOriginId());
         duplicate.setKitOriginVersion(source.getKitOriginVersion());
+        duplicate.setPackagePrice(source.getPackagePrice());
+        duplicate.setPackageDistributionMethod(source.getPackageDistributionMethod());
+        duplicate.setPackageOriginalSubtotal(source.getPackageOriginalSubtotal());
+        duplicate.setPackageAdjustmentAmount(source.getPackageAdjustmentAmount());
+        duplicate.setPackagePriceSourceType(source.getPackagePriceSourceType());
+        duplicate.setPackagePriceSourceId(source.getPackagePriceSourceId());
+        duplicate.setPackagePriceSourceVersion(source.getPackagePriceSourceVersion());
+        duplicate.setPackageAppliedAt(source.getPackageAppliedAt());
+        duplicate.setPackageOverrideReason(source.getPackageOverrideReason());
+        duplicate.setPackageAuthorityStatus(source.getPackageAuthorityStatus());
         duplicate.setPosition(Math.toIntExact(groupRepository.countByEmpresaIdAndOrcamentoId(tenantId, budgetId)));
         groupRepository.saveAndFlush(duplicate);
 
@@ -357,10 +388,241 @@ public class OrcamentoCompositionService {
         BigDecimal quantity = request.quantity().setScale(3, RoundingMode.HALF_UP);
         item.setQuantity(quantity);
         item.setAvailabilityStatus(refreshAvailability(tenantId, item, quantity));
-        item.setTotalAmount(calculateLineTotal(quantity, item.getUnitPrice(), item.getDiscountAmount()));
+        commercialCalculationService.recalculateLine(item);
         lineRepository.save(item);
 
         return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse updatePackagePrice(
+            Long budgetId,
+            Long groupId,
+            OrcamentoPackagePriceRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoServiceGroup group = requireGroup(tenantId, budgetId, groupId);
+        OrcamentoCommercialAuthorityService.AuthoritySnapshot authority =
+                commercialAuthorityService.requireAuthenticated();
+        if (!authority.canEditPrice()) {
+            throw new AccessDeniedException("Voce nao possui permissao para alterar o preco fechado.");
+        }
+
+        BigDecimal previous = group.getPackagePrice();
+        BigDecimal previousOriginal = group.getPackageOriginalSubtotal();
+        if (request.packagePrice() == null) {
+            clearPackagePrice(group);
+        } else {
+            List<OrcamentoLineItem> lines =
+                    lineRepository.findByEmpresaIdAndGroupIdOrderByPositionAsc(tenantId, groupId);
+            if (lines.isEmpty()) throw new BusinessException("Adicione itens antes de definir o preco fechado.");
+            OrcamentoServiceGroup.PackageDistributionMethod method = parsePackageMethod(request.distributionMethod());
+            BigDecimal original = lines.stream()
+                    .map(OrcamentoLineItem::getTotalAmount)
+                    .reduce(ZERO, BigDecimal::add);
+            String reason = trimToNull(request.overrideReason());
+            if (money(request.packagePrice()).compareTo(money(original)) != 0) {
+                reason = requireCommercialReason(reason, "Informe o motivo do preco fechado.");
+            }
+            if (method == OrcamentoServiceGroup.PackageDistributionMethod.POLICY
+                    && (request.priceSourceId() == null || request.priceSourceVersion() == null)) {
+                throw new BusinessException("Distribuicao por politica exige fonte e versao identificadas.");
+            }
+            group.setPackagePrice(money(request.packagePrice()));
+            group.setPackageDistributionMethod(method);
+            group.setPackagePriceSourceType(method == OrcamentoServiceGroup.PackageDistributionMethod.POLICY
+                    ? "PACKAGE_POLICY"
+                    : "MANUAL_OVERRIDE");
+            group.setPackagePriceSourceId(request.priceSourceId());
+            group.setPackagePriceSourceVersion(request.priceSourceVersion());
+            group.setPackageAppliedAt(LocalDateTime.now());
+            group.setPackageOverrideReason(reason);
+            group.setPackageAuthorityStatus(OrcamentoServiceGroup.CommercialAuthorityStatus.APPROVED);
+        }
+        groupRepository.save(group);
+
+        OrcamentoCompositionResponse response = finishMutation(tenantId, budget);
+        commercialAdjustmentRepository.save(commercialAdjustment(
+                tenantId,
+                budget,
+                group,
+                null,
+                OrcamentoCommercialAdjustment.AdjustmentType.PACKAGE_PRICE,
+                previous,
+                group.getPackagePrice(),
+                group.getPackageAdjustmentAmount() == null
+                        ? money((previousOriginal == null ? ZERO : previousOriginal)
+                                .subtract(previous == null ? ZERO : previous))
+                        : group.getPackageAdjustmentAmount(),
+                group.getPackageDistributionMethod() == null ? null : group.getPackageDistributionMethod().name(),
+                group.getPackagePriceSourceType(),
+                group.getPackagePriceSourceId(),
+                group.getPackagePriceSourceVersion(),
+                group.getPackageOverrideReason(),
+                OrcamentoCommercialAdjustment.AuthorityStatus.APPROVED,
+                authority.actorId()));
+        return response;
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse updateLineCommercial(
+            Long budgetId,
+            Long groupId,
+            Long itemId,
+            OrcamentoUpdateLineCommercialRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoLineItem line = requireLine(tenantId, budgetId, groupId, itemId);
+        OrcamentoCommercialAuthorityService.AuthoritySnapshot authority =
+                commercialAuthorityService.requireAuthenticated();
+
+        BigDecimal previousUnitPrice = line.getUnitPrice();
+        BigDecimal previousDiscount = line.getDiscountAmount();
+        BigDecimal quantity = request.quantity().setScale(3, RoundingMode.HALF_UP);
+        line.setQuantity(quantity);
+        line.setAvailabilityStatus(refreshAvailability(tenantId, line, quantity));
+        boolean priceChanged = request.unitPrice() != null
+                && request.unitPrice().setScale(4, RoundingMode.HALF_UP).compareTo(line.getUnitPrice()) != 0;
+        if (priceChanged) {
+            if (!authority.canEditPrice()) {
+                throw new AccessDeniedException("Voce nao possui permissao para alterar este preco.");
+            }
+            String reason = requireCommercialReason(
+                    trimToNull(request.priceOverrideReason()),
+                    "Informe o motivo da alteracao de preco.");
+            line.setUnitPrice(request.unitPrice().setScale(4, RoundingMode.HALF_UP));
+            line.setPriceSourceType("MANUAL_OVERRIDE");
+            line.setPriceSourceId(null);
+            line.setPriceSourceVersion(null);
+            line.setPriceAppliedAt(LocalDateTime.now());
+            line.setPriceOverridden(true);
+            line.setPriceOverrideReason(reason);
+        }
+
+        OrcamentoLineItem.DiscountType discountType =
+                OrcamentoLineItem.DiscountType.valueOf(request.discountType());
+        OrcamentoDiscountApprovalRequest pendingApproval = null;
+        if (discountType == OrcamentoLineItem.DiscountType.NONE) {
+            cancelPendingDiscount(tenantId, line.getId(), authority.actorId(), "Desconto removido da linha.");
+            line.setDiscountType(OrcamentoLineItem.DiscountType.NONE);
+            line.setDiscountValue(BigDecimal.ZERO.setScale(4));
+            line.setDiscountReason(null);
+            line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.NONE);
+            line.setDiscountAuthorityLimitPercent(null);
+            line.setDiscountRequestedBy(null);
+        } else {
+            if (!authority.canApplyDiscount()) {
+                throw new AccessDeniedException("Voce nao possui permissao para aplicar desconto.");
+            }
+            if (request.discountValue() == null || request.discountValue().signum() <= 0) {
+                throw new BusinessException("Informe um desconto maior que zero.");
+            }
+            String reason = requireCommercialReason(
+                    trimToNull(request.discountReason()),
+                    "Informe o motivo do desconto.");
+            line.setDiscountType(discountType);
+            line.setDiscountValue(request.discountValue().setScale(4, RoundingMode.HALF_UP));
+            line.setDiscountReason(reason);
+            line.setDiscountAuthorityLimitPercent(authority.discountAuthorityPercent());
+            line.setDiscountRequestedBy(authority.actorId());
+        }
+
+        commercialCalculationService.recalculateLine(line);
+        if (discountType != OrcamentoLineItem.DiscountType.NONE) {
+            BigDecimal equivalent = commercialCalculationService.equivalentDiscountPercent(line);
+            boolean approved = authority.canApproveDiscount()
+                    || equivalent.compareTo(authority.discountAuthorityPercent()) <= 0;
+            if (approved) {
+                cancelPendingDiscount(tenantId, line.getId(), authority.actorId(), "Desconto substituido por ajuste autorizado.");
+                line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.APPROVED);
+            } else {
+                line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.PENDING_APPROVAL);
+                pendingApproval = createPendingDiscount(
+                        tenantId, budget, line, request.expectedRevision(), equivalent, authority);
+            }
+        }
+        lineRepository.save(line);
+
+        OrcamentoCompositionResponse response = finishMutation(tenantId, budget);
+        if (priceChanged) {
+            commercialAdjustmentRepository.save(commercialAdjustment(
+                    tenantId, budget, line.getGroup(), line,
+                    OrcamentoCommercialAdjustment.AdjustmentType.UNIT_PRICE_OVERRIDE,
+                    previousUnitPrice, line.getUnitPrice(),
+                    money(line.getQuantity().multiply(line.getUnitPrice().subtract(previousUnitPrice))),
+                    null, line.getPriceSourceType(), null, null, line.getPriceOverrideReason(),
+                    OrcamentoCommercialAdjustment.AuthorityStatus.APPROVED, authority.actorId()));
+        }
+        if (previousDiscount.compareTo(line.getDiscountAmount()) != 0
+                || discountType != OrcamentoLineItem.DiscountType.NONE) {
+            commercialAdjustmentRepository.save(commercialAdjustment(
+                    tenantId, budget, line.getGroup(), line,
+                    OrcamentoCommercialAdjustment.AdjustmentType.LINE_DISCOUNT,
+                    previousDiscount, line.getDiscountAmount(),
+                    money(line.getDiscountAmount().subtract(previousDiscount).negate()),
+                    null, line.getPriceSourceType(), line.getPriceSourceId(), line.getPriceSourceVersion(),
+                    line.getDiscountReason(),
+                    pendingApproval == null
+                            ? OrcamentoCommercialAdjustment.AuthorityStatus.APPROVED
+                            : OrcamentoCommercialAdjustment.AuthorityStatus.PENDING_APPROVAL,
+                    authority.actorId()));
+        }
+        return response;
+    }
+
+    @Transactional
+    public OrcamentoCompositionResponse decideDiscount(
+            Long budgetId,
+            Long approvalId,
+            OrcamentoDiscountDecisionRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        assertRevision(budget, request.expectedRevision());
+        OrcamentoCommercialAuthorityService.AuthoritySnapshot authority =
+                commercialAuthorityService.requireAuthenticated();
+        if (!authority.canApproveDiscount()) {
+            throw new AccessDeniedException("Voce nao possui permissao para decidir este desconto.");
+        }
+        OrcamentoDiscountApprovalRequest approval = discountApprovalRepository
+                .findByIdAndEmpresaIdAndOrcamentoId(approvalId, tenantId, budgetId)
+                .filter(item -> item.getStatus() == OrcamentoDiscountApprovalRequest.Status.PENDING)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitacao de desconto pendente nao encontrada."));
+        OrcamentoLineItem line = approval.getLineItem();
+        String reason = requireCommercialReason(trimToNull(request.reason()), "Informe o motivo da decisao.");
+        boolean approved = "APPROVE".equals(request.decision());
+        approval.setStatus(approved
+                ? OrcamentoDiscountApprovalRequest.Status.APPROVED
+                : OrcamentoDiscountApprovalRequest.Status.REJECTED);
+        approval.setDecidedBy(authority.actorId());
+        approval.setDecisionReason(reason);
+        approval.setDecidedAt(LocalDateTime.now());
+        if (approved) {
+            line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.APPROVED);
+        } else {
+            line.setDiscountType(OrcamentoLineItem.DiscountType.NONE);
+            line.setDiscountValue(BigDecimal.ZERO.setScale(4));
+            line.setDiscountAmount(ZERO);
+            line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.REJECTED);
+            commercialCalculationService.recalculateLine(line);
+        }
+        discountApprovalRepository.save(approval);
+        lineRepository.save(line);
+
+        OrcamentoCompositionResponse response = finishMutation(tenantId, budget);
+        commercialAdjustmentRepository.save(commercialAdjustment(
+                tenantId, budget, line.getGroup(), line,
+                OrcamentoCommercialAdjustment.AdjustmentType.DISCOUNT_DECISION,
+                approval.getCalculatedAmount(),
+                approved ? approval.getCalculatedAmount() : ZERO,
+                approved ? ZERO : approval.getCalculatedAmount(),
+                null, line.getPriceSourceType(), line.getPriceSourceId(), line.getPriceSourceVersion(), reason,
+                approved
+                        ? OrcamentoCommercialAdjustment.AuthorityStatus.APPROVED
+                        : OrcamentoCommercialAdjustment.AuthorityStatus.REJECTED,
+                authority.actorId()));
+        return response;
     }
 
     @Transactional
@@ -427,7 +689,6 @@ public class OrcamentoCompositionService {
         item.setGroup(group);
         item.setCatalogItemId(request.catalogItemId());
         item.setQuantity(request.quantity().setScale(3, RoundingMode.HALF_UP));
-        item.setDiscountAmount(ZERO);
 
         if ("PART".equals(request.lineType())) {
             Produto product = productRepository.findByIdAndEmpresaId(request.catalogItemId(), tenantId)
@@ -455,7 +716,14 @@ public class OrcamentoCompositionService {
             throw new BusinessException("Tipo de linha nao suportado para inclusao pelo catalogo.");
         }
 
-        item.setTotalAmount(calculateLineTotal(item.getQuantity(), item.getUnitPrice(), item.getDiscountAmount()));
+        item.setPriceSourceType(item.getSource().name());
+        item.setPriceSourceId(item.getCatalogItemId());
+        item.setPriceSourceVersion(item.getCatalogVersion());
+        item.setPriceAppliedAt(LocalDateTime.now());
+        item.setDiscountType(OrcamentoLineItem.DiscountType.NONE);
+        item.setDiscountValue(BigDecimal.ZERO.setScale(4));
+        item.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.NONE);
+        commercialCalculationService.recalculateLine(item);
         return item;
     }
 
@@ -508,9 +776,15 @@ public class OrcamentoCompositionService {
         if (quantity.signum() <= 0) throw new BusinessException("Quantidade resultante do item do kit deve ser positiva.");
         line.setQuantity(quantity);
         line.setUnitPrice(requireCanonicalPrice(source.getUnitPriceSnapshot()));
-        line.setDiscountAmount(ZERO);
+        line.setPriceSourceType("KIT_VERSION");
+        line.setPriceSourceId(kitId);
+        line.setPriceSourceVersion(version.getVersionNumber());
+        line.setPriceAppliedAt(LocalDateTime.now());
+        line.setDiscountType(OrcamentoLineItem.DiscountType.NONE);
+        line.setDiscountValue(BigDecimal.ZERO.setScale(4));
+        line.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.NONE);
         line.setAvailabilityStatus(refreshAvailability(tenantId, line, quantity));
-        line.setTotalAmount(calculateLineTotal(quantity, line.getUnitPrice(), line.getDiscountAmount()));
+        commercialCalculationService.recalculateLine(line);
         line.setPosition(position);
         return line;
     }
@@ -558,6 +832,18 @@ public class OrcamentoCompositionService {
         Map<Long, OrcamentoServiceGroup> groupById = new LinkedHashMap<>();
         groups.forEach(group -> groupById.put(group.getId(), group));
         List<OrcamentoLineItem> lines = lineRepository.findCompositionLines(tenantId, budget.getId());
+        Map<Long, List<OrcamentoLineItem>> linesByGroup = new LinkedHashMap<>();
+        lines.forEach(line -> {
+            commercialCalculationService.recalculateLine(line);
+            linesByGroup.computeIfAbsent(line.getGroup().getId(), ignored -> new ArrayList<>()).add(line);
+        });
+        for (OrcamentoServiceGroup group : groups) {
+            commercialCalculationService.distributePackage(
+                    group,
+                    linesByGroup.getOrDefault(group.getId(), List.of()));
+        }
+        if (!lines.isEmpty()) lineRepository.saveAll(lines);
+        if (!groups.isEmpty()) groupRepository.saveAll(groups);
 
         BigDecimal parts = ZERO;
         BigDecimal labor = ZERO;
@@ -566,8 +852,9 @@ public class OrcamentoCompositionService {
             if (group == null || group.getVisibility() == OrcamentoServiceGroup.Visibility.INTERNAL_ONLY || group.isRecommended()) {
                 continue;
             }
-            if (line.getLineType() == OrcamentoLineItem.LineType.PART) parts = parts.add(line.getTotalAmount());
-            if (line.getLineType() == OrcamentoLineItem.LineType.LABOR) labor = labor.add(line.getTotalAmount());
+            BigDecimal effective = commercialCalculationService.effectiveAmount(group, line);
+            if (line.getLineType() == OrcamentoLineItem.LineType.PART) parts = parts.add(effective);
+            if (line.getLineType() == OrcamentoLineItem.LineType.LABOR) labor = labor.add(effective);
         }
         budget.setValorProdutos(money(parts));
         budget.setValorServicos(money(labor));
@@ -580,6 +867,10 @@ public class OrcamentoCompositionService {
         List<OrcamentoLineItem> lines = lineRepository.findCompositionLines(tenantId, budget.getId());
         Map<Long, List<OrcamentoLineItem>> linesByGroup = new LinkedHashMap<>();
         lines.forEach(line -> linesByGroup.computeIfAbsent(line.getGroup().getId(), ignored -> new ArrayList<>()).add(line));
+        Map<Long, Long> pendingApprovalByLine = new LinkedHashMap<>();
+        discountApprovalRepository.findByEmpresaIdAndOrcamentoIdAndStatus(
+                        tenantId, budget.getId(), OrcamentoDiscountApprovalRequest.Status.PENDING)
+                .forEach(approval -> pendingApprovalByLine.put(approval.getLineItem().getId(), approval.getId()));
 
         BigDecimal required = ZERO;
         BigDecimal recommended = ZERO;
@@ -590,22 +881,23 @@ public class OrcamentoCompositionService {
         for (OrcamentoServiceGroup group : groups) {
             List<OrcamentoLineItem> groupLines = linesByGroup.getOrDefault(group.getId(), List.of());
             BigDecimal subtotal = groupLines.stream()
-                    .map(OrcamentoLineItem::getTotalAmount)
+                    .map(line -> commercialCalculationService.effectiveAmount(group, line))
                     .reduce(ZERO, BigDecimal::add);
             if (group.getVisibility() == OrcamentoServiceGroup.Visibility.CUSTOMER_VISIBLE) {
                 if (group.isRecommended()) recommended = recommended.add(subtotal);
                 else required = required.add(subtotal);
             }
             if (!group.isRecommended() && group.getVisibility() == OrcamentoServiceGroup.Visibility.CUSTOMER_VISIBLE) {
-                parts = parts.add(sumType(groupLines, OrcamentoLineItem.LineType.PART));
-                labor = labor.add(sumType(groupLines, OrcamentoLineItem.LineType.LABOR));
+                parts = parts.add(sumType(group, groupLines, OrcamentoLineItem.LineType.PART));
+                labor = labor.add(sumType(group, groupLines, OrcamentoLineItem.LineType.LABOR));
             }
-            groupResponses.add(mapGroup(group, groupLines, subtotal));
+            groupResponses.add(mapGroup(group, groupLines, subtotal, pendingApprovalByLine));
         }
 
         List<String> blockers = new ArrayList<>();
         if (groups.isEmpty()) blockers.add("Adicione ao menos um grupo de servico.");
         if (!groups.isEmpty() && lines.isEmpty()) blockers.add("Adicione ao menos uma peca ou mao de obra.");
+        if (!pendingApprovalByLine.isEmpty()) blockers.add("Desconto pendente de aprovacao gerencial.");
         boolean canReview = blockers.isEmpty();
 
         return new OrcamentoCompositionResponse(
@@ -621,13 +913,15 @@ public class OrcamentoCompositionService {
                 lines.size(),
                 canReview,
                 List.copyOf(blockers),
+                commercialAuthorityService.current().toResponse(),
                 List.copyOf(groupResponses));
     }
 
     private OrcamentoCompositionGroupResponse mapGroup(
             OrcamentoServiceGroup group,
             List<OrcamentoLineItem> lines,
-            BigDecimal subtotal) {
+            BigDecimal subtotal,
+            Map<Long, Long> pendingApprovalByLine) {
         return new OrcamentoCompositionGroupResponse(
                 group.getId(),
                 group.getTitle(),
@@ -638,23 +932,42 @@ public class OrcamentoCompositionService {
                 group.isRecommended(),
                 group.getVisibility().name(),
                 group.getPosition(),
+                group.getPackagePrice(),
+                group.getPackageDistributionMethod() == null ? null : group.getPackageDistributionMethod().name(),
+                group.getPackageOriginalSubtotal(),
+                group.getPackageAdjustmentAmount(),
+                group.getPackagePriceSourceType(),
+                group.getPackagePriceSourceId(),
+                group.getPackagePriceSourceVersion(),
+                group.getPackageAppliedAt() == null ? null : group.getPackageAppliedAt().toString(),
+                group.getPackageOverrideReason(),
+                group.getPackageAuthorityStatus() == null ? null : group.getPackageAuthorityStatus().name(),
                 money(subtotal),
-                lines.stream().map(this::mapLine).toList());
+                lines.stream().map(line -> mapLine(line, pendingApprovalByLine.get(line.getId()))).toList());
     }
 
-    private OrcamentoCompositionLineResponse mapLine(OrcamentoLineItem item) {
+    private OrcamentoCompositionLineResponse mapLine(OrcamentoLineItem item, Long pendingApprovalId) {
         return new OrcamentoCompositionLineResponse(
                 item.getId(), item.getLineType().name(), item.getCatalogItemId(), item.getCatalogVersion(),
                 item.getSource().name(), item.getKitOriginId(), item.getKitOriginVersion(),
                 item.getDescriptionSnapshot(), item.getReferenceSnapshot(),
-                item.getQuantity(), item.getUnitPrice(), item.getDiscountAmount(), item.getTotalAmount(),
+                item.getQuantity(), item.getUnitPrice(), item.getGrossAmount(), item.getDiscountAmount(),
+                item.getDiscountType().name(), item.getDiscountValue(), item.getDiscountReason(),
+                item.getDiscountAuthorityStatus().name(), item.getDiscountAuthorityLimitPercent(), pendingApprovalId,
+                item.getTotalAmount(), item.getAllocatedPackageAmount(), item.getPackageAdjustmentAmount(),
+                item.getPriceSourceType(), item.getPriceSourceId(), item.getPriceSourceVersion(),
+                item.getPriceAppliedAt() == null ? null : item.getPriceAppliedAt().toString(),
+                item.isPriceOverridden(), item.getPriceOverrideReason(),
                 item.getAvailabilityStatus().name(), item.getPosition());
     }
 
-    private BigDecimal sumType(List<OrcamentoLineItem> lines, OrcamentoLineItem.LineType type) {
+    private BigDecimal sumType(
+            OrcamentoServiceGroup group,
+            List<OrcamentoLineItem> lines,
+            OrcamentoLineItem.LineType type) {
         return lines.stream()
                 .filter(line -> line.getLineType() == type)
-                .map(OrcamentoLineItem::getTotalAmount)
+                .map(line -> commercialCalculationService.effectiveAmount(group, line))
                 .reduce(ZERO, BigDecimal::add);
     }
 
@@ -672,6 +985,115 @@ public class OrcamentoCompositionService {
         return lineRepository
                 .findByIdAndEmpresaIdAndGroupIdAndGroupOrcamentoId(itemId, tenantId, groupId, budgetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item nao encontrado no grupo autenticado."));
+    }
+
+    private OrcamentoServiceGroup.PackageDistributionMethod parsePackageMethod(String rawMethod) {
+        if (rawMethod == null || rawMethod.isBlank()) {
+            throw new BusinessException("Escolha como o preco fechado sera distribuido.");
+        }
+        try {
+            return OrcamentoServiceGroup.PackageDistributionMethod.valueOf(rawMethod);
+        } catch (IllegalArgumentException exception) {
+            throw new BusinessException("Metodo de distribuicao do pacote nao suportado.");
+        }
+    }
+
+    private void clearPackagePrice(OrcamentoServiceGroup group) {
+        group.setPackagePrice(null);
+        group.setPackageDistributionMethod(null);
+        group.setPackageOriginalSubtotal(null);
+        group.setPackageAdjustmentAmount(null);
+        group.setPackagePriceSourceType(null);
+        group.setPackagePriceSourceId(null);
+        group.setPackagePriceSourceVersion(null);
+        group.setPackageAppliedAt(null);
+        group.setPackageOverrideReason(null);
+        group.setPackageAuthorityStatus(null);
+    }
+
+    private OrcamentoDiscountApprovalRequest createPendingDiscount(
+            Long tenantId,
+            OrdemServico budget,
+            OrcamentoLineItem line,
+            long requestedRevision,
+            BigDecimal equivalentPercentage,
+            OrcamentoCommercialAuthorityService.AuthoritySnapshot authority) {
+        cancelPendingDiscount(
+                tenantId,
+                line.getId(),
+                authority.actorId(),
+                "Solicitacao substituida por novo ajuste comercial.");
+        OrcamentoDiscountApprovalRequest approval = new OrcamentoDiscountApprovalRequest();
+        approval.setEmpresaId(tenantId);
+        approval.setOrcamento(budget);
+        approval.setGroup(line.getGroup());
+        approval.setLineItem(line);
+        approval.setRequestedRevision(requestedRevision);
+        approval.setDiscountType(line.getDiscountType());
+        approval.setDiscountValue(line.getDiscountValue());
+        approval.setCalculatedAmount(line.getDiscountAmount());
+        approval.setEquivalentPercentage(equivalentPercentage);
+        approval.setAuthorityLimitPercentage(authority.discountAuthorityPercent());
+        approval.setReason(line.getDiscountReason());
+        approval.setStatus(OrcamentoDiscountApprovalRequest.Status.PENDING);
+        approval.setRequestedBy(authority.actorId());
+        return discountApprovalRepository.save(approval);
+    }
+
+    private void cancelPendingDiscount(Long tenantId, Long lineId, Long actorId, String reason) {
+        if (lineId == null) return;
+        discountApprovalRepository
+                .findFirstByEmpresaIdAndLineItemIdAndStatusOrderByDataCadastroDesc(
+                        tenantId, lineId, OrcamentoDiscountApprovalRequest.Status.PENDING)
+                .ifPresent(pending -> {
+                    pending.setStatus(OrcamentoDiscountApprovalRequest.Status.CANCELLED);
+                    pending.setDecidedBy(actorId);
+                    pending.setDecisionReason(reason);
+                    pending.setDecidedAt(LocalDateTime.now());
+                    discountApprovalRepository.saveAndFlush(pending);
+                });
+    }
+
+    private OrcamentoCommercialAdjustment commercialAdjustment(
+            Long tenantId,
+            OrdemServico budget,
+            OrcamentoServiceGroup group,
+            OrcamentoLineItem line,
+            OrcamentoCommercialAdjustment.AdjustmentType type,
+            BigDecimal previousAmount,
+            BigDecimal newAmount,
+            BigDecimal impactAmount,
+            String distributionMethod,
+            String priceSourceType,
+            Long priceSourceId,
+            Integer priceSourceVersion,
+            String reason,
+            OrcamentoCommercialAdjustment.AuthorityStatus authorityStatus,
+            Long actorId) {
+        OrcamentoCommercialAdjustment adjustment = new OrcamentoCommercialAdjustment();
+        adjustment.setEmpresaId(tenantId);
+        adjustment.setOrcamento(budget);
+        adjustment.setGroup(group);
+        adjustment.setLineItem(line);
+        adjustment.setEstimateRevision(
+                budget.getCompositionRevision() == null ? 0 : budget.getCompositionRevision());
+        adjustment.setAdjustmentType(type);
+        adjustment.setPreviousAmount(previousAmount);
+        adjustment.setNewAmount(newAmount);
+        adjustment.setImpactAmount(money(impactAmount));
+        adjustment.setDistributionMethod(distributionMethod);
+        adjustment.setPriceSourceType(priceSourceType);
+        adjustment.setPriceSourceId(priceSourceId);
+        adjustment.setPriceSourceVersion(priceSourceVersion);
+        adjustment.setReason(reason);
+        adjustment.setAuthorityStatus(authorityStatus);
+        adjustment.setActorId(actorId);
+        return adjustment;
+    }
+
+    private String requireCommercialReason(String reason, String message) {
+        if (reason == null || reason.length() < 8) throw new BusinessException(message);
+        return reason;
     }
 
     private OrcamentoCompositionResponse finishMutation(Long tenantId, OrdemServico budget) {
@@ -728,8 +1150,23 @@ public class OrcamentoCompositionService {
         copy.setReferenceSnapshot(source.getReferenceSnapshot());
         copy.setQuantity(source.getQuantity());
         copy.setUnitPrice(source.getUnitPrice());
-        copy.setDiscountAmount(source.getDiscountAmount());
-        copy.setTotalAmount(source.getTotalAmount());
+        copy.setGrossAmount(source.getGrossAmount());
+        copy.setDiscountAmount(ZERO);
+        copy.setDiscountType(OrcamentoLineItem.DiscountType.NONE);
+        copy.setDiscountValue(BigDecimal.ZERO.setScale(4));
+        copy.setDiscountReason(null);
+        copy.setDiscountAuthorityStatus(OrcamentoLineItem.DiscountAuthorityStatus.NONE);
+        copy.setDiscountAuthorityLimitPercent(null);
+        copy.setDiscountRequestedBy(null);
+        copy.setTotalAmount(source.getGrossAmount());
+        copy.setAllocatedPackageAmount(source.getAllocatedPackageAmount());
+        copy.setPackageAdjustmentAmount(source.getPackageAdjustmentAmount());
+        copy.setPriceSourceType(source.getPriceSourceType());
+        copy.setPriceSourceId(source.getPriceSourceId());
+        copy.setPriceSourceVersion(source.getPriceSourceVersion());
+        copy.setPriceAppliedAt(source.getPriceAppliedAt());
+        copy.setPriceOverridden(source.isPriceOverridden());
+        copy.setPriceOverrideReason(source.getPriceOverrideReason());
         copy.setAvailabilityStatus(source.getAvailabilityStatus());
         copy.setPosition(position);
         return copy;
@@ -817,3 +1254,4 @@ public class OrcamentoCompositionService {
         return tenantId;
     }
 }
+

@@ -16,5 +16,7 @@ public record OrcamentoCompositionResponse(
         int lineCount,
         boolean canReview,
         List<String> blockers,
+        OrcamentoCommercialPermissionsResponse commercialPermissions,
         List<OrcamentoCompositionGroupResponse> groups) {
 }
+

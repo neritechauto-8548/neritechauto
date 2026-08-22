@@ -329,6 +329,11 @@
                 <i class="pi pi-box" aria-hidden="true"></i>
                 Kit v{{ group.kitOriginVersion }} · instância editável
               </span>
+              } @if (group.packagePrice !== null) {
+              <span class="package-origin">
+                <i class="pi pi-sparkles" aria-hidden="true"></i>
+                Preço fechado · {{ packageDistributionLabel(group.packageDistributionMethod) }}
+              </span>
               } @if (group.customerDescription) {
               <p>{{ group.customerDescription }}</p>
               }
@@ -336,8 +341,14 @@
           </button>
           <div class="group-meta">
             <div class="group-subtotal">
-              <span>Subtotal</span>
+              <span>{{ group.packagePrice !== null ? 'Preço fechado' : 'Subtotal' }}</span>
               <strong>{{ formatCurrency(group.subtotal) }}</strong>
+              @if (group.packageAdjustmentAmount !== null && group.packageAdjustmentAmount !== 0) {
+              <small class="package-impact">
+                {{ group.packageAdjustmentAmount > 0 ? '+' : '' }}{{ formatCurrency(group.packageAdjustmentAmount) }}
+                distribuído
+              </small>
+              }
               @if (selectedGroupId === group.id) {
               <small>Grupo selecionado</small>
               }
@@ -360,6 +371,15 @@
                 title="Mover para baixo"
               >
                 <i class="pi pi-arrow-down" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                (click)="startPackagePricing(group)"
+                [disabled]="isSaving || !composition.commercialPermissions.canEditPackagePrice"
+                [attr.aria-label]="'Definir preço fechado de ' + group.title"
+                [title]="composition.commercialPermissions.canEditPackagePrice ? 'Preço fechado' : 'Sem permissão para editar preço'"
+              >
+                <i class="pi pi-dollar" aria-hidden="true"></i>
               </button>
               <button
                 type="button"
@@ -454,7 +474,71 @@
             </button>
           </footer>
         </form>
-        } @if (!group.lines.length) {
+        }
+
+        @if (pricingGroupId === group.id) {
+        <form
+          class="inline-editor package-editor"
+          [formGroup]="packagePriceForm"
+          (ngSubmit)="savePackagePrice(group)"
+        >
+          <header>
+            <div class="package-editor__icon"><i class="pi pi-sparkles" aria-hidden="true"></i></div>
+            <div>
+              <small>Política comercial</small>
+              <h3>Preço fechado com distribuição rastreável</h3>
+              <p>O total é distribuído pelo servidor sem apagar o valor original das linhas.</p>
+            </div>
+            <button
+              type="button"
+              class="icon-button"
+              (click)="pricingGroupId = null"
+              aria-label="Cancelar preço fechado"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          </header>
+          <div class="package-editor__grid">
+            <label>
+              <span>Preço fechado</span>
+              <div class="money-control"><span>R$</span><input type="number" min="0" step="0.01" formControlName="packagePrice" /></div>
+            </label>
+            <label>
+              <span>Método de distribuição</span>
+              <select formControlName="distributionMethod">
+                <option value="WEIGHTED">Proporcional às linhas</option>
+                <option value="LABOR_FIRST">Mão de obra primeiro</option>
+              </select>
+            </label>
+            <label class="package-editor__reason">
+              <span>Motivo comercial</span>
+              <input formControlName="overrideReason" placeholder="Ex.: condição negociada com o cliente" />
+              <small>Obrigatório quando o valor difere do subtotal original.</small>
+            </label>
+          </div>
+          <div class="package-editor__preview">
+            <div><span>Base atual</span><strong>{{ formatCurrency(group.packageOriginalSubtotal ?? group.subtotal) }}</strong></div>
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            <div><span>Novo total</span><strong>{{ formatCurrency(packagePriceForm.controls.packagePrice.value) }}</strong></div>
+            <span class="authority-seal"><i class="pi pi-shield" aria-hidden="true"></i> Autoridade verificada no servidor</span>
+          </div>
+          <footer>
+            <button
+              type="button"
+              class="nt-button nt-button--secondary"
+              [disabled]="group.packagePrice === null || isSaving"
+              (click)="removePackagePrice(group.id)"
+            >
+              Restaurar linhas
+            </button>
+            <button type="submit" class="nt-button nt-button--primary" [disabled]="packagePriceForm.invalid || isSaving">
+              Aplicar preço fechado
+            </button>
+          </footer>
+        </form>
+        }
+
+        @if (!group.lines.length) {
         <button
           type="button"
           class="group-empty"
@@ -492,25 +576,31 @@
                   <i class="pi pi-circle-fill" aria-hidden="true"></i>
                   {{ availabilityLabel(line.availabilityStatus) }} · não reservado
                 </span>
+                } @if (line.discountAuthorityStatus === 'PENDING_APPROVAL') {
+                <span class="commercial-status commercial-status--pending">
+                  <i class="pi pi-clock" aria-hidden="true"></i>
+                  Desconto aguardando gerente
+                </span>
+                } @else if (line.discountAmount > 0) {
+                <span class="commercial-status commercial-status--approved">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>
+                  Desconto {{ formatCurrency(line.discountAmount) }} autorizado
+                </span>
                 }
               </div>
             </div>
             <span class="line-value line-quantity" role="cell" data-label="Quantidade">
-              @if (editingLineId === line.id) {
-              <input
-                type="number"
-                min="0.001"
-                step="0.001"
-                [formControl]="lineQuantityControl"
-                [attr.aria-label]="'Quantidade de ' + line.description"
-              />
-              } @else { {{ line.quantity | number: '1.0-3' }} }
+              {{ line.quantity | number: '1.0-3' }}
             </span>
-            <span class="line-value" role="cell" data-label="Unitário">
-              {{ formatCurrency(line.unitPrice) }}
+            <span class="line-value line-price" role="cell" data-label="Unitário">
+              <strong>{{ formatCurrency(line.unitPrice) }}</strong>
+              <small>{{ priceSourceLabel(line) }}</small>
             </span>
             <strong class="line-total" role="cell" data-label="Total">
-              {{ formatCurrency(line.totalAmount) }}
+              {{ formatCurrency(line.allocatedPackageAmount ?? line.totalAmount) }}
+              @if (line.allocatedPackageAmount !== null) {
+              <small>{{ formatCurrency(line.totalAmount) }} base</small>
+              }
             </strong>
             <div
               class="line-actions"
@@ -518,14 +608,6 @@
               [attr.aria-label]="'Ações de ' + line.description"
             >
               @if (editingLineId === line.id) {
-              <button
-                type="button"
-                (click)="saveLine(group.id, line.id)"
-                [disabled]="lineQuantityControl.invalid || isSaving"
-                [attr.aria-label]="'Salvar quantidade de ' + line.description"
-              >
-                <i class="pi pi-check" aria-hidden="true"></i>
-              </button>
               <button
                 type="button"
                 (click)="editingLineId = null"
@@ -554,7 +636,7 @@
                 type="button"
                 (click)="startEditLine(line)"
                 [disabled]="isSaving"
-                [attr.aria-label]="'Editar quantidade de ' + line.description"
+                [attr.aria-label]="'Editar quantidade e condições de ' + line.description"
               >
                 <i class="pi pi-pencil" aria-hidden="true"></i>
               </button>
@@ -578,6 +660,101 @@
               }
             </div>
           </div>
+          @if (editingLineId === line.id) {
+          <form
+            class="line-commercial-editor"
+            [formGroup]="lineCommercialForm"
+            (ngSubmit)="saveLine(group.id, line)"
+          >
+            <header>
+              <div>
+                <small>Edição comercial protegida</small>
+                <h3>{{ line.description }}</h3>
+              </div>
+              <span class="authority-seal">
+                <i class="pi pi-shield" aria-hidden="true"></i>
+                Servidor valida preço e alçada
+              </span>
+            </header>
+            <div class="line-commercial-editor__grid">
+              <label>
+                <span>Quantidade</span>
+                <input type="number" min="0.001" step="0.001" formControlName="quantity" />
+              </label>
+              <label>
+                <span>Preço unitário</span>
+                <div class="money-control">
+                  <span>R$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    formControlName="unitPrice"
+                    [readonly]="!composition.commercialPermissions.canEditUnitPrice"
+                  />
+                </div>
+                <small>{{ priceSourceLabel(line) }}</small>
+              </label>
+              @if (composition.commercialPermissions.canEditUnitPrice) {
+              <label class="line-commercial-editor__wide">
+                <span>Motivo do override de preço</span>
+                <input
+                  formControlName="priceOverrideReason"
+                  placeholder="Obrigatório somente se o preço for alterado"
+                />
+              </label>
+              }
+              @if (composition.commercialPermissions.canApplyDiscount) {
+              <label>
+                <span>Tipo de desconto</span>
+                <select formControlName="discountType">
+                  <option value="NONE">Sem desconto</option>
+                  <option value="PERCENT">Percentual</option>
+                  <option value="FIXED">Valor fixo</option>
+                </select>
+              </label>
+              <label>
+                <span>Valor do desconto</span>
+                <input
+                  type="number"
+                  min="0"
+                  [max]="lineCommercialForm.controls.discountType.value === 'PERCENT' ? 100 : null"
+                  [step]="lineCommercialForm.controls.discountType.value === 'PERCENT' ? 0.01 : 0.01"
+                  formControlName="discountValue"
+                />
+                <small>
+                  Sua alçada configurada: {{ composition.commercialPermissions.discountAuthorityPercent | number: '1.0-2' }}%
+                </small>
+              </label>
+              <label class="line-commercial-editor__wide">
+                <span>Motivo do desconto</span>
+                <input formControlName="discountReason" placeholder="Obrigatório para qualquer desconto" />
+              </label>
+              }
+            </div>
+            <footer>
+              <div class="commercial-preview">
+                <span>Valor atual</span>
+                <strong>{{ formatCurrency(line.totalAmount) }}</strong>
+                <small>O valor final só muda após a resposta canônica.</small>
+              </div>
+              <button
+                type="button"
+                class="nt-button nt-button--secondary"
+                (click)="editingLineId = null"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="nt-button nt-button--primary"
+                [disabled]="lineCommercialForm.invalid || isSaving"
+              >
+                Validar e salvar
+              </button>
+            </footer>
+          </form>
+          }
           }
         </div>
         }
@@ -619,6 +796,35 @@
           <i class="pi pi-server" aria-hidden="true"></i>
           Totais retornados pela revisão #{{ composition.revision }} do servidor.
         </p>
+      </section>
+
+      <section class="authority-card">
+        <header>
+          <span><i class="pi pi-lock" aria-hidden="true"></i></span>
+          <div>
+            <small>Política comercial</small>
+            <h2>Sua autoridade nesta proposta</h2>
+          </div>
+        </header>
+        <dl>
+          <div>
+            <dt>Preço</dt>
+            <dd>{{ composition.commercialPermissions.canEditUnitPrice ? 'Edição autorizada' : 'Somente leitura' }}</dd>
+          </div>
+          <div>
+            <dt>Desconto direto</dt>
+            <dd>
+              @if (composition.commercialPermissions.canApplyDiscount) {
+              até {{ composition.commercialPermissions.discountAuthorityPercent | number: '1.0-2' }}%
+              } @else { Não autorizado }
+            </dd>
+          </div>
+        </dl>
+        @if (composition.commercialPermissions.canApplyDiscount && composition.commercialPermissions.discountAuthorityPercent === 0) {
+        <p><i class="pi pi-info-circle" aria-hidden="true"></i> Descontos positivos seguem para aprovação até a oficina configurar uma alçada.</p>
+        } @else {
+        <p><i class="pi pi-shield" aria-hidden="true"></i> Exceções acima da alçada ficam pendentes e bloqueiam a revisão.</p>
+        }
       </section>
 
       <section class="issues-card">
@@ -688,3 +894,4 @@
   </footer>
   }
 </section>
+

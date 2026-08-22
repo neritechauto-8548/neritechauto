@@ -13,6 +13,9 @@ import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateGroupRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoInstantiateKitRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoPackagePriceRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineCommercialRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoDiscountDecisionRequest;
 import com.neritech.saas.orcamento.service.OrcamentoCompositionService;
 import com.neritech.saas.orcamento.service.OrcamentoDraftService;
 import com.neritech.saas.orcamento.service.OrcamentoQueryService;
@@ -173,6 +176,37 @@ public class OrcamentoController {
         return ResponseEntity.ok(compositionService.updateLine(id, groupId, itemId, request));
     }
 
+    @PutMapping("/{id}/composition/groups/{groupId}/package-price")
+    @PreAuthorize("hasAuthority('ORCAMENTO_PRECO_EDITAR')")
+    @Operation(summary = "Aplicar ou remover preco fechado com distribuicao auditavel")
+    public ResponseEntity<OrcamentoCompositionResponse> updatePackagePrice(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @Valid @RequestBody OrcamentoPackagePriceRequest request) {
+        return ResponseEntity.ok(compositionService.updatePackagePrice(id, groupId, request));
+    }
+
+    @PutMapping("/{id}/composition/groups/{groupId}/items/{itemId}/commercial")
+    @PreAuthorize("hasAnyAuthority('ORCAMENTO_PRECO_EDITAR','ORCAMENTO_DESCONTO_APLICAR','ORCAMENTO_DESCONTO_APROVAR')")
+    @Operation(summary = "Aplicar override de preco e desconto sob autoridade do backend")
+    public ResponseEntity<OrcamentoCompositionResponse> updateLineCommercial(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody OrcamentoUpdateLineCommercialRequest request) {
+        return ResponseEntity.ok(compositionService.updateLineCommercial(id, groupId, itemId, request));
+    }
+
+    @PostMapping("/{id}/composition/discount-approvals/{approvalId}/decision")
+    @PreAuthorize("hasAuthority('ORCAMENTO_DESCONTO_APROVAR')")
+    @Operation(summary = "Decidir excecao de desconto sem perder a evidencia solicitada")
+    public ResponseEntity<OrcamentoCompositionResponse> decideDiscount(
+            @PathVariable Long id,
+            @PathVariable Long approvalId,
+            @Valid @RequestBody OrcamentoDiscountDecisionRequest request) {
+        return ResponseEntity.ok(compositionService.decideDiscount(id, approvalId, request));
+    }
+
     @PostMapping("/{id}/composition/groups/{groupId}/items/{itemId}/duplicate")
     @PreAuthorize("hasAuthority('OS_INCLUIR')")
     @Operation(summary = "Duplicar item preservando seu snapshot comercial")
@@ -215,3 +249,4 @@ public class OrcamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 }
+

@@ -26,7 +26,9 @@ import {
   CatalogSearchResponse,
   CompositionGroup,
   CompositionLine,
+  DiscountType,
   OrcamentoCompositionService,
+  PackageDistributionMethod,
 } from './orcamento-composition.service';
 import { OrcamentoListItem, OrcamentoListService } from './orcamento-list.service';
 
@@ -67,6 +69,7 @@ export class ItensOrcamentoComponent implements OnInit {
   isSearching = false;
   editingGroupId: number | null = null;
   editingLineId: number | null = null;
+  pricingGroupId: number | null = null;
   pendingDeletion: PendingDeletion | null = null;
 
   readonly searchControl = new FormControl('', { nonNullable: true });
@@ -100,9 +103,41 @@ export class ItensOrcamentoComponent implements OnInit {
       nonNullable: true,
     }),
   });
-  readonly lineQuantityControl = new FormControl(1, {
-    nonNullable: true,
-    validators: [Validators.required, Validators.min(0.001), Validators.max(999_999_999)],
+  readonly lineCommercialForm = new FormGroup({
+    quantity: new FormControl(1, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(0.001), Validators.max(999_999_999)],
+    }),
+    unitPrice: new FormControl(0, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(0), Validators.max(9_999_999_999)],
+    }),
+    priceOverrideReason: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(500)],
+    }),
+    discountType: new FormControl<DiscountType>('NONE', { nonNullable: true }),
+    discountValue: new FormControl(0, {
+      nonNullable: true,
+      validators: [Validators.min(0), Validators.max(9_999_999_999)],
+    }),
+    discountReason: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(500)],
+    }),
+  });
+  readonly packagePriceForm = new FormGroup({
+    packagePrice: new FormControl(0, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(0), Validators.max(999_999_999_999)],
+    }),
+    distributionMethod: new FormControl<PackageDistributionMethod>('WEIGHTED', {
+      nonNullable: true,
+    }),
+    overrideReason: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(500)],
+    }),
   });
 
   readonly tabs = [
@@ -256,6 +291,7 @@ export class ItensOrcamentoComponent implements OnInit {
   startEditGroup(group: CompositionGroup) {
     this.selectGroup(group);
     this.editingLineId = null;
+    this.pricingGroupId = null;
     this.editingGroupId = group.id;
     this.editGroupForm.setValue({
       title: group.title,
@@ -312,26 +348,107 @@ export class ItensOrcamentoComponent implements OnInit {
 
   startEditLine(line: CompositionLine) {
     this.editingGroupId = null;
+    this.pricingGroupId = null;
     this.editingLineId = line.id;
-    this.lineQuantityControl.setValue(line.quantity);
+    this.lineCommercialForm.setValue({
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+      priceOverrideReason: '',
+      discountType: line.discountType,
+      discountValue: line.discountValue,
+      discountReason: line.discountReason ?? '',
+    });
   }
 
-  saveLine(groupId: number, lineId: number) {
-    if (!this.composition || this.lineQuantityControl.invalid || this.isSaving) {
-      this.lineQuantityControl.markAsTouched();
+  saveLine(groupId: number, line: CompositionLine) {
+    if (!this.composition || this.lineCommercialForm.invalid || this.isSaving) {
+      this.lineCommercialForm.markAllAsTouched();
+      return;
+    }
+    const value = this.lineCommercialForm.getRawValue();
+    const priceChanged = Number(value.unitPrice) !== Number(line.unitPrice);
+    if (priceChanged && value.priceOverrideReason.trim().length < 8) {
+      this.mutationError = 'Explique o motivo da alteração de preço com pelo menos 8 caracteres.';
+      return;
+    }
+    if (
+      value.discountType !== 'NONE' &&
+      (value.discountValue <= 0 || value.discountReason.trim().length < 8)
+    ) {
+      this.mutationError = 'Informe o desconto e um motivo com pelo menos 8 caracteres.';
       return;
     }
     this.runMutation(
-      this.compositionService.updateLine(
-        this.budgetId,
-        groupId,
-        lineId,
-        this.composition.revision,
-        this.lineQuantityControl.getRawValue()
-      ),
-      'Recalculando quantidade…',
-      'Quantidade e disponibilidade recalculadas',
+      this.compositionService.updateLineCommercial(this.budgetId, groupId, line.id, {
+        expectedRevision: this.composition.revision,
+        quantity: value.quantity,
+        unitPrice: value.unitPrice,
+        priceOverrideReason: value.priceOverrideReason.trim() || null,
+        discountType: value.discountType,
+        discountValue: value.discountType === 'NONE' ? 0 : value.discountValue,
+        discountReason: value.discountType === 'NONE' ? null : value.discountReason.trim(),
+      }),
+      'Validando política comercial…',
+      'Quantidade, preço e desconto recalculados no servidor',
       () => (this.editingLineId = null)
+    );
+  }
+
+  startPackagePricing(group: CompositionGroup) {
+    if (!this.composition?.commercialPermissions.canEditPackagePrice) return;
+    this.selectGroup(group);
+    this.editingGroupId = null;
+    this.editingLineId = null;
+    this.pricingGroupId = group.id;
+    this.packagePriceForm.setValue({
+      packagePrice: group.packagePrice ?? group.subtotal,
+      distributionMethod: group.packageDistributionMethod ?? 'WEIGHTED',
+      overrideReason: group.packageOverrideReason ?? '',
+    });
+  }
+
+  savePackagePrice(group: CompositionGroup) {
+    if (!this.composition || this.packagePriceForm.invalid || this.isSaving) {
+      this.packagePriceForm.markAllAsTouched();
+      return;
+    }
+    const value = this.packagePriceForm.getRawValue();
+    const original =
+      group.packageOriginalSubtotal ??
+      group.lines.reduce((total, line) => total + line.totalAmount, 0);
+    if (Math.abs(value.packagePrice - original) > 0.004 && value.overrideReason.trim().length < 8) {
+      this.mutationError = 'Explique o motivo do preço fechado com pelo menos 8 caracteres.';
+      return;
+    }
+    this.runMutation(
+      this.compositionService.updatePackagePrice(this.budgetId, group.id, {
+        expectedRevision: this.composition.revision,
+        packagePrice: value.packagePrice,
+        distributionMethod: value.distributionMethod,
+        priceSourceId: null,
+        priceSourceVersion: null,
+        overrideReason: value.overrideReason.trim() || null,
+      }),
+      'Distribuindo o preço fechado…',
+      'Preço fechado distribuído e auditado',
+      () => (this.pricingGroupId = null)
+    );
+  }
+
+  removePackagePrice(groupId: number) {
+    if (!this.composition) return;
+    this.runMutation(
+      this.compositionService.updatePackagePrice(this.budgetId, groupId, {
+        expectedRevision: this.composition.revision,
+        packagePrice: null,
+        distributionMethod: null,
+        priceSourceId: null,
+        priceSourceVersion: null,
+        overrideReason: null,
+      }),
+      'Restaurando preços das linhas…',
+      'Preço fechado removido; snapshots das linhas restaurados',
+      () => (this.pricingGroupId = null)
     );
   }
 
@@ -439,6 +556,21 @@ export class ItensOrcamentoComponent implements OnInit {
     return labels[status] || status;
   }
 
+  packageDistributionLabel(method: PackageDistributionMethod | null) {
+    const labels: Record<PackageDistributionMethod, string> = {
+      WEIGHTED: 'Proporcional',
+      LABOR_FIRST: 'Mão de obra primeiro',
+      POLICY: 'Política comercial',
+    };
+    return method ? labels[method] : '';
+  }
+
+  priceSourceLabel(line: CompositionLine) {
+    if (line.priceOverridden) return 'Preço manual autorizado';
+    if (line.source === 'KIT') return `Kit v${line.kitOriginVersion ?? 0}`;
+    return line.lineType === 'PART' ? 'Catálogo de peças' : 'Catálogo de serviços';
+  }
+
   trackGroup(_: number, group: CompositionGroup) {
     return group.id;
   }
@@ -543,3 +675,4 @@ export class ItensOrcamentoComponent implements OnInit {
     this.saveMessage = 'Falha ao sincronizar';
   }
 }
+

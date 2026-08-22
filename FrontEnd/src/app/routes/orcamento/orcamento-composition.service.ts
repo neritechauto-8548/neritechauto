@@ -6,6 +6,9 @@ import { environment } from '../../../environments/environment';
 
 export type CompositionLineType = 'PART' | 'LABOR' | 'FEE' | 'SUBLET' | 'DISCOUNT' | 'NOTE';
 export type AvailabilityStatus = 'AVAILABLE' | 'PARTIAL' | 'NEEDED' | 'NOT_APPLICABLE';
+export type DiscountType = 'NONE' | 'FIXED' | 'PERCENT';
+export type DiscountAuthorityStatus = 'NONE' | 'APPROVED' | 'PENDING_APPROVAL' | 'REJECTED';
+export type PackageDistributionMethod = 'WEIGHTED' | 'LABOR_FIRST' | 'POLICY';
 
 export interface CompositionLine {
   id: number;
@@ -19,8 +22,23 @@ export interface CompositionLine {
   reference: string | null;
   quantity: number;
   unitPrice: number;
+  grossAmount: number;
   discountAmount: number;
+  discountType: DiscountType;
+  discountValue: number;
+  discountReason: string | null;
+  discountAuthorityStatus: DiscountAuthorityStatus;
+  discountAuthorityLimitPercent: number | null;
+  discountApprovalRequestId: number | null;
   totalAmount: number;
+  allocatedPackageAmount: number | null;
+  packageAdjustmentAmount: number;
+  priceSourceType: string;
+  priceSourceId: number | null;
+  priceSourceVersion: number | null;
+  priceAppliedAt: string | null;
+  priceOverridden: boolean;
+  priceOverrideReason: string | null;
   availabilityStatus: AvailabilityStatus;
   position: number;
 }
@@ -35,6 +53,16 @@ export interface CompositionGroup {
   recommended: boolean;
   visibility: 'CUSTOMER_VISIBLE' | 'INTERNAL_ONLY';
   position: number;
+  packagePrice: number | null;
+  packageDistributionMethod: PackageDistributionMethod | null;
+  packageOriginalSubtotal: number | null;
+  packageAdjustmentAmount: number | null;
+  packagePriceSourceType: string | null;
+  packagePriceSourceId: number | null;
+  packagePriceSourceVersion: number | null;
+  packageAppliedAt: string | null;
+  packageOverrideReason: string | null;
+  packageAuthorityStatus: 'APPROVED' | 'PENDING_APPROVAL' | null;
   subtotal: number;
   lines: CompositionLine[];
 }
@@ -52,7 +80,17 @@ export interface BudgetComposition {
   lineCount: number;
   canReview: boolean;
   blockers: string[];
+  commercialPermissions: CommercialPermissions;
   groups: CompositionGroup[];
+}
+
+export interface CommercialPermissions {
+  canEditPackagePrice: boolean;
+  canEditUnitPrice: boolean;
+  canApplyDiscount: boolean;
+  canApproveDiscount: boolean;
+  canViewCost: boolean;
+  discountAuthorityPercent: number;
 }
 
 export interface CatalogSearchItem {
@@ -203,6 +241,55 @@ export class OrcamentoCompositionService {
     );
   }
 
+  updatePackagePrice(
+    budgetId: number,
+    groupId: number,
+    request: {
+      expectedRevision: number;
+      packagePrice: number | null;
+      distributionMethod: PackageDistributionMethod | null;
+      priceSourceId: number | null;
+      priceSourceVersion: number | null;
+      overrideReason: string | null;
+    }
+  ): Observable<BudgetComposition> {
+    return this.http.put<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/package-price`,
+      request
+    );
+  }
+
+  updateLineCommercial(
+    budgetId: number,
+    groupId: number,
+    itemId: number,
+    request: {
+      expectedRevision: number;
+      quantity: number;
+      unitPrice: number;
+      priceOverrideReason: string | null;
+      discountType: DiscountType;
+      discountValue: number;
+      discountReason: string | null;
+    }
+  ): Observable<BudgetComposition> {
+    return this.http.put<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/items/${itemId}/commercial`,
+      request
+    );
+  }
+
+  decideDiscount(
+    budgetId: number,
+    approvalId: number,
+    request: { expectedRevision: number; decision: 'APPROVE' | 'REJECT'; reason: string }
+  ): Observable<BudgetComposition> {
+    return this.http.post<BudgetComposition>(
+      `${this.baseUrl}/${budgetId}/composition/discount-approvals/${approvalId}/decision`,
+      request
+    );
+  }
+
   duplicateLine(
     budgetId: number,
     groupId: number,
@@ -239,3 +326,4 @@ export class OrcamentoCompositionService {
     );
   }
 }
+

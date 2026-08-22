@@ -13,6 +13,17 @@ public record OrcamentoCompositionGroupResponse(
         boolean recommended,
         String visibility,
         int position,
+        BigDecimal packagePrice,
+        String packageDistributionMethod,
+        BigDecimal packageOriginalSubtotal,
+        BigDecimal packageAdjustmentAmount,
+        String packagePriceSourceType,
+        Long packagePriceSourceId,
+        Integer packagePriceSourceVersion,
+        String packageAppliedAt,
+        String packageOverrideReason,
+        String packageAuthorityStatus,
         BigDecimal subtotal,
         List<OrcamentoCompositionLineResponse> lines) {
 }
+

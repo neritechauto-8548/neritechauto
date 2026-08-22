@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import {
   BudgetComposition,
   CatalogSearchItem,
+  CompositionLine,
   OrcamentoCompositionService,
 } from './orcamento-composition.service';
 import { ItensOrcamentoComponent } from './itens-orcamento';
@@ -45,6 +46,14 @@ describe('ItensOrcamentoComponent', () => {
     lineCount: 1,
     canReview: true,
     blockers: [],
+    commercialPermissions: {
+      canEditPackagePrice: true,
+      canEditUnitPrice: true,
+      canApplyDiscount: true,
+      canApproveDiscount: false,
+      canViewCost: false,
+      discountAuthorityPercent: 5,
+    },
     groups: [
       {
         id: 15,
@@ -56,6 +65,16 @@ describe('ItensOrcamentoComponent', () => {
         recommended: false,
         visibility: 'CUSTOMER_VISIBLE',
         position: 0,
+        packagePrice: null,
+        packageDistributionMethod: null,
+        packageOriginalSubtotal: null,
+        packageAdjustmentAmount: null,
+        packagePriceSourceType: null,
+        packagePriceSourceId: null,
+        packagePriceSourceVersion: null,
+        packageAppliedAt: null,
+        packageOverrideReason: null,
+        packageAuthorityStatus: null,
         subtotal: 250,
         lines: [],
       },
@@ -76,6 +95,9 @@ describe('ItensOrcamentoComponent', () => {
         'deleteGroup',
         'reorderGroups',
         'updateLine',
+        'updatePackagePrice',
+        'updateLineCommercial',
+        'decideDiscount',
         'duplicateLine',
         'deleteLine',
         'reorderLines',
@@ -256,4 +278,124 @@ describe('ItensOrcamentoComponent', () => {
     );
     expect(component.saveMessage).toContain('Kit v6');
   });
+
+  it('saves a closed package price with an explicit distribution policy and audit reason', () => {
+    compositionService.updatePackagePrice.and.returnValue(
+      of({
+        ...composition,
+        revision: 5,
+        groups: [
+          {
+            ...composition.groups[0],
+            packagePrice: 220,
+            packageDistributionMethod: 'WEIGHTED',
+            packageOriginalSubtotal: 250,
+            packageAdjustmentAmount: -30,
+            subtotal: 220,
+          },
+        ],
+      })
+    );
+    component.ngOnInit();
+    component.startPackagePricing(composition.groups[0]);
+    component.packagePriceForm.setValue({
+      packagePrice: 220,
+      distributionMethod: 'WEIGHTED',
+      overrideReason: 'Condição negociada na recepção',
+    });
+
+    component.savePackagePrice(composition.groups[0]);
+
+    expect(compositionService.updatePackagePrice).toHaveBeenCalledWith(91, 15, {
+      expectedRevision: 4,
+      packagePrice: 220,
+      distributionMethod: 'WEIGHTED',
+      priceSourceId: null,
+      priceSourceVersion: null,
+      overrideReason: 'Condição negociada na recepção',
+    });
+    expect(component.pricingGroupId).toBeNull();
+    expect(component.saveMessage).toContain('distribuído');
+  });
+
+  it('sends quantity, price override and discount as one commercial mutation', () => {
+    const line: CompositionLine = {
+      id: 31,
+      lineType: 'PART',
+      catalogItemId: 22,
+      catalogVersion: 3,
+      source: 'PRODUCT_CATALOG',
+      kitOriginId: null,
+      kitOriginVersion: null,
+      description: 'Pastilha de freio',
+      reference: 'PST-22',
+      quantity: 1,
+      unitPrice: 100,
+      grossAmount: 100,
+      discountAmount: 0,
+      discountType: 'NONE',
+      discountValue: 0,
+      discountReason: null,
+      discountAuthorityStatus: 'NONE',
+      discountAuthorityLimitPercent: null,
+      discountApprovalRequestId: null,
+      totalAmount: 100,
+      allocatedPackageAmount: null,
+      packageAdjustmentAmount: 0,
+      priceSourceType: 'PRODUCT_CATALOG',
+      priceSourceId: 22,
+      priceSourceVersion: 3,
+      priceAppliedAt: '2026-08-22T12:00:00Z',
+      priceOverridden: false,
+      priceOverrideReason: null,
+      availabilityStatus: 'AVAILABLE',
+      position: 0,
+    };
+    compositionService.updateLineCommercial.and.returnValue(
+      of({ ...composition, revision: 5 })
+    );
+    component.ngOnInit();
+    component.startEditLine(line);
+    component.lineCommercialForm.setValue({
+      quantity: 2,
+      unitPrice: 95,
+      priceOverrideReason: 'Ajuste negociado com cliente',
+      discountType: 'PERCENT',
+      discountValue: 4,
+      discountReason: 'Fidelidade comprovada do cliente',
+    });
+
+    component.saveLine(15, line);
+
+    expect(compositionService.updateLineCommercial).toHaveBeenCalledWith(91, 15, 31, {
+      expectedRevision: 4,
+      quantity: 2,
+      unitPrice: 95,
+      priceOverrideReason: 'Ajuste negociado com cliente',
+      discountType: 'PERCENT',
+      discountValue: 4,
+      discountReason: 'Fidelidade comprovada do cliente',
+    });
+    expect(component.editingLineId).toBeNull();
+  });
+
+  it('blocks a commercial override locally when the audit reason is too short', () => {
+    const line = {
+      id: 31,
+      quantity: 1,
+      unitPrice: 100,
+      discountType: 'NONE' as const,
+      discountValue: 0,
+      discountReason: null,
+    } as CompositionLine;
+    component.ngOnInit();
+    component.startEditLine(line);
+    component.lineCommercialForm.patchValue({ unitPrice: 95, priceOverrideReason: 'Ajuste' });
+
+    component.saveLine(15, line);
+
+    expect(compositionService.updateLineCommercial).not.toHaveBeenCalled();
+    expect(component.mutationError).toContain('pelo menos 8 caracteres');
+  });
 });
+
