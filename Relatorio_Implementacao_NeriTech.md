@@ -1,12 +1,13 @@
 # Relatório de Implementação — NeriTech Auto
 
-**Data-base:** 21 de agosto de 2026  
+**Data-base:** 22 de agosto de 2026  
 **Branch de reconstrução:** `feature/neritech-auto-rebuild`  
 **Fonte de verdade funcional/UX:** `NERITECH — Documentação Oficial` no Notion  
 **Status documental (D4):** 100% concluído para a documentação oficial aprovada  
-**Status de implementação verificável (D5):** **11% geral**
+**Status de implementação D5:** **12% geral**  
+**Validação executável global:** **ADIADA PARA O FINAL DO PROJETO por decisão de desenvolvimento**
 
-> Este relatório mede somente código implementado e evidência verificável. Documentação pronta, código legado existente, mockups, rotas vazias ou telas antigas não contam como implementação D5 concluída.
+> O percentual D5 passa a medir implementação revisada no código. Compilação, execução de testes, execução do Flyway e CI completo serão feitos em uma rodada final. Até essa rodada, nenhum resultado de runtime deve ser presumido.
 
 ---
 
@@ -14,10 +15,10 @@
 
 | Faixa | Bloco | Status atual |
 | ---: | --- | --- |
-| 0–12% | Fundação, segurança, autenticação, multi-tenant e base de testes | **Em finalização** |
-| 12–18% | Angular shell, menu, navegação, permissões de rota e design system | **Em implementação prioritária** |
+| 0–12% | Fundação, segurança, autenticação, multi-tenant, Flyway e base de testes | **Implementação concluída — validação final pendente** |
+| 12–18% | Angular shell, menu, navegação, permissões de rota e design system | **Próximo bloco ativo** |
 | 18–28% | Clientes, veículos e CRM base | Parcial / ainda não promovido |
-| 28–38% | Orçamentos | Não promovido |
+| 28–38% | Orçamentos | Parcial / ainda não promovido |
 | 38–52% | Ordens de Serviço, checklists e fluxo operacional central | Não promovido |
 | 52–62% | Estoque, serviços, kits, áreas e acessórios | Não promovido |
 | 62–76% | Financeiro, caixa e compras | Não promovido |
@@ -25,223 +26,206 @@
 | 84–90% | Agenda, alertas, marketing e CRM | Não promovido |
 | 90–95% | Pátio e Portal do Cliente | Não promovido |
 | 95–98% | Relatórios, administração, auditoria e assinaturas | Não promovido |
-| 98–100% | E2E, hardening, CI, rastreabilidade e evidências finais | Não iniciado |
+| 98–100% | E2E, hardening final, CI, rastreabilidade e evidências finais | Não iniciado |
 
 ---
 
-## 2. Fundação e segurança — implementado
+## 2. Marco 0–12% — fundação implementada
 
-### Tenant e autorização
+### 2.1 Segurança e autenticação
 
-- Tenant autoritativo deriva da identidade/sessão autenticada no backend.
-- `X-Tenant-Id` não concede acesso e só pode coincidir com tenant já autorizado.
-- Query params `tenantId`/`empresaId` não são fonte de autoridade nos fluxos corrigidos.
-- Entidades tenant-aware falham fechado quando não existe tenant confiável.
-- Usuários, funções e clientes possuem consultas tenant-scoped nos pontos já refatorados.
-- Permissões efetivas são as persistidas e devolvidas pelo backend; não existe expansão automática de `ADMIN` no frontend.
+Implementado no rebuild:
 
-### Angular
+- JWT com identidade derivada do backend e `jti` único por token.
+- Access token autenticado somente quando corresponde a uma sessão ativa persistida.
+- Logout revoga a sessão ativa e invalida o access token anterior no backend.
+- Refresh token possui rotação: cada renovação substitui access e refresh anteriores.
+- Refresh token antigo deixa de corresponder à sessão ativa, reduzindo replay.
+- Redefinição de senha revoga sessões ativas do usuário.
+- Usuário inativo ou bloqueado não pode renovar sessão.
+- `TenantContext` é limpo no início/fim do filtro e em fluxos manuais de autenticação.
+- Respostas REST específicas para `401` e `403`.
+- Segredo JWT inválido/fraco segue política de falha fechada já implementada.
+- Logs de autenticação não devem registrar senha, JWT ou refresh token.
 
-- Interceptor de tenant controlado pelo navegador removido da cadeia ativa.
-- Guards funcionais de permissão aplicados às rotas já migradas.
-- Sidebar é filtrada pelas permissões efetivas devolvidas pelo backend.
-- Grupos sem itens autorizados desaparecem da navegação.
+### 2.2 Multi-tenancy
 
-### Erros de segurança
+Princípio final implementado:
 
-- Respostas JSON padronizadas para `401` e `403` implementadas.
-- Segredo JWT ausente, inválido ou fraco faz a aplicação falhar fechado.
+**o navegador nunca estabelece autoridade de tenant.**
 
----
+- tenant autoritativo deriva da identidade/sessão autenticada no backend;
+- `X-Tenant-Id` não concede acesso e, quando presente, deve coincidir com o tenant autenticado;
+- query params/body `tenantId` ou `empresaId` podem existir temporariamente por compatibilidade, mas não substituem `TenantContext`;
+- `TenantEntity` impede persistência/alteração fora do tenant autenticado;
+- consultas críticas migradas usam `find...AndEmpresaId` ou equivalente;
+- frontend não injeta tenant obtido de `localStorage` como autoridade.
 
-## 3. Frontend — reorganização conforme documentação oficial
+Fluxos revisados/corrigidos neste marco incluem:
 
-### Autenticação
+- Dashboard;
+- Clientes e Cliente 360;
+- Veículos;
+- Agendamentos;
+- Orçamentos;
+- autenticação/sessões;
+- fotos de Ordem de Serviço;
+- Funcionários e foto de funcionário.
 
-Implementado:
+### 2.3 Proteção de mídia sensível
 
-- `AuthLayout` único para Login, Recuperar Senha e Redefinir Senha.
-- Login não armazena senha em `localStorage`.
-- Recuperação usa mensagem anti-enumeração.
-- Tratamento de token inválido/expirado/reutilizado na UX.
-- Regra de nova senha alinhada ao contrato Spring atual: mínimo de 6 caracteres.
-- Navegação pública concentrada em `/auth/*`.
+Correção adicional do fechamento de 12%:
 
-### Application Shell
+- download de foto de Ordem de Serviço deixou de ser endpoint público;
+- foto de funcionário deixou de ser endpoint público;
+- foto de OS é resolvida por `id + empresa_id`;
+- a OS associada ao upload/listagem é resolvida por `id + empresa_id`;
+- foto de funcionário depende de funcionário resolvido no tenant autenticado;
+- logo pública da empresa e foto pública de produto permanecem como exceções de compatibilidade e devem ser reavaliadas no hardening final.
 
-Implementado:
+### 2.4 Orçamentos e idempotência
 
-- Sidebar expandida: **264 px**.
-- Sidebar compacta: **72 px**.
-- Topbar organizada conforme UI Master.
-- Breakpoint mobile corrigido para `< 768 px`.
-- Gutter responsivo e shell padronizado.
-- Contexto de empresa/unidade apresentado como informação de sessão, nunca como autoridade de tenant controlada pelo navegador.
-- Busca global e seletores sem contrato funcional permanecem explicitamente indisponíveis em vez de simulados.
+- criação do orçamento não aceita número comercial autoritativo do navegador;
+- tenant é derivado do backend;
+- `POST` de criação usa `Idempotency-Key`;
+- mesma chave + mesmo request pode retornar o recurso já criado;
+- mesma chave + payload diferente gera conflito;
+- reserva é escopada por empresa + ator autenticado + chave;
+- ator é persistido de forma hash no controle técnico de idempotência;
+- CORS passou a permitir `Idempotency-Key`.
 
-### Menu oficial
+### 2.5 Veículos e integridade de identidade
 
-A árvore de produção foi reorganizada nos 12 grupos oficiais:
-
-1. Gestão de Pátio
-2. Home
-3. Clientes
-4. Operacional
-5. Cadastros
-6. Movimentação
-7. Financeiro
-8. Fiscal
-9. Histórico
-10. Gráficos
-11. Agendamentos
-12. Relatórios
-
-Rotas de demonstração do template não fazem mais parte da navegação de produção.
-
-### Home
-
-A documentação oficial define quatro experiências e as rotas agora estão preparadas:
-
-- `/home/gerencial`
-- `/home/financeiro`
-- `/home/orcamentos`
-- `/home/operacional`
-
-O menu Home possui os quatro itens correspondentes.
-
-#### Dashboard Gerencial
-
-Implementado neste ciclo:
-
-- Page Header canônico.
-- KPIs usando somente valores retornados pelo backend atual.
-- Estados de loading e erro.
-- Área de atenção com drill-down para módulos fonte.
-- Resumo operacional do mês.
-- Atalhos para OS, Orçamentos, Clientes e Financeiro.
-- Estado explícito de read model pendente para histórico temporal.
-- Remoção de tendências, metas e gráficos simulados do Angular.
-- Remoção de histórico financeiro mockado do Spring Boot.
-
-Ainda pendente para aderência D4 completa:
-
-- `generatedAt` / freshness.
-- filtros por período/unidade/comparação.
-- read model gerencial dedicado.
-- conversão de orçamento oficial.
-- funil canônico.
-- alertas agregados P0/P1 completos.
-- gráficos com série temporal real e alternativa acessível.
-- capability mapping final (`dashboard.managerial.read`, etc.) reconciliada com permissões persistidas atuais.
-
-#### Dashboard Financeiro / Orçamentos / Operacional
-
-As rotas finais já existem, mas o conteúdo permanece marcado como **MAPEAMENTO PENDENTE** até os respectivos read models serem implementados. Não há números fictícios nesses destinos.
+- placa é normalizada no backend;
+- placa é única dentro do tenant;
+- chassi/VIN, quando informado, é normalizado e único dentro do tenant;
+- mesma identidade pode existir em tenants distintos conforme regra multi-tenant;
+- regressão de odômetro é bloqueada no fluxo comum;
+- exclusão é lógica/desativação nos fluxos refatorados.
 
 ---
 
-## 4. Correção de segurança específica do Dashboard
+## 3. Flyway preparado
 
-Antes deste ciclo, o Dashboard ainda possuía um fluxo legado onde:
+Migrations adicionadas neste ciclo:
 
-1. o Angular lia `tenantId`/`empresaId` do `localStorage`;
-2. enviava `empresaId` como query param;
-3. o `DashboardController` aceitava esse valor e podia sobrescrever o `TenantContext`.
+- `V266__add_orcamento_creation_idempotency.sql` — controle persistente de idempotência da criação de orçamento;
+- `V267__enforce_vehicle_identity_per_tenant.sql` — normalização e unicidade de placa/chassi por tenant com preflight;
+- `V268__index_active_user_sessions.sql` — índices parciais das sessões ativas.
 
-Esse fluxo foi removido.
+### Política da V267
 
-Agora:
+A migration não escolhe silenciosamente qual veículo legado deve sobreviver.
 
-- Angular chama apenas `GET /api/dashboard`.
-- O controller lê exclusivamente `TenantContext.getCurrentTenant()`.
-- ausência de tenant confiável retorna `401`.
-- foram adicionados testes para impedir regressão desse comportamento.
+Se houver colisão após normalização:
 
----
+1. a migration falha explicitamente;
+2. nenhum registro é apagado ou mesclado automaticamente;
+3. a inconsistência precisa ser saneada com contexto de negócio/auditoria;
+4. somente depois a migration deve ser reaplicada.
 
-## 5. Testes adicionados / mantidos
-
-Cobertura já criada no rebuild inclui, entre outros:
-
-- `TenantInterceptorTest`
-- `JwtAuthenticationFilterTest`
-- `JwtServiceTest`
-- `MultitenancyIntegrationTest`
-- `CustomUserDetailsServiceTest`
-- `UsuarioServiceTest`
-- `RestSecurityHandlerTest`
-- `VeiculoServiceTest`
-- `permission-guard.spec.ts`
-- `DashboardControllerTest`
-- `dashboard.service.spec.ts`
-
-> Existência de teste no repositório não significa que o teste passou no CI atual. O resultado só será promovido quando houver execução observável.
+**Importante:** as migrations estão implementadas, mas **não serão executadas agora**. A execução em banco limpo e em cenário de upgrade será feita na validação final do projeto.
 
 ---
 
-## 6. Validação e CI
+## 4. CI e estratégia de validação
 
-Workflow existente: `.github/workflows/ci-rebuild.yml`
+Workflow: `.github/workflows/ci-rebuild.yml`.
 
-- Backend: Java 21 + Maven tests.
-- Frontend: Node 22 + Yarn + `ng build`.
-- Trigger configurado para pushes em `feature/**` com alterações em `backend/**` ou `FrontEnd/**`.
+Por decisão de desenvolvimento, o workflow foi alterado para **execução manual (`workflow_dispatch`)** durante a reconstrução.
 
-### Situação observada no commit atual
+Isso evita que cada commit dispare automaticamente:
 
-Os status visíveis da Vercel falharam por **build rate limit da conta (`upgradeToPro=build-rate-limit`)**, não por evidência de erro de compilação.
+- Maven;
+- testes backend;
+- testes Angular;
+- build Angular.
 
-Ainda não existe, nesta sessão, evidência observável de execução concluída do workflow GitHub Actions para promover este lote como CI verde.
+### Estado atual
 
-Portanto:
+- implementação: **12%**;
+- revisão estática: **contínua durante o desenvolvimento**;
+- Maven: **adiado**;
+- Angular tests/build: **adiados**;
+- Flyway real: **adiado**;
+- CI completo: **adiado**;
+- PR: continua **Draft**;
+- merge em `main`: **não autorizado nesta etapa**.
 
-- código: **implementado**;
-- revisão estática: **em andamento**;
-- Angular build: **não confirmado**;
-- Maven tests: **não confirmado**;
-- Vercel: **bloqueado por limite de builds**.
+### Rodada final obrigatória
 
----
+Antes do projeto ser considerado pronto para merge/release, executar de forma concentrada:
 
-## 7. Bloqueios antes de 12% D5
-
-Para fechar integralmente o marco de fundação (12%) ainda faltam principalmente:
-
-1. migração Flyway nova e segura para integridade de Veículos por tenant;
-2. verificação final de sessão/refresh e revogação;
-3. execução observável dos testes backend;
-4. execução observável do build Angular;
-5. confirmação de que nenhum fluxo restante usa tenant controlado pelo navegador como autoridade.
-
----
-
-## 8. Prioridade corrente
-
-A prioridade deliberada neste momento é **organizar primeiro o frontend conforme a documentação oficial**, antes de expandir módulos de negócio.
-
-Ordem atual:
-
-1. Auth Shell — Login / Recuperar / Redefinir.
-2. Application Shell — Topbar / Sidebar / responsividade.
-3. Menu e rotas oficiais.
-4. Home / Dashboard.
-5. padrão reutilizável de Page Header, filtros, cards, tabelas, estados e formulários.
-6. Clientes e Veículos já sobre essa fundação visual.
-7. Orçamentos e OS na sequência.
+1. `mvn clean test`;
+2. build completo do backend;
+3. testes Angular;
+4. build Angular de produção;
+5. Flyway em banco limpo;
+6. Flyway simulando upgrade de banco existente;
+7. testes de isolamento entre tenants;
+8. autenticação, logout, refresh, replay e revogação;
+9. testes de autorização/403;
+10. contratos frontend/backend;
+11. E2E dos fluxos críticos;
+12. correção integral das falhas encontradas;
+13. CI verde;
+14. somente então avaliar merge do PR para `main`.
 
 ---
 
-## 9. Regra de promoção
+## 5. Base de testes já escrita
 
-Nenhum módulo será marcado como concluído somente porque existe código legado ou uma tela visualmente pronta.
+A branch contém cobertura criada/revisada para áreas críticas, incluindo:
 
-Para promoção D5 devem existir, conforme aplicável:
+- `TenantInterceptorTest`;
+- `JwtAuthenticationFilterTest`;
+- `JwtServiceTest`;
+- `AuthServiceSessionTest`;
+- `MultitenancyIntegrationTest`;
+- `CustomUserDetailsServiceTest`;
+- `UsuarioServiceTest`;
+- `RestSecurityHandlerTest`;
+- `VeiculoServiceTest`;
+- `OrcamentoDraftServiceTest`;
+- testes dos serviços de Cliente 360;
+- `permission-guard.spec.ts`;
+- testes de login/reset;
+- testes de agendamento;
+- testes de dashboard;
+- testes críticos de orçamento no frontend.
 
-- aderência à documentação oficial;
-- tenant isolation;
-- autorização backend;
-- UX e responsividade;
-- estados loading/empty/error/403;
-- testes positivos e negativos;
-- build/CI verificável;
-- rastreabilidade entre especificação e implementação.
+> Esses testes fazem parte da implementação, mas não devem ser descritos como aprovados após a decisão de adiar a execução. O resultado real será registrado na validação final.
+
+---
+
+## 6. Próximo marco — 12% → 18%
+
+O próximo bloco ativo é a consolidação do Application Shell e da autorização de navegação:
+
+1. reconciliar `app.routes.ts` com as rotas oficiais;
+2. corrigir aliases que não tenham os mesmos guards da rota canônica;
+3. reconciliar menu com permissões realmente persistidas;
+4. remover qualquer bypass implícito de perfil/`ADMIN` no frontend;
+5. garantir comportamento deny-by-default no guard;
+6. ocultar grupos de menu sem filhos autorizados;
+7. consolidar sidebar/topbar/mobile shell;
+8. padronizar Page Header, estados de loading/empty/error/403;
+9. preservar as rotas oficiais de Home;
+10. documentar o mapa rota → permissão → item de menu.
+
+Não serão inventados novos códigos de permissão persistidos apenas para atender a nova UI. Primeiro será realizado o mapeamento dos códigos existentes.
+
+---
+
+## 7. Regra de progresso durante a reconstrução
+
+Até a rodada final, um avanço percentual significa **implementação revisada e integrada estaticamente**, e não execução bem-sucedida.
+
+O relatório sempre deve separar:
+
+- **implementado**;
+- **revisado estaticamente**;
+- **pendente de execução**;
+- **validado em runtime**.
+
+Assim, o projeto pode continuar evoluindo sem custo de compilação a cada commit, sem transformar ausência de execução em falsa evidência de qualidade.
