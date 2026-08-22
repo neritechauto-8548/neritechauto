@@ -61,6 +61,8 @@ export class AdminLayout implements OnDestroy {
     return this.isMobileScreen;
   }
 
+  mobileSidenavOpened = false;
+
   private isMobileScreen = false;
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
@@ -91,11 +93,15 @@ export class AdminLayout implements OnDestroy {
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_MEDIAQUERY, TABLET_MEDIAQUERY, DESKTOP_MEDIAQUERY])
       .subscribe(state => {
-        this.options.sidenavOpened = true;
         this.isMobileScreen = state.breakpoints[MOBILE_MEDIAQUERY];
 
-        // Tablet usa a navegação compacta; desktop preserva a preferência do usuário.
+        if (this.isMobileScreen) {
+          this.mobileSidenavOpened = false;
+        }
+
+        // Tablet usa a navegação compacta; desktop preserva a preferência persistida.
         if (state.breakpoints[TABLET_MEDIAQUERY]) {
+          this.options.sidenavOpened = true;
           this.options.sidenavCollapsed = true;
         }
 
@@ -104,7 +110,7 @@ export class AdminLayout implements OnDestroy {
 
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       if (this.isOver) {
-        this.sidenav.close();
+        this.mobileSidenavOpened = false;
       }
       this.content.scrollTo({ top: 0 });
     });
@@ -152,10 +158,15 @@ export class AdminLayout implements OnDestroy {
 
   onSidenavToggle() {
     if (this.isOver) {
-      this.sidenav.toggle();
-    } else {
-      this.toggleCollapsed();
+      this.mobileSidenavOpened = !this.mobileSidenavOpened;
+      return;
     }
+
+    this.toggleCollapsed();
+  }
+
+  closeMobileSidenav() {
+    this.mobileSidenavOpened = false;
   }
 
   resetCollapsedState(timer = 400) {
@@ -167,7 +178,12 @@ export class AdminLayout implements OnDestroy {
   }
 
   onSidenavOpenedChange(isOpened: boolean) {
-    this.isCollapsedWidthFixed = !this.isOver;
+    if (this.isOver) {
+      this.mobileSidenavOpened = isOpened;
+      return;
+    }
+
+    this.isCollapsedWidthFixed = true;
     this.options.sidenavOpened = isOpened;
     this.settings.setOptions(this.options);
   }

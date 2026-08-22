@@ -80,6 +80,7 @@ jobs:
             --include='src/app/routes/orcamento/orcamento-draft.service.spec.ts' \
             --include='src/app/routes/sessions/reset-password/reset-password.spec.ts' \
             --include='src/app/routes/agendamento/agendamento.service.spec.ts' \
+            --include='src/app/theme/admin-layout/admin-layout.spec.ts' \
             --include='src/app/routes/dashboard/dashboard.service.spec.ts'
 
       - name: Build Angular application

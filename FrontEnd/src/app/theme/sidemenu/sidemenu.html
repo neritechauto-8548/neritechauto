@@ -67,6 +67,7 @@
               class="menu-heading"
               [href]="menuItem.route"
               target="_blank"
+              rel="noopener noreferrer"
               matRipple
               [matRippleDisabled]="!ripple"
               [matTooltip]="menuItem.name | translate"
@@ -88,6 +89,7 @@
               [matTooltip]="menuItem.name | translate"
               matTooltipPosition="right"
               [matTooltipDisabled]="!isCollapsed"
+              [attr.aria-expanded]="navItem.expanded"
             >
               <ng-container
                 [ngTemplateOutlet]="linkTypeTpl"

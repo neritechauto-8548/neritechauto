@@ -1,3 +1,25 @@
+.nt-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 12px;
+  z-index: 2000;
+  padding: 9px 13px;
+  transform: translateY(-160%);
+  border-radius: 8px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: transform 120ms ease;
+}
+
+.nt-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid rgba(37, 99, 235, 0.32);
+  outline-offset: 2px;
+}
+
 .matero-container-wrap,
 .matero-container {
   --sidenav-width: 264px;
@@ -162,6 +184,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .nt-skip-link,
   .matero-sidenav,
   .matero-sidenav .menu-heading {
     transition: none !important;
