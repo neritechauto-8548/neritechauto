@@ -42,9 +42,9 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
-      - name: Run backend tests
+      - name: Run backend clean tests
         working-directory: backend
-        run: mvn --batch-mode --no-transfer-progress test
+        run: mvn --batch-mode --no-transfer-progress clean test
 
   frontend-build:
     name: Frontend / Angular build
