@@ -37,19 +37,35 @@ public class OrcamentoDraftService {
     private final OrdemServicoRepository ordemServicoRepository;
     private final ClienteRepository clienteRepository;
     private final VeiculoRepository veiculoRepository;
+    private final OrcamentoCreationIdempotencyService idempotencyService;
 
     public OrcamentoDraftService(
             OrdemServicoRepository ordemServicoRepository,
             ClienteRepository clienteRepository,
-            VeiculoRepository veiculoRepository) {
+            VeiculoRepository veiculoRepository,
+            OrcamentoCreationIdempotencyService idempotencyService) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.clienteRepository = clienteRepository;
         this.veiculoRepository = veiculoRepository;
+        this.idempotencyService = idempotencyService;
     }
 
     @Transactional
     public OrcamentoDraftResponse create(OrcamentoDraftRequest request) {
         Long tenantId = requireTenant();
+
+        OrcamentoCreationIdempotencyService.Reservation reservation =
+                idempotencyService.reserve(tenantId, request);
+
+        if (!reservation.created()) {
+            OrdemServico existing = ordemServicoRepository
+                    .findByIdAndEmpresaId(reservation.ordemServicoId(), tenantId)
+                    .filter(ordem -> ordem.getTipoOS() == TipoOS.ORCAMENTO)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Reserva idempotente aponta para um orçamento indisponível no tenant autenticado."));
+            return toResponse(existing);
+        }
+
         Cliente cliente = clienteRepository.findByIdScoped(request.clienteId())
                 .orElseThrow(() -> new BusinessException("Cliente não encontrado no contexto autenticado."));
 
@@ -86,13 +102,22 @@ public class OrcamentoDraftService {
         draft.setValorTotal(BigDecimal.ZERO);
 
         OrdemServico saved = ordemServicoRepository.save(draft);
+        if (saved.getId() == null) {
+            throw new IllegalStateException("Orçamento criado sem identificador persistido.");
+        }
+
+        idempotencyService.complete(tenantId, reservation, saved.getId());
+        return toResponse(saved);
+    }
+
+    private OrcamentoDraftResponse toResponse(OrdemServico ordem) {
         return new OrcamentoDraftResponse(
-                saved.getId(),
-                saved.getNumeroOS(),
+                ordem.getId(),
+                ordem.getNumeroOS(),
                 "RASCUNHO",
-                saved.getClienteId(),
-                saved.getVeiculoId(),
-                saved.getDataAbertura());
+                ordem.getClienteId(),
+                ordem.getVeiculoId(),
+                ordem.getDataAbertura());
     }
 
     private Long requireTenant() {
