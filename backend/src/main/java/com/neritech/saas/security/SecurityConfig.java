@@ -62,9 +62,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     HttpMethod.GET,
-                    "/v1/ordens-servico/fotos/*/download",
                     "/v1/empresas/*/logo",
-                    "/v1/rh/funcionarios/*/foto",
                     "/v1/produtos/*/foto"
                 ).permitAll()
                 .anyRequest().authenticated()
@@ -118,7 +116,8 @@ public class SecurityConfig {
             "X-Requested-With",
             "Accept",
             "Origin",
-            "X-Tenant-Id"
+            "X-Tenant-Id",
+            "Idempotency-Key"
         ));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
