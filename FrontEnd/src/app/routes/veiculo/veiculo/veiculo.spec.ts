@@ -47,6 +47,11 @@ describe('Veiculo contextual actions', () => {
     expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9, 'editar']);
   });
 
+  it('opens the canonical vehicle passport for every readable vehicle', () => {
+    component.abrirPassaporte(vehicle);
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9]);
+  });
+
   it('preserves customer and vehicle context when starting an estimate', () => {
     component.criarOrcamento(vehicle);
     expect(router.navigate).toHaveBeenCalledOnceWith(
@@ -67,6 +72,7 @@ describe('Veiculo contextual actions', () => {
     const inactive = { ...vehicle, status: StatusVeiculo.INATIVO };
     const labels = component.menuItemsFor(inactive).map(item => item.label);
 
+    expect(labels).toContain('Abrir passaporte');
     expect(labels).not.toContain('Novo orçamento');
     expect(labels).not.toContain('Agendar serviço');
   });

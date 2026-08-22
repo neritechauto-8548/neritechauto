@@ -117,11 +117,7 @@
                     <div class="vehicle-identity">
                       <span class="vehicle-icon" aria-hidden="true"><i class="pi pi-car"></i></span>
                       <div>
-                        @if (canEditVehicle) {
-                          <button type="button" class="vehicle-name" (click)="editarVeiculo(vehicle)">{{ vehicleName(vehicle) }}</button>
-                        } @else {
-                          <span class="vehicle-name vehicle-name--static">{{ vehicleName(vehicle) }}</span>
-                        }
+                        <button type="button" class="vehicle-name" (click)="abrirPassaporte(vehicle)">{{ vehicleName(vehicle) }}</button>
                         <span class="plate-value">{{ vehicle.placa || 'Sem placa' }}</span>
                       </div>
                     </div>
@@ -199,6 +195,7 @@
               </dl>
 
               <div class="vehicle-card__actions">
+                <button type="button" class="text-action" (click)="abrirPassaporte(vehicle)"><i class="pi pi-id-card" aria-hidden="true"></i>Passaporte</button>
                 @if (canEditVehicle) {
                   <button type="button" class="text-action" (click)="editarVeiculo(vehicle)"><i class="pi pi-pencil" aria-hidden="true"></i>Editar</button>
                 }

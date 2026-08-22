@@ -29,4 +29,10 @@ export const routes: Routes = [
     data: { title: 'Editar Veículo', permissions: ['VEICULO_EDITAR'] },
   },
   { path: 'editar/:id', redirectTo: ':id/editar', pathMatch: 'full' },
+  {
+    path: ':id',
+    loadComponent: () => import('./detalhe-veiculo/detalhe-veiculo').then(m => m.DetalheVeiculo),
+    canActivate: [permissionGuard],
+    data: { title: 'Passaporte do Veículo', permissions: ['GERAL_USUARIO'] },
+  },
 ];

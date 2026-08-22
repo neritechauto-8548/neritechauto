@@ -151,6 +151,10 @@ export class Veiculo implements OnInit {
     this.router.navigate(['/veiculos', vehicle.id, 'editar']);
   }
 
+  abrirPassaporte(vehicle: VeiculoResponse) {
+    this.router.navigate(['/veiculos', vehicle.id]);
+  }
+
   abrirCliente(vehicle: VeiculoResponse) {
     if (!vehicle.clienteId) return;
     this.router.navigate(['/clientes', vehicle.clienteId]);
@@ -176,7 +180,13 @@ export class Veiculo implements OnInit {
   }
 
   menuItemsFor(vehicle: VeiculoResponse): MenuItem[] {
-    const items: MenuItem[] = [];
+    const items: MenuItem[] = [
+      {
+        label: 'Abrir passaporte',
+        icon: 'pi pi-id-card',
+        command: () => this.abrirPassaporte(vehicle),
+      },
+    ];
     if (this.canEditVehicle) {
       items.push({ label: 'Editar veículo', icon: 'pi pi-pencil', command: () => this.editarVeiculo(vehicle) });
     }
