@@ -101,6 +101,14 @@ describe('DetalheVeiculo', () => {
     expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9, 'vinculos']);
   });
 
+  it('opens the canonical recommendations view', () => {
+    component.ngOnInit();
+
+    component.openRevisions();
+
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9, 'revisoes']);
+  });
+
   it('blocks incompatible operational CTAs for an inactive vehicle', () => {
     vehicleService.getById.and.returnValue(of({ ...vehicle, status: StatusVeiculo.INATIVO }));
 

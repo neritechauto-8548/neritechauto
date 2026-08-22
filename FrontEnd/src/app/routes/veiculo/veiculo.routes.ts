@@ -36,6 +36,12 @@ export const routes: Routes = [
     data: { title: 'Vínculos do Veículo', permissions: ['GERAL_USUARIO'] },
   },
   {
+    path: ':id/revisoes',
+    loadComponent: () => import('./revisoes-veiculo/revisoes-veiculo').then(m => m.RevisoesVeiculo),
+    canActivate: [permissionGuard],
+    data: { title: 'Próximas Revisões', permissions: ['GERAL_USUARIO'] },
+  },
+  {
     path: ':id',
     loadComponent: () => import('./detalhe-veiculo/detalhe-veiculo').then(m => m.DetalheVeiculo),
     canActivate: [permissionGuard],

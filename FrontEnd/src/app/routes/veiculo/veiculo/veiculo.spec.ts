@@ -52,6 +52,14 @@ describe('Veiculo contextual actions', () => {
     expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9]);
   });
 
+  it('opens vehicle links and revisions from canonical routes', () => {
+    component.abrirVinculos(vehicle);
+    expect(router.navigate).toHaveBeenCalledWith(['/veiculos', 9, 'vinculos']);
+
+    component.abrirRevisoes(vehicle);
+    expect(router.navigate).toHaveBeenCalledWith(['/veiculos', 9, 'revisoes']);
+  });
+
   it('preserves customer and vehicle context when starting an estimate', () => {
     component.criarOrcamento(vehicle);
     expect(router.navigate).toHaveBeenCalledOnceWith(
@@ -73,6 +81,8 @@ describe('Veiculo contextual actions', () => {
     const labels = component.menuItemsFor(inactive).map(item => item.label);
 
     expect(labels).toContain('Abrir passaporte');
+    expect(labels).toContain('Histórico de vínculos');
+    expect(labels).toContain('Próximas revisões');
     expect(labels).not.toContain('Novo orçamento');
     expect(labels).not.toContain('Agendar serviço');
   });

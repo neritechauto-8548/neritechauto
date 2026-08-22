@@ -155,6 +155,14 @@ export class Veiculo implements OnInit {
     this.router.navigate(['/veiculos', vehicle.id]);
   }
 
+  abrirVinculos(vehicle: VeiculoResponse) {
+    this.router.navigate(['/veiculos', vehicle.id, 'vinculos']);
+  }
+
+  abrirRevisoes(vehicle: VeiculoResponse) {
+    this.router.navigate(['/veiculos', vehicle.id, 'revisoes']);
+  }
+
   abrirCliente(vehicle: VeiculoResponse) {
     if (!vehicle.clienteId) return;
     this.router.navigate(['/clientes', vehicle.clienteId]);
@@ -185,6 +193,16 @@ export class Veiculo implements OnInit {
         label: 'Abrir passaporte',
         icon: 'pi pi-id-card',
         command: () => this.abrirPassaporte(vehicle),
+      },
+      {
+        label: 'Histórico de vínculos',
+        icon: 'pi pi-link',
+        command: () => this.abrirVinculos(vehicle),
+      },
+      {
+        label: 'Próximas revisões',
+        icon: 'pi pi-calendar-clock',
+        command: () => this.abrirRevisoes(vehicle),
       },
     ];
     if (this.canEditVehicle) {

@@ -1,0 +1,171 @@
+<section class="vehicle-revisions" aria-labelledby="vehicle-revisions-title">
+  @if (loading) {
+    <div class="revisions-skeleton" role="status" aria-live="polite">
+      <span class="sr-only">Carregando próximas revisões…</span>
+      <div class="revisions-skeleton__header"></div>
+      <div class="revisions-skeleton__cards"><div></div><div></div><div></div><div></div></div>
+      <div class="revisions-skeleton__content"></div>
+    </div>
+  } @else if (fatalError || !vehicle) {
+    <div class="revisions-fatal" role="alert">
+      <span class="revisions-fatal__icon"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></span>
+      <h1 id="vehicle-revisions-title">Revisões indisponíveis</h1>
+      <p>Não foi possível carregar este veículo no contexto autenticado.</p>
+      <div class="revisions-fatal__actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">Voltar para veículos</button>
+        <button type="button" class="nt-button nt-button--primary" (click)="retry()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else {
+    <page-header
+      [canonical]="true"
+      eyebrow="Passaporte · Próximas revisões"
+      [title]="plateLabel"
+      [description]="vehicleName + ' · ' + vehicleStatusLabel"
+      [hideBreadcrumb]="true"
+      titleId="vehicle-revisions-title"
+    >
+      <div pageHeaderMeta class="revisions-meta">
+        <span class="nt-badge nt-badge--info">Parâmetros cadastrais</span>
+        <span><i class="pi pi-gauge" aria-hidden="true"></i>{{ odometerLabel }}</span>
+        <button type="button" class="revisions-owner" (click)="openCustomer()" [disabled]="!vehicle.clienteId">
+          <i class="pi pi-user" aria-hidden="true"></i>{{ customerName }}
+        </button>
+        @if (isInactive) { <span class="nt-badge nt-badge--neutral">Veículo inativo</span> }
+      </div>
+
+      <div pageHeaderActions class="revisions-header-actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>Veículos
+        </button>
+        <button type="button" class="nt-button nt-button--primary" (click)="backToPassport()">
+          <i class="pi pi-id-card" aria-hidden="true"></i>Passaporte
+        </button>
+      </div>
+    </page-header>
+
+    <div class="revisions-nature-alert" role="status">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <div>
+        <strong>Recomendação não é serviço autorizado</strong>
+        <span>Esta tela não cria OS, orçamento, agendamento ou obrigação financeira. Os valores atuais são referências cadastrais, não previsões calculadas.</span>
+      </div>
+    </div>
+
+    <section class="revisions-attention" aria-labelledby="revisions-attention-title">
+      <div class="revisions-section-heading">
+        <div><span>Atenção preventiva</span><h2 id="revisions-attention-title">Resumo por recomendação</h2></div>
+        <small>Contagens aguardam read model autoritativo</small>
+      </div>
+      <div class="revisions-attention-grid">
+        @for (card of attentionCards; track card.label) {
+          <article class="revisions-attention-card" aria-disabled="true">
+            <span class="revisions-attention-card__icon"><i [class]="card.icon" aria-hidden="true"></i></span>
+            <div><strong>—</strong><span>{{ card.label }}</span><small>{{ card.detail }}</small></div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <main class="revisions-layout">
+      <div class="revisions-main-column">
+        <article class="revisions-card revisions-card--parameters">
+          <header class="revisions-card__header">
+            <div><span class="revisions-card__eyebrow">Fonte disponível</span><h2>Referências da ficha canônica</h2><p>Campos informados manualmente, sem origem de regra, baseline temporal ou status calculado.</p></div>
+            <span class="revisions-card__icon"><i class="pi pi-sliders-h" aria-hidden="true"></i></span>
+          </header>
+
+          <div class="revisions-parameter-grid">
+            <article [class.revisions-parameter--empty]="!hasDateParameter">
+              <span>Referência por data</span>
+              <strong>{{ vehicle.proximaRevisaoData ? (vehicle.proximaRevisaoData | date:'dd/MM/yyyy') : 'Não cadastrada' }}</strong>
+              <small>Não classificada como vencida ou próxima.</small>
+            </article>
+            <article [class.revisions-parameter--empty]="!hasOdometerParameter">
+              <span>Referência por quilometragem</span>
+              <strong>{{ formatOdometer(vehicle.proximaRevisaoKm) }}</strong>
+              <small>Não é leitura nem projeção automática.</small>
+            </article>
+            <article [class.revisions-parameter--empty]="vehicle.quilometragemAtual == null">
+              <span>Km atual cadastrado</span>
+              <strong>{{ odometerLabel }}</strong>
+              <small>Sem fonte e timestamp, não constitui baseline auditável.</small>
+            </article>
+          </div>
+
+          @if (!hasAnyParameter) {
+            <div class="revisions-parameter-notice">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <span>Nenhuma referência de próxima revisão foi cadastrada. Isso não comprova ausência de recomendações históricas.</span>
+            </div>
+          }
+        </article>
+
+        <section class="revisions-card revisions-card--list" aria-labelledby="revisions-list-title">
+          <header class="revisions-card__header">
+            <div><span class="revisions-card__eyebrow">Lista priorizada</span><h2 id="revisions-list-title">Recomendações acionáveis</h2><p>Serviço, origem, gatilho, prioridade, cliente, status e lineage serão exibidos apenas quando vierem da API.</p></div>
+            <span class="revisions-card__icon"><i class="pi pi-list" aria-hidden="true"></i></span>
+          </header>
+
+          <div class="revisions-filter-preview" aria-label="Filtros aguardando fonte de dados" aria-disabled="true">
+            <span><i class="pi pi-search" aria-hidden="true"></i>Serviço ou descrição</span>
+            <span>Status</span><span>Prioridade</span><span>Origem</span><span>Vencimento</span>
+          </div>
+
+          <div class="revisions-pending-state">
+            <span class="revisions-pending-state__icon"><i class="pi pi-sparkles" aria-hidden="true"></i></span>
+            <div>
+              <strong>Nenhuma recomendação calculada foi apresentada</strong>
+              <p>O backend ainda não possui entidade nem endpoints de recomendações. Exibir zero, “em dia”, “vencida” ou previsão agora fabricaria uma conclusão operacional.</p>
+              <ul>
+                <li>Estimativas futuras terão rótulo textual, método, versão e baseline.</li>
+                <li>Conversões exigirão recommendationId e lineage idempotente.</li>
+                <li>Dispensa exigirá motivo e preservará a origem append-only.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="revisions-side-column" aria-label="Integridade das recomendações">
+        @if (customerFailed) {
+          <article class="revisions-partial-error" role="status">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            <div><strong>Cliente parcialmente indisponível</strong><span>A ficha do veículo continua válida sem inventar preferências ou consentimentos.</span></div>
+          </article>
+        }
+
+        <article class="revisions-card revisions-card--semantics">
+          <header class="revisions-card__header">
+            <div><span class="revisions-card__eyebrow">Semântica operacional</span><h2>O que esta tela não faz</h2></div>
+            <span class="revisions-card__icon"><i class="pi pi-shield" aria-hidden="true"></i></span>
+          </header>
+          <ul class="revisions-rules">
+            <li><i class="pi pi-times" aria-hidden="true"></i><span>Não autoriza serviço ou despesa.</span></li>
+            <li><i class="pi pi-times" aria-hidden="true"></i><span>Não cria OS ou agendamento implicitamente.</span></li>
+            <li><i class="pi pi-times" aria-hidden="true"></i><span>Não transforma km estimado em leitura real.</span></li>
+            <li><i class="pi pi-times" aria-hidden="true"></i><span>Não envia lembrete sem preferência/base aplicável.</span></li>
+          </ul>
+        </article>
+
+        <article class="revisions-card revisions-card--contract">
+          <header class="revisions-card__header">
+            <div><span class="revisions-card__eyebrow">Gate para ações</span><h2>Contratos necessários</h2></div>
+            <span class="revisions-card__icon"><i class="pi pi-code" aria-hidden="true"></i></span>
+          </header>
+          <ol class="revisions-contract-list">
+            <li><span>01</span><div><strong>Domínio persistido</strong><small>Regra, origem, baseline, prioridade e status auditáveis.</small></div></li>
+            <li><span>02</span><div><strong>Leitura paginada</strong><small>Filtros restauráveis por URL, sem N+1 ou agregação no navegador.</small></div></li>
+            <li><span>03</span><div><strong>Conversões idempotentes</strong><small>Orçamento/agenda com lineage e sem duplicação.</small></div></li>
+            <li><span>04</span><div><strong>Auditoria e comunicação</strong><small>Dispensa, lembrete, preferências e outbox.</small></div></li>
+          </ol>
+        </article>
+
+        <article class="revisions-tenant-card">
+          <i class="pi pi-lock" aria-hidden="true"></i>
+          <div><strong>Isolamento por autenticação</strong><span>Veículo, cliente, origem e artefatos convertidos deverão ser validados pelo backend no mesmo tenant.</span></div>
+        </article>
+      </aside>
+    </main>
+  }
+</section>
