@@ -11,15 +11,17 @@ export const routes: Routes = [
     data: { permissions: 'GERAL_USUARIO' },
   },
   {
-    path: 'cadastro',
+    path: 'novo',
     component: CadastroVeiculo,
     canActivate: [permissionGuard],
-    data: { permissions: 'VEICULO_CRIAR' },
+    data: { title: 'Novo Veículo', permissions: ['VEICULO_CRIAR'] },
   },
+  { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
   {
-    path: 'editar/:id',
+    path: ':id/editar',
     component: CadastroVeiculo,
     canActivate: [permissionGuard],
-    data: { permissions: 'VEICULO_EDITAR' },
+    data: { title: 'Editar Veículo', permissions: ['VEICULO_EDITAR'] },
   },
+  { path: 'editar/:id', redirectTo: ':id/editar', pathMatch: 'full' },
 ];

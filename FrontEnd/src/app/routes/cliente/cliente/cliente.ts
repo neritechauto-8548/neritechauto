@@ -90,7 +90,9 @@ export class Cliente implements OnInit {
   get rangeStart() { return this.totalRecords === 0 ? 0 : this.first + 1; }
   get rangeEnd() { return Math.min(this.first + this.clients.length, this.totalRecords); }
   get currentPage() { return Math.floor(this.first / this.rows) + 1; }
-  get totalPages() { return Math.max(1, this.backendPage?.totalPages ?? Math.ceil(this.totalRecords / this.rows)); }
+  get totalPages() {
+    return Math.max(1, this.backendPage?.totalPages ?? Math.ceil(this.totalRecords / this.rows));
+  }
   get canCreateCliente() { return Boolean(this.permissionsService.getPermission('CLIENTE_CRIAR')); }
   get canEditCliente() { return Boolean(this.permissionsService.getPermission('CLIENTE_EDITAR')); }
   get canCreateVehicle() { return Boolean(this.permissionsService.getPermission('VEICULO_CRIAR')); }
@@ -155,7 +157,7 @@ export class Cliente implements OnInit {
       this.warnPermission();
       return;
     }
-    this.router.navigate(['/veiculos/cadastro'], { queryParams: { clienteId: row.id } });
+    this.router.navigate(['/veiculos/novo'], { queryParams: { clienteId: row.id } });
   }
 
   toggleMenu(row: ClientListRow, event: Event, menu: { toggle: (event: Event) => void }) {

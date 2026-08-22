@@ -454,7 +454,7 @@ export class CadastroVeiculo implements OnInit {
         });
 
         if (!this.id && response.id) {
-          this.router.navigate(['/veiculo/editar', response.id], { replaceUrl: true });
+          this.router.navigate(['/veiculos', response.id, 'editar'], { replaceUrl: true });
         }
 
         this.id = response.id;
@@ -510,7 +510,7 @@ export class CadastroVeiculo implements OnInit {
             summary: 'Veículo inativado',
             detail: 'O histórico foi preservado.',
           });
-          this.router.navigate(['/veiculo']);
+          this.router.navigate(['/veiculos']);
         },
         error: err => {
           console.error(err);
