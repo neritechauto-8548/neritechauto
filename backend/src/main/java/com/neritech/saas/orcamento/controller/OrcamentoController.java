@@ -12,6 +12,7 @@ import com.neritech.saas.orcamento.dto.OrcamentoReorderRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateGroupRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoInstantiateKitRequest;
 import com.neritech.saas.orcamento.service.OrcamentoCompositionService;
 import com.neritech.saas.orcamento.service.OrcamentoDraftService;
 import com.neritech.saas.orcamento.service.OrcamentoQueryService;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @RestController
 @RequestMapping("/v1/orcamentos")
@@ -75,8 +77,10 @@ public class OrcamentoController {
     @GetMapping("/catalog")
     @PreAuthorize("hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Buscar pecas e servicos ativos sem expor custo")
-    public ResponseEntity<OrcamentoCatalogSearchResponse> searchCatalog(@RequestParam(name = "q") String query) {
-        return ResponseEntity.ok(compositionService.searchCatalog(query));
+    public ResponseEntity<OrcamentoCatalogSearchResponse> searchCatalog(
+            @RequestParam(name = "q") String query,
+            @RequestParam(name = "type", required = false) String type) {
+        return ResponseEntity.ok(compositionService.searchCatalog(query, type));
     }
 
     @GetMapping("/{id}/composition")
@@ -146,6 +150,18 @@ public class OrcamentoController {
                 .body(compositionService.addCatalogItem(id, groupId, request));
     }
 
+    @PostMapping("/{id}/kits/{kitId}")
+    @PreAuthorize("hasAuthority('OS_INCLUIR')")
+    @Operation(summary = "Instanciar versao publicada do kit de forma atomica e idempotente")
+    public ResponseEntity<OrcamentoCompositionResponse> instantiateKit(
+            @PathVariable Long id,
+            @PathVariable Long kitId,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody OrcamentoInstantiateKitRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(compositionService.instantiateKit(id, kitId, idempotencyKey, request));
+    }
+
     @PutMapping("/{id}/composition/groups/{groupId}/items/{itemId}")
     @PreAuthorize("hasAuthority('OS_ALTERAR')")
     @Operation(summary = "Atualizar quantidade e recalcular pelo servidor")
@@ -199,4 +215,3 @@ public class OrcamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 }
-

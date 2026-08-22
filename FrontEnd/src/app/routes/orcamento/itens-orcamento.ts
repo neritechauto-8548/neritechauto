@@ -8,6 +8,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import {
   EMPTY,
   catchError,
+  combineLatest,
   debounceTime,
   distinctUntilChanged,
   filter,
@@ -15,6 +16,7 @@ import {
   forkJoin,
   Observable,
   switchMap,
+  startWith,
   tap,
 } from 'rxjs';
 
@@ -41,6 +43,7 @@ type PendingDeletion =
 })
 export class ItensOrcamentoComponent implements OnInit {
   @ViewChild('cancelDeletion') private cancelDeletionButton?: ElementRef<HTMLButtonElement>;
+  @ViewChild('catalogSearchInput') private catalogSearchInput?: ElementRef<HTMLInputElement>;
 
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -67,6 +70,7 @@ export class ItensOrcamentoComponent implements OnInit {
   pendingDeletion: PendingDeletion | null = null;
 
   readonly searchControl = new FormControl('', { nonNullable: true });
+  readonly catalogTypeControl = new FormControl<'ALL' | 'KIT'>('ALL', { nonNullable: true });
   readonly groupForm = new FormGroup({
     title: new FormControl('', {
       nonNullable: true,
@@ -184,7 +188,34 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   addCatalogItem(item: CatalogSearchItem) {
-    if (!this.composition || !this.selectedGroupId || this.isSaving) return;
+    if (!this.composition || this.isSaving) return;
+    if (item.lineType === 'KIT') {
+      const idempotencyKey = `kit-${globalThis.crypto.randomUUID()}`;
+      this.activeAddingCatalogId = item.id;
+      this.beginMutation('Instanciando versão imutável do kit…');
+      this.compositionService
+        .instantiateKit(this.budgetId, item.id, idempotencyKey, {
+          expectedRevision: this.composition.revision,
+          quantity: 1,
+          targetPosition: this.composition.groups.length,
+        })
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => {
+            this.isSaving = false;
+            this.activeAddingCatalogId = null;
+          })
+        )
+        .subscribe({
+          next: composition => {
+            this.applyComposition(composition, true);
+            this.saveMessage = `Kit v${item.catalogVersion ?? 0} instanciado por snapshot`;
+          },
+          error: error => this.handleMutationError(error),
+        });
+      return;
+    }
+    if (!this.selectedGroupId) return;
     this.activeAddingCatalogId = item.id;
     this.beginMutation('Aplicando preço canônico…');
     this.compositionService
@@ -208,6 +239,18 @@ export class ItensOrcamentoComponent implements OnInit {
         },
         error: error => this.handleMutationError(error),
       });
+  }
+
+  activateKitSearch() {
+    this.catalogTypeControl.setValue('KIT');
+    this.catalogResponse = null;
+    setTimeout(() => this.catalogSearchInput?.nativeElement.focus());
+  }
+
+  clearCatalogType() {
+    this.catalogTypeControl.setValue('ALL');
+    this.catalogResponse = null;
+    setTimeout(() => this.catalogSearchInput?.nativeElement.focus());
   }
 
   startEditGroup(group: CompositionGroup) {
@@ -377,6 +420,7 @@ export class ItensOrcamentoComponent implements OnInit {
     const labels: Record<string, string> = {
       PART: 'Peça',
       LABOR: 'Mão de obra',
+      KIT: 'Kit',
       FEE: 'Taxa',
       SUBLET: 'Terceiro',
       DISCOUNT: 'Desconto',
@@ -400,28 +444,32 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   private configureCatalogSearch() {
-    this.searchControl.valueChanges
+    combineLatest([
+      this.searchControl.valueChanges.pipe(startWith(this.searchControl.value), debounceTime(300)),
+      this.catalogTypeControl.valueChanges.pipe(startWith(this.catalogTypeControl.value)),
+    ])
       .pipe(
-        debounceTime(300),
         distinctUntilChanged(),
-        tap(value => {
+        tap(([value]) => {
           this.mutationError = '';
           if (value.trim().length < 2) {
             this.catalogResponse = null;
             this.isSearching = false;
           }
         }),
-        filter(value => value.trim().length >= 2),
+        filter(([value]) => value.trim().length >= 2),
         tap(() => (this.isSearching = true)),
-        switchMap(value =>
-          this.compositionService.searchCatalog(value.trim()).pipe(
-            catchError(() => {
-              this.isSearching = false;
-              this.catalogResponse = { query: value.trim(), items: [], truncated: false };
-              this.mutationError = 'Não foi possível consultar o catálogo agora.';
-              return EMPTY;
-            })
-          )
+        switchMap(([value, type]) =>
+          this.compositionService
+            .searchCatalog(value.trim(), type === 'KIT' ? 'KIT' : undefined)
+            .pipe(
+              catchError(() => {
+                this.isSearching = false;
+                this.catalogResponse = { query: value.trim(), items: [], truncated: false };
+                this.mutationError = 'Não foi possível consultar o catálogo agora.';
+                return EMPTY;
+              })
+            )
         ),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -495,4 +543,3 @@ export class ItensOrcamentoComponent implements OnInit {
     this.saveMessage = 'Falha ao sincronizar';
   }
 }
-

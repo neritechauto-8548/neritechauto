@@ -8,5 +8,7 @@ public record OrcamentoCatalogItemResponse(
         String description,
         String reference,
         BigDecimal suggestedPrice,
-        String availabilityStatus) {
+        String availabilityStatus,
+        Integer itemCount,
+        Integer catalogVersion) {
 }

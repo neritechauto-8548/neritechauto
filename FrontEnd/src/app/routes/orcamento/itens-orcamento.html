@@ -137,6 +137,7 @@
       <div class="catalog-search__control">
         <i class="pi pi-search" aria-hidden="true"></i>
         <input
+          #catalogSearchInput
           id="catalog-search"
           type="search"
           autocomplete="off"
@@ -149,10 +150,16 @@
         }
       </div>
       <small id="catalog-search-help">
-        Digite ao menos 2 caracteres. O preço exibido será confirmado pelo servidor ao adicionar.
+        Digite ao menos 2 caracteres. Preços e versões serão confirmados pelo servidor ao adicionar.
       </small>
 
-      @if (catalogResponse) {
+      @if (catalogTypeControl.value === 'KIT') {
+      <div class="catalog-filter" aria-live="polite">
+        <i class="pi pi-box" aria-hidden="true"></i>
+        <span>Exibindo somente kits versionados</span>
+        <button type="button" (click)="clearCatalogType()">Mostrar catálogo completo</button>
+      </div>
+      } @if (catalogResponse) {
       <div class="catalog-results" aria-live="polite">
         <header>
           <strong>Resultados para “{{ catalogResponse.query }}”</strong>
@@ -167,22 +174,31 @@
         <ul role="listbox" aria-label="Resultados do catálogo">
           @for (item of catalogResponse.items; track item.lineType + '-' + item.id) {
           <li role="option">
-            <span class="type-badge" [class.type-badge--labor]="item.lineType === 'LABOR'">
+            <span
+              class="type-badge"
+              [class.type-badge--labor]="item.lineType === 'LABOR'"
+              [class.type-badge--kit]="item.lineType === 'KIT'"
+            >
               {{ lineTypeLabel(item.lineType) }}
             </span>
             <div>
               <strong>{{ item.description }}</strong>
               <small>
-                {{ item.reference || 'Sem referência comercial' }} @if (item.lineType === 'PART') {
-                · {{ availabilityLabel(item.availabilityStatus) }} }
+                {{ item.reference || 'Sem referência comercial' }} @if (item.lineType === 'KIT') { ·
+                versão {{ item.catalogVersion }} · {{ item.itemCount }} item(ns) } @else if
+                (item.lineType === 'PART') { · {{ availabilityLabel(item.availabilityStatus) }} }
               </small>
             </div>
             <span class="catalog-price">{{ formatCurrency(item.suggestedPrice) }}</span>
             <button
               type="button"
-              [disabled]="!selectedGroupId || isSaving"
+              [disabled]="(item.lineType !== 'KIT' && !selectedGroupId) || isSaving"
               (click)="addCatalogItem(item)"
-              [attr.aria-label]="'Adicionar ' + item.description + ' ao grupo selecionado'"
+              [attr.aria-label]="
+                item.lineType === 'KIT'
+                  ? 'Instanciar kit ' + item.description
+                  : 'Adicionar ' + item.description + ' ao grupo selecionado'
+              "
             >
               <i
                 class="pi"
@@ -191,7 +207,7 @@
                 [class.pi-spinner]="activeAddingCatalogId === item.id"
                 aria-hidden="true"
               ></i>
-              Adicionar
+              {{ item.lineType === 'KIT' ? 'Instanciar' : 'Adicionar' }}
             </button>
           </li>
           }
@@ -204,11 +220,12 @@
       <button
         type="button"
         class="nt-button nt-button--secondary"
-        disabled
-        title="Contrato de kits pendente"
+        [class.nt-button--active]="catalogTypeControl.value === 'KIT'"
+        [attr.aria-pressed]="catalogTypeControl.value === 'KIT'"
+        (click)="activateKitSearch()"
       >
         <i class="pi pi-box" aria-hidden="true"></i>
-        Adicionar kit
+        Catálogo de kits
       </button>
       <button type="button" class="nt-button nt-button--primary" (click)="showGroupForm = true">
         <i class="pi pi-plus" aria-hidden="true"></i>
@@ -307,7 +324,12 @@
             <div>
               <small>{{ group.recommended ? 'Recomendado' : 'Serviço necessário' }}</small>
               <h2>{{ group.title }}</h2>
-              @if (group.customerDescription) {
+              @if (group.kitOriginId) {
+              <span class="kit-origin">
+                <i class="pi pi-box" aria-hidden="true"></i>
+                Kit v{{ group.kitOriginVersion }} · instância editável
+              </span>
+              } @if (group.customerDescription) {
               <p>{{ group.customerDescription }}</p>
               }
             </div>
@@ -463,7 +485,7 @@
                 <strong>{{ line.description }}</strong>
                 <small>
                   {{ line.reference || 'Catálogo de serviços' }} · snapshot v{{ line.catalogVersion
-                  ?? 0 }}
+                  ?? 0 }} @if (line.source === 'KIT') { · origem Kit v{{ line.kitOriginVersion }} }
                 </small>
                 @if (line.lineType === 'PART') {
                 <span class="availability" [attr.data-status]="line.availabilityStatus">
@@ -666,4 +688,3 @@
   </footer>
   }
 </section>
-

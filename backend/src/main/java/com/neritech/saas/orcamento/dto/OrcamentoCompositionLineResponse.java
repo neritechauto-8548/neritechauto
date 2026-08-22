@@ -8,6 +8,8 @@ public record OrcamentoCompositionLineResponse(
         Long catalogItemId,
         Integer catalogVersion,
         String source,
+        Long kitOriginId,
+        Integer kitOriginVersion,
         String description,
         String reference,
         BigDecimal quantity,

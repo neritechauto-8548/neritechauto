@@ -5,6 +5,10 @@ import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.orcamento.domain.OrcamentoLineItem;
 import com.neritech.saas.orcamento.domain.OrcamentoServiceGroup;
+import com.neritech.saas.orcamento.domain.CatalogKit;
+import com.neritech.saas.orcamento.domain.CatalogKitVersion;
+import com.neritech.saas.orcamento.domain.CatalogKitVersionItem;
+import com.neritech.saas.orcamento.domain.OrcamentoKitInstantiation;
 import com.neritech.saas.orcamento.dto.OrcamentoAddCatalogItemRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoCompositionGroupResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoCompositionLineResponse;
@@ -16,6 +20,11 @@ import com.neritech.saas.orcamento.dto.OrcamentoReorderRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateGroupRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoInstantiateKitRequest;
+import com.neritech.saas.orcamento.repository.CatalogKitRepository;
+import com.neritech.saas.orcamento.repository.CatalogKitVersionItemRepository;
+import com.neritech.saas.orcamento.repository.CatalogKitVersionRepository;
+import com.neritech.saas.orcamento.repository.OrcamentoKitInstantiationRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoLineItemRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoServiceGroupRepository;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
@@ -33,11 +42,16 @@ import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -50,18 +64,30 @@ public class OrcamentoCompositionService {
     private final OrcamentoLineItemRepository lineRepository;
     private final ProdutoRepository productRepository;
     private final ServicoRepository serviceRepository;
+    private final CatalogKitRepository kitRepository;
+    private final CatalogKitVersionRepository kitVersionRepository;
+    private final CatalogKitVersionItemRepository kitItemRepository;
+    private final OrcamentoKitInstantiationRepository kitInstantiationRepository;
 
     public OrcamentoCompositionService(
             OrdemServicoRepository budgetRepository,
             OrcamentoServiceGroupRepository groupRepository,
             OrcamentoLineItemRepository lineRepository,
             ProdutoRepository productRepository,
-            ServicoRepository serviceRepository) {
+            ServicoRepository serviceRepository,
+            CatalogKitRepository kitRepository,
+            CatalogKitVersionRepository kitVersionRepository,
+            CatalogKitVersionItemRepository kitItemRepository,
+            OrcamentoKitInstantiationRepository kitInstantiationRepository) {
         this.budgetRepository = budgetRepository;
         this.groupRepository = groupRepository;
         this.lineRepository = lineRepository;
         this.productRepository = productRepository;
         this.serviceRepository = serviceRepository;
+        this.kitRepository = kitRepository;
+        this.kitVersionRepository = kitVersionRepository;
+        this.kitItemRepository = kitItemRepository;
+        this.kitInstantiationRepository = kitInstantiationRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,27 +101,45 @@ public class OrcamentoCompositionService {
 
     @Transactional(readOnly = true)
     public OrcamentoCatalogSearchResponse searchCatalog(String rawQuery) {
+        return searchCatalog(rawQuery, null);
+    }
+
+    @Transactional(readOnly = true)
+    public OrcamentoCatalogSearchResponse searchCatalog(String rawQuery, String rawType) {
         Long tenantId = requireTenant();
         String query = rawQuery == null ? "" : rawQuery.trim();
         if (query.length() < 2 || query.length() > 80) {
             throw new BusinessException("Busca de catalogo deve conter entre 2 e 80 caracteres.");
         }
-
+        String type = rawType == null || rawType.isBlank() ? "ALL" : rawType.trim().toUpperCase();
+        if (!Set.of("ALL", "PART", "LABOR", "KIT").contains(type)) {
+            throw new BusinessException("Filtro de catalogo nao suportado.");
+        }
         var page = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "nome"));
-        var products = productRepository.searchActive(tenantId, query, page);
-        var services = serviceRepository.searchActive(tenantId, query, page);
+        var products = Set.of("ALL", "PART").contains(type)
+                ? productRepository.searchActive(tenantId, query, page)
+                : org.springframework.data.domain.Page.<Produto>empty();
+        var services = Set.of("ALL", "LABOR").contains(type)
+                ? serviceRepository.searchActive(tenantId, query, page)
+                : org.springframework.data.domain.Page.<Servico>empty();
+        var kits = Set.of("ALL", "KIT").contains(type)
+                ? kitRepository.searchActive(tenantId, query, page)
+                : org.springframework.data.domain.Page.<CatalogKit>empty();
         List<OrcamentoCatalogItemResponse> items = new ArrayList<>();
         products.forEach(product -> items.add(new OrcamentoCatalogItemResponse(
                 product.getId(), "PART", product.getNome(), product.getCodigoInterno(),
                 money(product.getPrecoVenda()),
-                resolveAvailability(product.getQuantidadeEstoque(), BigDecimal.ONE).name())));
+                resolveAvailability(product.getQuantidadeEstoque(), BigDecimal.ONE).name(),
+                1,
+                product.getVersao())));
         services.forEach(catalogService -> items.add(new OrcamentoCatalogItemResponse(
                 catalogService.getId(), "LABOR", catalogService.getNome(), null,
-                money(catalogService.getPrecoBase()), "NOT_APPLICABLE")));
+                money(catalogService.getPrecoBase()), "NOT_APPLICABLE", 1, catalogService.getVersao())));
+        kits.forEach(kit -> mapCatalogKit(tenantId, kit).ifPresent(items::add));
         return new OrcamentoCatalogSearchResponse(
                 query,
                 List.copyOf(items),
-                products.hasNext() || services.hasNext());
+                products.hasNext() || services.hasNext() || kits.hasNext());
     }
 
     @Transactional
@@ -138,6 +182,85 @@ public class OrcamentoCompositionService {
     }
 
     @Transactional
+    public OrcamentoCompositionResponse instantiateKit(
+            Long budgetId,
+            Long kitId,
+            String rawIdempotencyKey,
+            OrcamentoInstantiateKitRequest request) {
+        Long tenantId = requireTenant();
+        OrdemServico budget = lockBudget(tenantId, budgetId);
+        String idempotencyKey = normalizeIdempotencyKey(rawIdempotencyKey);
+        String fingerprint = fingerprintKitRequest(kitId, request);
+
+        Optional<OrcamentoKitInstantiation> previous = kitInstantiationRepository
+                .findByEmpresaIdAndOrcamentoIdAndIdempotencyKey(tenantId, budgetId, idempotencyKey);
+        if (previous.isPresent()) {
+            if (!previous.get().getRequestFingerprint().equals(fingerprint)) {
+                throw new BusinessException("Idempotency-Key ja utilizada com outro pedido de kit.");
+            }
+            return buildResponse(tenantId, budget);
+        }
+
+        assertRevision(budget, request.expectedRevision());
+        CatalogKit kit = kitRepository.findByIdAndEmpresaIdAndActiveTrue(kitId, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kit ativo nao encontrado no catalogo autenticado."));
+        CatalogKitVersion version = kitVersionRepository
+                .findByEmpresaIdAndKitIdAndVersionNumberAndPublishedTrue(
+                        tenantId, kitId, kit.getCurrentVersion())
+                .orElseThrow(() -> new BusinessException("Kit sem versao publicada disponivel."));
+        List<CatalogKitVersionItem> kitItems =
+                kitItemRepository.findByEmpresaIdAndKitVersionIdOrderByPositionAsc(tenantId, version.getId());
+        if (kitItems.isEmpty()) throw new BusinessException("Kit publicado nao possui itens instanciaveis.");
+
+        List<OrcamentoServiceGroup> currentGroups =
+                groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(tenantId, budgetId);
+        int targetPosition = request.targetPosition() == null ? currentGroups.size() : request.targetPosition();
+        if (targetPosition > currentGroups.size()) {
+            throw new BusinessException("Posicao de destino do kit nao existe na composicao atual.");
+        }
+        for (int index = 0; index < currentGroups.size(); index++) {
+            currentGroups.get(index).setPosition(1_000_000 + index);
+        }
+        if (!currentGroups.isEmpty()) groupRepository.saveAllAndFlush(currentGroups);
+
+        OrcamentoServiceGroup group = new OrcamentoServiceGroup();
+        group.setEmpresaId(tenantId);
+        group.setOrcamento(budget);
+        group.setTitle(version.getTitleSnapshot());
+        group.setCustomerDescription(version.getDescriptionSnapshot());
+        group.setRecommended(version.isRecommendedDefault());
+        group.setVisibility(OrcamentoServiceGroup.Visibility.CUSTOMER_VISIBLE);
+        group.setPosition(targetPosition);
+        group.setKitOriginId(kitId);
+        group.setKitOriginVersion(version.getVersionNumber());
+        groupRepository.saveAndFlush(group);
+
+        List<OrcamentoServiceGroup> finalOrder = new ArrayList<>(currentGroups);
+        finalOrder.add(targetPosition, group);
+        for (int index = 0; index < finalOrder.size(); index++) finalOrder.get(index).setPosition(index);
+        groupRepository.saveAll(finalOrder);
+
+        BigDecimal kitQuantity = request.quantity().setScale(3, RoundingMode.HALF_UP);
+        List<OrcamentoLineItem> lines = new ArrayList<>();
+        for (int index = 0; index < kitItems.size(); index++) {
+            lines.add(instantiateKitLine(tenantId, group, kitId, version, kitItems.get(index), kitQuantity, index));
+        }
+        lineRepository.saveAll(lines);
+
+        OrcamentoKitInstantiation instantiation = new OrcamentoKitInstantiation();
+        instantiation.setEmpresaId(tenantId);
+        instantiation.setOrcamento(budget);
+        instantiation.setGroup(group);
+        instantiation.setKitOriginId(kitId);
+        instantiation.setKitOriginVersion(version.getVersionNumber());
+        instantiation.setIdempotencyKey(idempotencyKey);
+        instantiation.setRequestFingerprint(fingerprint);
+        kitInstantiationRepository.save(instantiation);
+
+        return finishMutation(tenantId, budget);
+    }
+
+    @Transactional
     public OrcamentoCompositionResponse updateGroup(
             Long budgetId,
             Long groupId,
@@ -175,6 +298,8 @@ public class OrcamentoCompositionService {
         duplicate.setInternalNote(source.getInternalNote());
         duplicate.setRecommended(source.isRecommended());
         duplicate.setVisibility(source.getVisibility());
+        duplicate.setKitOriginId(source.getKitOriginId());
+        duplicate.setKitOriginVersion(source.getKitOriginVersion());
         duplicate.setPosition(Math.toIntExact(groupRepository.countByEmpresaIdAndOrcamentoId(tenantId, budgetId)));
         groupRepository.saveAndFlush(duplicate);
 
@@ -334,6 +459,80 @@ public class OrcamentoCompositionService {
         return item;
     }
 
+    private Optional<OrcamentoCatalogItemResponse> mapCatalogKit(Long tenantId, CatalogKit kit) {
+        Optional<CatalogKitVersion> versionOptional = kitVersionRepository
+                .findByEmpresaIdAndKitIdAndVersionNumberAndPublishedTrue(
+                        tenantId, kit.getId(), kit.getCurrentVersion());
+        if (versionOptional.isEmpty()) return Optional.empty();
+        CatalogKitVersion version = versionOptional.get();
+        List<CatalogKitVersionItem> items =
+                kitItemRepository.findByEmpresaIdAndKitVersionIdOrderByPositionAsc(tenantId, version.getId());
+        if (items.isEmpty()) return Optional.empty();
+
+        BigDecimal total = items.stream()
+                .map(item -> item.getQuantity().multiply(item.getUnitPriceSnapshot()))
+                .reduce(ZERO, BigDecimal::add);
+        return Optional.of(new OrcamentoCatalogItemResponse(
+                kit.getId(),
+                "KIT",
+                version.getTitleSnapshot(),
+                kit.getReference(),
+                money(total),
+                resolveKitAvailability(tenantId, items).name(),
+                items.size(),
+                version.getVersionNumber()));
+    }
+
+    private OrcamentoLineItem instantiateKitLine(
+            Long tenantId,
+            OrcamentoServiceGroup group,
+            Long kitId,
+            CatalogKitVersion version,
+            CatalogKitVersionItem source,
+            BigDecimal kitQuantity,
+            int position) {
+        OrcamentoLineItem line = new OrcamentoLineItem();
+        line.setEmpresaId(tenantId);
+        line.setGroup(group);
+        line.setLineType(source.getLineType() == CatalogKitVersionItem.LineType.PART
+                ? OrcamentoLineItem.LineType.PART
+                : OrcamentoLineItem.LineType.LABOR);
+        line.setCatalogItemId(source.getCatalogItemId());
+        line.setCatalogVersion(source.getCatalogVersion());
+        line.setSource(OrcamentoLineItem.Source.KIT);
+        line.setKitOriginId(kitId);
+        line.setKitOriginVersion(version.getVersionNumber());
+        line.setDescriptionSnapshot(source.getDescriptionSnapshot());
+        line.setReferenceSnapshot(source.getReferenceSnapshot());
+        BigDecimal quantity = source.getQuantity().multiply(kitQuantity).setScale(3, RoundingMode.HALF_UP);
+        if (quantity.signum() <= 0) throw new BusinessException("Quantidade resultante do item do kit deve ser positiva.");
+        line.setQuantity(quantity);
+        line.setUnitPrice(requireCanonicalPrice(source.getUnitPriceSnapshot()));
+        line.setDiscountAmount(ZERO);
+        line.setAvailabilityStatus(refreshAvailability(tenantId, line, quantity));
+        line.setTotalAmount(calculateLineTotal(quantity, line.getUnitPrice(), line.getDiscountAmount()));
+        line.setPosition(position);
+        return line;
+    }
+
+    private OrcamentoLineItem.AvailabilityStatus resolveKitAvailability(
+            Long tenantId,
+            List<CatalogKitVersionItem> items) {
+        boolean hasPart = false;
+        OrcamentoLineItem.AvailabilityStatus aggregate = OrcamentoLineItem.AvailabilityStatus.AVAILABLE;
+        for (CatalogKitVersionItem item : items) {
+            if (item.getLineType() != CatalogKitVersionItem.LineType.PART) continue;
+            hasPart = true;
+            OrcamentoLineItem.AvailabilityStatus current = productRepository
+                    .findByIdAndEmpresaId(item.getCatalogItemId(), tenantId)
+                    .map(product -> resolveAvailability(product.getQuantidadeEstoque(), item.getQuantity()))
+                    .orElse(OrcamentoLineItem.AvailabilityStatus.NEEDED);
+            if (current == OrcamentoLineItem.AvailabilityStatus.NEEDED) return current;
+            if (current == OrcamentoLineItem.AvailabilityStatus.PARTIAL) aggregate = current;
+        }
+        return hasPart ? aggregate : OrcamentoLineItem.AvailabilityStatus.NOT_APPLICABLE;
+    }
+
     private OrcamentoLineItem.AvailabilityStatus resolveAvailability(BigDecimal available, BigDecimal requested) {
         BigDecimal safeAvailable = available == null ? BigDecimal.ZERO : available.max(BigDecimal.ZERO);
         if (safeAvailable.compareTo(requested) >= 0) return OrcamentoLineItem.AvailabilityStatus.AVAILABLE;
@@ -434,6 +633,8 @@ public class OrcamentoCompositionService {
                 group.getTitle(),
                 group.getCustomerDescription(),
                 group.getInternalNote(),
+                group.getKitOriginId(),
+                group.getKitOriginVersion(),
                 group.isRecommended(),
                 group.getVisibility().name(),
                 group.getPosition(),
@@ -444,7 +645,8 @@ public class OrcamentoCompositionService {
     private OrcamentoCompositionLineResponse mapLine(OrcamentoLineItem item) {
         return new OrcamentoCompositionLineResponse(
                 item.getId(), item.getLineType().name(), item.getCatalogItemId(), item.getCatalogVersion(),
-                item.getSource().name(), item.getDescriptionSnapshot(), item.getReferenceSnapshot(),
+                item.getSource().name(), item.getKitOriginId(), item.getKitOriginVersion(),
+                item.getDescriptionSnapshot(), item.getReferenceSnapshot(),
                 item.getQuantity(), item.getUnitPrice(), item.getDiscountAmount(), item.getTotalAmount(),
                 item.getAvailabilityStatus().name(), item.getPosition());
     }
@@ -520,6 +722,8 @@ public class OrcamentoCompositionService {
         copy.setCatalogItemId(source.getCatalogItemId());
         copy.setCatalogVersion(source.getCatalogVersion());
         copy.setSource(source.getSource());
+        copy.setKitOriginId(source.getKitOriginId());
+        copy.setKitOriginVersion(source.getKitOriginVersion());
         copy.setDescriptionSnapshot(source.getDescriptionSnapshot());
         copy.setReferenceSnapshot(source.getReferenceSnapshot());
         copy.setQuantity(source.getQuantity());
@@ -537,6 +741,25 @@ public class OrcamentoCompositionService {
                 ? source
                 : source.substring(0, 120 - suffix.length()).trim();
         return base + suffix;
+    }
+
+    private String normalizeIdempotencyKey(String value) {
+        String key = value == null ? "" : value.trim();
+        if (key.isEmpty() || key.length() > 200) {
+            throw new BusinessException("Idempotency-Key obrigatoria e limitada a 200 caracteres.");
+        }
+        return key;
+    }
+
+    private String fingerprintKitRequest(Long kitId, OrcamentoInstantiateKitRequest request) {
+        String payload = kitId + "|" + request.expectedRevision() + "|"
+                + request.quantity().stripTrailingZeros().toPlainString() + "|" + request.targetPosition();
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(payload.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 indisponivel para idempotencia.", exception);
+        }
     }
 
     private void assertRevision(OrdemServico budget, Long expectedRevision) {
@@ -594,4 +817,3 @@ public class OrcamentoCompositionService {
         return tenantId;
     }
 }
-

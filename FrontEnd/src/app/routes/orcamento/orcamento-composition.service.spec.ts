@@ -63,6 +63,35 @@ describe('OrcamentoCompositionService', () => {
     request.flush({ query: 'filtro', items: [], truncated: false });
   });
 
+  it('filters versioned kits without exposing tenant authority', () => {
+    service.searchCatalog('revisao', 'KIT').subscribe();
+
+    const request = http.expectOne(req => req.url === '/api/v1/orcamentos/catalog');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('q')).toBe('revisao');
+    expect(request.request.params.get('type')).toBe('KIT');
+    expect(request.request.params.has('tenantId')).toBeFalse();
+    request.flush({ query: 'revisao', items: [], truncated: false });
+  });
+
+  it('instantiates a kit with explicit idempotency and no browser-owned price', () => {
+    service
+      .instantiateKit(91, 44, 'kit-request-123', {
+        expectedRevision: 8,
+        quantity: 1,
+        targetPosition: 2,
+      })
+      .subscribe();
+
+    const request = http.expectOne('/api/v1/orcamentos/91/kits/44');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Idempotency-Key')).toBe('kit-request-123');
+    expect(request.request.body).toEqual({ expectedRevision: 8, quantity: 1, targetPosition: 2 });
+    expect(request.request.body.unitPrice).toBeUndefined();
+    expect(request.request.body.tenantId).toBeUndefined();
+    request.flush({ groups: [] });
+  });
+
   it('updates group metadata with revision and no browser-controlled tenant', () => {
     service
       .updateGroup(91, 15, {
@@ -113,4 +142,3 @@ describe('OrcamentoCompositionService', () => {
     request.flush({ groups: [] });
   });
 });
-

@@ -5,11 +5,20 @@ import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.orcamento.domain.OrcamentoLineItem;
 import com.neritech.saas.orcamento.domain.OrcamentoServiceGroup;
+import com.neritech.saas.orcamento.domain.CatalogKit;
+import com.neritech.saas.orcamento.domain.CatalogKitVersion;
+import com.neritech.saas.orcamento.domain.CatalogKitVersionItem;
+import com.neritech.saas.orcamento.domain.OrcamentoKitInstantiation;
 import com.neritech.saas.orcamento.dto.OrcamentoAddCatalogItemRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoCompositionResponse;
 import com.neritech.saas.orcamento.dto.OrcamentoReorderRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoRevisionRequest;
 import com.neritech.saas.orcamento.dto.OrcamentoUpdateLineRequest;
+import com.neritech.saas.orcamento.dto.OrcamentoInstantiateKitRequest;
+import com.neritech.saas.orcamento.repository.CatalogKitRepository;
+import com.neritech.saas.orcamento.repository.CatalogKitVersionItemRepository;
+import com.neritech.saas.orcamento.repository.CatalogKitVersionRepository;
+import com.neritech.saas.orcamento.repository.OrcamentoKitInstantiationRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoLineItemRepository;
 import com.neritech.saas.orcamento.repository.OrcamentoServiceGroupRepository;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
@@ -32,6 +41,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -51,6 +61,10 @@ class OrcamentoCompositionServiceTest {
     @Mock private OrcamentoLineItemRepository lineRepository;
     @Mock private ProdutoRepository productRepository;
     @Mock private ServicoRepository serviceRepository;
+    @Mock private CatalogKitRepository kitRepository;
+    @Mock private CatalogKitVersionRepository kitVersionRepository;
+    @Mock private CatalogKitVersionItemRepository kitItemRepository;
+    @Mock private OrcamentoKitInstantiationRepository kitInstantiationRepository;
 
     private OrcamentoCompositionService service;
 
@@ -58,7 +72,8 @@ class OrcamentoCompositionServiceTest {
     void setUp() {
         TenantContext.setCurrentTenant(TENANT_ID);
         service = new OrcamentoCompositionService(
-                budgetRepository, groupRepository, lineRepository, productRepository, serviceRepository);
+                budgetRepository, groupRepository, lineRepository, productRepository, serviceRepository,
+                kitRepository, kitVersionRepository, kitItemRepository, kitInstantiationRepository);
     }
 
     @AfterEach
@@ -107,6 +122,8 @@ class OrcamentoCompositionServiceTest {
         when(productRepository.searchActive(eq(TENANT_ID), eq("filtro"), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(product)));
         when(serviceRepository.searchActive(eq(TENANT_ID), eq("filtro"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+        when(kitRepository.searchActive(eq(TENANT_ID), eq("filtro"), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
         var response = service.searchCatalog(" filtro ");
@@ -317,6 +334,166 @@ class OrcamentoCompositionServiceTest {
         verify(serviceRepository, never()).findByIdAndEmpresaId(any(), any());
     }
 
+    @Test
+    void searchesPublishedVersionedKitWithSnapshotPriceAndLiveAvailabilityOnly() {
+        CatalogKit kit = kit(44L, 3);
+        CatalogKitVersion version = kitVersion(55L, kit, 3);
+        CatalogKitVersionItem part = kitItem(
+                61L, version, CatalogKitVersionItem.LineType.PART, 88L,
+                new BigDecimal("2.000"), new BigDecimal("50.0000"), 0);
+        CatalogKitVersionItem labor = kitItem(
+                62L, version, CatalogKitVersionItem.LineType.LABOR, 99L,
+                BigDecimal.ONE, new BigDecimal("100.0000"), 1);
+        Produto product = new Produto();
+        product.setId(88L);
+        product.setQuantidadeEstoque(BigDecimal.ONE);
+        when(kitRepository.searchActive(eq(TENANT_ID), eq("revisao"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(kit)));
+        when(kitVersionRepository.findByEmpresaIdAndKitIdAndVersionNumberAndPublishedTrue(
+                TENANT_ID, 44L, 3)).thenReturn(Optional.of(version));
+        when(kitItemRepository.findByEmpresaIdAndKitVersionIdOrderByPositionAsc(TENANT_ID, 55L))
+                .thenReturn(List.of(part, labor));
+        when(productRepository.findByIdAndEmpresaId(88L, TENANT_ID)).thenReturn(Optional.of(product));
+
+        var response = service.searchCatalog("revisao", "KIT");
+
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().getFirst().lineType()).isEqualTo("KIT");
+        assertThat(response.items().getFirst().suggestedPrice()).isEqualByComparingTo("200.00");
+        assertThat(response.items().getFirst().availabilityStatus()).isEqualTo("PARTIAL");
+        assertThat(response.items().getFirst().itemCount()).isEqualTo(2);
+        assertThat(response.items().getFirst().catalogVersion()).isEqualTo(3);
+        verify(productRepository, never()).searchActive(any(), any(), any());
+        verify(serviceRepository, never()).searchActive(any(), any(), any());
+    }
+
+    @Test
+    void instantiatesKitAtomicallyFromVersionSnapshotsWithoutMutatingMasterCatalog() {
+        OrdemServico budget = budget(10L, 0L);
+        CatalogKit kit = kit(44L, 3);
+        CatalogKitVersion version = kitVersion(55L, kit, 3);
+        CatalogKitVersionItem part = kitItem(
+                61L, version, CatalogKitVersionItem.LineType.PART, 88L,
+                new BigDecimal("2.000"), new BigDecimal("50.0000"), 0);
+        CatalogKitVersionItem labor = kitItem(
+                62L, version, CatalogKitVersionItem.LineType.LABOR, 99L,
+                BigDecimal.ONE, new BigDecimal("100.0000"), 1);
+        Produto product = new Produto();
+        product.setId(88L);
+        product.setQuantidadeEstoque(new BigDecimal("2.000"));
+        AtomicReference<OrcamentoServiceGroup> groupRef = new AtomicReference<>();
+        AtomicReference<List<OrcamentoLineItem>> linesRef = new AtomicReference<>(List.of());
+        AtomicReference<OrcamentoKitInstantiation> instantiationRef = new AtomicReference<>();
+
+        when(budgetRepository.findBudgetForCompositionUpdate(10L, TENANT_ID, TipoOS.ORCAMENTO))
+                .thenReturn(Optional.of(budget));
+        when(kitInstantiationRepository.findByEmpresaIdAndOrcamentoIdAndIdempotencyKey(
+                TENANT_ID, 10L, "kit-request-1")).thenReturn(Optional.empty());
+        when(kitRepository.findByIdAndEmpresaIdAndActiveTrue(44L, TENANT_ID)).thenReturn(Optional.of(kit));
+        when(kitVersionRepository.findByEmpresaIdAndKitIdAndVersionNumberAndPublishedTrue(
+                TENANT_ID, 44L, 3)).thenReturn(Optional.of(version));
+        when(kitItemRepository.findByEmpresaIdAndKitVersionIdOrderByPositionAsc(TENANT_ID, 55L))
+                .thenReturn(List.of(part, labor));
+        when(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(TENANT_ID, 10L))
+                .thenAnswer(ignored -> groupRef.get() == null ? List.of() : List.of(groupRef.get()));
+        when(groupRepository.saveAndFlush(any())).thenAnswer(invocation -> {
+            OrcamentoServiceGroup group = invocation.getArgument(0);
+            group.setId(20L);
+            groupRef.set(group);
+            return group;
+        });
+        when(productRepository.findByIdAndEmpresaId(88L, TENANT_ID)).thenReturn(Optional.of(product));
+        when(lineRepository.saveAll(any())).thenAnswer(invocation -> {
+            List<OrcamentoLineItem> lines = invocation.getArgument(0);
+            for (int index = 0; index < lines.size(); index++) lines.get(index).setId(31L + index);
+            linesRef.set(lines);
+            return lines;
+        });
+        when(lineRepository.findCompositionLines(TENANT_ID, 10L)).thenAnswer(ignored -> linesRef.get());
+        when(kitInstantiationRepository.save(any())).thenAnswer(invocation -> {
+            OrcamentoKitInstantiation value = invocation.getArgument(0);
+            value.setId(70L);
+            instantiationRef.set(value);
+            return value;
+        });
+
+        OrcamentoCompositionResponse response = service.instantiateKit(
+                10L, 44L, "kit-request-1",
+                new OrcamentoInstantiateKitRequest(0L, new BigDecimal("1.500"), 0));
+
+        assertThat(response.revision()).isEqualTo(1L);
+        assertThat(response.requiredTotal()).isEqualByComparingTo("300.00");
+        assertThat(response.groups().getFirst().kitOriginId()).isEqualTo(44L);
+        assertThat(response.groups().getFirst().kitOriginVersion()).isEqualTo(3);
+        assertThat(linesRef.get()).extracting(OrcamentoLineItem::getSource)
+                .containsOnly(OrcamentoLineItem.Source.KIT);
+        assertThat(linesRef.get().getFirst().getQuantity()).isEqualByComparingTo("3.000");
+        assertThat(linesRef.get().getFirst().getUnitPrice()).isEqualByComparingTo("50.0000");
+        assertThat(linesRef.get().getFirst().getAvailabilityStatus())
+                .isEqualTo(OrcamentoLineItem.AvailabilityStatus.PARTIAL);
+        assertThat(instantiationRef.get().getRequestFingerprint()).hasSize(64);
+        verify(kitRepository, never()).save(any());
+        verify(kitVersionRepository, never()).save(any());
+        verify(kitItemRepository, never()).save(any());
+    }
+
+    @Test
+    void retryWithSameIdempotencyKeyReturnsCompositionWithoutDuplicatingKit() {
+        OrdemServico budget = budget(10L, 0L);
+        CatalogKit kit = kit(44L, 3);
+        CatalogKitVersion version = kitVersion(55L, kit, 3);
+        CatalogKitVersionItem labor = kitItem(
+                62L, version, CatalogKitVersionItem.LineType.LABOR, 99L,
+                BigDecimal.ONE, new BigDecimal("100.0000"), 0);
+        AtomicReference<OrcamentoServiceGroup> groupRef = new AtomicReference<>();
+        AtomicReference<List<OrcamentoLineItem>> linesRef = new AtomicReference<>(List.of());
+        AtomicReference<OrcamentoKitInstantiation> instantiationRef = new AtomicReference<>();
+        AtomicInteger groupWrites = new AtomicInteger();
+
+        when(budgetRepository.findBudgetForCompositionUpdate(10L, TENANT_ID, TipoOS.ORCAMENTO))
+                .thenReturn(Optional.of(budget));
+        when(kitInstantiationRepository.findByEmpresaIdAndOrcamentoIdAndIdempotencyKey(
+                TENANT_ID, 10L, "same-key")).thenAnswer(ignored -> Optional.ofNullable(instantiationRef.get()));
+        when(kitRepository.findByIdAndEmpresaIdAndActiveTrue(44L, TENANT_ID)).thenReturn(Optional.of(kit));
+        when(kitVersionRepository.findByEmpresaIdAndKitIdAndVersionNumberAndPublishedTrue(
+                TENANT_ID, 44L, 3)).thenReturn(Optional.of(version));
+        when(kitItemRepository.findByEmpresaIdAndKitVersionIdOrderByPositionAsc(TENANT_ID, 55L))
+                .thenReturn(List.of(labor));
+        when(groupRepository.findByEmpresaIdAndOrcamentoIdOrderByPositionAsc(TENANT_ID, 10L))
+                .thenAnswer(ignored -> groupRef.get() == null ? List.of() : List.of(groupRef.get()));
+        when(groupRepository.saveAndFlush(any())).thenAnswer(invocation -> {
+            groupWrites.incrementAndGet();
+            OrcamentoServiceGroup group = invocation.getArgument(0);
+            group.setId(20L);
+            groupRef.set(group);
+            return group;
+        });
+        when(lineRepository.saveAll(any())).thenAnswer(invocation -> {
+            List<OrcamentoLineItem> lines = invocation.getArgument(0);
+            lines.getFirst().setId(31L);
+            linesRef.set(lines);
+            return lines;
+        });
+        when(lineRepository.findCompositionLines(TENANT_ID, 10L)).thenAnswer(ignored -> linesRef.get());
+        when(kitInstantiationRepository.save(any())).thenAnswer(invocation -> {
+            OrcamentoKitInstantiation value = invocation.getArgument(0);
+            value.setId(70L);
+            instantiationRef.set(value);
+            return value;
+        });
+        OrcamentoInstantiateKitRequest request =
+                new OrcamentoInstantiateKitRequest(0L, BigDecimal.ONE, 0);
+
+        OrcamentoCompositionResponse first = service.instantiateKit(10L, 44L, "same-key", request);
+        OrcamentoCompositionResponse retry = service.instantiateKit(10L, 44L, "same-key", request);
+
+        assertThat(first.revision()).isEqualTo(1L);
+        assertThat(retry.revision()).isEqualTo(1L);
+        assertThat(retry.groupCount()).isEqualTo(1);
+        assertThat(groupWrites).hasValue(1);
+        verify(kitInstantiationRepository).save(any());
+    }
+
     private OrdemServico budget(Long id, Long revision) {
         OrdemServico budget = new OrdemServico();
         budget.setId(id);
@@ -339,6 +516,55 @@ class OrcamentoCompositionServiceTest {
         group.setVisibility(OrcamentoServiceGroup.Visibility.CUSTOMER_VISIBLE);
         group.setPosition(0);
         return group;
+    }
+
+    private CatalogKit kit(Long id, int currentVersion) {
+        CatalogKit kit = new CatalogKit();
+        kit.setId(id);
+        kit.setEmpresaId(TENANT_ID);
+        kit.setName("Revisao completa");
+        kit.setReference("KIT-REV");
+        kit.setActive(true);
+        kit.setCurrentVersion(currentVersion);
+        return kit;
+    }
+
+    private CatalogKitVersion kitVersion(Long id, CatalogKit kit, int versionNumber) {
+        CatalogKitVersion version = new CatalogKitVersion();
+        version.setId(id);
+        version.setEmpresaId(TENANT_ID);
+        version.setKit(kit);
+        version.setVersionNumber(versionNumber);
+        version.setTitleSnapshot("Revisao completa");
+        version.setDescriptionSnapshot("Pacote versionado de manutencao preventiva");
+        version.setRecommendedDefault(false);
+        version.setPublished(true);
+        return version;
+    }
+
+    private CatalogKitVersionItem kitItem(
+            Long id,
+            CatalogKitVersion version,
+            CatalogKitVersionItem.LineType lineType,
+            Long catalogItemId,
+            BigDecimal quantity,
+            BigDecimal unitPrice,
+            int position) {
+        CatalogKitVersionItem item = new CatalogKitVersionItem();
+        item.setId(id);
+        item.setEmpresaId(TENANT_ID);
+        item.setKitVersion(version);
+        item.setLineType(lineType);
+        item.setCatalogItemId(catalogItemId);
+        item.setCatalogVersion(4);
+        item.setDescriptionSnapshot(lineType == CatalogKitVersionItem.LineType.PART
+                ? "Filtro premium"
+                : "Mao de obra preventiva");
+        item.setReferenceSnapshot(lineType == CatalogKitVersionItem.LineType.PART ? "FLT-88" : null);
+        item.setQuantity(quantity);
+        item.setUnitPriceSnapshot(unitPrice);
+        item.setPosition(position);
+        return item;
     }
 
     private OrcamentoLineItem line(
@@ -365,4 +591,3 @@ class OrcamentoCompositionServiceTest {
         return line;
     }
 }
-

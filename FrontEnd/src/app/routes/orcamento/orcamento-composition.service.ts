@@ -13,6 +13,8 @@ export interface CompositionLine {
   catalogItemId: number | null;
   catalogVersion: number | null;
   source: 'PRODUCT_CATALOG' | 'SERVICE_CATALOG' | 'KIT' | 'MANUAL';
+  kitOriginId: number | null;
+  kitOriginVersion: number | null;
   description: string;
   reference: string | null;
   quantity: number;
@@ -28,6 +30,8 @@ export interface CompositionGroup {
   title: string;
   customerDescription: string | null;
   internalNote: string | null;
+  kitOriginId: number | null;
+  kitOriginVersion: number | null;
   recommended: boolean;
   visibility: 'CUSTOMER_VISIBLE' | 'INTERNAL_ONLY';
   position: number;
@@ -53,11 +57,13 @@ export interface BudgetComposition {
 
 export interface CatalogSearchItem {
   id: number;
-  lineType: 'PART' | 'LABOR';
+  lineType: 'PART' | 'LABOR' | 'KIT';
   description: string;
   reference: string | null;
   suggestedPrice: number;
   availabilityStatus: AvailabilityStatus;
+  itemCount: number;
+  catalogVersion: number | null;
 }
 
 export interface CatalogSearchResponse {
@@ -75,9 +81,11 @@ export class OrcamentoCompositionService {
     return this.http.get<BudgetComposition>(`${this.baseUrl}/${budgetId}/composition`);
   }
 
-  searchCatalog(query: string): Observable<CatalogSearchResponse> {
+  searchCatalog(query: string, type?: 'KIT'): Observable<CatalogSearchResponse> {
+    let params = new HttpParams().set('q', query);
+    if (type) params = params.set('type', type);
     return this.http.get<CatalogSearchResponse>(`${this.baseUrl}/catalog`, {
-      params: new HttpParams().set('q', query),
+      params,
     });
   }
 
@@ -111,6 +119,21 @@ export class OrcamentoCompositionService {
       `${this.baseUrl}/${budgetId}/composition/groups/${groupId}/items`,
       request
     );
+  }
+
+  instantiateKit(
+    budgetId: number,
+    kitId: number,
+    idempotencyKey: string,
+    request: {
+      expectedRevision: number;
+      quantity: number;
+      targetPosition: number;
+    }
+  ): Observable<BudgetComposition> {
+    return this.http.post<BudgetComposition>(`${this.baseUrl}/${budgetId}/kits/${kitId}`, request, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
   }
 
   updateGroup(
@@ -216,4 +239,3 @@ export class OrcamentoCompositionService {
     );
   }
 }
-

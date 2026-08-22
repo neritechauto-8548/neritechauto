@@ -51,6 +51,8 @@ describe('ItensOrcamentoComponent', () => {
         title: 'Sistema de freios',
         customerDescription: 'Revisão segura',
         internalNote: null,
+        kitOriginId: null,
+        kitOriginVersion: null,
         recommended: false,
         visibility: 'CUSTOMER_VISIBLE',
         position: 0,
@@ -68,6 +70,7 @@ describe('ItensOrcamentoComponent', () => {
         'searchCatalog',
         'createGroup',
         'addCatalogItem',
+        'instantiateKit',
         'updateGroup',
         'duplicateGroup',
         'deleteGroup',
@@ -139,6 +142,8 @@ describe('ItensOrcamentoComponent', () => {
       reference: 'PST-22',
       suggestedPrice: 99,
       availabilityStatus: 'AVAILABLE',
+      itemCount: 1,
+      catalogVersion: 3,
     };
 
     component.addCatalogItem(item);
@@ -162,6 +167,8 @@ describe('ItensOrcamentoComponent', () => {
       reference: 'PST-22',
       suggestedPrice: 99,
       availabilityStatus: 'AVAILABLE',
+      itemCount: 1,
+      catalogVersion: 3,
     });
 
     expect(component.composition).toEqual(composition);
@@ -223,5 +230,30 @@ describe('ItensOrcamentoComponent', () => {
     expect(compositionService.deleteGroup).toHaveBeenCalledOnceWith(91, 15, 4);
     expect(component.pendingDeletion).toBeNull();
   });
-});
 
+  it('instantiates a kit at the end with a unique idempotency key and no client price', () => {
+    compositionService.instantiateKit.and.returnValue(
+      of({ ...composition, revision: 5, groupCount: 2 })
+    );
+    component.ngOnInit();
+
+    component.addCatalogItem({
+      id: 44,
+      lineType: 'KIT',
+      description: 'Revisão 40 mil km',
+      reference: 'KIT-40K',
+      suggestedPrice: 890,
+      availabilityStatus: 'AVAILABLE',
+      itemCount: 4,
+      catalogVersion: 6,
+    });
+
+    expect(compositionService.instantiateKit).toHaveBeenCalledWith(
+      91,
+      44,
+      jasmine.stringMatching(/^kit-/),
+      { expectedRevision: 4, quantity: 1, targetPosition: 1 }
+    );
+    expect(component.saveMessage).toContain('Kit v6');
+  });
+});

@@ -40,6 +40,12 @@ public class OrcamentoServiceGroup extends TenantEntity {
     @Column(name = "position", nullable = false)
     private int position;
 
+    @Column(name = "kit_origin_id")
+    private Long kitOriginId;
+
+    @Column(name = "kit_origin_version")
+    private Integer kitOriginVersion;
+
     public OrdemServico getOrcamento() { return orcamento; }
     public void setOrcamento(OrdemServico orcamento) { this.orcamento = orcamento; }
     public String getTitle() { return title; }
@@ -54,4 +60,8 @@ public class OrcamentoServiceGroup extends TenantEntity {
     public void setVisibility(Visibility visibility) { this.visibility = visibility; }
     public int getPosition() { return position; }
     public void setPosition(int position) { this.position = position; }
+    public Long getKitOriginId() { return kitOriginId; }
+    public void setKitOriginId(Long kitOriginId) { this.kitOriginId = kitOriginId; }
+    public Integer getKitOriginVersion() { return kitOriginVersion; }
+    public void setKitOriginVersion(Integer kitOriginVersion) { this.kitOriginVersion = kitOriginVersion; }
 }
