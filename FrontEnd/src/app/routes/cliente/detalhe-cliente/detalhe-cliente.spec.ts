@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxPermissionsModule, NgxPermissionsService } from 'ngx-permissions';
 
+import { StatusVeiculo } from '../../veiculo/models/veiculo.models';
 import { StatusCliente, TipoCliente } from '../models/cliente.models';
 import { CustomerDetailReadService } from './detalhe-cliente.service';
 import { DetalheCliente } from './detalhe-cliente';
@@ -31,7 +32,7 @@ describe('DetalheCliente contextual actions', () => {
     });
 
     permissions = TestBed.inject(NgxPermissionsService);
-    permissions.loadPermissions(['OS_INCLUIR', 'GERAL_AGENDAMENTO_EDITAR']);
+    permissions.loadPermissions(['GERAL_USUARIO', 'OS_INCLUIR', 'GERAL_AGENDAMENTO_EDITAR']);
     component = TestBed.runInInjectionContext(() => new DetalheCliente());
     component.customer = {
       id: 42,
@@ -60,6 +61,16 @@ describe('DetalheCliente contextual actions', () => {
       ['/agenda/novo'],
       { queryParams: { clienteId: 42 } }
     );
+  });
+
+  it('opens a readable vehicle in its canonical passport', () => {
+    component.openVehicle({
+      id: 9,
+      maskedPlate: 'ABC••23',
+      status: StatusVeiculo.ATIVO,
+    });
+
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9]);
   });
 
   it('blocks creation actions for an inactive customer', () => {

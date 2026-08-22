@@ -194,6 +194,11 @@ export class DetalheVeiculo implements OnInit {
     this.router.navigate(['/veiculos', this.vehicleId, 'editar']);
   }
 
+  openLinks() {
+    if (!this.vehicleId) return;
+    this.router.navigate(['/veiculos', this.vehicleId, 'vinculos']);
+  }
+
   openCustomer() {
     if (!this.vehicle?.clienteId) return;
     this.router.navigate(['/clientes', this.vehicle.clienteId]);

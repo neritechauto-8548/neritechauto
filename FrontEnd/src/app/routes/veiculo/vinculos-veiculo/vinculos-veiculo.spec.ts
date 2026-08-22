@@ -1,20 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { NgxPermissionsModule, NgxPermissionsService } from 'ngx-permissions';
 import { of, throwError } from 'rxjs';
 
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { StatusCliente, TipoCliente } from '../../cliente/models/cliente.models';
 import { StatusVeiculo, VeiculoResponse } from '../models/veiculo.models';
 import { VeiculoService } from '../veiculo/veiculo.service';
-import { DetalheVeiculo } from './detalhe-veiculo';
+import { VinculosVeiculo } from './vinculos-veiculo';
 
-describe('DetalheVeiculo', () => {
-  let component: DetalheVeiculo;
+describe('VinculosVeiculo', () => {
+  let component: VinculosVeiculo;
   let router: jasmine.SpyObj<Router>;
   let vehicleService: jasmine.SpyObj<VeiculoService>;
   let customerService: jasmine.SpyObj<ClientesService>;
-  let permissions: NgxPermissionsService;
 
   const vehicle: VeiculoResponse = {
     id: 9,
@@ -23,9 +21,6 @@ describe('DetalheVeiculo', () => {
     placa: 'ABC1D23',
     marcaNome: 'Neri',
     modeloNome: 'One',
-    anoFabricacao: 2025,
-    anoModelo: 2026,
-    quilometragemAtual: 12500,
     status: StatusVeiculo.ATIVO,
   };
 
@@ -44,7 +39,6 @@ describe('DetalheVeiculo', () => {
     }));
 
     TestBed.configureTestingModule({
-      imports: [NgxPermissionsModule.forRoot()],
       providers: [
         { provide: Router, useValue: router },
         {
@@ -56,71 +50,50 @@ describe('DetalheVeiculo', () => {
       ],
     });
 
-    permissions = TestBed.inject(NgxPermissionsService);
-    permissions.loadPermissions(['VEICULO_EDITAR', 'OS_INCLUIR', 'GERAL_AGENDAMENTO_EDITAR']);
-    component = TestBed.runInInjectionContext(() => new DetalheVeiculo());
+    component = TestBed.runInInjectionContext(() => new VinculosVeiculo());
   });
 
-  afterEach(() => permissions.flushPermissions());
-
-  it('loads only canonical vehicle and minimized current-customer sources', () => {
+  it('uses only the canonical vehicle and minimized customer read models', () => {
     component.ngOnInit();
 
     expect(vehicleService.getById).toHaveBeenCalledOnceWith(9);
     expect(customerService.getSummary).toHaveBeenCalledOnceWith(42);
-    expect(component.vehicle).toEqual(vehicle);
     expect(component.currentCustomer?.maskedTaxId).toBe('***.***.***-00');
   });
 
-  it('keeps the passport usable when the customer projection fails', () => {
+  it('keeps the ledger usable when the customer summary fails', () => {
     customerService.getSummary.and.returnValue(throwError(() => new Error('unavailable')));
 
     component.ngOnInit();
 
     expect(component.fatalError).toBeFalse();
     expect(component.customerFailed).toBeTrue();
-    expect(component.vehicle).toEqual(vehicle);
+    expect(component.hasCurrentLink).toBeTrue();
   });
 
-  it('preserves vehicle and customer context when starting an estimate', () => {
-    component.ngOnInit();
-
-    component.createEstimate();
-
-    expect(router.navigate).toHaveBeenCalledOnceWith(
-      ['/orcamentos/novo'],
-      { queryParams: { clienteId: 42, veiculoId: 9 } }
-    );
-  });
-
-  it('opens the canonical temporal-links view', () => {
-    component.ngOnInit();
-
-    component.openLinks();
-
-    expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9, 'vinculos']);
-  });
-
-  it('blocks incompatible operational CTAs for an inactive vehicle', () => {
-    vehicleService.getById.and.returnValue(of({ ...vehicle, status: StatusVeiculo.INATIVO }));
+  it('does not infer a historical link when the vehicle has no current customer', () => {
+    vehicleService.getById.and.returnValue(of({
+      ...vehicle,
+      clienteId: 0,
+      clienteNome: undefined,
+    }));
 
     component.ngOnInit();
 
-    expect(component.canCreateEstimate).toBeFalse();
-    expect(component.canSchedule).toBeFalse();
-    expect(component.alerts.some(alert => alert.title === 'Veículo inativo')).toBeTrue();
+    expect(component.hasCurrentLink).toBeFalse();
+    expect(customerService.getSummary).not.toHaveBeenCalled();
   });
 
-  it('supports arrow-key navigation across tabs', () => {
-    const event = {
-      key: 'ArrowRight',
-      preventDefault: jasmine.createSpy('preventDefault'),
-      currentTarget: { parentElement: null },
-    } as unknown as KeyboardEvent;
+  it('returns to the canonical passport route', () => {
+    component.ngOnInit();
 
-    component.onTabKeydown(event, 0);
+    component.backToPassport();
 
-    expect(component.activeTab).toBe('ficha');
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/veiculos', 9]);
+  });
+
+  it('never exposes an unbacked link-mutation method', () => {
+    expect('changeLink' in component).toBeFalse();
+    expect('closeLink' in component).toBeFalse();
   });
 });

@@ -30,6 +30,12 @@ export const routes: Routes = [
   },
   { path: 'editar/:id', redirectTo: ':id/editar', pathMatch: 'full' },
   {
+    path: ':id/vinculos',
+    loadComponent: () => import('./vinculos-veiculo/vinculos-veiculo').then(m => m.VinculosVeiculo),
+    canActivate: [permissionGuard],
+    data: { title: 'Vínculos do Veículo', permissions: ['GERAL_USUARIO'] },
+  },
+  {
     path: ':id',
     loadComponent: () => import('./detalhe-veiculo/detalhe-veiculo').then(m => m.DetalheVeiculo),
     canActivate: [permissionGuard],

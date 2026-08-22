@@ -100,7 +100,7 @@ export class DetalheCliente implements OnInit {
   }
 
   get canOpenVehicle() {
-    return Boolean(this.permissions.getPermission('VEICULO_EDITAR'));
+    return Boolean(this.permissions.getPermission('GERAL_USUARIO'));
   }
 
   get maskedTaxId() {
@@ -151,7 +151,7 @@ export class DetalheCliente implements OnInit {
 
   openVehicle(vehicle: CustomerVehicleSummary) {
     if (!this.canOpenVehicle) return;
-    this.router.navigate(['/veiculos/editar', vehicle.id]);
+    this.router.navigate(['/veiculos', vehicle.id]);
   }
 
   backToList() {
