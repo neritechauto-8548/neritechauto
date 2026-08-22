@@ -20,7 +20,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "veiculos", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_veiculo_placa_empresa", columnNames = { "placa", "empresa_id" })
+        @UniqueConstraint(name = "uk_veiculo_placa_empresa", columnNames = { "placa", "empresa_id" }),
+        @UniqueConstraint(name = "uk_veiculo_chassi_empresa", columnNames = { "chassi", "empresa_id" })
 })
 public class Veiculo extends TenantEntity {
 
