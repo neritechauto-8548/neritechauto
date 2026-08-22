@@ -21,11 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,6 +74,14 @@ class VeiculoServiceTest {
     }
 
     @Test
+    @DisplayName("Chassi deve ser normalizado antes da verificação de unicidade")
+    void deveNormalizarChassi() {
+        assertThat(VeiculoService.normalizeUpperIdentifier(" 9bw zzz377 vt004251 "))
+                .isEqualTo("9BWZZZ377VT004251");
+        assertThat(VeiculoService.normalizeUpperIdentifier("   ")).isNull();
+    }
+
+    @Test
     @DisplayName("Criação deve rejeitar cliente que não exista no tenant autenticado")
     void deveRejeitarClienteDeOutroTenant() {
         VeiculoRequest request = request("ABC1D23", 99L, 1000);
@@ -108,6 +114,33 @@ class VeiculoServiceTest {
         assertThat(entity.getEmpresaId()).isEqualTo(1L);
         assertThat(entity.getPlaca()).isEqualTo("ABC1D23");
         verify(repository).findByEmpresaIdAndPlaca(1L, "ABC1D23");
+    }
+
+    @Test
+    @DisplayName("Criação deve rejeitar chassi duplicado somente dentro do tenant autenticado")
+    void deveRejeitarChassiDuplicadoNoMesmoTenant() {
+        Cliente cliente = new Cliente();
+        Veiculo existing = new Veiculo();
+        existing.setId(77L);
+        existing.setEmpresaId(1L);
+        existing.setChassi("9BWZZZ377VT004251");
+        VeiculoRequest request = requestWithChassi(
+                "ABC1D23",
+                7L,
+                1000,
+                "9bw zzz377 vt004251");
+
+        when(clienteRepository.findByIdScoped(7L)).thenReturn(Optional.of(cliente));
+        when(repository.findByEmpresaIdAndPlaca(1L, "ABC1D23")).thenReturn(Optional.empty());
+        when(repository.findByEmpresaIdAndChassi(1L, "9BWZZZ377VT004251"))
+                .thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("chassi");
+
+        verify(repository).findByEmpresaIdAndChassi(1L, "9BWZZZ377VT004251");
+        verify(repository, never()).save(any(Veiculo.class));
     }
 
     @Test
@@ -219,6 +252,10 @@ class VeiculoServiceTest {
     }
 
     private VeiculoRequest request(String placa, Long clienteId, Integer kmAtual) {
+        return requestWithChassi(placa, clienteId, kmAtual, null);
+    }
+
+    private VeiculoRequest requestWithChassi(String placa, Long clienteId, Integer kmAtual, String chassi) {
         return new VeiculoRequest(
                 clienteId,
                 null,
@@ -227,7 +264,7 @@ class VeiculoServiceTest {
                 null,
                 placa,
                 null,
-                null,
+                chassi,
                 null,
                 "BRANCA",
                 kmAtual,
