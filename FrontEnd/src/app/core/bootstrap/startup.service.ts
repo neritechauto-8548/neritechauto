@@ -4,6 +4,10 @@ import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
 import { switchMap, tap } from 'rxjs';
 import { Menu, MenuService } from './menu.service';
 
+const PLAN_ROUTE_REQUIREMENTS: Record<string, { capability: string; fallbackMinPlan: number }> = {
+  fiscal: { capability: 'acessoFiscal', fallbackMinPlan: 2 },
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -14,19 +18,12 @@ export class StartupService {
   private readonly rolesService = inject(NgxRolesService);
 
   load() {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(resolve => {
       this.authService
         .change()
         .pipe(
-          tap((user: any) => {
-            console.log('[StartupService] User profile received:', user);
+          tap((user: User) => {
             this.setPermissions(user);
-            
-            // Verificação de Assinatura Stripe
-            if (user && user.assinaturaAtiva === false && user.stripeUrl) {
-               console.warn('Assinatura inativa. Redirecionando para o Stripe...');
-               window.location.href = user.stripeUrl;
-            }
           }),
           switchMap((user: User) => this.authService.menu().pipe(
             tap((menu: Menu[]) => this.setMenu(menu, user))
@@ -40,55 +37,73 @@ export class StartupService {
   }
 
   private setMenu(menu: Menu[], user: User) {
-    const planLevel = user?.planoNivel || 1;
-    const filteredMenu = this.filterMenuByPlan(menu, planLevel);
-    
+    const filteredMenu = this.filterMenuByPlan(menu ?? [], user);
+
     this.menuService.addNamespace(filteredMenu, 'menu');
     this.menuService.set(filteredMenu);
   }
 
-  private filterMenuByPlan(menu: any[], planLevel: number): any[] {
-    return menu.filter(item => {
-      // Filtro por Nível de Plano (única restrição que esconde o menu)
-      if (item.minPlan && item.minPlan > planLevel) {
-        return false;
+  /**
+   * Filtra uma cópia do menu sem alterar o JSON carregado da aplicação.
+   *
+   * Capacidades entregues pelo backend têm precedência sobre o nível do plano.
+   * O mapa de rotas mantém compatibilidade com o menu legado enquanto os metadados
+   * `capability` são incorporados ao JSON estático.
+   */
+  private filterMenuByPlan(menu: any[], user: User): any[] {
+    const planLevel = Number(user?.planoNivel ?? 0);
+
+    return menu.reduce<any[]>((result, originalItem) => {
+      const item = { ...originalItem };
+      const routeRequirement = item.route ? PLAN_ROUTE_REQUIREMENTS[item.route] : undefined;
+      const capability = (item.capability as string | undefined) ?? routeRequirement?.capability;
+      const capabilityValue = capability ? user?.[capability] : undefined;
+      const minPlan = routeRequirement?.fallbackMinPlan ?? item.minPlan;
+      const minPlanAllowed = !minPlan || Number(minPlan) <= planLevel;
+
+      const hasAccess = capability
+        ? capabilityValue === true || (capabilityValue === undefined && minPlanAllowed)
+        : minPlanAllowed;
+
+      if (!hasAccess) {
+        return result;
       }
-      
-      // Recursividade para filhos
-      if (item.children && item.children.length > 0) {
-        item.children = this.filterMenuByPlan(item.children, planLevel);
+
+      if (Array.isArray(originalItem.children) && originalItem.children.length > 0) {
+        item.children = this.filterMenuByPlan(originalItem.children, user);
         if (item.type === 'sub' && item.children.length === 0) {
-          return false;
+          return result;
         }
       }
-      
-      return true;
-    });
+
+      result.push(item);
+      return result;
+    }, []);
   }
 
   private setPermissions(user: User) {
     let permissions = user.permissions || [];
-    
-    // Se o usuário possuir a função de ADMIN, garante que tenha todas as permissões no frontend
+
     const hasAdmin = user.funcoes && user.funcoes.some((role: string) => {
       const r = (role || '').toUpperCase();
       return r === 'ADMIN' || r.includes('ADMIN') || r.includes('ADMINISTRADOR');
     });
+
     if (hasAdmin) {
       const allPermissions = [
         'CLIENTE_CRIAR', 'CLIENTE_EDITAR', 'CLIENTE_EXCLUIR', 'CLIENTE_EXPORTAR',
         'VEICULO_CRIAR', 'VEICULO_EDITAR', 'VEICULO_EXCLUIR', 'VEICULO_EXPORTAR',
         'AGENDAMENTO_CRIAR', 'AGENDAMENTO_EDITAR', 'AGENDAMENTO_EXCLUIR',
         'OS_INCLUIR', 'OS_EDITAR', 'OS_EXCLUIR', 'OS_ALT_FUNCIONARIO', 'OS_ALT_STATUS',
-        'GERAL_USUARIO', 'GERAL_CALENDARIO', 'GERAL_AGENDAMENTO_VISUALIZAR', 'GERAL_FATURAS', 
-        'GERAL_CONFIG_SISTEMA', 'GERAL_MEU_CALENDARIO', 'GERAL_CONFIG_CHECKLIST', 'GERAL_ORCAMENTO', 
+        'GERAL_USUARIO', 'GERAL_CALENDARIO', 'GERAL_AGENDAMENTO_VISUALIZAR', 'GERAL_FATURAS',
+        'GERAL_CONFIG_SISTEMA', 'GERAL_MEU_CALENDARIO', 'GERAL_CONFIG_CHECKLIST', 'GERAL_ORCAMENTO',
         'GERAL_AGENDAMENTO_EDITAR', 'GERAL_CONFIG_SITE', 'FIN_VIS_CAIXA', 'FIN_FECHAMENTO'
       ];
       permissions = Array.from(new Set([...permissions, ...allPermissions]));
     }
 
     this.permissonsService.loadPermissions(permissions);
-    
+
     this.rolesService.flushRoles();
     if (user.funcoes) {
       user.funcoes.forEach((role: string) => {

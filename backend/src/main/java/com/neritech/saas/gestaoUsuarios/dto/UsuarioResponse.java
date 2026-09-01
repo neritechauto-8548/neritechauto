@@ -34,6 +34,7 @@ public class UsuarioResponse {
     
     private Integer planoNivel;
     private boolean assinaturaAtiva;
+    private Boolean acessoFiscal;
     private com.neritech.saas.empresa.domain.enums.StatusAssinatura subscriptionStatus;
     private String stripeUrl;
     private java.util.Map<String, Object> preferencias;

@@ -32,6 +32,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final FiscalPlanAccessFilter fiscalPlanAccessFilter;
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -67,7 +68,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(fiscalPlanAccessFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
