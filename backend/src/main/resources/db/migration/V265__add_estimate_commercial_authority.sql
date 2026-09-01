@@ -166,32 +166,32 @@ CREATE INDEX idx_estimate_discount_approvals_budget
 CREATE INDEX idx_estimate_commercial_adjustments_budget
     ON estimate_commercial_adjustments (empresa_id, ordem_servico_id, estimate_revision, data_cadastro);
 
--- Permissões granulares são criadas por tenant e herdadas das permissões
--- legadas equivalentes. Limites percentuais não são inventados: sem uma linha
--- configurada em estimate_discount_authority_limits, o limite é 0% e qualquer
--- desconto positivo segue para aprovação gerencial.
+-- Desde V235, o catálogo de permissões é global: `permissoes` não possui empresa_id.
+-- A relação função-permissão continua tenant-aware por `funcoes_permissoes.empresa_id`.
+-- Limites percentuais não são inventados: sem uma linha configurada em
+-- estimate_discount_authority_limits, o limite é 0% e qualquer desconto positivo
+-- segue para aprovação gerencial.
 INSERT INTO permissoes (
-    empresa_id, chave, valor, descricao, versao, data_cadastro, data_atualizacao)
-SELECT e.id, 'Permissões comerciais do orçamento', permission.valor, permission.descricao,
+    chave, valor, descricao, versao, data_cadastro, data_atualizacao)
+SELECT 'Permissões comerciais do orçamento', permission.valor, permission.descricao,
        0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-FROM empresa e
-CROSS JOIN (VALUES
+FROM (VALUES
     ('ORCAMENTO_PRECO_EDITAR', 'Editar preço unitário e preço fechado do orçamento'),
     ('ORCAMENTO_DESCONTO_APLICAR', 'Aplicar desconto conforme alçada configurada'),
     ('ORCAMENTO_DESCONTO_APROVAR', 'Decidir exceções de desconto do orçamento'),
     ('ORCAMENTO_CUSTO_VISUALIZAR', 'Visualizar custo e margem autorizados do orçamento')
 ) AS permission(valor, descricao)
-ON CONFLICT (valor, empresa_id) DO NOTHING;
+ON CONFLICT (valor) DO NOTHING;
 
 INSERT INTO funcoes_permissoes (funcao_id, permissao_id, empresa_id, created_at)
 SELECT DISTINCT fp.funcao_id, target.id, fp.empresa_id, CURRENT_TIMESTAMP
 FROM funcoes_permissoes fp
-JOIN permissoes legacy ON legacy.id = fp.permissao_id AND legacy.empresa_id = fp.empresa_id
-JOIN permissoes target ON target.empresa_id = fp.empresa_id
-WHERE (target.valor = 'ORCAMENTO_PRECO_EDITAR' AND legacy.valor IN ('OS_EDITAR', 'OS_ALTERAR'))
-   OR (target.valor = 'ORCAMENTO_DESCONTO_APLICAR' AND legacy.valor = 'OS_NEG_PAGAMENTO')
-   OR (target.valor = 'ORCAMENTO_DESCONTO_APROVAR' AND legacy.valor IN ('GERAL_CONFIG_SISTEMA', 'FIN_FECHAMENTO'))
-   OR (target.valor = 'ORCAMENTO_CUSTO_VISUALIZAR' AND legacy.valor = 'PS_VER_CUSTO')
+JOIN permissoes legacy ON legacy.id = fp.permissao_id
+JOIN permissoes target ON
+       (target.valor = 'ORCAMENTO_PRECO_EDITAR' AND legacy.valor IN ('OS_EDITAR', 'OS_ALTERAR'))
+    OR (target.valor = 'ORCAMENTO_DESCONTO_APLICAR' AND legacy.valor = 'OS_NEG_PAGAMENTO')
+    OR (target.valor = 'ORCAMENTO_DESCONTO_APROVAR' AND legacy.valor IN ('GERAL_CONFIG_SISTEMA', 'FIN_FECHAMENTO'))
+    OR (target.valor = 'ORCAMENTO_CUSTO_VISUALIZAR' AND legacy.valor = 'PS_VER_CUSTO')
 ON CONFLICT (funcao_id, permissao_id) DO NOTHING;
 
 COMMENT ON TABLE estimate_discount_authority_limits IS
@@ -200,4 +200,3 @@ COMMENT ON TABLE estimate_discount_approval_requests IS
     'Exceções de desconto preservadas até decisão gerencial; bloqueiam revisão enquanto PENDING.';
 COMMENT ON TABLE estimate_commercial_adjustments IS
     'Trilha append-only de preço fechado, override, desconto e decisão comercial.';
-
