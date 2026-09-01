@@ -1,6 +1,6 @@
 .matero-sidemenu {
   margin: 0;
-  padding: 10px 10px 18px;
+  padding: var(--nt-space-2) 10px var(--nt-space-5);
   list-style: none;
 
   .menu-item-heading {
@@ -11,11 +11,12 @@
     }
 
     .menu-heading-label {
-      padding: 0 12px;
-      color: #64748b;
+      padding: 0 var(--nt-space-3);
+      color: var(--nt-text-muted);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.08em;
+      line-height: 16px;
       text-transform: uppercase;
     }
   }
@@ -24,15 +25,15 @@
     position: relative;
     margin-bottom: 2px;
     overflow: visible;
-    border-radius: 8px;
+    border-radius: var(--nt-radius-md);
 
     &:not(.menu-item-heading) > .submenu {
       height: 0;
-      margin: 0 0 0 19px;
+      margin: 0 0 0 20px;
       padding: 0;
       overflow: hidden;
-      border-left: 1px solid #e2e8f0;
-      transition: height 180ms ease;
+      border-left: 1px solid var(--nt-border-default);
+      transition: height 160ms ease;
     }
 
     > .menu-heading {
@@ -42,49 +43,58 @@
       min-height: 40px;
       align-items: center;
       justify-content: flex-start !important;
-      padding: 8px 12px;
-      border: 0;
-      border-radius: 8px;
+      gap: 0;
+      padding: 8px var(--nt-space-3);
+      border: 1px solid transparent;
+      border-radius: var(--nt-radius-md);
       outline: none;
       background: transparent;
-      color: #475569;
-      font-family: Inter, system-ui, sans-serif;
+      color: var(--nt-text-secondary);
+      font: inherit;
       font-size: 13.5px;
       font-weight: 500;
+      line-height: 20px;
       text-align: left !important;
       text-decoration: none !important;
       cursor: pointer;
-      transition: background-color 120ms ease, color 120ms ease;
+      transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
 
       &:hover {
-        background: #f1f5f9;
-        color: #0f172a;
+        border-color: color-mix(in srgb, var(--nt-border-default) 70%, transparent);
+        background: var(--nt-surface-subtle);
+        color: var(--nt-text-primary);
       }
 
       &:focus-visible {
-        box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.32);
+        border-color: var(--nt-primary-300);
+        box-shadow: var(--nt-focus-ring);
       }
     }
 
-    // Estado selecionado oficial: cor + peso + indicador lateral, nunca só cor.
+    // Selected = surface + foreground + persistent structural indicator.
+    // Never rely on blue text alone for operational state.
     &.active > .menu-heading {
-      background: #eff6ff;
-      color: #1d4ed8;
+      border-color: color-mix(in srgb, var(--nt-primary-200) 65%, transparent);
+      background: var(--nt-primary-50);
+      color: var(--nt-primary-700);
       font-weight: 650;
 
       &::before {
         content: '';
         position: absolute;
-        top: 8px;
-        bottom: 8px;
-        left: 0;
+        top: 7px;
+        bottom: 7px;
+        left: -1px;
         width: 3px;
-        border-radius: 0 4px 4px 0;
-        background: #2563eb;
+        border-radius: 0 var(--nt-radius-sm) var(--nt-radius-sm) 0;
+        background: var(--nt-primary-500);
       }
 
       .menu-icon {
-        color: #2563eb !important;
+        color: var(--nt-primary-600);
       }
     }
 
@@ -100,36 +110,50 @@
     height: 20px;
     flex: 0 0 20px;
     margin-right: 11px;
-    color: #64748b !important;
-    font-size: 16px;
-    line-height: 20px;
-    text-align: center;
+    color: var(--nt-text-muted);
     transition: color 120ms ease;
 
-    &.pi {
-      color: #64748b !important;
-    }
-
     &.submenu-icon {
+      width: 16px;
+      height: 16px;
+      flex-basis: 16px;
       margin-right: 10px;
-      font-size: 13px;
     }
   }
 
   .menu-name {
+    min-width: 0;
     flex: 1;
     overflow: hidden;
-    padding-right: 4px;
+    padding-right: var(--nt-space-1);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  .menu-label,
+  .menu-badge {
+    display: inline-flex;
+    min-width: 20px;
+    min-height: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--nt-space-2);
+    padding: 1px 6px;
+    border: 1px solid var(--nt-border-default);
+    border-radius: var(--nt-radius-pill);
+    background: var(--nt-surface-panel);
+    color: var(--nt-text-secondary);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 16px;
+  }
+
   .menu-caret {
-    width: 12px;
-    height: 12px;
-    color: #94a3b8;
-    font-size: 9px;
-    line-height: 12px;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    margin-left: var(--nt-space-2);
+    color: var(--nt-text-muted);
     transition: transform 140ms ease;
   }
 
@@ -139,13 +163,13 @@
 }
 
 .matero-sidebar {
-  background: #ffffff !important;
-  border-right: 1px solid #e2e8f0 !important;
+  background: var(--nt-surface-panel) !important;
+  border-right: 1px solid var(--nt-border-default) !important;
 }
 
 .matero-sidenav-collapsed {
   .matero-sidemenu {
-    padding: 10px 8px;
+    padding: var(--nt-space-2);
 
     .menu-item-heading {
       display: none !important;
@@ -155,22 +179,30 @@
       .menu-heading {
         min-height: 44px;
         justify-content: center !important;
-        padding: 8px 0;
+        padding: var(--nt-space-2) 0;
+
+        &::before {
+          top: 8px;
+          bottom: 8px;
+        }
 
         .menu-icon {
           display: flex;
           width: 100%;
+          height: 20px;
           margin-right: 0;
           justify-content: center;
         }
 
         .menu-name,
+        .menu-label,
+        .menu-badge,
         .menu-caret {
           display: none !important;
         }
       }
 
-      // Submenus reaparecem quando o shell expande por hover; não vazam no modo compacto.
+      // Compact mode remains intentionally flat; collapsed submenus do not leak.
       .submenu {
         display: none !important;
       }
@@ -178,9 +210,16 @@
   }
 }
 
+@media (max-width: 767px) {
+  .matero-sidemenu .menu-item > .menu-heading {
+    min-height: 44px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .matero-sidemenu .menu-item > .menu-heading,
-  .matero-sidemenu .menu-caret {
+  .matero-sidemenu .menu-caret,
+  .matero-sidemenu .menu-item > .submenu {
     transition: none;
   }
 }
