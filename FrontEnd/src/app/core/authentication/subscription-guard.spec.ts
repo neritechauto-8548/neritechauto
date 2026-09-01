@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, isObservable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { User } from './interface';
 import { subscriptionGuard } from './subscription-guard';
@@ -35,7 +35,7 @@ describe('subscriptionGuard', () => {
 
   async function runGuard(url = '/dashboard') {
     const result = TestBed.runInInjectionContext(() => subscriptionGuard(route, state(url)));
-    if (result instanceof Observable) {
+    if (isObservable(result)) {
       return firstValueFrom(result);
     }
     return result;
