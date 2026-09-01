@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, permissionGuard, subscriptionGuard } from '@core';
+import { authGuard, permissionGuard, planGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
 import { Error403 } from './routes/sessions/error-403';
@@ -13,6 +13,17 @@ const placeholder = (title: string, description: string) => ({
   loadComponent: () =>
     import('./routes/system/module-placeholder').then(m => m.ModulePlaceholder),
   data: { title, description },
+});
+
+const protectedPlaceholder = (
+  title: string,
+  description: string,
+  permissions: string | string[]
+) => ({
+  loadComponent: () =>
+    import('./routes/system/module-placeholder').then(m => m.ModulePlaceholder),
+  canActivate: [permissionGuard],
+  data: { title, description, permissions },
 });
 
 export const routes: Routes = [
@@ -36,9 +47,10 @@ export const routes: Routes = [
       // 01. Gestão de Pátio
       {
         path: 'gestao-patio',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Gestão de Pátio',
-          'A experiência de pátio será conectada à aplicação interna sem alterar a árvore oficial de navegação.'
+          'A experiência de pátio será conectada à aplicação interna sem alterar a árvore oficial de navegação.',
+          'GERAL_USUARIO'
         ),
       },
 
@@ -113,30 +125,34 @@ export const routes: Routes = [
       },
       {
         path: 'checklists-operacionais',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Checklists',
-          'Checklists operacionais serão implementados conforme as especificações próprias do fluxo de atendimento e OS.'
+          'Checklists operacionais serão implementados conforme as especificações próprias do fluxo de atendimento e OS.',
+          'OS_VIS_CHECKLIST'
         ),
       },
       {
         path: 'aprovacoes',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Aprovações',
-          'A central de aprovações permanecerá separada de cadastros e será ligada aos fluxos de orçamento e OS.'
+          'A central de aprovações permanecerá separada de cadastros e será ligada aos fluxos de orçamento e OS.',
+          'ORCAMENTO_DESCONTO_APROVAR'
         ),
       },
       {
         path: 'pecas-movimentacao',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Peças',
-          'A movimentação de peças será liberada quando o fluxo operacional e o estoque estiverem reconciliados.'
+          'A movimentação de peças será liberada quando o fluxo operacional e o estoque estiverem reconciliados.',
+          'PS_LISTAR_PROD'
         ),
       },
       {
         path: 'faturamento-operacional',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Faturamento',
-          'O faturamento operacional será conectado à finalização da OS, financeiro e fiscal conforme a documentação.'
+          'O faturamento operacional será conectado à finalização da OS, financeiro e fiscal conforme a documentação.',
+          'GERAL_FATURAS'
         ),
       },
 
@@ -154,24 +170,28 @@ export const routes: Routes = [
       // 08. Fiscal
       {
         path: 'fiscal',
+        canActivate: [planGuard],
+        data: { minPlan: 3, title: 'Fiscal' },
         loadChildren: () => import('./routes/fiscal/fiscal.routes').then(m => m.routes),
       },
 
       // 09. Histórico
       {
         path: 'historico',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Histórico',
-          'A visão histórica consolidará eventos de clientes, veículos e operações quando o domínio estiver implementado.'
+          'A visão histórica consolidará eventos de clientes, veículos e operações quando o domínio estiver implementado.',
+          'GERAL_USUARIO'
         ),
       },
 
       // 10. Gráficos
       {
         path: 'graficos',
-        ...placeholder(
+        ...protectedPlaceholder(
           'Gráficos',
-          'Os painéis analíticos serão adicionados após a consolidação dos indicadores e contratos de dados.'
+          'Os painéis analíticos serão adicionados após a consolidação dos indicadores e contratos de dados.',
+          'REL_GRAFICOS'
         ),
       },
 
