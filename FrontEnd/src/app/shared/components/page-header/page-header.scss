@@ -1,52 +1,59 @@
 .matero-page-header {
   display: block;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  color: #111827;
-  background-color: #ffffff;
-  border-radius: 0;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  margin-bottom: var(--nt-space-4);
+  padding: var(--nt-space-4);
+  border: 1px solid var(--nt-border-default);
+  border-radius: var(--nt-radius-lg);
+  background: var(--nt-surface-panel);
+  color: var(--nt-text-primary);
+  box-shadow: var(--nt-shadow-panel);
 
   .matero-breadcrumb {
-    margin-top: 0.5rem;
+    margin-top: var(--nt-space-2);
     margin-bottom: 0;
   }
 }
 
 .matero-page-header--canonical {
-  padding: 0;
   margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   background: transparent;
   box-shadow: none;
 }
 
 .nt-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   width: 100%;
+  align-items: start;
+  gap: var(--nt-space-6);
+  padding-bottom: var(--nt-space-5);
+  border-bottom: 1px solid var(--nt-border-default);
 }
 
 .nt-page-header__content {
   display: grid;
-  gap: 8px;
   min-width: 0;
+  gap: var(--nt-space-2);
 }
 
 .nt-page-header__eyebrow {
-  color: var(--nt-primary-600, #2563eb);
+  color: var(--nt-primary-600);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
+  line-height: 16px;
   text-transform: uppercase;
 }
 
 .nt-page-header__title-row {
   display: flex;
+  min-width: 0;
   align-items: flex-start;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: var(--nt-space-3);
 }
 
 .nt-page-header__title-group {
@@ -55,34 +62,90 @@
 
 .nt-page-header__title {
   margin: 0;
-  color: var(--nt-text-primary, #0f172a);
-  font-size: clamp(24px, 3vw, 32px);
-  font-weight: 650;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  color: var(--nt-text-primary);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 36px;
 }
 
 .nt-page-header__description {
   max-width: 760px;
-  margin: 8px 0 0;
-  color: var(--nt-text-secondary, #64748b);
+  margin: var(--nt-space-1) 0 0;
+  color: var(--nt-text-secondary);
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 20px;
 }
 
 .nt-page-header__meta {
   display: inline-flex;
+  min-height: 32px;
   align-items: center;
-  gap: 8px;
-  min-height: 34px;
+  gap: var(--nt-space-2);
 }
 
 .nt-page-header__actions {
   display: flex;
+  max-width: min(48vw, 640px);
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: var(--nt-space-2);
+}
+
+/*
+ * Shared action contract. Screens may use native buttons, links or PrimeNG
+ * wrappers, but the visual hierarchy stays stable across the product.
+ */
+.nt-page-header__actions :is(button, a).nt-action {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nt-space-2);
+  padding: 7px var(--nt-space-3);
+  border: 1px solid var(--nt-border-default);
+  border-radius: var(--nt-radius-md);
+  background: var(--nt-surface-panel);
+  color: var(--nt-text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.nt-page-header__actions :is(button, a).nt-action:hover {
+  border-color: var(--nt-border-strong);
+  background: var(--nt-surface-subtle);
+}
+
+.nt-page-header__actions :is(button, a).nt-action:focus-visible {
+  border-color: var(--nt-primary-300);
+  box-shadow: var(--nt-focus-ring);
+}
+
+.nt-page-header__actions :is(button, a).nt-action--primary {
+  border-color: var(--nt-primary-600);
+  background: var(--nt-primary-600);
+  color: #fff;
+}
+
+.nt-page-header__actions :is(button, a).nt-action--primary:hover {
+  border-color: var(--nt-primary-700);
+  background: var(--nt-primary-700);
+}
+
+.nt-page-header__actions :is(button, a).nt-action:disabled,
+.nt-page-header__actions :is(button, a).nt-action[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .nt-page-header .matero-breadcrumb {
@@ -91,17 +154,45 @@
 
 .matero-page-title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 400;
+  color: var(--nt-text-primary);
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 30px;
+}
+
+@media (max-width: 1023px) {
+  .nt-page-header {
+    grid-template-columns: 1fr;
+    gap: var(--nt-space-4);
+  }
+
+  .nt-page-header__actions {
+    max-width: none;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 767px) {
   .nt-page-header {
-    flex-direction: column;
+    padding-bottom: var(--nt-space-4);
+  }
+
+  .nt-page-header__title {
+    font-size: 24px;
+    line-height: 32px;
   }
 
   .nt-page-header__actions {
     width: 100%;
-    justify-content: flex-start;
+  }
+
+  .nt-page-header__actions :is(button, a).nt-action {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nt-page-header__actions :is(button, a).nt-action {
+    transition: none;
   }
 }
