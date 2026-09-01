@@ -44,6 +44,12 @@ export const routes: Routes = [
     loadComponent: () => import('./itens-orcamento').then(m => m.ItensOrcamentoComponent),
   },
   {
+    path: ':id/revisao',
+    canActivate: [permissionGuard],
+    data: { title: 'Revisar Orçamento', permissions: ['GERAL_USUARIO'] },
+    loadComponent: () => import('./revisao-orcamento').then(m => m.RevisaoOrcamentoComponent),
+  },
+  {
     path: ':id',
     canActivate: [permissionGuard],
     data: { title: 'Detalhe do Orçamento', permissions: ['GERAL_USUARIO'] },
