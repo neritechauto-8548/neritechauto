@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuthService, User } from '@core/authentication';
 import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
 import { switchMap, tap } from 'rxjs';
+import { applyCanonicalMenuContract } from './menu-contract';
 import { Menu, MenuChildrenItem, MenuPermissions, MenuService } from './menu.service';
 
 @Injectable({
@@ -41,8 +42,13 @@ export class StartupService {
     const grantedPermissions = new Set((user?.permissions || []).map(permission => String(permission)));
     const filteredMenu = this.filterMenu(menu || [], planLevel, grantedPermissions);
 
-    this.menuService.addNamespace(filteredMenu, 'menu');
-    this.menuService.set(filteredMenu);
+    // UI-MASTER-001 é a autoridade da navegação visual. O backend/permissões
+    // continuam decidindo quais destinos o usuário pode acessar; aqui apenas
+    // garantimos a ordem e o agrupamento oficiais entre os itens já autorizados.
+    const canonicalMenu = applyCanonicalMenuContract(filteredMenu);
+
+    this.menuService.addNamespace(canonicalMenu, 'menu');
+    this.menuService.set(canonicalMenu);
   }
 
   private filterMenu<T extends MenuChildrenItem>(
