@@ -3,9 +3,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ToolbarModule } from 'primeng/toolbar';
-import { ButtonModule } from 'primeng/button';
 
 import { AuthService, User } from '@core/authentication';
+import { NeriTechIcon } from '@shared/components/neritech-icon/neritech-icon';
 import { NotificationButton } from '../widgets/notification-button';
 import { UserButton } from '../widgets/user-button';
 
@@ -17,7 +17,7 @@ import { UserButton } from '../widgets/user-button';
     class: 'matero-header',
   },
   encapsulation: ViewEncapsulation.None,
-  imports: [RouterLink, ToolbarModule, ButtonModule, MatTooltipModule, NotificationButton, UserButton],
+  imports: [RouterLink, ToolbarModule, MatTooltipModule, NeriTechIcon, NotificationButton, UserButton],
 })
 export class Header {
   @Input() showToggle = true;
