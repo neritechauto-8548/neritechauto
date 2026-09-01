@@ -16,9 +16,27 @@ export const routes: Routes = [
     loadComponent: () => import('./cadastro-orcamento').then(m => m.CadastroOrcamentoComponent),
   },
   { path: 'cadastro-orcamento', redirectTo: 'novo', pathMatch: 'full' },
-  { path: 'visualizar-editar-orcamento/:numero', loadComponent: () => import('./visualizar-editar-orcamento').then(m => m.VisualizarEditarOrcamentoComponent) },
-  { path: 'visualizar-orcamento/:numero', loadComponent: () => import('../os/visualizar-os/visualizar-os').then(m => m.VisualizarOS) },
-  { path: 'editar-orcamento/:id', loadComponent: () => import('../os/cadastro-os/cadastro-os').then(m => m.CadastroOS) },
+
+  // Compatibilidade temporária. Nenhuma rota legada pode contornar a mesma
+  // autorização exigida pelas telas canônicas durante a migração.
+  {
+    path: 'visualizar-editar-orcamento/:numero',
+    canActivate: [permissionGuard],
+    data: { title: 'Editar Orçamento', permissions: ['OS_ALTERAR'] },
+    loadComponent: () => import('./visualizar-editar-orcamento').then(m => m.VisualizarEditarOrcamentoComponent),
+  },
+  {
+    path: 'visualizar-orcamento/:numero',
+    canActivate: [permissionGuard],
+    data: { title: 'Visualizar Orçamento', permissions: ['GERAL_USUARIO'] },
+    loadComponent: () => import('../os/visualizar-os/visualizar-os').then(m => m.VisualizarOS),
+  },
+  {
+    path: 'editar-orcamento/:id',
+    canActivate: [permissionGuard],
+    data: { title: 'Editar Orçamento', permissions: ['OS_ALTERAR'] },
+    loadComponent: () => import('../os/cadastro-os/cadastro-os').then(m => m.CadastroOS),
+  },
   {
     path: ':id/itens',
     canActivate: [permissionGuard],
