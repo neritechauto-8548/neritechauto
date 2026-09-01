@@ -52,6 +52,10 @@ export const appConfig: ApplicationConfig = {
         preset: NeriTechPreset,
         options: {
           darkModeSelector: '.theme-dark',
+          cssLayer: {
+            name: 'primeng',
+            order: 'tailwind-base, primeng, tailwind-utilities',
+          },
         },
       },
       translation: {
@@ -144,7 +148,7 @@ export const appConfig: ApplicationConfig = {
         dateInput: 'dd/MM/yyyy',
         monthYearLabel: 'MMM yyyy',
         dateA11yLabel: 'LL',
-        monthYearA11yLabel: 'MMM yyyy',
+        monthYearA11yLabel: 'MMMM yyyy',
       },
     }),
     provideDateFnsDatetimeAdapter({
