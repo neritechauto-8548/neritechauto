@@ -36,16 +36,20 @@ public class ContatoClienteController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar contatos completos do cliente (legado)")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
+    @Operation(
+            summary = "Listar contatos completos do cliente (legado)",
+            description = "Contrato completo restrito ao fluxo de edição. Superfícies de consulta devem usar /resumo.")
     public Page<ContatoClienteResponse> listar(@PathVariable Long clienteId, Pageable pageable) {
         Page<ContatoCliente> page = service.listarPorCliente(clienteId, pageable);
         return page.map(ContatoClienteMapper::toResponse);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Buscar contato por ID")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
+    @Operation(
+            summary = "Buscar contato completo por ID",
+            description = "Contrato completo restrito ao fluxo de edição do cliente.")
     public ContatoClienteResponse buscar(@PathVariable Long clienteId, @PathVariable Long id) {
         ContatoCliente contato = service.buscarPorId(id);
         if (!contato.getCliente().getId().equals(clienteId)) {
