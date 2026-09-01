@@ -1,4 +1,4 @@
-import { permissionGuard } from '@core';
+import { permissionGuard, planGuard } from '@core';
 import { Route } from '@angular/router';
 import { routes } from './app.routes';
 
@@ -33,5 +33,36 @@ describe('App routes authorization contract', () => {
 
   it('keeps veiculo aliases under the same authorization contract', () => {
     expectProtectedAliasPair('veiculos', 'veiculo');
+  });
+
+  it('protects sensitive placeholder routes from direct URL access', () => {
+    const expectedPermissions: Record<string, string> = {
+      'gestao-patio': 'GERAL_USUARIO',
+      'checklists-operacionais': 'OS_VIS_CHECKLIST',
+      aprovacoes: 'ORCAMENTO_DESCONTO_APROVAR',
+      'pecas-movimentacao': 'PS_LISTAR_PROD',
+      'faturamento-operacional': 'GERAL_FATURAS',
+      historico: 'GERAL_USUARIO',
+      graficos: 'REL_GRAFICOS',
+    };
+
+    Object.entries(expectedPermissions).forEach(([path, permission]) => {
+      const route = byPath(path);
+      expect(route).withContext(`Rota protegida ausente: ${path}`).toBeDefined();
+      expect(route?.canActivate)
+        .withContext(`Rota ${path} deve exigir permissionGuard`)
+        .toContain(permissionGuard);
+      expect(route?.data?.['permissions'])
+        .withContext(`Rota ${path} deve exigir ${permission}`)
+        .toBe(permission);
+    });
+  });
+
+  it('protects Fiscal by the same minimum plan used by navigation', () => {
+    const fiscal = byPath('fiscal');
+
+    expect(fiscal).toBeDefined();
+    expect(fiscal?.canActivate).toContain(planGuard);
+    expect(fiscal?.data?.['minPlan']).toBe(3);
   });
 });
