@@ -15,11 +15,11 @@
     </div>
 
     <div pageHeaderActions class="estimate-create-header-actions">
-      <button type="button" class="nt-button nt-button--secondary" (click)="cancelar()" [disabled]="saving">
+      <button type="button" class="nt-action" (click)="cancelar()" [disabled]="saving">
         Cancelar
       </button>
       @if (!createdDraft) {
-        <button type="button" class="nt-button nt-button--primary" (click)="salvar()" [disabled]="saving">
+        <button type="button" class="nt-action nt-action--primary" (click)="salvar()" [disabled]="saving">
           @if (saving) {
             <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
             Criando…
