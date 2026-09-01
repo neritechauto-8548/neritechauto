@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PageHeader } from '@shared';
+import { DataTableShell, DataViewState, NeriTechIcon, NeriTechIconName, PageHeader } from '@shared';
 import { MessageService } from 'primeng/api';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -22,6 +22,12 @@ interface SelectOption<T> {
   value: T;
 }
 
+interface SummaryCard {
+  label: string;
+  icon: NeriTechIconName;
+  hint: string;
+}
+
 @Component({
   selector: 'app-orcamento',
   standalone: true,
@@ -29,6 +35,9 @@ interface SelectOption<T> {
     CommonModule,
     FormsModule,
     PageHeader,
+    NeriTechIcon,
+    DataTableShell,
+    DataViewState,
     InputTextModule,
     SelectModule,
     SkeletonModule,
@@ -65,11 +74,11 @@ export class OrcamentoComponent implements OnInit, OnDestroy {
     { label: 'Número crescente', value: 'numero,asc' },
     { label: 'Maior valor', value: 'total,desc' },
   ];
-  readonly summaryCards = [
-    { label: 'Aguardando aprovação', icon: 'pi-clock', hint: 'Contrato agregado pendente' },
-    { label: 'Prontos para converter', icon: 'pi-arrow-right-arrow-left', hint: 'Elegibilidade ainda não materializada' },
-    { label: 'Expiram em breve', icon: 'pi-calendar-clock', hint: 'Validade canônica pendente' },
-    { label: 'Valor aguardando decisão', icon: 'pi-wallet', hint: 'Sem cálculo local ou estimado' },
+  readonly summaryCards: SummaryCard[] = [
+    { label: 'Aguardando aprovação', icon: 'clipboard-list', hint: 'Contrato agregado pendente' },
+    { label: 'Prontos para converter', icon: 'receipt', hint: 'Elegibilidade ainda não materializada' },
+    { label: 'Expiram em breve', icon: 'calendar', hint: 'Validade canônica pendente' },
+    { label: 'Valor aguardando decisão', icon: 'chart-bar', hint: 'Sem cálculo local ou estimado' },
   ];
 
   searchTerm = '';
