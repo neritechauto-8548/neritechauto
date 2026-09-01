@@ -9,6 +9,7 @@ import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.trial.dto.TrialRegisterRequest;
 import com.neritech.saas.trial.dto.TrialRegisterResponse;
 import com.stripe.model.Customer;
+import com.stripe.model.Subscription;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.neritech.saas.gestaoUsuarios.domain.Funcao;
@@ -32,6 +33,7 @@ public class TrialService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final StripeService stripeService;
+    private final TrialSubscriptionService trialSubscriptionService;
     private final EmailService emailService;
     private final FuncionarioRepository funcionarioRepository;
     private final FuncaoRepository funcaoRepository;
@@ -42,21 +44,10 @@ public class TrialService {
             throw new IllegalArgumentException("O e-mail informado já está em uso.");
         }
 
-        String customerId = null;
-        try {
-            // 1. Criar cliente na Stripe
-            Customer stripeCustomer = stripeService.createCustomer(request.getEmail(), request.getNomeCompleto(), request.getTelefone());
-            if (stripeCustomer != null) {
-                customerId = stripeCustomer.getId();
-                // Inicia assinatura com 180 dias de trial se tiver configurado preço padrão
-                stripeService.createTrialSubscription(customerId);
-            }
-        } catch (Exception e) {
-            log.error("Erro ao integrar com a Stripe", e);
-            // Non-blocking for now if stripe is not fully configured
-        }
+        String customerId = createStripeCustomer(request);
 
-        // 2. Criar a Empresa
+        // 1. Persistir a empresa antes de criar a assinatura Stripe.
+        // Isso evita que um webhook de subscription chegue antes de a empresa existir no banco.
         Empresa empresa = new Empresa();
         empresa.setRazaoSocial(request.getNomeEmpresa());
         empresa.setNomeFantasia(request.getNomeEmpresa());
@@ -65,9 +56,13 @@ public class TrialService {
         empresa.setDataAbertura(LocalDate.now());
         empresa.setSegmento(request.getSegmento());
         empresa.setStripeCustomerId(customerId);
-        
-        empresa.setCnpj(request.getCnpjOuCpf());        
+        empresa.setCnpj(request.getCnpjOuCpf());
         Empresa savedEmpresa = empresaService.create(empresa);
+
+        // 2. Criar a assinatura Stripe e garantir imediatamente o espelho local.
+        // Se a Stripe estiver indisponível/desconfigurada, o trial local continua consistente.
+        Subscription stripeSubscription = createStripeTrial(customerId);
+        trialSubscriptionService.ensureTrialSubscription(savedEmpresa, customerId, stripeSubscription);
 
         // 3. Gerar senha temporária
         String rawPassword = generateTemporaryPassword();
@@ -101,12 +96,11 @@ public class TrialService {
         funcionario.setMatricula("adm-01");
         funcionario.setDataAdmissao(LocalDate.now());
         funcionario.setStatus(StatusFuncionario.ATIVO);
-        
-        // Se o valor informado no registro for um CPF, alimentamos o funcionário, caso contrário fica em branco
+
         if (request.getCnpjOuCpf() != null && request.getCnpjOuCpf().replaceAll("\\D", "").length() == 11) {
             funcionario.setCpf(request.getCnpjOuCpf());
         }
-        
+
         funcionarioRepository.save(funcionario);
 
         // 6. Enviar e-mail de boas-vindas com a senha
@@ -117,6 +111,33 @@ public class TrialService {
                 .message("Cadastro realizado com sucesso. Verifique seu e-mail para acessar o sistema.")
                 .email(request.getEmail())
                 .build();
+    }
+
+    private String createStripeCustomer(TrialRegisterRequest request) {
+        try {
+            Customer stripeCustomer = stripeService.createCustomer(
+                    request.getEmail(),
+                    request.getNomeCompleto(),
+                    request.getTelefone()
+            );
+            return stripeCustomer != null ? stripeCustomer.getId() : null;
+        } catch (Exception e) {
+            log.error("Erro ao criar cliente na Stripe. Trial seguirá com controle local.", e);
+            return null;
+        }
+    }
+
+    private Subscription createStripeTrial(String customerId) {
+        if (customerId == null || customerId.isBlank()) {
+            return null;
+        }
+
+        try {
+            return stripeService.createTrialSubscription(customerId);
+        } catch (Exception e) {
+            log.error("Erro ao criar assinatura trial na Stripe. Trial seguirá com controle local.", e);
+            return null;
+        }
     }
 
     private String generateTemporaryPassword() {
