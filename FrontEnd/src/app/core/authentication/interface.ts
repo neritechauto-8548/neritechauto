@@ -10,6 +10,7 @@ export interface User {
   permissions?: any[];
   planoNivel?: number;
   assinaturaAtiva?: boolean;
+  acessoFiscal?: boolean;
   subscriptionStatus?: string;
   stripeUrl?: string;
 }
