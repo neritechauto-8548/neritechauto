@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, subscriptionGuard } from '@core';
+import { authGuard, planCapabilityGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
 import { Dashboard } from './routes/dashboard/dashboard';
@@ -88,6 +88,8 @@ export const routes: Routes = [
       },
       {
         path: 'fiscal',
+        canActivate: [planCapabilityGuard],
+        data: { capability: 'acessoFiscal', fallbackMinPlan: 2 },
         loadChildren: () => import('./routes/fiscal/fiscal.routes').then(m => m.routes),
       },
       {
