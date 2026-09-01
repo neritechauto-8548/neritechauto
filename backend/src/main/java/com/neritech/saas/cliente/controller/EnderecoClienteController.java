@@ -36,15 +36,19 @@ public class EnderecoClienteController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar endereços completos do cliente (legado)")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
+    @Operation(
+            summary = "Listar endereços completos do cliente (legado)",
+            description = "Contrato completo restrito ao fluxo de edição. Superfícies de consulta devem usar /resumo.")
     public Page<EnderecoClienteResponse> list(@PathVariable Long clienteId, Pageable pageable) {
         return service.listByCliente(clienteId, pageable).map(EnderecoClienteMapper::toResponse);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Buscar endereço por ID")
+    @PreAuthorize("hasAuthority('CLIENTE_EDITAR')")
+    @Operation(
+            summary = "Buscar endereço completo por ID",
+            description = "Contrato completo restrito ao fluxo de edição do cliente.")
     public ResponseEntity<EnderecoClienteResponse> getById(@PathVariable Long clienteId, @PathVariable Long id) {
         EnderecoCliente e = service.findById(id);
         if (e.getCliente() == null || !e.getCliente().getId().equals(clienteId)) {
