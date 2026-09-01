@@ -36,6 +36,7 @@ export class DetalheOrcamentoComponent implements OnInit {
   readonly tabs: { label: string; contract: string; active: boolean; route?: string }[] = [
     { label: 'Resumo', contract: 'ORC-003', active: true },
     { label: 'Itens', contract: 'ORC-004', active: false, route: 'itens' },
+    { label: 'Revisão', contract: 'ORC-004/005', active: false, route: 'revisao' },
     { label: 'Aprovação', contract: 'ORC-007', active: false },
     { label: 'Comunicação', contract: 'ORC-005', active: false },
     { label: 'Versões', contract: 'ORC-006', active: false },
