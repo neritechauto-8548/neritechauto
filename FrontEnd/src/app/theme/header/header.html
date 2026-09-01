@@ -1,15 +1,15 @@
 <p-toolbar styleClass="neritech-topbar">
   <div class="neritech-topbar__left">
     @if (showToggle) {
-      <p-button
-        icon="pi pi-bars"
-        [text]="true"
-        [rounded]="true"
-        severity="secondary"
-        styleClass="neritech-topbar__icon-button"
-        ariaLabel="Alternar menu principal"
+      <button
+        type="button"
+        class="neritech-topbar__icon-button"
+        aria-label="Alternar menu principal"
+        matTooltip="Menu"
         (click)="toggleSidenav.emit()"
-      />
+      >
+        <nt-icon name="menu-2" [size]="20" />
+      </button>
     }
 
     @if (showBranding) {
@@ -32,16 +32,16 @@
         aria-disabled="true"
         aria-label="Contexto atual da empresa"
       >
-        <i class="pi pi-building" aria-hidden="true"></i>
+        <nt-icon name="building" [size]="18" />
         <span>{{ companyLabel }}</span>
-        <i class="pi pi-chevron-down" aria-hidden="true"></i>
+        <nt-icon name="chevron-down" [size]="16" />
       </button>
     </span>
   </div>
 
   <div class="neritech-topbar__search-wrap" matTooltip="Busca global em preparação">
     <div class="neritech-topbar__search" aria-disabled="true">
-      <i class="pi pi-search" aria-hidden="true"></i>
+      <nt-icon name="search" [size]="18" />
       <input
         type="search"
         disabled
@@ -59,7 +59,7 @@
       aria-label="Central de suporte"
       matTooltip="Suporte"
     >
-      <i class="pi pi-question-circle" aria-hidden="true"></i>
+      <nt-icon name="help-circle" [size]="18" />
       <span>Suporte</span>
     </a>
 
