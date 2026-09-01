@@ -34,9 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authenticateRequest(request);
             filterChain.doFilter(request, response);
         } finally {
-            // Always clear tenant context, including public/auth requests that do not
-            // carry a Bearer token. Services such as login/password recovery may set
-            // the tenant during the request and servlet threads are reused.
+            // Servlet threads are reused. Always clear the tenant, including public
+            // authentication/password-recovery requests that may set it downstream.
             TenantContext.clear();
         }
     }
@@ -53,27 +52,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String userEmail = jwtService.extractUsername(jwt);
 
+            if (userEmail == null || SecurityContextHolder.getContext().getAuthentication() != null) {
+                return;
+            }
+
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            if (!jwtService.isTokenValid(jwt, userDetails)) {
+                return;
+            }
+
+            // The tenant is trusted only after the JWT has been fully validated.
             Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
             if (empresaId != null) {
                 TenantContext.setCurrentTenant(empresaId);
             }
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
-            }
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         } catch (Exception e) {
-            // Invalid JWTs remain unauthenticated. SecurityConfig decides whether the
-            // requested endpoint requires authentication.
+            // Never allow data extracted from an invalid token to survive downstream.
+            TenantContext.clear();
             logger.warn("JWT validation failed: " + e.getMessage());
         }
     }
