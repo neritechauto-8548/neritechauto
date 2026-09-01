@@ -1,22 +1,19 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from './auth.service';
-import { filter, map, take, timeout, catchError } from 'rxjs';
-import { of } from 'rxjs';
+import { catchError, filter, map, of, take, timeout } from 'rxjs';
 
 /**
- * Guard para controlar o acesso baseado no status da assinatura SaaS.
+ * Guard para controlar o acesso baseado no status comercial da assinatura SaaS.
  *
- * Regras:
- * - ACTIVE ou TRIAL: Acesso total liberado.
- * - PAST_DUE, SUSPENDED, CANCELED: Redireciona para /configuracoes/assinatura.
- * - Rotas liberadas: /configuracoes/assinatura, /profile, /auth/logout, /suporte.
+ * O backend é a fonte de verdade por meio de `assinaturaAtiva`.
+ * `subscriptionStatus` é usado apenas como fallback de compatibilidade quando
+ * o backend ainda não fornece a flag explícita.
  */
 export const subscriptionGuard = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  // Lista de rotas que sempre podem ser acessadas
   const whitelistedPaths = [
     '/configuracoes/assinatura',
     '/profile',
@@ -30,50 +27,49 @@ export const subscriptionGuard = (route: ActivatedRouteSnapshot, state: RouterSt
     return true;
   }
 
-  // Se não há token válido, nem tentamos checar assinatura
   if (!auth.check()) {
     return router.parseUrl('/auth/login');
   }
 
   return auth.user().pipe(
-    // Aguarda até 3 segundos pelo perfil
-    filter(user => {
-      console.log('[SubscriptionGuard] Recebeu emissão de user$:', user);
-      return !!user && Object.keys(user).length > 0;
-    }),
+    filter(user => !!user && Object.keys(user).length > 0),
     take(1),
     timeout(1000),
-    catchError((err) => {
-      // Timeout ou erro: se tem token válido, deixa passar
-      console.warn('[SubscriptionGuard] Perfil demorou a carregar, liberando acesso via fallback.');
-      return of(true as any);
+    catchError(() => {
+      // Mantém o comportamento resiliente para rotas gerais. Recursos premium
+      // possuem guard próprio e falham fechados quando a capacidade é desconhecida.
+      console.warn('[SubscriptionGuard] Perfil demorou a carregar; mantendo acesso geral por fallback.');
+      return of(true as const);
     }),
     map(userOrTrue => {
-      // Se o catchError retornou true, apenas repassa
       if (userOrTrue === true) {
-        console.log('[SubscriptionGuard] Prosseguindo via Fallback (true)');
         return true;
       }
 
       const user = userOrTrue;
       const status = user.subscriptionStatus;
       const isAtiva = user.assinaturaAtiva;
-      console.log('[SubscriptionGuard] Verificando assinatura:', { email: user.email, status, isAtiva });
 
-      // Se não há dados de assinatura, libera (usuário pode não ter assinatura configurada ainda)
-      if (status === undefined && isAtiva === undefined) {
-        console.warn('[SubscriptionGuard] Sem dados de assinatura. Liberando acesso.');
+      // A flag explícita do backend tem precedência. Isso evita liberar um trial
+      // expirado apenas porque o status persistido ainda é TESTE.
+      if (isAtiva === true) {
         return true;
       }
 
-      // Permitir acesso se a assinatura estiver ativa
+      if (isAtiva === false) {
+        return router.parseUrl('/configuracoes/assinatura');
+      }
+
+      // Compatibilidade temporária com respostas antigas do backend.
       const allowedStatus = ['ATIVO', 'TESTE', 'active', 'trialing', 'ACTIVE', 'TRIAL'];
-      if (isAtiva === true || (status && allowedStatus.includes(status))) {
+      if (status && allowedStatus.includes(status)) {
         return true;
       }
 
-      // Caso contrário, redireciona para a tela de assinatura
-      console.warn(`[SubscriptionGuard] Acesso bloqueado para status: ${status}. Redirecionando.`);
+      if (status === undefined) {
+        return true;
+      }
+
       return router.parseUrl('/configuracoes/assinatura');
     })
   );
