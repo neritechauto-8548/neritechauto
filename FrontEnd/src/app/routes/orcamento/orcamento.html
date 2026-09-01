@@ -7,11 +7,11 @@
     eyebrow="Movimentação"
     title="Orçamentos"
     titleId="budgets-title"
-    description="Acompanhe propostas, decisões e o próximo passo comercial com escopo protegido pela sessão autenticada."
+    description="Acompanhe propostas, decisões e o próximo passo comercial com cliente e veículo no mesmo contexto."
   >
     @if (canCreateBudget) {
       <button pageHeaderActions type="button" class="nt-button nt-button--primary" (click)="novo()">
-        <i class="pi pi-plus" aria-hidden="true"></i>
+        <nt-icon name="plus" [size]="18" />
         Novo orçamento
       </button>
     }
@@ -21,7 +21,7 @@
     @for (card of summaryCards; track card.label) {
       <article class="summary-card">
         <div class="summary-card__top">
-          <span class="summary-card__icon" aria-hidden="true"><i class="pi" [ngClass]="card.icon"></i></span>
+          <span class="summary-card__icon" aria-hidden="true"><nt-icon [name]="card.icon" [size]="20" /></span>
           <span class="summary-card__availability">Contrato pendente</span>
         </div>
         <strong aria-label="Indicador ainda indisponível">—</strong>
@@ -32,10 +32,10 @@
   </section>
 
   <div class="contract-alert" role="status">
-    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <nt-icon name="help-circle" [size]="18" />
     <div>
-      <strong>Indicadores preservados sem estimativas locais</strong>
-      <span>Os quatro totais serão exibidos quando o backend materializar versões, validade, decisão e conversão canônicas.</span>
+      <strong>Indicadores sem estimativas locais</strong>
+      <span>Os totais surgirão somente quando validade, decisão e conversão forem materializadas pelo backend.</span>
     </div>
   </div>
 
@@ -43,7 +43,7 @@
     <form class="budget-search" (ngSubmit)="submitSearch()" role="search">
       <label class="sr-only" for="budget-search-input">Buscar orçamentos</label>
       <div class="search-control">
-        <i class="pi pi-search" aria-hidden="true"></i>
+        <nt-icon name="search" [size]="18" />
         <input
           id="budget-search-input"
           pInputText
@@ -56,7 +56,7 @@
         />
         @if (searchTerm) {
           <button type="button" class="icon-button" aria-label="Limpar busca" (click)="searchTerm = ''; submitSearch()">
-            <i class="pi pi-times" aria-hidden="true"></i>
+            <nt-icon name="x" [size]="16" />
           </button>
         }
       </div>
@@ -92,42 +92,37 @@
 
       @if (hasActiveFilters) {
         <button type="button" class="filter-clear" (click)="clearFilters()">
-          <i class="pi pi-filter-slash" aria-hidden="true"></i>
+          <nt-icon name="filter-x" [size]="17" />
           Limpar filtros
         </button>
       }
     </div>
   </section>
 
-  <section class="results-card" aria-labelledby="budget-results-title" aria-live="polite">
-    <header class="results-header">
-      <div>
-        <span class="results-header__eyebrow">Funil comercial</span>
-        <h2 id="budget-results-title">{{ totalRecords }} {{ totalRecords === 1 ? 'orçamento' : 'orçamentos' }}</h2>
-      </div>
-      <div class="results-header__meta">
-        <span class="security-badge"><i class="pi pi-shield" aria-hidden="true"></i>Tenant derivado da sessão</span>
-        <span class="contract-note">Sem custo, margem ou nota interna no payload</span>
-      </div>
-    </header>
+  <nt-data-table-shell
+    eyebrow="Funil comercial"
+    [title]="totalRecords + ' ' + (totalRecords === 1 ? 'orçamento' : 'orçamentos')"
+    titleId="budget-results-title"
+    description="A lista mostra apenas o contexto operacional necessário para decidir o próximo passo."
+  >
+    <div tableMeta class="results-header__meta">
+      <span class="security-badge"><nt-icon name="shield-check" [size]="16" />Tenant derivado da sessão</span>
+      <span class="contract-note">Sem custo, margem ou nota interna no payload</span>
+    </div>
 
     @if (loadError && !isLoading) {
-      <div class="state-panel" [class.state-panel--error]="!forbidden" [class.state-panel--forbidden]="forbidden" role="alert">
-        <div class="state-panel__icon">
-          <i class="pi" [ngClass]="forbidden ? 'pi-lock' : 'pi-exclamation-triangle'" aria-hidden="true"></i>
-        </div>
-        <div>
-          <h3>{{ forbidden ? 'Acesso restrito aos orçamentos' : 'Não foi possível carregar os orçamentos' }}</h3>
-          <p>
-            {{ forbidden
-              ? 'Seu perfil não possui a permissão de leitura exigida. Nenhum dado comercial foi carregado.'
-              : 'A consulta falhou sem exibir dados de outro contexto. Busca, filtros e ordenação foram preservados.' }}
-          </p>
-          @if (!forbidden) {
-            <button type="button" class="nt-button nt-button--secondary" (click)="submitSearch()">Tentar novamente</button>
-          }
-        </div>
-      </div>
+      <nt-data-view-state
+        [kind]="forbidden ? 'permission' : 'error'"
+        [icon]="forbidden ? 'lock' : 'alert-triangle'"
+        [title]="forbidden ? 'Acesso restrito aos orçamentos' : 'Não foi possível carregar os orçamentos'"
+        [description]="forbidden
+          ? 'Seu perfil não possui a permissão de leitura exigida. Nenhum dado comercial foi carregado.'
+          : 'A consulta falhou sem exibir dados de outro contexto. Busca, filtros e ordenação foram preservados.'"
+      >
+        @if (!forbidden) {
+          <button type="button" class="nt-button nt-button--secondary" (click)="submitSearch()">Tentar novamente</button>
+        }
+      </nt-data-view-state>
     } @else {
       <div class="budget-table-wrap desktop-only">
         <table class="budget-table">
@@ -144,15 +139,15 @@
           </thead>
           <tbody>
             @if (isLoading) {
-              @for (item of [1, 2, 3, 4, 5]; track item) {
+              @for (row of [1, 2, 3, 4, 5]; track row) {
                 <tr>
-                  <td><p-skeleton width="132px" height="2rem"></p-skeleton></td>
-                  <td><p-skeleton width="185px" height="2rem"></p-skeleton></td>
-                  <td><p-skeleton width="92px" height="1.5rem"></p-skeleton></td>
-                  <td><p-skeleton width="92px" height="1rem"></p-skeleton></td>
-                  <td><p-skeleton width="88px" height="1rem"></p-skeleton></td>
-                  <td><p-skeleton width="135px" height="1rem"></p-skeleton></td>
-                  <td><p-skeleton shape="circle" size="2rem"></p-skeleton></td>
+                  <td><p-skeleton width="132px" height="2rem" /></td>
+                  <td><p-skeleton width="185px" height="2rem" /></td>
+                  <td><p-skeleton width="92px" height="1.5rem" /></td>
+                  <td><p-skeleton width="92px" height="1rem" /></td>
+                  <td><p-skeleton width="88px" height="1rem" /></td>
+                  <td><p-skeleton width="135px" height="1rem" /></td>
+                  <td><p-skeleton shape="circle" size="2rem" /></td>
                 </tr>
               }
             } @else {
@@ -160,7 +155,7 @@
                 <tr>
                   <td>
                     <div class="budget-identity">
-                      <span class="budget-icon" aria-hidden="true"><i class="pi pi-file-edit"></i></span>
+                      <span class="budget-icon" aria-hidden="true"><nt-icon name="receipt" [size]="18" /></span>
                       <div>
                         <button type="button" class="budget-number" (click)="abrir(item)">{{ item.numero }}</button>
                         <span>Versão {{ item.versaoAtual ?? 0 }} · {{ item.atualizadoEm || item.criadoEm | date:'dd/MM/yyyy' }}</span>
@@ -171,7 +166,7 @@
                     <div class="context-cell">
                       <strong>{{ item.cliente?.nome || 'Cliente não disponível' }}</strong>
                       <span>
-                        <i class="pi pi-car" aria-hidden="true"></i>
+                        <nt-icon name="car" [size]="15" />
                         {{ item.veiculo?.descricao || 'Sem veículo' }}
                         @if (item.veiculo?.placa) { · <span class="plate-value">{{ item.veiculo?.placa }}</span> }
                       </span>
@@ -191,10 +186,10 @@
                       <span class="pending-value" title="A validade canônica ainda não existe no contrato persistido">— <small>pendente</small></span>
                     }
                   </td>
-                  <td><span class="next-action"><i class="pi pi-arrow-right" aria-hidden="true"></i>{{ nextActionLabel(item.proximaAcao) }}</span></td>
+                  <td><span class="next-action">{{ nextActionLabel(item.proximaAcao) }}</span></td>
                   <td class="actions-column">
                     <button type="button" class="row-action" [attr.aria-label]="'Abrir ' + item.numero" (click)="abrir(item)">
-                      <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                      <nt-icon name="chevron-right" [size]="18" />
                     </button>
                   </td>
                 </tr>
@@ -206,8 +201,8 @@
 
       <div class="budget-cards mobile-only">
         @if (isLoading) {
-          @for (item of [1, 2, 3]; track item) {
-            <article class="budget-card"><p-skeleton width="100%" height="190px"></p-skeleton></article>
+          @for (row of [1, 2, 3]; track row) {
+            <article class="budget-card"><p-skeleton width="100%" height="190px" /></article>
           }
         } @else {
           @for (item of items; track item.id) {
@@ -221,7 +216,7 @@
               </div>
               <div class="budget-card__context">
                 <strong>{{ item.cliente?.nome || 'Cliente não disponível' }}</strong>
-                <span><i class="pi pi-car" aria-hidden="true"></i>{{ item.veiculo?.descricao || 'Sem veículo' }} {{ item.veiculo?.placa || '' }}</span>
+                <span><nt-icon name="car" [size]="15" />{{ item.veiculo?.descricao || 'Sem veículo' }} {{ item.veiculo?.placa || '' }}</span>
               </div>
               <dl>
                 <div><dt>Total atual</dt><dd>{{ formatCurrency(item.total) }}</dd></div>
@@ -229,7 +224,7 @@
               </dl>
               <button type="button" class="next-action-button" (click)="abrir(item)">
                 <span><small>Próxima ação</small>{{ nextActionLabel(item.proximaAcao) }}</span>
-                <i class="pi pi-arrow-right" aria-hidden="true"></i>
+                <nt-icon name="chevron-right" [size]="18" />
               </button>
             </article>
           }
@@ -237,38 +232,35 @@
       </div>
 
       @if (!isLoading && items.length === 0) {
-        <div class="state-panel state-panel--empty">
-          <div class="state-panel__icon"><i class="pi pi-file-edit" aria-hidden="true"></i></div>
-          <div>
-            <h3>{{ hasActiveFilters ? 'Nenhum orçamento encontrado' : 'Nenhum orçamento criado ainda' }}</h3>
-            <p>
-              {{ hasActiveFilters
-                ? 'Revise o termo ou os filtros. A busca considera número, cliente e placa dentro do contexto autorizado.'
-                : 'Crie o primeiro rascunho para iniciar o fluxo comercial com cliente e veículo validados pelo backend.' }}
-            </p>
-            @if (hasActiveFilters) {
-              <button type="button" class="nt-button nt-button--secondary" (click)="clearFilters()">Limpar filtros</button>
-            } @else if (canCreateBudget) {
-              <button type="button" class="nt-button nt-button--primary" (click)="novo()">Novo orçamento</button>
-            }
-          </div>
-        </div>
+        <nt-data-view-state
+          icon="receipt"
+          [title]="hasActiveFilters ? 'Nenhum orçamento encontrado' : 'Nenhum orçamento criado ainda'"
+          [description]="hasActiveFilters
+            ? 'Revise o termo ou os filtros. A busca considera número, cliente e placa dentro do contexto autorizado.'
+            : 'Crie o primeiro rascunho para iniciar o fluxo comercial com cliente e veículo validados pelo backend.'"
+        >
+          @if (hasActiveFilters) {
+            <button type="button" class="nt-button nt-button--secondary" (click)="clearFilters()">Limpar filtros</button>
+          } @else if (canCreateBudget) {
+            <button type="button" class="nt-button nt-button--primary" (click)="novo()">Novo orçamento</button>
+          }
+        </nt-data-view-state>
       }
     }
 
     @if (!loadError && totalRecords > 0) {
-      <footer class="pagination-bar" aria-label="Paginação de orçamentos">
+      <footer tableFooter class="pagination-bar" aria-label="Paginação de orçamentos">
         <span>Mostrando <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> de <strong>{{ totalRecords }}</strong></span>
         <div class="pagination-bar__controls">
           <span>Página {{ currentPage }} de {{ totalPages }}</span>
           <button type="button" class="pagination-button" [disabled]="first === 0 || isLoading" (click)="goPrev()">
-            <i class="pi pi-chevron-left" aria-hidden="true"></i><span class="sr-only">Página anterior</span>
+            <nt-icon name="chevron-left" [size]="18" /><span class="sr-only">Página anterior</span>
           </button>
           <button type="button" class="pagination-button" [disabled]="first + rows >= totalRecords || isLoading" (click)="goNext()">
-            <i class="pi pi-chevron-right" aria-hidden="true"></i><span class="sr-only">Próxima página</span>
+            <nt-icon name="chevron-right" [size]="18" /><span class="sr-only">Próxima página</span>
           </button>
         </div>
       </footer>
     }
-  </section>
+  </nt-data-table-shell>
 </section>
