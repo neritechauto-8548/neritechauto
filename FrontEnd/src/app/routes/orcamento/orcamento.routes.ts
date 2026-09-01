@@ -22,8 +22,9 @@ export const routes: Routes = [
   {
     path: 'visualizar-editar-orcamento/:numero',
     canActivate: [permissionGuard],
-    data: { title: 'Editar Orçamento', permissions: ['OS_ALTERAR'] },
-    loadComponent: () => import('./visualizar-editar-orcamento').then(m => m.VisualizarEditarOrcamentoComponent),
+    data: { title: 'Editar Orçamento', permissions: ['OS_EDITAR'] },
+    loadComponent: () =>
+      import('./visualizar-editar-orcamento').then(m => m.VisualizarEditarOrcamentoComponent),
   },
   {
     path: 'visualizar-orcamento/:numero',
@@ -34,7 +35,7 @@ export const routes: Routes = [
   {
     path: 'editar-orcamento/:id',
     canActivate: [permissionGuard],
-    data: { title: 'Editar Orçamento', permissions: ['OS_ALTERAR'] },
+    data: { title: 'Editar Orçamento', permissions: ['OS_EDITAR'] },
     loadComponent: () => import('../os/cadastro-os/cadastro-os').then(m => m.CadastroOS),
   },
   {
