@@ -5,10 +5,12 @@ import com.neritech.saas.fiscal.service.NotaFiscalService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/ordens-servico")
+@PreAuthorize("@planAccess.hasFiscalAccess()")
 public class NotaFiscalController {
 
     private final NotaFiscalService service;
