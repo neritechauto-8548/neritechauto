@@ -39,17 +39,41 @@
     </span>
   </div>
 
-  <div class="neritech-topbar__search-wrap" matTooltip="Busca global em preparação">
-    <div class="neritech-topbar__search" aria-disabled="true">
+  <div #globalSearchWrap class="neritech-topbar__search-wrap">
+    <div class="neritech-topbar__search">
       <nt-icon name="search" [size]="18" />
       <input
+        #globalSearchInput
         type="search"
-        disabled
-        aria-label="Busca global em preparação"
-        placeholder="Buscar cliente, veículo, OS..."
+        autocomplete="off"
+        aria-label="Navegação rápida"
+        placeholder="Ir para módulo ou tela..."
+        [value]="globalQuery"
+        (input)="onGlobalSearchInput($event)"
+        (focus)="openGlobalSearch()"
       />
       <kbd>Ctrl K</kbd>
     </div>
+
+    @if (globalSearchOpen && globalQuery.trim()) {
+      <div class="neritech-topbar__search-results" role="region" aria-label="Resultados da navegação rápida">
+        @if (globalResults.length) {
+          <span class="neritech-topbar__search-label">Ir para</span>
+          @for (result of globalResults; track result.route) {
+            <button type="button" class="neritech-topbar__search-result" (click)="goToGlobalResult(result)">
+              <nt-icon name="search" [size]="16" />
+              <span>{{ result.label }}</span>
+              <small>{{ result.route }}</small>
+            </button>
+          }
+        } @else {
+          <div class="neritech-topbar__search-empty">
+            <strong>Nenhuma tela encontrada</strong>
+            <span>A busca rápida respeita apenas as rotas liberadas para o seu perfil.</span>
+          </div>
+        }
+      </div>
+    }
   </div>
 
   <div class="neritech-topbar__actions">
