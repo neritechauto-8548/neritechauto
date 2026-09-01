@@ -14,9 +14,17 @@
 /* Legacy-only dependency while old screens are being migrated to Tabler. */
 @import 'primeicons/primeicons.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* PrimeNG v20 + Tailwind v3 layer order. */
+@layer tailwind-base, primeng, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
 
 /* ========================================================================== 
    NeriTech Auto — canonical UI tokens
