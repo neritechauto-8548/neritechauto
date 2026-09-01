@@ -65,6 +65,8 @@ export const routes: Routes = [
       },
       {
         path: 'veiculo',
+        canActivate: [permissionGuard],
+        data: { permissions: ['GERAL_USUARIO'], title: 'Veículos' },
         loadChildren: () => import('./routes/veiculo/veiculo.routes').then(m => m.routes),
       },
 
