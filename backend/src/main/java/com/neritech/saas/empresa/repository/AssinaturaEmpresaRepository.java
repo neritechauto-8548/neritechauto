@@ -24,5 +24,10 @@ public interface AssinaturaEmpresaRepository
 
     Optional<AssinaturaEmpresa> findByStripeSubscriptionId(String stripeSubscriptionId);
 
+    Optional<AssinaturaEmpresa> findFirstByEmpresaIdAndStripeSubscriptionIdIsNullAndStatusOrderByDataFimDesc(
+            Long empresaId,
+            StatusAssinatura status
+    );
+
     Optional<AssinaturaEmpresa> findFirstByEmpresaIdOrderByDataFimDesc(Long empresaId);
 }
