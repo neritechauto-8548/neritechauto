@@ -28,21 +28,23 @@ public class PlanAccessService {
         return findAccessibleSubscription().isPresent();
     }
 
+    public Optional<PlanoAssinatura> getAccessiblePlan() {
+        return findAccessibleSubscription().map(AssinaturaEmpresa::getPlano);
+    }
+
     public boolean hasLevel(int nivelMinimo) {
         if (nivelMinimo < 1) {
             return false;
         }
 
-        return findAccessibleSubscription()
-                .map(AssinaturaEmpresa::getPlano)
+        return getAccessiblePlan()
                 .map(PlanoAssinatura::getNivel)
                 .filter(nivel -> nivel != null && nivel >= nivelMinimo)
                 .isPresent();
     }
 
     public boolean hasFiscalAccess() {
-        return findAccessibleSubscription()
-                .map(AssinaturaEmpresa::getPlano)
+        return getAccessiblePlan()
                 .filter(this::planoPermiteFiscal)
                 .isPresent();
     }
