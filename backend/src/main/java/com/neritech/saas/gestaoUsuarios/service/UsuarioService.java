@@ -12,6 +12,7 @@ import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
 import com.neritech.saas.empresa.service.StripeService;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
 import com.neritech.saas.security.PlanAccessService;
+import com.neritech.saas.security.PlanLimitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -38,6 +39,7 @@ public class UsuarioService {
     private final StripeService stripeService;
     private final EmpresaRepository empresaRepository;
     private final PlanAccessService planAccessService;
+    private final PlanLimitService planLimitService;
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
@@ -54,6 +56,10 @@ public class UsuarioService {
     public UsuarioResponse create(UsuarioRequest request) {
         if (usuarioRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new RuntimeException("Email já cadastrado");
+        }
+
+        if (request.isAtivo()) {
+            planLimitService.assertCanActivateUser();
         }
 
         Usuario usuario = Usuario.builder()
@@ -92,6 +98,11 @@ public class UsuarioService {
         Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
         Usuario usuario = usuarioRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
+
+        boolean reativandoUsuario = !Boolean.TRUE.equals(usuario.getAtivo()) && request.isAtivo();
+        if (reativandoUsuario) {
+            planLimitService.assertCanActivateUser();
+        }
 
         usuario.setNomeCompleto(request.getNomeCompleto());
         usuario.setEmail(request.getEmail());
