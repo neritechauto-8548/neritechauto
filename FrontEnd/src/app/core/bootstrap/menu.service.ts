@@ -12,22 +12,26 @@ export interface MenuPermissions {
 }
 
 export interface MenuChildrenItem {
-  route: string;
+  route?: string;
   name: string;
   type: 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading';
   children?: MenuChildrenItem[];
   permissions?: MenuPermissions;
+  minPlan?: number;
+  capability?: string;
 }
 
 export interface Menu {
-  route: string;
+  route?: string;
   name: string;
   type: 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading';
-  icon: string;
+  icon?: string;
   label?: MenuTag;
   badge?: MenuTag;
   children?: MenuChildrenItem[];
   permissions?: MenuPermissions;
+  minPlan?: number;
+  capability?: string;
 }
 
 @Injectable({
@@ -80,7 +84,6 @@ export class MenuService {
     return this.getLevel(routeArr)[routeArr.length - 1];
   }
 
-  // Whether is a leaf menu
   private isLeafItem(item: MenuChildrenItem) {
     const cond0 = item.route === undefined;
     const cond1 = item.children === undefined;
@@ -88,17 +91,14 @@ export class MenuService {
     return cond0 || cond1 || cond2;
   }
 
-  // Deep clone object could be jsonized
   private deepClone(obj: any) {
     return JSON.parse(JSON.stringify(obj));
   }
 
-  // Whether two objects could be jsonized equal
   private isJsonObjEqual(obj0: any, obj1: any) {
     return JSON.stringify(obj0) === JSON.stringify(obj1);
   }
 
-  // Whether routeArr equals realRouteArr (after remove empty route element)
   private isRouteEqual(routeArr: string[], realRouteArr: string[]) {
     realRouteArr = this.deepClone(realRouteArr);
     realRouteArr = realRouteArr.filter(r => r !== '');
@@ -109,7 +109,6 @@ export class MenuService {
   getLevel(routeArr: string[]): string[] {
     let tmpArr: any[] = [];
     this.menu$.value.forEach(item => {
-      // Breadth-first traverse
       let unhandledLayer = [{ item, parentNamePathList: [], realRouteArr: [] }];
       while (unhandledLayer.length > 0) {
         let nextUnhandledLayer: any[] = [];
@@ -117,7 +116,6 @@ export class MenuService {
           const eachItem = ele.item;
           const currentNamePathList = this.deepClone(ele.parentNamePathList).concat(eachItem.name);
           const currentRealRouteArr = this.deepClone(ele.realRouteArr).concat(eachItem.route);
-          // Compare the full Array for expandable
           if (this.isRouteEqual(routeArr, currentRealRouteArr)) {
             tmpArr = currentNamePathList;
             break;
@@ -141,25 +139,19 @@ export class MenuService {
   addNamespace(menu: Menu[] | MenuChildrenItem[], namespace: string) {
     menu.forEach(menuItem => {
       const originalName = menuItem.name ?? '';
-      const parentPath = namespace.replace(/^menu\./, ''); // ex.: 'financeiro' ou 'fiscal.nfe'
+      const parentPath = namespace.replace(/^menu\./, '');
 
-      // Se já estiver com prefixo 'menu.', mantém como está
       if (originalName.startsWith('menu.')) {
         menuItem.name = originalName;
-      }
-      // Se o nome do item já inclui o caminho do pai (sem 'menu.') como prefixo, apenas prefixa 'menu.'
-      else if (
+      } else if (
         originalName === parentPath ||
         (parentPath && originalName.startsWith(parentPath + '.'))
       ) {
         menuItem.name = `menu.${originalName}`;
-      }
-      // Caso contrário, concatena o namespace do pai com o nome do item
-      else {
+      } else {
         menuItem.name = `${namespace}.${originalName}`;
       }
 
-      // Processa filhos recursivamente usando o nome já normalizado como novo namespace
       if (menuItem.children && menuItem.children.length > 0) {
         this.addNamespace(menuItem.children, menuItem.name);
       }
