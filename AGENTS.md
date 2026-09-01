@@ -11,17 +11,32 @@ Continue the D5 implementation of NeriTech Auto as a production-grade workshop-m
 
 ## Sources of truth
 1. Official Notion root: `NERITECH — Documentação Oficial` (`3bb27279-1906-815d-b711-d225de4c2b06`).
-2. Current code on `feature/neritech-auto-rebuild`.
-3. `Relatorio_Implementacao_NeriTech.md` for implementation status, but verify code before trusting percentages.
-4. Legacy code is reference only; it is not authoritative.
+2. For UI/UX specifically: Notion `04.01 UI-MASTER-001`, the canonical `TELA-*` specification, and root `DESIGN.md`.
+3. Approved Google Stitch/Figma artifact for the screen, when available, as visual implementation evidence — never as business-rule authority.
+4. Current code on `feature/neritech-auto-rebuild`.
+5. `Relatorio_Implementacao_NeriTech.md` for implementation status, but verify code before trusting percentages.
+6. Legacy code is reference only; it is not authoritative.
 
 When the exact Notion specification is unavailable, do not invent irreversible business rules. Implement safe, reversible defaults only when they do not conflict with known rules, and mark missing contracts explicitly.
 
 ## Stack
 - Backend: Java 21, Spring Boot 3.2.x, Spring Security/JWT, PostgreSQL, Flyway, OpenAPI.
-- Frontend: Angular 20.x, standalone components, Angular Material/Matero plus PrimeNG where already used.
+- Frontend: Angular 20.x, standalone components, PrimeNG 20.x as the current component-library direction, Tailwind CSS as the primary layout/spacing/responsive styling layer, and Tabler Icons via `@tabler/icons-angular` as the canonical icon family.
+- Angular Material, Ng-Matero and PrimeIcons are legacy migration inputs only. Do not introduce them into rebuilt UI unless an explicit documented compatibility constraint requires it.
 - Multi-tenant SaaS.
 - Reports: JasperReports where applicable.
+
+## Visual implementation contract
+- Read root `DESIGN.md` before building or substantially changing application UI.
+- Visual authority order: `UI-MASTER-001` → canonical `TELA-*` spec → `DESIGN.md` → approved Stitch/Figma artifact → existing code.
+- Existing code never overrides the canonical visual contract merely because it already exists.
+- Use PrimeNG for interaction/component primitives where appropriate, but theme and compose it according to NeriTech tokens; PrimeNG default styling is not the product identity.
+- Use Tailwind CSS for canonical spacing, layout, responsive behavior and utility styling. Do not create a second parallel token system in ad-hoc SCSS.
+- New/rebuilt screens use Tabler Icons only. Do not add Lucide, PrimeIcons, Material Symbols or Font Awesome to regular product UI.
+- Migrate old PrimeIcons/Material/Matero incrementally when their owning screen/shared component is rebuilt; do not perform blind global replacement.
+- Preserve Google Stitch/Figma hierarchy, dimensions, spacing, component composition and responsive intent as closely as practical when an approved artifact exists.
+- Stitch/Figma cannot override business rules, permissions, tenancy, API contracts, accessibility or canonical screen behavior.
+- If a visual artifact conflicts with the UI Master or `TELA-*` spec, flag the artifact for review and implement the documented rule.
 
 ## Non-negotiable security / tenancy rules
 - Tenant authority comes only from the authenticated backend session/token plus persisted user/tenant relationship.
@@ -48,7 +63,8 @@ When the exact Notion specification is unavailable, do not invent irreversible b
 - Canonical `PageHeader` is shared.
 - Official Home routes: `/home/gerencial`, `/home/financeiro`, `/home/orcamentos`, `/home/operacional`.
 - Production navigation must not expose template/demo routes.
-- UI must use shared design tokens and remain visually consistent across modules.
+- UI must use shared design tokens from `DESIGN.md` and remain visually consistent across modules.
+- Sidebar/menu/topbar must follow the canonical UI Master, including official menu order and responsive shell dimensions.
 - Missing backend/read-model contracts must be shown as unavailable/pending; never fabricate KPIs, graphs, timelines, money, trends or fake data.
 
 ## Customer module status and routes
@@ -105,23 +121,26 @@ Stable weighting:
 Current reported D5 baseline is 11%. Do not raise it without evidence.
 
 ## Definition of done for each task
-1. Read the relevant specification and current implementation.
+1. Read the relevant specification, `DESIGN.md` when UI is involved, and current implementation.
 2. Identify divergence and security/tenancy implications.
-3. Implement the smallest coherent production-quality batch.
-4. Add or update tests for happy path plus negative tenant/permission cases where relevant.
-5. Run the relevant formatter/linter/type-check/tests/build when the environment allows it.
-6. Fix failures caused by the change.
-7. Do not report CI/build as green unless actually observed.
-8. Update implementation status only with verifiable evidence.
-9. Commit only related files.
+3. Inspect the current approved Stitch/Figma artifact when available for the screen.
+4. Implement the smallest coherent production-quality batch.
+5. Add or update tests for happy path plus negative tenant/permission cases where relevant.
+6. Run the relevant formatter/linter/type-check/tests/build when the environment allows it.
+7. Fix failures caused by the change.
+8. Do not report CI/build as green unless actually observed.
+9. Compare UI work against documented desktop/tablet/mobile behavior before calling it visually complete.
+10. Update implementation status only with verifiable evidence.
+11. Commit only related files.
 
 ## Immediate task queue
-1. Validate the new customer 360 detail implementation and minimized read contracts; add tests that prevent fallback to full PII endpoints.
-2. Reconcile customer create/edit backend DTO validation with the documented optional CPF/CNPJ/address behavior without weakening identity rules.
-3. Fix Budget/Estimate multi-tenancy: remove browser-controlled/hardcoded company id and client-generated authoritative numbers; add tenant-safe tests.
-4. Fix Scheduling multi-tenancy the same way; then enable contextual actions from customer detail only if permissions and inactive-customer policy allow it.
-5. Finish remaining customer screens/acceptance tests, then continue Vehicles according to documentation.
-6. Return to the pending Flyway vehicle uniqueness migration before declaring the 0–12% foundation milestone complete.
+1. Reconcile the Angular Application Shell/shared UI foundation with `UI-MASTER-001` + `DESIGN.md`: official menu, shell dimensions, tokens, PrimeNG/Tailwind mapping and Tabler icon migration for touched shared components.
+2. Validate the new customer 360 detail implementation and minimized read contracts; maintain the canonical visual contract while adding tests that prevent fallback to full PII endpoints.
+3. Reconcile customer create/edit backend DTO validation with the documented optional CPF/CNPJ/address behavior without weakening identity rules.
+4. Fix Budget/Estimate multi-tenancy: remove browser-controlled/hardcoded company id and client-generated authoritative numbers; add tenant-safe tests.
+5. Rebuild Budget screens against their canonical `TELA-AUTO-ORC-*` specs and latest Stitch/Figma artifacts, starting from list/new/detail composition.
+6. Fix Scheduling multi-tenancy the same way; then enable contextual actions from customer detail only if permissions and inactive-customer policy allow it.
+7. Return to the pending Flyway vehicle uniqueness migration before declaring the 0–12% foundation milestone complete.
 
 ## Coding quality
 - Prefer existing project patterns where safe; refactor instead of duplicating components/services.
@@ -130,11 +149,13 @@ Current reported D5 baseline is 11%. Do not raise it without evidence.
 - Avoid N+1 calls and browser-side aggregation when a read model belongs in the backend.
 - Do not silently delete/merge duplicate production data in Flyway migrations; fail clearly or implement an explicit reviewed remediation path.
 - Never expose secrets from repository history.
+- For UI code, prefer shared canonical components/tokens over screen-local reinvention.
 
 ## Communication / task result
 At the end of each Codex task, report:
 - files changed and commits;
 - tests/build commands actually executed and results;
+- visual contract/artifact used for UI work;
 - security/tenancy implications;
 - what remains genuinely blocked;
 - D5 general percentage and current block percentage only if justified by verifiable completion.
