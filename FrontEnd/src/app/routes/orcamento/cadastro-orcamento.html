@@ -7,7 +7,7 @@
     eyebrow="Orçamentos"
     title="Novo Orçamento"
     titleId="estimate-create-title"
-    description="Crie o contexto inicial do orçamento sem antecipar itens, valores, aprovação ou faturamento."
+    description="Comece pelo contexto do atendimento e avance para itens e serviços sem redigitar cliente ou veículo."
   >
     <div pageHeaderMeta class="estimate-create-meta">
       <span class="nt-badge nt-badge--info">Rascunho</span>
@@ -15,16 +15,13 @@
     </div>
 
     <div pageHeaderActions class="estimate-create-header-actions">
-      <button type="button" class="nt-action" (click)="cancelar()" [disabled]="saving">
-        Cancelar
-      </button>
+      <button type="button" class="nt-action" (click)="cancelar()" [disabled]="saving">Cancelar</button>
       @if (!createdDraft) {
         <button type="button" class="nt-action nt-action--primary" (click)="salvar()" [disabled]="saving">
           @if (saving) {
-            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
             Criando…
           } @else {
-            <i class="pi pi-check" aria-hidden="true"></i>
+            <nt-icon name="plus" [size]="18" />
             Criar rascunho
           }
         </button>
@@ -34,17 +31,20 @@
 
   @if (createdDraft) {
     <section class="estimate-created-state" role="status" aria-live="polite">
-      <div class="estimate-created-state__icon"><i class="pi pi-check" aria-hidden="true"></i></div>
+      <div class="estimate-created-state__icon"><nt-icon name="shield-check" [size]="24" /></div>
       <div class="estimate-created-state__body">
         <span class="estimate-created-state__eyebrow">Rascunho criado</span>
         <h2>{{ createdDraft.numeroOrcamento }}</h2>
         <p>
-          O número comercial e o tenant foram definidos pelo backend. A edição completa e os itens serão conectados à
-          TELA-AUTO-ORC-003/004 quando o read model canônico estiver pronto.
+          O número e o tenant foram definidos pelo backend. O contexto de cliente e veículo já pode seguir para a composição,
+          onde serão incluídos peças, serviços, grupos e condições comerciais autorizadas.
         </p>
         <div class="estimate-created-state__actions">
-          <button type="button" class="nt-button nt-button--secondary" (click)="cancelar()">Voltar</button>
-          <button type="button" class="nt-button nt-button--primary" (click)="novoRascunho()">Novo orçamento</button>
+          <button type="button" class="nt-button nt-button--secondary" (click)="abrirResumo()">Ver resumo</button>
+          <button type="button" class="nt-button nt-button--secondary" (click)="novoRascunho()">Novo orçamento</button>
+          <button type="button" class="nt-button nt-button--primary" (click)="continuarComposicao()">
+            Adicionar itens e serviços
+          </button>
         </div>
       </div>
     </section>
@@ -56,9 +56,9 @@
             <div>
               <span>Contexto</span>
               <h2>Cliente e veículo</h2>
-              <p>O veículo é carregado somente após o cliente e é revalidado no servidor antes da criação.</p>
+              <p>O veículo é carregado após o cliente e o vínculo é revalidado no servidor antes da criação.</p>
             </div>
-            <i class="pi pi-users" aria-hidden="true"></i>
+            <nt-icon name="users" [size]="22" />
           </header>
 
           <div class="estimate-form-grid">
@@ -81,7 +81,7 @@
                 <ng-template let-cliente pTemplate="item">
                   <div class="estimate-customer-option">
                     <strong>{{ cliente.nome }}</strong>
-                    <span><i class="pi pi-shield" aria-hidden="true"></i>{{ cliente.documento }}</span>
+                    <span><nt-icon name="shield-check" [size]="14" />{{ cliente.documento }}</span>
                   </div>
                 </ng-template>
               </p-autoComplete>
@@ -103,7 +103,7 @@
                 styleClass="w-full"
               />
               @if (selectedCliente && !loadingVehicles && vehicleOptions.length === 0) {
-                <small>Nenhum veículo ativo disponível para este cliente. O vínculo pode ser incluído posteriormente.</small>
+                <small>Nenhum veículo ativo disponível. O orçamento pode seguir sem veículo e receber o vínculo depois.</small>
               }
             </div>
 
@@ -115,6 +115,7 @@
                 type="number"
                 min="0"
                 step="1"
+                inputmode="numeric"
                 [(ngModel)]="form.quilometragemEntrada"
                 placeholder="Ex.: 48500"
               />
@@ -127,9 +128,9 @@
             <div>
               <span>Atendimento</span>
               <h2>Relato e observações</h2>
-              <p>Registre somente o contexto necessário. Itens, preços, descontos e impostos pertencem às próximas etapas.</p>
+              <p>Registre o contexto necessário. Itens, preços, descontos e aprovação ficam na etapa de composição.</p>
             </div>
-            <i class="pi pi-file-edit" aria-hidden="true"></i>
+            <nt-icon name="clipboard-list" [size]="22" />
           </header>
 
           <div class="estimate-form-grid">
@@ -177,19 +178,19 @@
         <section class="estimate-side-card">
           <span class="estimate-side-card__eyebrow">O servidor controla</span>
           <ul>
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Tenant autenticado</li>
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Número comercial</li>
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Vínculo cliente–veículo</li>
-            <li><i class="pi pi-check-circle" aria-hidden="true"></i> Estado inicial RASCUNHO</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Tenant autenticado</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Número comercial</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Vínculo cliente–veículo</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Estado inicial RASCUNHO</li>
           </ul>
         </section>
 
         <section class="estimate-side-card estimate-side-card--pending">
-          <span class="estimate-side-card__eyebrow">Próximas etapas</span>
-          <strong>Sem simulação</strong>
+          <span class="estimate-side-card__eyebrow">Fluxo conectado</span>
+          <strong>Contexto primeiro, composição depois</strong>
           <p>
-            Responsável, validade, itens, versões, aprovação e condições comerciais serão ativados conforme seus contratos
-            D5 forem implementados. Esta tela não grava placeholders nesses campos.
+            Ao criar o rascunho, você segue para peças e serviços usando o mesmo orçamento. Não há novo cadastro nem número
+            gerado pelo navegador.
           </p>
         </section>
       </aside>
