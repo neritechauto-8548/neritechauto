@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.EnumSet;
+import java.util.Optional;
 
 @Service("planAccess")
 @RequiredArgsConstructor
@@ -23,15 +24,16 @@ public class PlanAccessService {
 
     private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
 
+    public boolean hasCommercialAccess() {
+        return findAccessibleSubscription().isPresent();
+    }
+
     public boolean hasLevel(int nivelMinimo) {
-        Long empresaId = TenantContext.getCurrentTenant();
-        if (empresaId == null || nivelMinimo < 1) {
+        if (nivelMinimo < 1) {
             return false;
         }
 
-        return assinaturaEmpresaRepository
-                .findFirstByEmpresaIdAndStatusInOrderByDataFimDesc(empresaId, CANDIDATOS_ACESSO)
-                .filter(this::possuiAcessoComercial)
+        return findAccessibleSubscription()
                 .map(AssinaturaEmpresa::getPlano)
                 .map(PlanoAssinatura::getNivel)
                 .filter(nivel -> nivel != null && nivel >= nivelMinimo)
@@ -39,17 +41,21 @@ public class PlanAccessService {
     }
 
     public boolean hasFiscalAccess() {
+        return findAccessibleSubscription()
+                .map(AssinaturaEmpresa::getPlano)
+                .filter(this::planoPermiteFiscal)
+                .isPresent();
+    }
+
+    private Optional<AssinaturaEmpresa> findAccessibleSubscription() {
         Long empresaId = TenantContext.getCurrentTenant();
         if (empresaId == null) {
-            return false;
+            return Optional.empty();
         }
 
         return assinaturaEmpresaRepository
                 .findFirstByEmpresaIdAndStatusInOrderByDataFimDesc(empresaId, CANDIDATOS_ACESSO)
-                .filter(this::possuiAcessoComercial)
-                .map(AssinaturaEmpresa::getPlano)
-                .filter(this::planoPermiteFiscal)
-                .isPresent();
+                .filter(this::possuiAcessoComercial);
     }
 
     private boolean planoPermiteFiscal(PlanoAssinatura plano) {
