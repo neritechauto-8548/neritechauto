@@ -1,20 +1,10 @@
 name: CI NeriTech Auto Rebuild
 
-# O rebuild possui validação própria para não depender do limite de builds da Vercel.
-# Mantemos workflow_dispatch para checkpoints manuais e validamos automaticamente
-# somente a branch oficial de reconstrução. A concorrência abaixo cancela execuções
-# antigas quando um novo commit entra no mesmo branch.
+# Durante a fase de desenvolvimento acelerado, este workflow roda apenas em
+# checkpoints manuais. Isso evita compilar/testar a cada commit enquanto o foco
+# está em avançar grandes blocos de implementação.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/neritech-auto-rebuild
-    paths:
-      - 'FrontEnd/**'
-      - 'backend/**'
-      - '.github/workflows/ci-rebuild.yml'
-      - 'DESIGN.md'
-      - 'AGENTS.md'
 
 permissions:
   contents: read
