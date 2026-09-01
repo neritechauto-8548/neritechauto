@@ -30,22 +30,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        try {
+            authenticateRequest(request);
+            filterChain.doFilter(request, response);
+        } finally {
+            // Always clear tenant context, including public/auth requests that do not
+            // carry a Bearer token. Services such as login/password recovery may set
+            // the tenant during the request and servlet threads are reused.
+            TenantContext.clear();
+        }
+    }
+
+    private void authenticateRequest(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
-        
+        final String jwt = authHeader.substring(7);
+
         try {
-            // Extract email and tenant from token
-            userEmail = jwtService.extractUsername(jwt);
-            
-            // Extract Tenant ID from claims and set context
+            String userEmail = jwtService.extractUsername(jwt);
+
             Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
             if (empresaId != null) {
                 TenantContext.setCurrentTenant(empresaId);
@@ -60,23 +67,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities()
                     );
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
         } catch (Exception e) {
-            // If token is invalid, we just ignore it and let the request continue
-            // SecurityConfig will handle whether the request is allowed or not
+            // Invalid JWTs remain unauthenticated. SecurityConfig decides whether the
+            // requested endpoint requires authentication.
             logger.warn("JWT validation failed: " + e.getMessage());
-        }
-        
-        try {
-            filterChain.doFilter(request, response);
-        } finally {
-            // Clear tenant context after request
-            TenantContext.clear();
         }
     }
 }
