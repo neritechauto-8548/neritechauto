@@ -1,8 +1,8 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { PageHeader } from '@shared';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NeriTechIcon, PageHeader } from '@shared';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
@@ -39,6 +39,7 @@ interface VehicleOption extends OrcamentoVehicleSummary {
     CommonModule,
     FormsModule,
     PageHeader,
+    NeriTechIcon,
     InputTextModule,
     SelectModule,
     TextareaModule,
@@ -49,6 +50,7 @@ interface VehicleOption extends OrcamentoVehicleSummary {
 })
 export class CadastroOrcamentoComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly clientesService = inject(ClientesService);
   private readonly draftService = inject(OrcamentoDraftService);
@@ -173,12 +175,30 @@ export class CadastroOrcamentoComponent implements OnInit {
     });
   }
 
+  continuarComposicao() {
+    if (!this.createdDraft?.id) return;
+    this.router.navigate(['/orcamentos', this.createdDraft.id, 'itens'], {
+      state: {
+        numeroOrcamento: this.createdDraft.numeroOrcamento,
+        source: 'draft-created',
+      },
+    });
+  }
+
+  abrirResumo() {
+    if (!this.createdDraft?.id) return;
+    this.router.navigate(['/orcamentos', this.createdDraft.id]);
+  }
+
   cancelar() {
     this.location.back();
   }
 
   novoRascunho() {
     this.createdDraft = null;
+    this.selectedCliente = null;
+    this.filteredClientes = [];
+    this.vehicleOptions = [];
     this.form = {
       veiculoId: null,
       quilometragemEntrada: null,
