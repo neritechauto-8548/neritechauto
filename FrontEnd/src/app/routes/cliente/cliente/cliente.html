@@ -8,8 +8,8 @@
     description="Localize clientes PF/PJ com dados sensíveis protegidos e acesse somente as ações permitidas para o seu perfil."
   >
     @if (canCreateCliente) {
-      <button pageHeaderActions type="button" class="nt-button nt-button--primary" (click)="cadastrarCliente()">
-        <i class="pi pi-plus" aria-hidden="true"></i>
+      <button pageHeaderActions type="button" class="nt-action nt-action--primary" (click)="cadastrarCliente()">
+        <nt-icon name="plus" [size]="18" />
         Novo cliente
       </button>
     }
@@ -19,7 +19,7 @@
     <form class="customer-search" (ngSubmit)="onSearch()" role="search">
       <label class="sr-only" for="customer-search-input">Buscar clientes</label>
       <div class="search-control">
-        <i class="pi pi-search" aria-hidden="true"></i>
+        <nt-icon class="search-icon" name="search" [size]="18" />
         <input
           id="customer-search-input"
           pInputText
@@ -31,7 +31,7 @@
         />
         @if (searchTerm) {
           <button type="button" class="icon-button" aria-label="Limpar busca" (click)="searchTerm = ''; onSearch()">
-            <i class="pi pi-times" aria-hidden="true"></i>
+            <nt-icon name="x" [size]="16" />
           </button>
         }
       </div>
@@ -67,7 +67,7 @@
 
       @if (searchTerm || selectedTipo || selectedStatus) {
         <button type="button" class="filter-clear" (click)="clearFilters()">
-          <i class="pi pi-filter-slash" aria-hidden="true"></i>
+          <nt-icon name="filter-x" [size]="17" />
           Limpar filtros
         </button>
       }
@@ -81,14 +81,14 @@
         <h2 id="customer-results-title">{{ totalRecords }} {{ totalRecords === 1 ? 'cliente' : 'clientes' }}</h2>
       </div>
       <div class="results-header__meta">
-        <span class="privacy-badge"><i class="pi pi-shield" aria-hidden="true"></i>PII mascarada</span>
+        <span class="privacy-badge"><nt-icon name="shield-check" [size]="16" />PII mascarada</span>
         <span class="contract-note">Paginação atual por página · cursor pendente</span>
       </div>
     </header>
 
     @if (loadError && !isLoading) {
       <div class="state-panel state-panel--error" role="alert">
-        <div class="state-panel__icon"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></div>
+        <div class="state-panel__icon"><nt-icon name="alert-triangle" [size]="22" /></div>
         <div>
           <h3>Não foi possível carregar os clientes</h3>
           <p>A consulta falhou sem exibir dados de outro contexto. Tente novamente.</p>
@@ -133,7 +133,7 @@
                   <td><span class="protected-value">{{ row.documento }}</span></td>
                   <td>
                     @if (row.contato) {
-                      <span class="contact-value"><i class="pi pi-lock" aria-hidden="true"></i>{{ row.contato }}</span>
+                      <span class="contact-value"><nt-icon name="lock" [size]="14" />{{ row.contato }}</span>
                     } @else {
                       <span class="muted-value">Não informado</span>
                     }
@@ -199,7 +199,7 @@
                 }
                 @if (canCreateVehicle && row.status !== StatusCliente.INATIVO) {
                   <button type="button" class="text-action" (click)="navigateToAddVeiculo(row)">
-                    <i class="pi pi-car" aria-hidden="true"></i> Veículo
+                    <nt-icon name="car" [size]="16" /> Veículo
                   </button>
                 }
               </div>
@@ -210,7 +210,7 @@
 
       @if (!isLoading && clients.length === 0) {
         <div class="state-panel state-panel--empty">
-          <div class="state-panel__icon"><i class="pi pi-users" aria-hidden="true"></i></div>
+          <div class="state-panel__icon"><nt-icon name="users" [size]="22" /></div>
           <div>
             <h3>{{ searchTerm || selectedTipo || selectedStatus ? 'Nenhum cliente encontrado' : 'Sua base de clientes está vazia' }}</h3>
             <p>
