@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageHeader } from '@shared';
+import { NgxPermissionsService } from 'ngx-permissions';
 import { SkeletonModule } from 'primeng/skeleton';
 import {
   EMPTY,
@@ -15,8 +16,8 @@ import {
   finalize,
   forkJoin,
   Observable,
-  switchMap,
   startWith,
+  switchMap,
   tap,
 } from 'rxjs';
 
@@ -48,7 +49,9 @@ export class ItensOrcamentoComponent implements OnInit {
   @ViewChild('catalogSearchInput') private catalogSearchInput?: ElementRef<HTMLInputElement>;
 
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly permissions = inject(NgxPermissionsService);
   private readonly budgetService = inject(OrcamentoListService);
   private readonly compositionService = inject(OrcamentoCompositionService);
 
@@ -143,6 +146,7 @@ export class ItensOrcamentoComponent implements OnInit {
   readonly tabs = [
     { label: 'Resumo', contract: 'ORC-003', route: '' },
     { label: 'Itens', contract: 'ORC-004', active: true },
+    { label: 'Revisão', contract: 'ORC-004/005', route: 'revisao' },
     { label: 'Aprovação', contract: 'ORC-007' },
     { label: 'Comunicação', contract: 'ORC-005' },
     { label: 'Versões', contract: 'ORC-006' },
@@ -152,6 +156,44 @@ export class ItensOrcamentoComponent implements OnInit {
   ngOnInit() {
     this.configureCatalogSearch();
     this.load();
+  }
+
+  get canInclude() {
+    return Boolean(this.permissions.getPermission('OS_INCLUIR'));
+  }
+
+  get canAlter() {
+    return Boolean(this.permissions.getPermission('OS_ALTERAR'));
+  }
+
+  get canDelete() {
+    return Boolean(this.permissions.getPermission('OS_EXCLUIR'));
+  }
+
+  get canReviewSurface() {
+    return Boolean(this.composition && this.composition.lineCount > 0);
+  }
+
+  get canSeeCost() {
+    return Boolean(this.composition?.commercialPermissions.canSeeCost);
+  }
+
+  get canSeeMargin() {
+    return Boolean(this.composition?.commercialPermissions.canSeeMargin);
+  }
+
+  get disableReorder() {
+    return this.isSaving || !this.canAlter;
+  }
+
+  get pendingApprovalLines() {
+    return this.composition?.groups
+      .flatMap(group => group.lines)
+      .filter(line => line.discountAuthorityStatus === 'PENDING_APPROVAL') ?? [];
+  }
+
+  get visibleToCustomerCount() {
+    return this.composition?.groups.filter(group => group.visibility === 'CUSTOMER_VISIBLE').length ?? 0;
   }
 
   load() {
@@ -187,12 +229,21 @@ export class ItensOrcamentoComponent implements OnInit {
       });
   }
 
+  reviewProposal() {
+    if (!this.canReviewSurface) return;
+    this.router.navigate(['/orcamentos', this.budgetId, 'revisao']);
+  }
+
   selectGroup(group: CompositionGroup) {
     this.selectedGroupId = group.id;
     this.mutationError = '';
   }
 
   createGroup() {
+    if (!this.canInclude) {
+      this.denyMutation('Seu perfil não pode incluir grupos no orçamento.');
+      return;
+    }
     if (!this.composition || this.groupForm.invalid || this.isSaving) {
       this.groupForm.markAllAsTouched();
       return;
@@ -223,6 +274,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   addCatalogItem(item: CatalogSearchItem) {
+    if (!this.canInclude) {
+      this.denyMutation('Seu perfil não pode incluir itens no orçamento.');
+      return;
+    }
     if (!this.composition || this.isSaving) return;
     if (item.lineType === 'KIT') {
       const idempotencyKey = `kit-${globalThis.crypto.randomUUID()}`;
@@ -289,6 +344,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   startEditGroup(group: CompositionGroup) {
+    if (!this.canAlter) {
+      this.denyMutation('Seu perfil não pode alterar grupos do orçamento.');
+      return;
+    }
     this.selectGroup(group);
     this.editingLineId = null;
     this.pricingGroupId = null;
@@ -303,6 +362,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   saveGroup(groupId: number) {
+    if (!this.canAlter) {
+      this.denyMutation('Seu perfil não pode alterar grupos do orçamento.');
+      return;
+    }
     if (!this.composition || this.editGroupForm.invalid || this.isSaving) {
       this.editGroupForm.markAllAsTouched();
       return;
@@ -324,6 +387,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   duplicateGroup(group: CompositionGroup) {
+    if (!this.canInclude) {
+      this.denyMutation('Seu perfil não pode duplicar grupos do orçamento.');
+      return;
+    }
     if (!this.composition) return;
     this.runMutation(
       this.compositionService.duplicateGroup(this.budgetId, group.id, this.composition.revision),
@@ -334,6 +401,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   moveGroup(index: number, offset: -1 | 1) {
+    if (!this.canAlter) {
+      this.denyMutation('Seu perfil não pode reordenar grupos do orçamento.');
+      return;
+    }
     if (!this.composition) return;
     const target = index + offset;
     if (target < 0 || target >= this.composition.groups.length) return;
@@ -347,6 +418,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   startEditLine(line: CompositionLine) {
+    if (!this.canAlter) {
+      this.denyMutation('Seu perfil não pode alterar itens do orçamento.');
+      return;
+    }
     this.editingGroupId = null;
     this.pricingGroupId = null;
     this.editingLineId = line.id;
@@ -361,6 +436,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   saveLine(groupId: number, line: CompositionLine) {
+    if (!this.canAlter) {
+      this.denyMutation('Seu perfil não pode alterar itens do orçamento.');
+      return;
+    }
     if (!this.composition || this.lineCommercialForm.invalid || this.isSaving) {
       this.lineCommercialForm.markAllAsTouched();
       return;
@@ -395,7 +474,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   startPackagePricing(group: CompositionGroup) {
-    if (!this.composition?.commercialPermissions.canEditPackagePrice) return;
+    if (!this.canAlter || !this.composition?.commercialPermissions.canEditPackagePrice) {
+      this.denyMutation('Seu perfil não pode definir preço fechado neste orçamento.');
+      return;
+    }
     this.selectGroup(group);
     this.editingGroupId = null;
     this.editingLineId = null;
@@ -408,6 +490,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   savePackagePrice(group: CompositionGroup) {
+    if (!this.canAlter || !this.composition?.commercialPermissions.canEditPackagePrice) {
+      this.denyMutation('Seu perfil não pode definir preço fechado neste orçamento.');
+      return;
+    }
     if (!this.composition || this.packagePriceForm.invalid || this.isSaving) {
       this.packagePriceForm.markAllAsTouched();
       return;
@@ -436,6 +522,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   removePackagePrice(groupId: number) {
+    if (!this.canAlter || !this.composition?.commercialPermissions.canEditPackagePrice) {
+      this.denyMutation('Seu perfil não pode remover o preço fechado deste orçamento.');
+      return;
+    }
     if (!this.composition) return;
     this.runMutation(
       this.compositionService.updatePackagePrice(this.budgetId, groupId, {
@@ -453,6 +543,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   duplicateLine(groupId: number, line: CompositionLine) {
+    if (!this.canInclude) {
+      this.denyMutation('Seu perfil não pode duplicar itens do orçamento.');
+      return;
+    }
     if (!this.composition) return;
     this.runMutation(
       this.compositionService.duplicateLine(
@@ -467,6 +561,10 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   moveLine(group: CompositionGroup, index: number, offset: -1 | 1) {
+    if (!this.canAlter) {
+      this.denyMutation('Seu perfil não pode reordenar itens do orçamento.');
+      return;
+    }
     if (!this.composition) return;
     const target = index + offset;
     if (target < 0 || target >= group.lines.length) return;
@@ -485,11 +583,19 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   requestDeleteGroup(group: CompositionGroup) {
+    if (!this.canDelete) {
+      this.denyMutation('Seu perfil não pode excluir grupos do orçamento.');
+      return;
+    }
     this.pendingDeletion = { kind: 'group', groupId: group.id, label: group.title };
     this.focusDeletionDialog();
   }
 
   requestDeleteLine(groupId: number, line: CompositionLine) {
+    if (!this.canDelete) {
+      this.denyMutation('Seu perfil não pode excluir itens do orçamento.');
+      return;
+    }
     this.pendingDeletion = {
       kind: 'line',
       groupId,
@@ -500,6 +606,11 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   confirmDeletion() {
+    if (!this.canDelete) {
+      this.denyMutation('Seu perfil não pode excluir itens ou grupos do orçamento.');
+      this.pendingDeletion = null;
+      return;
+    }
     if (!this.composition || !this.pendingDeletion) return;
     const pending = this.pendingDeletion;
     const request$ =
@@ -632,6 +743,11 @@ export class ItensOrcamentoComponent implements OnInit {
     this.saveMessage = message;
   }
 
+  private denyMutation(message: string) {
+    this.mutationError = message;
+    this.saveMessage = 'Ação não autorizada';
+  }
+
   private focusDeletionDialog() {
     setTimeout(() => this.cancelDeletionButton?.nativeElement.focus());
   }
@@ -675,4 +791,3 @@ export class ItensOrcamentoComponent implements OnInit {
     this.saveMessage = 'Falha ao sincronizar';
   }
 }
-
