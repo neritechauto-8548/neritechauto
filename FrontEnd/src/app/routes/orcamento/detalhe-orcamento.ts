@@ -3,7 +3,14 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageHeader } from '@shared';
 import { SkeletonModule } from 'primeng/skeleton';
+import { forkJoin } from 'rxjs';
 
+import {
+  BudgetComposition,
+  CompositionGroup,
+  CompositionLine,
+  OrcamentoCompositionService,
+} from './orcamento-composition.service';
 import { OrcamentoListItem, OrcamentoListService } from './orcamento-list.service';
 
 @Component({
@@ -18,8 +25,10 @@ export class DetalheOrcamentoComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly service = inject(OrcamentoListService);
+  private readonly compositionService = inject(OrcamentoCompositionService);
 
   budget: OrcamentoListItem | null = null;
+  composition: BudgetComposition | null = null;
   isLoading = true;
   loadError = false;
   forbidden = false;
@@ -37,17 +46,61 @@ export class DetalheOrcamentoComponent implements OnInit {
     this.load();
   }
 
+  get budgetId() {
+    return this.budget?.id ?? null;
+  }
+
   get versionLabel() {
     const version = this.budget?.versaoAtual;
-    return version && version > 0 ? `Versão ${version}` : 'Sem versão enviada';
+    return version && version > 0 ? `Versão ${version}` : 'Rascunho sem versão enviada';
   }
 
   get validityLabel() {
-    return this.budget?.validadeEm ? 'Validade persistida' : 'Contrato de validade pendente';
+    return this.budget?.validadeEm ? 'Validade persistida' : 'Validade comercial ainda não definida';
+  }
+
+  get canContinueEdit() {
+    return Boolean(this.budget?.allowedActions?.includes('CONTINUE_EDIT'));
   }
 
   get hasMutableCapability() {
-    return Boolean(this.budget?.allowedActions?.some(action => action !== 'OPEN'));
+    return this.canContinueEdit || Boolean(this.budget?.allowedActions?.some(action => action !== 'OPEN'));
+  }
+
+  get calculationLabel() {
+    switch (this.composition?.calculationStatus) {
+      case 'CURRENT': return 'Cálculo atualizado';
+      case 'PENDING': return 'Recalculando';
+      case 'ERROR': return 'Revisão necessária';
+      default: return 'Sem itens';
+    }
+  }
+
+  get compositionReady() {
+    return this.composition?.calculationStatus === 'CURRENT' && (this.composition?.lineCount ?? 0) > 0;
+  }
+
+  get explicitDiscountTotal() {
+    return this.allLines.reduce((total, line) => total + Number(line.discountAmount || 0), 0);
+  }
+
+  get packageAdjustmentTotal() {
+    return (this.composition?.groups || []).reduce(
+      (total, group) => total + Number(group.packageAdjustmentAmount || 0),
+      0
+    );
+  }
+
+  get pendingDiscountApprovals() {
+    return this.allLines.filter(line => line.discountAuthorityStatus === 'PENDING_APPROVAL').length;
+  }
+
+  get allLines(): CompositionLine[] {
+    return (this.composition?.groups || []).flatMap(group => group.lines || []);
+  }
+
+  get visibleGroups(): CompositionGroup[] {
+    return (this.composition?.groups || []).filter(group => group.visibility === 'CUSTOMER_VISIBLE');
   }
 
   private load() {
@@ -59,13 +112,18 @@ export class DetalheOrcamentoComponent implements OnInit {
     }
 
     this.budget = null;
+    this.composition = null;
     this.isLoading = true;
     this.loadError = false;
     this.forbidden = false;
 
-    this.service.getById(id).subscribe({
-      next: budget => {
-        this.budget = budget;
+    forkJoin({
+      budget: this.service.getById(id),
+      composition: this.compositionService.get(id),
+    }).subscribe({
+      next: result => {
+        this.budget = result.budget;
+        this.composition = result.composition;
         this.isLoading = false;
       },
       error: error => {
@@ -93,17 +151,24 @@ export class DetalheOrcamentoComponent implements OnInit {
     if (this.budget?.veiculo?.id) this.router.navigate(['/veiculos', this.budget.veiculo.id]);
   }
 
+  abrirComposicao() {
+    if (this.budgetId) this.router.navigate(['/orcamentos', this.budgetId, 'itens']);
+  }
+
+  executarProximaAcao() {
+    if (!this.budget) return;
+    if (this.budget.proximaAcao === 'CONTINUAR_EDICAO') {
+      this.abrirComposicao();
+    }
+  }
+
   tentarNovamente() {
     this.load();
   }
 
-  formatCurrency() {
-    const amount = Number(this.budget?.total?.amount ?? 0);
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-  }
-
-  get budgetId() {
-    return this.budget?.id ?? null;
+  formatCurrency(amount?: number | null) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+      .format(Number(amount ?? 0));
   }
 
   statusLabel() {
