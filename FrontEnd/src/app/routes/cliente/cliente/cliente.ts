@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { PageHeader } from '@shared';
+import { NeriTechIcon, PageHeader } from '@shared';
 import { MessageService, MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -41,6 +41,7 @@ interface ClientListRow {
     FormsModule,
     RouterModule,
     PageHeader,
+    NeriTechIcon,
     SelectModule,
     InputTextModule,
     ButtonModule,
