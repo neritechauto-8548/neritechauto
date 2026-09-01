@@ -1,7 +1,7 @@
 # NeriTech Auto — DESIGN.md
 
 > Machine-readable and human-readable visual contract for the NeriTech Auto application.
-> Source of truth: Notion `04.01 UI-MASTER-001` + `04.05 MASTER DESIGN.md — NeriTech Auto para Google Stitch`.
+> Source of truth: Notion `04.01 UI-MASTER-001` + `04.05 MASTER DESIGN.md — NeriTech Auto para Google Stitch` + `04.06 UX & Design Engineering 2026`.
 > This contract exists to keep Google Stitch/Figma artifacts and Angular implementation visually consistent.
 
 ## Authority order
@@ -20,7 +20,8 @@ Existing code is not a visual authority when it conflicts with the design contra
 
 ```yaml
 name: NeriTech Auto Design System
-version: 1.0
+version: 1.1
+revisionDate: 2026-09-01
 locale: pt-BR
 theme: light
 futureThemes:
@@ -29,9 +30,59 @@ brand:
   productName: NeriTech Auto
   personality: professional, trustworthy, operational, modern, calm
   visualDirection: Minimal Enterprise SaaS
+referenceModel:
+  operationalUx: Shopmonkey
+  designEngineering: Stripe
+  domain: Brazilian automotive workshop management
+  rule: reference quality and principles; never copy proprietary identity or layouts
 ```
 
 The UI must feel like one mature operational product, not a collection of independently generated pages.
+
+## Primary design reference model — Shopmonkey × Stripe
+
+The NeriTech Auto visual/UX direction intentionally combines two different strengths:
+
+### Shopmonkey — operational UX reference
+
+Use Shopmonkey as the main reference for how workshop-management work is organized and accelerated:
+
+- visible workflow and status progression;
+- customer + vehicle + order context continuity;
+- operational cards and list views;
+- contextual creation from customer, vehicle, schedule and search surfaces;
+- estimate/inspection/authorization/order/payment continuity;
+- digital inspection evidence as operational information;
+- technician-friendly mobile/tablet behavior;
+- keyboard shortcuts and reduced repetitive navigation;
+- dashboards that explain shop state, aging and next actions.
+
+Do not copy US-specific terminology, proprietary layouts, assets or business rules that conflict with the Brazilian domain.
+
+### Stripe — design engineering reference
+
+Use Stripe as the main reference for visual precision and design-system discipline:
+
+- design tokens instead of arbitrary values;
+- quiet typography with precise hierarchy;
+- predictable spacing and alignment;
+- subtle keylines/borders and minimal functional elevation;
+- one primary action per context;
+- consistent forms, errors, focus and feedback;
+- reusable component variants rather than one-off CSS;
+- high-quality empty/loading/error states;
+- premium feel created by consistency, not decoration.
+
+Do not reproduce Stripe branding, marketing gradients or financial-product-specific layouts.
+
+### NeriTech formula
+
+`NeriTech Auto = Shopmonkey operational UX + Stripe design discipline + Brazilian workshop domain + NeriTech identity`
+
+Every screen review should answer two questions:
+
+1. **Shopmonkey check:** does this reduce steps, preserve workshop context and make the next operational action obvious?
+2. **Stripe check:** does this feel precise, consistent, token-driven and intentionally composed as part of one product?
 
 ## Frontend implementation mapping
 
@@ -42,8 +93,11 @@ frontend:
   framework: Angular 20.x
   componentLibrary: PrimeNG 20.x
   styling: Tailwind CSS
-  icons: '@tabler/icons-angular'
+  primeThemeStrategy: NeriTech custom preset via PrimeNG design tokens
+  tokenStandard: DTCG 2025.10
   iconFamily: Tabler Icons
+  angular20IconIntegration: local NeriTech wrapper using official Tabler SVG geometry
+  targetIconPackage: '@tabler/icons-angular when Angular 21+ compatibility is approved'
 ```
 
 Rules:
@@ -51,18 +105,20 @@ Rules:
 - PrimeNG provides accessible interactive component primitives where it is a good fit.
 - Tailwind CSS is the primary layout/spacing/responsive utility layer and must express the canonical tokens below.
 - PrimeNG must be visually themed to NeriTech tokens. Its default visual identity is not the product design.
+- Use a NeriTech `definePreset` theme rather than broad CSS overrides of PrimeNG internals.
 - Custom Angular components are allowed when a PrimeNG primitive cannot express the documented UX cleanly.
 - SCSS/CSS is allowed for component-specific behavior or tokens that are clearer outside utilities, but must not create a second visual system.
 - Do not introduce new Angular Material or Ng-Matero UI dependencies/components into rebuilt screens.
 - Existing Material/Matero code is migration input only. When a touched feature is rebuilt, prefer the canonical stack.
 - Do not mix Tailwind major-version conventions. Normalize the project to one Tailwind toolchain in a dedicated technical change before broad visual migration.
+- Tailwind and PrimeNG must consume the same semantic values; do not maintain parallel product palettes.
 
 ## Iconography — mandatory
 
 ```yaml
 icons:
   library: Tabler Icons
-  angularPackage: '@tabler/icons-angular'
+  source: official Tabler SVG geometry
   defaultStyle: outline
   grid: 24x24
   defaultStroke: 2
@@ -82,7 +138,8 @@ icons:
 Rules:
 
 - New or rebuilt UI uses Tabler only.
-- PrimeNG components that expose an icon slot must receive a Tabler icon/component rather than a `pi pi-*` icon whenever technically possible.
+- Angular 20 rebuilt UI uses the local NeriTech Tabler wrapper until the official Angular package compatibility gate is met.
+- PrimeNG components that expose templates or icon slots must receive a Tabler icon/component rather than a `pi pi-*` icon whenever technically possible.
 - Do not add PrimeIcons to new screens.
 - Existing PrimeIcons should be migrated as related screens are rebuilt; do not perform a risky blind global replacement.
 - Every collapsed-sidebar navigation icon needs a tooltip.
@@ -255,6 +312,55 @@ Use this sequence when applicable:
 - Secondary actions use secondary/ghost/overflow patterns.
 - Destructive actions never compete visually with the primary action.
 
+## Workshop operational UX
+
+### Context-first
+
+- Preserve customer + vehicle + current object identity during the main workshop journey.
+- Long estimate/OS/inspection journeys may use a compact sticky operational context.
+- Do not use oversized identity cards that waste working space.
+
+### Next-action-first
+
+Operational queues and details should make visible when relevant:
+
+- current state;
+- pending reason;
+- responsible person/role;
+- aging/time waiting;
+- next safe action.
+
+### Connected flow
+
+Target continuity:
+
+`Scheduling → Customer/Vehicle → Reception → DVI → Diagnosis → Estimate → Authorization → Work Order → Execution/Parts → Finalization → Finance/Fiscal/Payment → Delivery/Post-sale`
+
+Do not require retyping data that already belongs to the same journey.
+
+### Technician surfaces
+
+- Tablet/mobile prioritizes task execution, checklist, camera/evidence and status updates.
+- Frequent touch actions should target approximately 44×44px when practical.
+- No essential interaction depends on hover or drag.
+- Offline/degraded state must explain what is saved, queued or blocked.
+
+## Operational DataTable
+
+Canonical composition:
+
+`TableContext → Search → QuickFilters → AdvancedFilters → SavedView → Density → Columns → ResultCount → DataTable → Pagination`
+
+Rules:
+
+- Preserve filters/sort when opening detail and returning.
+- Secondary row actions move to overflow when the row becomes noisy.
+- Batch actions only appear when selection exists and the business rule is homogeneous/auditable.
+- Use skeletons that preserve table geometry.
+- First-use empty, filtered-empty and error are different states.
+- Desktop may provide comfortable/compact density.
+- Mobile must not compress a wide operational table into unreadable columns; use responsive cards/lists or an essential-column view.
+
 ## Responsive behavior
 
 ### XL — 1440+
@@ -307,6 +413,7 @@ Use this sequence when applicable:
 - NotificationCenter
 - UserMenu
 - SupportEntry
+- CommandPalette
 
 ### Actions
 
@@ -406,6 +513,7 @@ Use this sequence when applicable:
 - Empty first-use is different from empty search/filter result.
 - Error, partial failure, permission denied, offline and conflict are designed states, not afterthoughts.
 - Preserve filters and list context when navigating to details and back.
+- `Ctrl/Cmd + K` is the standard command/search acceleration surface, but never replaces visible navigation.
 
 ## Accessibility
 
@@ -416,13 +524,26 @@ accessibility:
   keyboardNavigation: true
   colorOnlyStatus: false
   zoom200: true
+  minimumPointerTarget: 24x24-or-spacing-equivalent
+  frequentTouchTargetRecommended: 44x44
 ```
 
 - All critical interaction must work by keyboard.
-- Focus must remain visible and logical.
+- Focus must remain visible and logical and cannot be hidden behind sticky UI.
 - Mobile/touch interactions cannot depend on hover.
 - Icon-only buttons need accessible labels/tooltips.
 - Charts need an accessible textual summary when they carry business information.
+- Drag interactions require a non-drag alternative when they are functionally important.
+
+## Performance UX
+
+When measurable in field data, target p75:
+
+- LCP ≤ 2.5s;
+- INP ≤ 200ms;
+- CLS ≤ 0.1.
+
+Prefer regional skeleton/loading instead of blocking the whole page when independent data can render progressively.
 
 ## Motion
 
@@ -445,6 +566,7 @@ Motion communicates state or relationship. It must not be decorative noise.
 - Reuse predictable components.
 - Keep visual continuity across Cliente → Veículo → Atendimento → Orçamento → OS → Financeiro.
 - Use realistic Brazilian demo data in design artifacts, never Lorem Ipsum.
+- Use Shopmonkey as a workflow/operational benchmark and Stripe as a design-engineering benchmark.
 
 ### Avoid
 
@@ -457,6 +579,7 @@ Motion communicates state or relationship. It must not be decorative noise.
 - Mixed icon families.
 - Generic AI-template appearance.
 - Invented functionality to make a mockup look complete.
+- Literal copies of Shopmonkey or Stripe UI.
 
 ## Screen implementation workflow
 
@@ -464,14 +587,15 @@ Before coding a screen:
 
 1. Read `UI-MASTER-001`.
 2. Read the canonical `TELA-*` specification and linked RN/CA/CT.
-3. Inspect the most recent Google Stitch/Figma artifact if available.
-4. Map the artifact to shared NeriTech components and PrimeNG primitives.
-5. Implement layout/responsiveness with canonical tokens/Tailwind.
-6. Use Tabler icons only.
-7. Implement documented states: default, loading, empty, error, permission and responsive variants as applicable.
-8. Keep permission/tenant authority in the backend; UI rules are experience only.
-9. Compare implementation against the artifact at desktop/tablet/mobile.
-10. Add visual/accessibility regression evidence before claiming VISUAL-OK/D5.
+3. Read the Shopmonkey × Stripe reference rules in this file.
+4. Inspect the most recent Google Stitch/Figma artifact if available.
+5. Map the artifact to shared NeriTech components and PrimeNG primitives.
+6. Implement layout/responsiveness with canonical tokens/Tailwind.
+7. Use Tabler icons only.
+8. Implement documented states: default, loading, empty, error, permission and responsive variants as applicable.
+9. Keep permission/tenant authority in the backend; UI rules are experience only.
+10. Compare implementation against the artifact at desktop/tablet/mobile.
+11. Add visual/accessibility regression evidence before claiming VISUAL-OK/D5.
 
 ## Google Stitch / Figma fidelity rule
 
@@ -481,6 +605,7 @@ Google Stitch/Figma is a visual implementation reference, not business-rule auth
 - Never alter a documented business rule just to match an artifact.
 - If the artifact conflicts with UI-MASTER or the screen specification, the documentation wins and the artifact must be flagged for review.
 - If the artifact introduces a reusable component not yet in the Design System, implement it as a candidate shared component rather than hardcoding it into one screen.
+- Fidelity means system fidelity, not blind pixel matching: semantics, accessibility, component behavior and responsive intent matter as much as geometry.
 
 ## Migration policy for the current codebase
 
@@ -491,5 +616,6 @@ The repository contains legacy Ng-Matero/Angular Material/PrimeIcons code. Migra
 3. Migrate shared navigation/header/page primitives.
 4. Rebuild each touched feature against this contract.
 5. Remove legacy dependency only after no production feature depends on it.
+6. Migrate Tailwind major versions only as an isolated technical batch with build and visual-regression evidence.
 
 Do not attempt a blind global visual rewrite without tests.
