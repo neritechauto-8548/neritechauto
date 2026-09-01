@@ -30,53 +30,54 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        try {
+            authenticateRequest(request);
+            filterChain.doFilter(request, response);
+        } finally {
+            // Servlet threads are reused. Always clear the tenant, including public
+            // authentication/password-recovery requests that may set it downstream.
+            TenantContext.clear();
+        }
+    }
+
+    private void authenticateRequest(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
-        
+        final String jwt = authHeader.substring(7);
+
         try {
-            // Extract email and tenant from token
-            userEmail = jwtService.extractUsername(jwt);
-            
-            // Extract Tenant ID from claims and set context
+            String userEmail = jwtService.extractUsername(jwt);
+
+            if (userEmail == null || SecurityContextHolder.getContext().getAuthentication() != null) {
+                return;
+            }
+
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            if (!jwtService.isTokenValid(jwt, userDetails)) {
+                return;
+            }
+
+            // The tenant is trusted only after the JWT has been fully validated.
             Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
             if (empresaId != null) {
                 TenantContext.setCurrentTenant(empresaId);
             }
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
-            }
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         } catch (Exception e) {
-            // If token is invalid, we just ignore it and let the request continue
-            // SecurityConfig will handle whether the request is allowed or not
-            logger.warn("JWT validation failed: " + e.getMessage());
-        }
-        
-        try {
-            filterChain.doFilter(request, response);
-        } finally {
-            // Clear tenant context after request
+            // Never allow data extracted from an invalid token to survive downstream.
             TenantContext.clear();
+            logger.warn("JWT validation failed: " + e.getMessage());
         }
     }
 }
