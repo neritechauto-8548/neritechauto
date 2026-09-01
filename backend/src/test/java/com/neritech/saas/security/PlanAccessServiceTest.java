@@ -49,6 +49,7 @@ class PlanAccessServiceTest {
         when(assinaturaEmpresaRepository.findFirstByEmpresaIdAndStatusInOrderByDataFimDesc(eq(10L), any()))
                 .thenReturn(Optional.of(assinatura));
 
+        assertThat(service.hasCommercialAccess()).isTrue();
         assertThat(service.hasFiscalAccess()).isFalse();
     }
 
@@ -61,6 +62,7 @@ class PlanAccessServiceTest {
         when(assinaturaEmpresaRepository.findFirstByEmpresaIdAndStatusInOrderByDataFimDesc(eq(10L), any()))
                 .thenReturn(Optional.of(assinatura));
 
+        assertThat(service.hasCommercialAccess()).isTrue();
         assertThat(service.hasFiscalAccess()).isTrue();
         assertThat(service.hasLevel(2)).isTrue();
     }
@@ -87,6 +89,7 @@ class PlanAccessServiceTest {
         when(assinaturaEmpresaRepository.findFirstByEmpresaIdAndStatusInOrderByDataFimDesc(eq(10L), any()))
                 .thenReturn(Optional.of(assinatura));
 
+        assertThat(service.hasCommercialAccess()).isFalse();
         assertThat(service.hasFiscalAccess()).isFalse();
     }
 
@@ -100,9 +103,11 @@ class PlanAccessServiceTest {
         when(assinaturaEmpresaRepository.findFirstByEmpresaIdAndStatusInOrderByDataFimDesc(eq(10L), any()))
                 .thenReturn(Optional.of(assinatura));
 
+        assertThat(service.hasCommercialAccess()).isTrue();
         assertThat(service.hasFiscalAccess()).isTrue();
 
         assinatura.setGracePeriodEndsAt(LocalDateTime.now().minusMinutes(1));
+        assertThat(service.hasCommercialAccess()).isFalse();
         assertThat(service.hasFiscalAccess()).isFalse();
     }
 
@@ -110,6 +115,7 @@ class PlanAccessServiceTest {
     @DisplayName("Sem tenant não deve consultar assinatura nem liberar acesso")
     void semTenantNaoDeveLiberarAcesso() {
         TenantContext.clear();
+        assertThat(service.hasCommercialAccess()).isFalse();
         assertThat(service.hasFiscalAccess()).isFalse();
         assertThat(service.hasLevel(2)).isFalse();
     }
