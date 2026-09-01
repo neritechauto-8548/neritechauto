@@ -16,7 +16,7 @@ public class PlanoAssinatura extends BaseEntity {
     private String nome;
 
     @Column(name = "nivel")
-    private Integer nivel; // 1 = Pro, 2 = Elite
+    private Integer nivel; // 1 = Pro, 2 = Ultra, 3 = Admin
 
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
@@ -67,7 +67,7 @@ public class PlanoAssinatura extends BaseEntity {
     private SuporteTecnico suporteTecnico;
 
     @Column(name = "periodo_teste_dias")
-    private Integer periodoTesteDias = 15;
+    private Integer periodoTesteDias = 180;
 
     @Column(name = "ativo")
     private Boolean ativo = true;
