@@ -4,6 +4,10 @@ import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
 import { switchMap, tap } from 'rxjs';
 import { Menu, MenuService } from './menu.service';
 
+const PLAN_ROUTE_REQUIREMENTS: Record<string, { capability: string; fallbackMinPlan: number }> = {
+  fiscal: { capability: 'acessoFiscal', fallbackMinPlan: 2 },
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -42,18 +46,20 @@ export class StartupService {
   /**
    * Filtra uma cópia do menu sem alterar o JSON carregado da aplicação.
    *
-   * Quando um item declara `capability`, a flag entregue pelo backend é a
-   * fonte principal. `minPlan` funciona como fallback para compatibilidade
-   * durante deploys com versões diferentes de frontend/backend.
+   * Capacidades entregues pelo backend têm precedência sobre o nível do plano.
+   * O mapa de rotas mantém compatibilidade com o menu legado enquanto os metadados
+   * `capability` são incorporados ao JSON estático.
    */
   private filterMenuByPlan(menu: any[], user: User): any[] {
     const planLevel = Number(user?.planoNivel ?? 0);
 
     return menu.reduce<any[]>((result, originalItem) => {
       const item = { ...originalItem };
-      const capability = item.capability as string | undefined;
+      const routeRequirement = item.route ? PLAN_ROUTE_REQUIREMENTS[item.route] : undefined;
+      const capability = (item.capability as string | undefined) ?? routeRequirement?.capability;
       const capabilityValue = capability ? user?.[capability] : undefined;
-      const minPlanAllowed = !item.minPlan || Number(item.minPlan) <= planLevel;
+      const minPlan = routeRequirement?.fallbackMinPlan ?? item.minPlan;
+      const minPlanAllowed = !minPlan || Number(minPlan) <= planLevel;
 
       const hasAccess = capability
         ? capabilityValue === true || (capabilityValue === undefined && minPlanAllowed)
