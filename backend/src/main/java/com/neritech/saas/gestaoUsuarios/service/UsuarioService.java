@@ -11,6 +11,7 @@ import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
 import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
 import com.neritech.saas.empresa.service.StripeService;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
+import com.neritech.saas.security.PlanAccessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -36,6 +37,7 @@ public class UsuarioService {
     private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
     private final StripeService stripeService;
     private final EmpresaRepository empresaRepository;
+    private final PlanAccessService planAccessService;
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
@@ -187,7 +189,10 @@ public class UsuarioService {
 
     private UsuarioResponse toResponse(Usuario usuario) {
         Long empresaId = usuario.getEmpresaId();
-        boolean assinaturaAtiva = false;
+        Long tenantId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
+        boolean mesmoTenant = empresaId != null && empresaId.equals(tenantId);
+        boolean assinaturaAtiva = mesmoTenant && planAccessService.hasCommercialAccess();
+        boolean acessoFiscal = mesmoTenant && planAccessService.hasFiscalAccess();
         String stripeUrl = null;
         Integer planoNivel = 1;
 
@@ -198,25 +203,9 @@ public class UsuarioService {
             if (assinaturaOpt.isPresent()) {
                 AssinaturaEmpresa assinatura = assinaturaOpt.get();
                 com.neritech.saas.empresa.domain.enums.StatusAssinatura status = assinatura.getStatus();
-                
-                // Validação de período de graça (Grace Period)
-                if (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATRASADO && 
-                    assinatura.getGracePeriodEndsAt() != null && 
-                    assinatura.getGracePeriodEndsAt().isBefore(java.time.LocalDateTime.now())) {
-                    status = com.neritech.saas.empresa.domain.enums.StatusAssinatura.SUSPENSO;
-                }
 
-                // Validação de assinatura ativa/liberada
-                if (status != null) {
-                    assinaturaAtiva = (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.ATIVO || 
-                                       status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.TESTE ||
-                                       "ACTIVE".equals(status.name()) || 
-                                       "TRIAL".equals(status.name()));
-                } else {
-                    assinaturaAtiva = false;
-                }
-                
-                log.info("Empresa: {} - Status Assinatura: {} - Ativa: {}", empresaId, status, assinaturaAtiva);
+                log.info("Empresa: {} - Status Assinatura: {} - Acesso comercial: {} - Acesso fiscal: {}",
+                        empresaId, status, assinaturaAtiva, acessoFiscal);
                 
                 planoNivel = (assinatura.getPlano() != null) ? assinatura.getPlano().getNivel() : 1;
                 
@@ -237,6 +226,7 @@ public class UsuarioService {
                         .funcoesIds(usuario.getFuncoes() != null ? usuario.getFuncoes().stream().map(f -> f.getId()).collect(java.util.stream.Collectors.toSet()) : Collections.emptySet())
                         .permissions(obterPermissoesUsuario(usuario))
                         .assinaturaAtiva(assinaturaAtiva)
+                        .acessoFiscal(acessoFiscal)
                         .subscriptionStatus(status)
                         .planoNivel(planoNivel)
                         .build();
@@ -251,7 +241,7 @@ public class UsuarioService {
                             response.setStripeUrl(stripeService.createBillingPortalSession(customerId, "https://app.neritechauto.com.br/auth/login"));
                         }
                     } catch (Exception e) {
-                        // Log error
+                        log.warn("Não foi possível gerar portal Stripe para empresa {}", empresaId, e);
                     }
                 }
                 return response;
@@ -280,6 +270,7 @@ public class UsuarioService {
                 .permissions(obterPermissoesUsuario(usuario))
                 .planoNivel(planoNivel)
                 .assinaturaAtiva(false)
+                .acessoFiscal(false)
                 .subscriptionStatus(com.neritech.saas.empresa.domain.enums.StatusAssinatura.INATIVO)
                 .stripeUrl(stripeUrl)
                 .build();
