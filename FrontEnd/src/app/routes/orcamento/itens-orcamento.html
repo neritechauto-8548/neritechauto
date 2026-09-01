@@ -60,23 +60,28 @@
   </header>
 
   <nav class="object-tabs" aria-label="Seções do orçamento">
-    @for (tab of tabs; track tab.label) { @if (tab.route === '') {
-    <a class="object-tab" [routerLink]="['/orcamentos', budgetId]">
-      {{ tab.label }}
-      <small>{{ tab.contract }}</small>
-    </a>
-    } @else {
-    <button
-      type="button"
-      class="object-tab"
-      [class.object-tab--active]="tab.active"
-      [disabled]="!tab.active"
-      [attr.aria-current]="tab.active ? 'page' : null"
-    >
-      {{ tab.label }}
-      <small>{{ tab.contract }}</small>
-    </button>
-    } }
+    @for (tab of tabs; track tab.label) {
+      @if (tab.route !== undefined) {
+      <a
+        class="object-tab"
+        [routerLink]="tab.route === '' ? ['/orcamentos', budgetId] : ['/orcamentos', budgetId, tab.route]"
+      >
+        {{ tab.label }}
+        <small>{{ tab.contract }}</small>
+      </a>
+      } @else {
+      <button
+        type="button"
+        class="object-tab"
+        [class.object-tab--active]="tab.active"
+        [disabled]="!tab.active"
+        [attr.aria-current]="tab.active ? 'page' : null"
+      >
+        {{ tab.label }}
+        <small>{{ tab.contract }}</small>
+      </button>
+      }
+    }
   </nav>
 
   @if (conflict || mutationError) {
@@ -92,7 +97,9 @@
     <button type="button" (click)="load()">Recarregar</button>
     }
   </div>
-  } @if (pendingDeletion) {
+  }
+
+  @if (pendingDeletion) {
   <section
     class="confirmation-bar"
     role="alertdialog"
@@ -104,8 +111,7 @@
     <div>
       <h2 id="deletion-title">Confirmar remoção</h2>
       <p id="deletion-description">
-        “{{ pendingDeletion.label }}” será removido da composição. Os totais serão recalculados no
-        servidor.
+        “{{ pendingDeletion.label }}” será removido da composição. Os totais serão recalculados no servidor.
       </p>
     </div>
     <div class="confirmation-bar__actions">
@@ -159,7 +165,9 @@
         <span>Exibindo somente kits versionados</span>
         <button type="button" (click)="clearCatalogType()">Mostrar catálogo completo</button>
       </div>
-      } @if (catalogResponse) {
+      }
+
+      @if (catalogResponse) {
       <div class="catalog-results" aria-live="polite">
         <header>
           <strong>Resultados para “{{ catalogResponse.query }}”</strong>
@@ -190,6 +198,7 @@
               </small>
             </div>
             <span class="catalog-price">{{ formatCurrency(item.suggestedPrice) }}</span>
+            @if (canInclude) {
             <button
               type="button"
               [disabled]="(item.lineType !== 'KIT' && !selectedGroupId) || isSaving"
@@ -209,6 +218,7 @@
               ></i>
               {{ item.lineType === 'KIT' ? 'Instanciar' : 'Adicionar' }}
             </button>
+            }
           </li>
           }
         </ul>
@@ -216,6 +226,7 @@
       </div>
       }
     </div>
+
     <div class="toolbar-actions">
       <button
         type="button"
@@ -227,14 +238,16 @@
         <i class="pi pi-box" aria-hidden="true"></i>
         Catálogo de kits
       </button>
+      @if (canInclude) {
       <button type="button" class="nt-button nt-button--primary" (click)="showGroupForm = true">
         <i class="pi pi-plus" aria-hidden="true"></i>
         Novo grupo
       </button>
+      }
     </div>
   </section>
 
-  @if (showGroupForm) {
+  @if (showGroupForm && canInclude) {
   <form class="group-form" [formGroup]="groupForm" (ngSubmit)="createGroup()">
     <header>
       <div>
@@ -302,17 +315,20 @@
           <small>Composição vazia</small>
           <h2>Organize o primeiro trabalho</h2>
           <p>
-            Crie um grupo para reunir as peças e a mão de obra que o cliente entenderá como uma
-            única decisão comercial.
+            Crie um grupo para reunir as peças e a mão de obra que o cliente entenderá como uma única decisão comercial.
           </p>
+          @if (canInclude) {
           <button type="button" class="nt-button nt-button--primary" (click)="showGroupForm = true">
             <i class="pi pi-plus" aria-hidden="true"></i>
             Criar primeiro grupo
           </button>
+          } @else {
+          <small>Seu perfil possui acesso de consulta, sem permissão para incluir grupos.</small>
+          }
         </div>
       </section>
-      } @else { @for (group of composition.groups; track trackGroup($index, group); let index =
-      $index) {
+      } @else {
+      @for (group of composition.groups; track trackGroup($index, group); let index = $index) {
       <article
         class="service-group"
         [class.service-group--selected]="selectedGroupId === group.id"
@@ -329,12 +345,14 @@
                 <i class="pi pi-box" aria-hidden="true"></i>
                 Kit v{{ group.kitOriginVersion }} · instância editável
               </span>
-              } @if (group.packagePrice !== null) {
+              }
+              @if (group.packagePrice !== null) {
               <span class="package-origin">
                 <i class="pi pi-sparkles" aria-hidden="true"></i>
                 Preço fechado · {{ packageDistributionLabel(group.packageDistributionMethod) }}
               </span>
-              } @if (group.customerDescription) {
+              }
+              @if (group.customerDescription) {
               <p>{{ group.customerDescription }}</p>
               }
             </div>
@@ -345,19 +363,20 @@
               <strong>{{ formatCurrency(group.subtotal) }}</strong>
               @if (group.packageAdjustmentAmount !== null && group.packageAdjustmentAmount !== 0) {
               <small class="package-impact">
-                {{ group.packageAdjustmentAmount > 0 ? '+' : '' }}{{ formatCurrency(group.packageAdjustmentAmount) }}
-                distribuído
+                {{ group.packageAdjustmentAmount > 0 ? '+' : '' }}{{ formatCurrency(group.packageAdjustmentAmount) }} distribuído
               </small>
               }
               @if (selectedGroupId === group.id) {
               <small>Grupo selecionado</small>
               }
             </div>
+            @if (canAlter || canInclude || canDelete) {
             <div class="group-actions" role="toolbar" [attr.aria-label]="'Ações de ' + group.title">
+              @if (canAlter) {
               <button
                 type="button"
                 (click)="moveGroup(index, -1)"
-                [disabled]="index === 0 || isSaving"
+                [disabled]="index === 0 || disableReorder"
                 [attr.aria-label]="'Mover ' + group.title + ' para cima'"
                 title="Mover para cima"
               >
@@ -366,21 +385,23 @@
               <button
                 type="button"
                 (click)="moveGroup(index, 1)"
-                [disabled]="index === composition.groups.length - 1 || isSaving"
+                [disabled]="index === composition.groups.length - 1 || disableReorder"
                 [attr.aria-label]="'Mover ' + group.title + ' para baixo'"
                 title="Mover para baixo"
               >
                 <i class="pi pi-arrow-down" aria-hidden="true"></i>
               </button>
+              @if (composition.commercialPermissions.canEditPackagePrice) {
               <button
                 type="button"
                 (click)="startPackagePricing(group)"
-                [disabled]="isSaving || !composition.commercialPermissions.canEditPackagePrice"
+                [disabled]="isSaving"
                 [attr.aria-label]="'Definir preço fechado de ' + group.title"
-                [title]="composition.commercialPermissions.canEditPackagePrice ? 'Preço fechado' : 'Sem permissão para editar preço'"
+                title="Preço fechado"
               >
                 <i class="pi pi-dollar" aria-hidden="true"></i>
               </button>
+              }
               <button
                 type="button"
                 (click)="startEditGroup(group)"
@@ -390,6 +411,8 @@
               >
                 <i class="pi pi-pencil" aria-hidden="true"></i>
               </button>
+              }
+              @if (canInclude) {
               <button
                 type="button"
                 (click)="duplicateGroup(group)"
@@ -399,6 +422,8 @@
               >
                 <i class="pi pi-copy" aria-hidden="true"></i>
               </button>
+              }
+              @if (canDelete) {
               <button
                 type="button"
                 class="group-actions__danger"
@@ -409,16 +434,14 @@
               >
                 <i class="pi pi-trash" aria-hidden="true"></i>
               </button>
+              }
             </div>
+            }
           </div>
         </header>
 
-        @if (editingGroupId === group.id) {
-        <form
-          class="inline-editor group-editor"
-          [formGroup]="editGroupForm"
-          (ngSubmit)="saveGroup(group.id)"
-        >
+        @if (editingGroupId === group.id && canAlter) {
+        <form class="inline-editor group-editor" [formGroup]="editGroupForm" (ngSubmit)="saveGroup(group.id)">
           <header>
             <div>
               <small>Edição segura</small>
@@ -434,18 +457,9 @@
             </button>
           </header>
           <div class="group-editor__grid">
-            <label>
-              <span>Título</span>
-              <input formControlName="title" />
-            </label>
-            <label>
-              <span>Descrição para o cliente</span>
-              <input formControlName="customerDescription" />
-            </label>
-            <label class="group-editor__note">
-              <span>Nota interna</span>
-              <textarea rows="2" formControlName="internalNote"></textarea>
-            </label>
+            <label><span>Título</span><input formControlName="title" /></label>
+            <label><span>Descrição para o cliente</span><input formControlName="customerDescription" /></label>
+            <label class="group-editor__note"><span>Nota interna</span><textarea rows="2" formControlName="internalNote"></textarea></label>
             <label>
               <span>Visibilidade</span>
               <select formControlName="visibility">
@@ -455,33 +469,20 @@
             </label>
             <label class="recommended-toggle">
               <input type="checkbox" formControlName="recommended" />
-              <span>
-                <strong>Serviço recomendado</strong>
-                <small>Separado do total necessário.</small>
-              </span>
+              <span><strong>Serviço recomendado</strong><small>Separado do total necessário.</small></span>
             </label>
           </div>
           <footer>
-            <small>
-              Campos comerciais são persistidos; os valores continuam sob autoridade do servidor.
-            </small>
-            <button
-              type="submit"
-              class="nt-button nt-button--primary"
-              [disabled]="editGroupForm.invalid || isSaving"
-            >
+            <small>Campos comerciais são persistidos; os valores continuam sob autoridade do servidor.</small>
+            <button type="submit" class="nt-button nt-button--primary" [disabled]="editGroupForm.invalid || isSaving">
               Salvar grupo
             </button>
           </footer>
         </form>
         }
 
-        @if (pricingGroupId === group.id) {
-        <form
-          class="inline-editor package-editor"
-          [formGroup]="packagePriceForm"
-          (ngSubmit)="savePackagePrice(group)"
-        >
+        @if (pricingGroupId === group.id && canAlter && composition.commercialPermissions.canEditPackagePrice) {
+        <form class="inline-editor package-editor" [formGroup]="packagePriceForm" (ngSubmit)="savePackagePrice(group)">
           <header>
             <div class="package-editor__icon"><i class="pi pi-sparkles" aria-hidden="true"></i></div>
             <div>
@@ -489,12 +490,7 @@
               <h3>Preço fechado com distribuição rastreável</h3>
               <p>O total é distribuído pelo servidor sem apagar o valor original das linhas.</p>
             </div>
-            <button
-              type="button"
-              class="icon-button"
-              (click)="pricingGroupId = null"
-              aria-label="Cancelar preço fechado"
-            >
+            <button type="button" class="icon-button" (click)="pricingGroupId = null" aria-label="Cancelar preço fechado">
               <i class="pi pi-times" aria-hidden="true"></i>
             </button>
           </header>
@@ -539,17 +535,17 @@
         }
 
         @if (!group.lines.length) {
-        <button
-          type="button"
-          class="group-empty"
-          (click)="selectGroup(group); searchControl.setValue('')"
-        >
-          <i class="pi pi-plus-circle" aria-hidden="true"></i>
-          <span>
-            <strong>Adicione peças ou mão de obra</strong>
-            <small>Selecione este grupo e use a busca do catálogo acima.</small>
-          </span>
-        </button>
+          @if (canInclude) {
+          <button type="button" class="group-empty" (click)="selectGroup(group); searchControl.setValue('')">
+            <i class="pi pi-plus-circle" aria-hidden="true"></i>
+            <span><strong>Adicione peças ou mão de obra</strong><small>Selecione este grupo e use a busca do catálogo acima.</small></span>
+          </button>
+          } @else {
+          <div class="group-empty" aria-label="Grupo sem itens">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            <span><strong>Grupo sem itens</strong><small>Seu perfil possui acesso somente para consulta.</small></span>
+          </div>
+          }
         } @else {
         <div class="line-list" role="table" [attr.aria-label]="'Itens de ' + group.title">
           <div class="line-list__header" role="row">
@@ -562,21 +558,20 @@
           @for (line of group.lines; track line.id; let lineIndex = $index) {
           <div class="line-row" role="row">
             <div class="line-identity" role="cell">
-              <span class="type-badge" [class.type-badge--labor]="line.lineType === 'LABOR'">
-                {{ lineTypeLabel(line.lineType) }}
-              </span>
+              <span class="type-badge" [class.type-badge--labor]="line.lineType === 'LABOR'">{{ lineTypeLabel(line.lineType) }}</span>
               <div>
                 <strong>{{ line.description }}</strong>
                 <small>
-                  {{ line.reference || 'Catálogo de serviços' }} · snapshot v{{ line.catalogVersion
-                  ?? 0 }} @if (line.source === 'KIT') { · origem Kit v{{ line.kitOriginVersion }} }
+                  {{ line.reference || 'Catálogo de serviços' }} · snapshot v{{ line.catalogVersion ?? 0 }}
+                  @if (line.source === 'KIT') { · origem Kit v{{ line.kitOriginVersion }} }
                 </small>
                 @if (line.lineType === 'PART') {
                 <span class="availability" [attr.data-status]="line.availabilityStatus">
                   <i class="pi pi-circle-fill" aria-hidden="true"></i>
                   {{ availabilityLabel(line.availabilityStatus) }} · não reservado
                 </span>
-                } @if (line.discountAuthorityStatus === 'PENDING_APPROVAL') {
+                }
+                @if (line.discountAuthorityStatus === 'PENDING_APPROVAL') {
                 <span class="commercial-status commercial-status--pending">
                   <i class="pi pi-clock" aria-hidden="true"></i>
                   Desconto aguardando gerente
@@ -589,119 +584,66 @@
                 }
               </div>
             </div>
-            <span class="line-value line-quantity" role="cell" data-label="Quantidade">
-              {{ line.quantity | number: '1.0-3' }}
-            </span>
+            <span class="line-value line-quantity" role="cell" data-label="Quantidade">{{ line.quantity | number: '1.0-3' }}</span>
             <span class="line-value line-price" role="cell" data-label="Unitário">
               <strong>{{ formatCurrency(line.unitPrice) }}</strong>
               <small>{{ priceSourceLabel(line) }}</small>
             </span>
             <strong class="line-total" role="cell" data-label="Total">
               {{ formatCurrency(line.allocatedPackageAmount ?? line.totalAmount) }}
-              @if (line.allocatedPackageAmount !== null) {
-              <small>{{ formatCurrency(line.totalAmount) }} base</small>
-              }
+              @if (line.allocatedPackageAmount !== null) { <small>{{ formatCurrency(line.totalAmount) }} base</small> }
             </strong>
-            <div
-              class="line-actions"
-              role="cell"
-              [attr.aria-label]="'Ações de ' + line.description"
-            >
+            <div class="line-actions" role="cell" [attr.aria-label]="'Ações de ' + line.description">
               @if (editingLineId === line.id) {
-              <button
-                type="button"
-                (click)="editingLineId = null"
-                [attr.aria-label]="'Cancelar edição de ' + line.description"
-              >
+              <button type="button" (click)="editingLineId = null" [attr.aria-label]="'Cancelar edição de ' + line.description">
                 <i class="pi pi-times" aria-hidden="true"></i>
               </button>
               } @else {
-              <button
-                type="button"
-                (click)="moveLine(group, lineIndex, -1)"
-                [disabled]="lineIndex === 0 || isSaving"
-                [attr.aria-label]="'Mover ' + line.description + ' para cima'"
-              >
-                <i class="pi pi-arrow-up" aria-hidden="true"></i>
-              </button>
-              <button
-                type="button"
-                (click)="moveLine(group, lineIndex, 1)"
-                [disabled]="lineIndex === group.lines.length - 1 || isSaving"
-                [attr.aria-label]="'Mover ' + line.description + ' para baixo'"
-              >
-                <i class="pi pi-arrow-down" aria-hidden="true"></i>
-              </button>
-              <button
-                type="button"
-                (click)="startEditLine(line)"
-                [disabled]="isSaving"
-                [attr.aria-label]="'Editar quantidade e condições de ' + line.description"
-              >
-                <i class="pi pi-pencil" aria-hidden="true"></i>
-              </button>
-              <button
-                type="button"
-                (click)="duplicateLine(group.id, line)"
-                [disabled]="isSaving"
-                [attr.aria-label]="'Duplicar ' + line.description"
-              >
-                <i class="pi pi-copy" aria-hidden="true"></i>
-              </button>
-              <button
-                type="button"
-                class="line-actions__danger"
-                (click)="requestDeleteLine(group.id, line)"
-                [disabled]="isSaving"
-                [attr.aria-label]="'Remover ' + line.description"
-              >
-                <i class="pi pi-trash" aria-hidden="true"></i>
-              </button>
+                @if (canAlter) {
+                <button type="button" (click)="moveLine(group, lineIndex, -1)" [disabled]="lineIndex === 0 || disableReorder" [attr.aria-label]="'Mover ' + line.description + ' para cima'">
+                  <i class="pi pi-arrow-up" aria-hidden="true"></i>
+                </button>
+                <button type="button" (click)="moveLine(group, lineIndex, 1)" [disabled]="lineIndex === group.lines.length - 1 || disableReorder" [attr.aria-label]="'Mover ' + line.description + ' para baixo'">
+                  <i class="pi pi-arrow-down" aria-hidden="true"></i>
+                </button>
+                <button type="button" (click)="startEditLine(line)" [disabled]="isSaving" [attr.aria-label]="'Editar quantidade e condições de ' + line.description">
+                  <i class="pi pi-pencil" aria-hidden="true"></i>
+                </button>
+                }
+                @if (canInclude) {
+                <button type="button" (click)="duplicateLine(group.id, line)" [disabled]="isSaving" [attr.aria-label]="'Duplicar ' + line.description">
+                  <i class="pi pi-copy" aria-hidden="true"></i>
+                </button>
+                }
+                @if (canDelete) {
+                <button type="button" class="line-actions__danger" (click)="requestDeleteLine(group.id, line)" [disabled]="isSaving" [attr.aria-label]="'Remover ' + line.description">
+                  <i class="pi pi-trash" aria-hidden="true"></i>
+                </button>
+                }
               }
             </div>
           </div>
-          @if (editingLineId === line.id) {
-          <form
-            class="line-commercial-editor"
-            [formGroup]="lineCommercialForm"
-            (ngSubmit)="saveLine(group.id, line)"
-          >
+
+          @if (editingLineId === line.id && canAlter) {
+          <form class="line-commercial-editor" [formGroup]="lineCommercialForm" (ngSubmit)="saveLine(group.id, line)">
             <header>
-              <div>
-                <small>Edição comercial protegida</small>
-                <h3>{{ line.description }}</h3>
-              </div>
-              <span class="authority-seal">
-                <i class="pi pi-shield" aria-hidden="true"></i>
-                Servidor valida preço e alçada
-              </span>
+              <div><small>Edição comercial protegida</small><h3>{{ line.description }}</h3></div>
+              <span class="authority-seal"><i class="pi pi-shield" aria-hidden="true"></i> Servidor valida preço e alçada</span>
             </header>
             <div class="line-commercial-editor__grid">
-              <label>
-                <span>Quantidade</span>
-                <input type="number" min="0.001" step="0.001" formControlName="quantity" />
-              </label>
+              <label><span>Quantidade</span><input type="number" min="0.001" step="0.001" formControlName="quantity" /></label>
               <label>
                 <span>Preço unitário</span>
                 <div class="money-control">
                   <span>R$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    formControlName="unitPrice"
-                    [readonly]="!composition.commercialPermissions.canEditUnitPrice"
-                  />
+                  <input type="number" min="0" step="0.01" formControlName="unitPrice" [readonly]="!composition.commercialPermissions.canEditUnitPrice" />
                 </div>
                 <small>{{ priceSourceLabel(line) }}</small>
               </label>
               @if (composition.commercialPermissions.canEditUnitPrice) {
               <label class="line-commercial-editor__wide">
                 <span>Motivo do override de preço</span>
-                <input
-                  formControlName="priceOverrideReason"
-                  placeholder="Obrigatório somente se o preço for alterado"
-                />
+                <input formControlName="priceOverrideReason" placeholder="Obrigatório somente se o preço for alterado" />
               </label>
               }
               @if (composition.commercialPermissions.canApplyDiscount) {
@@ -719,12 +661,10 @@
                   type="number"
                   min="0"
                   [max]="lineCommercialForm.controls.discountType.value === 'PERCENT' ? 100 : null"
-                  [step]="lineCommercialForm.controls.discountType.value === 'PERCENT' ? 0.01 : 0.01"
+                  [step]="0.01"
                   formControlName="discountValue"
                 />
-                <small>
-                  Sua alçada configurada: {{ composition.commercialPermissions.discountAuthorityPercent | number: '1.0-2' }}%
-                </small>
+                <small>Sua alçada configurada: {{ composition.commercialPermissions.discountAuthorityPercent | number: '1.0-2' }}%</small>
               </label>
               <label class="line-commercial-editor__wide">
                 <span>Motivo do desconto</span>
@@ -738,20 +678,8 @@
                 <strong>{{ formatCurrency(line.totalAmount) }}</strong>
                 <small>O valor final só muda após a resposta canônica.</small>
               </div>
-              <button
-                type="button"
-                class="nt-button nt-button--secondary"
-                (click)="editingLineId = null"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                class="nt-button nt-button--primary"
-                [disabled]="lineCommercialForm.invalid || isSaving"
-              >
-                Validar e salvar
-              </button>
+              <button type="button" class="nt-button nt-button--secondary" (click)="editingLineId = null">Cancelar</button>
+              <button type="submit" class="nt-button nt-button--primary" [disabled]="lineCommercialForm.invalid || isSaving">Validar e salvar</button>
             </footer>
           </form>
           }
@@ -759,62 +687,40 @@
         </div>
         }
       </article>
-      } }
+      }
+      }
     </main>
 
     <aside class="summary-column" aria-label="Totais e integridade">
       <section class="totals-card">
         <header>
-          <div>
-            <span>Resumo canônico</span>
-            <h2>Totais da proposta</h2>
-          </div>
+          <div><span>Resumo canônico</span><h2>Totais da proposta</h2></div>
           <span class="calculation-status" [attr.data-status]="composition.calculationStatus">
             <i class="pi pi-check-circle" aria-hidden="true"></i>
             {{ composition.calculationStatus === 'CURRENT' ? 'Calculado' : 'Aguardando itens' }}
           </span>
         </header>
         <dl>
-          <div>
-            <dt>Mão de obra</dt>
-            <dd>{{ formatCurrency(composition.laborTotal) }}</dd>
-          </div>
-          <div>
-            <dt>Peças</dt>
-            <dd>{{ formatCurrency(composition.partsTotal) }}</dd>
-          </div>
-          <div class="totals-card__main">
-            <dt>Total necessário</dt>
-            <dd>{{ formatCurrency(composition.requiredTotal) }}</dd>
-          </div>
-          <div class="totals-card__recommended">
-            <dt>Recomendado</dt>
-            <dd>{{ formatCurrency(composition.recommendedTotal) }}</dd>
-          </div>
+          <div><dt>Mão de obra</dt><dd>{{ formatCurrency(composition.laborTotal) }}</dd></div>
+          <div><dt>Peças</dt><dd>{{ formatCurrency(composition.partsTotal) }}</dd></div>
+          <div class="totals-card__main"><dt>Total necessário</dt><dd>{{ formatCurrency(composition.requiredTotal) }}</dd></div>
+          <div class="totals-card__recommended"><dt>Recomendado</dt><dd>{{ formatCurrency(composition.recommendedTotal) }}</dd></div>
         </dl>
-        <p>
-          <i class="pi pi-server" aria-hidden="true"></i>
-          Totais retornados pela revisão #{{ composition.revision }} do servidor.
-        </p>
+        <p><i class="pi pi-server" aria-hidden="true"></i> Totais retornados pela revisão #{{ composition.revision }} do servidor.</p>
       </section>
 
       <section class="authority-card">
         <header>
           <span><i class="pi pi-lock" aria-hidden="true"></i></span>
-          <div>
-            <small>Política comercial</small>
-            <h2>Sua autoridade nesta proposta</h2>
-          </div>
+          <div><small>Política comercial</small><h2>Sua autoridade nesta proposta</h2></div>
         </header>
         <dl>
-          <div>
-            <dt>Preço</dt>
-            <dd>{{ composition.commercialPermissions.canEditUnitPrice ? 'Edição autorizada' : 'Somente leitura' }}</dd>
-          </div>
+          <div><dt>Composição</dt><dd>{{ canAlter ? 'Edição autorizada' : 'Somente leitura' }}</dd></div>
+          <div><dt>Preço</dt><dd>{{ canAlter && composition.commercialPermissions.canEditUnitPrice ? 'Edição autorizada' : 'Somente leitura' }}</dd></div>
           <div>
             <dt>Desconto direto</dt>
             <dd>
-              @if (composition.commercialPermissions.canApplyDiscount) {
+              @if (canAlter && composition.commercialPermissions.canApplyDiscount) {
               até {{ composition.commercialPermissions.discountAuthorityPercent | number: '1.0-2' }}%
               } @else { Não autorizado }
             </dd>
@@ -830,39 +736,25 @@
       <section class="issues-card">
         <header>
           <span><i class="pi pi-shield" aria-hidden="true"></i></span>
-          <div>
-            <small>Integridade</small>
-            <h2>Pendências da revisão</h2>
-          </div>
+          <div><small>Integridade</small><h2>Pendências da revisão</h2></div>
         </header>
         @if (composition.blockers.length) {
         <ul>
           @for (blocker of composition.blockers; track blocker) {
-          <li>
-            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-            {{ blocker }}
-          </li>
+          <li><i class="pi pi-exclamation-circle" aria-hidden="true"></i>{{ blocker }}</li>
           }
         </ul>
         } @else {
         <div class="issues-card__ready">
           <i class="pi pi-check-circle" aria-hidden="true"></i>
-          <span>
-            <strong>Composição calculável</strong>
-            <small>Sem bloqueios estruturais nesta etapa.</small>
-          </span>
+          <span><strong>Composição calculável</strong><small>Sem bloqueios estruturais nesta etapa.</small></span>
         </div>
         }
       </section>
 
       <section class="save-card" aria-live="polite">
-        <span [class.save-card__pulse]="isSaving">
-          <i class="pi pi-cloud" aria-hidden="true"></i>
-        </span>
-        <div>
-          <strong>{{ saveMessage }}</strong>
-          <small>O navegador não calcula nem persiste valores comerciais sozinho.</small>
-        </div>
+        <span [class.save-card__pulse]="isSaving"><i class="pi pi-cloud" aria-hidden="true"></i></span>
+        <div><strong>{{ saveMessage }}</strong><small>O navegador não calcula nem persiste valores comerciais sozinho.</small></div>
       </section>
 
       <div class="aside-actions">
@@ -873,25 +765,25 @@
         <button
           type="button"
           class="nt-button nt-button--primary"
-          [disabled]="!composition.canReview"
+          [disabled]="!canReviewSurface"
+          (click)="reviewProposal()"
+          [title]="canReviewSurface ? 'Abrir a proposta exatamente como será apresentada ao cliente' : 'Adicione itens antes de revisar a proposta'"
         >
-          Revisar e enviar
+          Revisar proposta
           <i class="pi pi-arrow-right" aria-hidden="true"></i>
         </button>
-        <small>O envio pertence à ORC-005 e ainda não publica versão nesta tela.</small>
+        <small>
+          A revisão pode ser aberta mesmo com bloqueios para mostrar o que falta. O envio só será habilitado pelo ORC-005.
+        </small>
       </div>
     </aside>
   </div>
 
   <footer class="mobile-action-bar">
-    <div>
-      <span>Total necessário</span>
-      <strong>{{ formatCurrency(composition.requiredTotal) }}</strong>
-    </div>
-    <button type="button" class="nt-button nt-button--primary" [disabled]="!composition.canReview">
-      Revisar
+    <div><span>Total necessário</span><strong>{{ formatCurrency(composition.requiredTotal) }}</strong></div>
+    <button type="button" class="nt-button nt-button--primary" [disabled]="!canReviewSurface" (click)="reviewProposal()">
+      Revisar proposta
     </button>
   </footer>
   }
 </section>
-
