@@ -19,15 +19,27 @@ export const routes: Routes = [
     data: { title: 'Editar Agendamento', permissions: ['GERAL_AGENDAMENTO_EDITAR'] },
   },
   { path: 'cadastro', redirectTo: 'novo', pathMatch: 'full' },
-  { path: 'agendamentos-alertas', component: AgendamentosAlertas },
-  { path: 'calendario', component: CalendarioAgendamento },
+  {
+    path: 'agendamentos-alertas',
+    component: AgendamentosAlertas,
+    canActivate: [permissionGuard],
+    data: { title: 'Agenda e Alertas', permissions: ['GERAL_AGENDAMENTO_VISUALIZAR'] },
+  },
+  {
+    path: 'calendario',
+    component: CalendarioAgendamento,
+    canActivate: [permissionGuard],
+    data: { title: 'Calendário', permissions: ['GERAL_AGENDAMENTO_VISUALIZAR'] },
+  },
   {
     path: 'aniversario',
-    loadComponent: () => import('../system/module-placeholder').then(m => m.ModulePlaceholder),
+    canActivate: [permissionGuard],
     data: {
       title: 'Aniversários',
+      permissions: ['GERAL_USUARIO'],
       description:
         'A experiência será habilitada quando o read model de aniversariantes e o envio de comunicações estiverem reconciliados sem empresaId controlado pelo navegador.',
     },
+    loadComponent: () => import('../system/module-placeholder').then(m => m.ModulePlaceholder),
   },
 ];
