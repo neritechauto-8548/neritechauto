@@ -10,6 +10,8 @@
 @use 'styles/buttons';
 
 @import 'quill/dist/quill.snow.css';
+
+/* Legacy-only dependency while old screens are being migrated to Tabler. */
 @import 'primeicons/primeicons.css';
 
 @tailwind base;
@@ -17,19 +19,28 @@
 @tailwind utilities;
 
 /* ========================================================================== 
-   NeriTech Auto — UI Master tokens
+   NeriTech Auto — canonical UI tokens
+   Visual direction: Shopmonkey operational UX + Stripe design discipline.
+   Source of truth: UI-MASTER-001 + DESIGN.md.
    ========================================================================== */
 :root {
   --nt-primary-50: #eff6ff;
   --nt-primary-100: #dbeafe;
+  --nt-primary-200: #bfdbfe;
+  --nt-primary-300: #93c5fd;
+  --nt-primary-400: #60a5fa;
   --nt-primary-500: #2563eb;
   --nt-primary-600: #1d4ed8;
   --nt-primary-700: #1e40af;
+  --nt-primary-800: #1e3a8a;
+  --nt-primary-900: #172554;
 
   --nt-surface-canvas: #f8fafc;
   --nt-surface-panel: #ffffff;
   --nt-surface-subtle: #f1f5f9;
+  --nt-surface-hover: #f8fafc;
   --nt-border-default: #e2e8f0;
+  --nt-border-strong: #cbd5e1;
 
   --nt-text-primary: #0f172a;
   --nt-text-secondary: #475569;
@@ -43,10 +54,32 @@
   --nt-danger-bg: #fef2f2;
   --nt-info-fg: #0369a1;
   --nt-info-bg: #f0f9ff;
+  --nt-neutral-fg: #475569;
+  --nt-neutral-bg: #f8fafc;
 
-  --nt-radius-sm: 8px;
-  --nt-radius-md: 12px;
-  --nt-shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+  --nt-radius-sm: 6px;
+  --nt-radius-md: 8px;
+  --nt-radius-lg: 12px;
+  --nt-radius-xl: 16px;
+  --nt-radius-pill: 999px;
+
+  --nt-space-1: 4px;
+  --nt-space-2: 8px;
+  --nt-space-3: 12px;
+  --nt-space-4: 16px;
+  --nt-space-5: 20px;
+  --nt-space-6: 24px;
+  --nt-space-8: 32px;
+  --nt-space-10: 40px;
+  --nt-space-12: 48px;
+  --nt-space-16: 64px;
+
+  --nt-shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.035);
+  --nt-shadow-overlay: 0 8px 24px rgba(15, 23, 42, 0.10);
+  --nt-shadow-modal: 0 20px 48px rgba(15, 23, 42, 0.16);
+
+  --nt-focus-color: #2563eb;
+  --nt-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
 
 html,
@@ -74,22 +107,24 @@ h5,
 h6 {
   margin-top: 0;
   color: var(--nt-text-primary);
-  font-weight: 650;
   letter-spacing: -0.02em;
 }
 
 h1 {
   font-size: 28px;
+  font-weight: 700;
   line-height: 36px;
 }
 
 h2 {
   font-size: 22px;
+  font-weight: 650;
   line-height: 30px;
 }
 
 h3 {
   font-size: 18px;
+  font-weight: 600;
   line-height: 26px;
 }
 
@@ -107,12 +142,22 @@ p {
 
 .text-caption {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 16px;
 }
 
+.nt-tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 :focus-visible {
-  outline-color: var(--nt-primary-500);
+  outline: 2px solid var(--nt-focus-color);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--nt-primary-100);
+  color: var(--nt-text-primary);
 }
 
 ::-webkit-scrollbar {
@@ -125,7 +170,7 @@ p {
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 999px;
+  border-radius: var(--nt-radius-pill);
   background: #cbd5e1;
 }
 
@@ -133,7 +178,7 @@ p {
   background: #94a3b8;
 }
 
-/* Manual Material Icons Definition for Robustness */
+/* Legacy Material icon compatibility. Do not use on rebuilt screens. */
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
@@ -162,11 +207,11 @@ mat-icon {
   font-family: 'Material Icons' !important;
 }
 
-/* Canonical panel/card surface */
+/* Canonical panel/card surface. Material selector is transitional only. */
 .card,
 .mat-mdc-card {
   border: 1px solid var(--nt-border-default);
-  border-radius: var(--nt-radius-md);
+  border-radius: var(--nt-radius-lg);
   background: var(--nt-surface-panel);
   box-shadow: var(--nt-shadow-panel);
 }
@@ -189,7 +234,7 @@ mat-icon {
   z-index: 10000 !important;
 }
 
-/* Stripe-like menu override kept for existing contextual menus */
+/* Legacy Material contextual menu compatibility. */
 .stripe-menu-backdrop + .cdk-overlay-connected-position-bounding-box .mat-mdc-menu-content {
   padding: 0 !important;
 }
@@ -203,17 +248,17 @@ mat-icon {
 }
 
 /* ========================================================================== 
-   Badge component — Minimal Enterprise
+   Status badge — Minimal Enterprise
    ========================================================================== */
 .nt-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--nt-radius-sm);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
@@ -229,11 +274,11 @@ mat-icon {
 }
 
 .nt-badge--neutral {
-  background: var(--nt-surface-subtle);
-  color: var(--nt-text-secondary);
+  background: var(--nt-neutral-bg);
+  color: var(--nt-neutral-fg);
 
   &::before {
-    background: var(--nt-text-secondary);
+    background: var(--nt-neutral-fg);
   }
 }
 
