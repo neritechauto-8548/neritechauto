@@ -54,15 +54,14 @@
     <nt-icon name="shield-check" [size]="19" />
     <div>
       <strong>Nenhum blocker explícito retornado</strong>
-      <span>Isso não equivale automaticamente a uma OS concluível; a ação final depende de `allowedActions` do backend.</span>
+      <span>Isso não equivale automaticamente a uma OS concluível; o fechamento depende das guardas transacionais do backend.</span>
     </div>
   </div>
 
-  <div class="final-action" [class.enabled]="backendAllowsClosure">
+  <div class="final-action">
     <div>
-      <strong>{{ backendAllowsClosure ? 'Backend sinalizou ação de fechamento' : 'Comando de fechamento ainda indisponível' }}</strong>
-      <span *ngIf="!backendAllowsClosure">A interface não criará um botão mutável até o backend expor uma ação autorizada e transacional para esta OS.</span>
-      <span *ngIf="backendAllowsClosure">A ação foi reconhecida em `allowedActions`; o comando específico ainda precisa estar conectado ao endpoint transacional correspondente.</span>
+      <strong>Comando transacional ainda não conectado</strong>
+      <span>A próxima integração deve usar {{ expectedCommand }} com Idempotency-Key e If-Match, validando execução, peças, checklist, adicionais, blockers e concorrência no servidor.</span>
     </div>
     <button type="button" disabled>Finalizar OS</button>
   </div>
