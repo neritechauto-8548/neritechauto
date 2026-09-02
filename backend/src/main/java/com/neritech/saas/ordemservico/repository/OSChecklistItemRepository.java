@@ -12,4 +12,9 @@ public interface OSChecklistItemRepository extends JpaRepository<OSChecklistItem
     List<OSChecklistItem> findByOrdemServico_IdAndOrdemServico_EmpresaId(Long ordemServicoId, Long empresaId);
 
     Optional<OSChecklistItem> findByIdAndOrdemServico_EmpresaId(Long id, Long empresaId);
+
+    boolean existsByOrdemServico_IdAndOrdemServico_EmpresaIdAndChecklistModelo_Id(
+            Long ordemServicoId,
+            Long empresaId,
+            Long checklistModeloId);
 }
