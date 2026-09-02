@@ -2,6 +2,7 @@ export interface User {
   [prop: string]: any;
 
   id?: number | string | null;
+  empresaId?: number | null;
   name?: string;
   email?: string;
   avatar?: string;
