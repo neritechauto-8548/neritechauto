@@ -10,16 +10,16 @@ import {
   inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { NeriTechIcon } from '../../../shared/components';
 import {
   OS_PAUSE_REASONS,
   OrdemServicoExecutionResponse,
   OsExecutionAction,
-  OsExecutionService,
   OsWorkSessionResponse,
   executionBlockerLabel,
   formatExecutionDuration,
-} from './os-execution.service.types';
+} from '../models/os-execution.models';
 import { OsExecutionService } from './os-execution.service';
 
 export type OsExecutionLoadState = 'idle' | 'loading' | 'ready' | 'forbidden' | 'not-found' | 'error';
@@ -50,11 +50,13 @@ export class OsExecutionPanel implements OnChanges, OnDestroy {
   pauseOpen = false;
   pauseReason = '';
   pauseNote = '';
-  displayElapsedSeconds = 0;
+  displayTotalElapsedSeconds = 0;
+  displaySessionElapsedSeconds = 0;
 
   private clockHandle?: ReturnType<typeof setInterval>;
   private syncedAtLocalMs = 0;
-  private syncedElapsedSeconds = 0;
+  private syncedTotalElapsedSeconds = 0;
+  private syncedSessionElapsedSeconds = 0;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['osId'] && Number.isInteger(this.osId) && this.osId > 0) {
@@ -80,7 +82,7 @@ export class OsExecutionPanel implements OnChanges, OnDestroy {
       next: execution => {
         this.execution = execution;
         this.state = 'ready';
-        this.syncClock(execution.activeSession ?? null);
+        this.syncClock(execution);
         this.cdr.markForCheck();
       },
       error: error => {
@@ -205,6 +207,11 @@ export class OsExecutionPanel implements OnChanges, OnDestroy {
     return status ? labels[status] ?? status : 'Não informado';
   }
 
+  pauseReasonLabel(reason?: string | null): string {
+    if (!reason) return 'Motivo registrado';
+    return this.pauseReasons.find(option => option.value === reason)?.label ?? reason;
+  }
+
   statusTone(status?: string | null): string {
     if (status === 'CONCLUIDO' || status === 'FINALIZADA') return 'success';
     if (status === 'EM_EXECUCAO') return 'info';
@@ -219,7 +226,7 @@ export class OsExecutionPanel implements OnChanges, OnDestroy {
 
   private runCommand(
     busyKey: string,
-    request: import('rxjs').Observable<OsWorkSessionResponse>,
+    request: Observable<OsWorkSessionResponse>,
     beforeReload?: () => void
   ): void {
     if (this.busyAction) return;
@@ -244,17 +251,21 @@ export class OsExecutionPanel implements OnChanges, OnDestroy {
     });
   }
 
-  private syncClock(session: OsWorkSessionResponse | null): void {
+  private syncClock(execution: OrdemServicoExecutionResponse): void {
     this.stopClock();
-    this.syncedElapsedSeconds = session?.elapsedSeconds ?? this.execution?.summary.elapsedSeconds ?? 0;
-    this.displayElapsedSeconds = this.syncedElapsedSeconds;
+    const session = execution.activeSession ?? null;
+    this.syncedTotalElapsedSeconds = execution.summary.elapsedSeconds ?? 0;
+    this.syncedSessionElapsedSeconds = session?.elapsedSeconds ?? 0;
+    this.displayTotalElapsedSeconds = this.syncedTotalElapsedSeconds;
+    this.displaySessionElapsedSeconds = this.syncedSessionElapsedSeconds;
     this.syncedAtLocalMs = Date.now();
 
     if (session?.status !== 'EM_EXECUCAO') return;
 
     this.clockHandle = setInterval(() => {
       const localDeltaSeconds = Math.max(0, Math.floor((Date.now() - this.syncedAtLocalMs) / 1000));
-      this.displayElapsedSeconds = this.syncedElapsedSeconds + localDeltaSeconds;
+      this.displayTotalElapsedSeconds = this.syncedTotalElapsedSeconds + localDeltaSeconds;
+      this.displaySessionElapsedSeconds = this.syncedSessionElapsedSeconds + localDeltaSeconds;
       this.cdr.markForCheck();
     }, 1000);
   }
