@@ -120,6 +120,11 @@ export const routes: Routes = [
         loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
       },
       {
+        // Rota canônica documentada. /os permanece como alias de compatibilidade durante o rebuild.
+        path: 'ordens-servico',
+        loadChildren: () => import('./routes/os/os.routes').then(m => m.routes),
+      },
+      {
         path: 'os',
         loadChildren: () => import('./routes/os/os.routes').then(m => m.routes),
       },
