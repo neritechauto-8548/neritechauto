@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ItemOSProdutoResponse, ItemOSServicoResponse } from '../models/os.models';
 import {
   OsChecklistItem,
+  OsChecklistModelPage,
   OsDiagnosticRequest,
   OsDiagnosticResponse,
   OsPhotoEvidence,
@@ -45,6 +46,18 @@ export class OsOperationsService {
 
   listChecklist(osId: number): Observable<OsChecklistItem[]> {
     return this.http.get<OsChecklistItem[]>(`${this.api}/v1/ordens-servico/os-checklist/ordem-servico/${osId}`);
+  }
+
+  listChecklistModels(): Observable<OsChecklistModelPage> {
+    const params = new HttpParams().set('page', '0').set('size', '100').set('sort', 'dsChecklist,asc');
+    return this.http.get<OsChecklistModelPage>(`${this.api}/v1/ordens-servico/checklists`, { params });
+  }
+
+  applyChecklist(osId: number, checklistId: number): Observable<OsChecklistItem[]> {
+    return this.http.post<OsChecklistItem[]>(`${this.api}/v1/ordens-servico/os-checklist`, {
+      ordemServicoId: osId,
+      checklistId,
+    });
   }
 
   updateChecklistItem(item: OsChecklistItem, feito: boolean): Observable<OsChecklistItem> {
