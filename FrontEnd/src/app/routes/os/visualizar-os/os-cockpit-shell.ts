@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { ActivatedRoute } from '@angular/router';
 import { OsAdditionalPanel } from '../additional-requests/os-additional-panel';
 import { OsExecutionPanel } from '../execution/os-execution-panel';
+import { OsFinancePanel } from '../finance/os-finance-panel';
 import { OsJournalPanel } from '../journal/os-journal-panel';
 import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
 import { OsOperationsTab } from '../operations/os-operations.models';
@@ -16,7 +17,7 @@ import { VisualizarOS } from './visualizar-os';
   selector: 'os-cockpit-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, OsJournalPanel, VisualizarOS],
+  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, OsJournalPanel, OsFinancePanel, VisualizarOS],
   template: `
     <main class="canonical-cockpit-shell">
       <div *ngIf="state === 'loading'" class="shell-state" role="status" aria-live="polite">
@@ -34,17 +35,19 @@ import { VisualizarOS } from './visualizar-os';
         <os-cockpit-overview [cockpit]="cockpit" />
         <os-execution-panel [osId]="cockpit.id" />
 
+        <os-finance-panel *ngIf="financeFirst" [osId]="cockpit.id" />
         <os-journal-panel *ngIf="journalFirst" [osId]="cockpit.id" />
         <os-additional-panel *ngIf="additionalFirst" [osId]="cockpit.id" />
         <os-operations-panel [osId]="cockpit.id" [initialTab]="operationsTab" />
         <os-additional-panel *ngIf="!additionalFirst" [osId]="cockpit.id" />
         <os-journal-panel *ngIf="!journalFirst" [osId]="cockpit.id" />
+        <os-finance-panel *ngIf="!financeFirst" [osId]="cockpit.id" />
 
         <details class="legacy-details">
           <summary>
             <span>
               <strong>Recursos adicionais ainda em migração</strong>
-              <small>Financeiro, impressão, comunicação, fiscal e demais fluxos legados permanecem acessíveis durante o rebuild.</small>
+              <small>Impressão, comunicação, fiscal e demais fluxos legados permanecem acessíveis durante o rebuild.</small>
             </span>
             <span class="legacy-badge">Legado controlado</span>
           </summary>
@@ -82,6 +85,7 @@ export class OsCockpitShell implements OnInit {
   operationsTab: OsOperationsTab = 'scope';
   additionalFirst = false;
   journalFirst = false;
+  financeFirst = false;
   state: CockpitLoadState = 'idle';
   message = '';
 
@@ -91,6 +95,7 @@ export class OsCockpitShell implements OnInit {
     const focusSection = this.route.snapshot.data['focusSection'];
     this.additionalFirst = focusSection === 'additional';
     this.journalFirst = focusSection === 'journal';
+    this.financeFirst = focusSection === 'finance';
 
     const rawId = this.route.snapshot.paramMap.get('id');
     const id = rawId ? Number(rawId) : Number.NaN;
