@@ -35,9 +35,9 @@ import { VisualizarOS } from './visualizar-os';
       <ng-container *ngIf="cockpit && state === 'ready'">
         <os-cockpit-overview [cockpit]="cockpit" />
 
-        <div class="transition-note" role="note">
+        <div class="details-heading">
           <strong>Detalhes operacionais</strong>
-          <span>As seções abaixo continuam disponíveis enquanto a Visão 360 é migrada progressivamente para o read model composto.</span>
+          <span>Itens, inspeções, evidências, observações e informações relacionadas à execução.</span>
         </div>
 
         <section class="legacy-detail-sections" aria-label="Detalhes operacionais da Ordem de Serviço">
@@ -58,11 +58,11 @@ import { VisualizarOS } from './visualizar-os';
     .shell-error.is-conflict { border-color:#fde68a; background:#fffbeb; color:#92400e; }
     .shell-error strong { font-size:.9rem; } .shell-error span { font-size:.8rem; }
     .shell-error button { margin-top:.35rem; border:1px solid currentColor; border-radius:8px; background:transparent; padding:.4rem .65rem; color:inherit; font-size:.72rem; font-weight:800; cursor:pointer; }
-    .transition-note { display:flex; align-items:center; gap:.6rem; margin:.25rem 1.5rem 0; border-top:1px solid #e2e8f0; padding:1rem 0 .25rem; color:#64748b; }
-    .transition-note strong { color:#334155; font-size:.75rem; } .transition-note span { font-size:.7rem; }
+    .details-heading { display:flex; align-items:center; gap:.6rem; margin:.25rem 1.5rem 0; border-top:1px solid #e2e8f0; padding:1rem 0 .25rem; color:#64748b; }
+    .details-heading strong { color:#334155; font-size:.75rem; } .details-heading span { font-size:.7rem; }
     .legacy-detail-sections { margin-top:.25rem; }
     @keyframes pulse { from { background-position:200% 0; } to { background-position:-200% 0; } }
-    @media(max-width:800px){ .shell-state,.shell-error,.transition-note{ margin-left:1rem; margin-right:1rem; } .transition-note{ align-items:flex-start; flex-direction:column; gap:.2rem; } }
+    @media(max-width:800px){ .shell-state,.shell-error,.details-heading{ margin-left:1rem; margin-right:1rem; } .details-heading{ align-items:flex-start; flex-direction:column; gap:.2rem; } }
   `,
 })
 export class OsCockpitShell implements OnInit {
