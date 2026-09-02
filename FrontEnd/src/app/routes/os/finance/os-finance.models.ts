@@ -1,6 +1,6 @@
-export type OsFinanceState = 'idle' | 'loading' | 'ready' | 'forbidden' | 'error';
+export type EstadoFinanceiroOS = 'ocioso' | 'carregando' | 'pronto' | 'proibido' | 'erro';
 
-export interface OsInvoiceSummary {
+export interface ResumoFaturaOS {
   id: number;
   numeroFatura?: string | null;
   ordemServicoId?: number | null;
@@ -14,7 +14,7 @@ export interface OsInvoiceSummary {
   condicaoPagamentoNome?: string | null;
 }
 
-export interface OsPaymentSummary {
+export interface ResumoPagamentoOS {
   id: number;
   faturaId?: number | null;
   osId?: number | null;
@@ -25,8 +25,8 @@ export interface OsPaymentSummary {
   contaBancariaNome?: string | null;
 }
 
-export interface OsPaymentsPage {
-  content: OsPaymentSummary[];
+export interface PaginaPagamentosOS {
+  content: ResumoPagamentoOS[];
   totalElements?: number;
   totalPages?: number;
   number?: number;
