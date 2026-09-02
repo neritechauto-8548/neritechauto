@@ -65,6 +65,15 @@ export class AuthService {
     return this.user$.pipe(share());
   }
 
+  /**
+   * Leitura síncrona somente do usuário já materializado pelo bootstrap.
+   * Serviços que ainda precisam enviar o identificador da empresa para APIs
+   * legadas devem derivá-lo daqui, nunca de localStorage nem de valor default.
+   */
+  snapshot(): Readonly<User> {
+    return this.user$.getValue();
+  }
+
   menu() {
     return iif(() => this.check(), this.loginService.menu(), of([]));
   }
