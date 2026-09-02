@@ -1,0 +1,69 @@
+<section class="closure-panel" aria-labelledby="closure-title">
+  <header>
+    <div>
+      <span class="eyebrow">Revisão operacional</span>
+      <h2 id="closure-title">Fechamento da Ordem de Serviço</h2>
+      <p>Esta visão consolida a prontidão informada pelo backend. O navegador não conclui a OS por conta própria.</p>
+    </div>
+    <span class="readiness-badge">{{ readinessLabel }}</span>
+  </header>
+
+  <div class="summary-grid">
+    <article>
+      <span>Execução</span>
+      <strong>{{ executionProgress }}%</strong>
+      <small>{{ executionDone ? 'Execução concluída' : 'Execução ainda em andamento' }}</small>
+    </article>
+    <article>
+      <span>Aprovações pendentes</span>
+      <strong>{{ pendingApprovals }}</strong>
+      <small>decisões ainda abertas</small>
+    </article>
+    <article>
+      <span>Blockers ativos</span>
+      <strong>{{ blockers.length }}</strong>
+      <small>informados pelo read model</small>
+    </article>
+    <article>
+      <span>Fontes parciais</span>
+      <strong>{{ cockpit.partialSources?.length || 0 }}</strong>
+      <small>dependências degradadas</small>
+    </article>
+  </div>
+
+  <div *ngIf="hasPartialSources" class="review-state warning" role="status">
+    <nt-icon name="alert-triangle" [size]="19" />
+    <div>
+      <strong>Não é seguro avaliar fechamento com fontes incompletas</strong>
+      <span>Fontes indisponíveis: {{ cockpit.partialSources?.join(', ') }}.</span>
+    </div>
+  </div>
+
+  <div *ngIf="blockers.length" class="blocker-list">
+    <div class="blocker-heading">
+      <strong>Pendências que bloqueiam o fluxo</strong>
+      <span>Esses blockers vieram do backend e não são inferidos pelo Angular.</span>
+    </div>
+    <article *ngFor="let blocker of blockers">
+      <nt-icon name="alert-triangle" [size]="17" />
+      <div><strong>{{ blocker.label }}</strong><span>{{ blocker.code }}</span></div>
+    </article>
+  </div>
+
+  <div *ngIf="!blockers.length && !hasPartialSources" class="review-state success" role="status">
+    <nt-icon name="shield-check" [size]="19" />
+    <div>
+      <strong>Nenhum blocker explícito retornado</strong>
+      <span>Isso não equivale automaticamente a uma OS concluível; a ação final depende de `allowedActions` do backend.</span>
+    </div>
+  </div>
+
+  <div class="final-action" [class.enabled]="backendAllowsClosure">
+    <div>
+      <strong>{{ backendAllowsClosure ? 'Backend sinalizou ação de fechamento' : 'Comando de fechamento ainda indisponível' }}</strong>
+      <span *ngIf="!backendAllowsClosure">A interface não criará um botão mutável até o backend expor uma ação autorizada e transacional para esta OS.</span>
+      <span *ngIf="backendAllowsClosure">A ação foi reconhecida em `allowedActions`; o comando específico ainda precisa estar conectado ao endpoint transacional correspondente.</span>
+    </div>
+    <button type="button" disabled>Finalizar OS</button>
+  </div>
+</section>
