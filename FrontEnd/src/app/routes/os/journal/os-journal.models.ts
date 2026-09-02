@@ -1,15 +1,15 @@
-export type OsJournalState = 'idle' | 'loading' | 'ready' | 'forbidden' | 'error';
+export type EstadoDiarioOS = 'ocioso' | 'carregando' | 'pronto' | 'proibido' | 'erro';
 
-export interface OsComment {
+export interface ComentarioOrdemServico {
   id: number;
   ordemServicoId: number;
-  authorUserId: number;
-  authorName: string;
-  content: string;
-  visibility: 'INTERNAL';
-  createdAt: string;
+  usuarioAutorId: number;
+  nomeAutor: string;
+  conteudo: string;
+  visibilidade: 'INTERNO';
+  dataCadastro: string;
 }
 
-export interface OsCommentCreateRequest {
-  content: string;
+export interface ComentarioOrdemServicoCriacao {
+  conteudo: string;
 }
