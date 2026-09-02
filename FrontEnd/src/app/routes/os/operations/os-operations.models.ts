@@ -15,6 +15,23 @@ export interface OsChecklistItem {
   dataAtualizacao?: string | null;
 }
 
+export interface OsChecklistModel {
+  id: number;
+  empresaId: number;
+  dsChecklist: string;
+  urlImagem?: string | null;
+  dataCadastro?: string | null;
+  dataAtualizacao?: string | null;
+}
+
+export interface OsChecklistModelPage {
+  content: OsChecklistModel[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 export interface OsPhotoEvidence {
   id: number;
   empresaId: number;
