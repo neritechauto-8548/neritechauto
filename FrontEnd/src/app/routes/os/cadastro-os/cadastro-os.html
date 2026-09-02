@@ -1,214 +1,272 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
-
+<section class="os-editor-page" aria-labelledby="os-editor-title">
   <p-confirmDialog [style]="{width: '450px'}" />
   <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
 
-  <!-- Action Bar (Sticky Top) — padrão cadastro-veiculo -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
-    <div class="flex items-center gap-4">
-      <button (click)="voltar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
-        <i class="pi pi-arrow-left text-sm"></i>
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Movimentação"
+    [title]="pageTitle"
+    titleId="os-editor-title"
+    [description]="pageDescription"
+  >
+    <div pageHeaderActions class="os-header-actions">
+      <button type="button" class="nt-button nt-button--secondary" (click)="voltar()">
+        <nt-icon name="arrow-left" [size]="17" />
+        Voltar
       </button>
-      <div>
-        <h1 class="text-base font-semibold text-slate-900 leading-tight">
-          {{ osId ? ('Editando OS #' + (osData?.numeroOS || '')) : (isCriarOrcamento ? 'Novo Orçamento' : 'Nova Ordem de Serviço') }}
-        </h1>
-        <span class="text-xs text-slate-500 font-normal">
-          {{ osId ? 'Editando registro #' + osId : 'Preencha os dados abaixo' }}
-        </span>
-      </div>
-    </div>
 
-    <div class="flex gap-3 items-center">
-      <!-- Excluir (apenas edição) -->
-      <button *ngIf="osId" (click)="excluirOS()"
-        class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-        <i class="pi pi-trash text-[13px]"></i> Excluir
-      </button>
-      <!-- Imprimir / Orçamento (apenas edição) -->
+      @if (osId && canPrintOS && !isOrcamento) {
+        <button type="button" class="nt-button nt-button--secondary" (click)="imprimirOS()" [disabled]="loading">
+          <nt-icon name="printer" [size]="17" />
+          Imprimir
+        </button>
+      }
 
-      <button *ngIf="osId && !isOrcamento" (click)="imprimirOS()"
-        class="px-3.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-50 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-        <i class="pi pi-print text-[13px]"></i> Imprimir
-      </button>
-      <div *ngIf="osId" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-      <button (click)="voltar()"
-        class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
-        Cancelar
-      </button>
-      <button (click)="salvarHeader()" [disabled]="loading"
-        class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
-        <i class="pi pi-check text-xs" *ngIf="!loading"></i>
-        <i class="pi pi-spin pi-spinner text-xs" *ngIf="loading"></i>
-        {{ loading ? 'Salvando...' : (osId ? 'Salvar Alterações' : (isCriarOrcamento ? 'Criar Orçamento' : 'Criar OS e Avançar')) }}
+      @if (osId && canDeleteOS) {
+        <button type="button" class="nt-button os-danger-button" (click)="excluirOS()" [disabled]="loading">
+          <nt-icon name="trash" [size]="17" />
+          Excluir
+        </button>
+      }
+
+      <button type="button" class="nt-button nt-button--primary" (click)="salvarHeader()" [disabled]="loading">
+        @if (loading) {
+          <span class="os-button-spinner" aria-hidden="true"></span>
+        } @else {
+          <nt-icon name="check" [size]="17" />
+        }
+        {{ loading ? 'Salvando...' : (osId ? 'Salvar alterações' : 'Criar OS') }}
       </button>
     </div>
+  </page-header>
+
+  <div class="os-context-strip" role="status">
+    <span class="os-context-pill">
+      <nt-icon name="shield-check" [size]="16" />
+      Empresa derivada da sessão
+    </span>
+    <span class="os-context-pill os-context-pill--muted">
+      <nt-icon name="users" [size]="16" />
+      {{ osForm.get('funcionario')?.value || 'Responsável ainda não definido' }}
+    </span>
+    @if (osId) {
+      <span class="os-context-pill os-context-pill--muted">
+        Registro #{{ osId }}
+      </span>
+    }
   </div>
 
-  <div [formGroup]="osForm" class="p-6 w-full space-y-6 mx-auto">
+  <form [formGroup]="osForm" class="os-form-stack" (ngSubmit)="salvarHeader()">
+    <section class="os-form-card" aria-labelledby="os-identificacao-title">
+      <header class="os-form-card__header">
+        <span class="os-form-card__icon"><nt-icon name="clipboard-check" [size]="20" /></span>
+        <div>
+          <h2 id="os-identificacao-title">Identificação da OS</h2>
+          <p>Número, tipo, status e responsável pelo atendimento.</p>
+        </div>
+      </header>
 
-    <!-- Seção: Identificação -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-        <h3 class="font-bold text-slate-800 text-sm">Identificação da OS</h3>
+      <div class="os-form-grid os-form-grid--four">
+        <div class="os-field">
+          <label for="os-numero">Número da OS</label>
+          <input id="os-numero" pInputText formControlName="numeroOS" class="w-full modern-input" readonly />
+          <small>Identificador operacional da ordem.</small>
+        </div>
+
+        <div class="os-field">
+          <label for="os-tipo">Tipo da OS <span aria-hidden="true">*</span></label>
+          <p-select
+            inputId="os-tipo"
+            formControlName="tipoOS"
+            [options]="tipoOSOptions"
+            placeholder="Selecione o tipo"
+            styleClass="w-full modern-select"
+            appendTo="body"
+            [disabled]="!!osId || lockTipoOS"
+          />
+        </div>
+
+        <div class="os-field">
+          <label for="os-status">Status</label>
+          <p-select
+            inputId="os-status"
+            formControlName="statusId"
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione o status"
+            styleClass="w-full modern-select"
+            appendTo="body"
+          />
+        </div>
+
+        <div class="os-field">
+          <label for="os-responsavel">Responsável</label>
+          <p-select
+            inputId="os-responsavel"
+            formControlName="funcionario"
+            [options]="funcionarios"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Responsável pelo atendimento"
+            styleClass="w-full modern-select"
+            appendTo="body"
+          />
+          <small>Inicialmente usa o usuário autenticado, sem valor fixo no frontend.</small>
+        </div>
       </div>
-      <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+    </section>
 
-        <!-- Número OS -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Número OS</label>
-          <input pInputText formControlName="numeroOS" class="w-full modern-input" readonly />
+    <section class="os-form-card" aria-labelledby="os-contexto-title">
+      <header class="os-form-card__header">
+        <span class="os-form-card__icon"><nt-icon name="car" [size]="20" /></span>
+        <div>
+          <h2 id="os-contexto-title">Cliente e veículo</h2>
+          <p>Vincule a OS ao contexto correto antes de registrar execução ou peças.</p>
         </div>
+      </header>
 
-        <!-- Tipo OS -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Tipo OS *</label>
-          <p-select formControlName="tipoOS" [options]="tipoOSOptions"
-            placeholder="Selecione..." styleClass="w-full modern-select"
-            appendTo="body" [disabled]="!!osId || lockTipoOS" />
-        </div>
-
-        <!-- Status -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Status</label>
-          <p-select formControlName="statusId" [options]="statusOptions"
-            optionLabel="label" optionValue="value"
-            styleClass="w-full modern-select" appendTo="body" />
-        </div>
-
-        <!-- Responsável -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Responsável</label>
-          <p-select formControlName="funcionario" [options]="funcionarios"
-            styleClass="w-full modern-select" appendTo="body" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Seção: Cliente e Veículo -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-        <h3 class="font-bold text-slate-800 text-sm">Cliente e Veículo</h3>
-      </div>
-      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Cliente -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Cliente *</label>
-          <p-autoComplete formControlName="cliente"
+      <div class="os-form-grid os-form-grid--two">
+        <div class="os-field">
+          <label for="os-cliente">Cliente <span aria-hidden="true">*</span></label>
+          <p-autoComplete
+            inputId="os-cliente"
+            formControlName="cliente"
             [suggestions]="clientesFiltrados"
             (completeMethod)="filtrarClientes($event)"
             (onSelect)="onClienteSelect($event)"
             optionLabel="displayName"
-            placeholder="Busca de cliente..."
+            placeholder="Busque por nome ou documento"
             [forceSelection]="true"
             inputStyleClass="w-full modern-input"
             styleClass="w-full"
             [dropdown]="true"
             appendTo="body"
-            [disabled]="!!osId">
+            [disabled]="!!osId"
+          >
             <ng-template let-cli pTemplate="item">
-              <div class="flex flex-col py-1">
-                <span class="font-bold text-sm text-slate-900">{{ cli.displayName || cli.razaoSocial || cli.nomeFantasia || cli.nomeCompleto }}</span>
-                <span class="text-xs text-slate-500">{{ cli.cpf || cli.cnpj }}</span>
+              <div class="os-autocomplete-option">
+                <strong>{{ cli.displayName || cli.razaoSocial || cli.nomeFantasia || cli.nomeCompleto }}</strong>
+                <span>{{ cli.cpf || cli.cnpj || 'Documento não disponível' }}</span>
               </div>
             </ng-template>
           </p-autoComplete>
         </div>
 
-        <!-- Veículo -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Veículo</label>
-          <p-select formControlName="veiculoId" [options]="veiculos"
+        <div class="os-field">
+          <label for="os-veiculo">Veículo</label>
+          <p-select
+            inputId="os-veiculo"
+            formControlName="veiculoId"
+            [options]="veiculos"
+            optionLabel="label"
+            optionValue="value"
             placeholder="Selecione o veículo"
             styleClass="w-full modern-select"
             appendTo="body"
-            [disabled]="!osForm.get('cliente')?.value" />
+            [disabled]="!osForm.get('cliente')?.value"
+          />
         </div>
 
-        <!-- KM Entrada -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">KM Entrada</label>
-          <p-inputNumber formControlName="km" styleClass="w-full" inputStyleClass="modern-input w-full" />
+        <div class="os-field">
+          <label for="os-km">Quilometragem de entrada</label>
+          <p-inputNumber
+            inputId="os-km"
+            formControlName="km"
+            [min]="0"
+            [useGrouping]="true"
+            suffix=" km"
+            styleClass="w-full"
+            inputStyleClass="modern-input w-full"
+          />
         </div>
 
-        <!-- Checkboxes -->
-        <div class="flex items-center gap-6 pt-5">
-          <div class="flex items-center gap-2">
+        <div class="os-choice-panel" aria-label="Características da entrada do veículo">
+          <label class="os-choice">
             <p-checkbox formControlName="reservico" [binary]="true" inputId="reservico" />
-            <label for="reservico" class="text-sm font-medium text-slate-700 cursor-pointer">Retorno/Garantia</label>
-          </div>
-          <div class="flex items-center gap-2">
+            <span>
+              <strong>Retorno / garantia</strong>
+              <small>Atendimento relacionado a serviço anterior.</small>
+            </span>
+          </label>
+          <label class="os-choice">
             <p-checkbox formControlName="reboque" [binary]="true" inputId="reboque" />
-            <label for="reboque" class="text-sm font-medium text-slate-700 cursor-pointer">Veio de Reboque</label>
-          </div>
+            <span>
+              <strong>Veículo chegou de reboque</strong>
+              <small>Sinaliza condição especial de entrada.</small>
+            </span>
+          </label>
         </div>
       </div>
+    </section>
+
+    <section class="os-form-card" aria-labelledby="os-prazos-title">
+      <header class="os-form-card__header">
+        <span class="os-form-card__icon"><nt-icon name="calendar" [size]="20" /></span>
+        <div>
+          <h2 id="os-prazos-title">Entrada e previsão</h2>
+          <p>Datas operacionais usadas para acompanhamento e compromisso com o cliente.</p>
+        </div>
+      </header>
+
+      <div class="os-form-grid os-form-grid--four">
+        <div class="os-field">
+          <label for="os-data-entrada">Data de entrada</label>
+          <p-datepicker inputId="os-data-entrada" formControlName="dataEntrada" dateFormat="dd/mm/yy" styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+
+        <div class="os-field">
+          <label for="os-hora-entrada">Hora de entrada</label>
+          <p-inputMask inputId="os-hora-entrada" mask="99:99" formControlName="horaEntrada" styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+
+        <div class="os-field">
+          <label for="os-data-previsao">Previsão de entrega</label>
+          <p-datepicker inputId="os-data-previsao" formControlName="dataPrevisao" dateFormat="dd/mm/yy" styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+
+        <div class="os-field">
+          <label for="os-hora-previsao">Hora prevista</label>
+          <p-inputMask inputId="os-hora-previsao" mask="99:99" formControlName="horaPrevisao" styleClass="w-full" inputStyleClass="modern-input" />
+        </div>
+      </div>
+    </section>
+
+    <section class="os-form-card" aria-labelledby="os-observacoes-title">
+      <header class="os-form-card__header">
+        <span class="os-form-card__icon"><nt-icon name="file-invoice" [size]="20" /></span>
+        <div>
+          <h2 id="os-observacoes-title">Observações</h2>
+          <p>Separe informações internas do conteúdo que pode ser apresentado ao cliente.</p>
+        </div>
+      </header>
+
+      <div class="os-form-grid os-form-grid--two">
+        <div class="os-field">
+          <label for="os-observacao-interna">Defeito relatado / observação interna</label>
+          <textarea id="os-observacao-interna" pTextarea formControlName="observacaoInterna" rows="5" class="w-full modern-input"></textarea>
+          <small>Conteúdo operacional interno; não deve aparecer automaticamente para o cliente.</small>
+        </div>
+
+        <div class="os-field">
+          <label for="os-observacao-cliente">Observações para o cliente</label>
+          <textarea id="os-observacao-cliente" pTextarea formControlName="descricaoCliente" rows="5" class="w-full modern-input"></textarea>
+          <small>Conteúdo destinado à visualização ou impressão da OS.</small>
+        </div>
+      </div>
+    </section>
+
+    <div class="os-mobile-actions">
+      <button type="button" class="nt-button nt-button--secondary" (click)="voltar()">Cancelar</button>
+      <button type="submit" class="nt-button nt-button--primary" [disabled]="loading">
+        @if (!loading) { <nt-icon name="check" [size]="17" /> }
+        {{ loading ? 'Salvando...' : (osId ? 'Salvar alterações' : 'Criar OS') }}
+      </button>
     </div>
+  </form>
 
-    <!-- Seção: Datas -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-        <h3 class="font-bold text-slate-800 text-sm">Datas e Horários</h3>
-      </div>
-      <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-
-        <!-- Data Entrada -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Data Entrada</label>
-          <p-datepicker formControlName="dataEntrada" dateFormat="dd/mm/yy"
-            styleClass="w-full" inputStyleClass="modern-input" />
-        </div>
-
-        <!-- Hora Entrada -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Hora Entrada</label>
-          <p-inputMask mask="99:99" formControlName="horaEntrada"
-            styleClass="w-full" inputStyleClass="modern-input" />
-        </div>
-
-        <!-- Previsão Entrega -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Previsão Entrega</label>
-          <p-datepicker formControlName="dataPrevisao" dateFormat="dd/mm/yy"
-            styleClass="w-full" inputStyleClass="modern-input" />
-        </div>
-
-        <!-- Hora Previsão -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Hora</label>
-          <p-inputMask mask="99:99" formControlName="horaPrevisao"
-            styleClass="w-full" inputStyleClass="modern-input" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Seção: Observações -->
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-        <h3 class="font-bold text-slate-800 text-sm">Observações</h3>
-      </div>
-      <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Defeito Relatado / Observação Interna</label>
-          <textarea pTextarea formControlName="observacaoInterna" rows="4"
-            class="w-full modern-input"></textarea>
-        </div>
-
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-slate-700">Observações para o Cliente (impresso na OS)</label>
-          <textarea pTextarea formControlName="descricaoCliente" rows="4"
-            class="w-full modern-input"></textarea>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- DIALOGS — mantidos inalterados -->
-
-  <!-- Add Produto -->
+  <!-- Diálogos de itens e formalização permanecem funcionais enquanto entram no próximo bloco visual. -->
   <p-dialog [(visible)]="dialogProdutoVisible" header="Adicionar Produto" [modal]="true" [style]="{width: '500px'}">
     <form [formGroup]="produtoForm" class="flex flex-col gap-4 pt-2">
       <div>
@@ -246,7 +304,6 @@
     </ng-template>
   </p-dialog>
 
-  <!-- Add Serviço -->
   <p-dialog [(visible)]="dialogServicoVisible" header="Adicionar Serviço" [modal]="true" [style]="{width: '500px'}">
     <form [formGroup]="servicoForm" class="flex flex-col gap-4 pt-2">
       <div>
@@ -277,7 +334,6 @@
     </ng-template>
   </p-dialog>
 
-  <!-- Formalizar Orçamento -->
   <p-dialog [(visible)]="dialogOrcamentoVisible" header="Formalizar Proposta" [modal]="true" [style]="{width: '600px'}">
     <form [formGroup]="orcamentoForm" class="flex flex-col gap-4 pt-2">
       <div class="grid grid-cols-2 gap-4">
@@ -301,8 +357,7 @@
     </form>
     <ng-template pTemplate="footer">
       <button pButton label="Cancelar" (click)="dialogOrcamentoVisible = false" class="p-button-text"></button>
-      <button pButton label="Gerar Proposta PDF" icon="pi pi-file-pdf" (click)="gerarProposta()" [disabled]="orcamentoForm.invalid"></button>
+      <button pButton label="Gerar Proposta PDF" (click)="gerarProposta()" [disabled]="orcamentoForm.invalid"></button>
     </ng-template>
   </p-dialog>
-
-</div>
+</section>
