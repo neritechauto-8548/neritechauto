@@ -27,36 +27,36 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar usuários", description = "Retorna todos os usuários da empresa")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Listar usuários", description = "Retorna os usuários da empresa autenticada")
     public ResponseEntity<List<UsuarioResponse>> findAll() {
         return ResponseEntity.ok(usuarioService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Buscar usuário", description = "Busca um usuário pelo ID")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Buscar usuário", description = "Busca um usuário da empresa autenticada pelo ID")
     public ResponseEntity<UsuarioResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.findById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
-    @Operation(summary = "Criar usuário", description = "Cria um novo usuário")
+    @Operation(summary = "Criar usuário", description = "Cria um novo usuário na empresa autenticada")
     public ResponseEntity<UsuarioResponse> create(@RequestBody @Valid UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.create(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
-    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário")
+    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário da empresa autenticada")
     public ResponseEntity<UsuarioResponse> update(@PathVariable Long id, @RequestBody @Valid UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
-    @Operation(summary = "Inativar usuário", description = "Inativa um usuário (soft delete)")
+    @Operation(summary = "Inativar usuário", description = "Inativa um usuário da empresa autenticada (soft delete)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         usuarioService.delete(id);
         return ResponseEntity.noContent().build();
