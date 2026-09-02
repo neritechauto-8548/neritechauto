@@ -133,7 +133,7 @@ export class OrdemServico implements OnInit {
   }
 
   visualizarOS(row: OrdemServicoListRow) {
-    this.router.navigate(['/os/visualizar-os', row.id], {
+    this.router.navigate(['/ordens-servico', row.id], {
       state: { returnUrl: this.router.url },
     });
   }
