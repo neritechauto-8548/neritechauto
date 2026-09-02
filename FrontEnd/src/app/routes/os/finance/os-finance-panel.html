@@ -1,0 +1,83 @@
+<section class="finance-panel" aria-labelledby="finance-title">
+  <header class="finance-header">
+    <div class="finance-heading">
+      <span class="icon-box"><nt-icon name="cash" [size]="19" /></span>
+      <div>
+        <span class="eyebrow">Financeiro da OS</span>
+        <h2 id="finance-title">Fatura e recebimentos</h2>
+        <p>Resumo somente leitura. Baixas e alterações continuam no módulo Financeiro até a migração segura do fluxo transacional.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button *ngIf="state === 'ready' || state === 'error'" type="button" class="secondary-button" (click)="load()">
+        <nt-icon name="refresh" [size]="16" /> Atualizar
+      </button>
+      <button *ngIf="canOpenFinance && state === 'ready'" type="button" class="primary-button" (click)="openFinance()">
+        <nt-icon name="external-link" [size]="15" /> Abrir Financeiro
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="state === 'loading'" class="finance-loading" role="status" aria-live="polite">
+    <div class="skeleton summary"></div><div class="skeleton row"></div><span>Carregando situação financeira…</span>
+  </div>
+
+  <div *ngIf="state === 'forbidden' || state === 'error'" class="finance-state" role="alert">
+    <nt-icon [name]="state === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
+    <div><strong>{{ state === 'forbidden' ? 'Financeiro restrito' : 'Financeiro indisponível' }}</strong><span>{{ message }}</span></div>
+    <button *ngIf="state === 'error'" type="button" class="secondary-button" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <ng-container *ngIf="state === 'ready'">
+    <div *ngIf="!invoice && !payments.length" class="finance-empty">
+      <nt-icon name="receipt" [size]="28" />
+      <strong>Financeiro ainda não gerado</strong>
+      <span>Nenhuma fatura ou recebimento foi encontrado para esta Ordem de Serviço. O fluxo financeiro não é criado silenciosamente por esta tela.</span>
+    </div>
+
+    <ng-container *ngIf="invoice || payments.length">
+      <div class="summary-grid">
+        <article>
+          <span>Valor da fatura</span>
+          <strong>{{ (invoice?.valorTotal || 0) | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <small>{{ invoice?.numeroFatura || 'Fatura vinculada à OS' }}</small>
+        </article>
+        <article>
+          <span>Recebido confirmado</span>
+          <strong>{{ paidTotal | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <small>{{ payments.length }} registro(s) localizado(s)</small>
+        </article>
+        <article>
+          <span>Saldo pendente</span>
+          <strong>{{ pendingTotal | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <small *ngIf="invoice?.dataVencimento">Vencimento {{ invoice?.dataVencimento | date:'dd/MM/yyyy' }}</small>
+          <small *ngIf="!invoice?.dataVencimento">Vencimento não informado</small>
+        </article>
+        <article>
+          <span>Situação</span>
+          <strong class="status" [attr.data-tone]="statusTone(invoice?.status)">{{ statusLabel(invoice?.status) }}</strong>
+          <small>{{ invoice?.formaPagamentoNome || 'Forma de pagamento não informada' }}</small>
+        </article>
+      </div>
+
+      <div class="payments-card">
+        <header><div><span class="eyebrow">Movimentação</span><h3>Recebimentos vinculados</h3></div><span class="count-badge">{{ payments.length }}</span></header>
+        <div *ngIf="!payments.length" class="compact-empty">Nenhum recebimento registrado para esta OS.</div>
+        <div *ngIf="payments.length" class="payment-list">
+          <article *ngFor="let payment of payments; trackBy: trackById" class="payment-row">
+            <div class="payment-main">
+              <strong>{{ payment.valorTotal || 0 | currency:'BRL':'symbol':'1.2-2' }}</strong>
+              <span>{{ payment.formaPagamentoNome || 'Forma não informada' }}<ng-container *ngIf="payment.contaBancariaNome"> · {{ payment.contaBancariaNome }}</ng-container></span>
+            </div>
+            <div class="payment-meta">
+              <span class="status" [attr.data-tone]="statusTone(payment.status)">{{ statusLabel(payment.status) }}</span>
+              <time *ngIf="payment.dataPagamento">{{ payment.dataPagamento | date:'dd/MM/yyyy' }}</time>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <p class="authority-note"><nt-icon name="shield-check" [size]="15" /> Esta seção não confirma pagamento, não baixa título e não altera caixa. A autoridade transacional permanece no módulo Financeiro.</p>
+    </ng-container>
+  </ng-container>
+</section>
