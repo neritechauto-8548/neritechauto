@@ -34,6 +34,25 @@ describe('OS route contract', () => {
     }
   });
 
+  it('maps cockpit focus routes without creating parallel shells', async () => {
+    const expected = [
+      { path: ':id/adicionais', focus: 'additional' },
+      { path: ':id/historico', focus: 'journal' },
+      { path: ':id/financeiro', focus: 'finance' },
+      { path: ':id/comunicacao', focus: 'communication' },
+      { path: ':id/revisao', focus: 'closure' },
+    ];
+
+    for (const contract of expected) {
+      const route = routes.find(candidate => candidate.path === contract.path);
+      expect(route).withContext(`Rota focada ausente: ${contract.path}`).toBeDefined();
+      expect(route?.canActivate).toContain(permissionGuard);
+      expect(route?.data?.['focusSection']).toBe(contract.focus);
+      const component = await route!.loadComponent!();
+      expect((component as any).name).toBe('OsCockpitShell');
+    }
+  });
+
   it('keeps legacy cockpit aliases while the application is rebuilt', async () => {
     for (const path of ['visualizar-os/:numero', 'visualizar-editar-os/:numero']) {
       const route = routes.find(candidate => candidate.path === path);
@@ -48,11 +67,11 @@ describe('OS route contract', () => {
 
   it('keeps static and deep routes before the dynamic cockpit route', () => {
     const cadastroIndex = routes.findIndex(route => route.path === 'cadastro');
-    const checklistIndex = routes.findIndex(route => route.path === ':id/checklists');
+    const revisaoIndex = routes.findIndex(route => route.path === ':id/revisao');
     const dynamicIndex = routes.findIndex(route => route.path === ':id');
 
     expect(cadastroIndex).toBeGreaterThanOrEqual(0);
-    expect(checklistIndex).toBeGreaterThan(cadastroIndex);
-    expect(dynamicIndex).toBeGreaterThan(checklistIndex);
+    expect(revisaoIndex).toBeGreaterThan(cadastroIndex);
+    expect(dynamicIndex).toBeGreaterThan(revisaoIndex);
   });
 });
