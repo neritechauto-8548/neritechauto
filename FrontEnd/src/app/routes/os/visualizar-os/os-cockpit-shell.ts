@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { OsAdditionalPanel } from '../additional-requests/os-additional-panel';
+import { OsClosureReview } from '../closure/os-closure-review';
+import { OsCommunicationPanel } from '../communication/os-communication-panel';
 import { OsExecutionPanel } from '../execution/os-execution-panel';
 import { PainelFinanceiroOrdemServico } from '../finance/os-finance-panel';
 import { PainelDiarioOrdemServico } from '../journal/os-journal-panel';
@@ -17,7 +19,18 @@ import { VisualizarOS } from './visualizar-os';
   selector: 'os-cockpit-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, PainelDiarioOrdemServico, PainelFinanceiroOrdemServico, VisualizarOS],
+  imports: [
+    CommonModule,
+    OsCockpitOverview,
+    OsExecutionPanel,
+    OsOperationsPanel,
+    OsAdditionalPanel,
+    PainelDiarioOrdemServico,
+    PainelFinanceiroOrdemServico,
+    OsCommunicationPanel,
+    OsClosureReview,
+    VisualizarOS,
+  ],
   template: `
     <main class="canonical-cockpit-shell">
       <div *ngIf="estado === 'loading'" class="shell-state" role="status" aria-live="polite">
@@ -35,19 +48,24 @@ import { VisualizarOS } from './visualizar-os';
         <os-cockpit-overview [cockpit]="visao360" />
         <os-execution-panel [osId]="visao360.id" />
 
+        <os-closure-review *ngIf="revisaoPrimeiro" [cockpit]="visao360" />
+        <os-communication-panel *ngIf="comunicacaoPrimeiro" [osId]="visao360.id" />
         <os-finance-panel *ngIf="financeiroPrimeiro" [osId]="visao360.id" />
         <os-journal-panel *ngIf="diarioPrimeiro" [osId]="visao360.id" />
         <os-additional-panel *ngIf="adicionaisPrimeiro" [osId]="visao360.id" />
+
         <os-operations-panel [osId]="visao360.id" [initialTab]="abaOperacoes" />
         <os-additional-panel *ngIf="!adicionaisPrimeiro" [osId]="visao360.id" />
         <os-journal-panel *ngIf="!diarioPrimeiro" [osId]="visao360.id" />
         <os-finance-panel *ngIf="!financeiroPrimeiro" [osId]="visao360.id" />
+        <os-communication-panel *ngIf="!comunicacaoPrimeiro" [osId]="visao360.id" />
+        <os-closure-review *ngIf="!revisaoPrimeiro" [cockpit]="visao360" />
 
         <details class="legacy-details">
           <summary>
             <span>
               <strong>Recursos adicionais ainda em migração</strong>
-              <small>Impressão, comunicação, fiscal e demais fluxos legados permanecem acessíveis durante a reconstrução.</small>
+              <small>Impressão, fiscal e demais fluxos legados permanecem acessíveis durante a reconstrução.</small>
             </span>
             <span class="legacy-badge">Legado controlado</span>
           </summary>
@@ -86,6 +104,8 @@ export class OsCockpitShell implements OnInit {
   adicionaisPrimeiro = false;
   diarioPrimeiro = false;
   financeiroPrimeiro = false;
+  comunicacaoPrimeiro = false;
+  revisaoPrimeiro = false;
   estado: CockpitLoadState = 'idle';
   mensagem = '';
 
@@ -96,6 +116,8 @@ export class OsCockpitShell implements OnInit {
     this.adicionaisPrimeiro = secaoFoco === 'additional';
     this.diarioPrimeiro = secaoFoco === 'journal';
     this.financeiroPrimeiro = secaoFoco === 'finance';
+    this.comunicacaoPrimeiro = secaoFoco === 'communication';
+    this.revisaoPrimeiro = secaoFoco === 'closure';
 
     const idInformado = this.rota.snapshot.paramMap.get('id');
     const id = idInformado ? Number(idInformado) : Number.NaN;
