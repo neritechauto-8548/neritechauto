@@ -3,7 +3,7 @@
 
 CREATE TABLE os_work_sessions (
     id BIGSERIAL PRIMARY KEY,
-    empresa_id BIGINT NOT NULL REFERENCES empresas(id),
+    empresa_id BIGINT NOT NULL REFERENCES empresa(id),
     ordem_servico_id BIGINT NOT NULL REFERENCES ordens_servico(id) ON DELETE CASCADE,
     item_os_servico_id BIGINT NOT NULL REFERENCES itens_os_servicos(id) ON DELETE CASCADE,
     technician_user_id BIGINT NOT NULL REFERENCES usuarios(id),
@@ -40,7 +40,7 @@ CREATE UNIQUE INDEX ux_os_work_sessions_active_technician
 
 CREATE TABLE os_work_session_commands (
     id BIGSERIAL PRIMARY KEY,
-    empresa_id BIGINT NOT NULL REFERENCES empresas(id),
+    empresa_id BIGINT NOT NULL REFERENCES empresa(id),
     actor_user_id BIGINT NOT NULL REFERENCES usuarios(id),
     command VARCHAR(24) NOT NULL,
     idempotency_key VARCHAR(128) NOT NULL,
