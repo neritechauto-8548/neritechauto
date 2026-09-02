@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LocalStorageService } from '@shared/services/storage.service';
+
 interface Page<T> {
   content: T[];
   totalElements: number;
@@ -9,11 +9,13 @@ interface Page<T> {
   number: number;
   size: number;
 }
+
 interface Pageable {
   page?: number;
   size?: number;
   sort?: string[] | string;
 }
+
 import { environment } from '../../../environments/environment';
 import {
   ContasPagarRequest,
@@ -21,7 +23,6 @@ import {
   ContasReceberRequest,
   ContasReceberResponse,
   DashboardFinanceiroDTO,
-  RecebimentoTituloDTO,
   AnexoTituloDTO
 } from './models/financeiro.models';
 
@@ -29,68 +30,40 @@ import {
   providedIn: 'root',
 })
 export class FinanceiroService {
-  private http = inject(HttpClient);
-  private readonly storage = inject(LocalStorageService as any);
+  private readonly http = inject(HttpClient);
   private readonly API_URL_PAGAR = `${environment.baseUrl}/v1/financeiro/contas-pagar`;
   private readonly API_URL_RECEBER = `${environment.baseUrl}/v1/financeiro/contas-receber`;
   private readonly API_URL_FLUXO = `${environment.baseUrl}/v1/financeiro/fluxo-caixa`;
   private readonly API_URL_FECHAMENTO = `${environment.baseUrl}/v1/financeiro/fechamento-caixa`;
 
+  // Tenant nunca é escolhido pelo navegador. O backend deriva a empresa da sessão/JWT.
+
   // --- Contas a Pagar ---
 
-  private getTenantId(): number | null {
-    try {
-      const s: any = this.storage;
-      let tenantId = s && s.has && s.has('tenantId') ? s.get('tenantId') : null;
-
-      // Se for objeto, tenta extrair ID. Se for string que parece [object Object], limpa.
-      if (tenantId && typeof tenantId === 'object') {
-        tenantId = tenantId.id || tenantId.tenantId || tenantId.empresaId || null;
-      }
-
-      if (!tenantId || String(tenantId).includes('[object')) return 1; // Fallback para 1 se for inválido
-
-      const num = Number(tenantId);
-      return isNaN(num) ? 1 : num;
-    } catch { return 1; }
-  }
-
-  listPagar(query: { empresaId?: number } & Pageable): Observable<Page<ContasPagarResponse>> {
-    let params = new HttpParams()
-      .set('page', String(query.page ?? 0))
-      .set('size', String(query.size ?? 10));
-    const empresaId = query.empresaId ?? this.getTenantId();
-    if (empresaId != null) params = params.set('empresaId', String(empresaId));
-
-    if (query.sort) {
-      const sortValue = Array.isArray(query.sort) ? query.sort.join(',') : query.sort;
-      params = params.set('sort', sortValue);
-    }
-
+  listPagar(query: Pageable): Observable<Page<ContasPagarResponse>> {
+    let params = this.pageableParams(query);
     return this.http.get<Page<ContasPagarResponse>>(this.API_URL_PAGAR, { params });
   }
 
-  getPagarById(id: number, empresaId = 1): Observable<ContasPagarResponse> {
-      return this.http.get<ContasPagarResponse>(`${this.API_URL_PAGAR}/${id}`, { params: { empresaId } });
+  getPagarById(id: number): Observable<ContasPagarResponse> {
+    return this.http.get<ContasPagarResponse>(`${this.API_URL_PAGAR}/${id}`);
   }
 
-  createPagar(request: ContasPagarRequest, empresaId = 1): Observable<ContasPagarResponse> {
-      return this.http.post<ContasPagarResponse>(this.API_URL_PAGAR, request, { params: { empresaId } });
+  createPagar(request: ContasPagarRequest): Observable<ContasPagarResponse> {
+    return this.http.post<ContasPagarResponse>(this.API_URL_PAGAR, request);
   }
 
-  updatePagar(id: number, request: ContasPagarRequest, empresaId = 1): Observable<ContasPagarResponse> {
-      return this.http.put<ContasPagarResponse>(`${this.API_URL_PAGAR}/${id}`, request, { params: { empresaId } });
+  updatePagar(id: number, request: ContasPagarRequest): Observable<ContasPagarResponse> {
+    return this.http.put<ContasPagarResponse>(`${this.API_URL_PAGAR}/${id}`, request);
   }
 
-  deletePagar(id: number, empresaId = 1): Observable<void> {
-      return this.http.delete<void>(`${this.API_URL_PAGAR}/${id}`, { params: { empresaId } });
+  deletePagar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL_PAGAR}/${id}`);
   }
-
 
   // --- Contas a Receber ---
 
   listReceber(query: {
-    empresaId?: number;
     termo?: string;
     dataInicio?: string;
     dataFim?: string;
@@ -100,130 +73,114 @@ export class FinanceiroService {
     planoContasId?: number;
     formaPagamentoId?: number;
   } & Pageable): Observable<Page<ContasReceberResponse>> {
-    let params = new HttpParams()
-      .set('page', String(query.page ?? 0))
-      .set('size', String(query.size ?? 10));
-    const empresaId = query.empresaId ?? this.getTenantId();
-    if (empresaId != null) params = params.set('empresaId', String(empresaId));
+    let params = this.pageableParams(query);
 
     if (query.termo) params = params.set('termo', query.termo);
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
     if (query.status) params = params.set('status', query.status);
-    if (query.contaBancariaId) params = params.set('contaBancariaId', String(query.contaBancariaId));
-    if (query.centroCustoId) params = params.set('centroCustoId', String(query.centroCustoId));
-    if (query.planoContasId) params = params.set('planoContasId', String(query.planoContasId));
-    if (query.formaPagamentoId) params = params.set('formaPagamentoId', String(query.formaPagamentoId));
-
-    if (query.sort) {
-      const sortValue = Array.isArray(query.sort) ? query.sort.join(',') : query.sort;
-      params = params.set('sort', sortValue);
-    }
+    if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
+    if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
+    if (query.planoContasId != null) params = params.set('planoContasId', String(query.planoContasId));
+    if (query.formaPagamentoId != null) params = params.set('formaPagamentoId', String(query.formaPagamentoId));
 
     return this.http.get<Page<ContasReceberResponse>>(this.API_URL_RECEBER, { params });
   }
 
-  getReceberById(id: number, empresaId = 1): Observable<ContasReceberResponse> {
-    const params: any = {};
-    const empresa = this.getTenantId();
-    if (empresa != null) params.empresaId = String(empresa);
-    return this.http.get<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}`, { params });
+  getReceberById(id: number): Observable<ContasReceberResponse> {
+    return this.http.get<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}`);
   }
 
-  createReceber(request: ContasReceberRequest, empresaId = 1): Observable<ContasReceberResponse> {
-    return this.http.post<ContasReceberResponse>(this.API_URL_RECEBER, request, { params: { empresaId } });
+  createReceber(request: ContasReceberRequest): Observable<ContasReceberResponse> {
+    return this.http.post<ContasReceberResponse>(this.API_URL_RECEBER, request);
   }
 
-  updateReceber(id: number, request: ContasReceberRequest, empresaId = 1): Observable<ContasReceberResponse> {
-    return this.http.put<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}`, request, { params: { empresaId } });
+  updateReceber(id: number, request: ContasReceberRequest): Observable<ContasReceberResponse> {
+    return this.http.put<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}`, request);
   }
 
-  deleteReceber(id: number, empresaId = 1): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL_RECEBER}/${id}`, { params: { empresaId } });
+  deleteReceber(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL_RECEBER}/${id}`);
   }
 
-  getDashboardReceber(empresaId?: number): Observable<DashboardFinanceiroDTO> {
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
-    return this.http.get<DashboardFinanceiroDTO>(`${this.API_URL_RECEBER}/dashboard`, { params });
+  getDashboardReceber(): Observable<DashboardFinanceiroDTO> {
+    return this.http.get<DashboardFinanceiroDTO>(`${this.API_URL_RECEBER}/dashboard`);
   }
 
-  receberTitulo(id: number, request: any, empresaId?: number): Observable<ContasReceberResponse> {
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
-    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/recebimentos`, request, { params });
+  receberTitulo(id: number, request: unknown): Observable<ContasReceberResponse> {
+    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/recebimentos`, request);
   }
 
-  desfazerQuitacao(id: number, empresaId?: number): Observable<ContasReceberResponse> {
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
-    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/desfazer-quitacao`, {}, { params });
+  desfazerQuitacao(id: number): Observable<ContasReceberResponse> {
+    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/desfazer-quitacao`, {});
   }
 
-  renegociarTitulo(id: number, request: any, empresaId?: number): Observable<any> {
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
-    return this.http.post<any>(`${this.API_URL_RECEBER}/${id}/renegociar`, request, { params });
+  renegociarTitulo(id: number, request: unknown): Observable<unknown> {
+    return this.http.post<unknown>(`${this.API_URL_RECEBER}/${id}/renegociar`, request);
   }
 
-  uploadAnexo(id: number, file: File, empresaId?: number): Observable<AnexoTituloDTO> {
+  uploadAnexo(id: number, file: File): Observable<AnexoTituloDTO> {
     const formData = new FormData();
     formData.append('file', file);
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
-    return this.http.post<AnexoTituloDTO>(`${this.API_URL_RECEBER}/${id}/anexos`, formData, { params });
+    return this.http.post<AnexoTituloDTO>(`${this.API_URL_RECEBER}/${id}/anexos`, formData);
   }
 
-  downloadAnexo(contaId: number, anexoId: number, empresaId?: number): Observable<Blob> {
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : new HttpParams().set('empresaId', String(this.getTenantId() || 1));
-    return this.http.get(`${this.API_URL_RECEBER}/${contaId}/anexos/${anexoId}/download`, { params, responseType: 'blob' });
+  downloadAnexo(contaId: number, anexoId: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL_RECEBER}/${contaId}/anexos/${anexoId}/download`, {
+      responseType: 'blob',
+    });
   }
 
   // --- Auxiliares ---
 
-  listFormasPagamento(): Observable<any> {
-    const empresa = this.getTenantId();
-    const params = empresa != null ? new HttpParams().set('empresaId', String(empresa)) : new HttpParams().set('empresaId', '1');
-    return this.http.get<any>(`${environment.baseUrl}/v1/financeiro/formas-pagamento`, { params });
+  listFormasPagamento(): Observable<unknown> {
+    return this.http.get(`${environment.baseUrl}/v1/financeiro/formas-pagamento`);
   }
 
-  listCentrosCusto(): Observable<any> {
-    const empresa = this.getTenantId();
-    const params = new HttpParams().set('empresaId', String(empresa ?? 1));
-    return this.http.get<any>(`${environment.baseUrl}/v1/financeiro/centros-custo`, { params });
+  listCentrosCusto(): Observable<unknown> {
+    return this.http.get(`${environment.baseUrl}/v1/financeiro/centros-custo`);
   }
 
-  listPlanosConta(): Observable<any> {
-    const empresa = this.getTenantId();
-    const params = empresa != null ? new HttpParams().set('empresaId', String(empresa)) : new HttpParams().set('empresaId', '1');
-    return this.http.get<any>(`${environment.baseUrl}/v1/financeiro/plano-contas`, { params });
+  listPlanosConta(): Observable<unknown> {
+    return this.http.get(`${environment.baseUrl}/v1/financeiro/plano-contas`);
   }
 
-  listContasBancarias(): Observable<any> {
-    const empresa = this.getTenantId();
-    const params = empresa != null ? new HttpParams().set('empresaId', String(empresa)) : undefined;
-    return this.http.get<any>(`${environment.baseUrl}/v1/financeiro/contas-bancarias`, { params });
+  listContasBancarias(): Observable<unknown> {
+    return this.http.get(`${environment.baseUrl}/v1/financeiro/contas-bancarias`);
   }
 
   // --- Fluxo de Caixa ---
-  listFluxoCaixa(query: { empresaId?: number; contaBancariaId?: number; centroCustoId?: number; dataInicio?: string; dataFim?: string; includeClosed?: boolean } & Pageable): Observable<Page<any>> {
-    let params = new HttpParams()
-      .set('page', String(query.page ?? 0))
-      .set('size', String(query.size ?? 10));
-    const empresa = query.empresaId ?? this.getTenantId();
-    if (empresa != null) params = params.set('empresaId', String(empresa));
+
+  listFluxoCaixa(query: {
+    contaBancariaId?: number;
+    centroCustoId?: number;
+    dataInicio?: string;
+    dataFim?: string;
+    includeClosed?: boolean;
+  } & Pageable): Observable<Page<unknown>> {
+    let params = this.pageableParams(query);
+
     if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
     if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
-    if (query.includeClosed) params = params.set('includeClosed', String(query.includeClosed));
+    if (query.includeClosed != null) params = params.set('includeClosed', String(query.includeClosed));
 
-    if (query.sort) {
-      const sortValue = Array.isArray(query.sort) ? query.sort.join(',') : query.sort;
-      params = params.set('sort', sortValue);
-    }
-
-    return this.http.get<Page<any>>(this.API_URL_FLUXO, { params });
+    return this.http.get<Page<unknown>>(this.API_URL_FLUXO, { params });
   }
 
-  createFluxoCaixa(request: { dataMovimento: string; descricao: string; tipoMovimentacao: 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA'; valor: number; contaBancariaId?: number; centroCustoId?: number; observacoes?: string; recebimentoId?: number; pagamentoId?: number }, empresaId?: number): Observable<any> {
-    const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : undefined;
-    return this.http.post<any>(this.API_URL_FLUXO, {
+  createFluxoCaixa(request: {
+    dataMovimento: string;
+    descricao: string;
+    tipoMovimentacao: 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA';
+    valor: number;
+    contaBancariaId?: number;
+    centroCustoId?: number;
+    observacoes?: string;
+    recebimentoId?: number;
+    pagamentoId?: number;
+  }): Observable<unknown> {
+    return this.http.post(this.API_URL_FLUXO, {
       dataMovimento: request.dataMovimento,
       descricao: request.descricao,
       tipoMovimentacao: request.tipoMovimentacao,
@@ -234,13 +191,12 @@ export class FinanceiroService {
       planoContasId: null,
       pagamentoId: request.pagamentoId,
       recebimentoId: request.recebimentoId,
-      observacoes: request.observacoes
-    }, { params });
+      observacoes: request.observacoes,
+    });
   }
 
   imprimirRelatorioFinanceiro(): Observable<Blob> {
-    const url = `${environment.baseUrl}/v1/relatorios/financeiro`;
-    return this.http.get(url, { responseType: 'blob' });
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/financeiro`, { responseType: 'blob' });
   }
 
   imprimirContas(query: {
@@ -256,46 +212,63 @@ export class FinanceiroService {
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
     if (query.dataDe) params = params.set('dataDe', query.dataDe);
     if (query.situacaoTipo) params = params.set('situacaoTipo', query.situacaoTipo);
-    if (query.departamento && query.departamento !== 'TODOS') params = params.set('departamento', query.departamento);
+    if (query.departamento && query.departamento !== 'TODOS') {
+      params = params.set('departamento', query.departamento);
+    }
     if (query.ordenarPor) params = params.set('ordenarPor', query.ordenarPor);
-    
-    return this.http.get(`${environment.baseUrl}/v1/relatorios/financeiro`, { params, responseType: 'blob' });
+
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/financeiro`, {
+      params,
+      responseType: 'blob',
+    });
   }
 
-  imprimirFluxoCaixa(query: { dataInicio?: string; dataFim?: string; contaBancariaId?: number; centroCustoId?: number }): Observable<Blob> {
+  imprimirFluxoCaixa(query: {
+    dataInicio?: string;
+    dataFim?: string;
+    contaBancariaId?: number;
+    centroCustoId?: number;
+  }): Observable<Blob> {
     let params = new HttpParams();
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
     if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
     if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
-    return this.http.get(`${environment.baseUrl}/v1/relatorios/caixa`, { params, responseType: 'blob' });
+
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/caixa`, {
+      params,
+      responseType: 'blob',
+    });
   }
 
   // --- Fechamento de Caixa ---
-  listFechamentoCaixa(query: { empresaId?: number; dataInicio?: string; dataFim?: string } & Pageable): Observable<Page<any>> {
+
+  listFechamentoCaixa(query: { dataInicio?: string; dataFim?: string } & Pageable): Observable<Page<unknown>> {
+    let params = this.pageableParams(query);
+    if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
+    if (query.dataFim) params = params.set('dataFim', query.dataFim);
+
+    return this.http.get<Page<unknown>>(this.API_URL_FECHAMENTO, { params });
+  }
+
+  getFechamentoCaixaById(id: number): Observable<unknown> {
+    return this.http.get(`${this.API_URL_FECHAMENTO}/${id}`);
+  }
+
+  createFechamentoCaixa(request: unknown): Observable<unknown> {
+    return this.http.post(this.API_URL_FECHAMENTO, request);
+  }
+
+  private pageableParams(query: Pageable): HttpParams {
     let params = new HttpParams()
       .set('page', String(query.page ?? 0))
       .set('size', String(query.size ?? 10));
-    const empresa = query.empresaId ?? this.getTenantId();
-    if (empresa != null) params = params.set('empresaId', String(empresa));
-    if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
-    if (query.dataFim) params = params.set('dataFim', query.dataFim);
 
     if (query.sort) {
       const sortValue = Array.isArray(query.sort) ? query.sort.join(',') : query.sort;
       params = params.set('sort', sortValue);
     }
 
-    return this.http.get<Page<any>>(this.API_URL_FECHAMENTO, { params });
-  }
-
-  getFechamentoCaixaById(id: number, empresaId?: number): Observable<any> {
-      const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : undefined;
-      return this.http.get<any>(`${this.API_URL_FECHAMENTO}/${id}`, { params });
-  }
-
-  createFechamentoCaixa(request: any, empresaId?: number): Observable<any> {
-      const params = empresaId != null ? new HttpParams().set('empresaId', String(empresaId)) : undefined;
-      return this.http.post<any>(this.API_URL_FECHAMENTO, request, { params });
+    return params;
   }
 }
