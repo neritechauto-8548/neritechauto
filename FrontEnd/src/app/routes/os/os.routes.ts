@@ -35,6 +35,7 @@ export const routes: Routes = [
   { path: ':id/checklists', ...canonicalCockpitRoute, data: { title: 'Checklist da Ordem de Serviço', permissions: ['OS_VIS_CHECKLIST'], operationsTab: 'checklist' } },
   { path: ':id/fotos', ...canonicalCockpitRoute, data: { title: 'Evidências da Ordem de Serviço', permissions: ['GERAL_USUARIO'], operationsTab: 'evidence' } },
   { path: ':id/adicionais', ...canonicalCockpitRoute, data: { title: 'Adicionais e Aprovação Complementar', permissions: ['GERAL_USUARIO', 'OS_VIS_SOLICITACOES'], focusSection: 'additional' } },
+  { path: ':id/historico', ...canonicalCockpitRoute, data: { title: 'Diário e Histórico da Ordem de Serviço', permissions: ['OS_COMENTARIOS', 'OS_COMENTARIOS_OUTROS'], focusSection: 'journal' } },
 
   // Rota canônica /ordens-servico/{id}; fica por último para não capturar subrotas.
   { path: ':id', ...canonicalCockpitRoute },
