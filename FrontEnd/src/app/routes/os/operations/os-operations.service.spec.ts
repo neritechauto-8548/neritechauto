@@ -48,6 +48,22 @@ describe('OsOperationsService contract', () => {
     evidence.flush([]);
   });
 
+  it('lista catálogo de checklist sem empresaId e aplica modelo somente à OS', () => {
+    service.listChecklistModels().subscribe();
+    const catalog = http.expectOne(req => req.url.endsWith('/v1/ordens-servico/checklists'));
+    expect(catalog.request.method).toBe('GET');
+    expect(catalog.request.params.get('empresaId')).toBeNull();
+    expect(catalog.request.params.get('size')).toBe('100');
+    catalog.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 100 });
+
+    service.applyChecklist(12, 5).subscribe();
+    const apply = http.expectOne(req => req.url.endsWith('/v1/ordens-servico/os-checklist'));
+    expect(apply.request.method).toBe('POST');
+    expect(apply.request.body).toEqual({ ordemServicoId: 12, checklistId: 5 });
+    expect(apply.request.body.empresaId).toBeUndefined();
+    apply.flush([]);
+  });
+
   it('cria diagnóstico com ordem da rota, sem empresaId no payload', () => {
     service.createDiagnostic({
       ordemServicoId: 12,
