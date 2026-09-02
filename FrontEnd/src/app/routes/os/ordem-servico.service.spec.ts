@@ -44,6 +44,31 @@ describe('OrdemServicoService tenancy contract', () => {
     request.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 25 });
   });
 
+  it('consome o read model canônico do cockpit sem enviar empresa pelo navegador', () => {
+    service.getCockpit(99).subscribe();
+
+    const request = http.expectOne(req => req.url.endsWith('/v1/ordens-servico/99/cockpit'));
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.keys()).toEqual([]);
+
+    request.flush({
+      id: 99,
+      numero: 'OS-99',
+      tenantId: 42,
+      stage: { code: 'ABERTA', label: 'Aberta', severity: 'info' },
+      nextAction: null,
+      allowedActions: [],
+      customer: {},
+      vehicle: {},
+      execution: { status: 'NOT_STARTED', progress: 0 },
+      parts: { totalItems: 0 },
+      approvals: { pending: 0, approved: 0 },
+      blocks: [],
+      relatedCounts: { checklists: 0, evidences: 0, additionalRequests: 0 },
+      audit: {},
+    });
+  });
+
   it('sobrescreve qualquer contexto de tenant no create com a empresa autenticada', () => {
     service.create({
       numeroOS: 'OS-100',
