@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { ActivatedRoute } from '@angular/router';
 import { OsAdditionalPanel } from '../additional-requests/os-additional-panel';
 import { OsExecutionPanel } from '../execution/os-execution-panel';
+import { OsJournalPanel } from '../journal/os-journal-panel';
 import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
 import { OsOperationsTab } from '../operations/os-operations.models';
 import { OsOperationsPanel } from '../operations/os-operations-panel';
@@ -15,7 +16,7 @@ import { VisualizarOS } from './visualizar-os';
   selector: 'os-cockpit-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, VisualizarOS],
+  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, OsJournalPanel, VisualizarOS],
   template: `
     <main class="canonical-cockpit-shell">
       <div *ngIf="state === 'loading'" class="shell-state" role="status" aria-live="polite">
@@ -33,9 +34,11 @@ import { VisualizarOS } from './visualizar-os';
         <os-cockpit-overview [cockpit]="cockpit" />
         <os-execution-panel [osId]="cockpit.id" />
 
+        <os-journal-panel *ngIf="journalFirst" [osId]="cockpit.id" />
         <os-additional-panel *ngIf="additionalFirst" [osId]="cockpit.id" />
         <os-operations-panel [osId]="cockpit.id" [initialTab]="operationsTab" />
         <os-additional-panel *ngIf="!additionalFirst" [osId]="cockpit.id" />
+        <os-journal-panel *ngIf="!journalFirst" [osId]="cockpit.id" />
 
         <details class="legacy-details">
           <summary>
@@ -78,13 +81,16 @@ export class OsCockpitShell implements OnInit {
   cockpit?: OrdemServicoCockpitResponse;
   operationsTab: OsOperationsTab = 'scope';
   additionalFirst = false;
+  journalFirst = false;
   state: CockpitLoadState = 'idle';
   message = '';
 
   ngOnInit(): void {
     const configuredTab = this.route.snapshot.data['operationsTab'];
     if (configuredTab === 'scope' || configuredTab === 'diagnostics' || configuredTab === 'checklist' || configuredTab === 'evidence') this.operationsTab = configuredTab;
-    this.additionalFirst = this.route.snapshot.data['focusSection'] === 'additional';
+    const focusSection = this.route.snapshot.data['focusSection'];
+    this.additionalFirst = focusSection === 'additional';
+    this.journalFirst = focusSection === 'journal';
 
     const rawId = this.route.snapshot.paramMap.get('id');
     const id = rawId ? Number(rawId) : Number.NaN;
