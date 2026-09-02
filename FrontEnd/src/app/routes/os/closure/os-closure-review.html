@@ -70,7 +70,7 @@
       <div class="guard-list">
         <article *ngFor="let guard of review.guards" class="guard-item" [class.ok]="guard.status === 'OK'" [class.alert]="guard.status === 'ALERTA'" [class.block]="guard.status === 'BLOQUEIO'">
           <div class="guard-icon" aria-hidden="true">
-            <nt-icon [name]="guard.status === 'OK' ? 'check' : guard.status === 'ALERTA' ? 'alert-triangle' : 'circle-x'" [size]="17" />
+            <nt-icon [name]="guard.status === 'OK' ? 'check' : guard.status === 'ALERTA' ? 'alert-triangle' : 'x'" [size]="17" />
           </div>
           <div class="guard-copy">
             <div class="guard-title-row">
