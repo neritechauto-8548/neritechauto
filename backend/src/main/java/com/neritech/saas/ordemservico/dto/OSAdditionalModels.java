@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ public final class OSAdditionalModels {
             @NotNull @Positive BigDecimal quantity,
             @Size(max = 20) String unit,
             BigDecimal amountDelta,
-            Integer timeDeltaMinutes) {}
+            @PositiveOrZero Integer timeDeltaMinutes) {}
 
     public record CreateRequest(
             @NotBlank @Size(max = 160) String title,
