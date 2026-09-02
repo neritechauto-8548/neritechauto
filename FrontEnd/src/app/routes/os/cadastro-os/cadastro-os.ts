@@ -5,6 +5,7 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
 // Services
+import { AuthService } from '@core';
 import { OrdemServicoService } from '../ordem-servico.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
@@ -77,6 +78,7 @@ import { ConfirmationService } from 'primeng/api';
   providers: [ConfirmationService, MessageService]
 })
 export class CadastroOS implements OnInit {
+  private authService = inject(AuthService);
   private osService = inject(OrdemServicoService);
   private itemService = inject(ItemOSService);
   private clienteService = inject(ClientesService);
@@ -115,7 +117,7 @@ export class CadastroOS implements OnInit {
     { label: 'Orçamento', value: TipoOS.ORCAMENTO },
     { label: 'Garantia', value: TipoOS.GARANTIA }
   ];
-  funcionarios = [{ label: 'ALEXANDRE ROMULO', value: 'ALEXANDRE ROMULO' }]; // Mock
+  funcionarios: Array<{ label: string; value: string }> = [];
 
   // Itens
   itensProduto: ItemOSProdutoResponse[] = [];
@@ -142,7 +144,7 @@ export class CadastroOS implements OnInit {
       veiculoId: [null],
       statusId: [null],
       tipoOS: [null, Validators.required],
-      funcionario: ['ALEXANDRE ROMULO'],
+      funcionario: [null],
       km: [0],
       reservico: [false],
       reboque: [false],
@@ -182,8 +184,18 @@ export class CadastroOS implements OnInit {
   }
 
   ngOnInit() {
+    this.hydrateCurrentUser();
     this.carregarStatus();
     this.checkRouteParams();
+  }
+
+  private hydrateCurrentUser() {
+    const user = this.authService.snapshot();
+    const nome = user.nomeCompleto?.trim() || user.name?.trim();
+    if (!nome) return;
+
+    this.funcionarios = [{ label: nome, value: nome }];
+    this.osForm.patchValue({ funcionario: nome });
   }
 
   checkRouteParams() {
@@ -198,7 +210,7 @@ export class CadastroOS implements OnInit {
         this.loadOS(this.osId);
     } else {
         this.gerarNumeroOS();
-        // Se vier tipo na URL (ex: ?tipo=ORCAMENTO), pré-seleciona
+        // Compatibilidade temporária para links legados. Novos orçamentos usam /orcamentos/novo.
         if (tipo && tipo === 'ORCAMENTO') {
              this.osForm.patchValue({ tipoOS: TipoOS.ORCAMENTO });
              this.lockTipoOS = true;
@@ -353,10 +365,9 @@ export class CadastroOS implements OnInit {
     const dtAbertura = this.combineDateAndTime(formVal.dataEntrada, formVal.horaEntrada);
     const dtPromessa = this.combineDateAndTime(formVal.dataPrevisao, formVal.horaPrevisao);
 
-    const payload: OrdemServicoRequest = {
-        empresaId: 1,
+    const payload: Omit<OrdemServicoRequest, 'empresaId'> = {
         numeroOS: formVal.numeroOS,
-        clienteId: formVal.cliente?.id || this.osData?.clienteId, // Fallback se não mexeu
+        clienteId: formVal.cliente?.id || this.osData?.clienteId,
         veiculoId: formVal.veiculoId,
         statusId: formVal.statusId,
         tipoOS: formVal.tipoOS,
@@ -366,7 +377,7 @@ export class CadastroOS implements OnInit {
         dataPromessa: dtPromessa?.toISOString(),
         observacoesInternas: formVal.observacaoInterna,
         observacoesCliente: formVal.descricaoCliente,
-        equipeExecucao: JSON.stringify([formVal.funcionario])
+        equipeExecucao: formVal.funcionario ? JSON.stringify([formVal.funcionario]) : undefined
     };
 
     const req$ = this.osId
@@ -376,16 +387,16 @@ export class CadastroOS implements OnInit {
     req$.pipe(finalize(() => this.loading = false))
         .subscribe({
             next: (res) => {
-              const msg = this.isOrcamento 
-                ? (this.osId ? 'Orçamento atualizado!' : 'Orçamento criado! Adicione itens.') 
-                : (this.osId ? 'OS atualizada!' : 'OS criada! Adicione itens.');
+              const msg = this.isOrcamento
+                ? (this.osId ? 'Orçamento atualizado!' : 'Orçamento criado!')
+                : (this.osId ? 'OS atualizada!' : 'OS criada!');
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: msg });
                 this.osId = res.id;
                 this.osData = res;
                 if (!this.osData) this.activeIndex = 1;
                 if (this.osId) {
                   if (this.isOrcamento) {
-                    this.router.navigate(['/orcamento/visualizar-orcamento', this.osId]);
+                    this.router.navigate(['/orcamentos']);
                   } else {
                     this.router.navigate(['/os/visualizar-os', this.osId]);
                   }
@@ -658,7 +669,7 @@ export class CadastroOS implements OnInit {
         this.osService.delete(this.osId!).pipe(finalize(() => this.loading = false)).subscribe({
           next: () => {
             this.toast.success(this.isOrcamento ? 'Orçamento excluído com sucesso!' : 'OS excluída com sucesso!');
-            this.router.navigate([this.isOrcamento ? '/orcamento' : '/os']);
+            this.router.navigate([this.isOrcamento ? '/orcamentos' : '/os']);
           },
           error: () => this.toast.error(this.isOrcamento ? 'Erro ao excluir orçamento.' : 'Erro ao excluir OS.')
         });
@@ -667,6 +678,6 @@ export class CadastroOS implements OnInit {
   }
 
   voltar() {
-     this.router.navigate([this.isOrcamento ? '/orcamento' : '/os']);
+     this.router.navigate([this.isOrcamento ? '/orcamentos' : '/os']);
   }
 }
