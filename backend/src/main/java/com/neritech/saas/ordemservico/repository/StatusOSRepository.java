@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface StatusOSRepository extends JpaRepository<StatusOS, Long> {
+    Optional<StatusOS> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Page<StatusOS> findByEmpresaId(Long empresaId, Pageable pageable);
 
     Page<StatusOS> findByEmpresaIdAndAtivo(Long empresaId, Boolean ativo, Pageable pageable);
@@ -15,4 +17,3 @@ public interface StatusOSRepository extends JpaRepository<StatusOS, Long> {
 
     boolean existsByEmpresaIdAndCodigo(Long empresaId, String codigo);
 }
-
