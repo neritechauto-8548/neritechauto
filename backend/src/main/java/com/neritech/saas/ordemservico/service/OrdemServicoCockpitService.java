@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -77,6 +76,9 @@ public class OrdemServicoCockpitService {
         Optional<ContasReceber> receivable = contasReceberRepository
                 .findByEmpresaIdAndNumeroTitulo(tenantId, os.getNumeroOS());
 
+        int pendingApprovals = exigeAprovacao && !aprovada ? 1 : 0;
+        int approvedApprovals = aprovada ? 1 : 0;
+
         return new OrdemServicoCockpitResponse(
                 os.getId(),
                 os.getNumeroOS(),
@@ -92,8 +94,8 @@ public class OrdemServicoCockpitService {
                 buildExecution(os),
                 new OrdemServicoCockpitResponse.Parts(totalParts, null, null),
                 new OrdemServicoCockpitResponse.Approvals(
-                        aprovada ? 0 : 1,
-                        aprovada ? 1 : 0,
+                        pendingApprovals,
+                        approvedApprovals,
                         null),
                 blocks,
                 new OrdemServicoCockpitResponse.RelatedCounts(
@@ -184,15 +186,8 @@ public class OrdemServicoCockpitService {
                     "warning"));
         }
 
-        if (!finalizada
-                && os.getDataPromessa() != null
-                && os.getDataPromessa().isBefore(LocalDateTime.now())) {
-            blocks.add(new OrdemServicoCockpitResponse.Block(
-                    "PROMISE_OVERDUE",
-                    "A previsão de saída informada já venceu.",
-                    "danger"));
-        }
-
+        // Prazo vencido é risco/SLA, não bloqueio de domínio. Ele será exposto em
+        // projeção própria quando o contrato de risco estiver disponível.
         return List.copyOf(blocks);
     }
 
