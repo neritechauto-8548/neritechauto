@@ -4,10 +4,17 @@ export type NeriTechIconName =
   | 'menu-2'
   | 'building'
   | 'chevron-down'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'arrow-left'
   | 'external-link'
   | 'search'
   | 'x'
   | 'plus'
+  | 'check'
+  | 'trash'
+  | 'printer'
+  | 'refresh'
   | 'filter-x'
   | 'shield-check'
   | 'alert-triangle'
@@ -20,7 +27,9 @@ export type NeriTechIconName =
   | 'arrows-exchange'
   | 'file-invoice'
   | 'clipboard-check'
+  | 'clipboard-list'
   | 'cash'
+  | 'receipt'
   | 'receipt-tax'
   | 'history'
   | 'chart-bar'
@@ -78,10 +87,17 @@ export type NeriTechIconName =
         @case ('menu-2') { <path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /> }
         @case ('building') { <path d="M3 21h18" /><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" /><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1" /> }
         @case ('chevron-down') { <path d="m6 9 6 6 6-6" /> }
+        @case ('chevron-left') { <path d="m15 6-6 6 6 6" /> }
+        @case ('chevron-right') { <path d="m9 6 6 6-6 6" /> }
+        @case ('arrow-left') { <path d="M5 12h14" /><path d="m9 16-4-4 4-4" /> }
         @case ('external-link') { <path d="M12 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /><path d="M11 13 20 4" /><path d="M15 4h5v5" /> }
         @case ('search') { <circle cx="10" cy="10" r="7" /><path d="m21 21-6-6" /> }
         @case ('x') { <path d="M18 6 6 18M6 6l12 12" /> }
         @case ('plus') { <path d="M12 5v14M5 12h14" /> }
+        @case ('check') { <path d="m5 12 4 4L19 6" /> }
+        @case ('trash') { <path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M6 7l1 14h10l1-14" /><path d="M9 7V4h6v3" /> }
+        @case ('printer') { <path d="M6 9V3h12v6" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="7" rx="1" /> }
+        @case ('refresh') { <path d="M20 11a8 8 0 1 0-2.34 5.66" /><path d="M20 4v7h-7" /> }
         @case ('filter-x') { <path d="M4 4h16l-6 7v4l-4 2v-6z" /><path d="m16 16 5 5M21 16l-5 5" /> }
         @case ('shield-check') { <path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6z" /><path d="m9 12 2 2 4-4" /> }
         @case ('alert-triangle') { <path d="M12 3 2 20h20z" /><path d="M12 9v4M12 17v.01" /> }
@@ -94,7 +110,9 @@ export type NeriTechIconName =
         @case ('arrows-exchange') { <path d="M7 10h11l-3-3" /><path d="m18 10-3 3" /><path d="M17 14H6l3 3" /><path d="m6 14 3-3" /> }
         @case ('file-invoice') { <path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 3h9l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2" /><path d="M9 13h6M9 17h3" /> }
         @case ('clipboard-check') { <path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3" /><rect x="9" y="3" width="6" height="4" rx="2" /><path d="m9 14 2 2 4-4" /> }
+        @case ('clipboard-list') { <path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3" /><rect x="9" y="3" width="6" height="4" rx="2" /><path d="M9 12h6M9 16h6" /> }
         @case ('cash') { <rect x="3" y="6" width="18" height="12" rx="2" /><circle cx="12" cy="12" r="2" /><path d="M7 10h.01M17 14h.01" /> }
+        @case ('receipt') { <path d="M5 3v18l3-2 3 2 3-2 3 2 2-1.33V3l-3 2-3-2-3 2-3-2z" /><path d="M9 9h6M9 13h6M9 17h3" /> }
         @case ('receipt-tax') { <path d="M5 3v18l3-2 3 2 3-2 3 2 2-1.33V3l-3 2-3-2-3 2-3-2z" /><path d="M9 9h6M9 13h4" /> }
         @case ('history') { <path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l3 2" /> }
         @case ('chart-bar') { <path d="M3 3v18h18" /><rect x="7" y="12" width="3" height="5" rx="1" /><rect x="12" y="8" width="3" height="9" rx="1" /><rect x="17" y="5" width="3" height="12" rx="1" /> }
