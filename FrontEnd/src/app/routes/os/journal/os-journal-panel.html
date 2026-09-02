@@ -8,68 +8,68 @@
         <p>Registros internos com autor e horário. Comentário não substitui auditoria, aprovação do cliente ou mudança de status.</p>
       </div>
     </div>
-    <button *ngIf="state === 'ready' || state === 'error'" type="button" class="secondary-button" (click)="load()" [disabled]="saving">
+    <button *ngIf="estado === 'pronto' || estado === 'erro'" type="button" class="secondary-button" (click)="carregar()" [disabled]="salvando">
       <nt-icon name="refresh" [size]="16" /> Atualizar
     </button>
   </header>
 
-  <div *ngIf="state === 'loading'" class="journal-loading" role="status" aria-live="polite">
+  <div *ngIf="estado === 'carregando'" class="journal-loading" role="status" aria-live="polite">
     <div class="skeleton composer"></div>
     <div class="skeleton line"></div>
     <div class="skeleton line short"></div>
     <span>Carregando diário da Ordem de Serviço…</span>
   </div>
 
-  <div *ngIf="state === 'forbidden' || state === 'error'" class="journal-state" role="alert">
-    <nt-icon [name]="state === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
+  <div *ngIf="estado === 'proibido' || estado === 'erro'" class="journal-state" role="alert">
+    <nt-icon [name]="estado === 'proibido' ? 'lock' : 'alert-triangle'" [size]="20" />
     <div>
-      <strong>{{ state === 'forbidden' ? 'Diário restrito' : 'Diário indisponível' }}</strong>
-      <span>{{ message }}</span>
+      <strong>{{ estado === 'proibido' ? 'Diário restrito' : 'Diário indisponível' }}</strong>
+      <span>{{ mensagem }}</span>
     </div>
-    <button *ngIf="state === 'error'" type="button" class="secondary-button" (click)="load()">Tentar novamente</button>
+    <button *ngIf="estado === 'erro'" type="button" class="secondary-button" (click)="carregar()">Tentar novamente</button>
   </div>
 
-  <ng-container *ngIf="state === 'ready'">
-    <form *ngIf="canComment" class="journal-composer" (ngSubmit)="submit()">
-      <label for="os-journal-comment">Adicionar comentário interno</label>
+  <ng-container *ngIf="estado === 'pronto'">
+    <form *ngIf="podeComentar" class="journal-composer" (ngSubmit)="registrarComentario()">
+      <label for="comentario-diario-os">Adicionar comentário interno</label>
       <textarea
-        id="os-journal-comment"
-        name="journalComment"
+        id="comentario-diario-os"
+        name="comentarioDiario"
         rows="3"
-        [maxlength]="maxLength"
-        [(ngModel)]="draft"
+        [maxlength]="limiteCaracteres"
+        [(ngModel)]="rascunho"
         placeholder="Ex.: veículo aguardando retorno técnico sobre teste de rodagem…"
-        [disabled]="saving"
+        [disabled]="salvando"
       ></textarea>
       <footer>
-        <span [class.limit]="remaining < 100">{{ remaining }} caracteres restantes</span>
-        <button type="submit" class="primary-button" [disabled]="!draft.trim() || saving || remaining < 0">
-          <nt-icon name="plus" [size]="16" /> {{ saving ? 'Registrando…' : 'Registrar comentário' }}
+        <span [class.limit]="caracteresRestantes < 100">{{ caracteresRestantes }} caracteres restantes</span>
+        <button type="submit" class="primary-button" [disabled]="!rascunho.trim() || salvando || caracteresRestantes < 0">
+          <nt-icon name="plus" [size]="16" /> {{ salvando ? 'Registrando…' : 'Registrar comentário' }}
         </button>
       </footer>
-      <p *ngIf="message" class="composer-error" role="alert">{{ message }}</p>
+      <p *ngIf="mensagem" class="composer-error" role="alert">{{ mensagem }}</p>
     </form>
 
-    <p *ngIf="!canComment && canRead" class="readonly-note">
+    <p *ngIf="!podeComentar && podeVisualizar" class="readonly-note">
       <nt-icon name="lock" [size]="15" /> Seu perfil pode consultar o diário, mas não registrar novos comentários.
     </p>
 
-    <div *ngIf="!comments.length" class="journal-empty">
+    <div *ngIf="!comentarios.length" class="journal-empty">
       <nt-icon name="history" [size]="27" />
       <strong>Nenhum comentário registrado</strong>
       <span>O diário começa quando a equipe registra uma observação operacional.</span>
     </div>
 
-    <ol *ngIf="comments.length" class="journal-list" aria-label="Comentários da Ordem de Serviço">
-      <li *ngFor="let comment of comments; trackBy: trackById" class="journal-entry">
-        <span class="avatar" aria-hidden="true">{{ initials(comment.authorName) }}</span>
+    <ol *ngIf="comentarios.length" class="journal-list" aria-label="Comentários da Ordem de Serviço">
+      <li *ngFor="let comentario of comentarios; trackBy: identificarPorId" class="journal-entry">
+        <span class="avatar" aria-hidden="true">{{ obterIniciais(comentario.nomeAutor) }}</span>
         <div class="entry-content">
           <header>
-            <strong>{{ comment.authorName || 'Usuário indisponível' }}</strong>
-            <time [attr.datetime]="comment.createdAt">{{ comment.createdAt | date:'dd/MM/yyyy HH:mm' }}</time>
+            <strong>{{ comentario.nomeAutor || 'Usuário indisponível' }}</strong>
+            <time [attr.datetime]="comentario.dataCadastro">{{ comentario.dataCadastro | date:'dd/MM/yyyy HH:mm' }}</time>
           </header>
-          <p>{{ comment.content }}</p>
-          <small>Interno · append-only</small>
+          <p>{{ comentario.conteudo }}</p>
+          <small>Interno · imutável após o registro</small>
         </div>
       </li>
     </ol>
