@@ -189,7 +189,6 @@ public class OSAdditionalRequestService {
         itemRepository.saveAll(items);
 
         request.setDecidedAt(LocalDateTime.now());
-        request.setTokenHash(null);
         if (approved == items.size()) request.setStatus(OSAdditionalRequest.Status.APROVADA);
         else if (rejected == items.size()) request.setStatus(OSAdditionalRequest.Status.RECUSADA);
         else request.setStatus(OSAdditionalRequest.Status.PARCIAL);
@@ -340,7 +339,7 @@ public class OSAdditionalRequestService {
     }
 
     private BigDecimal nonNull(BigDecimal value) { return value == null ? BigDecimal.ZERO : value; }
-    private int nonNegative(Integer value) { return value == null || value < 0 ? 0 : value; }
+    private int nonNegative(Integer value) { return value == null ? 0 : value; }
     private String clean(String value) { return value == null || value.trim().isEmpty() ? null : value.trim(); }
     private ApiException error(String message, HttpStatus status, String code) { return new ApiException(message, status, code); }
 }
