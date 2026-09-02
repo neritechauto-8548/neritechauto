@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { ActivatedRoute } from '@angular/router';
 import { OsExecutionPanel } from '../execution/os-execution-panel';
 import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
+import { OsOperationsTab } from '../operations/os-operations.models';
 import { OsOperationsPanel } from '../operations/os-operations-panel';
 import { OrdemServicoService } from '../ordem-servico.service';
 import { OsCockpitOverview } from './os-cockpit-overview';
@@ -39,7 +40,7 @@ import { VisualizarOS } from './visualizar-os';
 
         <os-execution-panel [osId]="cockpit.id" />
 
-        <os-operations-panel [osId]="cockpit.id" />
+        <os-operations-panel [osId]="cockpit.id" [initialTab]="operationsTab" />
 
         <details class="legacy-details">
           <summary>
@@ -86,10 +87,16 @@ export class OsCockpitShell implements OnInit {
 
   osId?: number;
   cockpit?: OrdemServicoCockpitResponse;
+  operationsTab: OsOperationsTab = 'scope';
   state: CockpitLoadState = 'idle';
   message = '';
 
   ngOnInit(): void {
+    const configuredTab = this.route.snapshot.data['operationsTab'];
+    if (configuredTab === 'scope' || configuredTab === 'diagnostics' || configuredTab === 'checklist' || configuredTab === 'evidence') {
+      this.operationsTab = configuredTab;
+    }
+
     const rawId = this.route.snapshot.paramMap.get('id');
     const id = rawId ? Number(rawId) : Number.NaN;
 
