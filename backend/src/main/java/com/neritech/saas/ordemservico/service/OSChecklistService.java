@@ -1,5 +1,6 @@
 package com.neritech.saas.ordemservico.service;
 
+import com.neritech.saas.common.exception.BusinessException;
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.ordemservico.domain.Checklist;
 import com.neritech.saas.ordemservico.domain.ItChecklist;
@@ -49,9 +50,14 @@ public class OSChecklistService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Checklist modelo não encontrado para a empresa autenticada"));
 
+        if (repository.existsByOrdemServico_IdAndOrdemServico_EmpresaIdAndChecklistModelo_Id(
+                os.getId(), tenantId, checklist.getId())) {
+            throw new BusinessException("Este checklist já está aplicado à Ordem de Serviço.");
+        }
+
         List<ItChecklist> itensModelo = itChecklistRepository.findByChecklist_Id(checklist.getId());
         if (itensModelo.isEmpty()) {
-            return List.of();
+            throw new BusinessException("O checklist selecionado não possui itens configurados.");
         }
 
         int ordem = repository.findByOrdemServico_IdAndOrdemServico_EmpresaId(os.getId(), tenantId).size() + 1;
