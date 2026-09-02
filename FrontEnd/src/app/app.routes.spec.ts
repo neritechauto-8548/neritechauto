@@ -35,6 +35,16 @@ describe('App routes authorization contract', () => {
     expectProtectedAliasPair('veiculos', 'veiculo');
   });
 
+  it('exposes documented ordens-servico route while preserving /os compatibility', () => {
+    const canonical = byPath('ordens-servico');
+    const legacy = byPath('os');
+
+    expect(canonical).withContext('Rota canônica /ordens-servico ausente').toBeDefined();
+    expect(legacy).withContext('Alias legado /os deve permanecer durante o rebuild').toBeDefined();
+    expect(canonical?.loadChildren).toBeDefined();
+    expect(legacy?.loadChildren).toBeDefined();
+  });
+
   it('protects sensitive placeholder routes from direct URL access', () => {
     const expectedPermissions: Record<string, string> = {
       'gestao-patio': 'GERAL_USUARIO',
