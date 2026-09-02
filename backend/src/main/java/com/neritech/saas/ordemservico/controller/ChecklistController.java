@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,7 +25,8 @@ public class ChecklistController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar checklists", description = "Lista paginada por empresa")
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('GERAL_CONFIG_CHECKLIST','OS_ADC_CHECKLIST','OS_VIS_CHECKLIST')")
+    @Operation(summary = "Listar checklists", description = "Lista paginada da empresa autenticada")
     public ResponseEntity<Page<ChecklistResponse>> findAll(
             @RequestParam(required = false) Long empresaId,
             Pageable pageable) {
@@ -32,18 +34,21 @@ public class ChecklistController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('GERAL_CONFIG_CHECKLIST','OS_ADC_CHECKLIST','OS_VIS_CHECKLIST')")
     @Operation(summary = "Buscar checklist por ID")
     public ResponseEntity<ChecklistResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_CHECKLIST')")
     @Operation(summary = "Criar checklist")
     public ResponseEntity<ChecklistResponse> create(@RequestBody @Valid ChecklistRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_CHECKLIST')")
     @Operation(summary = "Atualizar checklist")
     public ResponseEntity<ChecklistResponse> update(
             @PathVariable Long id,
@@ -52,10 +57,10 @@ public class ChecklistController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_CHECKLIST')")
     @Operation(summary = "Excluir checklist")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
-
