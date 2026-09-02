@@ -5,6 +5,7 @@ import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '@core';
 import { environment } from '../../../environments/environment';
 import { Page, OrdemServicoRequest, OrdemServicoResponse, ItemOSProdutoRequest, ItemOSProdutoResponse, ItemOSServicoRequest, ItemOSServicoResponse, DiagnosticoRequest, DiagnosticoResponse } from './models/os.models';
+import { OrdemServicoCockpitResponse } from './models/os-cockpit.models';
 
 @Injectable({ providedIn: 'root' })
 export class OrdemServicoService {
@@ -49,6 +50,12 @@ export class OrdemServicoService {
 
   getById(id: number | string): Observable<OrdemServicoResponse> {
     return this.http.get<any>(`${this.base}/${id}`).pipe(map((resp: any) => resp?.data ?? resp));
+  }
+
+  getCockpit(id: number | string): Observable<OrdemServicoCockpitResponse> {
+    return this.http
+      .get<OrdemServicoCockpitResponse>(`${this.base}/${id}/cockpit`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   create(dto: Omit<OrdemServicoRequest, 'empresaId'>): Observable<OrdemServicoResponse> {
