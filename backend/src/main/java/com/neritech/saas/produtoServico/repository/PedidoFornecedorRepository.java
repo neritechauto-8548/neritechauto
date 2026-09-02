@@ -8,8 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface PedidoFornecedorRepository extends JpaRepository<PedidoFornecedor, Long> {
+
+    Optional<PedidoFornecedor> findByIdAndEmpresaId(Long id, Long empresaId);
 
     @Query(value = "SELECT p FROM PedidoFornecedor p JOIN FETCH p.fornecedor WHERE p.empresaId = :empresaId",
            countQuery = "SELECT COUNT(p) FROM PedidoFornecedor p WHERE p.empresaId = :empresaId")
