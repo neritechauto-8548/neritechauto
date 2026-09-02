@@ -4,6 +4,7 @@ export interface User {
   id?: number | string | null;
   empresaId?: number | null;
   name?: string;
+  nomeCompleto?: string;
   email?: string;
   avatar?: string;
   roles?: any[];
