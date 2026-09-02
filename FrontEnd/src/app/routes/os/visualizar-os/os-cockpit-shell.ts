@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { ActivatedRoute } from '@angular/router';
 import { OsExecutionPanel } from '../execution/os-execution-panel';
 import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
+import { OsOperationsPanel } from '../operations/os-operations-panel';
 import { OrdemServicoService } from '../ordem-servico.service';
 import { OsCockpitOverview } from './os-cockpit-overview';
 import { CockpitLoadState, resolveCockpitLoadError } from './os-cockpit-state';
@@ -12,7 +13,7 @@ import { VisualizarOS } from './visualizar-os';
   selector: 'os-cockpit-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, VisualizarOS],
+  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, VisualizarOS],
   template: `
     <main class="canonical-cockpit-shell">
       <div *ngIf="state === 'loading'" class="shell-state" role="status" aria-live="polite">
@@ -38,20 +39,26 @@ import { VisualizarOS } from './visualizar-os';
 
         <os-execution-panel [osId]="cockpit.id" />
 
-        <div class="details-heading">
-          <strong>Demais detalhes operacionais</strong>
-          <span>Itens, inspeções, evidências, observações e informações relacionadas à Ordem de Serviço.</span>
-        </div>
+        <os-operations-panel [osId]="cockpit.id" />
 
-        <section class="legacy-detail-sections" aria-label="Demais detalhes operacionais da Ordem de Serviço">
-          <visualizar-os />
-        </section>
+        <details class="legacy-details">
+          <summary>
+            <span>
+              <strong>Recursos adicionais ainda em migração</strong>
+              <small>Financeiro, impressão, comunicação, fiscal e demais fluxos legados permanecem acessíveis durante o rebuild.</small>
+            </span>
+            <span class="legacy-badge">Legado controlado</span>
+          </summary>
+          <section class="legacy-detail-sections" aria-label="Recursos adicionais da Ordem de Serviço ainda em migração">
+            <visualizar-os />
+          </section>
+        </details>
       </ng-container>
     </main>
   `,
   styles: `
     :host { display:block; }
-    .canonical-cockpit-shell { min-height:100%; background:#f8fafc; padding-top:1rem; }
+    .canonical-cockpit-shell { min-height:100%; background:#f8fafc; padding-top:1rem; padding-bottom:1rem; }
     .shell-state,.shell-error { margin:1rem 1.5rem; border:1px solid #dbeafe; border-radius:14px; background:#eff6ff; padding:1rem; color:#1e40af; }
     .shell-state { display:grid; gap:.65rem; }
     .shell-state span { font-size:.78rem; font-weight:700; }
@@ -61,11 +68,16 @@ import { VisualizarOS } from './visualizar-os';
     .shell-error.is-conflict { border-color:#fde68a; background:#fffbeb; color:#92400e; }
     .shell-error strong { font-size:.9rem; } .shell-error span { font-size:.8rem; }
     .shell-error button { margin-top:.35rem; border:1px solid currentColor; border-radius:8px; background:transparent; padding:.4rem .65rem; color:inherit; font-size:.72rem; font-weight:800; cursor:pointer; }
-    .details-heading { display:flex; align-items:center; gap:.6rem; margin:.25rem 1.5rem 0; border-top:1px solid #e2e8f0; padding:1rem 0 .25rem; color:#64748b; }
-    .details-heading strong { color:#334155; font-size:.75rem; } .details-heading span { font-size:.7rem; }
-    .legacy-detail-sections { margin-top:.25rem; }
+    .legacy-details { margin:1rem 1.5rem 0; border:1px solid #e2e8f0; border-radius:14px; background:#fff; overflow:hidden; }
+    .legacy-details > summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; list-style:none; padding:.9rem 1rem; cursor:pointer; background:#fbfdff; }
+    .legacy-details > summary::-webkit-details-marker { display:none; }
+    .legacy-details > summary > span:first-child { display:grid; gap:.15rem; }
+    .legacy-details summary strong { color:#334155; font-size:.74rem; }
+    .legacy-details summary small { color:#94a3b8; font-size:.63rem; line-height:1.4; }
+    .legacy-badge { border-radius:999px; background:#f1f5f9; padding:.2rem .5rem; color:#64748b; font-size:.58rem; font-weight:800; white-space:nowrap; }
+    .legacy-detail-sections { border-top:1px solid #e2e8f0; padding-top:.5rem; }
     @keyframes pulse { from { background-position:200% 0; } to { background-position:-200% 0; } }
-    @media(max-width:800px){ .shell-state,.shell-error,.details-heading{ margin-left:1rem; margin-right:1rem; } .details-heading{ align-items:flex-start; flex-direction:column; gap:.2rem; } }
+    @media(max-width:800px){ .shell-state,.shell-error,.legacy-details{ margin-left:1rem; margin-right:1rem; } .legacy-details > summary{ align-items:flex-start; flex-direction:column; } }
   `,
 })
 export class OsCockpitShell implements OnInit {
