@@ -3,66 +3,107 @@
     <div>
       <span class="eyebrow">Revisão operacional</span>
       <h2 id="closure-title">Fechamento da Ordem de Serviço</h2>
-      <p>Esta visão consolida a prontidão informada pelo backend. O navegador não conclui a OS por conta própria.</p>
+      <p>Guardas calculadas pelo backend. Conclusão operacional, faturamento, recebimento e fiscal permanecem etapas separadas.</p>
     </div>
-    <span class="readiness-badge">{{ readinessLabel }}</span>
+    <span class="readiness-badge" [class.ready]="closureReview?.readyToComplete" [class.completed]="closureReview?.alreadyCompleted">
+      {{ readinessLabel }}
+    </span>
   </header>
 
-  <div class="summary-grid">
-    <article>
-      <span>Execução</span>
-      <strong>{{ executionProgress }}%</strong>
-      <small>{{ executionDone ? 'Execução concluída' : 'Execução ainda em andamento' }}</small>
-    </article>
-    <article>
-      <span>Aprovações pendentes</span>
-      <strong>{{ pendingApprovals }}</strong>
-      <small>decisões ainda abertas</small>
-    </article>
-    <article>
-      <span>Blockers ativos</span>
-      <strong>{{ blockers.length }}</strong>
-      <small>informados pelo read model</small>
-    </article>
-    <article>
-      <span>Fontes parciais</span>
-      <strong>{{ cockpit.partialSources?.length || 0 }}</strong>
-      <small>dependências degradadas</small>
-    </article>
+  <div *ngIf="loadingReview" class="review-loading" role="status" aria-live="polite">
+    <span class="loading-dot"></span>
+    Recalculando o estado autoritativo da OS…
   </div>
 
-  <div *ngIf="hasPartialSources" class="review-state warning" role="status">
-    <nt-icon name="alert-triangle" [size]="19" />
-    <div>
-      <strong>Não é seguro avaliar fechamento com fontes incompletas</strong>
-      <span>Fontes indisponíveis: {{ cockpit.partialSources?.join(', ') }}.</span>
+  <ng-container *ngIf="closureReview as review">
+    <div class="summary-grid">
+      <article>
+        <span>Estado operacional</span>
+        <strong>{{ review.operationalState }}</strong>
+        <small>separado do financeiro e fiscal</small>
+      </article>
+      <article>
+        <span>Guardas OK</span>
+        <strong>{{ okGuards }}</strong>
+        <small>de {{ review.guards.length }} verificações</small>
+      </article>
+      <article>
+        <span>Bloqueios</span>
+        <strong>{{ blockers.length }}</strong>
+        <small>impedem conclusão operacional</small>
+      </article>
+      <article>
+        <span>Versão do agregado</span>
+        <strong>{{ review.aggregateVersion }}</strong>
+        <small>protegida por If-Match</small>
+      </article>
     </div>
-  </div>
 
-  <div *ngIf="blockers.length" class="blocker-list">
-    <div class="blocker-heading">
-      <strong>Pendências que bloqueiam o fluxo</strong>
-      <span>Esses blockers vieram do backend e não são inferidos pelo Angular.</span>
+    <div *ngIf="feedback" class="review-state" [class.success]="feedbackType === 'success'" [class.warning]="feedbackType === 'warning'" [class.error]="feedbackType === 'error'" role="status" aria-live="polite">
+      <nt-icon [name]="feedbackType === 'success' ? 'shield-check' : 'alert-triangle'" [size]="19" />
+      <div><strong>{{ feedbackType === 'success' ? 'Operação atualizada' : 'Atenção' }}</strong><span>{{ feedback }}</span></div>
     </div>
-    <article *ngFor="let blocker of blockers">
-      <nt-icon name="alert-triangle" [size]="17" />
-      <div><strong>{{ blocker.label }}</strong><span>{{ blocker.code }}</span></div>
-    </article>
-  </div>
 
-  <div *ngIf="!blockers.length && !hasPartialSources" class="review-state success" role="status">
-    <nt-icon name="shield-check" [size]="19" />
-    <div>
-      <strong>Nenhum blocker explícito retornado</strong>
-      <span>Isso não equivale automaticamente a uma OS concluível; o fechamento depende das guardas transacionais do backend.</span>
+    <div *ngIf="review.alreadyCompleted" class="review-state success" role="status">
+      <nt-icon name="shield-check" [size]="19" />
+      <div>
+        <strong>Conclusão operacional registrada</strong>
+        <span>
+          Snapshot #{{ review.snapshotId }}
+          <ng-container *ngIf="review.operationallyCompletedAt"> · {{ review.operationallyCompletedAt | date:'dd/MM/yyyy HH:mm' }}</ng-container>.
+          Nenhum título financeiro ou documento fiscal é criado por esta etapa.
+        </span>
+      </div>
     </div>
-  </div>
 
-  <div class="final-action">
-    <div>
-      <strong>Comando transacional ainda não conectado</strong>
-      <span>A próxima integração deve usar {{ expectedCommand }} com Idempotency-Key e If-Match, validando execução, peças, checklist, adicionais, blockers e concorrência no servidor.</span>
+    <section class="guard-section" aria-labelledby="closure-guards-title">
+      <div class="guard-heading">
+        <div>
+          <strong id="closure-guards-title">Checklist autoritativo de encerramento</strong>
+          <span>Cada item vem do backend com resultado OK, alerta ou bloqueio.</span>
+        </div>
+        <button type="button" class="secondary-button" [disabled]="validating || completing" (click)="revalidate()">
+          {{ validating ? 'Revalidando…' : 'Revalidar guardas' }}
+        </button>
+      </div>
+
+      <div class="guard-list">
+        <article *ngFor="let guard of review.guards" class="guard-item" [class.ok]="guard.status === 'OK'" [class.alert]="guard.status === 'ALERTA'" [class.block]="guard.status === 'BLOQUEIO'">
+          <div class="guard-icon" aria-hidden="true">
+            <nt-icon [name]="guard.status === 'OK' ? 'check' : guard.status === 'ALERTA' ? 'alert-triangle' : 'circle-x'" [size]="17" />
+          </div>
+          <div class="guard-copy">
+            <div class="guard-title-row">
+              <strong>{{ guard.label }}</strong>
+              <span class="guard-status">{{ guard.status }}</span>
+            </div>
+            <span>{{ guard.message }}</span>
+            <small>{{ guard.code }} · Owner: {{ guard.owner }}</small>
+          </div>
+          <button *ngIf="guard.route && guard.status !== 'OK'" type="button" class="guard-link" (click)="goToGuard(guard)">Resolver</button>
+        </article>
+      </div>
+    </section>
+
+    <div *ngIf="hasPartialSources" class="review-state warning" role="status">
+      <nt-icon name="alert-triangle" [size]="19" />
+      <div>
+        <strong>Existem fontes parciais</strong>
+        <span>A conclusão operacional permanece bloqueada até que os contratos autoritativos estejam disponíveis.</span>
+      </div>
     </div>
-    <button type="button" disabled>Finalizar OS</button>
-  </div>
+
+    <div class="final-action" [class.enabled]="canComplete" [class.completed]="review.alreadyCompleted">
+      <div>
+        <strong>{{ review.alreadyCompleted ? 'Etapa operacional concluída' : canComplete ? 'Pronta para concluir operacionalmente' : 'Conclusão protegida por guardas' }}</strong>
+        <span *ngIf="!review.alreadyCompleted">
+          O comando usa Idempotency-Key e If-Match. Ele congela o snapshot operacional; faturamento é um comando posterior e independente.
+        </span>
+        <span *ngIf="review.alreadyCompleted">A próxima etapa futura será “Liberar para faturamento”, sem acoplamento automático ao fechamento.</span>
+      </div>
+      <button type="button" [disabled]="!canComplete" (click)="completeOperationally()">
+        {{ completing ? 'Concluindo…' : review.alreadyCompleted ? 'Concluída' : 'Concluir operacionalmente' }}
+      </button>
+    </div>
+  </ng-container>
 </section>
