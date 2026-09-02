@@ -137,7 +137,7 @@ public class WorkSessionService {
         }
 
         OrdemServico ordemServico = requireOwnedOrder(ordemServicoId, tenantId);
-        ItemOSServico item = requireService(orderServicoId, serviceId);
+        ItemOSServico item = requireService(ordemServicoId, serviceId);
         validateExecutable(item);
 
         workSessionRepository
@@ -359,14 +359,16 @@ public class WorkSessionService {
         }
 
         List<String> actions = new ArrayList<>();
-        if (hasAuthority("OS_EDITAR") && blockers.isEmpty() && status != StatusExecucao.CONCLUIDO) {
-            if (activeForActor == null) {
+        if (hasAuthority("OS_EDITAR") && status != StatusExecucao.CONCLUIDO) {
+            if (activeForActor == null && blockers.isEmpty()) {
                 actions.add("START");
-            } else if (item.getId().equals(activeForActor.getItemServicoId())) {
+            } else if (activeForActor != null && item.getId().equals(activeForActor.getItemServicoId())) {
                 if (activeForActor.getStatus() == WorkSessionStatus.EM_EXECUCAO) {
+                    // Bloqueios surgidos durante uma sessão não podem prender o relógio.
                     actions.add("PAUSE");
                     actions.add("FINISH");
-                } else if (activeForActor.getStatus() == WorkSessionStatus.PAUSADA) {
+                } else if (activeForActor.getStatus() == WorkSessionStatus.PAUSADA && blockers.isEmpty()) {
+                    // Retomar volta a executar trabalho e, portanto, revalida os guardas.
                     actions.add("RESUME");
                 }
             }
@@ -411,13 +413,16 @@ public class WorkSessionService {
         if (!Boolean.TRUE.equals(item.getAprovadoCliente())) {
             blockers.add("OS_SERVICE_NOT_AUTHORIZED");
         }
+        if (item.getStatusExecucao() == StatusExecucao.CANCELADO) {
+            blockers.add("OS_SERVICE_CANCELLED");
+        }
 
         List<String> actions = new ArrayList<>();
-        if (hasAuthority("OS_EDITAR") && blockers.isEmpty()) {
+        if (hasAuthority("OS_EDITAR")) {
             if (session.getStatus() == WorkSessionStatus.EM_EXECUCAO) {
                 actions.add("PAUSE");
                 actions.add("FINISH");
-            } else if (session.getStatus() == WorkSessionStatus.PAUSADA) {
+            } else if (session.getStatus() == WorkSessionStatus.PAUSADA && blockers.isEmpty()) {
                 actions.add("RESUME");
             }
         }
