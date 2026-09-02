@@ -16,6 +16,7 @@ import { ItemOSProdutoResponse, ItemOSServicoResponse } from '../models/os.model
 import {
   DIAGNOSTIC_URGENCY_OPTIONS,
   OsChecklistItem,
+  OsChecklistModel,
   OsDiagnosticRequest,
   OsDiagnosticResponse,
   OsDiagnosticUrgency,
@@ -64,6 +65,7 @@ export class OsOperationsPanel implements OnChanges {
   private readonly cdr = inject(ChangeDetectorRef);
 
   @Input({ required: true }) osId!: number;
+  @Input() initialTab: OsOperationsTab = 'scope';
 
   readonly urgencyOptions = DIAGNOSTIC_URGENCY_OPTIONS;
   readonly vehicleSystemOptions = VEHICLE_SYSTEM_OPTIONS;
@@ -73,6 +75,8 @@ export class OsOperationsPanel implements OnChanges {
   services: ItemOSServicoResponse[] = [];
   diagnostics: OsDiagnosticResponse[] = [];
   checklist: OsChecklistItem[] = [];
+  checklistModels: OsChecklistModel[] = [];
+  selectedChecklistModelId?: number;
   evidence: OsPhotoEvidence[] = [];
 
   scopeState: OsSectionState = 'idle';
@@ -95,7 +99,11 @@ export class OsOperationsPanel implements OnChanges {
   evidenceDescription = '';
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialTab'] && this.initialTab) {
+      this.activeTab = this.initialTab;
+    }
     if (changes['osId'] && Number.isInteger(this.osId) && this.osId > 0) {
+      this.activeTab = this.initialTab || 'scope';
       this.loadAll();
     }
   }
@@ -120,6 +128,10 @@ export class OsOperationsPanel implements OnChanges {
     return this.hasPermission('OS_VIS_CHECKLIST');
   }
 
+  get canAddChecklist(): boolean {
+    return this.hasPermission('OS_ADC_CHECKLIST');
+  }
+
   get canEditChecklist(): boolean {
     return this.hasPermission('OS_EDIT_CHECKLIST');
   }
@@ -135,6 +147,15 @@ export class OsOperationsPanel implements OnChanges {
   get checklistProgress(): number {
     if (!this.checklist.length) return 0;
     return Math.round((this.checklistDone / this.checklist.length) * 100);
+  }
+
+  get availableChecklistModels(): OsChecklistModel[] {
+    const appliedIds = new Set(
+      this.checklist
+        .map(item => item.checklistModeloId)
+        .filter((id): id is number => typeof id === 'number')
+    );
+    return this.checklistModels.filter(model => !appliedIds.has(model.id));
   }
 
   setTab(tab: OsOperationsTab): void {
@@ -212,8 +233,9 @@ export class OsOperationsPanel implements OnChanges {
     this.checklistMessage = '';
     this.service.listChecklist(this.osId).subscribe({
       next: checklist => {
-        this.checklist = [...(checklist ?? [])].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+        this.checklist = this.sortChecklist(checklist ?? []);
         this.checklistState = 'ready';
+        if (this.canAddChecklist) this.loadChecklistModels();
         this.cdr.markForCheck();
       },
       error: error => {
@@ -221,6 +243,46 @@ export class OsOperationsPanel implements OnChanges {
         this.checklistMessage = error?.status === 403
           ? 'Seu perfil não possui permissão para visualizar o checklist da OS.'
           : 'Não foi possível carregar o checklist desta Ordem de Serviço.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private loadChecklistModels(): void {
+    this.service.listChecklistModels().subscribe({
+      next: page => {
+        this.checklistModels = page?.content ?? [];
+        if (this.selectedChecklistModelId && !this.availableChecklistModels.some(model => model.id === this.selectedChecklistModelId)) {
+          this.selectedChecklistModelId = undefined;
+        }
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        this.checklistModels = [];
+        if (error?.status !== 403) {
+          this.actionMessage = 'O catálogo de checklists está temporariamente indisponível.';
+        }
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  applyChecklist(): void {
+    const checklistId = Number(this.selectedChecklistModelId);
+    if (!this.canAddChecklist || !Number.isInteger(checklistId) || checklistId <= 0 || this.busyKey) return;
+
+    this.busyKey = 'apply-checklist';
+    this.actionMessage = '';
+    this.service.applyChecklist(this.osId, checklistId).subscribe({
+      next: checklist => {
+        this.checklist = this.sortChecklist(checklist ?? []);
+        this.selectedChecklistModelId = undefined;
+        this.busyKey = undefined;
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        this.busyKey = undefined;
+        this.actionMessage = this.extractError(error, 'Não foi possível aplicar o checklist à Ordem de Serviço.');
         this.cdr.markForCheck();
       },
     });
@@ -462,6 +524,10 @@ export class OsOperationsPanel implements OnChanges {
 
   trackById(_: number, item: { id: number }): number {
     return item.id;
+  }
+
+  private sortChecklist(items: OsChecklistItem[]): OsChecklistItem[] {
+    return [...items].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
   }
 
   private resolveScopeError(error: any): void {
