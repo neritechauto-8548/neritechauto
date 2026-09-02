@@ -76,7 +76,7 @@ export class OsFinancePanel implements OnChanges {
 
   openFinance(): void {
     if (!this.canOpenFinance) return;
-    void this.router.navigate(['/financeiro/contas-receber'], { queryParams: { osId: this.osId } });
+    void this.router.navigate(['/financeiro/receber'], { queryParams: { osId: this.osId } });
   }
 
   statusLabel(status?: string | null): string {
