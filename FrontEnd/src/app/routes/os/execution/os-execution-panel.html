@@ -45,7 +45,7 @@
         <div class="kpi-icon"><nt-icon name="history" [size]="19" /></div>
         <div>
           <span>Tempo real</span>
-          <strong aria-label="Tempo real acumulado">{{ formatTimer(data.activeSession?.status === 'EM_EXECUCAO' ? displayElapsedSeconds : data.summary.elapsedSeconds) }}</strong>
+          <strong aria-label="Tempo real acumulado">{{ formatTimer(displayTotalElapsedSeconds) }}</strong>
           <small>Servidor + sessão ativa</small>
         </div>
       </article>
@@ -92,7 +92,7 @@
 
         <div class="session-clock" aria-label="Tempo da sessão ativa">
           <span>Tempo da sessão</span>
-          <strong aria-live="off">{{ formatTimer(session.status === 'EM_EXECUCAO' ? displayElapsedSeconds : session.elapsedSeconds) }}</strong>
+          <strong aria-live="off">{{ formatTimer(displaySessionElapsedSeconds) }}</strong>
           <small>Início {{ session.startedAt | date:'dd/MM/yyyy HH:mm' }}</small>
         </div>
       </div>
@@ -101,7 +101,7 @@
         <nt-icon name="alert-triangle" [size]="17" />
         <div>
           <strong>Sessão pausada</strong>
-          <span>{{ session.pauseReason ? statusLabel(session.pauseReason) : 'Motivo registrado' }}<ng-container *ngIf="session.pauseNote"> · {{ session.pauseNote }}</ng-container></span>
+          <span>{{ pauseReasonLabel(session.pauseReason) }}<ng-container *ngIf="session.pauseNote"> · {{ session.pauseNote }}</ng-container></span>
         </div>
       </div>
 
