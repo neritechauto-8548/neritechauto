@@ -14,6 +14,8 @@ import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
 export class OsClosureReview {
   @Input({ required: true }) cockpit!: OrdemServicoCockpitResponse;
 
+  readonly expectedCommand = 'POST /api/v1/ordens-servico/{id}/complete-operationally';
+
   get blockers() { return this.cockpit?.blocks ?? []; }
   get hasPartialSources(): boolean { return Boolean(this.cockpit?.partialSources?.length); }
   get pendingApprovals(): number { return this.cockpit?.approvals?.pending ?? 0; }
@@ -22,17 +24,10 @@ export class OsClosureReview {
     const status = (this.cockpit?.execution?.status ?? '').toUpperCase();
     return status === 'CONCLUIDO' || status === 'CONCLUIDA' || this.executionProgress >= 100;
   }
-  get backendAllowsClosure(): boolean {
-    return (this.cockpit?.allowedActions ?? []).some(action => {
-      const code = action.code?.toUpperCase() ?? '';
-      return code.includes('FINAL') || code.includes('CLOSE') || code.includes('CONCLUIR_OS');
-    });
-  }
 
   get readinessLabel(): string {
     if (this.hasPartialSources) return 'Validação parcial';
     if (this.blockers.length || this.pendingApprovals > 0 || !this.executionDone) return 'Pendências operacionais';
-    if (!this.backendAllowsClosure) return 'Aguardando comando seguro';
-    return 'Pronta para ação autorizada';
+    return 'Aguardando comando seguro';
   }
 }
