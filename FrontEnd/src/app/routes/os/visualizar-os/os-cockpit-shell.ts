@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { OsExecutionPanel } from '../execution/os-execution-panel';
 import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
 import { OrdemServicoService } from '../ordem-servico.service';
 import { OsCockpitOverview } from './os-cockpit-overview';
@@ -11,7 +12,7 @@ import { VisualizarOS } from './visualizar-os';
   selector: 'os-cockpit-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, OsCockpitOverview, VisualizarOS],
+  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, VisualizarOS],
   template: `
     <main class="canonical-cockpit-shell">
       <div *ngIf="state === 'loading'" class="shell-state" role="status" aria-live="polite">
@@ -35,12 +36,14 @@ import { VisualizarOS } from './visualizar-os';
       <ng-container *ngIf="cockpit && state === 'ready'">
         <os-cockpit-overview [cockpit]="cockpit" />
 
+        <os-execution-panel [osId]="cockpit.id" />
+
         <div class="details-heading">
-          <strong>Detalhes operacionais</strong>
-          <span>Itens, inspeções, evidências, observações e informações relacionadas à execução.</span>
+          <strong>Demais detalhes operacionais</strong>
+          <span>Itens, inspeções, evidências, observações e informações relacionadas à Ordem de Serviço.</span>
         </div>
 
-        <section class="legacy-detail-sections" aria-label="Detalhes operacionais da Ordem de Serviço">
+        <section class="legacy-detail-sections" aria-label="Demais detalhes operacionais da Ordem de Serviço">
           <visualizar-os />
         </section>
       </ng-container>
