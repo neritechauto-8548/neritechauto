@@ -85,150 +85,56 @@
       </div>
 
       <div class="summary-grid">
-        <article>
-          <span>Serviços</span>
-          <strong>{{ services.length }}</strong>
-          <small>linhas de mão de obra</small>
-        </article>
-        <article>
-          <span>Peças/produtos</span>
-          <strong>{{ products.length }}</strong>
-          <small>itens vinculados à OS</small>
-        </article>
-        <article>
-          <span>Autorização</span>
-          <strong>{{ services.length || products.length ? 'Por item' : '—' }}</strong>
-          <small>sem aprovação implícita</small>
-        </article>
-        <article>
-          <span>Estoque</span>
-          <strong>Externo à OS</strong>
-          <small>saldo não é duplicado aqui</small>
-        </article>
+        <article><span>Serviços</span><strong>{{ services.length }}</strong><small>linhas de mão de obra</small></article>
+        <article><span>Peças/produtos</span><strong>{{ products.length }}</strong><small>itens vinculados à OS</small></article>
+        <article><span>Autorização</span><strong>{{ services.length || products.length ? 'Por item' : '—' }}</strong><small>sem aprovação implícita</small></article>
+        <article><span>Estoque</span><strong>Externo à OS</strong><small>saldo não é duplicado aqui</small></article>
       </div>
 
       <div class="scope-columns">
         <article class="scope-card">
-          <header>
-            <div>
-              <span class="eyebrow">Mão de obra</span>
-              <h4>Serviços</h4>
-            </div>
-            <span class="count-badge">{{ services.length }}</span>
-          </header>
-
-          <div *ngIf="!services.length" class="compact-empty">
-            <nt-icon name="tool" [size]="22" />
-            <div><strong>Nenhum serviço vinculado</strong><span>Edite o escopo para incluir mão de obra.</span></div>
-          </div>
-
+          <header><div><span class="eyebrow">Mão de obra</span><h4>Serviços</h4></div><span class="count-badge">{{ services.length }}</span></header>
+          <div *ngIf="!services.length" class="compact-empty"><nt-icon name="tool" [size]="22" /><div><strong>Nenhum serviço vinculado</strong><span>Edite o escopo para incluir mão de obra.</span></div></div>
           <div class="item-list" *ngIf="services.length">
             <div class="scope-item" *ngFor="let item of services; trackBy: trackById">
               <div class="item-main">
-                <div class="item-title-row">
-                  <strong>{{ item.nomeServico || item.descricao || 'Serviço sem descrição' }}</strong>
-                  <span class="status-badge" [class.approved]="item.aprovadoCliente">{{ item.aprovadoCliente ? 'Autorizado' : 'Pendente' }}</span>
-                </div>
+                <div class="item-title-row"><strong>{{ item.nomeServico || item.descricao || 'Serviço sem descrição' }}</strong><span class="status-badge" [class.approved]="item.aprovadoCliente">{{ item.aprovadoCliente ? 'Autorizado' : 'Pendente' }}</span></div>
                 <span *ngIf="item.codigoServico">{{ item.codigoServico }}</span>
-                <div class="item-meta">
-                  <span>{{ item.quantidade || 1 }} × {{ item.valorUnitario | currency:'BRL':'symbol':'1.2-2' }}</span>
-                  <span>{{ serviceStatusLabel(item.statusExecucao) }}</span>
-                  <span *ngIf="item.tempoExecucaoPrevisto">Previsto: {{ item.tempoExecucaoPrevisto }} min</span>
-                </div>
+                <div class="item-meta"><span>{{ item.quantidade || 1 }} × {{ item.valorUnitario | currency:'BRL':'symbol':'1.2-2' }}</span><span>{{ serviceStatusLabel(item.statusExecucao) }}</span><span *ngIf="item.tempoExecucaoPrevisto">Previsto: {{ item.tempoExecucaoPrevisto }} min</span></div>
               </div>
-              <div class="item-value">
-                <strong>{{ item.valorFinal | currency:'BRL':'symbol':'1.2-2' }}</strong>
-                <button
-                  *ngIf="canManageItems"
-                  type="button"
-                  class="icon-danger"
-                  aria-label="Excluir serviço"
-                  (click)="requestDelete('service', item.id, item.nomeServico || item.descricao || 'Serviço')"
-                ><nt-icon name="trash" [size]="16" /></button>
-              </div>
+              <div class="item-value"><strong>{{ item.valorFinal | currency:'BRL':'symbol':'1.2-2' }}</strong><button *ngIf="canManageItems" type="button" class="icon-danger" aria-label="Excluir serviço" (click)="requestDelete('service', item.id, item.nomeServico || item.descricao || 'Serviço')"><nt-icon name="trash" [size]="16" /></button></div>
             </div>
           </div>
         </article>
 
         <article class="scope-card">
-          <header>
-            <div>
-              <span class="eyebrow">Materiais</span>
-              <h4>Peças e produtos</h4>
-            </div>
-            <span class="count-badge">{{ products.length }}</span>
-          </header>
-
-          <div *ngIf="!products.length" class="compact-empty">
-            <nt-icon name="package" [size]="22" />
-            <div><strong>Nenhuma peça vinculada</strong><span>Edite o escopo para incluir peças ou insumos.</span></div>
-          </div>
-
+          <header><div><span class="eyebrow">Materiais</span><h4>Peças e produtos</h4></div><span class="count-badge">{{ products.length }}</span></header>
+          <div *ngIf="!products.length" class="compact-empty"><nt-icon name="package" [size]="22" /><div><strong>Nenhuma peça vinculada</strong><span>Edite o escopo para incluir peças ou insumos.</span></div></div>
           <div class="item-list" *ngIf="products.length">
             <div class="scope-item" *ngFor="let item of products; trackBy: trackById">
               <div class="item-main">
-                <div class="item-title-row">
-                  <strong>{{ item.nomeProduto || item.descricao || 'Produto sem descrição' }}</strong>
-                  <span class="status-badge" [class.approved]="item.aprovadoCliente">{{ item.aprovadoCliente ? 'Autorizado' : 'Pendente' }}</span>
-                </div>
+                <div class="item-title-row"><strong>{{ item.nomeProduto || item.descricao || 'Produto sem descrição' }}</strong><span class="status-badge" [class.approved]="item.aprovadoCliente">{{ item.aprovadoCliente ? 'Autorizado' : 'Pendente' }}</span></div>
                 <span *ngIf="item.codigoProduto">{{ item.codigoProduto }}</span>
-                <div class="item-meta">
-                  <span>{{ item.quantidade }} × {{ item.valorUnitario | currency:'BRL':'symbol':'1.2-2' }}</span>
-                  <span *ngIf="item.loteNumero">Lote {{ item.loteNumero }}</span>
-                  <span *ngIf="item.numeroSerie">Série {{ item.numeroSerie }}</span>
-                </div>
+                <div class="item-meta"><span>{{ item.quantidade }} × {{ item.valorUnitario | currency:'BRL':'symbol':'1.2-2' }}</span><span *ngIf="item.loteNumero">Lote {{ item.loteNumero }}</span><span *ngIf="item.numeroSerie">Série {{ item.numeroSerie }}</span></div>
               </div>
-              <div class="item-value">
-                <strong>{{ item.valorFinal | currency:'BRL':'symbol':'1.2-2' }}</strong>
-                <button
-                  *ngIf="canManageItems"
-                  type="button"
-                  class="icon-danger"
-                  aria-label="Excluir produto"
-                  (click)="requestDelete('product', item.id, item.nomeProduto || item.descricao || 'Produto')"
-                ><nt-icon name="trash" [size]="16" /></button>
-              </div>
+              <div class="item-value"><strong>{{ item.valorFinal | currency:'BRL':'symbol':'1.2-2' }}</strong><button *ngIf="canManageItems" type="button" class="icon-danger" aria-label="Excluir produto" (click)="requestDelete('product', item.id, item.nomeProduto || item.descricao || 'Produto')"><nt-icon name="trash" [size]="16" /></button></div>
             </div>
           </div>
-
-          <footer class="authority-note">
-            <nt-icon name="shield-check" [size]="16" />
-            <span>Quantidade vinculada à OS não representa saldo, reserva, separação ou consumo físico.</span>
-          </footer>
+          <footer class="authority-note"><nt-icon name="shield-check" [size]="16" /><span>Quantidade vinculada à OS não representa saldo, reserva, separação ou consumo físico.</span></footer>
         </article>
       </div>
     </ng-container>
   </section>
 
   <section *ngIf="activeTab === 'diagnostics'" class="tab-content" aria-label="Diagnósticos e solicitações">
-    <div *ngIf="diagnosticsState === 'loading'" class="section-loading" role="status">
-      <div class="skeleton strip"></div><div class="skeleton card"></div><span>Carregando diagnósticos…</span>
-    </div>
-
-    <div *ngIf="diagnosticsState === 'forbidden' || diagnosticsState === 'error'" class="section-state" role="alert">
-      <nt-icon [name]="diagnosticsState === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
-      <div><strong>{{ diagnosticsState === 'forbidden' ? 'Diagnósticos restritos' : 'Diagnósticos indisponíveis' }}</strong><span>{{ diagnosticsMessage }}</span></div>
-      <button *ngIf="diagnosticsState === 'error'" type="button" class="secondary-button" (click)="loadDiagnostics()">Tentar novamente</button>
-    </div>
+    <div *ngIf="diagnosticsState === 'loading'" class="section-loading" role="status"><div class="skeleton strip"></div><div class="skeleton card"></div><span>Carregando diagnósticos…</span></div>
+    <div *ngIf="diagnosticsState === 'forbidden' || diagnosticsState === 'error'" class="section-state" role="alert"><nt-icon [name]="diagnosticsState === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" /><div><strong>{{ diagnosticsState === 'forbidden' ? 'Diagnósticos restritos' : 'Diagnósticos indisponíveis' }}</strong><span>{{ diagnosticsMessage }}</span></div><button *ngIf="diagnosticsState === 'error'" type="button" class="secondary-button" (click)="loadDiagnostics()">Tentar novamente</button></div>
 
     <ng-container *ngIf="diagnosticsState === 'ready'">
-      <div class="section-toolbar">
-        <div>
-          <span class="eyebrow">Análise técnica</span>
-          <h3>Diagnósticos e achados</h3>
-          <p>Registrar um diagnóstico documenta o achado; não autoriza serviço adicional automaticamente.</p>
-        </div>
-        <button *ngIf="canEditOrder && !diagnosticFormOpen" type="button" class="primary-button" (click)="openDiagnosticForm()">
-          <nt-icon name="plus" [size]="16" /> Novo diagnóstico
-        </button>
-      </div>
+      <div class="section-toolbar"><div><span class="eyebrow">Análise técnica</span><h3>Diagnósticos e achados</h3><p>Registrar um diagnóstico documenta o achado; não autoriza serviço adicional automaticamente.</p></div><button *ngIf="canEditOrder && !diagnosticFormOpen" type="button" class="primary-button" (click)="openDiagnosticForm()"><nt-icon name="plus" [size]="16" /> Novo diagnóstico</button></div>
 
       <form *ngIf="diagnosticFormOpen" class="diagnostic-form" (ngSubmit)="submitDiagnostic()">
-        <header>
-          <div><strong>Novo diagnóstico</strong><span>Registre somente evidência e recomendação técnica verificável.</span></div>
-          <button type="button" class="icon-button" aria-label="Fechar formulário" (click)="closeDiagnosticForm()"><nt-icon name="x" [size]="17" /></button>
-        </header>
-
+        <header><div><strong>Novo diagnóstico</strong><span>Registre somente evidência e recomendação técnica verificável.</span></div><button type="button" class="icon-button" aria-label="Fechar formulário" (click)="closeDiagnosticForm()"><nt-icon name="x" [size]="17" /></button></header>
         <div class="form-grid">
           <label class="span-2"><span>Problema identificado *</span><textarea name="problemaIdentificado" rows="3" maxlength="2000" required [(ngModel)]="diagnosticDraft.problemaIdentificado"></textarea></label>
           <label><span>Sistema</span><select name="sistemaVeiculo" [(ngModel)]="diagnosticDraft.sistemaVeiculo"><option value="">Não informado</option><option *ngFor="let option of vehicleSystemOptions" [value]="option.value">{{ option.label }}</option></select></label>
@@ -240,43 +146,17 @@
           <label class="span-2"><span>Testes realizados</span><textarea name="testesRealizados" rows="2" [(ngModel)]="diagnosticDraft.testesRealizados"></textarea></label>
           <label class="span-2"><span>Evidências encontradas</span><textarea name="evidenciasEncontradas" rows="2" [(ngModel)]="diagnosticDraft.evidenciasEncontradas"></textarea></label>
         </div>
-
-        <div class="boolean-row">
-          <label><input type="checkbox" name="impactoSeguranca" [(ngModel)]="diagnosticDraft.impactoSeguranca" /><span>Impacta segurança</span></label>
-          <label><input type="checkbox" name="impactoDirigibilidade" [(ngModel)]="diagnosticDraft.impactoDirigibilidade" /><span>Impacta dirigibilidade</span></label>
-        </div>
-
-        <footer>
-          <button type="button" class="secondary-button" (click)="closeDiagnosticForm()" [disabled]="!!busyKey">Cancelar</button>
-          <button type="submit" class="primary-button" [disabled]="!diagnosticDraft.problemaIdentificado.trim() || !!busyKey">{{ busyKey === 'create-diagnostic' ? 'Registrando…' : 'Registrar diagnóstico' }}</button>
-        </footer>
+        <div class="boolean-row"><label><input type="checkbox" name="impactoSeguranca" [(ngModel)]="diagnosticDraft.impactoSeguranca" /><span>Impacta segurança</span></label><label><input type="checkbox" name="impactoDirigibilidade" [(ngModel)]="diagnosticDraft.impactoDirigibilidade" /><span>Impacta dirigibilidade</span></label></div>
+        <footer><button type="button" class="secondary-button" (click)="closeDiagnosticForm()" [disabled]="!!busyKey">Cancelar</button><button type="submit" class="primary-button" [disabled]="!diagnosticDraft.problemaIdentificado.trim() || !!busyKey">{{ busyKey === 'create-diagnostic' ? 'Registrando…' : 'Registrar diagnóstico' }}</button></footer>
       </form>
 
-      <div *ngIf="!diagnostics.length" class="large-empty">
-        <nt-icon name="tool" [size]="28" />
-        <strong>Nenhum diagnóstico registrado</strong>
-        <span>Os achados técnicos aparecerão aqui sem criar autorização comercial implícita.</span>
-      </div>
-
+      <div *ngIf="!diagnostics.length" class="large-empty"><nt-icon name="tool" [size]="28" /><strong>Nenhum diagnóstico registrado</strong><span>Os achados técnicos aparecerão aqui sem criar autorização comercial implícita.</span></div>
       <div class="diagnostic-grid" *ngIf="diagnostics.length">
         <article class="diagnostic-card" *ngFor="let diagnostic of diagnostics; trackBy: trackById">
-          <header>
-            <div><span>{{ systemLabel(diagnostic.sistemaVeiculo) }}</span><strong>{{ diagnostic.problemaIdentificado }}</strong></div>
-            <span class="urgency-badge" [attr.data-tone]="urgencyTone(diagnostic.urgencia)">{{ urgencyLabel(diagnostic.urgencia) }}</span>
-          </header>
-          <div class="diagnostic-body">
-            <p *ngIf="diagnostic.causaProvavel"><b>Causa provável:</b> {{ diagnostic.causaProvavel }}</p>
-            <p *ngIf="diagnostic.solucaoRecomendada"><b>Recomendação:</b> {{ diagnostic.solucaoRecomendada }}</p>
-            <p *ngIf="diagnostic.evidenciasEncontradas"><b>Evidência:</b> {{ diagnostic.evidenciasEncontradas }}</p>
-          </div>
-          <div class="risk-row" *ngIf="diagnostic.impactoSeguranca || diagnostic.impactoDirigibilidade">
-            <span *ngIf="diagnostic.impactoSeguranca">Segurança</span><span *ngIf="diagnostic.impactoDirigibilidade">Dirigibilidade</span>
-          </div>
-          <footer>
-            <span *ngIf="diagnostic.dataDiagnostico || diagnostic.dataCadastro">{{ (diagnostic.dataDiagnostico || diagnostic.dataCadastro) | date:'dd/MM/yyyy HH:mm' }}</span>
-            <span *ngIf="!diagnostic.dataDiagnostico && !diagnostic.dataCadastro">Data não informada</span>
-            <button *ngIf="canDeleteDiagnostics" type="button" class="icon-danger" aria-label="Excluir diagnóstico" (click)="requestDelete('diagnostic', diagnostic.id, diagnostic.problemaIdentificado)"><nt-icon name="trash" [size]="16" /></button>
-          </footer>
+          <header><div><span>{{ systemLabel(diagnostic.sistemaVeiculo) }}</span><strong>{{ diagnostic.problemaIdentificado }}</strong></div><span class="urgency-badge" [attr.data-tone]="urgencyTone(diagnostic.urgencia)">{{ urgencyLabel(diagnostic.urgencia) }}</span></header>
+          <div class="diagnostic-body"><p *ngIf="diagnostic.causaProvavel"><b>Causa provável:</b> {{ diagnostic.causaProvavel }}</p><p *ngIf="diagnostic.solucaoRecomendada"><b>Recomendação:</b> {{ diagnostic.solucaoRecomendada }}</p><p *ngIf="diagnostic.evidenciasEncontradas"><b>Evidência:</b> {{ diagnostic.evidenciasEncontradas }}</p></div>
+          <div class="risk-row" *ngIf="diagnostic.impactoSeguranca || diagnostic.impactoDirigibilidade"><span *ngIf="diagnostic.impactoSeguranca">Segurança</span><span *ngIf="diagnostic.impactoDirigibilidade">Dirigibilidade</span></div>
+          <footer><span *ngIf="diagnostic.dataDiagnostico || diagnostic.dataCadastro">{{ (diagnostic.dataDiagnostico || diagnostic.dataCadastro) | date:'dd/MM/yyyy HH:mm' }}</span><span *ngIf="!diagnostic.dataDiagnostico && !diagnostic.dataCadastro">Data não informada</span><button *ngIf="canDeleteDiagnostics" type="button" class="icon-danger" aria-label="Excluir diagnóstico" (click)="requestDelete('diagnostic', diagnostic.id, diagnostic.problemaIdentificado)"><nt-icon name="trash" [size]="16" /></button></footer>
         </article>
       </div>
     </ng-container>
@@ -284,12 +164,7 @@
 
   <section *ngIf="activeTab === 'checklist'" class="tab-content" aria-label="Checklist da Ordem de Serviço">
     <div *ngIf="checklistState === 'loading'" class="section-loading" role="status"><div class="skeleton strip"></div><div class="skeleton card"></div><span>Carregando checklist…</span></div>
-
-    <div *ngIf="checklistState === 'forbidden' || checklistState === 'error'" class="section-state" role="alert">
-      <nt-icon [name]="checklistState === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
-      <div><strong>{{ checklistState === 'forbidden' ? 'Checklist restrito' : 'Checklist indisponível' }}</strong><span>{{ checklistMessage }}</span></div>
-      <button *ngIf="checklistState === 'error'" type="button" class="secondary-button" (click)="loadChecklist()">Tentar novamente</button>
-    </div>
+    <div *ngIf="checklistState === 'forbidden' || checklistState === 'error'" class="section-state" role="alert"><nt-icon [name]="checklistState === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" /><div><strong>{{ checklistState === 'forbidden' ? 'Checklist restrito' : 'Checklist indisponível' }}</strong><span>{{ checklistMessage }}</span></div><button *ngIf="checklistState === 'error'" type="button" class="secondary-button" (click)="loadChecklist()">Tentar novamente</button></div>
 
     <ng-container *ngIf="checklistState === 'ready'">
       <div class="section-toolbar">
@@ -297,74 +172,43 @@
         <div class="progress-summary" *ngIf="checklist.length"><strong>{{ checklistProgress }}%</strong><span>{{ checklistDone }} de {{ checklist.length }}</span></div>
       </div>
 
-      <div *ngIf="!checklist.length" class="large-empty">
-        <nt-icon name="clipboard-check" [size]="28" />
-        <strong>Nenhum checklist aplicado</strong>
-        <span>Adicione um checklist modelo à OS quando o fluxo exigir inspeção estruturada.</span>
-      </div>
+      <form *ngIf="canAddChecklist && availableChecklistModels.length" class="checklist-apply" (ngSubmit)="applyChecklist()">
+        <div><strong>Aplicar checklist</strong><span>Escolha um modelo da empresa. Modelos já presentes nesta OS são ocultados.</span></div>
+        <select name="checklistModel" [(ngModel)]="selectedChecklistModelId" required>
+          <option [ngValue]="undefined" disabled>Selecione um modelo</option>
+          <option *ngFor="let model of availableChecklistModels; trackBy: trackById" [ngValue]="model.id">{{ model.dsChecklist }}</option>
+        </select>
+        <button type="submit" class="primary-button" [disabled]="!selectedChecklistModelId || !!busyKey">{{ busyKey === 'apply-checklist' ? 'Aplicando…' : 'Aplicar' }}</button>
+      </form>
+
+      <div *ngIf="!checklist.length" class="large-empty"><nt-icon name="clipboard-check" [size]="28" /><strong>Nenhum checklist aplicado</strong><span *ngIf="!canAddChecklist">Seu perfil pode visualizar esta área, mas não aplicar novos modelos.</span><span *ngIf="canAddChecklist && !availableChecklistModels.length">Não há outro modelo disponível para aplicar nesta OS.</span></div>
 
       <div class="checklist-list" *ngIf="checklist.length">
-        <button
-          *ngFor="let item of checklist; trackBy: trackById"
-          type="button"
-          class="checklist-item"
-          [class.done]="item.feito"
-          [disabled]="!canEditChecklist || !!busyKey"
-          (click)="toggleChecklist(item)"
-        >
-          <span class="check-control"><nt-icon [name]="item.feito ? 'check' : 'help-circle'" [size]="16" /></span>
-          <span class="check-number">{{ item.ordem || '—' }}</span>
-          <span class="check-description">{{ item.descricao || 'Item sem descrição' }}</span>
-          <span class="check-status">{{ busyKey === 'checklist-' + item.id ? 'Salvando…' : (item.feito ? 'Concluído' : 'Pendente') }}</span>
+        <button *ngFor="let item of checklist; trackBy: trackById" type="button" class="checklist-item" [class.done]="item.feito" [disabled]="!canEditChecklist || !!busyKey" (click)="toggleChecklist(item)">
+          <span class="check-control"><nt-icon [name]="item.feito ? 'check' : 'help-circle'" [size]="16" /></span><span class="check-number">{{ item.ordem || '—' }}</span><span class="check-description">{{ item.descricao || 'Item sem descrição' }}</span><span class="check-status">{{ busyKey === 'checklist-' + item.id ? 'Salvando…' : (item.feito ? 'Concluído' : 'Pendente') }}</span>
         </button>
       </div>
-
       <p *ngIf="checklist.length && !canEditChecklist" class="permission-note"><nt-icon name="lock" [size]="15" /> Você pode visualizar, mas não alterar os itens deste checklist.</p>
     </ng-container>
   </section>
 
   <section *ngIf="activeTab === 'evidence'" class="tab-content" aria-label="Evidências da Ordem de Serviço">
     <div *ngIf="evidenceState === 'loading'" class="section-loading" role="status"><div class="skeleton strip"></div><div class="skeleton card"></div><span>Carregando evidências…</span></div>
-
-    <div *ngIf="evidenceState === 'forbidden' || evidenceState === 'error'" class="section-state" role="alert">
-      <nt-icon [name]="evidenceState === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
-      <div><strong>{{ evidenceState === 'forbidden' ? 'Evidências restritas' : 'Evidências indisponíveis' }}</strong><span>{{ evidenceMessage }}</span></div>
-      <button *ngIf="evidenceState === 'error'" type="button" class="secondary-button" (click)="loadEvidence()">Tentar novamente</button>
-    </div>
+    <div *ngIf="evidenceState === 'forbidden' || evidenceState === 'error'" class="section-state" role="alert"><nt-icon [name]="evidenceState === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" /><div><strong>{{ evidenceState === 'forbidden' ? 'Evidências restritas' : 'Evidências indisponíveis' }}</strong><span>{{ evidenceMessage }}</span></div><button *ngIf="evidenceState === 'error'" type="button" class="secondary-button" (click)="loadEvidence()">Tentar novamente</button></div>
 
     <ng-container *ngIf="evidenceState === 'ready'">
-      <div class="section-toolbar">
-        <div><span class="eyebrow">Arquivos privados</span><h3>Fotos e evidências</h3><p>Arquivos são carregados e baixados pela API autenticada; não são expostos por link público direto.</p></div>
-      </div>
-
+      <div class="section-toolbar"><div><span class="eyebrow">Arquivos privados</span><h3>Fotos e evidências</h3><p>Arquivos são carregados e baixados pela API autenticada; não são expostos por link público direto.</p></div></div>
       <form *ngIf="canUploadEvidence" class="evidence-upload" (ngSubmit)="uploadEvidence()">
-        <label class="file-picker">
-          <nt-icon name="plus" [size]="18" />
-          <span>{{ selectedEvidenceFile?.name || 'Selecionar imagem' }}</span>
-          <input type="file" accept="image/*" (change)="onEvidenceFileSelected($event)" />
-        </label>
+        <label class="file-picker"><nt-icon name="plus" [size]="18" /><span>{{ selectedEvidenceFile?.name || 'Selecionar imagem' }}</span><input type="file" accept="image/*" (change)="onEvidenceFileSelected($event)" /></label>
         <label class="description-field"><span>Descrição</span><input name="evidenceDescription" maxlength="255" [(ngModel)]="evidenceDescription" placeholder="Ex.: vazamento antes do reparo" /></label>
         <button type="submit" class="primary-button" [disabled]="!selectedEvidenceFile || !!busyKey">{{ busyKey === 'upload-evidence' ? 'Enviando…' : 'Enviar evidência' }}</button>
       </form>
-
-      <div *ngIf="!evidence.length" class="large-empty">
-        <nt-icon name="file-invoice" [size]="28" />
-        <strong>Nenhuma evidência anexada</strong>
-        <span>Fotos e arquivos técnicos vinculados à OS aparecerão aqui.</span>
-      </div>
-
+      <div *ngIf="!evidence.length" class="large-empty"><nt-icon name="file-invoice" [size]="28" /><strong>Nenhuma evidência anexada</strong><span>Fotos e arquivos técnicos vinculados à OS aparecerão aqui.</span></div>
       <div class="evidence-grid" *ngIf="evidence.length">
         <article class="evidence-card" *ngFor="let photo of evidence; trackBy: trackById">
           <div class="evidence-icon"><nt-icon name="file-invoice" [size]="23" /></div>
-          <div class="evidence-copy">
-            <strong>{{ photo.descricao || ('Evidência #' + photo.id) }}</strong>
-            <span>{{ photo.contentType || 'Tipo não informado' }} · {{ fileSize(photo.tamanho) }}</span>
-            <small *ngIf="photo.createdAt">{{ photo.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
-          </div>
-          <div class="evidence-actions">
-            <button type="button" class="secondary-button compact" (click)="downloadEvidence(photo)" [disabled]="!!busyKey">Baixar</button>
-            <button *ngIf="canUploadEvidence" type="button" class="icon-danger" aria-label="Excluir evidência" (click)="requestDelete('evidence', photo.id, photo.descricao || ('Evidência #' + photo.id))"><nt-icon name="trash" [size]="16" /></button>
-          </div>
+          <div class="evidence-copy"><strong>{{ photo.descricao || ('Evidência #' + photo.id) }}</strong><span>{{ photo.contentType || 'Tipo não informado' }} · {{ fileSize(photo.tamanho) }}</span><small *ngIf="photo.createdAt">{{ photo.createdAt | date:'dd/MM/yyyy HH:mm' }}</small></div>
+          <div class="evidence-actions"><button type="button" class="secondary-button compact" (click)="downloadEvidence(photo)" [disabled]="!!busyKey">Baixar</button><button *ngIf="canUploadEvidence" type="button" class="icon-danger" aria-label="Excluir evidência" (click)="requestDelete('evidence', photo.id, photo.descricao || ('Evidência #' + photo.id))"><nt-icon name="trash" [size]="16" /></button></div>
         </article>
       </div>
     </ng-container>
