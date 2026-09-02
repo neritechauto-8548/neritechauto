@@ -36,6 +36,9 @@ export const routes: Routes = [
   { path: ':id/fotos', ...canonicalCockpitRoute, data: { title: 'Evidências da Ordem de Serviço', permissions: ['GERAL_USUARIO'], operationsTab: 'evidence' } },
   { path: ':id/adicionais', ...canonicalCockpitRoute, data: { title: 'Adicionais e Aprovação Complementar', permissions: ['GERAL_USUARIO', 'OS_VIS_SOLICITACOES'], focusSection: 'additional' } },
   { path: ':id/historico', ...canonicalCockpitRoute, data: { title: 'Diário e Histórico da Ordem de Serviço', permissions: ['OS_COMENTARIOS', 'OS_COMENTARIOS_OUTROS'], focusSection: 'journal' } },
+  { path: ':id/financeiro', ...canonicalCockpitRoute, data: { title: 'Financeiro da Ordem de Serviço', permissions: ['GERAL_USUARIO'], focusSection: 'finance' } },
+  { path: ':id/comunicacao', ...canonicalCockpitRoute, data: { title: 'Comunicação da Ordem de Serviço', permissions: ['GERAL_USUARIO'], focusSection: 'communication' } },
+  { path: ':id/revisao', ...canonicalCockpitRoute, data: { title: 'Revisão e Fechamento da Ordem de Serviço', permissions: ['GERAL_USUARIO'], focusSection: 'closure' } },
 
   // Rota canônica /ordens-servico/{id}; fica por último para não capturar subrotas.
   { path: ':id', ...canonicalCockpitRoute },
