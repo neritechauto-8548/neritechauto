@@ -3,9 +3,11 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
+import { NgxPermissionsService } from 'ngx-permissions';
 
 // Services
 import { AuthService } from '@core';
+import { NeriTechIcon, PageHeader } from '@shared';
 import { OrdemServicoService } from '../ordem-servico.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
@@ -20,7 +22,7 @@ import { MessageService } from 'primeng/api';
 // Models
 import {
   OrdemServicoRequest, OrdemServicoResponse,
-  TipoOS, NivelCombustivel,
+  TipoOS,
   ItemOSProdutoResponse, ItemOSServicoResponse
 } from '../models/os.models';
 import { OrcamentoRequest, StatusOrcamento, TipoOrcamento } from '../../orcamento/models/orcamento.models';
@@ -57,6 +59,8 @@ import { ConfirmationService } from 'primeng/api';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    PageHeader,
+    NeriTechIcon,
     PanelModule,
     InputTextModule,
     ButtonModule,
@@ -79,6 +83,7 @@ import { ConfirmationService } from 'primeng/api';
 })
 export class CadastroOS implements OnInit {
   private authService = inject(AuthService);
+  private permissions = inject(NgxPermissionsService);
   private osService = inject(OrdemServicoService);
   private itemService = inject(ItemOSService);
   private clienteService = inject(ClientesService);
@@ -171,7 +176,6 @@ export class CadastroOS implements OnInit {
       mecanico: [null]
     });
 
-    // Validar dias depois
     const validadePadrao = new Date();
     validadePadrao.setDate(validadePadrao.getDate() + 10);
 
@@ -189,6 +193,27 @@ export class CadastroOS implements OnInit {
     this.checkRouteParams();
   }
 
+  get pageTitle() {
+    if (this.osId) return `OS ${this.osData?.numeroOS || '#' + this.osId}`;
+    return this.isCriarOrcamento ? 'Novo orçamento legado' : 'Nova ordem de serviço';
+  }
+
+  get pageDescription() {
+    if (this.osId) return 'Atualize o contexto operacional, responsável, prazos e observações da ordem de serviço.';
+    return 'Registre cliente, veículo, responsável e previsão antes de avançar para execução e itens.';
+  }
+
+  get canDeleteOS() {
+    return Boolean(this.permissions.getPermission('OS_EXCLUIR'));
+  }
+
+  get canPrintOS() {
+    return Boolean(
+      this.permissions.getPermission('OS_IMP_CLIENTE') ||
+      this.permissions.getPermission('OS_IMP_INTERNO')
+    );
+  }
+
   private hydrateCurrentUser() {
     const user = this.authService.snapshot();
     const nome = user.nomeCompleto?.trim() || user.name?.trim();
@@ -199,7 +224,6 @@ export class CadastroOS implements OnInit {
   }
 
   checkRouteParams() {
-    // Verifica se veio ID na rota ou parametro
     const id = this.route.snapshot.params['id'] || this.route.snapshot.queryParams['id'];
     const tipo = this.route.snapshot.queryParams['tipo'];
     const queryVeiculoId = this.route.snapshot.queryParams['veiculoId'];
@@ -257,7 +281,6 @@ export class CadastroOS implements OnInit {
     this.osService.getById(id).pipe(finalize(() => this.loading = false)).subscribe(os => {
       this.osData = os;
 
-      // Parsear equipeExecucao (pode ser string JSON ou array)
       let funcionario = '';
       try {
         const eq = os.equipeExecucao;
@@ -267,6 +290,10 @@ export class CadastroOS implements OnInit {
           funcionario = Array.isArray(parsed) ? parsed[0] : parsed;
         }
       } catch { funcionario = os.equipeExecucao || ''; }
+
+      if (funcionario && !this.funcionarios.some(item => item.value === funcionario)) {
+        this.funcionarios = [{ label: funcionario, value: funcionario }, ...this.funcionarios];
+      }
 
       this.osForm.patchValue({
         numeroOS: os.numeroOS,
@@ -281,7 +308,6 @@ export class CadastroOS implements OnInit {
         dataPrevisao: os.dataPromessa ? new Date(os.dataPromessa) : null,
       });
 
-      // Carregar cliente para popular o p-autoComplete
       if (os.clienteId) {
         this.clienteService.getById(os.clienteId).subscribe(c => {
           const clienteObj = {
@@ -289,7 +315,6 @@ export class CadastroOS implements OnInit {
             displayName: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || `Cliente #${c.id}`
           };
           this.osForm.patchValue({ cliente: clienteObj });
-          // Carregar veículos do cliente
           this.carregarVeiculos(os.clienteId!);
         });
       }
@@ -556,7 +581,6 @@ export class CadastroOS implements OnInit {
 
     const val = this.orcamentoForm.value;
 
-    // Calcula totais baseados nos itens atuais
     const totalServ = this.itensServico.reduce((acc, i) => acc + i.valorFinal, 0);
     const totalProd = this.itensProduto.reduce((acc, i) => acc + i.valorFinal, 0);
 
@@ -589,7 +613,6 @@ export class CadastroOS implements OnInit {
 
   }
 
-
   // === IMPRESSÃO & FISCAL ===
   imprimirOS() {
     if (!this.osId) return;
@@ -616,7 +639,6 @@ export class CadastroOS implements OnInit {
       const totalServ = this.itensServico.reduce((acc, i) => acc + i.valorFinal, 0);
 
       const request: NfeRequest = {
-          // faturaId: null, // Pode vincular a Fatura se houver
           tipoOperacao: TipoOperacaoNfe.SAIDA,
           status: StatusNfe.EM_DIGITACAO,
           ambiente: AmbienteNfe.HOMOLOGACAO,
@@ -629,7 +651,7 @@ export class CadastroOS implements OnInit {
       };
 
       this.nfeService.create(request).subscribe({
-          next: (nfe) => {
+          next: () => {
               this.messageService.add({ severity: 'success', summary: 'NFe gerada!', detail: 'NFe gerada em rascunho.' });
               this.loading = false;
               this.router.navigate(['/financeiro/nfe']);
@@ -655,7 +677,7 @@ export class CadastroOS implements OnInit {
   }
 
   excluirOS() {
-    if (!this.osId) return;
+    if (!this.osId || !this.canDeleteOS) return;
     const msgLabel = this.isOrcamento ? 'o Orçamento' : 'a OS';
     this.confirmationService.confirm({
       message: `Tem certeza que deseja excluir ${msgLabel} #${this.osData?.numeroOS || this.osId}? Esta ação não pode ser desfeita.`,
