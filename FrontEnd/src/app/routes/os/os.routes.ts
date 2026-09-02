@@ -43,8 +43,12 @@ export const routes: Routes = [
   { path: 'visualizar', redirectTo: 'visualizar-os', pathMatch: 'full' },
   { path: 'visualizar-editar', redirectTo: 'visualizar-os', pathMatch: 'full' },
 
+  // Rota D4 específica da TELA-AUTO-OS-006. Reutiliza o cockpit para manter
+  // contexto da OS e renderiza o painel autoritativo de execução no mesmo shell.
+  { path: ':id/execucao', ...canonicalCockpitRoute },
+
   // Quando montado em /ordens-servico, forma a rota canônica D4 /ordens-servico/{id}.
   // O shell oficial consome GET /v1/ordens-servico/{id}/cockpit antes das seções de detalhe.
-  // Fica por último para não capturar `cadastro` e aliases fixos.
+  // Fica por último para não capturar `cadastro`, `:id/execucao` e aliases fixos.
   { path: ':id', ...canonicalCockpitRoute },
 ];
