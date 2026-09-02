@@ -117,7 +117,8 @@ public class SecurityConfig {
             "Accept",
             "Origin",
             "X-Tenant-Id",
-            "Idempotency-Key"
+            "Idempotency-Key",
+            "If-Match"
         ));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
