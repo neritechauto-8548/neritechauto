@@ -14,6 +14,10 @@ public interface ItemOSServicoRepository extends JpaRepository<ItemOSServico, Lo
 
     Optional<ItemOSServico> findByIdAndOrdemServicoId(Long id, Long ordemServicoId);
 
+    Optional<ItemOSServico> findByIdAndOrdemServico_EmpresaId(Long id, Long empresaId);
+
+    List<ItemOSServico> findByOrdemServico_IdAndOrdemServico_EmpresaId(Long ordemServicoId, Long empresaId);
+
     Page<ItemOSServico> findByOrdemServicoId(Long ordemServicoId, Pageable pageable);
 
     Page<ItemOSServico> findByOrdemServicoIdAndStatusExecucao(Long ordemServicoId, StatusExecucao status,
