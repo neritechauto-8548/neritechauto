@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@core';
 import { NeriTechIcon } from '../../../shared/components';
-import { OsComment, OsJournalState } from './os-journal.models';
-import { OsJournalService } from './os-journal.service';
+import { ComentarioOrdemServico, EstadoDiarioOS } from './os-journal.models';
+import { DiarioOrdemServicoService } from './os-journal.service';
 
 @Component({
   selector: 'os-journal-panel',
@@ -14,100 +14,100 @@ import { OsJournalService } from './os-journal.service';
   templateUrl: './os-journal-panel.html',
   styleUrl: './os-journal-panel.scss',
 })
-export class OsJournalPanel implements OnChanges {
-  private readonly service = inject(OsJournalService);
-  private readonly auth = inject(AuthService);
-  private readonly cdr = inject(ChangeDetectorRef);
+export class PainelDiarioOrdemServico implements OnChanges {
+  private readonly servico = inject(DiarioOrdemServicoService);
+  private readonly autenticacao = inject(AuthService);
+  private readonly detectorMudancas = inject(ChangeDetectorRef);
 
   @Input({ required: true }) osId!: number;
 
-  readonly maxLength = 2000;
-  state: OsJournalState = 'idle';
-  comments: OsComment[] = [];
-  draft = '';
-  message = '';
-  saving = false;
+  readonly limiteCaracteres = 2000;
+  estado: EstadoDiarioOS = 'ocioso';
+  comentarios: ComentarioOrdemServico[] = [];
+  rascunho = '';
+  mensagem = '';
+  salvando = false;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['osId'] && Number.isInteger(this.osId) && this.osId > 0) {
-      this.load();
+  ngOnChanges(alteracoes: SimpleChanges): void {
+    if (alteracoes['osId'] && Number.isInteger(this.osId) && this.osId > 0) {
+      this.carregar();
     }
   }
 
-  get canRead(): boolean {
-    return this.hasPermission('OS_COMENTARIOS') || this.hasPermission('OS_COMENTARIOS_OUTROS');
+  get podeVisualizar(): boolean {
+    return this.temPermissao('OS_COMENTARIOS') || this.temPermissao('OS_COMENTARIOS_OUTROS');
   }
 
-  get canComment(): boolean {
-    return this.hasPermission('OS_COMENTARIOS');
+  get podeComentar(): boolean {
+    return this.temPermissao('OS_COMENTARIOS');
   }
 
-  get remaining(): number {
-    return this.maxLength - this.draft.length;
+  get caracteresRestantes(): number {
+    return this.limiteCaracteres - this.rascunho.length;
   }
 
-  load(): void {
-    if (!this.canRead) {
-      this.state = 'forbidden';
-      this.message = 'Seu perfil não possui permissão para visualizar o diário desta Ordem de Serviço.';
-      this.comments = [];
+  carregar(): void {
+    if (!this.podeVisualizar) {
+      this.estado = 'proibido';
+      this.mensagem = 'Seu perfil não possui permissão para visualizar o diário desta Ordem de Serviço.';
+      this.comentarios = [];
       return;
     }
 
-    this.state = 'loading';
-    this.message = '';
-    this.service.list(this.osId).subscribe({
-      next: comments => {
-        this.comments = comments ?? [];
-        this.state = 'ready';
-        this.cdr.markForCheck();
+    this.estado = 'carregando';
+    this.mensagem = '';
+    this.servico.listar(this.osId).subscribe({
+      next: comentarios => {
+        this.comentarios = comentarios ?? [];
+        this.estado = 'pronto';
+        this.detectorMudancas.markForCheck();
       },
-      error: error => {
-        this.state = error?.status === 403 ? 'forbidden' : 'error';
-        this.message = error?.status === 403
+      error: erro => {
+        this.estado = erro?.status === 403 ? 'proibido' : 'erro';
+        this.mensagem = erro?.status === 403
           ? 'Seu perfil não possui permissão para visualizar o diário desta Ordem de Serviço.'
           : 'Não foi possível carregar o diário operacional desta OS.';
-        this.cdr.markForCheck();
+        this.detectorMudancas.markForCheck();
       },
     });
   }
 
-  submit(): void {
-    const content = this.draft.trim();
-    if (!this.canComment || !content || this.saving || content.length > this.maxLength) return;
+  registrarComentario(): void {
+    const conteudo = this.rascunho.trim();
+    if (!this.podeComentar || !conteudo || this.salvando || conteudo.length > this.limiteCaracteres) return;
 
-    this.saving = true;
-    this.message = '';
-    this.service.create(this.osId, { content }).subscribe({
-      next: created => {
-        this.comments = [created, ...this.comments];
-        this.draft = '';
-        this.saving = false;
-        this.state = 'ready';
-        this.cdr.markForCheck();
+    this.salvando = true;
+    this.mensagem = '';
+    this.servico.criar(this.osId, { conteudo }).subscribe({
+      next: comentarioCriado => {
+        this.comentarios = [comentarioCriado, ...this.comentarios];
+        this.rascunho = '';
+        this.salvando = false;
+        this.estado = 'pronto';
+        this.detectorMudancas.markForCheck();
       },
-      error: error => {
-        this.saving = false;
-        this.message = error?.error?.message || error?.message || 'Não foi possível registrar o comentário.';
-        this.cdr.markForCheck();
+      error: erro => {
+        this.salvando = false;
+        this.mensagem = erro?.error?.message || erro?.message || 'Não foi possível registrar o comentário.';
+        this.detectorMudancas.markForCheck();
       },
     });
   }
 
-  trackById(_: number, comment: OsComment): number {
-    return comment.id;
+  identificarPorId(_: number, comentario: ComentarioOrdemServico): number {
+    return comentario.id;
   }
 
-  initials(name?: string | null): string {
-    const normalized = name?.trim();
-    if (!normalized) return 'U';
-    return normalized.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase();
+  obterIniciais(nome?: string | null): string {
+    const nomeNormalizado = nome?.trim();
+    if (!nomeNormalizado) return 'U';
+    return nomeNormalizado.split(/\s+/).slice(0, 2).map(parte => parte.charAt(0)).join('').toUpperCase();
   }
 
-  private hasPermission(permission: string): boolean {
-    const user = this.auth.snapshot();
-    const permissions = (user.permissions ?? []).map(value => String(value));
-    const roles = (user.roles ?? []).map(value => String(value));
-    return permissions.includes(permission) || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+  private temPermissao(permissao: string): boolean {
+    const usuario = this.autenticacao.snapshot();
+    const permissoes = (usuario.permissions ?? []).map(valor => String(valor));
+    const perfis = (usuario.roles ?? []).map(valor => String(valor));
+    return permissoes.includes(permissao) || perfis.includes('ADMIN') || perfis.includes('ROLE_ADMIN');
   }
 }
