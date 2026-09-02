@@ -1,0 +1,77 @@
+<section class="journal-panel" aria-labelledby="journal-title">
+  <header class="journal-header">
+    <div class="journal-heading">
+      <span class="icon-box"><nt-icon name="history" [size]="19" /></span>
+      <div>
+        <span class="eyebrow">Diário operacional</span>
+        <h2 id="journal-title">Comentários da equipe</h2>
+        <p>Registros internos com autor e horário. Comentário não substitui auditoria, aprovação do cliente ou mudança de status.</p>
+      </div>
+    </div>
+    <button *ngIf="state === 'ready' || state === 'error'" type="button" class="secondary-button" (click)="load()" [disabled]="saving">
+      <nt-icon name="refresh" [size]="16" /> Atualizar
+    </button>
+  </header>
+
+  <div *ngIf="state === 'loading'" class="journal-loading" role="status" aria-live="polite">
+    <div class="skeleton composer"></div>
+    <div class="skeleton line"></div>
+    <div class="skeleton line short"></div>
+    <span>Carregando diário da Ordem de Serviço…</span>
+  </div>
+
+  <div *ngIf="state === 'forbidden' || state === 'error'" class="journal-state" role="alert">
+    <nt-icon [name]="state === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
+    <div>
+      <strong>{{ state === 'forbidden' ? 'Diário restrito' : 'Diário indisponível' }}</strong>
+      <span>{{ message }}</span>
+    </div>
+    <button *ngIf="state === 'error'" type="button" class="secondary-button" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <ng-container *ngIf="state === 'ready'">
+    <form *ngIf="canComment" class="journal-composer" (ngSubmit)="submit()">
+      <label for="os-journal-comment">Adicionar comentário interno</label>
+      <textarea
+        id="os-journal-comment"
+        name="journalComment"
+        rows="3"
+        [maxlength]="maxLength"
+        [(ngModel)]="draft"
+        placeholder="Ex.: veículo aguardando retorno técnico sobre teste de rodagem…"
+        [disabled]="saving"
+      ></textarea>
+      <footer>
+        <span [class.limit]="remaining < 100">{{ remaining }} caracteres restantes</span>
+        <button type="submit" class="primary-button" [disabled]="!draft.trim() || saving || remaining < 0">
+          <nt-icon name="plus" [size]="16" /> {{ saving ? 'Registrando…' : 'Registrar comentário' }}
+        </button>
+      </footer>
+      <p *ngIf="message" class="composer-error" role="alert">{{ message }}</p>
+    </form>
+
+    <p *ngIf="!canComment && canRead" class="readonly-note">
+      <nt-icon name="lock" [size]="15" /> Seu perfil pode consultar o diário, mas não registrar novos comentários.
+    </p>
+
+    <div *ngIf="!comments.length" class="journal-empty">
+      <nt-icon name="history" [size]="27" />
+      <strong>Nenhum comentário registrado</strong>
+      <span>O diário começa quando a equipe registra uma observação operacional.</span>
+    </div>
+
+    <ol *ngIf="comments.length" class="journal-list" aria-label="Comentários da Ordem de Serviço">
+      <li *ngFor="let comment of comments; trackBy: trackById" class="journal-entry">
+        <span class="avatar" aria-hidden="true">{{ initials(comment.authorName) }}</span>
+        <div class="entry-content">
+          <header>
+            <strong>{{ comment.authorName || 'Usuário indisponível' }}</strong>
+            <time [attr.datetime]="comment.createdAt">{{ comment.createdAt | date:'dd/MM/yyyy HH:mm' }}</time>
+          </header>
+          <p>{{ comment.content }}</p>
+          <small>Interno · append-only</small>
+        </div>
+      </li>
+    </ol>
+  </ng-container>
+</section>
