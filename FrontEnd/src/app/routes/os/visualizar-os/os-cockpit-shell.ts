@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { ActivatedRoute } from '@angular/router';
 import { OsAdditionalPanel } from '../additional-requests/os-additional-panel';
 import { OsExecutionPanel } from '../execution/os-execution-panel';
-import { OsFinancePanel } from '../finance/os-finance-panel';
-import { OsJournalPanel } from '../journal/os-journal-panel';
+import { PainelFinanceiroOrdemServico } from '../finance/os-finance-panel';
+import { PainelDiarioOrdemServico } from '../journal/os-journal-panel';
 import { OrdemServicoCockpitResponse } from '../models/os-cockpit.models';
 import { OsOperationsTab } from '../operations/os-operations.models';
 import { OsOperationsPanel } from '../operations/os-operations-panel';
@@ -17,37 +17,37 @@ import { VisualizarOS } from './visualizar-os';
   selector: 'os-cockpit-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, OsJournalPanel, OsFinancePanel, VisualizarOS],
+  imports: [CommonModule, OsCockpitOverview, OsExecutionPanel, OsOperationsPanel, OsAdditionalPanel, PainelDiarioOrdemServico, PainelFinanceiroOrdemServico, VisualizarOS],
   template: `
     <main class="canonical-cockpit-shell">
-      <div *ngIf="state === 'loading'" class="shell-state" role="status" aria-live="polite">
+      <div *ngIf="estado === 'loading'" class="shell-state" role="status" aria-live="polite">
         <div class="skeleton title"></div><div class="skeleton strip"></div><div class="skeleton cards"></div>
         <span>Carregando visão 360 da Ordem de Serviço…</span>
       </div>
 
-      <div *ngIf="state === 'forbidden' || state === 'not-found' || state === 'conflict' || state === 'error'" class="shell-error" [class.is-conflict]="state === 'conflict'" role="alert">
-        <strong>{{ state === 'conflict' ? 'Dados desatualizados' : 'Não foi possível abrir a Ordem de Serviço' }}</strong>
-        <span>{{ message }}</span>
-        <button type="button" *ngIf="osId" (click)="load(osId)">Atualizar</button>
+      <div *ngIf="estado === 'forbidden' || estado === 'not-found' || estado === 'conflict' || estado === 'error'" class="shell-error" [class.is-conflict]="estado === 'conflict'" role="alert">
+        <strong>{{ estado === 'conflict' ? 'Dados desatualizados' : 'Não foi possível abrir a Ordem de Serviço' }}</strong>
+        <span>{{ mensagem }}</span>
+        <button type="button" *ngIf="ordemServicoId" (click)="carregar(ordemServicoId)">Atualizar</button>
       </div>
 
-      <ng-container *ngIf="cockpit && state === 'ready'">
-        <os-cockpit-overview [cockpit]="cockpit" />
-        <os-execution-panel [osId]="cockpit.id" />
+      <ng-container *ngIf="visao360 && estado === 'ready'">
+        <os-cockpit-overview [cockpit]="visao360" />
+        <os-execution-panel [osId]="visao360.id" />
 
-        <os-finance-panel *ngIf="financeFirst" [osId]="cockpit.id" />
-        <os-journal-panel *ngIf="journalFirst" [osId]="cockpit.id" />
-        <os-additional-panel *ngIf="additionalFirst" [osId]="cockpit.id" />
-        <os-operations-panel [osId]="cockpit.id" [initialTab]="operationsTab" />
-        <os-additional-panel *ngIf="!additionalFirst" [osId]="cockpit.id" />
-        <os-journal-panel *ngIf="!journalFirst" [osId]="cockpit.id" />
-        <os-finance-panel *ngIf="!financeFirst" [osId]="cockpit.id" />
+        <os-finance-panel *ngIf="financeiroPrimeiro" [osId]="visao360.id" />
+        <os-journal-panel *ngIf="diarioPrimeiro" [osId]="visao360.id" />
+        <os-additional-panel *ngIf="adicionaisPrimeiro" [osId]="visao360.id" />
+        <os-operations-panel [osId]="visao360.id" [initialTab]="abaOperacoes" />
+        <os-additional-panel *ngIf="!adicionaisPrimeiro" [osId]="visao360.id" />
+        <os-journal-panel *ngIf="!diarioPrimeiro" [osId]="visao360.id" />
+        <os-finance-panel *ngIf="!financeiroPrimeiro" [osId]="visao360.id" />
 
         <details class="legacy-details">
           <summary>
             <span>
               <strong>Recursos adicionais ainda em migração</strong>
-              <small>Impressão, comunicação, fiscal e demais fluxos legados permanecem acessíveis durante o rebuild.</small>
+              <small>Impressão, comunicação, fiscal e demais fluxos legados permanecem acessíveis durante a reconstrução.</small>
             </span>
             <span class="legacy-badge">Legado controlado</span>
           </summary>
@@ -77,38 +77,38 @@ import { VisualizarOS } from './visualizar-os';
   `,
 })
 export class OsCockpitShell implements OnInit {
-  private readonly route = inject(ActivatedRoute);
-  private readonly osService = inject(OrdemServicoService);
+  private readonly rota = inject(ActivatedRoute);
+  private readonly ordemServicoService = inject(OrdemServicoService);
 
-  osId?: number;
-  cockpit?: OrdemServicoCockpitResponse;
-  operationsTab: OsOperationsTab = 'scope';
-  additionalFirst = false;
-  journalFirst = false;
-  financeFirst = false;
-  state: CockpitLoadState = 'idle';
-  message = '';
+  ordemServicoId?: number;
+  visao360?: OrdemServicoCockpitResponse;
+  abaOperacoes: OsOperationsTab = 'scope';
+  adicionaisPrimeiro = false;
+  diarioPrimeiro = false;
+  financeiroPrimeiro = false;
+  estado: CockpitLoadState = 'idle';
+  mensagem = '';
 
   ngOnInit(): void {
-    const configuredTab = this.route.snapshot.data['operationsTab'];
-    if (configuredTab === 'scope' || configuredTab === 'diagnostics' || configuredTab === 'checklist' || configuredTab === 'evidence') this.operationsTab = configuredTab;
-    const focusSection = this.route.snapshot.data['focusSection'];
-    this.additionalFirst = focusSection === 'additional';
-    this.journalFirst = focusSection === 'journal';
-    this.financeFirst = focusSection === 'finance';
+    const abaConfigurada = this.rota.snapshot.data['operationsTab'];
+    if (abaConfigurada === 'scope' || abaConfigurada === 'diagnostics' || abaConfigurada === 'checklist' || abaConfigurada === 'evidence') this.abaOperacoes = abaConfigurada;
+    const secaoFoco = this.rota.snapshot.data['focusSection'];
+    this.adicionaisPrimeiro = secaoFoco === 'additional';
+    this.diarioPrimeiro = secaoFoco === 'journal';
+    this.financeiroPrimeiro = secaoFoco === 'finance';
 
-    const rawId = this.route.snapshot.paramMap.get('id');
-    const id = rawId ? Number(rawId) : Number.NaN;
-    if (!Number.isInteger(id) || id <= 0) { this.state = 'not-found'; this.message = 'Não foi possível identificar a Ordem de Serviço solicitada.'; return; }
-    this.osId = id;
-    this.load(id);
+    const idInformado = this.rota.snapshot.paramMap.get('id');
+    const id = idInformado ? Number(idInformado) : Number.NaN;
+    if (!Number.isInteger(id) || id <= 0) { this.estado = 'not-found'; this.mensagem = 'Não foi possível identificar a Ordem de Serviço solicitada.'; return; }
+    this.ordemServicoId = id;
+    this.carregar(id);
   }
 
-  load(id: number): void {
-    this.state = 'loading'; this.message = ''; this.cockpit = undefined;
-    this.osService.getCockpit(id).subscribe({
-      next: cockpit => { this.cockpit = cockpit; this.state = 'ready'; },
-      error: error => { const resolved = resolveCockpitLoadError(error?.status); this.state = resolved.state; this.message = resolved.message; },
+  carregar(id: number): void {
+    this.estado = 'loading'; this.mensagem = ''; this.visao360 = undefined;
+    this.ordemServicoService.getCockpit(id).subscribe({
+      next: visao360 => { this.visao360 = visao360; this.estado = 'ready'; },
+      error: erro => { const resultado = resolveCockpitLoadError(erro?.status); this.estado = resultado.state; this.mensagem = resultado.message; },
     });
   }
 }
