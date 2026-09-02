@@ -194,11 +194,14 @@ export class OsAdditionalPanel implements OnChanges {
     if (!this.selected || !this.isSubmitValid() || this.busyKey) return;
     this.busyKey = 'submit';
     this.actionMessage = '';
+    const expiresAt = this.submitForm.expiresAt.length === 16
+      ? `${this.submitForm.expiresAt}:00`
+      : this.submitForm.expiresAt;
     this.service.submit(this.selected.id, {
       recipientName: this.submitForm.recipientName.trim(),
       channel: this.submitForm.channel,
       recipientMasked: this.submitForm.recipientMasked.trim(),
-      expiresAt: new Date(this.submitForm.expiresAt).toISOString().replace('Z', ''),
+      expiresAt,
     }).subscribe({
       next: result => {
         this.upsert(result.request);
