@@ -4,9 +4,11 @@ import com.neritech.saas.cliente.repository.ClienteRepository;
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.ordemservico.domain.enums.TipoOS;
+import com.neritech.saas.ordemservico.dto.OrdemServicoCockpitResponse;
 import com.neritech.saas.ordemservico.dto.OrdemServicoRequest;
 import com.neritech.saas.ordemservico.dto.OrdemServicoResponse;
 import com.neritech.saas.ordemservico.repository.OrdemServicoRepository;
+import com.neritech.saas.ordemservico.service.OrdemServicoCockpitService;
 import com.neritech.saas.ordemservico.service.OrdemServicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,14 +30,17 @@ import org.springframework.web.bind.annotation.*;
 public class OrdemServicoController {
 
     private final OrdemServicoService service;
+    private final OrdemServicoCockpitService cockpitService;
     private final OrdemServicoRepository repository;
     private final ClienteRepository clienteRepository;
 
     public OrdemServicoController(
             OrdemServicoService service,
+            OrdemServicoCockpitService cockpitService,
             OrdemServicoRepository repository,
             ClienteRepository clienteRepository) {
         this.service = service;
+        this.cockpitService = cockpitService;
         this.repository = repository;
         this.clienteRepository = clienteRepository;
     }
@@ -55,6 +60,13 @@ public class OrdemServicoController {
             @Valid @RequestBody com.neritech.saas.ordemservico.dto.VendaBalcaoRequest request) {
         TenantAccess.requireCurrentTenant(request.ordemServico().empresaId());
         return ResponseEntity.status(HttpStatus.CREATED).body(service.criarVendaBalcao(request));
+    }
+
+    @GetMapping("/{id}/cockpit")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Buscar read model composto do cockpit da Ordem de Serviço")
+    public ResponseEntity<OrdemServicoCockpitResponse> findCockpitById(@PathVariable Long id) {
+        return ResponseEntity.ok(cockpitService.findById(id));
     }
 
     @GetMapping("/{id}")
