@@ -2,18 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { OsComment, OsCommentCreateRequest } from './os-journal.models';
+import { ComentarioOrdemServico, ComentarioOrdemServicoCriacao } from './os-journal.models';
 
 @Injectable({ providedIn: 'root' })
-export class OsJournalService {
+export class DiarioOrdemServicoService {
   private readonly http = inject(HttpClient);
-  private readonly api = `${environment.baseUrl}/v1/ordens-servico`;
+  private readonly urlBase = `${environment.baseUrl}/v1/ordens-servico`;
 
-  list(osId: number): Observable<OsComment[]> {
-    return this.http.get<OsComment[]>(`${this.api}/${osId}/comments`);
+  listar(ordemServicoId: number): Observable<ComentarioOrdemServico[]> {
+    return this.http.get<ComentarioOrdemServico[]>(`${this.urlBase}/${ordemServicoId}/comentarios`);
   }
 
-  create(osId: number, request: OsCommentCreateRequest): Observable<OsComment> {
-    return this.http.post<OsComment>(`${this.api}/${osId}/comments`, request);
+  criar(ordemServicoId: number, requisicao: ComentarioOrdemServicoCriacao): Observable<ComentarioOrdemServico> {
+    return this.http.post<ComentarioOrdemServico>(`${this.urlBase}/${ordemServicoId}/comentarios`, requisicao);
   }
 }
