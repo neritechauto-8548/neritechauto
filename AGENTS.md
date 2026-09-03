@@ -1,176 +1,153 @@
-# NeriTech Auto — Codex operating instructions
+# NeriTech Auto — Instruções Operacionais do Codex
 
-## Mission
-Continue the D5 implementation of NeriTech Auto as a production-grade workshop-management SaaS. Preserve existing working behavior only when it is compatible with the official specification. Do not inflate progress: implementation, tests, build evidence and security guarantees must be distinguishable.
+## Missão
+Continuar a reconstrução D5 do NeriTech Auto como SaaS profissional para gestão de oficinas. Preserve comportamento existente somente quando compatível com a especificação oficial. Não infle progresso: diferencie implementação, teste, build e evidência real.
 
-## Mandatory branch discipline
-- Work only on `feature/neritech-auto-rebuild` unless the user explicitly asks otherwise.
-- Never commit directly to `main`.
-- Do not rewrite history or force-push.
-- Keep commits focused and descriptive.
+## Git — regra absoluta
+- Trabalhe somente em `feature/neritech-auto-rebuild`, salvo ordem explícita do usuário.
+- Nunca faça commit direto em `main`.
+- Não crie branch nova por iniciativa própria.
+- Não faça merge para `main`.
+- Não reescreva histórico nem faça force-push.
+- Commits devem ser focados, pequenos o suficiente para revisão e com mensagem descritiva.
 
-## Sources of truth
-1. Official Notion root: `NERITECH — Documentação Oficial` (`3bb27279-1906-815d-b711-d225de4c2b06`).
-2. For UI/UX specifically: Notion `04.01 UI-MASTER-001`, `04.05 MASTER DESIGN.md`, `04.06 UX & Design Engineering 2026`, the canonical `TELA-*` specification, and root `DESIGN.md`.
-3. Approved Google Stitch/Figma artifact for the screen, when available, as visual implementation evidence — never as business-rule authority.
-4. Current code on `feature/neritech-auto-rebuild`.
-5. `Relatorio_Implementacao_NeriTech.md` for implementation status, but verify code before trusting percentages.
-6. Legacy code is reference only; it is not authoritative.
+## Economia de contexto — obrigatório
+O contexto é recurso escasso. **Não leia toda a documentação em toda tarefa.**
 
-When the exact Notion specification is unavailable, do not invent irreversible business rules. Implement safe, reversible defaults only when they do not conflict with known rules, and mark missing contracts explicitly.
+Fluxo padrão:
+1. leia este `AGENTS.md`;
+2. identifique o slice/tela/fluxo exato da tarefa;
+3. inspecione primeiro o código atual relacionado;
+4. pesquise somente a especificação/documentação necessária;
+5. carregue trechos específicos, não documentos inteiros, quando possível;
+6. consulte o Notion somente para lacuna, conflito ou regra/tela específica não representada localmente.
 
-## Product/UX reference model
-- **Shopmonkey** is the primary reference for workshop operational UX: connected workflow, customer/vehicle/order continuity, inspection/authorization flow, technician surfaces, workflow cards/list views and reduced repetitive navigation.
-- **Stripe** is the primary reference for design engineering: tokens, hierarchy, spacing, typography, subtle borders/elevation, component consistency, polished forms/states and one-primary-action discipline.
-- Formula: `NeriTech Auto = Shopmonkey operational UX + Stripe design discipline + Brazilian workshop domain + NeriTech identity`.
-- Never copy proprietary identity, assets, copy, exact layouts or third-party business rules.
+Use `Documentacao/CONTEXTO_TRANSVERSAL_CODEX.md` como **índice e consulta sob demanda**, não como leitura obrigatória integral.
 
-## Stack
-- Backend: Java 21, Spring Boot 3.2.x, Spring Security/JWT, PostgreSQL, Flyway, OpenAPI.
-- Frontend: Angular 20.x, standalone components, PrimeNG 20.x as the current component-library direction and Tailwind CSS as the primary layout/spacing/responsive styling layer.
-- PrimeNG visual identity must come from the NeriTech custom `definePreset` theme and shared semantic tokens, not Aura defaults or broad CSS overrides.
-- Tabler Icons is the canonical icon family. Angular 20 rebuilt UI uses the local NeriTech wrapper with official Tabler SVG geometry; migrate to `@tabler/icons-angular` only when Angular 21+ compatibility is approved.
-- Angular Material, Ng-Matero and PrimeIcons are legacy migration inputs only. Do not introduce them into rebuilt UI unless an explicit documented compatibility constraint requires it.
-- Tailwind/PrimeNG must share the same semantic token values; do not maintain parallel product palettes.
+## Fontes de verdade
+Hierarquia:
+1. decisão explícita do usuário na tarefa atual;
+2. Notion oficial `NERITECH — Documentação Oficial` (`3bb27279-1906-815d-b711-d225de4c2b06`);
+3. especificação canônica `TELA-*` da tela/módulo atual;
+4. `DESIGN.md` para UI/UX;
+5. `CONVENCOES_CODIGO.md` para idioma/naming/banco/comentários;
+6. `DX.md` quando arquitetura/ambiente exigir;
+7. `BRAND.md` somente quando marca/copy/identidade forem relevantes;
+8. código atual de `feature/neritech-auto-rebuild` como evidência de implementação;
+9. legado apenas como referência.
+
+Se o Notion estiver acessível, **não percorra a árvore inteira**. Busque pelo código `TELA-*`, nome da tela, módulo, regra, entidade ou fluxo específico.
+
+## Idioma oficial do código — obrigatório
+A regra completa está em `CONVENCOES_CODIGO.md` e deve ser obedecida.
+
+Todo código de domínio novo ou reconstruído da NeriTech deve usar **português brasileiro** em:
+- classes, entidades e DTOs próprios;
+- métodos/funções de negócio;
+- atributos, variáveis, parâmetros e constantes de domínio;
+- enums e valores próprios quando não forem contratos externos;
+- tabelas e colunas PostgreSQL (`snake_case`);
+- descrição de migrations Flyway;
+- comentários, JavaDoc, TSDoc e documentação inline;
+- nomes/cenários de testes de domínio;
+- mensagens de validação e negócio.
+
+Exceções: palavras-chave da linguagem, APIs de framework/biblioteca, protocolos, headers/claims e contratos externos imutáveis (Stripe, Stone, fiscal etc.). Não traduza o legado globalmente sem migration/versionamento compatível.
+
+## Stack oficial
+### Frontend
+- Angular 20.x, standalone components.
+- PrimeNG 20.x.
+- Tailwind CSS para layout, spacing e responsividade.
+- Preset semântico próprio NeriTech; Aura default não é identidade do produto.
+- Tabler Icons via wrapper local `NeriTechIcon` enquanto a base for Angular 20.
+- Não introduzir Lucide, PrimeIcons, Angular Material, Material Symbols ou Font Awesome em UI reconstruída sem restrição explícita de compatibilidade.
+
+### Backend
+- Java 21, Spring Boot 3.2.x, Spring Security/JWT.
+- PostgreSQL + Flyway + OpenAPI.
 - Multi-tenant SaaS.
-- Reports: JasperReports where applicable.
+- JasperReports quando aplicável.
 
-## Visual implementation contract
-- Read root `DESIGN.md` before building or substantially changing application UI.
-- Visual authority order: `UI-MASTER-001` → canonical `TELA-*` spec → `DESIGN.md` → approved Stitch/Figma artifact → existing code.
-- Existing code never overrides the canonical visual contract merely because it already exists.
-- Use PrimeNG for interaction/component primitives where appropriate, but theme and compose it according to NeriTech tokens; PrimeNG default styling is not the product identity.
-- Prefer PrimeNG semantic/design tokens and the NeriTech preset over CSS that reaches into PrimeNG internals.
-- Use Tailwind CSS for canonical spacing, layout, responsive behavior and utility styling. Do not create a second parallel token system in ad-hoc SCSS.
-- For Tailwind v3 + PrimeNG v20, preserve the documented CSS layer order: `tailwind-base, primeng, tailwind-utilities`.
-- New/rebuilt screens use Tabler Icons only. Do not add Lucide, PrimeIcons, Material Symbols or Font Awesome to regular product UI.
-- Migrate old PrimeIcons/Material/Matero incrementally when their owning screen/shared component is rebuilt; do not perform blind global replacement.
-- Preserve Google Stitch/Figma hierarchy, dimensions, spacing, component composition and responsive intent as closely as practical when an approved artifact exists.
-- Stitch/Figma cannot override business rules, permissions, tenancy, API contracts, accessibility or canonical screen behavior.
-- If a visual artifact conflicts with the UI Master or `TELA-*` spec, flag the artifact for review and implement the documented rule.
-- UI fidelity means system fidelity: shell, hierarchy, tokens, grid, spacing, component behavior, states, accessibility and responsive intent — not blind pixel matching.
+## Contrato visual
+Para criar ou alterar substancialmente uma tela:
+1. localize a `TELA-*` canônica;
+2. consulte apenas as seções relevantes de `DESIGN.md`;
+3. consulte Stitch/Figma aprovado quando houver;
+4. use código existente apenas como evidência, nunca para sobrepor a especificação.
 
-## Non-negotiable security / tenancy rules
-- Tenant authority comes only from the authenticated backend session/token plus persisted user/tenant relationship.
-- Browser `localStorage`, query params and headers must never grant tenant access.
-- `X-Tenant-Id`, when retained for compatibility, may select only an already-authorized tenant and must never grant authority.
-- Backend is the final authority for permissions; frontend guards/menu filtering are UX only.
+Referência conceitual:
+`NeriTech Auto = UX operacional Shopmonkey + disciplina visual Stripe + domínio brasileiro de oficinas + identidade NeriTech`.
+
+Regras:
+- Minimal Enterprise;
+- hierarquia, spacing e tokens consistentes;
+- contexto e próxima ação segura devem estar claros;
+- uma ação primária dominante por contexto;
+- estados loading/vazio/erro/bloqueio/sucesso reais;
+- responsividade desktop/tablet/mobile;
+- não fabricar KPIs, gráficos, timelines, dinheiro ou dados ausentes no backend;
+- preferir componentes/tokens compartilhados a SCSS ad hoc.
+
+## Segurança e tenancy — não negociável
+- Tenant vem somente da autenticação backend + vínculo persistido usuário/empresa.
+- Browser (`localStorage`, query params, payload ou header) nunca concede autoridade de tenant.
+- `X-Tenant-Id`, se mantido, apenas seleciona tenant já autorizado.
+- Backend é autoridade final de permissão; guard/menu frontend é UX.
 - Deny by default.
-- Cross-tenant access must behave as not found/forbidden according to the established contract and must never leak another tenant's existence.
-- Do not introduce `empresaId: 1`, `tenantId` from browser state, implicit ADMIN bypasses, or hardcoded credentials.
-- Do not log PII, tokens, credentials, complete payloads containing sensitive customer/vehicle data, or free-text business data unnecessarily.
-- Prefer minimized read DTOs; do not send full PII to the browser merely to mask it in HTML.
+- Nunca introduzir `empresaId: 1`, tenant hardcoded, credenciais hardcoded ou bypass ADMIN implícito.
+- Cross-tenant não pode vazar existência/dados de outra empresa.
+- Minimizar PII em DTOs de leitura e logs.
 
-## Lifecycle and data integrity rules already established
-- Customer and vehicle operational deletion is logical deactivation; preserve history and related records.
-- Vehicle plate is normalized and unique within tenant; same plate may exist in different tenants.
-- Vehicle VIN/chassis, when present, must be normalized and unique within tenant.
-- Cross-tenant vehicle/customer mutations are forbidden.
-- Odometer regression must not silently overwrite data.
-- External vehicle lookup is an optional suggestion only; canonical internal data wins and sensitive identifiers are not returned as suggestions.
+Para regras transversais adicionais, consulte sob demanda `Documentacao/CONTEXTO_TRANSVERSAL_CODEX.md`.
 
-## Frontend architecture already established
-- Canonical application shell and official sidebar are being rebuilt before deeper modules.
-- Authentication uses a reusable Auth shell. Never persist password in browser storage.
-- Canonical `PageHeader` is shared.
-- Official Home routes: `/home/gerencial`, `/home/financeiro`, `/home/orcamentos`, `/home/operacional`.
-- Production navigation must not expose template/demo routes.
-- UI must use shared design tokens from `DESIGN.md` and remain visually consistent across modules.
-- Sidebar/menu/topbar must follow the canonical UI Master, including official menu order and responsive shell dimensions.
-- Operational screens should be context-first and next-action-first: preserve customer/vehicle/object identity, state, pending reason, responsible actor and next safe action when relevant.
-- Command/search acceleration may use `Ctrl/Cmd + K`, but visible navigation remains canonical.
-- Missing backend/read-model contracts must be shown as unavailable/pending; never fabricate KPIs, graphs, timelines, money, trends or fake data.
+## Arquitetura frontend
+- Shell, menu, topbar e rotas seguem a UI Master/cânone atual.
+- `PageHeader` compartilhado é o padrão.
+- Rotas Home oficiais: `/home/gerencial`, `/home/financeiro`, `/home/orcamentos`, `/home/operacional`.
+- Não expor rotas demo/template em produção.
+- Autenticação usa Auth shell reutilizável; nunca persistir senha no navegador.
+- UI operacional deve preservar identidade/contexto do objeto, estado, pendência, responsável e próxima ação quando relevantes.
+- Backend/read model ausente deve aparecer como indisponível/parcial, nunca como dado fictício.
 
-## Customer module status and routes
-Canonical routes:
-- `/clientes`
-- `/clientes/novo`
-- `/clientes/:id`
-- `/clientes/:id/editar`
+## Permissões
+Códigos persistidos legados continuam válidos até migração formal. Não invente novo código persistido apenas porque uma capacidade conceitual possui outro nome. Faça mapeamento/migration quando necessário e documentado.
 
-Implemented direction:
-- List uses minimized masked DTOs.
-- Create/edit follows Dados básicos -> Contatos -> Endereço -> Preferências.
-- Customer detail is a 360-degree read view with Resumo, Contatos, Endereços, Veículos, Histórico, Preferências.
-- The detail screen must use minimized read models; editing endpoints may return fuller data only under explicit edit permission.
-- Customer inactive records remain consultable; creation actions may be blocked by policy.
-- Timeline/overview read models must not be fabricated. Until implemented, show explicit pending/partial state.
+## Qualidade de código
+- Analise antes de criar; refatore/reuse antes de duplicar.
+- Angular strict typing e `strictTemplates` devem continuar válidos.
+- Evite `any`; isole fronteiras legadas inevitáveis.
+- Evite N+1 e agregações de domínio no navegador quando pertencem ao backend.
+- Não apagar/mesclar dados de produção silenciosamente em Flyway.
+- Não expor segredos.
+- Não fazer refatoração cosmética fora do slice atual.
 
-## Current known unsafe legacy flows to fix next
-### Budget / estimate
-Legacy Angular budget creation still contains unsafe behavior such as browser-supplied/hardcoded `empresaId` and client-generated identifiers. Remove tenant authority from the browser and move authoritative numbering/identity generation to backend/domain ownership before exposing contextual "Novo orçamento" actions.
+## Definição de pronto por tarefa
+1. Especificação relevante consultada de forma direcionada.
+2. Implementação atual inspecionada.
+3. Divergência e riscos de tenancy/permissão avaliados.
+4. Menor batch coerente de qualidade de produção implementado.
+5. Testes focados adicionados/atualizados quando aplicável.
+6. Formatter/linter/type-check/test/build relevantes executados quando o ambiente permitir.
+7. Falhas introduzidas pela mudança corrigidas.
+8. UI comparada com comportamento desktop/tablet/mobile quando aplicável.
+9. Não declarar CI/build verde sem evidência observada.
+10. Commit somente dos arquivos relacionados.
 
-### Scheduling
-Legacy scheduling still initializes/supplies `empresaId` in the browser. Remove it as authority and derive tenant in backend before enabling contextual "Agendar" actions from customer detail.
+## Execução autônoma
+- Não pare após cada arquivo.
+- Não peça confirmação para decisão técnica reversível coberta pela documentação.
+- Não peça “continue”.
+- Pare somente diante de bloqueio real, ação irreversível não autorizada, conflito material de regra ou falta de credencial/acesso indispensável.
 
-## Permission approach
-Persisted permission codes currently use legacy-style values such as:
-- `GERAL_USUARIO`
-- `CLIENTE_CRIAR`
-- `CLIENTE_EDITAR`
-- `CLIENTE_EXCLUIR`
-- `VEICULO_CRIAR`
-- `VEICULO_EDITAR`
-- `VEICULO_EXCLUIR`
+## Relatório de tarefa
+Ao final informe objetivamente:
+- commits e arquivos principais;
+- comportamento implementado;
+- testes/build realmente executados e resultado;
+- especificação visual/funcional usada;
+- implicações de segurança/tenancy;
+- pendências reais;
+- percentual somente quando sustentado por evidência.
 
-Do not invent new persisted permission codes merely because conceptual D4 capabilities have different names. Add a formal mapping/migration only when the specification and persistence model are reconciled.
-
-## D5 progress policy
-Do not mark work complete because files were edited. Increase D5 only for implemented and verifiable behavior.
-
-Stable weighting:
-- 0–12% Foundation/security/auth/multi-tenancy/testing base
-- 12–18% Angular shell/menu/navigation/route permissions/design-system foundation
-- 18–28% Customers + vehicles + CRM base
-- 28–38% Budgets
-- 38–52% Work Orders/checklists/core operational flow
-- 52–62% Inventory/services/kits/areas/accessories
-- 62–76% Finance + cash + purchasing
-- 76–84% Fiscal + POS
-- 84–90% Calendar/alerts/marketing/CRM
-- 90–95% Yard + Customer Portal
-- 95–98% Reports/Admin/Audit/Subscriptions
-- 98–100% E2E tests, hardening, CI/build verification, traceability/evidence
-
-Current reported D5 baseline is 11%. Do not raise it without evidence.
-
-## Definition of done for each task
-1. Read the relevant specification, `DESIGN.md` when UI is involved, and current implementation.
-2. Identify divergence and security/tenancy implications.
-3. Inspect the current approved Stitch/Figma artifact when available for the screen.
-4. Apply the Shopmonkey operational check and Stripe design-engineering check for UI work.
-5. Implement the smallest coherent production-quality batch.
-6. Add or update tests for happy path plus negative tenant/permission cases where relevant.
-7. Run the relevant formatter/linter/type-check/tests/build when the environment allows it.
-8. Fix failures caused by the change.
-9. Do not report CI/build as green unless actually observed.
-10. Compare UI work against documented desktop/tablet/mobile behavior before calling it visually complete.
-11. Update implementation status only with verifiable evidence.
-12. Commit only related files.
-
-## Immediate task queue
-1. Reconcile the Angular Application Shell/shared UI foundation with `UI-MASTER-001` + `DESIGN.md`: official menu, shell dimensions, tokens, PrimeNG/Tailwind mapping and Tabler icon migration for touched shared components.
-2. Validate the new customer 360 detail implementation and minimized read contracts; maintain the canonical visual contract while adding tests that prevent fallback to full PII endpoints.
-3. Reconcile customer create/edit backend DTO validation with the documented optional CPF/CNPJ/address behavior without weakening identity rules.
-4. Fix Budget/Estimate multi-tenancy: remove browser-controlled/hardcoded company id and client-generated authoritative numbers; add tenant-safe tests.
-5. Rebuild Budget screens against their canonical `TELA-AUTO-ORC-*` specs and latest Stitch/Figma artifacts, starting from list/new/detail composition.
-6. Fix Scheduling multi-tenancy the same way; then enable contextual actions from customer detail only if permissions and inactive-customer policy allow it.
-7. Return to the pending Flyway vehicle uniqueness migration before declaring the 0–12% foundation milestone complete.
-
-## Coding quality
-- Prefer existing project patterns where safe; refactor instead of duplicating components/services.
-- Keep Angular strict typing and `strictTemplates` compatibility.
-- Avoid `any` unless bridging a documented legacy boundary, and isolate that boundary.
-- Avoid N+1 calls and browser-side aggregation when a read model belongs in the backend.
-- Do not silently delete/merge duplicate production data in Flyway migrations; fail clearly or implement an explicit reviewed remediation path.
-- Never expose secrets from repository history.
-- For UI code, prefer shared canonical components/tokens over screen-local reinvention.
-
-## Communication / task result
-At the end of each Codex task, report:
-- files changed and commits;
-- tests/build commands actually executed and results;
-- visual contract/artifact used for UI work;
-- security/tenancy implications;
-- what remains genuinely blocked;
-- D5 general percentage and current block percentage only if justified by verifiable completion.
+Não faça merge na `main`.
