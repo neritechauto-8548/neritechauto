@@ -2,6 +2,7 @@ package com.neritech.saas.rh.controller;
 
 import com.neritech.saas.rh.dto.FuncionarioRequest;
 import com.neritech.saas.rh.dto.FuncionarioResponse;
+import com.neritech.saas.rh.service.FuncionarioFotoStorageService;
 import com.neritech.saas.rh.service.FuncionarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,9 +12,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import com.neritech.saas.rh.service.FuncionarioFotoStorageService;
 
 @RestController
 @RequestMapping("/v1/rh/funcionarios")
@@ -25,35 +33,31 @@ public class FuncionarioController {
     private final FuncionarioFotoStorageService fotoStorageService;
 
     @GetMapping
-    @Operation(summary = "Listar funcionÃ¡rios")
-    public ResponseEntity<Page<FuncionarioResponse>> findAll(
-            @RequestParam Long empresaId,
-            Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+    @Operation(summary = "Listar funcionários")
+    public ResponseEntity<Page<FuncionarioResponse>> findAll(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar funcionÃ¡rio por ID")
+    @Operation(summary = "Buscar funcionário por ID")
     public ResponseEntity<FuncionarioResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping("/usuario/{usuarioId}")
     @Operation(summary = "Buscar funcionário por ID de usuário")
-    public ResponseEntity<FuncionarioResponse> findByUsuarioId(
-            @PathVariable Long usuarioId,
-            @RequestParam Long empresaId) {
-        return ResponseEntity.ok(service.findByUsuarioId(empresaId, usuarioId));
+    public ResponseEntity<FuncionarioResponse> findByUsuarioId(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(service.findByUsuarioId(usuarioId));
     }
 
     @PostMapping
-    @Operation(summary = "Criar funcionÃ¡rio")
+    @Operation(summary = "Criar funcionário")
     public ResponseEntity<FuncionarioResponse> create(@Valid @RequestBody FuncionarioRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar funcionÃ¡rio")
+    @Operation(summary = "Atualizar funcionário")
     public ResponseEntity<FuncionarioResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody FuncionarioRequest request) {
@@ -69,7 +73,11 @@ public class FuncionarioController {
 
     @PostMapping("/{id}/foto")
     @Operation(summary = "Upload da foto", description = "Realiza o upload da foto do funcionário")
-    public ResponseEntity<FuncionarioResponse> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<FuncionarioResponse> uploadFoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        // A existência/posse é confirmada no serviço antes de persistir a referência.
+        service.findById(id);
         String path = fotoStorageService.store(id, file);
         FuncionarioResponse saved = service.updateFotoPath(id, path);
         return ResponseEntity.ok(saved);

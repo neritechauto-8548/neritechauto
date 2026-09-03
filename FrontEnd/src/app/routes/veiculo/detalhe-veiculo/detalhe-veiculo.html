@@ -1,0 +1,252 @@
+<section class="vehicle-passport" aria-labelledby="vehicle-passport-title">
+  @if (loading) {
+    <div class="passport-skeleton" role="status" aria-live="polite">
+      <span class="sr-only">Carregando passaporte do veículo…</span>
+      <div class="passport-skeleton__header"></div>
+      <div class="passport-skeleton__tabs"></div>
+      <div class="passport-skeleton__grid">
+        <div></div><div></div><div></div>
+      </div>
+    </div>
+  } @else if (fatalError || !vehicle) {
+    <div class="passport-fatal" role="alert">
+      <span class="passport-fatal__icon"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></span>
+      <h1 id="vehicle-passport-title">Passaporte indisponível</h1>
+      <p>Não foi possível carregar este veículo no contexto autenticado.</p>
+      <div class="passport-fatal__actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">Voltar para veículos</button>
+        <button type="button" class="nt-button nt-button--primary" (click)="retry()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else {
+    <page-header
+      [canonical]="true"
+      eyebrow="Passaporte do veículo"
+      [title]="plateLabel"
+      [description]="vehicleName + ' · ' + yearLabel"
+      [hideBreadcrumb]="true"
+      titleId="vehicle-passport-title"
+    >
+      <div pageHeaderMeta class="passport-meta">
+        <span class="nt-badge" [class.nt-badge--success]="!isInactive" [class.nt-badge--neutral]="isInactive">
+          {{ statusLabel }}
+        </span>
+        <span><i class="pi pi-gauge" aria-hidden="true"></i>{{ odometerLabel }}</span>
+        <button type="button" class="passport-owner" (click)="openCustomer()" [disabled]="!vehicle.clienteId">
+          <i class="pi pi-user" aria-hidden="true"></i>{{ customerName }}
+        </button>
+      </div>
+
+      <div pageHeaderActions class="passport-header-actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>Veículos
+        </button>
+        @if (canEdit) {
+          <button type="button" class="nt-button nt-button--secondary" (click)="editVehicle()">
+            <i class="pi pi-pencil" aria-hidden="true"></i>Editar
+          </button>
+        }
+        <button type="button" class="nt-button nt-button--secondary" (click)="openLinks()">
+          <i class="pi pi-link" aria-hidden="true"></i>Vínculos
+        </button>
+        <button type="button" class="nt-button nt-button--secondary" (click)="openRevisions()">
+          <i class="pi pi-calendar-clock" aria-hidden="true"></i>Revisões
+        </button>
+        @if (canSchedule) {
+          <button type="button" class="nt-button nt-button--secondary" (click)="schedule()">
+            <i class="pi pi-calendar-plus" aria-hidden="true"></i>Agendar
+          </button>
+        }
+        @if (canCreateEstimate) {
+          <button type="button" class="nt-button nt-button--primary" (click)="createEstimate()">
+            <i class="pi pi-file-edit" aria-hidden="true"></i>Novo orçamento
+          </button>
+        }
+      </div>
+    </page-header>
+
+    @if (alerts.length) {
+      <section class="passport-alerts" aria-label="Alertas do veículo">
+        @for (alert of alerts; track alert.title) {
+          <article class="passport-alert" [class.passport-alert--warning]="alert.tone === 'warning'">
+            <i [class]="alert.tone === 'warning' ? 'pi pi-exclamation-circle' : 'pi pi-info-circle'" aria-hidden="true"></i>
+            <div><strong>{{ alert.title }}</strong><span>{{ alert.detail }}</span></div>
+          </article>
+        }
+      </section>
+    }
+
+    <nav class="passport-tabs" role="tablist" aria-label="Visões do passaporte do veículo">
+      @for (tab of tabs; track tab.key; let index = $index) {
+        <button
+          type="button"
+          role="tab"
+          class="passport-tab"
+          [class.passport-tab--active]="activeTab === tab.key"
+          [attr.aria-selected]="activeTab === tab.key"
+          [attr.aria-controls]="'vehicle-passport-panel-' + tab.key"
+          [attr.tabindex]="activeTab === tab.key ? 0 : -1"
+          (click)="selectTab(tab.key)"
+          (keydown)="onTabKeydown($event, index)"
+        >
+          <i [class]="tab.icon" aria-hidden="true"></i>{{ tab.label }}
+        </button>
+      }
+    </nav>
+
+    <main class="passport-content">
+      @if (activeTab === 'resumo') {
+        <section id="vehicle-passport-panel-resumo" role="tabpanel" class="passport-summary">
+          <div class="passport-main-column">
+            <article class="passport-card passport-card--identity">
+              <header class="passport-card__header">
+                <div><span>Identidade canônica</span><h2>{{ vehicleName }}</h2></div>
+                <span class="passport-card__icon"><i class="pi pi-car" aria-hidden="true"></i></span>
+              </header>
+              <dl class="passport-data-grid">
+                <div><dt>Placa</dt><dd>{{ plateLabel }}</dd></div>
+                <div><dt>Ano</dt><dd>{{ yearLabel }}</dd></div>
+                <div><dt>Combustível</dt><dd>{{ vehicle.combustivelNome || 'Não informado' }}</dd></div>
+                <div><dt>Cor</dt><dd>{{ vehicle.corExterna || 'Não informada' }}</dd></div>
+              </dl>
+            </article>
+
+            <article class="passport-card">
+              <header class="passport-card__header">
+                <div><span>Histórico recente</span><h2>Atendimentos do veículo</h2></div>
+                <span class="passport-card__icon"><i class="pi pi-history" aria-hidden="true"></i></span>
+              </header>
+              <div class="passport-state passport-state--pending">
+                <i class="pi pi-clock" aria-hidden="true"></i>
+                <div>
+                  <strong>Projeção histórica ainda não conectada</strong>
+                  <p>OS, orçamentos, inspeções e cancelamentos serão exibidos somente após o read model reconciliado por vehicleId.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="passport-card">
+              <header class="passport-card__header">
+                <div><span>Manutenção</span><h2>Parâmetros cadastrados</h2></div>
+                <span class="passport-card__icon"><i class="pi pi-calendar-clock" aria-hidden="true"></i></span>
+              </header>
+              <div class="passport-maintenance-parameters">
+                <div><span>Referência por data</span><strong>{{ vehicle.proximaRevisaoData ? (vehicle.proximaRevisaoData | date:'dd/MM/yyyy') : 'Não cadastrada' }}</strong></div>
+                <div><span>Referência por km</span><strong>{{ formatOdometer(vehicle.proximaRevisaoKm) }}</strong></div>
+              </div>
+              <p class="passport-disclaimer">
+                Estes valores são parâmetros cadastrais. Não representam uma recomendação calculada nem um serviço realizado.
+              </p>
+            </article>
+          </div>
+
+          <aside class="passport-side-column" aria-label="Contexto do veículo">
+            <article class="passport-card passport-card--odometer">
+              <span class="passport-card__eyebrow">Última leitura canônica</span>
+              <strong>{{ odometerLabel }}</strong>
+              <small>A origem e o instante da leitura dependem do contrato de timeline de odômetro.</small>
+            </article>
+
+            <article class="passport-card">
+              <header class="passport-card__header">
+                <div><span>Responsável vigente</span><h2>{{ customerName }}</h2></div>
+                <span class="passport-card__icon"><i class="pi pi-user" aria-hidden="true"></i></span>
+              </header>
+              @if (currentCustomer) {
+                <dl class="passport-data-list">
+                  <div><dt>Documento</dt><dd>{{ currentCustomer.maskedTaxId || 'Protegido' }}</dd></div>
+                  <div><dt>Status</dt><dd>{{ currentCustomer.status }}</dd></div>
+                </dl>
+              } @else if (customerFailed) {
+                <div class="passport-inline-error">Resumo do cliente indisponível. O vínculo não foi substituído.</div>
+              } @else {
+                <p class="passport-empty-copy">Nenhum responsável vigente foi informado.</p>
+              }
+            </article>
+
+            <article class="passport-trust-card">
+              <i class="pi pi-shield" aria-hidden="true"></i>
+              <div><strong>Visão protegida por tenant</strong><span>O backend deriva o contexto autenticado; o navegador não envia tenant como autoridade.</span></div>
+            </article>
+          </aside>
+        </section>
+      }
+
+      @if (activeTab === 'ficha') {
+        <section id="vehicle-passport-panel-ficha" role="tabpanel" class="passport-panel">
+          <header class="passport-panel__header">
+            <div><span>Ficha técnica</span><h2>Dados confirmados do cadastro</h2><p>Identificadores sensíveis não são revelados por esta visão genérica.</p></div>
+            @if (canEdit) { <button type="button" class="nt-button nt-button--secondary" (click)="editVehicle()">Editar ficha</button> }
+          </header>
+          <div class="passport-technical-grid">
+            <article><span>Marca</span><strong>{{ vehicle.marcaNome || 'Não informada' }}</strong><small>Fonte: cadastro canônico</small></article>
+            <article><span>Modelo</span><strong>{{ vehicle.modeloNome || 'Não informado' }}</strong><small>Fonte: cadastro canônico</small></article>
+            <article><span>Ano</span><strong>{{ yearLabel }}</strong><small>Fonte: cadastro canônico</small></article>
+            <article><span>Combustível</span><strong>{{ vehicle.combustivelNome || 'Não informado' }}</strong><small>Fonte: cadastro canônico</small></article>
+            <article><span>Cor externa</span><strong>{{ vehicle.corExterna || 'Não informada' }}</strong><small>Fonte: cadastro canônico</small></article>
+            <article><span>VIN / chassi</span><strong>{{ protectedIdentifier(vehicle.chassi) }}</strong><small>Revelação depende de capability e contrato backend</small></article>
+            <article><span>RENAVAM</span><strong>{{ protectedIdentifier(vehicle.renavam) }}</strong><small>Identificador operacional protegido</small></article>
+            <article><span>Número do motor</span><strong>{{ protectedIdentifier(vehicle.numeroMotor) }}</strong><small>Identificador operacional protegido</small></article>
+          </div>
+        </section>
+      }
+
+      @if (activeTab === 'historico') {
+        <section id="vehicle-passport-panel-historico" role="tabpanel" class="passport-panel">
+          <header class="passport-panel__header"><div><span>Histórico</span><h2>Timeline operacional append-only</h2><p>Eventos serão filtráveis por tipo e período quando a projeção autoritativa existir.</p></div></header>
+          <div class="passport-state passport-state--pending"><i class="pi pi-history" aria-hidden="true"></i><div><strong>Read model de histórico pendente</strong><p>Nenhuma OS, inspeção ou estimativa foi inferida no frontend. Cancelamentos e trocas de cliente precisam preservar o contexto histórico original.</p></div></div>
+        </section>
+      }
+
+      @if (activeTab === 'inspecoes') {
+        <section id="vehicle-passport-panel-inspecoes" role="tabpanel" class="passport-panel">
+          <header class="passport-panel__header"><div><span>Inspeções</span><h2>Resultados e evidências autorizadas</h2><p>Falhas desta projeção permanecerão locais e não derrubarão a ficha.</p></div></header>
+          <div class="passport-state passport-state--pending"><i class="pi pi-verified" aria-hidden="true"></i><div><strong>Contrato de inspeções ainda não implementado</strong><p>Data, resultado, responsável e evidências serão carregados progressivamente após autorização por objeto.</p></div></div>
+        </section>
+      }
+
+      @if (activeTab === 'servicos') {
+        <section id="vehicle-passport-panel-servicos" role="tabpanel" class="passport-panel">
+          <header class="passport-panel__header"><div><span>Serviços e peças</span><h2>Itens efetivamente executados</h2><p>Recomendações futuras nunca serão misturadas a serviços realizados.</p></div></header>
+          <div class="passport-state passport-state--pending"><i class="pi pi-wrench" aria-hidden="true"></i><div><strong>Projeção reconciliada pendente</strong><p>Somente itens de documentos operacionais elegíveis e finalizados serão apresentados aqui.</p></div></div>
+        </section>
+      }
+
+      @if (activeTab === 'quilometragem') {
+        <section id="vehicle-passport-panel-quilometragem" role="tabpanel" class="passport-panel">
+          <header class="passport-panel__header"><div><span>Quilometragem</span><h2>Linha do tempo auditável</h2><p>Leituras anteriores não podem desaparecer após correção.</p></div></header>
+          <article class="passport-current-reading">
+            <span>Leitura atual do cadastro</span><strong>{{ odometerLabel }}</strong><small>Sem origem e timestamp: ainda não é uma timeline auditável.</small>
+          </article>
+          <div class="passport-state passport-state--pending"><i class="pi pi-chart-line" aria-hidden="true"></i><div><strong>Histórico de leituras pendente</strong><p>O contrato futuro deve trazer origem, instante, correções, motivo, ator e regressões autorizadas.</p></div></div>
+        </section>
+      }
+
+      @if (activeTab === 'recomendacoes') {
+        <section id="vehicle-passport-panel-recomendacoes" role="tabpanel" class="passport-panel passport-panel--recommendations">
+          <header class="passport-panel__header"><div><span>Próximas revisões</span><h2>Recomendações futuras</h2><p>Previsões terão tratamento visual e semântico distinto de realizações.</p></div></header>
+          <div class="passport-recommendation-parameters">
+            <div><span>Parâmetro de data</span><strong>{{ vehicle.proximaRevisaoData ? (vehicle.proximaRevisaoData | date:'dd/MM/yyyy') : 'Não cadastrado' }}</strong></div>
+            <div><span>Parâmetro de km</span><strong>{{ formatOdometer(vehicle.proximaRevisaoKm) }}</strong></div>
+          </div>
+          <div class="passport-state passport-state--recommendation"><i class="pi pi-sparkles" aria-hidden="true"></i><div><strong>Nenhuma recomendação calculada foi apresentada</strong><p>A projeção precisa informar critério por data, km ou ambos e a origem da regra antes de ser exibida.</p></div></div>
+        </section>
+      }
+
+      @if (activeTab === 'documentos') {
+        <section id="vehicle-passport-panel-documentos" role="tabpanel" class="passport-panel">
+          <header class="passport-panel__header"><div><span>Documentos e evidências</span><h2>Acesso classificado</h2><p>Ocultar no frontend não substitui autorização no backend.</p></div></header>
+          <div class="passport-state passport-state--protected"><i class="pi pi-lock" aria-hidden="true"></i><div><strong>Consulta protegida até o contrato de capability</strong><p>Esta tela não solicita anexos pela API legada. Downloads futuros exigirão autorização por objeto no momento do acesso, classificação e retenção.</p></div></div>
+        </section>
+      }
+    </main>
+
+    @if (canCreateEstimate) {
+      <div class="passport-mobile-action">
+        <button type="button" class="nt-button nt-button--primary" (click)="createEstimate()">
+          <i class="pi pi-file-edit" aria-hidden="true"></i>Novo orçamento
+        </button>
+      </div>
+    }
+  }
+</section>

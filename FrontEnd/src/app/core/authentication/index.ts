@@ -1,5 +1,7 @@
 export * from './interface';
 export * from './auth-guard';
+export * from './permission-guard';
+export * from './plan-guard';
 export * from './subscription-guard';
 export * from './auth.service';
 export * from './token-factory.service';

@@ -3,45 +3,51 @@ package com.neritech.saas.cliente.repository;
 import com.neritech.saas.cliente.domain.Cliente;
 import com.neritech.saas.cliente.domain.enums.StatusCliente;
 import com.neritech.saas.cliente.domain.enums.TipoCliente;
+import com.neritech.saas.common.tenancy.TenantContext;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
-import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
-import com.neritech.saas.common.tenancy.TenantContext;
 
-public class ClienteSpecification {
+public final class ClienteSpecification {
 
-    public static Specification<Cliente> buildSpecification(String nomeCompleto, String razaoSocial, String cpf, String cnpj, TipoCliente tipoCliente, StatusCliente status) {
+    private ClienteSpecification() {
+    }
+
+    public static Specification<Cliente> buildSpecification(
+            String nomeCompleto,
+            String razaoSocial,
+            String cpf,
+            String cnpj,
+            TipoCliente tipoCliente,
+            StatusCliente status) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+            Long tenantId = TenantContext.getCurrentTenant();
 
-            // Enforce Multi-tenant isolation
-            predicates.add(criteriaBuilder.equal(root.get("empresaId"), TenantContext.getCurrentTenant()));
-
-            // Adiciona fetch opcional para os contatos e endereços somente em queries de listagem
-            if (Long.class != query.getResultType() && long.class != query.getResultType()) {
-                // Aqui não precisamos necessariamente fazer fetch de contatos/enderecos, a não ser que a DTO demande.
-                // Como não sabemos exatamente, deixamos apenas os joins normais ou nada se forem lazy.
-            }
+            // Tenant is mandatory and always participates in the query predicate.
+            predicates.add(criteriaBuilder.equal(root.get("empresaId"), tenantId));
 
             if (nomeCompleto != null && !nomeCompleto.isBlank()) {
-                String term = "%" + nomeCompleto.toLowerCase() + "%";
-                Predicate orName = criteriaBuilder.or(
+                String term = "%" + nomeCompleto.trim().toLowerCase() + "%";
+                predicates.add(criteriaBuilder.or(
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("nomeCompleto")), term),
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("razaoSocial")), term),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("nomeFantasia")), term)
-                );
-                predicates.add(orName);
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("nomeFantasia")), term)));
+            }
+
+            if (razaoSocial != null && !razaoSocial.isBlank()) {
+                String term = "%" + razaoSocial.trim().toLowerCase() + "%";
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("razaoSocial")), term));
             }
 
             if (cpf != null && !cpf.isBlank()) {
-                String termDoc = cpf.replaceAll("[^a-zA-Z0-9]", "");
-                Predicate orDoc = criteriaBuilder.or(
-                        criteriaBuilder.equal(root.get("cpf"), termDoc),
-                        criteriaBuilder.equal(root.get("cnpj"), termDoc)
-                );
-                predicates.add(orDoc);
+                predicates.add(criteriaBuilder.equal(root.get("cpf"), normalizeDocument(cpf)));
+            }
+
+            if (cnpj != null && !cnpj.isBlank()) {
+                predicates.add(criteriaBuilder.equal(root.get("cnpj"), normalizeDocument(cnpj)));
             }
 
             if (tipoCliente != null) {
@@ -54,5 +60,9 @@ public class ClienteSpecification {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    private static String normalizeDocument(String value) {
+        return value.replaceAll("[^a-zA-Z0-9]", "");
     }
 }

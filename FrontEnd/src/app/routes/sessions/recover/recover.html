@@ -1,91 +1,70 @@
-<div class="bg-white dark:bg-gray-900">
-  <div class="flex min-h-screen w-screen">
-    <div
-      class="hidden bg-cover lg:block lg:w-2/3"
-      style="background-image: url('/images/login.png')"
-    >
-      <div class="flex items-center h-full px-20 bg-gray-900 bg-opacity-40">
-        <div>
-          <h2 class="text-4xl font-bold text-white">Simplifique a gestão da sua oficina.</h2>
-          <p class="max-w-xl mt-3 text-gray-300">
-             Com a NeriTechAuto, você otimiza o dia a dia do seu negócio e foca no que realmente importa: atender bem e lucrar mais.
-          </p>
-        </div>
-      </div>
-    </div>
+<section class="auth-card" aria-labelledby="recover-title">
+  <span class="auth-card__eyebrow">Recuperação de acesso</span>
+  <h1 id="recover-title">Esqueceu sua senha?</h1>
+  <p class="auth-card__description">
+    Informe seu e-mail. Se houver uma conta elegível, enviaremos as instruções para redefinição.
+  </p>
 
-    <div class="flex items-center w-full max-w-md px-6 mx-auto lg:w-2/6">
-      <div class="flex-1">
-        <div class="text-center">
-          <h2 class="text-[28px] font-bold text-center text-slate-800 tracking-tight dark:text-white">Recuperação de Acesso</h2>
-          <p class="mt-2 text-[13px] font-medium text-slate-500 dark:text-gray-300">
-            Digite seu e-mail abaixo e enviaremos um link para você redefinir sua senha.
-          </p>
-        </div>
-
-        <div class="mt-8">
-          <div *ngIf="emailSent" class="space-y-4">
-            <div class="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full dark:bg-green-800">
-              <i class="pi pi-check text-green-600 dark:text-green-200 text-xl font-bold"></i>
-            </div>
-            <div class="text-center">
-              <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Verifique seu e-mail</h3>
-              <p class="mt-2 text-sm text-slate-500 dark:text-gray-400">
-                Se o e-mail <strong>{{ email.value }}</strong> estiver em nossa base, enviamos um link para você redefinir sua senha.
-              </p>
-            </div>
-            <div class="pt-4">
-               <button
-                type="button"
-                routerLink="/auth/login"
-                class="w-full flex justify-center items-center h-10 px-4 py-2 text-[14px] font-semibold text-white transition-all transform bg-[#635BFF] rounded-md hover:bg-[#5851E5] focus:outline-none shadow-sm"
-              >
-                Voltar para o Login
-              </button>
-            </div>
-          </div>
-
-          <form *ngIf="!emailSent" [formGroup]="recoverForm" (ngSubmit)="recover()" class="space-y-4">
-            <div>
-              <label for="email" class="block mb-1.5 text-[13px] font-semibold text-slate-700 dark:text-gray-200">Email cadastrado</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="nome@empresa.com"
-                formControlName="email"
-                class="block w-full h-10 px-3 py-2 text-[14px] text-slate-800 placeholder-slate-400 bg-white border border-slate-300 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-sm"
-                [class.border-red-500]="recoverForm.get('email')?.invalid && recoverForm.get('email')?.touched"
-                [class.focus:ring-red-500]="recoverForm.get('email')?.invalid && recoverForm.get('email')?.touched"
-              />
-              <p *ngIf="recoverForm.get('email')?.hasError('required') && recoverForm.get('email')?.touched"
-                 class="text-xs text-red-500 mt-1">
-                Email é obrigatório.
-              </p>
-              <p *ngIf="recoverForm.get('email')?.hasError('email') && recoverForm.get('email')?.touched"
-                 class="text-xs text-red-500 mt-1">
-                Insira um email válido.
-              </p>
-            </div>
-
-            <div class="mt-6 pt-2">
-              <button
-                type="submit"
-                [disabled]="recoverForm.invalid || isSubmitting"
-                class="w-full flex justify-center items-center h-10 px-4 py-2 text-[14px] font-semibold tracking-wide text-white transition-all transform bg-[#635BFF] rounded-md hover:bg-[#5851E5] focus:outline-none disabled:bg-indigo-300 shadow-sm"
-              >
-                <span *ngIf="!isSubmitting">Enviar link de recuperação</span>
-                <span *ngIf="isSubmitting"><i class="pi pi-spinner pi-spin"></i></span>
-              </button>
-            </div>
-          </form>
-
-          <p class="mt-6 text-[13px] text-center font-medium text-slate-500">
-             <a routerLink="/auth/login" class="text-blue-600 font-semibold focus:outline-none focus:underline hover:underline transition-colors"><i class="pi pi-arrow-left text-xs mr-1"></i> Voltar para o login</a>
-          </p>
-        </div>
-      </div>
-    </div>
+  <div *ngIf="emailSent" class="auth-success" role="status" aria-live="polite">
+    <span class="auth-success__icon"><i class="pi pi-check" aria-hidden="true"></i></span>
+    <h2>Solicitação recebida</h2>
+    <p>
+      Se o endereço <strong>{{ email.value }}</strong> estiver cadastrado e apto para recuperação,
+      você receberá um link com validade limitada.
+    </p>
+    <a routerLink="/auth/login" class="auth-link">Voltar para o login</a>
   </div>
-</div>
+
+  <form
+    *ngIf="!emailSent"
+    [formGroup]="recoverForm"
+    (ngSubmit)="recover()"
+    class="auth-card__form"
+    [attr.aria-busy]="isSubmitting"
+    novalidate
+  >
+    <div class="auth-field">
+      <label for="recover-email">E-mail</label>
+      <input
+        id="recover-email"
+        type="email"
+        formControlName="email"
+        class="auth-input"
+        [class.is-invalid]="email.invalid && (email.dirty || email.touched)"
+        autocomplete="email"
+        inputmode="email"
+        placeholder="nome@empresa.com"
+        aria-describedby="recover-email-error"
+      />
+      <p
+        id="recover-email-error"
+        *ngIf="email.invalid && (email.dirty || email.touched)"
+        class="auth-field__error"
+        role="alert"
+      >
+        <span *ngIf="email.errors?.['required']">Informe seu e-mail.</span>
+        <span *ngIf="email.errors?.['email']">Informe um e-mail válido.</span>
+      </p>
+    </div>
+
+    <button type="submit" class="auth-submit" [disabled]="isSubmitting">
+      <i *ngIf="isSubmitting" class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+      <span>{{ isSubmitting ? 'Enviando…' : 'Enviar instruções' }}</span>
+    </button>
+  </form>
+
+  <div *ngIf="!emailSent" class="auth-back">
+    <a routerLink="/auth/login" class="auth-link">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Voltar para o login
+    </a>
+  </div>
+
+  <div class="auth-note">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <span>
+      Por segurança, a resposta desta tela não confirma se um e-mail existe na plataforma.
+    </span>
+  </div>
+</section>
 <p-toast />

@@ -1,441 +1,273 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-
-import { MenuItem, MessageService } from 'primeng/api';
-import { ViewChild } from '@angular/core';
-// PrimeNG modules for compatibility
-import { SelectModule } from 'primeng/select';
-import { InputTextModule } from 'primeng/inputtext';
+import { DataTableShell, DataViewState, NeriTechIcon, PageHeader } from '@shared';
+import { MessageService, MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { TooltipModule } from 'primeng/tooltip';
-import { ToastModule } from 'primeng/toast';
-import { SkeletonModule } from 'primeng/skeleton';
+import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
-import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
-import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { LocalStorageService } from '@shared/services/storage.service';
-import { ConfirmationService } from '@shared/services/confirmation.service';
+import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
+import { ToastModule } from 'primeng/toast';
 import { NgxPermissionsService } from 'ngx-permissions';
+
 import {
-  TipoCliente,
   StatusCliente,
-  getTipoClienteOptions,
-  getStatusClienteOptions,
   StatusClienteLabels,
-  TipoClienteLabels
+  TipoCliente,
+  TipoClienteLabels,
+  getStatusClienteOptions,
+  getTipoClienteOptions,
 } from '../models/cliente.models';
+import { ClienteListResponseDTO, ClientesService, Page } from './cliente.service';
+
+interface ClientListRow {
+  id: number;
+  nome: string;
+  documento: string;
+  tipo: TipoCliente;
+  status: StatusCliente;
+  contato: string;
+}
 
 @Component({
   selector: 'cliente',
   standalone: true,
   templateUrl: './cliente.html',
-  styleUrls: ['./cliente.scss'],
+  styleUrl: './cliente.scss',
   imports: [
     CommonModule,
     FormsModule,
-    // PrimeNG
+    RouterModule,
+    PageHeader,
+    NeriTechIcon,
+    DataTableShell,
+    DataViewState,
     SelectModule,
     InputTextModule,
     ButtonModule,
-    TagModule,
-    TooltipModule,
     ToastModule,
     SkeletonModule,
     MenuModule,
-    RouterModule,
   ],
 })
 export class Cliente implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
-  private readonly storage = inject(LocalStorageService);
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
 
-  // Expose enums to template
-  readonly TipoCliente = TipoCliente;
   readonly StatusCliente = StatusCliente;
-
-  // Filtros
   searchTerm = '';
-  isLoading = false;
-
-  // Menu popup
-  activeRow: any = null;
-  activeMenuItems: MenuItem[] = [];
-
-  toggleMenu(row: any, event: Event, menu: any) {
-    this.activeRow = row;
-    this.activeMenuItems = this.menuItemsFor(row);
-    menu.toggle(event);
-  }
   selectedTipo: TipoCliente | null = null;
   selectedStatus: StatusCliente | null = null;
+  isLoading = false;
+  loadError = false;
 
-  // Opções para dropdowns
-  tipoOptions = [{ label: 'Todos', value: null }, ...getTipoClienteOptions()];
-  get tipoOptionsFiltered() {
-    return getTipoClienteOptions();
-  }
+  readonly tipoOptions = [{ label: 'Todos os tipos', value: null }, ...getTipoClienteOptions()];
+  readonly statusOptions = [{ label: 'Todos os status', value: null }, ...getStatusClienteOptions()];
 
-  statusOptions = [{ label: 'Todos', value: null }, ...getStatusClienteOptions()];
+  clients: ClientListRow[] = [];
+  backendPage: Page<ClienteListResponseDTO> | null = null;
 
-  // Labels
-  StatusClienteLabels = StatusClienteLabels;
-  TipoClienteLabels = TipoClienteLabels;
-
-  // Dados carregados do backend
-  clients: {
-    uuid: string | number;
-    id?: number;
-    nome: string;
-    cpfCnpj: string;
-    tipo: TipoCliente;
-    status: StatusCliente;
-    contato: string;
-  }[] = [];
-  backendPage: Page<ClienteResponseDTO> | null = null;
-
-  // Paginação
-  rows = 5;
+  rows = 10;
   first = 0;
+  activeMenuItems: MenuItem[] = [];
 
-  get totalRecords() {
-    return this.backendPage?.totalElements ?? this.filtered.length;
-  }
-  get currentPage() {
-    return Math.floor(this.first / this.rows) + 1;
-  }
-  jumpPageInput = '';
+  ngOnInit() {
+    const query = this.route.snapshot.queryParamMap;
+    const status = query.get('status') as StatusCliente | null;
+    const tipo = query.get('tipo') as TipoCliente | null;
+    const page = Number(query.get('page'));
 
-  // Filtrados (aplicado no frontend para dados já carregados)
-  get filtered() {
-    return this.clients;
-  }
-  // Removed incorrect pagedData getter for server-side pagination
+    if (status && Object.values(StatusCliente).includes(status)) this.selectedStatus = status;
+    if (tipo && Object.values(TipoCliente).includes(tipo)) this.selectedTipo = tipo;
+    if (Number.isInteger(page) && page > 0) this.first = (page - 1) * this.rows;
 
-  // Client-side pagination implementation
-  get pagedData() {
-    return this.filtered; // Agora a filtered sempre tem apenas a página atual
+    this.fetchPage();
   }
 
-  get rangeStart() {
-    return this.totalRecords === 0 ? 0 : this.first + 1;
+  get totalRecords() { return this.backendPage?.totalElements ?? 0; }
+  get rangeStart() { return this.totalRecords === 0 ? 0 : this.first + 1; }
+  get rangeEnd() { return Math.min(this.first + this.clients.length, this.totalRecords); }
+  get currentPage() { return Math.floor(this.first / this.rows) + 1; }
+  get totalPages() {
+    return Math.max(1, this.backendPage?.totalPages ?? Math.ceil(this.totalRecords / this.rows));
   }
-  get rangeEnd() {
-    return Math.min(this.first + this.rows, this.totalRecords);
-  }
+  get canCreateCliente() { return Boolean(this.permissionsService.getPermission('CLIENTE_CRIAR')); }
+  get canEditCliente() { return Boolean(this.permissionsService.getPermission('CLIENTE_EDITAR')); }
+  get canCreateVehicle() { return Boolean(this.permissionsService.getPermission('VEICULO_CRIAR')); }
 
   onSearch() {
     this.first = 0;
+    this.syncNonSensitiveQueryState();
+    this.fetchPage();
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedTipo = null;
+    this.selectedStatus = null;
+    this.first = 0;
+    this.syncNonSensitiveQueryState();
+    this.fetchPage();
+  }
+
+  onFilterChange() {
+    this.first = 0;
+    this.syncNonSensitiveQueryState();
     this.fetchPage();
   }
 
   goPrev() {
+    if (this.first === 0 || this.isLoading) return;
     this.first = Math.max(0, this.first - this.rows);
+    this.syncNonSensitiveQueryState();
     this.fetchPage();
   }
 
   goNext() {
-    if (this.first + this.rows < this.totalRecords) {
-      this.first = this.first + this.rows;
-      this.fetchPage();
-    }
-  }
-
-  jumpToPage() {
-    const page = Number(this.jumpPageInput);
-    if (!isNaN(page) && page >= 1) {
-      const maxPage = Math.max(1, Math.ceil(this.totalRecords / this.rows));
-      const clamped = Math.min(page, maxPage);
-      this.first = (clamped - 1) * this.rows;
-      this.fetchPage();
-    }
-  }
-
-  pendingRoute: any[] | string | null = null;
-  onMenuNavigate(item: MenuItem) {
-    if (item && item.routerLink) {
-      this.pendingRoute = item.routerLink as any;
-    }
-  }
-  onMenuClosed() {
-    if (this.pendingRoute) {
-      const route = this.pendingRoute;
-      this.pendingRoute = null;
-      if (Array.isArray(route)) {
-        this.router.navigate(route);
-      } else if (typeof route === 'string') {
-        this.router.navigateByUrl(route);
-      }
-    }
-  }
-
-  menuItemsFor(row: any): MenuItem[] {
-    return [
-      { label: 'Visualizar / Editar Cliente', icon: 'pi pi-user', routerLink: ['/cliente/editar', row.uuid] },
-      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', command: () => {} },
-      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', command: () => {} },
-      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', command: () => {} },
-      { label: 'Visualizar OS Veículo', icon: 'pi pi-list', command: () => {} },
-      { label: 'Histórico Veículo', icon: 'pi pi-history', command: () => {} },
-    ];
-  }
-
-  cadastrarCliente() {
-    if (!this.permissionsService.getPermission('CLIENTE_CRIAR')) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Atenção', 
-        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
-      });
-      return;
-    }
-    this.router.navigate(['/cliente/cadastro']);
-  }
-
-  navigateToEdit(row: { uuid?: string | number }) {
-    if (!this.permissionsService.getPermission('CLIENTE_EDITAR')) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Atenção', 
-        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
-      });
-      return;
-    }
-    const id = row?.uuid;
-    if (id) {
-      this.router.navigate(['/cliente/editar', id]);
-    }
-  }
-
-  navigateToAddVeiculo(row: { id?: string | number; uuid?: string | number; nome?: string }) {
-    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Atenção', 
-        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
-      });
-      return;
-    }
-    const clienteId = row?.id || row?.uuid;
-    if (clienteId) {
-      this.router.navigate(['/veiculo/cadastro'], { queryParams: { clienteId } });
-    }
-  }
-
-
-
-
-  // SplitButton gerencia abertura do menu; não precisamos do handler manual
-
-  ngOnInit() {
-    const qp = this.route.snapshot.queryParamMap;
-    const statusParam = qp.get('status') as StatusCliente | null;
-    const tipoParam = qp.get('tipo') as TipoCliente | null;
-    if (statusParam && Object.values(StatusCliente).includes(statusParam)) {
-      this.selectedStatus = statusParam;
-    }
-    if (tipoParam && Object.values(TipoCliente).includes(tipoParam)) {
-      this.selectedTipo = tipoParam;
-    }
+    if (this.first + this.rows >= this.totalRecords || this.isLoading) return;
+    this.first += this.rows;
+    this.syncNonSensitiveQueryState();
     this.fetchPage();
   }
 
-  private mapToRow(dto: ClienteResponseDTO) {
-    const nome = dto.nomeCompleto || dto.nomeFantasia || dto.razaoSocial || '';
-    const cpfCnpj = dto.cpf || dto.cnpj || '';
-    const tipo = (dto.tipoCliente as TipoCliente) || TipoCliente.PESSOA_FISICA;
-    const status = (dto.status as StatusCliente) || StatusCliente.ATIVO;
+  cadastrarCliente() {
+    if (!this.canCreateCliente) {
+      this.warnPermission();
+      return;
+    }
+    this.router.navigate(['/clientes/novo']);
+  }
 
-    return {
-      uuid: (dto as any).id ?? (dto as any).uuid,
-      id: (dto as any).id,
-      nome,
-      cpfCnpj,
-      tipo,
-      status,
-      email: dto.email || '',
-      contato: '', // Placeholder
-    };
+  navigateToDetail(row: ClientListRow) {
+    this.router.navigate(['/clientes', row.id]);
+  }
+
+  navigateToEdit(row: ClientListRow) {
+    if (!this.canEditCliente) {
+      this.warnPermission();
+      return;
+    }
+    this.router.navigate(['/clientes', row.id, 'editar']);
+  }
+
+  navigateToAddVeiculo(row: ClientListRow) {
+    if (!this.canCreateVehicle || row.status === StatusCliente.INATIVO) {
+      this.warnPermission();
+      return;
+    }
+    this.router.navigate(['/veiculos/novo'], { queryParams: { clienteId: row.id } });
+  }
+
+  toggleMenu(row: ClientListRow, event: Event, menu: { toggle: (event: Event) => void }) {
+    this.activeMenuItems = this.menuItemsFor(row);
+    menu.toggle(event);
+  }
+
+  menuItemsFor(row: ClientListRow): MenuItem[] {
+    const items: MenuItem[] = [
+      { label: 'Abrir ficha', icon: 'pi pi-id-card', command: () => this.navigateToDetail(row) },
+    ];
+
+    if (this.canEditCliente) {
+      items.push({ label: 'Editar cliente', icon: 'pi pi-pencil', command: () => this.navigateToEdit(row) });
+    }
+    if (this.canCreateVehicle && row.status !== StatusCliente.INATIVO) {
+      items.push({ label: 'Cadastrar veículo', icon: 'pi pi-car', command: () => this.navigateToAddVeiculo(row) });
+    }
+    return items;
+  }
+
+  getTipoClienteLabel(tipo: TipoCliente) { return TipoClienteLabels[tipo] || 'Cliente'; }
+  getStatusLabel(status: StatusCliente) { return StatusClienteLabels[status] || status; }
+
+  getStatusClass(status: StatusCliente) {
+    switch (status) {
+      case StatusCliente.ATIVO:
+        return 'status-badge--success';
+      case StatusCliente.BLOQUEADO:
+        return 'status-badge--danger';
+      default:
+        return 'status-badge--neutral';
+    }
   }
 
   private fetchPage() {
-    // Backend usa 1-indexed parameters (page 1 é a primeira), então somamos 1
-    const pageIndex = Math.floor(this.first / this.rows) + 1;
+    const pageIndex = Math.floor(this.first / this.rows);
+    const filters: Record<string, string | number> = { page: pageIndex, size: this.rows, sort: 'nomeCompleto,asc' };
+    this.applySearchFilter(filters);
+    if (this.selectedTipo) filters['tipoCliente'] = this.selectedTipo;
+    if (this.selectedStatus) filters['status'] = this.selectedStatus;
+
     this.isLoading = true;
-
-    console.log(`[PAGINATION] first: ${this.first}, rows: ${this.rows}, pageIndex to API: ${pageIndex}`);
-
-    const filters: any = { page: pageIndex, size: this.rows, sort: 'id,desc' }; // Restaurado para id,desc
-
-    // Filtro de busca por nome ou documento
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.trim();
-      filters.nomeCompleto = term;
-      // Mandamos no cpf também para o backend procurar no CPF e CNPJ
-      filters.cpf = term.replace(/[^a-zA-Z0-9]/g, '');
-    }
-
-    // Filtro por tipo de cliente
-    if (this.selectedTipo) {
-      filters.tipoCliente = this.selectedTipo;
-    }
-
-    // Filtro por status
-    if (this.selectedStatus) {
-      filters.status = this.selectedStatus;
-    }
-
-    // Console log the filters for debugging if needed
-    // console.log('📤 Sending filters to API:', filters);
-
+    this.loadError = false;
 
     this.clientesService.list(filters).subscribe({
-      next: (res: Page<ClienteResponseDTO>) => {
-        console.log('[API RESPONSE] Backend Page:', res);
-        this.backendPage = res;
-        this.clients = (res.content || []).map((d: ClienteResponseDTO) => this.mapToRow(d));
-
+      next: response => {
+        this.backendPage = response;
+        this.clients = (response.content || []).map(dto => this.mapToRow(dto));
         this.isLoading = false;
-        this.cdr.detectChanges(); // Forçar atualização da view
-
-        // Após mapear clientes, buscar contatos para preencher a coluna "Contato"
-        this.loadContatosForRows();
       },
-      error: (err: any) => {
+      error: error => {
+        this.clients = [];
+        this.backendPage = null;
         this.isLoading = false;
-        console.error('❌ Erro ao carregar clientes:', err);
-        
-        if (err.status !== 403) {
-          this.messageService.add({ 
-            severity: 'error', 
-            summary: 'Erro', 
-            detail: 'Ocorreu um erro ao carregar os dados dos clientes.' 
+        this.loadError = true;
+        if (error?.status !== 403) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Não foi possível carregar os clientes',
+            detail: 'Tente novamente. Nenhum dado de outro contexto será exibido.',
           });
         }
       },
     });
   }
 
-  private loadContatosForRows() {
-    const currentPageRows = this.clients;
-    if (!currentPageRows || !currentPageRows.length) return;
+  private applySearchFilter(filters: Record<string, string | number>) {
+    const term = this.searchTerm.trim();
+    if (!term) return;
+    const digits = term.replace(/\D/g, '');
+    if (digits.length === 11) {
+      filters['cpf'] = digits;
+      return;
+    }
+    if (digits.length === 14) {
+      filters['cnpj'] = digits;
+      return;
+    }
+    filters['nomeCompleto'] = term;
+  }
 
-    // Log do tenant/empresa para diagnosticar chamadas multi-tenant
-    const tenantId = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
-    console.debug('🔎 Buscando contatos para página atual', {
-      rows: currentPageRows.map(r => ({ id: (r as any).id ?? r.uuid, uuid: r.uuid })),
-      tenantId,
+  private mapToRow(dto: ClienteListResponseDTO): ClientListRow {
+    return {
+      id: dto.id,
+      nome: dto.displayName || `Cliente #${dto.id}`,
+      documento: dto.maskedTaxId || 'Não informado',
+      tipo: dto.type,
+      status: dto.status,
+      contato: dto.primaryContactSummary || '',
+    };
+  }
+
+  private syncNonSensitiveQueryState() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        tipo: this.selectedTipo || null,
+        status: this.selectedStatus || null,
+        page: this.currentPage > 1 ? this.currentPage : null,
+      },
+      queryParamsHandling: 'merge',
     });
-
-    const requests = currentPageRows.map(row =>
-      this.clientesService
-        .listarContatos((row as any).id ?? row.uuid)
-        .pipe(
-          map((res: Page<ContatoClienteResponse>) => ({ id: (row as any).id ?? row.uuid, contatos: res.content || [] })),
-          catchError(err => {
-            console.error('Erro ao carregar contatos do cliente', (row as any).id ?? row.uuid, err);
-            return of({ id: (row as any).id ?? row.uuid, contatos: [] as ContatoClienteResponse[] });
-          })
-        )
-    );
-
-    forkJoin(requests).subscribe(results => {
-      const byId = new Map(results.map(r => [r.id, r.contatos]));
-      this.clients = this.clients.map(c => {
-        const key = (c as any).id ?? c.uuid;
-        const contatos = byId.get(key) || [];
-        return { ...c, contato: this.formatContatoLabel((c as any).email, contatos) };
-      });
-    });
   }
 
-  private formatContatoLabel(emailFallback: string, contatos: ContatoClienteResponse[]): string {
-    if (!contatos || !contatos.length) return emailFallback;
-    // Preferência: CELULAR -> WHATSAPP -> TELEFONE_FIXO -> OUTROS
-    const ordered = [
-          ...contatos.filter(c => c.tipoContato === TipoContato.CELULAR),
-          ...contatos.filter(c => c.tipoContato === TipoContato.WHATSAPP),
-          ...contatos.filter(c => c.tipoContato === TipoContato.TELEFONE_FIXO),
-          ...contatos.filter(c => c.tipoContato === TipoContato.OUTROS),
-        ];
-
-    const chosen = ordered[0] || contatos[0];
-    const value = (chosen as any)?.valor ?? (chosen as any)?.contato ?? '';
-    
-    if (this.isPhoneType(chosen.tipoContato)) {
-      return this.applyPhoneMask(value, chosen.tipoContato) || emailFallback;
-    }
-
-    return value || emailFallback;
-  }
-
-  private isPhoneType(tipo: any): boolean {
-    return [TipoContato.TELEFONE_FIXO, TipoContato.CELULAR, TipoContato.WHATSAPP, TipoContato.TELEGRAM].includes(tipo);
-  }
-
-  private applyPhoneMask(digits: string, tipo: any): string {
-    const d = this.stripNonDigits(digits);
-    if (tipo === TipoContato.TELEFONE_FIXO && d.length >= 10) {
-       return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6, 10)}`;
-    }
-    if (d.length >= 11) {
-       return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
-    }
-    return d; // Retorna apenas os dígitos se não bater com tamanho padrão
-  }
-
-  private stripNonDigits(v: string) {
-    return (v || '').replace(/\D+/g, '');
-  }
-
-  // Helper para obter classe de severidade do badge de status
-  getStatusSeverity(status: StatusCliente): 'success' | 'secondary' | 'danger' {
-    switch (status) {
-      case StatusCliente.ATIVO:
-        return 'success';
-      case StatusCliente.INATIVO:
-        return 'secondary';
-      case StatusCliente.BLOQUEADO:
-        return 'danger';
-      default:
-        return 'secondary';
-    }
-  }
-
-  // Helper para obter ícone do tipo de cliente
-  getTipoIcon(tipo: TipoCliente): string {
-    return tipo === TipoCliente.PESSOA_FISICA ? 'person' : 'business';
-  }
-
-  // Helper para obter label do tipo de cliente
-  getTipoClienteLabel(tipo: TipoCliente): string {
-    return TipoClienteLabels[tipo];
-  }
-
-  // Helper para obter label do status
-  getStatusLabel(status: StatusCliente): string {
-    return StatusClienteLabels[status];
-  }
-
-  // Helper para formatar CPF/CNPJ
-  formatCpfCnpj(value: string): string {
-    if (!value) return '';
-    const clean = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (clean.length === 11) {
-      return clean.replace(/(.{3})(.{3})(.{3})(.{2})/, '$1.$2.$3-$4');
-    } else if (clean.length === 14) {
-      return clean.replace(/(.{2})(.{3})(.{3})(.{4})(.{2})/, '$1.$2.$3/$4-$5');
-    }
-    return value;
+  private warnPermission() {
+    this.messageService.add({ severity: 'warn', summary: 'Acesso restrito', detail: 'Seu perfil não possui permissão para esta ação.' });
   }
 }

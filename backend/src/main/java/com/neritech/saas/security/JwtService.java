@@ -13,6 +13,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -59,18 +60,20 @@ public class JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
+        long now = System.currentTimeMillis();
         return Jwts.builder()
                 .setClaims(extraClaims)
+                .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + expiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -90,19 +93,36 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        if (cachedKey != null) {
+        Key local = cachedKey;
+        if (local != null) {
+            return local;
+        }
+
+        synchronized (this) {
+            if (cachedKey != null) {
+                return cachedKey;
+            }
+            cachedKey = buildSigningKey();
             return cachedKey;
         }
+    }
+
+    private Key buildSigningKey() {
         if (secretKey == null || secretKey.isBlank()) {
-            cachedKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-            return cachedKey;
+            throw new IllegalStateException("JWT_SECRET nao configurado");
         }
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        if (keyBytes == null || keyBytes.length < 32) {
-            cachedKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-            return cachedKey;
+
+        final byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secretKey.trim());
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException("JWT_SECRET deve ser Base64 valido", ex);
         }
-        cachedKey = Keys.hmacShaKeyFor(keyBytes);
-        return cachedKey;
+
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT_SECRET deve possuir pelo menos 256 bits apos decodificacao Base64");
+        }
+
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

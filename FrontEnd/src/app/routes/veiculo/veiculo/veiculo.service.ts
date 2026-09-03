@@ -24,8 +24,8 @@ export class VeiculoService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.baseUrl;
 
-  // Headers são gerenciados pelos interceptors (tenant-interceptor e token-interceptor)
-  // Não precisamos adicionar manualmente X-Tenant-Id e Authorization
+  // Authorization é gerenciada pelo token interceptor.
+  // O frontend não envia tenant como autoridade; o backend deriva o tenant da sessão autenticada.
 
   // ========== VEÍCULOS ==========
 
@@ -53,13 +53,31 @@ export class VeiculoService {
     return this.http.put<VeiculoResponse>(url, dto);
   }
 
+  deactivate(id: number | string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/${id}/inativar`;
+    return this.http.patch<VeiculoResponse>(url, {});
+  }
+
+  reactivate(id: number | string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/${id}/reativar`;
+    return this.http.patch<VeiculoResponse>(url, {});
+  }
+
+  /** @deprecated Compatibilidade legada. Prefira deactivate para explicitar o ciclo de vida. */
   delete(id: number | string): Observable<void> {
     const url = `${this.base}/v1/veiculos/${id}`;
     return this.http.delete<void>(url);
   }
 
+  /** Busca o registro canônico já cadastrado no tenant atual. */
   getByPlaca(placa: string): Observable<VeiculoResponse> {
-    const url = `${this.base}/v1/veiculos/placa/${placa}`;
+    const url = `${this.base}/v1/veiculos/placa/${encodeURIComponent(placa)}`;
+    return this.http.get<VeiculoResponse>(url);
+  }
+
+  /** Sugere dados externos não sensíveis para um veículo ainda não cadastrado. */
+  lookupExternalByPlaca(placa: string): Observable<VeiculoResponse> {
+    const url = `${this.base}/v1/veiculos/placa/${encodeURIComponent(placa)}/consulta-externa`;
     return this.http.get<VeiculoResponse>(url);
   }
 
@@ -198,7 +216,10 @@ export class VeiculoService {
     return this.http.post<DocumentoVeiculoResponse>(url, dto);
   }
 
-  updateDocumento(id: number | string, dto: DocumentoVeiculoRequest): Observable<DocumentoVeiculoResponse> {
+  updateDocumento(
+    id: number | string,
+    dto: DocumentoVeiculoRequest
+  ): Observable<DocumentoVeiculoResponse> {
     const url = `${this.base}/v1/documentos-veiculos/${id}`;
     return this.http.put<DocumentoVeiculoResponse>(url, dto);
   }

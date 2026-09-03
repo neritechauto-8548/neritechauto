@@ -1,0 +1,105 @@
+name: CI NeriTech Auto Rebuild
+
+# Durante a fase de desenvolvimento acelerado, este workflow roda apenas em
+# checkpoints manuais. Isso evita compilar/testar a cada commit enquanto o foco
+# está em avançar grandes blocos de implementação.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-rebuild-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend / Maven tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Inspect backend test sources before Maven
+        working-directory: backend
+        run: |
+          echo '=== Git status ==='
+          git status --short --untracked-files=all
+          echo '=== Tracked test sources ==='
+          git ls-files 'src/test/**' | sort
+          echo '=== Files physically present under src/test ==='
+          find src/test -type f -print | sort
+          echo '=== Pre-existing target content ==='
+          if [ -d target ]; then find target -type f -print | sort; else echo 'target does not exist'; fi
+
+      - name: Run backend clean tests
+        working-directory: backend
+        run: mvn --batch-mode --no-transfer-progress clean test
+
+      - name: Inspect Maven test compilation outputs
+        if: always()
+        working-directory: backend
+        run: |
+          echo '=== Maven test compiler input files ==='
+          find target/maven-status -name inputFiles.lst -print -exec cat {} \; 2>/dev/null || true
+          echo '=== Maven test compiler created files ==='
+          find target/maven-status -name createdFiles.lst -print -exec cat {} \; 2>/dev/null || true
+          echo '=== Compiled test classes under br/com/neritech ==='
+          find target/test-classes/br/com/neritech -type f -print 2>/dev/null | sort || true
+          echo '=== Compiled test classes under com/neritech ==='
+          find target/test-classes/com/neritech -type f -print 2>/dev/null | sort || true
+          echo '=== Surefire reports ==='
+          find target/surefire-reports -maxdepth 1 -type f -print 2>/dev/null | sort || true
+
+  frontend-build:
+    name: Frontend / Angular build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: FrontEnd
+        run: yarn install --frozen-lockfile --non-interactive
+
+      - name: Run critical frontend security tests
+        working-directory: FrontEnd
+        run: |
+          yarn ng test --watch=false --browsers=ChromeHeadless \
+            --include='src/app/core/authentication/login.service.spec.ts' \
+            --include='src/app/core/authentication/permission-guard.spec.ts' \
+            --include='src/app/routes/cliente/cliente/cliente.service.spec.ts' \
+            --include='src/app/routes/cliente/detalhe-cliente/detalhe-cliente.service.spec.ts' \
+            --include='src/app/routes/cliente/detalhe-cliente/detalhe-cliente.spec.ts' \
+            --include='src/app/routes/orcamento/orcamento-draft.service.spec.ts' \
+            --include='src/app/routes/sessions/reset-password/reset-password.spec.ts' \
+            --include='src/app/routes/agendamento/agendamento.service.spec.ts' \
+            --include='src/app/theme/admin-layout/admin-layout.spec.ts' \
+            --include='src/app/routes/dashboard/dashboard.service.spec.ts'
+
+      - name: Build Angular application
+        working-directory: FrontEnd
+        run: yarn build

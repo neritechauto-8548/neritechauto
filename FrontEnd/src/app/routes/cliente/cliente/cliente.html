@@ -1,150 +1,242 @@
-<div class="flex flex-col h-full gap-6">
+<section class="customer-page" aria-labelledby="customers-title">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Clientes"
+    title="Clientes"
+    titleId="customers-title"
+    description="Localize clientes PF/PJ com dados sensíveis protegidos e acesse somente as ações permitidas para o seu perfil."
+  >
+    @if (canCreateCliente) {
+      <button pageHeaderActions type="button" class="nt-action nt-action--primary" (click)="cadastrarCliente()">
+        <nt-icon name="plus" [size]="18" />
+        Novo cliente
+      </button>
+    }
+  </page-header>
 
-  <!-- Actions Bar -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-       <!-- Search -->
-       <div class="relative w-full sm:max-w-md group">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none"></i>
-            <input
-                pInputText
-                [(ngModel)]="searchTerm"
-                (keyup.enter)="onSearch()"
-                placeholder="Buscar por nome, CPF ou CNPJ..."
-                class="w-full !pl-10 !pr-12 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-            />
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">⌘K</div>
-       </div>
+  <section class="customer-toolbar" aria-label="Busca e filtros de clientes">
+    <form class="customer-search" (ngSubmit)="onSearch()" role="search">
+      <label class="sr-only" for="customer-search-input">Buscar clientes</label>
+      <div class="search-control">
+        <nt-icon class="pi-search" name="search" [size]="18" />
+        <input
+          id="customer-search-input"
+          pInputText
+          [(ngModel)]="searchTerm"
+          name="searchTerm"
+          type="search"
+          autocomplete="off"
+          placeholder="Nome, razão social, CPF ou CNPJ"
+        />
+        @if (searchTerm) {
+          <button type="button" class="icon-button" aria-label="Limpar busca" (click)="searchTerm = ''; onSearch()">
+            <nt-icon name="x" [size]="16" />
+          </button>
+        }
+      </div>
+      <button type="submit" class="nt-button nt-button--secondary" [disabled]="isLoading">Buscar</button>
+    </form>
 
-       <!-- New Client Button -->
-       <button (click)="cadastrarCliente()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <i class="pi pi-plus text-[14px]"></i>
-          <span>Novo Cliente</span>
-       </button>
-   </div>
+    <div class="filter-row">
+      <div class="filter-field">
+        <label for="customer-type-filter">Tipo</label>
+        <p-select
+          inputId="customer-type-filter"
+          [options]="tipoOptions"
+          [(ngModel)]="selectedTipo"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onFilterChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
 
-  <!-- Data Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-      <div class="overflow-x-auto flex-1">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
+      <div class="filter-field">
+        <label for="customer-status-filter">Status</label>
+        <p-select
+          inputId="customer-status-filter"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onFilterChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
+
+      @if (searchTerm || selectedTipo || selectedStatus) {
+        <button type="button" class="filter-clear" (click)="clearFilters()">
+          <nt-icon name="filter-x" [size]="17" />
+          Limpar filtros
+        </button>
+      }
+    </div>
+  </section>
+
+  <nt-data-table-shell
+    eyebrow="Resultado"
+    [title]="totalRecords + ' ' + (totalRecords === 1 ? 'cliente' : 'clientes')"
+    titleId="customer-results-title"
+  >
+    <div tableMeta class="results-header__meta">
+      <span class="privacy-badge"><nt-icon name="shield-check" [size]="16" />PII mascarada</span>
+      <span class="contract-note">Paginação atual por página · cursor pendente</span>
+    </div>
+
+    @if (loadError && !isLoading) {
+      <nt-data-view-state
+        kind="error"
+        title="Não foi possível carregar os clientes"
+        description="A consulta falhou sem exibir dados de outro contexto. Tente novamente."
+      >
+        <button type="button" class="nt-button nt-button--secondary" (click)="onSearch()">Tentar novamente</button>
+      </nt-data-view-state>
+    } @else {
+      <div class="customer-table-wrap desktop-only">
+        <table class="customer-table">
+          <thead>
+            <tr>
+              <th scope="col">Cliente</th>
+              <th scope="col">Documento</th>
+              <th scope="col">Contato principal</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="actions-column"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading) {
+              @for (item of [1, 2, 3, 4, 5]; track item) {
                 <tr>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[40%] align-middle">Cliente</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Documento</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Contato</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
+                  <td><p-skeleton width="190px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="125px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="145px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="72px" height="1.5rem"></p-skeleton></td>
+                  <td><p-skeleton shape="circle" size="2rem"></p-skeleton></td>
                 </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @if (isLoading) {
-                    @for (i of [1, 2, 3, 4, 5]; track i) {
-                        <tr>
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <p-skeleton shape="circle" size="2.25rem"></p-skeleton>
-                                    <div class="flex flex-col gap-1.5">
-                                        <p-skeleton width="150px" height="1rem"></p-skeleton>
-                                        <p-skeleton width="80px" height="0.75rem"></p-skeleton>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="120px" height="1.25rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="100px" height="1rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle text-right pr-4">
-                                <p-skeleton shape="circle" size="1.75rem" styleClass="inline-block"></p-skeleton>
-                            </td>
-                        </tr>
+              }
+            } @else {
+              @for (row of clients; track row.id) {
+                <tr>
+                  <td>
+                    <div class="customer-identity">
+                      <span class="customer-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() }}</span>
+                      <div>
+                        <button type="button" class="customer-name" (click)="navigateToDetail(row)">{{ row.nome }}</button>
+                        <span class="customer-type">{{ getTipoClienteLabel(row.tipo) }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="protected-value">{{ row.documento }}</span></td>
+                  <td>
+                    @if (row.contato) {
+                      <span class="contact-value"><nt-icon name="lock" [size]="14" />{{ row.contato }}</span>
+                    } @else {
+                      <span class="muted-value">Não informado</span>
                     }
-                } @else {
-                    @for (row of pagedData; track row.uuid) {
-                        <tr class="group hover:bg-gray-50 transition-colors duration-200">
-                            <!-- Cliente -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                        {{ row.nome.charAt(0).toUpperCase() }}
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="navigateToEdit(row)">{{ row.nome }}</span>
-                                        <span class="text-[11px] text-slate-500">{{ getTipoClienteLabel(row.tipo) }}</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <!-- Documento -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                                    {{ formatCpfCnpj(row.cpfCnpj) }}
-                                </span>
-                            </td>
-
-                            <!-- Contato -->
-                            <td class="py-2.5 px-6 align-middle">
-                                @if (row.contato) {
-                                    <div class="flex items-center gap-2 text-sm text-slate-600">
-                                        <i class="pi pi-phone text-xs text-slate-400"></i>
-                                        {{ row.contato }}
-                                    </div>
-                                } @else {
-                                    <span class="text-xs text-slate-400 italic">Sem contato</span>
-                                }
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="py-2.5 px-6 align-middle text-right">
-                                <button pButton icon="pi pi-ellipsis-v" class="p-button-text p-button-rounded p-button-secondary w-8 h-8 flex items-center justify-center" (click)="toggleMenu(row, $event, menu)"></button>
-                            </td>
-                        </tr>
-                    }
-
-                    @if (clients.length === 0) {
-                        <tr>
-                            <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                                <div class="flex flex-col items-center gap-3 text-slate-400">
-                                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                                     <i class="pi pi-search text-xl text-slate-400"></i>
-                                  </div>
-                                  <p class="text-sm font-medium text-slate-500">Nenhum cliente encontrado</p>
-                                  <button (click)="cadastrarCliente()" class="text-xs text-blue-600 font-bold hover:underline">
-                                      Cadastrar novo cliente
-                                  </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+                      <span class="status-badge__dot" aria-hidden="true"></span>
+                      {{ getStatusLabel(row.status) }}
+                    </span>
+                  </td>
+                  <td class="actions-column">
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-ellipsis-v"
+                      class="p-button-text p-button-rounded p-button-secondary row-action-button"
+                      [attr.aria-label]="'Ações para ' + row.nome"
+                      (click)="toggleMenu(row, $event, menu)"
+                    ></button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10">
-        <div class="text-xs text-slate-500">
-            Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
-        </div>
-        <div class="flex gap-2">
-            <button
-                [disabled]="first === 0 || isLoading"
-                (click)="goPrev()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                <i class="pi pi-chevron-left text-xs"></i> Anterior
-            </button>
-            <button
-                [disabled]="first + rows >= totalRecords || isLoading"
-                (click)="goNext()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                Próximo <i class="pi pi-chevron-right text-xs"></i>
-            </button>
-        </div>
+      <div class="customer-cards mobile-only">
+        @if (isLoading) {
+          @for (item of [1, 2, 3]; track item) {
+            <article class="customer-card"><p-skeleton width="100%" height="120px"></p-skeleton></article>
+          }
+        } @else {
+          @for (row of clients; track row.id) {
+            <article class="customer-card">
+              <div class="customer-card__top">
+                <div class="customer-identity">
+                  <span class="customer-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() }}</span>
+                  <div>
+                    <button type="button" class="customer-name" (click)="navigateToDetail(row)">{{ row.nome }}</button>
+                    <span class="customer-type">{{ getTipoClienteLabel(row.tipo) }}</span>
+                  </div>
+                </div>
+                <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+                  <span class="status-badge__dot" aria-hidden="true"></span>
+                  {{ getStatusLabel(row.status) }}
+                </span>
+              </div>
+
+              <dl class="customer-card__details">
+                <div><dt>Documento</dt><dd>{{ row.documento }}</dd></div>
+                <div><dt>Contato</dt><dd>{{ row.contato || 'Não informado' }}</dd></div>
+              </dl>
+
+              <div class="customer-card__actions">
+                <button type="button" class="text-action" (click)="navigateToDetail(row)">
+                  <i class="pi pi-id-card" aria-hidden="true"></i> Abrir ficha
+                </button>
+                @if (canEditCliente) {
+                  <button type="button" class="text-action" (click)="navigateToEdit(row)">
+                    <i class="pi pi-pencil" aria-hidden="true"></i> Editar
+                  </button>
+                }
+                @if (canCreateVehicle && row.status !== StatusCliente.INATIVO) {
+                  <button type="button" class="text-action" (click)="navigateToAddVeiculo(row)">
+                    <nt-icon name="car" [size]="16" /> Veículo
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        }
       </div>
-  </div>
 
-</div>
+      @if (!isLoading && clients.length === 0) {
+        <nt-data-view-state
+          [title]="searchTerm || selectedTipo || selectedStatus ? 'Nenhum cliente encontrado' : 'Sua base de clientes está vazia'"
+          [description]="searchTerm || selectedTipo || selectedStatus
+            ? 'Revise a busca ou os filtros aplicados. Dados sensíveis não são exibidos integralmente na lista.'
+            : 'Cadastre o primeiro cliente para iniciar os fluxos de veículo, orçamento e atendimento.'"
+          icon="users"
+        >
+          @if (searchTerm || selectedTipo || selectedStatus) {
+            <button type="button" class="nt-button nt-button--secondary" (click)="clearFilters()">Limpar filtros</button>
+          } @else if (canCreateCliente) {
+            <button type="button" class="nt-button nt-button--primary" (click)="cadastrarCliente()">Novo cliente</button>
+          }
+        </nt-data-view-state>
+      }
+    }
 
-<!-- Popup menu -->
+    @if (!loadError && totalRecords > 0) {
+      <footer tableFooter class="pagination-bar" aria-label="Paginação de clientes">
+        <span>Mostrando <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> de <strong>{{ totalRecords }}</strong></span>
+        <div class="pagination-bar__controls">
+          <span>Página {{ currentPage }} de {{ totalPages }}</span>
+          <button type="button" class="pagination-button" [disabled]="first === 0 || isLoading" (click)="goPrev()">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i><span class="sr-only">Página anterior</span>
+          </button>
+          <button type="button" class="pagination-button" [disabled]="first + rows >= totalRecords || isLoading" (click)="goNext()">
+            <i class="pi pi-chevron-right" aria-hidden="true"></i><span class="sr-only">Próxima página</span>
+          </button>
+        </div>
+      </footer>
+    }
+  </nt-data-table-shell>
+</section>
+
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>

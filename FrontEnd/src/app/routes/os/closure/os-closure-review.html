@@ -1,0 +1,109 @@
+<section class="closure-panel" aria-labelledby="closure-title">
+  <header>
+    <div>
+      <span class="eyebrow">Revisão operacional</span>
+      <h2 id="closure-title">Fechamento da Ordem de Serviço</h2>
+      <p>Guardas calculadas pelo backend. Conclusão operacional, faturamento, recebimento e fiscal permanecem etapas separadas.</p>
+    </div>
+    <span class="readiness-badge" [class.ready]="closureReview?.readyToComplete" [class.completed]="closureReview?.alreadyCompleted">
+      {{ readinessLabel }}
+    </span>
+  </header>
+
+  <div *ngIf="loadingReview" class="review-loading" role="status" aria-live="polite">
+    <span class="loading-dot"></span>
+    Recalculando o estado autoritativo da OS…
+  </div>
+
+  <ng-container *ngIf="closureReview as review">
+    <div class="summary-grid">
+      <article>
+        <span>Estado operacional</span>
+        <strong>{{ review.operationalState }}</strong>
+        <small>separado do financeiro e fiscal</small>
+      </article>
+      <article>
+        <span>Guardas OK</span>
+        <strong>{{ okGuards }}</strong>
+        <small>de {{ review.guards.length }} verificações</small>
+      </article>
+      <article>
+        <span>Bloqueios</span>
+        <strong>{{ blockers.length }}</strong>
+        <small>impedem conclusão operacional</small>
+      </article>
+      <article>
+        <span>Versão do agregado</span>
+        <strong>{{ review.aggregateVersion }}</strong>
+        <small>protegida por If-Match</small>
+      </article>
+    </div>
+
+    <div *ngIf="feedback" class="review-state" [class.success]="feedbackType === 'success'" [class.warning]="feedbackType === 'warning'" [class.error]="feedbackType === 'error'" role="status" aria-live="polite">
+      <nt-icon [name]="feedbackType === 'success' ? 'shield-check' : 'alert-triangle'" [size]="19" />
+      <div><strong>{{ feedbackType === 'success' ? 'Operação atualizada' : 'Atenção' }}</strong><span>{{ feedback }}</span></div>
+    </div>
+
+    <div *ngIf="review.alreadyCompleted" class="review-state success" role="status">
+      <nt-icon name="shield-check" [size]="19" />
+      <div>
+        <strong>Conclusão operacional registrada</strong>
+        <span>
+          Snapshot #{{ review.snapshotId }}
+          <ng-container *ngIf="review.operationallyCompletedAt"> · {{ review.operationallyCompletedAt | date:'dd/MM/yyyy HH:mm' }}</ng-container>.
+          Nenhum título financeiro ou documento fiscal é criado por esta etapa.
+        </span>
+      </div>
+    </div>
+
+    <section class="guard-section" aria-labelledby="closure-guards-title">
+      <div class="guard-heading">
+        <div>
+          <strong id="closure-guards-title">Checklist autoritativo de encerramento</strong>
+          <span>Cada item vem do backend com resultado OK, alerta ou bloqueio.</span>
+        </div>
+        <button type="button" class="secondary-button" [disabled]="validating || completing" (click)="revalidate()">
+          {{ validating ? 'Revalidando…' : 'Revalidar guardas' }}
+        </button>
+      </div>
+
+      <div class="guard-list">
+        <article *ngFor="let guard of review.guards" class="guard-item" [class.ok]="guard.status === 'OK'" [class.alert]="guard.status === 'ALERTA'" [class.block]="guard.status === 'BLOQUEIO'">
+          <div class="guard-icon" aria-hidden="true">
+            <nt-icon [name]="guard.status === 'OK' ? 'check' : guard.status === 'ALERTA' ? 'alert-triangle' : 'x'" [size]="17" />
+          </div>
+          <div class="guard-copy">
+            <div class="guard-title-row">
+              <strong>{{ guard.label }}</strong>
+              <span class="guard-status">{{ guard.status }}</span>
+            </div>
+            <span>{{ guard.message }}</span>
+            <small>{{ guard.code }} · Owner: {{ guard.owner }}</small>
+          </div>
+          <button *ngIf="guard.route && guard.status !== 'OK'" type="button" class="guard-link" (click)="goToGuard(guard)">Resolver</button>
+        </article>
+      </div>
+    </section>
+
+    <div *ngIf="hasPartialSources" class="review-state warning" role="status">
+      <nt-icon name="alert-triangle" [size]="19" />
+      <div>
+        <strong>Existem fontes parciais</strong>
+        <span>A conclusão operacional permanece bloqueada até que os contratos autoritativos estejam disponíveis.</span>
+      </div>
+    </div>
+
+    <div class="final-action" [class.enabled]="canComplete" [class.completed]="review.alreadyCompleted">
+      <div>
+        <strong>{{ review.alreadyCompleted ? 'Etapa operacional concluída' : canComplete ? 'Pronta para concluir operacionalmente' : 'Conclusão protegida por guardas' }}</strong>
+        <span *ngIf="!review.alreadyCompleted">
+          O comando usa Idempotency-Key e If-Match. Ele congela o snapshot operacional; faturamento é um comando posterior e independente.
+        </span>
+        <span *ngIf="review.alreadyCompleted">A próxima etapa futura será “Liberar para faturamento”, sem acoplamento automático ao fechamento.</span>
+      </div>
+      <button type="button" [disabled]="!canComplete" (click)="completeOperationally()">
+        {{ completing ? 'Concluindo…' : review.alreadyCompleted ? 'Concluída' : 'Concluir operacionalmente' }}
+      </button>
+    </div>
+  </ng-container>
+</section>

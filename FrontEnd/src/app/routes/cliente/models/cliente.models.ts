@@ -8,7 +8,8 @@ export enum TipoCliente {
 export enum StatusCliente {
   ATIVO = 'ATIVO',
   INATIVO = 'INATIVO',
-  BLOQUEADO = 'BLOQUEADO'
+  BLOQUEADO = 'BLOQUEADO',
+  PROSPECTO = 'PROSPECTO'
 }
 
 export enum Sexo {
@@ -58,17 +59,13 @@ export enum TipoDocumento {
   OUTROS = 'OUTROS'
 }
 
-// ========== INTERFACES - PAGINAÇÃO ==========
-
 export interface Page<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // current page index (0-based)
-  size: number;   // page size
+  number: number;
+  size: number;
 }
-
-// ========== INTERFACES - CLIENTE ==========
 
 export interface ClienteRequest {
   tipoCliente: TipoCliente;
@@ -80,14 +77,14 @@ export interface ClienteRequest {
   cnpj?: string;
   inscricaoEstadual?: string;
   inscricaoMunicipal?: string;
-  dataNascimento?: string; // YYYY-MM-DD
+  dataNascimento?: string;
   sexo?: Sexo;
   estadoCivil?: EstadoCivil;
   profissao?: string;
   origemCliente?: OrigemCliente;
   detalhesOrigem?: string;
   status?: StatusCliente;
-  dataBloqueio?: string; // ISO datetime
+  dataBloqueio?: string;
   motivoBloqueio?: string;
   observacoesGerais?: string;
 }
@@ -97,7 +94,14 @@ export interface ClienteResponse extends ClienteRequest {
   empresaId: number;
 }
 
-// ========== INTERFACES - ENDEREÇO ==========
+export interface ClienteListItemResponse {
+  id: number;
+  displayName: string;
+  tipoCliente: TipoCliente;
+  maskedTaxId?: string | null;
+  primaryContactSummary?: string | null;
+  status: StatusCliente;
+}
 
 export interface EnderecoClienteRequest {
   cep: string;
@@ -106,7 +110,7 @@ export interface EnderecoClienteRequest {
   complemento?: string;
   bairro: string;
   cidade: string;
-  estado: string; // UF (2 letras)
+  estado: string;
   pais?: string;
 }
 
@@ -115,11 +119,13 @@ export interface EnderecoClienteResponse extends EnderecoClienteRequest {
   clienteId: number;
 }
 
-// ========== INTERFACES - CONTATO ==========
-
 export interface ContatoClienteRequest {
   tipoContato: TipoContato;
-  valor: string; // Obrigatório (UI)
+  /** Campo canônico aceito pelo backend. */
+  contato?: string;
+  /** Alias legado de UI; o service converte para `contato` antes da chamada. */
+  valor?: string;
+  principal?: boolean;
 }
 
 export interface ContatoClienteResponse extends ContatoClienteRequest {
@@ -127,14 +133,12 @@ export interface ContatoClienteResponse extends ContatoClienteRequest {
   clienteId: number;
 }
 
-// ========== INTERFACES - DOCUMENTO ==========
-
 export interface DocumentoClienteRequest {
   tipoDocumento: TipoDocumento;
   descricao?: string;
   numeroDocumento?: string;
-  dataEmissao?: string; // YYYY-MM-DD
-  dataValidade?: string; // YYYY-MM-DD
+  dataEmissao?: string;
+  dataValidade?: string;
   orgaoEmissor?: string;
   observacoes?: string;
 }
@@ -148,8 +152,6 @@ export interface DocumentoClienteResponse extends DocumentoClienteRequest {
   arquivoCaminho?: string;
 }
 
-// ========== LABELS E HELPERS ==========
-
 export const TipoClienteLabels: Record<TipoCliente, string> = {
   [TipoCliente.PESSOA_FISICA]: 'Pessoa Física',
   [TipoCliente.PESSOA_JURIDICA]: 'Pessoa Jurídica'
@@ -158,7 +160,8 @@ export const TipoClienteLabels: Record<TipoCliente, string> = {
 export const StatusClienteLabels: Record<StatusCliente, string> = {
   [StatusCliente.ATIVO]: 'Ativo',
   [StatusCliente.INATIVO]: 'Inativo',
-  [StatusCliente.BLOQUEADO]: 'Bloqueado'
+  [StatusCliente.BLOQUEADO]: 'Bloqueado',
+  [StatusCliente.PROSPECTO]: 'Prospecto'
 };
 
 export const SexoLabels: Record<Sexo, string> = {
@@ -195,7 +198,7 @@ export const TipoContatoLabels: Record<TipoContato, string> = {
   [TipoContato.CELULAR]: 'Celular',
   [TipoContato.WHATSAPP]: 'WhatsApp',
   [TipoContato.TELEGRAM]: 'Telegram',
-  [TipoContato.OUTROS]: 'Outros'
+  [TipoContato.OUTROS]: 'Outro contato'
 };
 
 export const TipoDocumentoLabels: Record<TipoDocumento, string> = {
@@ -208,7 +211,6 @@ export const TipoDocumentoLabels: Record<TipoDocumento, string> = {
   [TipoDocumento.OUTROS]: 'Outros'
 };
 
-// Helper para obter opções de select
 export const getTipoClienteOptions = () =>
   Object.values(TipoCliente).map(value => ({ label: TipoClienteLabels[value], value }));
 

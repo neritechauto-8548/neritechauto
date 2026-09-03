@@ -1,149 +1,248 @@
-<div class="flex flex-col h-full gap-6">
-  <p-toast />
+<section class="vehicle-page" aria-labelledby="vehicles-title">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Operação"
+    title="Veículos"
+    titleId="vehicles-title"
+    description="Encontre o registro canônico do veículo, mantenha o vínculo correto e inicie o próximo atendimento com contexto seguro."
+  >
+    @if (canCreateVehicle) {
+      <button pageHeaderActions type="button" class="nt-button nt-button--primary" (click)="cadastrarVeiculo()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Novo veículo
+      </button>
+    }
+  </page-header>
 
-  <!-- Actions Bar -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-       <!-- Search -->
-       <div class="relative w-full sm:max-w-md group">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none"></i>
-            <input
-                pInputText
-                [(ngModel)]="searchTerm"
-                (ngModelChange)="onSearch()"
-                placeholder="Buscar por placa, marca, modelo ou cliente..."
-                class="w-full !pl-10 !pr-12 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-            />
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">⌘K</div>
-       </div>
+  <section class="vehicle-toolbar" aria-label="Busca e filtros de veículos">
+    <form class="vehicle-search" (ngSubmit)="onSearch()" role="search">
+      <label class="sr-only" for="vehicle-search-input">Buscar veículos</label>
+      <div class="search-control">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          id="vehicle-search-input"
+          pInputText
+          [(ngModel)]="searchTerm"
+          name="searchTerm"
+          type="search"
+          autocomplete="off"
+          placeholder="Placa, veículo, cliente ou identificador"
+          (ngModelChange)="onSearch()"
+        />
+        @if (searchTerm) {
+          <button type="button" class="icon-button" aria-label="Limpar busca" (click)="searchTerm = ''; onSearch()">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+      <button type="submit" class="nt-button nt-button--secondary" [disabled]="loading">Buscar</button>
+    </form>
 
-       <!-- New Button -->
-       <button (click)="cadastrarVeiculo()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <i class="pi pi-plus text-[14px]"></i>
-          <span>Novo Veículo</span>
-       </button>
-   </div>
+    <div class="filter-row">
+      <div class="filter-field">
+        <label for="vehicle-status-filter">Status</label>
+        <p-select
+          inputId="vehicle-status-filter"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          optionLabel="label"
+          optionValue="value"
+          (onChange)="onFilterChange()"
+          appendTo="body"
+        ></p-select>
+      </div>
 
-  <!-- Data Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-      <div class="overflow-x-auto flex-1">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
+      @if (hasActiveFilters) {
+        <button type="button" class="filter-clear" (click)="clearFilters()">
+          <i class="pi pi-filter-slash" aria-hidden="true"></i>
+          Limpar filtros
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="results-card" aria-labelledby="vehicle-results-title">
+    <header class="results-header">
+      <div>
+        <span class="results-header__eyebrow">Frota cadastrada</span>
+        <h2 id="vehicle-results-title">{{ totalRecords }} {{ totalRecords === 1 ? 'veículo' : 'veículos' }}</h2>
+      </div>
+      <div class="results-header__meta">
+        <span class="security-badge"><i class="pi pi-shield" aria-hidden="true"></i>Identificadores protegidos</span>
+        <span class="contract-note">Filtros server-side pendentes de contrato</span>
+      </div>
+    </header>
+
+    @if (loadError && !loading) {
+      <div class="state-panel state-panel--error" role="alert">
+        <div class="state-panel__icon"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></div>
+        <div>
+          <h3>Não foi possível carregar os veículos</h3>
+          <p>A consulta falhou sem simular dados. Seus filtros continuam disponíveis para uma nova tentativa.</p>
+          <button type="button" class="nt-button nt-button--secondary" (click)="loadVehicles()">Tentar novamente</button>
+        </div>
+      </div>
+    } @else {
+      <div class="vehicle-table-wrap desktop-only">
+        <table class="vehicle-table">
+          <thead>
+            <tr>
+              <th scope="col">Placa e veículo</th>
+              <th scope="col">Cliente atual</th>
+              <th scope="col">Ano</th>
+              <th scope="col">Km atual</th>
+              <th scope="col">Próxima revisão</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="actions-column"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading) {
+              @for (item of [1, 2, 3, 4, 5]; track item) {
                 <tr>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Veículo</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Cliente</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Status</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
+                  <td><p-skeleton width="180px" height="2rem"></p-skeleton></td>
+                  <td><p-skeleton width="135px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="75px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="90px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="105px" height="1rem"></p-skeleton></td>
+                  <td><p-skeleton width="72px" height="1.5rem"></p-skeleton></td>
+                  <td><p-skeleton shape="circle" size="2rem"></p-skeleton></td>
                 </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @if (loading) {
-                    @for (i of [1, 2, 3, 4, 5]; track i) {
-                        <tr>
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <p-skeleton shape="circle" size="2.25rem"></p-skeleton>
-                                    <div class="flex flex-col gap-1.5">
-                                        <p-skeleton width="120px" height="1rem"></p-skeleton>
-                                        <p-skeleton width="80px" height="0.75rem"></p-skeleton>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="150px" height="1rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="80px" height="1.25rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle text-right pr-4">
-                                <p-skeleton shape="circle" size="1.75rem" styleClass="inline-block"></p-skeleton>
-                            </td>
-                        </tr>
+              }
+            } @else {
+              @for (vehicle of pagedData; track vehicle.id) {
+                <tr>
+                  <td>
+                    <div class="vehicle-identity">
+                      <span class="vehicle-icon" aria-hidden="true"><i class="pi pi-car"></i></span>
+                      <div>
+                        <button type="button" class="vehicle-name" (click)="abrirPassaporte(vehicle)">{{ vehicleName(vehicle) }}</button>
+                        <span class="plate-value">{{ vehicle.placa || 'Sem placa' }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    @if (vehicle.clienteId) {
+                      <button type="button" class="owner-link" (click)="abrirCliente(vehicle)">
+                        <i class="pi pi-user" aria-hidden="true"></i>{{ vehicle.clienteNome || ('Cliente #' + vehicle.clienteId) }}
+                      </button>
+                    } @else {
+                      <span class="muted-value">Sem responsável atual</span>
                     }
-                } @else {
-                    @for (row of pagedData; track row.id) {
-                        <tr class="group hover:bg-gray-50 transition-colors duration-200">
-                            <!-- Veículo -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                        <i class="pi pi-car text-slate-500 text-base"></i>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="editarVeiculo(row)">{{ row.placa }}</span>
-                                        <span class="text-[11px] text-slate-500">{{ row.marcaNome }} {{ row.modeloNome }} • {{ row.combustivelNome || 'Combustível N/D' }}</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <!-- Cliente -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-2 text-sm text-slate-600">
-                                    <i class="pi pi-user text-slate-400 text-xs"></i>
-                                    {{ row.clienteNome || 'Sem cliente' }}
-                                </div>
-                            </td>
-
-                            <!-- Status -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <span [class]="getStatusBadgeClass(row.status)">
-                                    {{ row.status }}
-                                </span>
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="py-2.5 px-6 align-middle text-right">
-                                <button pButton icon="pi pi-ellipsis-v" class="p-button-text p-button-rounded p-button-secondary w-8 h-8 flex items-center justify-center" (click)="toggleMenu(row, $event, menu)"></button>
-                            </td>
-                        </tr>
+                  </td>
+                  <td>{{ yearLabel(vehicle) }}</td>
+                  <td>{{ odometerLabel(vehicle.quilometragemAtual) }}</td>
+                  <td>
+                    @if (vehicle.proximaRevisaoData || vehicle.proximaRevisaoKm) {
+                      <div class="maintenance-value">
+                        @if (vehicle.proximaRevisaoData) { <span>{{ vehicle.proximaRevisaoData | date:'dd/MM/yyyy' }}</span> }
+                        @if (vehicle.proximaRevisaoKm) { <small>{{ odometerLabel(vehicle.proximaRevisaoKm) }}</small> }
+                      </div>
+                    } @else {
+                      <span class="muted-value">Não planejada</span>
                     }
-
-                    @if (pagedData.length === 0) {
-                        <tr>
-                             <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                                <div class="flex flex-col items-center gap-3 text-slate-400">
-                                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                                     <i class="pi pi-search text-xl text-slate-400"></i>
-                                  </div>
-                                  <p class="text-sm font-medium text-slate-500">Nenhum veículo encontrado</p>
-                                  <button (click)="cadastrarVeiculo()" class="text-xs text-blue-600 font-bold hover:underline">
-                                      Cadastrar novo veículo
-                                  </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="statusClass(vehicle.status)">
+                      <span class="status-badge__dot" aria-hidden="true"></span>{{ statusLabel(vehicle.status) }}
+                    </span>
+                  </td>
+                  <td class="actions-column">
+                    <button
+                      pButton
+                      type="button"
+                      icon="pi pi-ellipsis-v"
+                      class="p-button-text p-button-rounded p-button-secondary row-action-button"
+                      [attr.aria-label]="'Ações para ' + vehicleName(vehicle)"
+                      [disabled]="menuItemsFor(vehicle).length === 0"
+                      (click)="toggleMenu(vehicle, $event, menu)"
+                    ></button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
         </table>
       </div>
 
-       <!-- Pagination -->
-       @if (totalRecords > 0) {
-          <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10">
-            <div class="text-xs text-slate-500">
-                Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
-            </div>
-            <div class="flex gap-2">
-                <button
-                    [disabled]="first === 0 || loading"
-                    (click)="goPrev()"
-                    class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-                >
-                    <i class="pi pi-chevron-left text-xs"></i> Anterior
-                </button>
-                <button
-                    [disabled]="first + rows >= totalRecords || loading"
-                    (click)="goNext()"
-                    class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-                >
-                    Próximo <i class="pi pi-chevron-right text-xs"></i>
-                </button>
-            </div>
+      <div class="vehicle-cards mobile-only">
+        @if (loading) {
+          @for (item of [1, 2, 3]; track item) {
+            <article class="vehicle-card"><p-skeleton width="100%" height="170px"></p-skeleton></article>
+          }
+        } @else {
+          @for (vehicle of pagedData; track vehicle.id) {
+            <article class="vehicle-card">
+              <div class="vehicle-card__top">
+                <div class="vehicle-identity">
+                  <span class="vehicle-icon" aria-hidden="true"><i class="pi pi-car"></i></span>
+                  <div>
+                    <span class="vehicle-name vehicle-name--static">{{ vehicleName(vehicle) }}</span>
+                    <span class="plate-value">{{ vehicle.placa || 'Sem placa' }}</span>
+                  </div>
+                </div>
+                <span class="status-badge" [ngClass]="statusClass(vehicle.status)">
+                  <span class="status-badge__dot" aria-hidden="true"></span>{{ statusLabel(vehicle.status) }}
+                </span>
+              </div>
+
+              <dl class="vehicle-card__details">
+                <div><dt>Cliente</dt><dd>{{ vehicle.clienteNome || 'Sem responsável atual' }}</dd></div>
+                <div><dt>Ano</dt><dd>{{ yearLabel(vehicle) }}</dd></div>
+                <div><dt>Km atual</dt><dd>{{ odometerLabel(vehicle.quilometragemAtual) }}</dd></div>
+                <div><dt>Próxima revisão</dt><dd>{{ vehicle.proximaRevisaoData ? (vehicle.proximaRevisaoData | date:'dd/MM/yyyy') : 'Não planejada' }}</dd></div>
+              </dl>
+
+              <div class="vehicle-card__actions">
+                <button type="button" class="text-action" (click)="abrirPassaporte(vehicle)"><i class="pi pi-id-card" aria-hidden="true"></i>Passaporte</button>
+                @if (canEditVehicle) {
+                  <button type="button" class="text-action" (click)="editarVeiculo(vehicle)"><i class="pi pi-pencil" aria-hidden="true"></i>Editar</button>
+                }
+                @if (canCreateBudget && vehicle.clienteId && vehicle.status === 'ATIVO') {
+                  <button type="button" class="text-action" (click)="criarOrcamento(vehicle)"><i class="pi pi-file-edit" aria-hidden="true"></i>Orçamento</button>
+                }
+                @if (canSchedule && vehicle.clienteId && vehicle.status === 'ATIVO') {
+                  <button type="button" class="text-action" (click)="agendar(vehicle)"><i class="pi pi-calendar" aria-hidden="true"></i>Agendar</button>
+                }
+              </div>
+            </article>
+          }
+        }
+      </div>
+
+      @if (!loading && pagedData.length === 0) {
+        <div class="state-panel state-panel--empty">
+          <div class="state-panel__icon"><i class="pi pi-car" aria-hidden="true"></i></div>
+          <div>
+            <h3>{{ hasActiveFilters ? 'Nenhum veículo encontrado' : 'Sua base de veículos está vazia' }}</h3>
+            <p>{{ hasActiveFilters ? 'Revise a busca ou o status selecionado.' : 'Cadastre o primeiro veículo para iniciar orçamento, agenda e atendimento.' }}</p>
+            @if (hasActiveFilters) {
+              <button type="button" class="nt-button nt-button--secondary" (click)="clearFilters()">Limpar filtros</button>
+            } @else if (canCreateVehicle) {
+              <button type="button" class="nt-button nt-button--primary" (click)="cadastrarVeiculo()">Novo veículo</button>
+            }
           </div>
-       }
-  </div>
+        </div>
+      }
+    }
 
-</div>
+    @if (!loadError && totalRecords > 0) {
+      <footer class="pagination-bar" aria-label="Paginação de veículos">
+        <span>Mostrando <strong>{{ rangeStart }}</strong>–<strong>{{ rangeEnd }}</strong> de <strong>{{ totalRecords }}</strong></span>
+        <div class="pagination-bar__controls">
+          <span>Página {{ currentPage }} de {{ totalPages }}</span>
+          <button type="button" class="pagination-button" [disabled]="first === 0 || loading" (click)="goPrev()">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i><span class="sr-only">Página anterior</span>
+          </button>
+          <button type="button" class="pagination-button" [disabled]="first + rows >= totalRecords || loading" (click)="goNext()">
+            <i class="pi pi-chevron-right" aria-hidden="true"></i><span class="sr-only">Próxima página</span>
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+</section>
 
-<!-- Popup menu -->
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
+<p-toast />

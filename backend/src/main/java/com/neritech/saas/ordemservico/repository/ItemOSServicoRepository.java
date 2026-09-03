@@ -5,10 +5,18 @@ import com.neritech.saas.ordemservico.domain.enums.StatusExecucao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemOSServicoRepository extends JpaRepository<ItemOSServico, Long> {
     List<ItemOSServico> findByOrdemServicoId(Long ordemServicoId);
+
+    Optional<ItemOSServico> findByIdAndOrdemServicoId(Long id, Long ordemServicoId);
+
+    Optional<ItemOSServico> findByIdAndOrdemServico_EmpresaId(Long id, Long empresaId);
+
+    List<ItemOSServico> findByOrdemServico_IdAndOrdemServico_EmpresaId(Long ordemServicoId, Long empresaId);
 
     Page<ItemOSServico> findByOrdemServicoId(Long ordemServicoId, Pageable pageable);
 

@@ -1,3 +1,50 @@
-<div class="matero-auth-container">
-  <router-outlet />
+<div class="neritech-auth-shell">
+  <aside class="neritech-auth-brand" aria-label="NeriTech Auto">
+    <div class="neritech-auth-brand__top">
+      <span class="neritech-auth-logo" aria-hidden="true">N</span>
+      <div>
+        <strong>NeriTech Auto</strong>
+        <span>Gestão inteligente para oficinas</span>
+      </div>
+    </div>
+
+    <div class="neritech-auth-brand__content">
+      <span class="neritech-auth-eyebrow">Operação conectada de ponta a ponta</span>
+      <h1>Mais controle para a oficina. Mais clareza para a equipe.</h1>
+      <p>
+        Clientes, veículos, orçamentos, ordens de serviço e financeiro em uma experiência
+        única, segura e preparada para crescer com o negócio.
+      </p>
+
+      <ul class="neritech-auth-benefits" aria-label="Benefícios da plataforma">
+        <li><i class="pi pi-check-circle" aria-hidden="true"></i> Fluxos operacionais integrados</li>
+        <li><i class="pi pi-check-circle" aria-hidden="true"></i> Permissões e dados isolados por empresa</li>
+        <li><i class="pi pi-check-circle" aria-hidden="true"></i> Experiência responsiva e acessível</li>
+      </ul>
+    </div>
+
+    <div class="neritech-auth-brand__footer">
+      <span>© 2026 NeriTech Auto</span>
+      <span>Ambiente seguro</span>
+    </div>
+  </aside>
+
+  <main class="neritech-auth-main">
+    <div class="neritech-auth-mobile-brand" aria-label="NeriTech Auto">
+      <span class="neritech-auth-logo" aria-hidden="true">N</span>
+      <div>
+        <strong>NeriTech Auto</strong>
+        <span>Gestão inteligente para oficinas</span>
+      </div>
+    </div>
+
+    <div class="neritech-auth-content">
+      <router-outlet />
+    </div>
+
+    <footer class="neritech-auth-legal">
+      <span>Privacidade e segurança por padrão.</span>
+      <span>Use apenas suas credenciais de acesso.</span>
+    </footer>
+  </main>
 </div>

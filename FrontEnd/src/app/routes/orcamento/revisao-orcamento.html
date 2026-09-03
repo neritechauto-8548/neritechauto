@@ -1,0 +1,145 @@
+<section class="review-page" aria-labelledby="review-title">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Orçamentos · Revisão"
+    [title]="budget?.numero || 'Revisar orçamento'"
+    titleId="review-title"
+    description="Confira exatamente o que está visível ao cliente antes da etapa de comunicação."
+  >
+    <div pageHeaderActions class="review-header-actions">
+      <button type="button" class="nt-button nt-button--secondary" (click)="voltar()">Voltar</button>
+      @if (budget) {
+        <button type="button" class="nt-button nt-button--primary" (click)="voltarParaItens()">
+          Editar composição
+        </button>
+      }
+    </div>
+  </page-header>
+
+  @if (isLoading) {
+    <div class="review-skeleton" role="status" aria-label="Carregando revisão">
+      <p-skeleton width="100%" height="120px"></p-skeleton>
+      <p-skeleton width="100%" height="420px"></p-skeleton>
+    </div>
+  } @else if (loadError || !budget || !composition) {
+    <section class="review-state review-state--error" role="alert">
+      <strong>{{ forbidden ? 'Acesso restrito' : 'Não foi possível abrir a revisão' }}</strong>
+      <p>{{ forbidden ? 'Seu perfil não pode consultar este orçamento.' : 'Os dados da proposta não estão disponíveis neste contexto.' }}</p>
+    </section>
+  } @else {
+    <section class="review-status" [class.review-status--ready]="isReady" aria-live="polite">
+      <div>
+        <span>Prontidão</span>
+        <strong>{{ readinessLabel }}</strong>
+      </div>
+      <div>
+        <span>Revisão do cálculo</span>
+        <strong>#{{ composition.revision }}</strong>
+      </div>
+      <div>
+        <span>Total necessário</span>
+        <strong>{{ formatCurrency(composition.requiredTotal) }}</strong>
+      </div>
+      <div>
+        <span>Total recomendado</span>
+        <strong>{{ formatCurrency(composition.recommendedTotal) }}</strong>
+      </div>
+    </section>
+
+    @if (composition.blockers.length > 0) {
+      <section class="review-state review-state--warning" role="alert">
+        <strong>Resolva os bloqueios antes de comunicar ao cliente</strong>
+        <ul>
+          @for (blocker of composition.blockers; track blocker) {
+            <li>{{ blocker }}</li>
+          }
+        </ul>
+      </section>
+    }
+
+    <article class="proposal-sheet" aria-label="Prévia da proposta para o cliente">
+      <header class="proposal-sheet__header">
+        <div>
+          <span>Cliente</span>
+          <strong>{{ budget.cliente?.nome || 'Cliente não disponível' }}</strong>
+        </div>
+        <div>
+          <span>Veículo</span>
+          <strong>{{ budget.veiculo?.descricao || 'Sem veículo vinculado' }}</strong>
+          @if (budget.veiculo?.placa) { <small>{{ budget.veiculo?.placa }}</small> }
+        </div>
+        <div class="proposal-sheet__total">
+          <span>Total da proposta</span>
+          <strong>{{ formatCurrency(budget.total.amount) }}</strong>
+        </div>
+      </header>
+
+      @if (visibleGroups.length === 0) {
+        <section class="review-state">
+          <strong>Nenhum grupo visível ao cliente</strong>
+          <p>Volte para a composição e deixe ao menos um grupo com itens em visibilidade de cliente.</p>
+        </section>
+      } @else {
+        <div class="proposal-groups">
+          @for (group of visibleGroups; track group.id) {
+            <section class="proposal-group">
+              <header>
+                <div>
+                  <span>{{ group.recommended ? 'Recomendado' : 'Necessário' }}</span>
+                  <h2>{{ group.title }}</h2>
+                  @if (group.customerDescription) { <p>{{ group.customerDescription }}</p> }
+                </div>
+                <strong>{{ formatCurrency(group.subtotal) }}</strong>
+              </header>
+
+              @if (group.lines.length === 0) {
+                <p class="proposal-group__empty">Este grupo ainda não possui itens.</p>
+              } @else {
+                <div class="proposal-lines" role="table" [attr.aria-label]="'Itens de ' + group.title">
+                  <div class="proposal-lines__head" role="row">
+                    <span role="columnheader">Item</span>
+                    <span role="columnheader">Qtd.</span>
+                    <span role="columnheader">Unitário</span>
+                    <span role="columnheader">Total</span>
+                  </div>
+                  @for (line of group.lines; track line.id) {
+                    <div class="proposal-line" role="row">
+                      <div role="cell">
+                        <small>{{ lineTypeLabel(line.lineType) }}</small>
+                        <strong>{{ line.description }}</strong>
+                      </div>
+                      <span role="cell">{{ line.quantity | number:'1.0-3' }}</span>
+                      <span role="cell">{{ formatCurrency(line.unitPrice) }}</span>
+                      <strong role="cell">{{ formatCurrency(line.allocatedPackageAmount ?? line.totalAmount) }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+            </section>
+          }
+        </div>
+      }
+
+      <footer class="proposal-summary">
+        <div><span>Mão de obra</span><strong>{{ formatCurrency(composition.laborTotal) }}</strong></div>
+        <div><span>Peças</span><strong>{{ formatCurrency(composition.partsTotal) }}</strong></div>
+        <div><span>Necessário</span><strong>{{ formatCurrency(composition.requiredTotal) }}</strong></div>
+        <div><span>Recomendado</span><strong>{{ formatCurrency(composition.recommendedTotal) }}</strong></div>
+      </footer>
+    </article>
+
+    <section class="communication-gate" [class.communication-gate--ready]="isReady">
+      <div>
+        <span>Próxima etapa</span>
+        <strong>{{ isReady ? 'Proposta pronta para o contrato de comunicação' : 'Proposta ainda não pronta' }}</strong>
+        <p>
+          Esta tela não envia WhatsApp, e-mail nem publica versão. A mutação de comunicação será conectada ao ORC-005 para manter entrega, evidência e auditoria no backend.
+        </p>
+      </div>
+      <button type="button" class="nt-button nt-button--primary" disabled>
+        Envio será ativado no ORC-005
+      </button>
+    </section>
+  }
+</section>

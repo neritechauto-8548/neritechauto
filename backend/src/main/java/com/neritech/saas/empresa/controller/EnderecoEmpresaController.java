@@ -8,12 +8,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v1/enderecos-empresa")
+@PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
 public class EnderecoEmpresaController {
 
     private final EnderecoEmpresaService service;
@@ -24,33 +26,29 @@ public class EnderecoEmpresaController {
 
     @PostMapping
     public ResponseEntity<EnderecoEmpresaResponse> create(@Valid @RequestBody EnderecoEmpresaRequest request) {
-        EnderecoEmpresaResponse response = service.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<EnderecoEmpresaResponse> findById(@PathVariable Long id) {
-        EnderecoEmpresaResponse response = service.findById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping
     public ResponseEntity<Page<EnderecoEmpresaResponse>> findAll(Pageable pageable) {
-        Page<EnderecoEmpresaResponse> response = service.findAll(pageable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/empresa/{empresaId}")
     public ResponseEntity<List<EnderecoEmpresaResponse>> findByEmpresaId(@PathVariable Long empresaId) {
-        List<EnderecoEmpresaResponse> response = service.findByEmpresaId(empresaId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.findByEmpresaId(empresaId));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EnderecoEmpresaResponse> update(@PathVariable Long id,
+    public ResponseEntity<EnderecoEmpresaResponse> update(
+            @PathVariable Long id,
             @Valid @RequestBody EnderecoEmpresaRequest request) {
-        EnderecoEmpresaResponse response = service.update(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")

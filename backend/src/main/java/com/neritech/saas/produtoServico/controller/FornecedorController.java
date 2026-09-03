@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.neritech.saas.produtoServico.dto.FornecedorRequest;
@@ -25,31 +26,33 @@ public class FornecedorController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
     @Operation(summary = "Criar novo fornecedor")
     public ResponseEntity<FornecedorResponse> create(@Valid @RequestBody FornecedorRequest request) {
-        FornecedorResponse response = service.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Buscar fornecedor por ID")
     public ResponseEntity<FornecedorResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping
-    @Operation(summary = "Listar fornecedores por empresa (paginado)")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Listar fornecedores da empresa autenticada")
     public ResponseEntity<Page<FornecedorResponse>> findAll(
-            @RequestParam Long empresaId,
             @RequestParam(required = false) String search,
             Pageable pageable) {
         if (search != null && !search.trim().isEmpty()) {
-            return ResponseEntity.ok(service.search(empresaId, search, pageable));
+            return ResponseEntity.ok(service.search(search, pageable));
         }
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
     @Operation(summary = "Atualizar fornecedor")
     public ResponseEntity<FornecedorResponse> update(
             @PathVariable Long id,
@@ -58,6 +61,7 @@ public class FornecedorController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
     @Operation(summary = "Excluir fornecedor")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {

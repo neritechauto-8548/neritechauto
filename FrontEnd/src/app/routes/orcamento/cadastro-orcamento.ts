@@ -1,19 +1,34 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NeriTechIcon, PageHeader } from '@shared';
+import { MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { ButtonModule } from 'primeng/button';
 import { TextareaModule } from 'primeng/textarea';
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { ConfirmationService } from '@shared/services/confirmation.service';
+import { finalize } from 'rxjs';
 
-import { ClientesService } from '../cliente/cliente/cliente.service';
-import { OrdemServicoService } from '../os/ordem-servico.service';
-import { OrdemServicoRequest, TipoOS } from '../os/models/os.models';
+import { ClienteDetailResponseDTO, ClienteListResponseDTO, ClientesService } from '../cliente/cliente/cliente.service';
+import { StatusCliente } from '../cliente/models/cliente.models';
+import {
+  OrcamentoDraftResponse,
+  OrcamentoDraftService,
+  OrcamentoVehicleSummary,
+} from './orcamento-draft.service';
+
+interface CustomerOption {
+  id: number;
+  nome: string;
+  documento: string;
+  status: StatusCliente;
+}
+
+interface VehicleOption extends OrcamentoVehicleSummary {
+  label: string;
+}
 
 @Component({
   standalone: true,
@@ -21,135 +36,255 @@ import { OrdemServicoRequest, TipoOS } from '../os/models/os.models';
   templateUrl: './cadastro-orcamento.html',
   styleUrls: ['./cadastro-orcamento.scss'],
   imports: [
-    CommonModule, FormsModule,
-    InputTextModule, SelectModule, ButtonModule,
-    TextareaModule, AutoCompleteModule, ToastModule
+    CommonModule,
+    FormsModule,
+    PageHeader,
+    NeriTechIcon,
+    InputTextModule,
+    SelectModule,
+    TextareaModule,
+    AutoCompleteModule,
+    ToastModule,
   ],
-  providers: [MessageService]
+  providers: [MessageService],
 })
 export class CadastroOrcamentoComponent implements OnInit {
-  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly clientesService = inject(ClientesService);
-  private readonly osService = inject(OrdemServicoService);
+  private readonly draftService = inject(OrcamentoDraftService);
   private readonly messageService = inject(MessageService);
-  private readonly confirmationService = inject(ConfirmationService);
 
-  // Estado geral
-  id: number | null = null;
-  loading = false;
+  filteredClientes: CustomerOption[] = [];
+  selectedCliente: CustomerOption | null = null;
+  vehicleOptions: VehicleOption[] = [];
+  loadingVehicles = false;
   saving = false;
-
-  // Autocomplete de cliente — idêntico ao padrão do veículo
-  filteredClientes: any[] = [];
-  selectedCliente: any | null = null;
-
-  funcionarios = [
-    { label: 'ALEXANDRE ROMULO A', value: 'alexandre' },
-  ];
+  createdDraft: OrcamentoDraftResponse | null = null;
 
   form = {
-    funcionario: 'alexandre',
-    veiculo: '',
-    email: '',
-    celular: '',
-    emissao: new Date().toISOString().substring(0, 10),
-    validade: new Date(new Date().getTime() + 9 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
-    descricao: '',
+    veiculoId: null as number | null,
+    quilometragemEntrada: null as number | null,
+    relatoCliente: '',
+    observacoesCliente: '',
+    observacoesInternas: '',
   };
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const idStr = params.get('id');
-      if (idStr) {
-        this.id = Number(idStr);
-        // Aqui carregaria os dados do orçamento via service quando disponível
-      }
+    const clienteId = Number(this.route.snapshot.queryParamMap.get('clienteId'));
+    if (Number.isInteger(clienteId) && clienteId > 0) {
+      this.prefillCustomer(clienteId);
+    }
+  }
+
+  searchCliente(event: { query?: string }) {
+    const query = (event.query || '').trim();
+    const filters: Record<string, string | number> = { page: 0, size: 10 };
+    const digits = query.replace(/\D/g, '');
+
+    if (digits.length === 11) {
+      filters['cpf'] = digits;
+    } else if (digits.length === 14) {
+      filters['cnpj'] = digits;
+    } else if (query) {
+      filters['nomeCompleto'] = query;
+    }
+
+    this.clientesService.list(filters).subscribe({
+      next: page => {
+        this.filteredClientes = (page.content || [])
+          .filter(customer => customer.status !== StatusCliente.INATIVO)
+          .map(customer => this.toCustomerOption(customer));
+      },
+      error: () => {
+        this.filteredClientes = [];
+      },
     });
   }
 
-  // Busca de cliente — mesma lógica do cadastro-veiculo
-  searchCliente(event: any) {
-    const query = event.query;
-    const isNumeric = /^\d+$/.test(query.replace(/[.-]/g, ''));
+  onCustomerSelected(event: { value?: CustomerOption } | CustomerOption | null) {
+    const selected = this.isCustomerOption(event)
+      ? event
+      : this.isCustomerOption(event?.value)
+        ? event.value
+        : null;
+    this.selectedCliente = selected;
+    this.form.veiculoId = null;
+    this.vehicleOptions = [];
 
-    const filter: any = {};
-    if (isNumeric) {
-      const clean = query.replace(/\D/g, '');
-      filter[clean.length > 11 ? 'cnpj' : 'cpf'] = clean;
-    } else {
-      filter.nomeCompleto = query;
-      filter.nomeFantasia = query;
-      filter.razaoSocial = query;
+    if (selected?.id) {
+      this.loadVehicles(selected.id);
     }
-
-    this.clientesService.list(filter).subscribe({
-      next: (page) => {
-        this.filteredClientes = page.content.map(c => ({
-          ...c,
-          nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-          cpfCnpj: c.cpf || c.cnpj || ''
-        }));
-      },
-      error: () => { this.filteredClientes = []; }
-    });
   }
 
   salvar() {
+    if (this.saving || this.createdDraft) return;
+
     if (!this.selectedCliente) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione um cliente.' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cliente obrigatório',
+        detail: 'Selecione um cliente antes de criar o orçamento.',
+      });
+      return;
+    }
+
+    if (this.selectedCliente.status === StatusCliente.INATIVO) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cliente inativo',
+        detail: 'Reative o cliente antes de criar um novo orçamento.',
+      });
+      return;
+    }
+
+    if (this.form.quilometragemEntrada !== null && this.form.quilometragemEntrada < 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Quilometragem inválida',
+        detail: 'A quilometragem não pode ser negativa.',
+      });
       return;
     }
 
     this.saving = true;
-
-    // Gerar número de orçamento (OS) temporário/fictício caso não exista backend generator
-    const numOS = 'ORC-' + Math.floor(Math.random() * 100000);
-
-    const payload: OrdemServicoRequest = {
-        empresaId: 1,
-        numeroOS: numOS,
-        clienteId: this.selectedCliente.id,
-        tipoOS: TipoOS.ORCAMENTO,
-        valorTotal: 0,
-        dataAbertura: new Date().toISOString(),
-        observacoesCliente: this.form.descricao,
-        equipeExecucao: JSON.stringify([this.form.funcionario])
-    };
-
-    this.osService.create(payload).subscribe({
-      next: (res) => {
-        this.messageService.add({ severity: 'success', summary: 'Orçamento salvo!', detail: 'Orçamento registrado com sucesso.' });
-        this.saving = false;
-        setTimeout(() => this.router.navigate(['/orcamento/visualizar-orcamento', res.id]), 1000);
+    this.draftService.create({
+      clienteId: this.selectedCliente.id,
+      veiculoId: this.form.veiculoId || undefined,
+      quilometragemEntrada: this.form.quilometragemEntrada ?? undefined,
+      relatoCliente: this.clean(this.form.relatoCliente),
+      observacoesCliente: this.clean(this.form.observacoesCliente),
+      observacoesInternas: this.clean(this.form.observacoesInternas),
+    }).pipe(finalize(() => (this.saving = false))).subscribe({
+      next: response => {
+        this.createdDraft = response;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Rascunho criado',
+          detail: `Orçamento ${response.numeroOrcamento} criado pelo servidor.`,
+        });
       },
-      error: (err) => {
-        console.error(err);
-        this.saving = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar o orçamento.' });
-      }
+      error: error => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Não foi possível criar o orçamento',
+          detail: error?.error?.message || 'Revise o cliente, o veículo e tente novamente.',
+        });
+      },
     });
   }
 
-  excluir() {
-    if (!this.id) return;
-    this.confirmationService.confirm({
-      title: 'Excluir Orçamento',
-      message: 'Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita.',
-      confirmText: 'Excluir Orçamento',
-      cancelText: 'Cancelar',
-      type: 'danger',
-      icon: 'warning'
-    }).subscribe(confirmed => {
-      if (confirmed) {
-        this.messageService.add({ severity: 'success', summary: 'Excluído!', detail: 'Orçamento excluído com sucesso.' });
-        this.router.navigate(['/orcamento/orcamento']);
-      }
+  continuarComposicao() {
+    if (!this.createdDraft?.id) return;
+    this.router.navigate(['/orcamentos', this.createdDraft.id, 'itens'], {
+      state: {
+        numeroOrcamento: this.createdDraft.numeroOrcamento,
+        source: 'draft-created',
+      },
     });
+  }
+
+  abrirResumo() {
+    if (!this.createdDraft?.id) return;
+    this.router.navigate(['/orcamentos', this.createdDraft.id]);
   }
 
   cancelar() {
     this.location.back();
+  }
+
+  novoRascunho() {
+    this.createdDraft = null;
+    this.selectedCliente = null;
+    this.filteredClientes = [];
+    this.vehicleOptions = [];
+    this.form = {
+      veiculoId: null,
+      quilometragemEntrada: null,
+      relatoCliente: '',
+      observacoesCliente: '',
+      observacoesInternas: '',
+    };
+  }
+
+  private prefillCustomer(clienteId: number) {
+    this.clientesService.getSummary(clienteId).subscribe({
+      next: customer => {
+        if (customer.status === StatusCliente.INATIVO) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Cliente inativo',
+            detail: 'O cliente informado precisa ser reativado antes de receber um novo orçamento.',
+          });
+          return;
+        }
+        this.selectedCliente = this.toCustomerOptionFromSummary(customer);
+        this.loadVehicles(clienteId);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Cliente não disponível',
+          detail: 'Selecione um cliente autorizado para continuar.',
+        });
+      },
+    });
+  }
+
+  private loadVehicles(clienteId: number) {
+    this.loadingVehicles = true;
+    this.draftService.listVehiclesForCustomer(clienteId)
+      .pipe(finalize(() => (this.loadingVehicles = false)))
+      .subscribe({
+        next: vehicles => {
+          this.vehicleOptions = vehicles
+            .filter(vehicle => vehicle.status !== 'INATIVO')
+            .map(vehicle => ({ ...vehicle, label: this.vehicleLabel(vehicle) }));
+        },
+        error: () => {
+          this.vehicleOptions = [];
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Veículos indisponíveis',
+            detail: 'O orçamento pode permanecer sem veículo até o vínculo estar disponível.',
+          });
+        },
+      });
+  }
+
+  private toCustomerOption(customer: ClienteListResponseDTO): CustomerOption {
+    return {
+      id: customer.id,
+      nome: customer.displayName || `Cliente #${customer.id}`,
+      documento: customer.maskedTaxId || 'Documento não informado',
+      status: customer.status,
+    };
+  }
+
+  private toCustomerOptionFromSummary(customer: ClienteDetailResponseDTO): CustomerOption {
+    return {
+      id: customer.id,
+      nome: customer.displayName || `Cliente #${customer.id}`,
+      documento: customer.maskedTaxId || 'Documento não informado',
+      status: customer.status,
+    };
+  }
+
+  private isCustomerOption(value: unknown): value is CustomerOption {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as Partial<CustomerOption>;
+    return typeof candidate.id === 'number' && typeof candidate.nome === 'string';
+  }
+
+  private vehicleLabel(vehicle: OrcamentoVehicleSummary) {
+    const name = [vehicle.marcaNome, vehicle.modeloNome].filter(Boolean).join(' ') || `Veículo #${vehicle.id}`;
+    const year = vehicle.anoModelo || vehicle.anoFabricacao;
+    return [name, vehicle.maskedPlate, year].filter(Boolean).join(' · ');
+  }
+
+  private clean(value: string) {
+    const trimmed = (value || '').trim();
+    return trimmed || undefined;
   }
 }

@@ -1,191 +1,191 @@
-<div class="dashboard-container font-sans bg-slate-50/50 dark:bg-slate-900 min-h-screen">
-  
-  <!-- Loading State -->
-  @if (loading) {
-    <div class="fixed inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
-      <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      <span class="text-sm font-bold text-slate-700 dark:text-slate-200 animate-pulse tracking-wide">CARREGANDO...</span>
-    </div>
-  }
+<section class="dashboard-page" aria-labelledby="dashboard-title">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Home"
+    title="Dashboard Gerencial"
+    titleId="dashboard-title"
+    description="Visão executiva da oficina usando somente indicadores disponíveis no contrato atual do backend."
+  >
+    <span pageHeaderMeta class="contract-badge" title="O read model D4 completo ainda está em implementação">
+      Contrato atual
+    </span>
 
-   <div class="p-6 md:p-8 space-y-6">
+    <button
+      pageHeaderActions
+      type="button"
+      class="button button--secondary"
+      (click)="load()"
+      [disabled]="loading"
+    >
+      <i class="pi" [ngClass]="loading ? 'pi-spinner pi-spin' : 'pi-refresh'" aria-hidden="true"></i>
+      {{ loading ? 'Atualizando…' : 'Atualizar' }}
+    </button>
+  </page-header>
 
-    <!-- Top Grid: Status Cards (Aberto, Autorizado, Cancelado, Fechado) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <!-- Card 1: Aberto -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50/50 text-blue-600 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-400">Aberto</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Abertos - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ abertosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ abertosTotal }}</span>
-        </div>
-      </div>
-
-      <!-- Card 2: Autorizado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-amber-200 dark:hover:border-amber-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-amber-200 bg-amber-50/50 text-amber-600 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">Autorizado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Autorizados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ autorizadosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ autorizadosTotal }}</span>
-        </div>
-      </div>
-
-      <!-- Card 3: Cancelado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-red-200 dark:hover:border-red-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50/50 text-red-600 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400">Cancelado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Cancelados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ canceladosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ canceladosTotal }}</span>
-        </div>
-      </div>
-
-      <!-- Card 4: Fechado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-emerald-200 bg-emerald-50/50 text-emerald-600 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">Fechado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Fechados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ fechadosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ fechadosTotal }}</span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Middle Grid: Chart + Entries/Exits and Informativos -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-      <!-- Relatório de Peças e Serviços (Area Chart) -->
-      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <h3 class="text-lg font-bold text-slate-800 dark:text-white">Relatório de Peças e Serviços</h3>
-              <p class="text-xs text-slate-400 dark:text-slate-500">Periodo: Últimos seis meses</p>
-            </div>
-            <div class="flex gap-2">
-              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors">
-                <i class="pi pi-filter text-xs"></i>
-              </button>
-              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors" (click)="exportarRelatorio()">
-                <i class="pi pi-external-link text-xs"></i>
-              </button>
-            </div>
-          </div>
-          <div id="chart" class="h-[350px]">
-            <apx-chart
-              [series]="chartOptions.series!"
-              [chart]="chartOptions.chart!"
-              [xaxis]="chartOptions.xaxis!"
-              [yaxis]="chartOptions.yaxis!"
-              [stroke]="chartOptions.stroke!"
-              [tooltip]="chartOptions.tooltip!"
-              [dataLabels]="chartOptions.dataLabels!"
-              [legend]="chartOptions.legend!"
-              [colors]="chartOptions.colors!"
-              [grid]="chartOptions.grid!"
-              [fill]="chartOptions.fill!"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column: Entry/Exit counters & Informativos stacked -->
-      <div class="flex flex-col gap-6">
-
-        <!-- Entradas de veículos no mês -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
-          <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-center shadow-sm">
-            <i class="pi pi-arrow-down text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Entradas de veículos no mês</p>
-            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ entradasVeiculosMes }}</h3>
-          </div>
-        </div>
-
-        <!-- Saídas de veículos no mês -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
-          <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 border border-rose-100 dark:border-rose-900/40 flex items-center justify-center shadow-sm">
-            <i class="pi pi-arrow-up text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Saídas de veículos no mês</p>
-            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ saidasVeiculosMes }}</h3>
-          </div>
-        </div>
-
-        <!-- Informativos (Últimos 7 dias) -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Informativos (Últimos 7 dias)</h3>
-            <div class="space-y-4">
-              
-              <!-- Item 1: Veículos em Atraso -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Veículos com entrega atrasada</p>
-                    <p class="text-[10px] text-slate-400">Verifique os prazos prometidos</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold px-2 py-0.5 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 rounded-md">{{ veiculosEmAtraso }}</span>
-              </div>
-
-              <!-- Item 2: Clientes Ativos -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Total de clientes ativos</p>
-                    <p class="text-[10px] text-slate-400">Expansão da base cadastral</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-amber-400 rounded-md">{{ stats.totalClientes || 0 }}</span>
-              </div>
-
-              <!-- Item 3: Ticket Médio -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ticket médio geral das OS</p>
-                    <p class="text-[10px] text-slate-400">Faturamento médio por ordem</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">R$ {{ (stats.ticketMedio || 0) | number:'1.2-2' }}</span>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-
+  <div class="context-banner" role="note">
+    <i class="pi pi-shield" aria-hidden="true"></i>
+    <div>
+      <strong>Contexto protegido pela sessão</strong>
+      <span>Empresa e tenant não são selecionados nem enviados pelo navegador como autoridade.</span>
     </div>
   </div>
-</div>
+
+  <div *ngIf="loading" class="skeleton-grid" aria-label="Carregando indicadores">
+    <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4, 5, 6]"></div>
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="state-card state-card--error" role="alert">
+    <div class="state-card__icon"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></div>
+    <div class="state-card__content">
+      <h2>Não foi possível carregar o dashboard</h2>
+      <p>{{ errorMessage }}</p>
+      <button type="button" class="button button--primary" (click)="load()">Tentar novamente</button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="data as dashboard">
+      <section class="dashboard-section" aria-labelledby="summary-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-heading__eyebrow">Resumo executivo</span>
+            <h2 id="summary-title">Indicadores disponíveis</h2>
+          </div>
+          <span class="section-heading__hint">Sem cálculos adicionais no frontend</span>
+        </div>
+
+        <div class="metric-grid metric-grid--primary">
+          <article class="metric-card" *ngFor="let metric of primaryMetrics">
+            <div class="metric-card__icon"><i [class]="metric.icon" aria-hidden="true"></i></div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">{{ metric.label }}</span>
+              <strong class="metric-card__value">{{ metric.value }}</strong>
+              <span class="metric-card__helper">{{ metric.helper }}</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="dashboard-grid dashboard-grid--attention">
+        <article class="panel-card" aria-labelledby="attention-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Atenção</span>
+              <h2 id="attention-title">Pontos que exigem ação</h2>
+            </div>
+          </div>
+
+          <div class="attention-list">
+            <a class="attention-item" routerLink="/os">
+              <span class="attention-item__icon attention-item__icon--warning">
+                <i class="pi pi-clock" aria-hidden="true"></i>
+              </span>
+              <span class="attention-item__content">
+                <strong>{{ formatNumber(dashboard.veiculosEmAtraso) }} veículos em atraso</strong>
+                <span>Abrir Ordens de Serviço para investigar a origem.</span>
+              </span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+
+            <a class="attention-item" routerLink="/financeiro/receber">
+              <span class="attention-item__icon attention-item__icon--danger">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              </span>
+              <span class="attention-item__content">
+                <strong>{{ formatMoney(dashboard.valoresVencidos) }} em valores vencidos</strong>
+                <span>Consultar a fonte autoritativa em Contas a Receber.</span>
+              </span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="panel-card" aria-labelledby="financial-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Financeiro</span>
+              <h2 id="financial-title">Saldos retornados pelo backend</h2>
+            </div>
+          </div>
+
+          <dl class="money-list">
+            <div>
+              <dt>Contas a receber</dt>
+              <dd>{{ formatMoney(dashboard.contasReceber) }}</dd>
+            </div>
+            <div>
+              <dt>Contas a pagar</dt>
+              <dd>{{ formatMoney(dashboard.contasPagar) }}</dd>
+            </div>
+            <div>
+              <dt>Despesas do mês</dt>
+              <dd>{{ formatMoney(dashboard.despesasMes) }}</dd>
+            </div>
+          </dl>
+
+          <a class="text-link" routerLink="/financeiro/receber">
+            Abrir Financeiro <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </article>
+      </section>
+
+      <section class="dashboard-section" aria-labelledby="operations-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-heading__eyebrow">Operação</span>
+            <h2 id="operations-title">Movimento do mês</h2>
+          </div>
+        </div>
+
+        <div class="metric-grid metric-grid--secondary">
+          <article class="metric-card metric-card--compact" *ngFor="let metric of operationalMetrics">
+            <div class="metric-card__icon"><i [class]="metric.icon" aria-hidden="true"></i></div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">{{ metric.label }}</span>
+              <strong class="metric-card__value">{{ metric.value }}</strong>
+              <span class="metric-card__helper">{{ metric.helper }}</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel-card" aria-labelledby="trend-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Tendência</span>
+              <h2 id="trend-title">Histórico temporal</h2>
+            </div>
+          </div>
+
+          <div *ngIf="!historyAvailable" class="state-card state-card--pending">
+            <div class="state-card__icon"><i class="pi pi-chart-line" aria-hidden="true"></i></div>
+            <div class="state-card__content">
+              <h3>Read model ainda não disponível</h3>
+              <p>
+                O histórico anterior era simulado e foi removido. O gráfico será reativado quando a API devolver uma série temporal autoritativa, com período e freshness.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel-card" aria-labelledby="quick-actions-title">
+          <div class="panel-card__header">
+            <div>
+              <span class="section-heading__eyebrow">Atalhos</span>
+              <h2 id="quick-actions-title">Ir para a fonte</h2>
+            </div>
+          </div>
+
+          <nav class="quick-links" aria-label="Atalhos do dashboard">
+            <a routerLink="/os"><i class="pi pi-briefcase" aria-hidden="true"></i><span>Ordens de Serviço</span></a>
+            <a routerLink="/orcamento"><i class="pi pi-file-edit" aria-hidden="true"></i><span>Orçamentos</span></a>
+            <a routerLink="/clientes"><i class="pi pi-users" aria-hidden="true"></i><span>Clientes</span></a>
+            <a routerLink="/financeiro/receber"><i class="pi pi-wallet" aria-hidden="true"></i><span>Financeiro</span></a>
+          </nav>
+        </article>
+      </section>
+    </ng-container>
+  </ng-container>
+</section>

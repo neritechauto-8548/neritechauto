@@ -1,5 +1,6 @@
 package com.neritech.saas.produtoServico.service;
 
+import com.neritech.saas.common.tenancy.TenantAccess;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,67 +26,65 @@ public class FornecedorService {
 
     @Transactional
     public FornecedorResponse create(FornecedorRequest request) {
-        if (request.cpf() != null && repository.existsByEmpresaIdAndCpf(request.empresaId(), request.cpf())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CPF nesta empresa");
-        }
-        if (request.cnpj() != null && repository.existsByEmpresaIdAndCnpj(request.empresaId(), request.cnpj())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CNPJ nesta empresa");
-        }
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        validateUniqueDocuments(tenantId, request, null);
 
         Fornecedor entity = mapper.toEntity(request);
-        entity.setEmpresaId(request.empresaId());
+        entity.setEmpresaId(tenantId);
 
-        Fornecedor saved = repository.save(entity);
-        return mapper.toResponse(saved);
+        return mapper.toResponse(repository.save(entity));
     }
 
     @Transactional(readOnly = true)
     public FornecedorResponse findById(Long id) {
-        return repository.findById(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + id));
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        return mapper.toResponse(findOwned(id, tenantId));
     }
 
     @Transactional(readOnly = true)
-    public Page<FornecedorResponse> findAll(Long empresaId, Pageable pageable) {
-        return repository.findByEmpresaId(empresaId, pageable)
-                .map(mapper::toResponse);
+    public Page<FornecedorResponse> findAll(Pageable pageable) {
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        return repository.findByEmpresaId(tenantId, pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public Page<FornecedorResponse> search(Long empresaId, String query, Pageable pageable) {
-        return repository.search(empresaId, query, pageable)
-                .map(mapper::toResponse);
+    public Page<FornecedorResponse> search(String query, Pageable pageable) {
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        return repository.search(tenantId, query, pageable).map(mapper::toResponse);
     }
 
     @Transactional
     public FornecedorResponse update(Long id, FornecedorRequest request) {
-        Fornecedor entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + id));
-
-        if (!entity.getEmpresaId().equals(request.empresaId())) {
-            throw new IllegalArgumentException("NÃ£o Ã© permitido alterar a empresa do fornecedor");
-        }
-
-        if (request.cpf() != null && !request.cpf().equals(entity.getCpf()) &&
-                repository.existsByEmpresaIdAndCpf(request.empresaId(), request.cpf())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CPF nesta empresa");
-        }
-        if (request.cnpj() != null && !request.cnpj().equals(entity.getCnpj()) &&
-                repository.existsByEmpresaIdAndCnpj(request.empresaId(), request.cnpj())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CNPJ nesta empresa");
-        }
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        Fornecedor entity = findOwned(id, tenantId);
+        validateUniqueDocuments(tenantId, request, entity);
 
         mapper.updateEntityFromRequest(request, entity);
-        Fornecedor saved = repository.save(entity);
-        return mapper.toResponse(saved);
+        return mapper.toResponse(repository.save(entity));
     }
 
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + id);
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        repository.delete(findOwned(id, tenantId));
+    }
+
+    private Fornecedor findOwned(Long id, Long tenantId) {
+        return repository.findByIdAndEmpresaId(id, tenantId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Fornecedor não encontrado para a empresa autenticada"));
+    }
+
+    private void validateUniqueDocuments(Long tenantId, FornecedorRequest request, Fornecedor current) {
+        if (request.cpf() != null
+                && (current == null || !request.cpf().equals(current.getCpf()))
+                && repository.existsByEmpresaIdAndCpf(tenantId, request.cpf())) {
+            throw new IllegalArgumentException("Já existe um fornecedor com este CPF nesta empresa");
         }
-        repository.deleteById(id);
+        if (request.cnpj() != null
+                && (current == null || !request.cnpj().equals(current.getCnpj()))
+                && repository.existsByEmpresaIdAndCnpj(tenantId, request.cnpj())) {
+            throw new IllegalArgumentException("Já existe um fornecedor com este CNPJ nesta empresa");
+        }
     }
 }

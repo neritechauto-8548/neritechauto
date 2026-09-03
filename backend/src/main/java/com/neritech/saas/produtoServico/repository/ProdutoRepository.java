@@ -21,5 +21,14 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Produto p WHERE p.empresaId = :empresaId AND (LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.codigoInterno) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Produto> search(Long empresaId, String search, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT p FROM Produto p
+            WHERE p.empresaId = :empresaId AND p.ativo = true
+              AND (LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(p.codigoInterno) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(COALESCE(p.codigoFabricante, '')) LIKE LOWER(CONCAT('%', :search, '%')))
+            """)
+    Page<Produto> searchActive(Long empresaId, String search, Pageable pageable);
 }
 

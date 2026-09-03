@@ -1,146 +1,208 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
-  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+<section class="estimate-create-page" aria-labelledby="estimate-create-title">
+  <p-toast [style]="{ top: '90px' }" [baseZIndex]="99999" />
 
-  <!-- Action Bar (Sticky Top) — idêntico ao cadastro-veiculo -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
-    <div class="flex items-center gap-4">
-      <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
-        <i class="pi pi-arrow-left text-sm"></i>
-      </button>
-      <div>
-        <h1 class="text-base font-semibold text-slate-900 leading-tight">
-          {{ id ? 'Editar Orçamento' : 'Novo Orçamento' }}
-        </h1>
-        <span class="text-xs text-slate-500 font-normal">
-          {{ id ? 'Editando registro #' + id : 'Preencha os dados abaixo' }}
-        </span>
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Orçamentos"
+    title="Novo Orçamento"
+    titleId="estimate-create-title"
+    description="Comece pelo contexto do atendimento e avance para itens e serviços sem redigitar cliente ou veículo."
+  >
+    <div pageHeaderMeta class="estimate-create-meta">
+      <span class="nt-badge nt-badge--info">Rascunho</span>
+      <span class="estimate-create-meta__note">Número atribuído pelo servidor</span>
+    </div>
+
+    <div pageHeaderActions class="estimate-create-header-actions">
+      <button type="button" class="nt-action" (click)="cancelar()" [disabled]="saving">Cancelar</button>
+      @if (!createdDraft) {
+        <button type="button" class="nt-action nt-action--primary" (click)="salvar()" [disabled]="saving">
+          @if (saving) {
+            Criando…
+          } @else {
+            <nt-icon name="plus" [size]="18" />
+            Criar rascunho
+          }
+        </button>
+      }
+    </div>
+  </page-header>
+
+  @if (createdDraft) {
+    <section class="estimate-created-state" role="status" aria-live="polite">
+      <div class="estimate-created-state__icon"><nt-icon name="shield-check" [size]="24" /></div>
+      <div class="estimate-created-state__body">
+        <span class="estimate-created-state__eyebrow">Rascunho criado</span>
+        <h2>{{ createdDraft.numeroOrcamento }}</h2>
+        <p>
+          O número e o tenant foram definidos pelo backend. O contexto de cliente e veículo já pode seguir para a composição,
+          onde serão incluídos peças, serviços, grupos e condições comerciais autorizadas.
+        </p>
+        <div class="estimate-created-state__actions">
+          <button type="button" class="nt-button nt-button--secondary" (click)="abrirResumo()">Ver resumo</button>
+          <button type="button" class="nt-button nt-button--secondary" (click)="novoRascunho()">Novo orçamento</button>
+          <button type="button" class="nt-button nt-button--primary" (click)="continuarComposicao()">
+            Adicionar itens e serviços
+          </button>
+        </div>
       </div>
-    </div>
-
-    <div class="flex gap-3 items-center">
-      <button *ngIf="id" (click)="excluir()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-        <i class="pi pi-trash text-[13px]"></i> Excluir
-      </button>
-      <div *ngIf="id" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-      <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
-        Cancelar
-      </button>
-      <button (click)="salvar()" [disabled]="saving" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
-        <i class="pi pi-check text-xs" *ngIf="!saving"></i>
-        <i class="pi pi-spin pi-spinner text-xs" *ngIf="saving"></i>
-        {{ saving ? 'Salvando...' : 'Salvar' }}
-      </button>
-    </div>
-  </div>
-
-  <div class="p-6 w-full space-y-8 mx-auto">
-
-    <!-- Loading State -->
-    <div *ngIf="loading" class="flex flex-col items-center justify-center py-12">
-      <i class="pi pi-spin pi-spinner text-3xl text-blue-500 mb-3"></i>
-      <p class="text-slate-500 text-sm">Carregando dados do orçamento...</p>
-    </div>
-
-    <ng-container *ngIf="!loading">
-      <div class="animate-fade-in-up space-y-6">
-
-        <!-- Seção: Responsável e Cliente -->
-        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-            <h3 class="font-bold text-slate-800 text-sm">Responsável e Cliente</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <!-- Funcionário -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Funcionário</label>
-              <p-select [options]="funcionarios" optionLabel="label" optionValue="value"
-                [(ngModel)]="form.funcionario" styleClass="w-full modern-select" placeholder="Selecione..." />
+    </section>
+  } @else {
+    <div class="estimate-create-layout">
+      <main class="estimate-create-main">
+        <section class="estimate-card">
+          <header class="estimate-card__header">
+            <div>
+              <span>Contexto</span>
+              <h2>Cliente e veículo</h2>
+              <p>O veículo é carregado após o cliente e o vínculo é revalidado no servidor antes da criação.</p>
             </div>
+            <nt-icon name="users" [size]="22" />
+          </header>
 
-            <!-- Cliente Autocomplete -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Cliente</label>
+          <div class="estimate-form-grid">
+            <div class="estimate-field estimate-field--12">
+              <label for="estimate-customer">Cliente <span aria-hidden="true">*</span></label>
               <p-autoComplete
+                inputId="estimate-customer"
                 [(ngModel)]="selectedCliente"
                 [suggestions]="filteredClientes"
                 (completeMethod)="searchCliente($event)"
+                (onSelect)="onCustomerSelected($event)"
                 optionLabel="nome"
                 dataKey="id"
-                placeholder="Busque por nome ou CPF/CNPJ..."
-                styleClass="w-full modern-autocomplete"
-                inputStyleClass="w-full modern-input"
+                placeholder="Busque por nome, CPF ou CNPJ"
+                styleClass="w-full"
+                inputStyleClass="w-full"
                 [forceSelection]="true"
-                [dropdown]="true">
+                [dropdown]="true"
+              >
                 <ng-template let-cliente pTemplate="item">
-                  <div class="flex flex-col py-1">
-                    <span class="font-bold text-sm text-slate-900">{{ cliente.nome }}</span>
-                    <span class="text-xs text-slate-500">{{ cliente.cpfCnpj }}</span>
+                  <div class="estimate-customer-option">
+                    <strong>{{ cliente.nome }}</strong>
+                    <span><nt-icon name="shield-check" [size]="14" />{{ cliente.documento }}</span>
                   </div>
                 </ng-template>
               </p-autoComplete>
+              <small>Dados sensíveis permanecem mascarados nesta etapa.</small>
             </div>
 
-            <!-- Email -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">E-mail</label>
-              <input pInputText [(ngModel)]="form.email" type="email"
-                placeholder="cliente@email.com" class="w-full modern-input" />
+            <div class="estimate-field estimate-field--8">
+              <label for="estimate-vehicle">Veículo</label>
+              <p-select
+                inputId="estimate-vehicle"
+                [options]="vehicleOptions"
+                [(ngModel)]="form.veiculoId"
+                optionLabel="label"
+                optionValue="id"
+                placeholder="{{ selectedCliente ? (loadingVehicles ? 'Carregando veículos…' : 'Selecione o veículo') : 'Selecione o cliente primeiro' }}"
+                [disabled]="!selectedCliente || loadingVehicles"
+                [showClear]="true"
+                appendTo="body"
+                styleClass="w-full"
+              />
+              @if (selectedCliente && !loadingVehicles && vehicleOptions.length === 0) {
+                <small>Nenhum veículo ativo disponível. O orçamento pode seguir sem veículo e receber o vínculo depois.</small>
+              }
             </div>
 
-            <!-- Celular -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Celular com DDD</label>
-              <input pInputText [(ngModel)]="form.celular"
-                placeholder="(00) 00000-0000" class="w-full modern-input" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Seção: Veículo e Datas -->
-        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-            <h3 class="font-bold text-slate-800 text-sm">Veículo e Datas</h3>
-          </div>
-          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <!-- Veículo -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Veículo</label>
-              <input pInputText [(ngModel)]="form.veiculo"
-                placeholder="Placa ou modelo" class="w-full modern-input" />
-            </div>
-
-            <!-- Emissão -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Emissão</label>
-              <input pInputText type="date" [(ngModel)]="form.emissao" class="w-full modern-input" />
-            </div>
-
-            <!-- Validade -->
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Validade</label>
-              <input pInputText type="date" [(ngModel)]="form.validade" class="w-full modern-input" />
+            <div class="estimate-field estimate-field--4">
+              <label for="estimate-odometer">Quilometragem de entrada</label>
+              <input
+                id="estimate-odometer"
+                pInputText
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                [(ngModel)]="form.quilometragemEntrada"
+                placeholder="Ex.: 48500"
+              />
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Seção: Descrição -->
-        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100">
-            <h3 class="font-bold text-slate-800 text-sm">Descrição</h3>
-          </div>
-          <div class="p-6">
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-slate-700">Observação (opcional)</label>
-              <textarea pTextarea [(ngModel)]="form.descricao" rows="5"
-                placeholder="Descreva o serviço ou problema relatado..."
-                class="w-full modern-input"></textarea>
+        <section class="estimate-card">
+          <header class="estimate-card__header">
+            <div>
+              <span>Atendimento</span>
+              <h2>Relato e observações</h2>
+              <p>Registre o contexto necessário. Itens, preços, descontos e aprovação ficam na etapa de composição.</p>
+            </div>
+            <nt-icon name="clipboard-list" [size]="22" />
+          </header>
+
+          <div class="estimate-form-grid">
+            <div class="estimate-field estimate-field--12">
+              <label for="estimate-report">Relato do cliente</label>
+              <textarea
+                id="estimate-report"
+                pTextarea
+                rows="5"
+                maxlength="4000"
+                [(ngModel)]="form.relatoCliente"
+                placeholder="Ex.: Cliente relata ruído ao frear em baixa velocidade."
+              ></textarea>
+              <small>{{ form.relatoCliente.length }}/4000 caracteres</small>
+            </div>
+
+            <div class="estimate-field estimate-field--6">
+              <label for="estimate-customer-notes">Observação destinada ao cliente</label>
+              <textarea
+                id="estimate-customer-notes"
+                pTextarea
+                rows="4"
+                maxlength="4000"
+                [(ngModel)]="form.observacoesCliente"
+                placeholder="Informação que poderá compor a comunicação do orçamento."
+              ></textarea>
+            </div>
+
+            <div class="estimate-field estimate-field--6">
+              <label for="estimate-internal-notes">Observação interna</label>
+              <textarea
+                id="estimate-internal-notes"
+                pTextarea
+                rows="4"
+                maxlength="4000"
+                [(ngModel)]="form.observacoesInternas"
+                placeholder="Notas internas necessárias ao atendimento."
+              ></textarea>
             </div>
           </div>
-        </div>
+        </section>
+      </main>
 
-      </div>
-    </ng-container>
-  </div>
-</div>
+      <aside class="estimate-create-aside" aria-label="Contrato do rascunho">
+        <section class="estimate-side-card">
+          <span class="estimate-side-card__eyebrow">O servidor controla</span>
+          <ul>
+            <li><nt-icon name="shield-check" [size]="16" /> Tenant autenticado</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Número comercial</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Vínculo cliente–veículo</li>
+            <li><nt-icon name="shield-check" [size]="16" /> Estado inicial RASCUNHO</li>
+          </ul>
+        </section>
+
+        <section class="estimate-side-card estimate-side-card--pending">
+          <span class="estimate-side-card__eyebrow">Fluxo conectado</span>
+          <strong>Contexto primeiro, composição depois</strong>
+          <p>
+            Ao criar o rascunho, você segue para peças e serviços usando o mesmo orçamento. Não há novo cadastro nem número
+            gerado pelo navegador.
+          </p>
+        </section>
+      </aside>
+    </div>
+  }
+
+  @if (!createdDraft) {
+    <div class="estimate-mobile-actions" aria-label="Ações do novo orçamento">
+      <button type="button" class="nt-button nt-button--secondary" (click)="cancelar()" [disabled]="saving">Cancelar</button>
+      <button type="button" class="nt-button nt-button--primary" (click)="salvar()" [disabled]="saving">
+        {{ saving ? 'Criando…' : 'Criar rascunho' }}
+      </button>
+    </div>
+  }
+</section>

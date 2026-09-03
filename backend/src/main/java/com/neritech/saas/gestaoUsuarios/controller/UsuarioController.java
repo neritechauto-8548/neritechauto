@@ -9,10 +9,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -23,36 +27,36 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Listar usuários", description = "Retorna todos os usuários da empresa")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Listar usuários", description = "Retorna os usuários da empresa autenticada")
     public ResponseEntity<List<UsuarioResponse>> findAll() {
         return ResponseEntity.ok(usuarioService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
-    @Operation(summary = "Buscar usuário", description = "Busca um usuário pelo ID")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Buscar usuário", description = "Busca um usuário da empresa autenticada pelo ID")
     public ResponseEntity<UsuarioResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
-    @Operation(summary = "Criar usuário", description = "Cria um novo usuário")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Criar usuário", description = "Cria um novo usuário na empresa autenticada")
     public ResponseEntity<UsuarioResponse> create(@RequestBody @Valid UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
-    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário da empresa autenticada")
     public ResponseEntity<UsuarioResponse> update(@PathVariable Long id, @RequestBody @Valid UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
-    @Operation(summary = "Inativar usuário", description = "Inativa um usuário (soft delete)")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Inativar usuário", description = "Inativa um usuário da empresa autenticada (soft delete)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         usuarioService.delete(id);
         return ResponseEntity.noContent().build();
@@ -60,18 +64,29 @@ public class UsuarioController {
 
     @GetMapping("/me")
     @Operation(summary = "Obter usuário atual", description = "Retorna os dados do usuário autenticado")
-    public ResponseEntity<UsuarioResponse> getCurrentUser() {
-        return ResponseEntity.ok(usuarioService.getCurrentUser());
+    public ResponseEntity<UsuarioResponse> getCurrentUser(Authentication authentication) {
+        UsuarioResponse response = usuarioService.getCurrentUser();
+        response.setPermissions(extractExplicitPermissions(authentication));
+        return ResponseEntity.ok(response);
+    }
+
+    private Set<String> extractExplicitPermissions(Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return Collections.emptySet();
+        }
+
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(authority -> authority != null && !authority.startsWith("ROLE_"))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @GetMapping("/menu")
     @Operation(summary = "Obter menu do usuário", description = "Retorna o menu baseado nas permissões do usuário")
     public ResponseEntity<MenuResponse> getMenu() {
-        // Por enquanto, retorna um menu vazio. Pode ser implementado depois com base nas permissões
         return ResponseEntity.ok(new MenuResponse(Collections.emptyList()));
     }
 
-    // Classe interna para resposta do menu
     public static class MenuResponse {
         private List<Object> menu;
 

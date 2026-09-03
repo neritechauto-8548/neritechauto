@@ -1,0 +1,252 @@
+<section id="execucao" class="execution-panel" aria-labelledby="execution-title">
+  <header class="execution-header">
+    <div>
+      <span class="eyebrow">Operação da oficina</span>
+      <h2 id="execution-title">Execução e apontamentos</h2>
+      <p>Tempo real e sessões são controlados pelo servidor. Ações disponíveis respeitam autorização, estado e concorrência.</p>
+    </div>
+
+    <button type="button" class="secondary-button" (click)="load()" [disabled]="state === 'loading' || !!busyAction">
+      <nt-icon name="refresh" [size]="17" />
+      Atualizar
+    </button>
+  </header>
+
+  <div *ngIf="state === 'loading'" class="execution-loading" role="status" aria-live="polite">
+    <div class="skeleton kpi"></div>
+    <div class="skeleton kpi"></div>
+    <div class="skeleton session"></div>
+    <span>Carregando execução da Ordem de Serviço…</span>
+  </div>
+
+  <div *ngIf="state === 'forbidden' || state === 'not-found' || state === 'error'" class="execution-state" role="alert">
+    <div class="state-icon">
+      <nt-icon [name]="state === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="21" />
+    </div>
+    <div>
+      <strong>{{ state === 'forbidden' ? 'Acesso restrito' : 'Execução indisponível' }}</strong>
+      <p>{{ message }}</p>
+    </div>
+    <button type="button" *ngIf="state !== 'forbidden'" class="secondary-button" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <ng-container *ngIf="state === 'ready' && execution as data">
+    <div *ngIf="commandMessage" class="command-feedback" [class.conflict]="commandConflict" role="alert">
+      <nt-icon [name]="commandConflict ? 'alert-triangle' : 'help-circle'" [size]="18" />
+      <div>
+        <strong>{{ commandConflict ? 'Os dados mudaram' : 'Ação não concluída' }}</strong>
+        <span>{{ commandMessage }}</span>
+      </div>
+      <button type="button" *ngIf="commandConflict" (click)="load()">Atualizar agora</button>
+    </div>
+
+    <div class="kpi-grid" aria-label="Indicadores da execução">
+      <article class="kpi-card primary">
+        <div class="kpi-icon"><nt-icon name="history" [size]="19" /></div>
+        <div>
+          <span>Tempo real</span>
+          <strong aria-label="Tempo real acumulado">{{ formatTimer(displayTotalElapsedSeconds) }}</strong>
+          <small>Servidor + sessão ativa</small>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon"><nt-icon name="tool" [size]="19" /></div>
+        <div>
+          <span>Tempo estimado</span>
+          <strong>{{ formatMinutes(data.summary.estimatedMinutes) }}</strong>
+          <small>Planejamento dos serviços</small>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon"><nt-icon name="receipt" [size]="19" /></div>
+        <div>
+          <span>Tempo vendido</span>
+          <strong>{{ formatMinutes(data.summary.soldMinutes) }}</strong>
+          <small>Separado do tempo executado</small>
+        </div>
+      </article>
+
+      <article class="kpi-card" [class.attention]="data.summary.blockers > 0">
+        <div class="kpi-icon"><nt-icon name="shield-check" [size]="19" /></div>
+        <div>
+          <span>Bloqueios</span>
+          <strong>{{ data.summary.blockers }}</strong>
+          <small>{{ data.summary.blockers === 1 ? 'serviço com pendência' : 'serviços com pendência' }}</small>
+        </div>
+      </article>
+    </div>
+
+    <article class="active-session" *ngIf="data.activeSession as session; else noActiveSession">
+      <div class="session-status-strip" [attr.data-tone]="statusTone(session.status)"></div>
+      <div class="session-main">
+        <div class="session-copy">
+          <div class="session-title-row">
+            <span class="status-badge" [attr.data-tone]="statusTone(session.status)">{{ statusLabel(session.status) }}</span>
+            <span class="sync-label">Sessão #{{ session.sessionId }} · sincronizada</span>
+          </div>
+          <h3>{{ session.technicianName }}</h3>
+          <p>Técnico responsável pela sessão atual. O relógio exibido é uma projeção da última leitura autoritativa do servidor.</p>
+        </div>
+
+        <div class="session-clock" aria-label="Tempo da sessão ativa">
+          <span>Tempo da sessão</span>
+          <strong aria-live="off">{{ formatTimer(displaySessionElapsedSeconds) }}</strong>
+          <small>Início {{ session.startedAt | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+      </div>
+
+      <div *ngIf="session.status === 'PAUSADA'" class="pause-summary">
+        <nt-icon name="alert-triangle" [size]="17" />
+        <div>
+          <strong>Sessão pausada</strong>
+          <span>{{ pauseReasonLabel(session.pauseReason) }}<ng-container *ngIf="session.pauseNote"> · {{ session.pauseNote }}</ng-container></span>
+        </div>
+      </div>
+
+      <div *ngIf="session.blockers.length" class="blocker-list compact">
+        <div *ngFor="let blocker of session.blockers">
+          <nt-icon name="lock" [size]="15" />
+          <span>{{ blockerLabel(blocker) }}</span>
+        </div>
+      </div>
+
+      <div class="session-actions" *ngIf="!pauseOpen">
+        <button type="button" class="warning-button" *ngIf="hasSessionAction('PAUSE')" (click)="openPause()" [disabled]="!!busyAction">
+          Pausar sessão
+        </button>
+        <button type="button" class="primary-button" *ngIf="hasSessionAction('RESUME')" (click)="resume()" [disabled]="!!busyAction">
+          {{ isBusy('resume-' + session.sessionId) ? 'Retomando…' : 'Retomar sessão' }}
+        </button>
+        <button type="button" class="secondary-button" *ngIf="hasSessionAction('FINISH')" (click)="finish()" [disabled]="!!busyAction">
+          {{ isBusy('finish-' + session.sessionId) ? 'Finalizando…' : 'Encerrar relógio' }}
+        </button>
+      </div>
+
+      <form *ngIf="pauseOpen" class="pause-form" (ngSubmit)="confirmPause()">
+        <div class="form-heading">
+          <div>
+            <strong>Motivo da pausa</strong>
+            <span>A pausa operacional fica registrada na sessão e não apaga o tempo executado.</span>
+          </div>
+          <button type="button" class="icon-button" aria-label="Cancelar pausa" (click)="cancelPause()">
+            <nt-icon name="x" [size]="17" />
+          </button>
+        </div>
+
+        <label>
+          <span>Categoria</span>
+          <select name="pauseReason" [(ngModel)]="pauseReason" required>
+            <option value="" disabled>Selecione o motivo</option>
+            <option *ngFor="let option of pauseReasons" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Observação {{ pauseReason === 'OUTRO' ? '(obrigatória)' : '(opcional)' }}</span>
+          <textarea
+            name="pauseNote"
+            [(ngModel)]="pauseNote"
+            maxlength="500"
+            rows="3"
+            placeholder="Registre apenas o contexto operacional necessário."
+          ></textarea>
+        </label>
+
+        <div class="pause-actions">
+          <button type="button" class="secondary-button" (click)="cancelPause()">Cancelar</button>
+          <button
+            type="submit"
+            class="warning-button"
+            [disabled]="!pauseReason || (pauseReason === 'OUTRO' && !pauseNote.trim()) || !!busyAction"
+          >
+            {{ isBusy('pause-' + session.sessionId) ? 'Pausando…' : 'Confirmar pausa' }}
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <ng-template #noActiveSession>
+      <article class="no-session">
+        <div class="no-session-icon"><nt-icon name="tool" [size]="22" /></div>
+        <div>
+          <strong>Nenhuma sessão ativa nesta OS</strong>
+          <span>Inicie um serviço autorizado abaixo. O backend impedirá sessões concorrentes para o mesmo técnico.</span>
+        </div>
+      </article>
+    </ng-template>
+
+    <div class="services-heading">
+      <div>
+        <span class="eyebrow">Escopo da OS</span>
+        <h3>Serviços para execução</h3>
+      </div>
+      <span>{{ data.services.length }} {{ data.services.length === 1 ? 'serviço' : 'serviços' }}</span>
+    </div>
+
+    <div *ngIf="!data.services.length" class="empty-services">
+      <nt-icon name="clipboard-list" [size]="24" />
+      <strong>Nenhum serviço disponível para execução</strong>
+      <span>Inclua e autorize serviços na Ordem de Serviço antes de iniciar apontamentos.</span>
+    </div>
+
+    <div class="service-grid" *ngIf="data.services.length">
+      <article class="service-card" *ngFor="let service of data.services; trackBy: trackService" [class.blocked]="service.blockers.length">
+        <div class="service-card-header">
+          <div>
+            <span class="service-code">Serviço #{{ service.id }}</span>
+            <h4>{{ service.description || 'Serviço sem descrição' }}</h4>
+          </div>
+          <span class="status-badge" [attr.data-tone]="statusTone(service.status)">{{ statusLabel(service.status) }}</span>
+        </div>
+
+        <div class="authorization-line" [class.authorized]="service.authorized">
+          <nt-icon [name]="service.authorized ? 'shield-check' : 'lock'" [size]="16" />
+          <span>{{ service.authorized ? 'Autorizado para execução' : 'Aguardando autorização' }}</span>
+        </div>
+
+        <div class="time-row">
+          <div>
+            <span>Real</span>
+            <strong>{{ formatMinutes(service.realMinutes) }}</strong>
+          </div>
+          <div>
+            <span>Estimado</span>
+            <strong>{{ formatMinutes(service.estimatedMinutes) }}</strong>
+          </div>
+          <div>
+            <span>Vendido</span>
+            <strong>{{ formatMinutes(service.soldMinutes) }}</strong>
+          </div>
+        </div>
+
+        <div class="blocker-list" *ngIf="service.blockers.length">
+          <div *ngFor="let blocker of service.blockers">
+            <nt-icon name="alert-triangle" [size]="15" />
+            <span>{{ blockerLabel(blocker) }}</span>
+          </div>
+        </div>
+
+        <footer class="service-footer">
+          <span *ngIf="service.technicianId">Responsável #{{ service.technicianId }}</span>
+          <span *ngIf="!service.technicianId">Responsável definido ao iniciar</span>
+          <button
+            type="button"
+            class="primary-button"
+            *ngIf="canServiceAction(service.id, 'START')"
+            (click)="start(service.id)"
+            [disabled]="!!busyAction"
+          >
+            {{ isBusy('start-' + service.id) ? 'Iniciando…' : 'Iniciar serviço' }}
+          </button>
+        </footer>
+      </article>
+    </div>
+
+    <div class="execution-footnote">
+      <nt-icon name="help-circle" [size]="16" />
+      <span>Encerrar o relógio finaliza somente a sessão de tempo. Concluir o serviço e finalizar a OS são etapas separadas e possuem guardas próprias.</span>
+    </div>
+  </ng-container>
+</section>

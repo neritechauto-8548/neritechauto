@@ -1,90 +1,111 @@
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { NgxPermissionsModule, NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
-import { LocalStorageService, MemoryStorageService } from '@shared/services/storage.service';
-import { admin, TokenService } from '@core/authentication';
-import { MenuService } from '@core/bootstrap/menu.service';
+import { AuthService, User } from '@core/authentication';
+import { Menu, MenuService } from '@core/bootstrap/menu.service';
 import { StartupService } from '@core/bootstrap/startup.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
+import { of, Subject } from 'rxjs';
 
 describe('StartupService', () => {
-  let httpMock: HttpTestingController;
   let startup: StartupService;
-  let tokenService: TokenService;
-  let menuService: MenuService;
-  let mockPermissionsService: NgxPermissionsService;
-  let mockRolesService: NgxRolesService;
+  let user$: Subject<User>;
+  let authService: jasmine.SpyObj<AuthService>;
+  let menuService: jasmine.SpyObj<MenuService>;
+  let permissionsService: jasmine.SpyObj<NgxPermissionsService>;
+  let rolesService: jasmine.SpyObj<NgxRolesService>;
 
   beforeEach(() => {
+    user$ = new Subject<User>();
+
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['change', 'menu']);
+    menuService = jasmine.createSpyObj<MenuService>('MenuService', ['addNamespace', 'set']);
+    permissionsService = jasmine.createSpyObj<NgxPermissionsService>('NgxPermissionsService', [
+      'flushPermissions',
+      'loadPermissions',
+    ]);
+    rolesService = jasmine.createSpyObj<NgxRolesService>('NgxRolesService', [
+      'flushRoles',
+      'addRole',
+    ]);
+
+    authService.change.and.returnValue(user$.asObservable());
+    authService.menu.and.returnValue(of([]));
+
     TestBed.configureTestingModule({
-      imports: [NgxPermissionsModule.forRoot()],
       providers: [
-        {
-          provide: LocalStorageService,
-          useClass: MemoryStorageService,
-        },
-        {
-          provide: NgxPermissionsService,
-          useValue: {
-            loadPermissions: (permissions: string[]) => void 0,
-          },
-        },
-        {
-          provide: NgxRolesService,
-          useValue: {
-            flushRoles: () => void 0,
-            addRoles: (params: { ADMIN: string[] }) => void 0,
-          },
-        },
         StartupService,
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
+        { provide: AuthService, useValue: authService },
+        { provide: MenuService, useValue: menuService },
+        { provide: NgxPermissionsService, useValue: permissionsService },
+        { provide: NgxRolesService, useValue: rolesService },
       ],
     });
-    httpMock = TestBed.inject(HttpTestingController);
+
     startup = TestBed.inject(StartupService);
-    tokenService = TestBed.inject(TokenService);
-    menuService = TestBed.inject(MenuService);
-    mockPermissionsService = TestBed.inject(NgxPermissionsService);
-    mockRolesService = TestBed.inject(NgxRolesService);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => user$.complete());
 
-  it('should load menu when token changed and token valid', async () => {
-    const menuData = { menu: [] };
-    const permissions = ['canAdd', 'canDelete', 'canEdit', 'canRead'];
-    spyOn(menuService, 'addNamespace');
-    spyOn(menuService, 'set');
-    spyOn(mockPermissionsService, 'loadPermissions');
-    spyOn(mockRolesService, 'flushRoles');
-    spyOn(mockRolesService, 'addRoles');
+  it('should load exactly the permissions and roles returned by the backend user', async () => {
+    const permissions = ['CLIENTE_VISUALIZAR', 'VEICULO_VISUALIZAR'];
+    const loadPromise = startup.load();
 
-    await startup.load();
+    user$.next({
+      permissions,
+      funcoes: ['ATENDENTE'],
+      planoNivel: 1,
+    });
 
-    tokenService.set({ access_token: 'token', token_type: 'bearer' });
+    await loadPromise;
 
-    httpMock.expectOne('/user').flush(admin);
-    httpMock.expectOne('/user/menu').flush(menuData);
-
-    expect(menuService.addNamespace).toHaveBeenCalledWith(menuData.menu, 'menu');
-    expect(menuService.set).toHaveBeenCalledWith(menuData.menu);
-    expect(mockPermissionsService.loadPermissions).toHaveBeenCalledWith(permissions);
-    expect(mockRolesService.flushRoles).toHaveBeenCalledWith();
-    expect(mockRolesService.addRoles).toHaveBeenCalledWith({ ADMIN: permissions });
+    expect(permissionsService.flushPermissions).toHaveBeenCalledTimes(1);
+    expect(permissionsService.loadPermissions).toHaveBeenCalledOnceWith(permissions);
+    expect(rolesService.flushRoles).toHaveBeenCalledTimes(1);
+    expect(rolesService.addRole).toHaveBeenCalledOnceWith('ATENDENTE', permissions);
+    expect(authService.menu).toHaveBeenCalledTimes(1);
+    expect(menuService.addNamespace).toHaveBeenCalledOnceWith([], 'menu');
+    expect(menuService.set).toHaveBeenCalledOnceWith([]);
   });
 
-  it('should clear menu when token changed and token invalid', async () => {
-    spyOn(menuService, 'addNamespace');
-    spyOn(menuService, 'set');
+  it('should filter menu entries by permission and plan before applying the canonical menu', async () => {
+    const menu: Menu[] = [
+      {
+        route: 'clientes',
+        name: 'clientes',
+        type: 'link',
+        icon: 'tabler-users',
+        permissions: { only: 'CLIENTE_VISUALIZAR' },
+      },
+      {
+        route: 'financeiro',
+        name: 'financeiro',
+        type: 'link',
+        icon: 'tabler-cash',
+        permissions: { only: 'FINANCEIRO_VISUALIZAR' },
+      },
+      {
+        route: 'relatorios',
+        name: 'relatorios',
+        type: 'link',
+        icon: 'tabler-report',
+        minPlan: 3,
+      },
+    ];
 
-    await startup.load();
+    authService.menu.and.returnValue(of(menu));
+    const loadPromise = startup.load();
 
-    tokenService.set({ access_token: '', token_type: 'bearer' });
+    user$.next({
+      permissions: ['CLIENTE_VISUALIZAR'],
+      funcoes: ['ATENDENTE'],
+      planoNivel: 1,
+    });
 
-    httpMock.expectNone('/user/menu');
+    await loadPromise;
 
-    expect(menuService.addNamespace).toHaveBeenCalledWith([], 'menu');
-    expect(menuService.set).toHaveBeenCalledWith([]);
+    const visibleMenu = menuService.set.calls.mostRecent().args[0] as Menu[];
+
+    expect(visibleMenu.map(item => item.route)).toEqual(['clientes']);
+    expect(menuService.addNamespace).toHaveBeenCalledOnceWith(visibleMenu, 'menu');
+    expect(menuService.set).toHaveBeenCalledOnceWith(visibleMenu);
   });
 });

@@ -7,8 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import com.neritech.saas.produtoServico.domain.Fornecedor;
 
+import java.util.Optional;
+
 @Repository
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
+    Optional<Fornecedor> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Page<Fornecedor> findByEmpresaId(Long empresaId, Pageable pageable);
 
     boolean existsByEmpresaIdAndCpf(Long empresaId, String cpf);
@@ -24,4 +28,3 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             "LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Fornecedor> search(Long empresaId, String search, Pageable pageable);
 }
-

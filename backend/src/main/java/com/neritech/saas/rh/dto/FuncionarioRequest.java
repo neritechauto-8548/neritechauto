@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record FuncionarioRequest(
-        @NotNull Long empresaId,
+        Long empresaId,
         Long usuarioId,
         @NotBlank @Size(max = 20) String matricula,
         @NotBlank @Size(max = 255) String nomeCompleto,

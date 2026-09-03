@@ -5,6 +5,7 @@ import com.neritech.saas.TestDataBuilder;
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,35 +22,50 @@ class MultitenancyIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        TenantContext.clear();
         usuarioRepository.deleteAll();
     }
 
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
+    }
+
     @Test
-    @DisplayName("Isolamento de Dados: Empresa 1 não deve ver dados da Empresa 2")
+    @DisplayName("Empresa 1 nao deve localizar usuario da Empresa 2 no escopo da Empresa 1")
     void isolamentoDeDados() {
-        // Arrange
+        TenantContext.setCurrentTenant(1L);
         Usuario u1 = TestDataBuilder.umUsuario()
                 .comEmail("user1@empresa1.com")
                 .comEmpresaId(1L)
                 .build();
-        
+        usuarioRepository.saveAndFlush(u1);
+
+        TenantContext.setCurrentTenant(2L);
         Usuario u2 = TestDataBuilder.umUsuario()
                 .comEmail("user2@empresa2.com")
                 .comEmpresaId(2L)
                 .build();
-        
-        usuarioRepository.save(u1);
-        usuarioRepository.save(u2);
+        usuarioRepository.saveAndFlush(u2);
 
-        // Act - Simular contexto da Empresa 1
-        // Nota: Repositórios usam o TenantContext? Se usarem @Filter do Hibernate ou AOP, sim.
-        // Se usarem apenas métodos com empresaId explícito (como findByEmailIgnoreCaseAndEmpresaId), o teste é direto.
-        // Assumindo que o sistema usa métodos explícitos ou filtro global.
-        
-        // Teste via método explícito
-        Optional<Usuario> buscaEmpresa1 = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId("user2@empresa2.com", 1L);
-        
-        // Assert
+        TenantContext.setCurrentTenant(1L);
+        Optional<Usuario> buscaEmpresa1 = usuarioRepository
+                .findByEmailIgnoreCaseAndEmpresaId("user2@empresa2.com", 1L);
+
         assertThat(buscaEmpresa1).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Entidade nao pode ser criada para tenant diferente do contexto autenticado")
+    void deveBloquearPersistenciaCrossTenant() {
+        TenantContext.setCurrentTenant(1L);
+        Usuario invasor = TestDataBuilder.umUsuario()
+                .comEmail("cross@tenant.com")
+                .comEmpresaId(2L)
+                .build();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> usuarioRepository.saveAndFlush(invasor))
+                .isInstanceOf(Exception.class)
+                .hasRootCauseInstanceOf(IllegalStateException.class);
     }
 }

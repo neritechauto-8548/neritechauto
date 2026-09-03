@@ -15,9 +15,10 @@ import { Sidebar } from '../sidebar/sidebar';
 import { Topmenu } from '../topmenu/topmenu';
 import { BreadcrumbComponent } from '../widgets/breadcrumb';
 
-const MOBILE_MEDIAQUERY = 'screen and (max-width: 599px)';
-const TABLET_MEDIAQUERY = 'screen and (min-width: 600px) and (max-width: 959px)';
-const MONITOR_MEDIAQUERY = 'screen and (min-width: 960px)';
+// UI Master: XS < 768, SM 768–1023, desktop >= 1024.
+const MOBILE_MEDIAQUERY = 'screen and (max-width: 767px)';
+const TABLET_MEDIAQUERY = 'screen and (min-width: 768px) and (max-width: 1023px)';
+const DESKTOP_MEDIAQUERY = 'screen and (min-width: 1024px)';
 
 @Component({
   selector: 'app-admin-layout',
@@ -60,9 +61,14 @@ export class AdminLayout implements OnDestroy {
     return this.isMobileScreen;
   }
 
-  private isMobileScreen = false;
+  mobileSidenavOpened = false;
 
+  private isMobileScreen = false;
   private isContentWidthFixed = true;
+  private isCollapsedWidthFixed = false;
+  private layoutChangesSubscription = Subscription.EMPTY;
+  private hoverTimer: ReturnType<typeof setTimeout> | undefined;
+  private isHovering = false;
 
   get contentWidthFix() {
     return (
@@ -81,32 +87,30 @@ export class AdminLayout implements OnDestroy {
     );
   }
 
-  private isCollapsedWidthFixed = false;
-
-  private layoutChangesSubscription = Subscription.EMPTY;
-
-  private hoverTimer: any;
-  private isHovering = false;
-
   constructor() {
-    this.settings.notify.subscribe(options => { Object.assign(this.options, options); });
-    this.layoutChangesSubscription = this.breakpointObserver
-      .observe([MOBILE_MEDIAQUERY, TABLET_MEDIAQUERY, MONITOR_MEDIAQUERY])
-      .subscribe(state => {
-        // SidenavOpened must be reset true when layout changes
-        this.options.sidenavOpened = true;
+    this.settings.notify.subscribe(options => Object.assign(this.options, options));
 
+    this.layoutChangesSubscription = this.breakpointObserver
+      .observe([MOBILE_MEDIAQUERY, TABLET_MEDIAQUERY, DESKTOP_MEDIAQUERY])
+      .subscribe(state => {
         this.isMobileScreen = state.breakpoints[MOBILE_MEDIAQUERY];
-        // Only force collapse on tablet, otherwise respect default/user setting
+
+        if (this.isMobileScreen) {
+          this.mobileSidenavOpened = false;
+        }
+
+        // Tablet usa a navegação compacta; desktop preserva a preferência persistida.
         if (state.breakpoints[TABLET_MEDIAQUERY]) {
+          this.options.sidenavOpened = true;
           this.options.sidenavCollapsed = true;
         }
-        this.isContentWidthFixed = state.breakpoints[MONITOR_MEDIAQUERY];
+
+        this.isContentWidthFixed = state.breakpoints[DESKTOP_MEDIAQUERY];
       });
 
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(e => {
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       if (this.isOver) {
-        this.sidenav.close();
+        this.mobileSidenavOpened = false;
       }
       this.content.scrollTo({ top: 0 });
     });
@@ -114,52 +118,59 @@ export class AdminLayout implements OnDestroy {
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
+    if (this.hoverTimer) {
+      clearTimeout(this.hoverTimer);
+    }
   }
 
   toggleCollapsed() {
-    this.isHovering = false; // Reset hovering state if user manually toggles
+    this.isHovering = false;
     this.isContentWidthFixed = false;
     this.options.sidenavCollapsed = !this.options.sidenavCollapsed;
     this.resetCollapsedState();
   }
 
   onMouseEnter() {
-    // Only expand on hover if it's currently collapsed and NOT in mobile mode
     if (this.options.sidenavCollapsed && !this.isOver) {
-      clearTimeout(this.hoverTimer);
+      if (this.hoverTimer) {
+        clearTimeout(this.hoverTimer);
+      }
       this.hoverTimer = setTimeout(() => {
         this.isHovering = true;
         this.options.sidenavCollapsed = false;
         this.settings.setOptions(this.options);
-      }, 150); // Intent delay to avoid accidental expansion
+      }, 150);
     }
   }
 
   onMouseLeave() {
-    // Only collapse back if it was expanded via hover
     if (this.isHovering && !this.isOver) {
-      clearTimeout(this.hoverTimer);
+      if (this.hoverTimer) {
+        clearTimeout(this.hoverTimer);
+      }
       this.hoverTimer = setTimeout(() => {
         this.isHovering = false;
         this.options.sidenavCollapsed = true;
         this.settings.setOptions(this.options);
-      }, 200); // Leave delay buffer
+      }, 200);
     }
   }
 
   onSidenavToggle() {
     if (this.isOver) {
-      this.sidenav.toggle();
-    } else {
-      this.toggleCollapsed();
+      this.mobileSidenavOpened = !this.mobileSidenavOpened;
+      return;
     }
+
+    this.toggleCollapsed();
   }
 
-  // TODO: Trigger when transition end
+  closeMobileSidenav() {
+    this.mobileSidenavOpened = false;
+  }
+
   resetCollapsedState(timer = 400) {
-    setTimeout(() => {
-      this.settings.setOptions(this.options);
-    }, timer);
+    setTimeout(() => this.settings.setOptions(this.options), timer);
   }
 
   onSidenavClosedStart() {
@@ -167,7 +178,12 @@ export class AdminLayout implements OnDestroy {
   }
 
   onSidenavOpenedChange(isOpened: boolean) {
-    this.isCollapsedWidthFixed = !this.isOver;
+    if (this.isOver) {
+      this.mobileSidenavOpened = isOpened;
+      return;
+    }
+
+    this.isCollapsedWidthFixed = true;
     this.options.sidenavOpened = isOpened;
     this.settings.setOptions(this.options);
   }

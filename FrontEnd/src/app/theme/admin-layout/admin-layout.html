@@ -1,6 +1,8 @@
+<a class="nt-skip-link" href="#main-content">Pular para o conteúdo principal</a>
+
 <div
   class="matero-container-wrap"
-  [class.matero-sidenav-collapsed]="options.sidenavCollapsed && options.navPos !== 'top'"
+  [class.matero-sidenav-collapsed]="options.sidenavCollapsed && !isOver && options.navPos !== 'top'"
   [class.matero-navbar-side]="options.navPos === 'side'"
   [class.matero-navbar-top]="options.navPos === 'top'"
   [class.matero-header-above]="options.headerPos === 'above'"
@@ -18,12 +20,12 @@
     />
   }
 
-  <mat-sidenav-container class="matero-container" autosize autoFocus>
+  <mat-sidenav-container class="matero-container" autosize>
     <mat-sidenav
       #sidenav
       class="matero-sidenav transition-colors duration-200 {{options.menuThemeClass || '!bg-[var(--p-surface-0)] dark:!bg-[var(--p-surface-900)]'}}"
       [mode]="isOver ? 'over' : 'side'"
-      [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver"
+      [opened]="options.navPos === 'side' && (isOver ? mobileSidenavOpened : options.sidenavOpened)"
       (openedChange)="onSidenavOpenedChange($event)"
       (closedStart)="onSidenavClosedStart()"
       (mouseenter)="onMouseEnter()"
@@ -32,10 +34,10 @@
       <app-sidebar
         [showToggle]="!isOver"
         [showUser]="false"
-        [showHeader]="false"
-        [toggleChecked]="options.sidenavCollapsed"
+        [showHeader]="isOver"
+        [toggleChecked]="isOver ? false : options.sidenavCollapsed"
         (toggleCollapsed)="toggleCollapsed()"
-        (closeSidenav)="sidenav.close()"
+        (closeSidenav)="closeMobileSidenav()"
       />
     </mat-sidenav>
 
@@ -59,7 +61,7 @@
 
       <app-breadcrumb />
 
-      <main class="matero-page-content">
+      <main id="main-content" class="matero-page-content" tabindex="-1">
         <router-outlet />
       </main>
     </mat-sidenav-content>

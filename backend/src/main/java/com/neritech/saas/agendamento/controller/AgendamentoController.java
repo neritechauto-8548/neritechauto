@@ -12,9 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Controller REST para Agendamento
- */
 @RestController
 @RequestMapping({"/v1/agendamentos","/api/agendamentos"})
 @RequiredArgsConstructor
@@ -23,36 +20,40 @@ public class AgendamentoController {
     private final AgendamentoService service;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
+    @PreAuthorize("hasAuthority('GERAL_AGENDAMENTO_EDITAR')")
     public ResponseEntity<AgendamentoResponse> criar(@Valid @RequestBody AgendamentoRequest request) {
-        AgendamentoResponse response = service.criar(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
+    public ResponseEntity<List<AgendamentoResponse>> listar() {
+        return ResponseEntity.ok(service.listarAtual());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
+    @PreAuthorize("hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
     public ResponseEntity<AgendamentoResponse> buscarPorId(@PathVariable Long id) {
-        AgendamentoResponse response = service.buscarPorId(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
+    /** Compatibilidade: o empresaId do path é comparado ao TenantContext e nunca concede acesso. */
     @GetMapping("/empresa/{empresaId}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
+    @PreAuthorize("hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
     public ResponseEntity<List<AgendamentoResponse>> listarPorEmpresa(@PathVariable Long empresaId) {
-        List<AgendamentoResponse> responses = service.listarPorEmpresa(empresaId);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(service.listarPorEmpresa(empresaId));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_EDITAR')")
-    public ResponseEntity<AgendamentoResponse> atualizar(@PathVariable Long id,
+    @PreAuthorize("hasAuthority('GERAL_AGENDAMENTO_EDITAR')")
+    public ResponseEntity<AgendamentoResponse> atualizar(
+            @PathVariable Long id,
             @Valid @RequestBody AgendamentoRequest request) {
-        AgendamentoResponse response = service.atualizar(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_EDITAR')")
+    @PreAuthorize("hasAuthority('GERAL_AGENDAMENTO_EDITAR')")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deletar(id);
         return ResponseEntity.noContent().build();
