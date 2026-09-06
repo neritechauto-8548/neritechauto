@@ -15,7 +15,7 @@ const placeholder = (title: string, description: string) => ({
 });
 
 const protectedPlaceholder = (title: string, description: string, permissions: string | string[]) => ({
-  loadComponent: () => import('./routes/system/module-placeholder').then(m => m.ModulePlaceholder),
+  loadComponent: () => import('./routes/system/module-workspace').then(m => m.ModuleWorkspace),
   canActivate: [permissionGuard],
   data: { title, description, permissions },
 });
