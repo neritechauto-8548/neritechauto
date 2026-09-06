@@ -34,7 +34,7 @@ export const routes: Routes = [
       { path: '404', component: Error404, data: { title: 'Página não encontrada' } },
       { path: '500', component: Error500, data: { title: 'Erro inesperado' } },
 
-      { path: 'gestao-patio', ...protectedPlaceholder('Gestão de Pátio', 'A experiência de pátio será conectada à aplicação interna sem alterar a árvore oficial de navegação.', 'GERAL_USUARIO') },
+      { path: 'gestao-patio', loadComponent: () => import('./routes/patio/patio').then(m => m.PatioComponent), canActivate: [permissionGuard], data: { title: 'Gestão de Pátio', permissions: ['GERAL_USUARIO'] } },
 
       { path: 'clientes', canActivate: [permissionGuard], data: { permissions: ['GERAL_USUARIO'], title: 'Clientes' }, loadChildren: () => import('./routes/cliente/cliente.routes').then(m => m.routes) },
       { path: 'cliente', canActivate: [permissionGuard], data: { permissions: ['GERAL_USUARIO'], title: 'Clientes' }, loadChildren: () => import('./routes/cliente/cliente.routes').then(m => m.routes) },
