@@ -175,11 +175,11 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   get canSeeCost() {
-    return Boolean(this.composition?.commercialPermissions.canSeeCost);
+    return Boolean(this.composition?.commercialPermissions.canViewCost);
   }
 
   get canSeeMargin() {
-    return Boolean(this.composition?.commercialPermissions.canSeeMargin);
+    return Boolean(this.composition?.commercialPermissions.canViewCost);
   }
 
   get disableReorder() {
@@ -187,13 +187,17 @@ export class ItensOrcamentoComponent implements OnInit {
   }
 
   get pendingApprovalLines() {
-    return this.composition?.groups
-      .flatMap(group => group.lines)
-      .filter(line => line.discountAuthorityStatus === 'PENDING_APPROVAL') ?? [];
+    return (
+      this.composition?.groups
+        .flatMap(group => group.lines)
+        .filter(line => line.discountAuthorityStatus === 'PENDING_APPROVAL') ?? []
+    );
   }
 
   get visibleToCustomerCount() {
-    return this.composition?.groups.filter(group => group.visibility === 'CUSTOMER_VISIBLE').length ?? 0;
+    return (
+      this.composition?.groups.filter(group => group.visibility === 'CUSTOMER_VISIBLE').length ?? 0
+    );
   }
 
   load() {

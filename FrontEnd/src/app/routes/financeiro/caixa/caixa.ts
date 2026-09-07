@@ -6,7 +6,6 @@ import { FinanceiroService } from '../financeiro.service';
 import { DepartamentoService } from '../../configuracoes/departamentos/departamento.service';
 import { AuthService } from '../../../core/authentication/auth.service';
 import { EmpresaService } from '../../configuracoes/empresa/services/empresa.service';
-import { LocalStorageService } from '@shared/services/storage.service';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -54,7 +53,6 @@ export class CaixaComponent implements OnInit {
   private readonly confirmService = inject(ConfirmationService);
   private readonly authService = inject(AuthService);
   private readonly empresaService = inject(EmpresaService);
-  private readonly storage = inject(LocalStorageService);
   private readonly relatoriosService = inject(RelatoriosService);
 
   // ─── Estado ───────────────────────────────────────────────
@@ -312,7 +310,7 @@ export class CaixaComponent implements OnInit {
 
     this.finService.listFluxoCaixa(params).subscribe({
       next: (resp) => {
-        let content = resp?.content || [];
+        const content = resp?.content || [];
 
         // Ordena ascendente (do mais antigo pro mais novo) para calcular saldo progressivo
         content.sort((a: any, b: any) => {
@@ -335,7 +333,7 @@ export class CaixaComponent implements OnInit {
           if (tipo === 'ENTRADA') entrada = valor;
           if (tipo === 'SAIDA') saida = valor;
 
-          let saldoLinha = entrada - saida;
+          const saldoLinha = entrada - saida;
 
           const fmtDate = (d: string) => {
             if (!d) return '';
@@ -459,14 +457,17 @@ export class CaixaComponent implements OnInit {
   }
 
   private carregarEmpresaEUsuario() {
-    let tenantId = this.storage.get('tenantId');
-    if (!tenantId || (typeof tenantId === 'object' && Object.keys(tenantId).length === 0)) {
-      tenantId = this.storage.get('empresaId');
+    const id = Number(this.authService.snapshot().empresaId);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Empresa indisponível',
+        detail: 'Não foi possível carregar os dados cadastrais da empresa nesta sessão.',
+      });
+      this.carregarUsuarioAtual();
+      return;
     }
-    if (tenantId && typeof tenantId === 'object' && (tenantId as any).id) {
-      tenantId = (tenantId as any).id;
-    }
-    const id = Number(tenantId || 1);
 
     this.empresaService.getEmpresa(id).subscribe({
       next: (emp) => {
@@ -484,6 +485,10 @@ export class CaixaComponent implements OnInit {
       }
     });
 
+    this.carregarUsuarioAtual();
+  }
+
+  private carregarUsuarioAtual() {
     this.authService.user().subscribe({
       next: (u) => {
         this.usuarioAtual = u.name || '';

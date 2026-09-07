@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-interface Page<T> {
+export interface Page<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
@@ -16,6 +16,30 @@ interface Pageable {
   sort?: string[] | string;
 }
 
+export interface LookupFinanceiro {
+  id: number;
+  nome?: string;
+  descricao?: string;
+  bancoNome?: string;
+  agencia?: string;
+  conta?: string;
+  [key: string]: unknown;
+}
+
+export interface MovimentacaoCaixaResponse {
+  id: number;
+  dataMovimento: string;
+  descricao: string;
+  tipoMovimentacao: 'ENTRADA' | 'SAIDA' | 'TRANSFERENCIA';
+  valor: number;
+  saldoAcumulado?: number | null;
+  contaBancariaNome?: string;
+  centroCustoNome?: string;
+  dataVencimento?: string;
+  dataPagamento?: string;
+  formaPagamentoNome?: string;
+}
+
 import { environment } from '../../../environments/environment';
 import {
   ContasPagarRequest,
@@ -23,7 +47,7 @@ import {
   ContasReceberRequest,
   ContasReceberResponse,
   DashboardFinanceiroDTO,
-  AnexoTituloDTO
+  AnexoTituloDTO,
 } from './models/financeiro.models';
 
 @Injectable({
@@ -41,7 +65,7 @@ export class FinanceiroService {
   // --- Contas a Pagar ---
 
   listPagar(query: Pageable): Observable<Page<ContasPagarResponse>> {
-    let params = this.pageableParams(query);
+    const params = this.pageableParams(query);
     return this.http.get<Page<ContasPagarResponse>>(this.API_URL_PAGAR, { params });
   }
 
@@ -63,26 +87,32 @@ export class FinanceiroService {
 
   // --- Contas a Receber ---
 
-  listReceber(query: {
-    termo?: string;
-    dataInicio?: string;
-    dataFim?: string;
-    status?: string;
-    contaBancariaId?: number;
-    centroCustoId?: number;
-    planoContasId?: number;
-    formaPagamentoId?: number;
-  } & Pageable): Observable<Page<ContasReceberResponse>> {
+  listReceber(
+    query: {
+      termo?: string;
+      dataInicio?: string;
+      dataFim?: string;
+      status?: string;
+      contaBancariaId?: number;
+      centroCustoId?: number;
+      planoContasId?: number;
+      formaPagamentoId?: number;
+    } & Pageable
+  ): Observable<Page<ContasReceberResponse>> {
     let params = this.pageableParams(query);
 
     if (query.termo) params = params.set('termo', query.termo);
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
     if (query.status) params = params.set('status', query.status);
-    if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
-    if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
-    if (query.planoContasId != null) params = params.set('planoContasId', String(query.planoContasId));
-    if (query.formaPagamentoId != null) params = params.set('formaPagamentoId', String(query.formaPagamentoId));
+    if (query.contaBancariaId != null)
+      params = params.set('contaBancariaId', String(query.contaBancariaId));
+    if (query.centroCustoId != null)
+      params = params.set('centroCustoId', String(query.centroCustoId));
+    if (query.planoContasId != null)
+      params = params.set('planoContasId', String(query.planoContasId));
+    if (query.formaPagamentoId != null)
+      params = params.set('formaPagamentoId', String(query.formaPagamentoId));
 
     return this.http.get<Page<ContasReceberResponse>>(this.API_URL_RECEBER, { params });
   }
@@ -108,11 +138,17 @@ export class FinanceiroService {
   }
 
   receberTitulo(id: number, request: unknown): Observable<ContasReceberResponse> {
-    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/recebimentos`, request);
+    return this.http.post<ContasReceberResponse>(
+      `${this.API_URL_RECEBER}/${id}/recebimentos`,
+      request
+    );
   }
 
   desfazerQuitacao(id: number): Observable<ContasReceberResponse> {
-    return this.http.post<ContasReceberResponse>(`${this.API_URL_RECEBER}/${id}/desfazer-quitacao`, {});
+    return this.http.post<ContasReceberResponse>(
+      `${this.API_URL_RECEBER}/${id}/desfazer-quitacao`,
+      {}
+    );
   }
 
   renegociarTitulo(id: number, request: unknown): Observable<unknown> {
@@ -133,40 +169,53 @@ export class FinanceiroService {
 
   // --- Auxiliares ---
 
-  listFormasPagamento(): Observable<unknown> {
-    return this.http.get(`${environment.baseUrl}/v1/financeiro/formas-pagamento`);
+  listFormasPagamento(): Observable<Page<LookupFinanceiro>> {
+    return this.http.get<Page<LookupFinanceiro>>(
+      `${environment.baseUrl}/v1/financeiro/formas-pagamento`
+    );
   }
 
-  listCentrosCusto(): Observable<unknown> {
-    return this.http.get(`${environment.baseUrl}/v1/financeiro/centros-custo`);
+  listCentrosCusto(): Observable<Page<LookupFinanceiro>> {
+    return this.http.get<Page<LookupFinanceiro>>(
+      `${environment.baseUrl}/v1/financeiro/centros-custo`
+    );
   }
 
-  listPlanosConta(): Observable<unknown> {
-    return this.http.get(`${environment.baseUrl}/v1/financeiro/plano-contas`);
+  listPlanosConta(): Observable<Page<LookupFinanceiro>> {
+    return this.http.get<Page<LookupFinanceiro>>(
+      `${environment.baseUrl}/v1/financeiro/plano-contas`
+    );
   }
 
-  listContasBancarias(): Observable<unknown> {
-    return this.http.get(`${environment.baseUrl}/v1/financeiro/contas-bancarias`);
+  listContasBancarias(): Observable<Page<LookupFinanceiro>> {
+    return this.http.get<Page<LookupFinanceiro>>(
+      `${environment.baseUrl}/v1/financeiro/contas-bancarias`
+    );
   }
 
   // --- Fluxo de Caixa ---
 
-  listFluxoCaixa(query: {
-    contaBancariaId?: number;
-    centroCustoId?: number;
-    dataInicio?: string;
-    dataFim?: string;
-    includeClosed?: boolean;
-  } & Pageable): Observable<Page<unknown>> {
+  listFluxoCaixa(
+    query: {
+      contaBancariaId?: number;
+      centroCustoId?: number;
+      dataInicio?: string;
+      dataFim?: string;
+      includeClosed?: boolean;
+    } & Pageable
+  ): Observable<Page<MovimentacaoCaixaResponse>> {
     let params = this.pageableParams(query);
 
-    if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
-    if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
+    if (query.contaBancariaId != null)
+      params = params.set('contaBancariaId', String(query.contaBancariaId));
+    if (query.centroCustoId != null)
+      params = params.set('centroCustoId', String(query.centroCustoId));
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
-    if (query.includeClosed != null) params = params.set('includeClosed', String(query.includeClosed));
+    if (query.includeClosed != null)
+      params = params.set('includeClosed', String(query.includeClosed));
 
-    return this.http.get<Page<unknown>>(this.API_URL_FLUXO, { params });
+    return this.http.get<Page<MovimentacaoCaixaResponse>>(this.API_URL_FLUXO, { params });
   }
 
   createFluxoCaixa(request: {
@@ -196,7 +245,9 @@ export class FinanceiroService {
   }
 
   imprimirRelatorioFinanceiro(): Observable<Blob> {
-    return this.http.get(`${environment.baseUrl}/v1/relatorios/financeiro`, { responseType: 'blob' });
+    return this.http.get(`${environment.baseUrl}/v1/relatorios/financeiro`, {
+      responseType: 'blob',
+    });
   }
 
   imprimirContas(query: {
@@ -232,8 +283,10 @@ export class FinanceiroService {
     let params = new HttpParams();
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);
-    if (query.contaBancariaId != null) params = params.set('contaBancariaId', String(query.contaBancariaId));
-    if (query.centroCustoId != null) params = params.set('centroCustoId', String(query.centroCustoId));
+    if (query.contaBancariaId != null)
+      params = params.set('contaBancariaId', String(query.contaBancariaId));
+    if (query.centroCustoId != null)
+      params = params.set('centroCustoId', String(query.centroCustoId));
 
     return this.http.get(`${environment.baseUrl}/v1/relatorios/caixa`, {
       params,
@@ -243,7 +296,9 @@ export class FinanceiroService {
 
   // --- Fechamento de Caixa ---
 
-  listFechamentoCaixa(query: { dataInicio?: string; dataFim?: string } & Pageable): Observable<Page<unknown>> {
+  listFechamentoCaixa(
+    query: { dataInicio?: string; dataFim?: string } & Pageable
+  ): Observable<Page<unknown>> {
     let params = this.pageableParams(query);
     if (query.dataInicio) params = params.set('dataInicio', query.dataInicio);
     if (query.dataFim) params = params.set('dataFim', query.dataFim);

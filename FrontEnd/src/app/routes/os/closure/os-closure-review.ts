@@ -67,11 +67,19 @@ export class OsClosureReview implements OnChanges {
 
   get readinessLabel(): string {
     if (this.loadingReview) return 'Calculando guardas';
-    if (!this.closureReview) return 'Revisão indisponível';
+    if (this.hasPartialSources) return 'Validação parcial';
+    if (!this.closureReview) {
+      return this.executionDone && !this.cockpit?.blocks?.length
+        ? 'Aguardando comando seguro'
+        : 'Pendências operacionais';
+    }
     if (this.closureReview.alreadyCompleted) return 'Concluída operacionalmente';
     if (this.closureReview.readyToComplete) return 'Pronta para conclusão';
-    if (this.hasPartialSources) return 'Validação parcial';
     return 'Pendências operacionais';
+  }
+
+  get expectedCommand(): string {
+    return `/v1/ordens-servico/${this.cockpit?.id ?? ':id'}/complete-operationally`;
   }
 
   get canComplete(): boolean {

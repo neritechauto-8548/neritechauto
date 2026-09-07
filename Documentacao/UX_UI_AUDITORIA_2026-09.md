@@ -61,3 +61,28 @@ deve inventar indicadores, valores financeiros ou eventos.
 3. Fechar pátio, estoque e financeiro.
 4. Fechar PDV, fiscal, agenda, CRM, marketing, relatórios e administração.
 5. Revisar rotas, remover placeholders relevantes, validar build/testes e atualizar este inventário.
+
+## Checkpoint — 2026-09-07
+
+- Removido o `ModulePlaceholder` das rotas de produção.
+- Dashboards Financeiro, Orçamentos e Operacional, além de Checklists,
+  Aprovações, Peças, Faturamento, Histórico, Gráficos, Aniversários e Suporte,
+  agora usam uma superfície canônica responsiva com `PageHeader`, Tabler,
+  acessos reais relacionados e estado explícito de dependência da API.
+- Eliminados CTA genérico e KPIs com traços que sugeriam uma operação conectada.
+- Gestão de Pátio reconstruída sem veículos fictícios; o fluxo de etapas continua
+  visível, mas o quadro informa a indisponibilidade do read model tenant-safe.
+- Corrigida corrupção estrutural em `patio.ts`, que continha uma cópia indevida
+  das rotas da aplicação após o componente.
+- Corrigidos contratos TypeScript que bloqueavam o build em Financeiro,
+  Fornecedores, Orçamento, PDV e Relatórios.
+- Removido fallback inseguro de tenant (`empresaId || 1`) em Contas e Caixa. Os
+  dados da empresa usados em Caixa agora derivam do usuário materializado pela
+  autenticação; sem vínculo válido, a UI entra em estado degradado.
+- `npm run build`: concluído com sucesso em 2026-09-07.
+- `npm test -- --watch=false --browsers=ChromeHeadless`: bundle de testes
+  compilado; execução não iniciou porque o ambiente não possui binário Chrome.
+
+Pendência real: as visões agregadas citadas acima permanecem dependentes dos
+respectivos read models de backend. O frontend não fabrica totais nem registros
+enquanto esses contratos não estiverem disponíveis.

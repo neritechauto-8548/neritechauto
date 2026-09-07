@@ -1,21 +1,241 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { DataViewState, NeriTechIcon, NeriTechIconName, PageHeader } from '@shared';
+
+export interface ModuleWorkspaceLink {
+  title: string;
+  description: string;
+  route: string;
+  icon: NeriTechIconName;
+  label?: string;
+}
+
+export interface ModuleWorkspaceData {
+  title: string;
+  description: string;
+  eyebrow?: string;
+  statusTitle?: string;
+  statusDescription?: string;
+  links?: ModuleWorkspaceLink[];
+}
+
+/**
+ * Canonical landing surface for capabilities whose aggregate read model is not
+ * available yet. It exposes real connected journeys and an explicit degraded
+ * state instead of fake KPIs, records or enabled actions.
+ */
 @Component({
   standalone: true,
   selector: 'app-module-workspace',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, PageHeader, NeriTechIcon, DataViewState],
   template: `
-    <section class="workspace"><header><div><span class="eyebrow">NeriTech Auto</span><h1>{{ titulo }}</h1><p>{{ descricao }}</p></div><button class="primary" type="button">+ Nova movimentação</button></header>
-      <div class="notice"><strong>Área pronta para operação</strong><span>Os dados serão carregados conforme a API e as permissões da empresa estiverem disponíveis.</span></div>
-      <div class="summary"><article><small>Pendentes</small><strong>—</strong><span>Aguardando dados</span></article><article><small>Em andamento</small><strong>—</strong><span>Aguardando dados</span></article><article><small>Concluídos</small><strong>—</strong><span>Aguardando dados</span></article></div>
-      <div class="panel"><div class="panel-head"><div><h2>Registros</h2><p>Pesquise e acompanhe as movimentações deste módulo.</p></div><input aria-label="Pesquisar registros" placeholder="Pesquisar por nome, código ou status" /></div><div class="empty"><div class="empty-icon">◎</div><h3>Nenhum registro carregado</h3><p>Quando houver dados disponíveis, eles aparecerão aqui com filtros, status e ações.</p><button type="button">Atualizar dados</button></div></div>
-    </section>
+    <main class="workspace" [attr.aria-labelledby]="titleId">
+      <page-header
+        canonical
+        [title]="data.title"
+        [titleId]="titleId"
+        [eyebrow]="data.eyebrow || 'NeriTech Auto'"
+        [description]="data.description"
+      />
+
+      @if (links.length) {
+        <section class="journeys" aria-labelledby="workspace-journeys-title">
+          <div class="section-heading">
+            <div>
+              <h2 id="workspace-journeys-title">Acessos relacionados</h2>
+              <p>Continue por uma etapa já disponível sem perder o contexto da operação.</p>
+            </div>
+          </div>
+
+          <div class="journey-grid">
+            @for (link of links; track link.route) {
+              <a class="journey-card" [routerLink]="link.route">
+                <span class="journey-card__icon"><nt-icon [name]="link.icon" [size]="22" /></span>
+                <span class="journey-card__content">
+                  <strong>{{ link.title }}</strong>
+                  <small>{{ link.description }}</small>
+                </span>
+                <span class="journey-card__action">
+                  {{ link.label || 'Abrir' }}
+                  <nt-icon name="chevron-right" [size]="16" />
+                </span>
+              </a>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="availability" aria-labelledby="workspace-availability-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="workspace-availability-title">Disponibilidade desta visão</h2>
+            <p>O sistema informa com clareza quando uma consolidação ainda depende da API.</p>
+          </div>
+        </div>
+
+        <div class="state-panel">
+          <nt-data-view-state
+            kind="info"
+            icon="database"
+            [title]="data.statusTitle || 'Visão consolidada indisponível'"
+            [description]="data.statusDescription || defaultStatusDescription"
+          />
+        </div>
+      </section>
+    </main>
   `,
-  styles: [`:host{display:block}.workspace{max-width:1500px;margin:auto;padding:24px;color:#172033}header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px}.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#2563eb}h1{font-size:28px;letter-spacing:-.03em;margin:6px 0}p{color:#667085;margin:0}.primary,.empty button{border:1px solid #2563eb;border-radius:8px;background:#2563eb;color:#fff;padding:10px 14px;font-weight:700}.notice{display:flex;gap:8px;align-items:center;padding:13px 16px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;color:#1e40af;font-size:13px;margin-bottom:16px}.notice span{color:#475467}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.summary article,.panel{border:1px solid #e5eaf1;border-radius:12px;background:#fff}.summary article{padding:16px}.summary small,.summary span{display:block;color:#667085;font-size:12px}.summary strong{display:block;font-size:24px;margin:8px 0}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px;border-bottom:1px solid #eef2f6}.panel h2{font-size:16px;margin:0 0 4px}.panel-head input{width:360px;border:1px solid #dbe3ef;border-radius:8px;padding:10px 12px;font:inherit}.empty{text-align:center;padding:64px 20px}.empty-icon{font-size:36px;color:#94a3b8}.empty h3{margin:10px 0 6px}.empty p{margin-bottom:18px}@media(max-width:700px){header,.panel-head,.notice{align-items:flex-start;flex-direction:column}.summary{grid-template-columns:1fr}.panel-head input{width:100%}.primary{width:100%}}`],
+  styles: `
+    :host {
+      display: block;
+    }
+
+    .workspace {
+      display: grid;
+      width: min(100%, 1500px);
+      margin: 0 auto;
+      padding: var(--nt-space-6);
+      gap: var(--nt-space-6);
+      color: var(--nt-text-primary);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--nt-space-4);
+      margin-bottom: var(--nt-space-3);
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 24px;
+    }
+
+    .section-heading p {
+      margin: var(--nt-space-1) 0 0;
+      color: var(--nt-text-secondary);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .journey-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--nt-space-3);
+    }
+
+    .journey-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      min-height: 104px;
+      align-items: center;
+      gap: var(--nt-space-3);
+      padding: var(--nt-space-4);
+      border: 1px solid var(--nt-border-default);
+      border-radius: var(--nt-radius-lg);
+      background: var(--nt-surface-panel);
+      color: inherit;
+      text-decoration: none;
+      transition:
+        border-color 120ms ease,
+        box-shadow 120ms ease,
+        transform 120ms ease;
+    }
+
+    .journey-card:hover {
+      border-color: var(--nt-primary-300);
+      box-shadow: var(--nt-shadow-panel);
+      transform: translateY(-1px);
+    }
+
+    .journey-card:focus-visible {
+      outline: 0;
+      border-color: var(--nt-primary-500);
+      box-shadow: var(--nt-focus-ring);
+    }
+
+    .journey-card__icon {
+      display: inline-flex;
+      width: 42px;
+      height: 42px;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--nt-radius-lg);
+      background: var(--nt-primary-50);
+      color: var(--nt-primary-600);
+    }
+
+    .journey-card__content {
+      display: grid;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .journey-card__content strong {
+      font-size: 14px;
+      line-height: 20px;
+    }
+    .journey-card__content small {
+      color: var(--nt-text-secondary);
+      font-size: 12px;
+      line-height: 17px;
+    }
+
+    .journey-card__action {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--nt-primary-600);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .state-panel {
+      overflow: hidden;
+      border: 1px solid var(--nt-border-default);
+      border-radius: var(--nt-radius-lg);
+      background: var(--nt-surface-panel);
+    }
+
+    @media (max-width: 1100px) {
+      .journey-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 767px) {
+      .workspace {
+        padding: var(--nt-space-4);
+        gap: var(--nt-space-5);
+      }
+      .journey-grid {
+        grid-template-columns: 1fr;
+      }
+      .journey-card {
+        min-height: 96px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .journey-card {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+      .journey-card__action {
+        grid-column: 2;
+      }
+    }
+  `,
 })
 export class ModuleWorkspace {
-  private readonly rota = inject(ActivatedRoute);
-  readonly titulo = String(this.rota.snapshot.data['title'] ?? 'Módulo');
-  readonly descricao = String(this.rota.snapshot.data['description'] ?? 'Acompanhe esta área da oficina.');
+  private readonly route = inject(ActivatedRoute);
+
+  readonly titleId = 'module-workspace-title';
+  readonly defaultStatusDescription =
+    'A API agregadora deste módulo ainda não está disponível. Nenhum indicador ou registro foi estimado no navegador. Use os acessos relacionados para continuar em fluxos já conectados.';
+  readonly data = this.route.snapshot.data as ModuleWorkspaceData;
+  readonly links = this.data.links ?? [];
 }

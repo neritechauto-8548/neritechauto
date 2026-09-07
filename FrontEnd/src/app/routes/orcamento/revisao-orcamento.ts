@@ -1,6 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeader } from '@shared';
 import { SkeletonModule } from 'primeng/skeleton';
 import { forkJoin } from 'rxjs';
@@ -16,7 +16,7 @@ import { OrcamentoListItem, OrcamentoListService } from './orcamento-list.servic
 @Component({
   selector: 'app-revisao-orcamento',
   standalone: true,
-  imports: [CommonModule, RouterLink, PageHeader, SkeletonModule],
+  imports: [CommonModule, PageHeader, SkeletonModule],
   templateUrl: './revisao-orcamento.html',
   styleUrl: './revisao-orcamento.scss',
 })

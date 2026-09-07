@@ -38,8 +38,26 @@ export const routes: Routes = [
       title: 'Aniversários',
       permissions: ['GERAL_USUARIO'],
       description:
-        'A experiência será habilitada quando o read model de aniversariantes e o envio de comunicações estiverem reconciliados sem empresaId controlado pelo navegador.',
+        'Acompanhe aniversariantes e prepare comunicações com uso responsável dos dados do cliente.',
+      eyebrow: 'Agendamentos',
+      links: [
+        {
+          title: 'Clientes',
+          description: 'Consulte dados e preferências de contato cadastradas.',
+          route: '/clientes',
+          icon: 'users',
+        },
+        {
+          title: 'Relatório de aniversariantes',
+          description: 'Acesse a consulta disponível no módulo de relatórios.',
+          route: '/relatorios/relatorio-aniversariantes',
+          icon: 'report-analytics',
+        },
+      ],
+      statusTitle: 'Comunicações aguardando integração segura',
+      statusDescription:
+        'O envio em massa depende do read model tenant-safe, consentimento e canal oficial. Nenhuma mensagem é simulada ou disparada pelo navegador.',
     },
-    loadComponent: () => import('../system/module-placeholder').then(m => m.ModulePlaceholder),
+    loadComponent: () => import('../system/module-workspace').then(m => m.ModuleWorkspace),
   },
 ];
