@@ -37,7 +37,13 @@ export type NeriTechIconName =
   | 'report-analytics'
   | 'car'
   | 'package'
-  | 'settings';
+  | 'settings'
+  | 'eye'
+  | 'eye-off'
+  | 'loader-2'
+  | 'info-circle'
+  | 'link'
+  | 'circle-check';
 
 /**
  * Lightweight Angular 20-compatible wrapper around Tabler-style SVG geometry.
@@ -121,6 +127,12 @@ export type NeriTechIconName =
         @case ('car') { <path d="M5 17H3v-5l2-5h14l2 5v5h-2" /><path d="M5 17h14" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /><path d="M5 12h14" /> }
         @case ('package') { <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" /><path d="m4 7.5 8 4.5 8-4.5M12 12v9" /> }
         @case ('settings') { <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21h-4v-.17a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 8.92 4a1.65 1.65 0 0 0 1-1.51V2h4v.49A1.65 1.65 0 0 0 15 4a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9c.12.61.67 1.04 1.29 1.04H21v4h-.31c-.62 0-1.17.43-1.29 1.04z" /> }
+        @case ('eye') { <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12" /><circle cx="12" cy="12" r="3" /> }
+        @case ('eye-off') { <path d="m3 3 18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-2 2.8M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7a10.7 10.7 0 0 0 5.4-1.4" /> }
+        @case ('loader-2') { <path d="M12 3a9 9 0 1 0 9 9" /> }
+        @case ('info-circle') { <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8v.01" /> }
+        @case ('link') { <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.15 1.15" /><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.15-1.15" /> }
+        @case ('circle-check') { <circle cx="12" cy="12" r="9" /><path d="m9 12 2 2 4-4" /> }
       }
     </svg>
   `,

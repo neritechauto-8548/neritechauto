@@ -60,7 +60,7 @@
           [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
           [attr.aria-pressed]="showPassword"
         >
-          <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" aria-hidden="true"></i>
+          <nt-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18" />
         </button>
       </div>
 
@@ -76,13 +76,13 @@
     </div>
 
     <button type="submit" class="auth-submit" [disabled]="isSubmitting">
-      <i *ngIf="isSubmitting" class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+      <nt-icon *ngIf="isSubmitting" class="auth-spinner" name="loader-2" [size]="18" />
       <span>{{ isSubmitting ? 'Entrando…' : 'Entrar' }}</span>
     </button>
   </form>
 
   <div class="auth-note">
-    <i class="pi pi-shield" aria-hidden="true"></i>
+    <nt-icon name="shield-check" [size]="17" />
     <span>
       O acesso e as permissões são definidos pela sua sessão e pela empresa autorizada no servidor.
     </span>

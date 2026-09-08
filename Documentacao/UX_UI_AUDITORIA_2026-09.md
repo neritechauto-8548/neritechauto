@@ -86,3 +86,11 @@ deve inventar indicadores, valores financeiros ou eventos.
 Pendência real: as visões agregadas citadas acima permanecem dependentes dos
 respectivos read models de backend. O frontend não fabrica totais nem registros
 enquanto esses contratos não estiverem disponíveis.
+
+
+## Checkpoint — 2026-09-08 — Acesso
+
+- Login, recuperação e redefinição de senha foram alinhados ao contrato visual Tabler por meio do `NeriTechIcon` local.
+- Removidos PrimeIcons das telas de autenticação e do shell de acesso, incluindo estados de carregamento, proteção, ajuda, sucesso, link inválido e visibilidade de senha.
+- Preservadas as respostas anti-enumeração de e-mail, bloqueio por tentativas e invalidação de token expirado ou reutilizado.
+- Mantidos alvos de toque de 44 px, foco visível, `aria-busy`, mensagens acessíveis e comportamento responsivo.

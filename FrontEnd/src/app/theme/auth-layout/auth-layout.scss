@@ -146,7 +146,7 @@
   font-size: 14px;
 }
 
-.neritech-auth-benefits i {
+.neritech-auth-benefits .nt-icon {
   color: #93c5fd;
   font-size: 16px;
 }
@@ -402,7 +402,7 @@
   line-height: 1.5;
 }
 
-.auth-note i {
+.auth-note .nt-icon {
   margin-top: 1px;
   color: var(--auth-primary);
 }
@@ -565,9 +565,21 @@
   }
 }
 
+.auth-spinner {
+  animation: auth-spin 800ms linear infinite;
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-input,
   .auth-submit {
     transition: none;
+  }
+
+  .auth-spinner {
+    animation-duration: 1600ms;
   }
 }

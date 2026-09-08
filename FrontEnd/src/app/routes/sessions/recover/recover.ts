@@ -4,6 +4,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LoginService } from '@core/authentication/login.service';
+import { NeriTechIcon } from '@shared';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { finalize } from 'rxjs/operators';
@@ -13,7 +14,7 @@ import { finalize } from 'rxjs/operators';
   templateUrl: './recover.html',
   styleUrl: './recover.scss',
   providers: [MessageService],
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ToastModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ToastModule, NeriTechIcon],
 })
 export class Recover {
   private readonly fb = inject(FormBuilder);

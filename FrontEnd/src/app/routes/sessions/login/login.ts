@@ -7,12 +7,13 @@ import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '@core/authentication';
+import { NeriTechIcon } from '@shared';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
   styleUrl: './login.scss',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, NeriTechIcon],
 })
 export class Login {
   private readonly fb = inject(FormBuilder);

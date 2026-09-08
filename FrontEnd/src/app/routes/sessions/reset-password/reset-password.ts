@@ -12,6 +12,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LoginService } from '@core/authentication/login.service';
 import { HotToastService } from '@ngxpert/hot-toast';
+import { NeriTechIcon } from '@shared';
 import { finalize } from 'rxjs/operators';
 
 export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -25,7 +26,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.scss',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, NeriTechIcon],
 })
 export class ResetPassword implements OnInit {
   private readonly fb = inject(FormBuilder);

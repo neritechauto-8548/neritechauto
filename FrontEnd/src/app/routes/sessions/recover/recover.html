@@ -6,7 +6,7 @@
   </p>
 
   <div *ngIf="emailSent" class="auth-success" role="status" aria-live="polite">
-    <span class="auth-success__icon"><i class="pi pi-check" aria-hidden="true"></i></span>
+    <span class="auth-success__icon"><nt-icon name="check" [size]="22" /></span>
     <h2>Solicitação recebida</h2>
     <p>
       Se o endereço <strong>{{ email.value }}</strong> estiver cadastrado e apto para recuperação,
@@ -48,20 +48,20 @@
     </div>
 
     <button type="submit" class="auth-submit" [disabled]="isSubmitting">
-      <i *ngIf="isSubmitting" class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+      <nt-icon *ngIf="isSubmitting" class="auth-spinner" name="loader-2" [size]="18" />
       <span>{{ isSubmitting ? 'Enviando…' : 'Enviar instruções' }}</span>
     </button>
   </form>
 
   <div *ngIf="!emailSent" class="auth-back">
     <a routerLink="/auth/login" class="auth-link">
-      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      <nt-icon name="arrow-left" [size]="16" />
       Voltar para o login
     </a>
   </div>
 
   <div class="auth-note">
-    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <nt-icon name="info-circle" [size]="17" />
     <span>
       Por segurança, a resposta desta tela não confirma se um e-mail existe na plataforma.
     </span>
