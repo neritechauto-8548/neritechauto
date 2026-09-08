@@ -14,6 +14,7 @@ import { NgxPermissionsModule } from 'ngx-permissions';
 import { AgendamentoService, AgendamentoResponse } from '../agendamento.service';
 import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
+import { NeriTechIcon } from '@shared';
 
 interface MecanicoResumo {
   id: number;
@@ -31,7 +32,7 @@ interface EventoCalendario {
 @Component({
   selector: 'app-calendario-agendamento',
   standalone: true,
-  imports: [CommonModule, FormsModule, DialogModule, ToastModule, ConfirmDialogModule, NgxPermissionsModule],
+  imports: [CommonModule, FormsModule, DialogModule, ToastModule, ConfirmDialogModule, NgxPermissionsModule, NeriTechIcon],
   providers: [MessageService, ConfirmationService],
   templateUrl: './calendario-agendamento.html',
   styleUrls: ['./calendario-agendamento.scss'],
@@ -59,6 +60,8 @@ export class CalendarioAgendamento implements OnInit {
   viewMode: 'mes' | 'semana' | 'dia' = 'mes';
 
   eventos: EventoCalendario[] = [];
+  carregandoEventos = false;
+  erroCarregamento = false;
 
   // Popup de visualização
   mostrarDialogEvento = false;
@@ -107,6 +110,9 @@ export class CalendarioAgendamento implements OnInit {
   }
 
   carregarEventos() {
+    this.carregandoEventos = true;
+    this.erroCarregamento = false;
+
     forkJoin({
       agendamentos: this.agendamentoService.listPorEmpresa(),
       clientes: this.clienteService.list({})
@@ -147,8 +153,13 @@ export class CalendarioAgendamento implements OnInit {
             agendamento: a
           };
         });
+        this.carregandoEventos = false;
       },
-      error: err => console.error('Erro ao carregar agendamentos e clientes', err),
+      error: () => {
+        this.eventos = [];
+        this.carregandoEventos = false;
+        this.erroCarregamento = true;
+      },
     });
   }
 
@@ -345,7 +356,6 @@ export class CalendarioAgendamento implements OnInit {
       acceptLabel: 'Sim, Cancelar',
       rejectLabel: 'Não, Manter',
       acceptButtonStyleClass: 'p-button-danger',
-      icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.agendamentoService.delete(this.eventoSelecionado!.id).subscribe({
           next: () => {

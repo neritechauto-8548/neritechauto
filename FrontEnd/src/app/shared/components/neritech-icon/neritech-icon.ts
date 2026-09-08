@@ -43,7 +43,13 @@ export type NeriTechIconName =
   | 'loader-2'
   | 'info-circle'
   | 'link'
-  | 'circle-check';
+  | 'circle-check'
+  | 'filter'
+  | 'user'
+  | 'clock'
+  | 'send'
+  | 'briefcase'
+  | 'calendar-off';
 
 /**
  * Lightweight Angular 20-compatible wrapper around Tabler-style SVG geometry.
@@ -133,6 +139,12 @@ export type NeriTechIconName =
         @case ('info-circle') { <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8v.01" /> }
         @case ('link') { <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.15 1.15" /><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.15-1.15" /> }
         @case ('circle-check') { <circle cx="12" cy="12" r="9" /><path d="m9 12 2 2 4-4" /> }
+        @case ('filter') { <path d="M4 4h16l-6 7v6l-4 2v-8z" /> }
+        @case ('user') { <circle cx="12" cy="8" r="4" /><path d="M6 21v-2a6 6 0 0 1 12 0v2" /> }
+        @case ('clock') { <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /> }
+        @case ('send') { <path d="m22 2-7 20-4-9-9-4z" /><path d="M22 2 11 13" /> }
+        @case ('briefcase') { <rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /> }
+        @case ('calendar-off') { <path d="m3 3 18 18" /><path d="M8 3v4M16 3v4M4 11h7M15 11h5" /><path d="M5 5a2 2 0 0 0-1 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 1.7-1" /><path d="M20 15V7a2 2 0 0 0-2-2H9" /> }
       }
     </svg>
   `,

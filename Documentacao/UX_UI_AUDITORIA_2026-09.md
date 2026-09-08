@@ -118,3 +118,11 @@ enquanto esses contratos não estiverem disponíveis.
 - `ComunicacaoService` deixou de ler ou sobrescrever autoridade de empresa pelo `localStorage`.
 - Requisições de mecânicos e comunicações agora dependem da sessão/interceptor e da autorização final do backend.
 - A comunicação não recebe mais `empresaId` no payload; isso reduz risco de cross-tenant por manipulação do navegador.
+
+
+## Checkpoint — 2026-09-08 — Calendário
+
+- Calendário da oficina migrou de PrimeIcons para o wrapper Tabler oficial da NeriTech.
+- Adicionados estados acessíveis de carregamento e falha com nova tentativa real, sem apagar dados silenciosamente.
+- Ações de navegação, filtro, criação, cancelamento, geração de OS e edição preservam rótulo textual e alvo de toque.
+- Removido PrimeIcon do diálogo de confirmação e mantida a grade responsiva de mês, semana e dia.
