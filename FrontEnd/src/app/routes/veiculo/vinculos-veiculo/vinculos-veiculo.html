@@ -1,0 +1,172 @@
+<section class="vehicle-links" aria-labelledby="vehicle-links-title">
+  @if (loading) {
+    <div class="links-skeleton" role="status" aria-live="polite">
+      <span class="sr-only">Carregando vínculos do veículo…</span>
+      <div class="links-skeleton__header"></div>
+      <div class="links-skeleton__layout">
+        <div class="links-skeleton__main"></div>
+        <div class="links-skeleton__aside"></div>
+      </div>
+    </div>
+  } @else if (fatalError || !vehicle) {
+    <div class="links-fatal" role="alert">
+      <span class="links-fatal__icon"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i></span>
+      <h1 id="vehicle-links-title">Vínculos indisponíveis</h1>
+      <p>Não foi possível carregar este veículo no contexto autenticado.</p>
+      <div class="links-fatal__actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">Voltar para veículos</button>
+        <button type="button" class="nt-button nt-button--primary" (click)="retry()">Tentar novamente</button>
+      </div>
+    </div>
+  } @else {
+    <page-header
+      [canonical]="true"
+      eyebrow="Passaporte · Vínculos"
+      [title]="plateLabel"
+      [description]="vehicleName + ' · ' + vehicleStatusLabel"
+      [hideBreadcrumb]="true"
+      titleId="vehicle-links-title"
+    >
+      <div pageHeaderMeta class="links-meta">
+        <span class="nt-badge" [class.nt-badge--success]="hasCurrentLink" [class.nt-badge--neutral]="!hasCurrentLink">
+          {{ hasCurrentLink ? 'Vínculo cadastral vigente' : 'Sem responsável vigente' }}
+        </span>
+        @if (isVehicleInactive) {
+          <span class="nt-badge nt-badge--neutral">Veículo inativo</span>
+        }
+      </div>
+
+      <div pageHeaderActions class="links-header-actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="backToList()">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>Veículos
+        </button>
+        <button type="button" class="nt-button nt-button--primary" (click)="backToPassport()">
+          <i class="pi pi-id-card" aria-hidden="true"></i>Passaporte
+        </button>
+      </div>
+    </page-header>
+
+    <div class="links-contract-alert" role="status">
+      <i class="pi pi-shield" aria-hidden="true"></i>
+      <div>
+        <strong>Livro-razão temporal em implantação segura</strong>
+        <span>Esta visão usa apenas o vínculo cadastral vigente. Histórico, datas efetivas, ator e motivo não serão inferidos enquanto o contrato transacional não existir.</span>
+      </div>
+    </div>
+
+    <main class="links-layout">
+      <div class="links-main-column">
+        <article class="links-card links-card--current">
+          <header class="links-card__header">
+            <div>
+              <span class="links-card__eyebrow">Vínculo atual</span>
+              <h2>{{ hasCurrentLink ? customerName : 'Nenhum responsável vigente' }}</h2>
+              <p>Snapshot do cadastro canônico do veículo, sem reatribuir documentos históricos.</p>
+            </div>
+            <span class="links-card__icon"><i class="pi pi-link" aria-hidden="true"></i></span>
+          </header>
+
+          @if (hasCurrentLink && !customerFailed) {
+            <dl class="links-current-grid">
+              <div><dt>Responsável</dt><dd>{{ customerName }}</dd></div>
+              <div><dt>Tipo cadastral</dt><dd>{{ customerTypeLabel }}</dd></div>
+              <div><dt>Documento</dt><dd>{{ currentCustomer?.maskedTaxId || 'Protegido' }}</dd></div>
+              <div><dt>Status</dt><dd>{{ customerStatusLabel }}</dd></div>
+              <div><dt>Início efetivo</dt><dd>Não disponível</dd></div>
+              <div><dt>Origem / ator</dt><dd>Contrato temporal pendente</dd></div>
+            </dl>
+            <div class="links-current-actions">
+              <button type="button" class="links-customer-link" (click)="openCustomer()">
+                <i class="pi pi-user" aria-hidden="true"></i>Abrir cliente atual
+              </button>
+            </div>
+          } @else if (hasCurrentLink && customerFailed) {
+            <div class="links-inline-error" role="status">
+              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              <div>
+                <strong>Resumo do cliente temporariamente indisponível</strong>
+                <span>O vínculo cadastral continua registrado, mas os dados minimizados não foram substituídos por informações simuladas.</span>
+              </div>
+              <button type="button" class="nt-button nt-button--secondary" [disabled]="customerLoading" (click)="retryCustomer()">
+                {{ customerLoading ? 'Tentando…' : 'Tentar novamente' }}
+              </button>
+            </div>
+          } @else {
+            <div class="links-empty-current">
+              <i class="pi pi-user-minus" aria-hidden="true"></i>
+              <div>
+                <strong>Veículo sem responsável cadastral</strong>
+                <span>A ausência atual não prova que nunca houve vínculos anteriores. A timeline permanece pendente até existir fonte autoritativa.</span>
+              </div>
+            </div>
+          }
+
+          <footer class="links-card__footer">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            <span>A alteração de vínculo ficará indisponível até haver troca atômica, idempotência, auditoria e validação tenant-safe no backend.</span>
+          </footer>
+        </article>
+
+        <section class="links-card links-card--timeline" aria-labelledby="links-timeline-title">
+          <header class="links-card__header">
+            <div>
+              <span class="links-card__eyebrow">Linha do tempo</span>
+              <h2 id="links-timeline-title">Histórico de responsabilidade</h2>
+              <p>A ordem reversa futura distinguirá vínculo vigente, encerrado e intervalos sem responsável.</p>
+            </div>
+            <span class="links-card__icon"><i class="pi pi-history" aria-hidden="true"></i></span>
+          </header>
+
+          <div class="links-timeline-pending">
+            <span class="links-timeline-pending__rail" aria-hidden="true"><i class="pi pi-clock"></i></span>
+            <div>
+              <strong>Timeline não disponível — não significa histórico vazio</strong>
+              <p>O backend ainda não expõe início, fim, tipo, motivo, origem, ator, versão ou cursor de paginação. Nenhum desses campos foi reconstruído a partir de logs ou documentos desconectados.</p>
+              <ul>
+                <li>Trocas futuras não poderão reatribuir OS, orçamentos ou inspeções concluídas.</li>
+                <li>Vínculos de outro tenant serão rejeitados sem revelar a existência do registro.</li>
+                <li>Correções gerarão nova evidência; registros anteriores não serão apagados.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="links-side-column" aria-label="Contexto e integridade dos vínculos">
+        <article class="links-card links-card--integrity">
+          <header class="links-card__header">
+            <div><span class="links-card__eyebrow">Integridade histórica</span><h2>Garantias necessárias</h2></div>
+            <span class="links-card__icon"><i class="pi pi-check-circle" aria-hidden="true"></i></span>
+          </header>
+          <ul class="links-checklist">
+            <li><i class="pi pi-check" aria-hidden="true"></i><span><strong>Mesmo tenant</strong><small>Autoridade derivada da autenticação no backend.</small></span></li>
+            <li><i class="pi pi-check" aria-hidden="true"></i><span><strong>Um principal vigente</strong><small>Sem períodos incompatíveis ou sobrepostos.</small></span></li>
+            <li><i class="pi pi-check" aria-hidden="true"></i><span><strong>Passado imutável</strong><small>Snapshots operacionais e fiscais permanecem no fato original.</small></span></li>
+            <li><i class="pi pi-check" aria-hidden="true"></i><span><strong>Mutação auditável</strong><small>Motivo, ator, instante, versão e correlação obrigatórios.</small></span></li>
+          </ul>
+        </article>
+
+        <article class="links-card links-card--contract">
+          <header class="links-card__header">
+            <div><span class="links-card__eyebrow">Contrato pendente</span><h2>O que falta para habilitar ações</h2></div>
+            <span class="links-card__icon"><i class="pi pi-code" aria-hidden="true"></i></span>
+          </header>
+          <ol class="links-contract-list">
+            <li><span>01</span><div><strong>Schema temporal</strong><small>Entidade, intervalos, índices e unicidade tenant-safe.</small></div></li>
+            <li><span>02</span><div><strong>Leitura paginada</strong><small>Vínculo vigente e timeline com DTOs minimizados.</small></div></li>
+            <li><span>03</span><div><strong>Troca atômica</strong><small>Idempotency-Key, versão otimista e rollback integral.</small></div></li>
+            <li><span>04</span><div><strong>Permissões reconciliadas</strong><small>Mapeamento formal, sem inventar códigos no frontend.</small></div></li>
+          </ol>
+        </article>
+
+        <article class="links-tenant-card">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <div>
+            <strong>Tenant não vem do navegador</strong>
+            <span>Query params, localStorage e headers do cliente não concedem acesso a outro tenant.</span>
+          </div>
+        </article>
+      </aside>
+    </main>
+  }
+</section>

@@ -295,10 +295,9 @@ export class ContasComponent implements OnInit {
 
   carregarDados() {
       this.loading = true;
-      const empresaId = this.service['getTenantId']() || 1;
       forkJoin({
-          pagar: this.service.listPagar({ empresaId, page: 0, size: 100 }),
-          receber: this.service.listReceber({ empresaId, page: 0, size: 100 })
+          pagar: this.service.listPagar({ page: 0, size: 100 }),
+          receber: this.service.listReceber({ page: 0, size: 100 })
       }).subscribe({
           next: ({ pagar, receber }) => {
               const listaPagar: UnifiedRow[] = pagar.content.map((p: ContasPagarResponse) => ({

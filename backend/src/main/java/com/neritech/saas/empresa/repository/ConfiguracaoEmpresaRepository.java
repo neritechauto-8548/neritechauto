@@ -11,8 +11,9 @@ import java.util.Optional;
 public interface ConfiguracaoEmpresaRepository
         extends JpaRepository<ConfiguracaoEmpresa, Long>, JpaSpecificationExecutor<ConfiguracaoEmpresa> {
 
+    Optional<ConfiguracaoEmpresa> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Optional<ConfiguracaoEmpresa> findByEmpresaId(Long empresaId);
 
     boolean existsByEmpresaId(Long empresaId);
 }
-

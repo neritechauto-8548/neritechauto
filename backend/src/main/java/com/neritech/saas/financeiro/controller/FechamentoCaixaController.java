@@ -12,7 +12,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
@@ -26,51 +35,49 @@ public class FechamentoCaixaController {
     private final UsuarioService usuarioService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('FIN_VIS_CAIXA')")
     @Operation(summary = "Listar fechamentos de caixa")
     public ResponseEntity<Page<FechamentoCaixaResponse>> findAll(
-            @RequestParam(required = false) Long empresaId,
             @RequestParam(required = false) LocalDate dataInicio,
             @RequestParam(required = false) LocalDate dataFim,
             Pageable pageable) {
-        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        return ResponseEntity.ok(service.findAll(empresa, dataInicio, dataFim, pageable));
+        return ResponseEntity.ok(service.findAll(currentEmpresaId(), dataInicio, dataFim, pageable));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('FIN_VIS_CAIXA')")
     @Operation(summary = "Buscar fechamento por ID")
-    public ResponseEntity<FechamentoCaixaResponse> findById(
-            @PathVariable Long id,
-            @RequestParam(required = false) Long empresaId) {
-        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        return ResponseEntity.ok(service.findById(id, empresa));
+    public ResponseEntity<FechamentoCaixaResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findById(id, currentEmpresaId()));
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('FIN_FECHAMENTO')")
     @Operation(summary = "Criar fechamento de caixa")
     public ResponseEntity<FechamentoCaixaResponse> create(
-            @RequestParam(required = false) Long empresaId,
             @Valid @RequestBody FechamentoCaixaRequest request) {
-        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(empresa, request));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.create(currentEmpresaId(), request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('FIN_FECHAMENTO')")
     @Operation(summary = "Atualizar fechamento de caixa")
     public ResponseEntity<FechamentoCaixaResponse> update(
             @PathVariable Long id,
-            @RequestParam(required = false) Long empresaId,
             @Valid @RequestBody FechamentoCaixaRequest request) {
-        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        return ResponseEntity.ok(service.update(id, empresa, request));
+        return ResponseEntity.ok(service.update(id, currentEmpresaId(), request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('FIN_FECHAMENTO')")
     @Operation(summary = "Excluir fechamento de caixa")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id,
-            @RequestParam(required = false) Long empresaId) {
-        Long empresa = empresaId != null ? empresaId : usuarioService.getCurrentUser().getEmpresaId();
-        service.delete(id, empresa);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id, currentEmpresaId());
         return ResponseEntity.noContent().build();
+    }
+
+    private Long currentEmpresaId() {
+        return usuarioService.getCurrentUser().getEmpresaId();
     }
 }

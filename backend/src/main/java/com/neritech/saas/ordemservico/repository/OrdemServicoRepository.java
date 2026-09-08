@@ -5,9 +5,21 @@ import com.neritech.saas.ordemservico.domain.enums.TipoOS;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 
 public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long> {
     java.util.Optional<OrdemServico> findByIdAndEmpresaId(Long id, Long empresaId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT o FROM OrdemServico o
+            WHERE o.id = :id AND o.empresaId = :empresaId AND o.tipoOS = :tipo
+            """)
+    java.util.Optional<OrdemServico> findBudgetForCompositionUpdate(
+            @org.springframework.data.repository.query.Param("id") Long id,
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("tipo") TipoOS tipo);
 
     Page<OrdemServico> findByEmpresaId(Long empresaId, Pageable pageable);
 
@@ -28,6 +40,40 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
     Page<OrdemServico> findByEmpresaIdAndTiposIn(
             @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
             @org.springframework.data.repository.query.Param("tipos") java.util.List<TipoOS> tipos,
+            Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT o FROM OrdemServico o
+            LEFT JOIN o.status s
+            WHERE o.empresaId = :empresaId
+              AND o.tipoOS = :tipo
+              AND (:status IS NULL OR UPPER(COALESCE(s.codigo, 'RASCUNHO')) = :status)
+              AND (
+                    :search IS NULL
+                    OR LOWER(o.numeroOS) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR REPLACE(REPLACE(LOWER(o.numeroOS), '-', ''), ' ', '') LIKE CONCAT('%', :normalizedSearch, '%')
+                    OR o.clienteId IN (
+                        SELECT c.id FROM Cliente c
+                        WHERE c.empresaId = :empresaId
+                          AND (
+                            LOWER(c.nomeCompleto) LIKE LOWER(CONCAT('%', :search, '%'))
+                            OR LOWER(c.nomeFantasia) LIKE LOWER(CONCAT('%', :search, '%'))
+                            OR LOWER(c.razaoSocial) LIKE LOWER(CONCAT('%', :search, '%'))
+                          )
+                    )
+                    OR o.veiculoId IN (
+                        SELECT v.id FROM Veiculo v
+                        WHERE v.empresaId = :empresaId
+                          AND REPLACE(REPLACE(LOWER(v.placa), '-', ''), ' ', '') LIKE CONCAT('%', :normalizedSearch, '%')
+                    )
+              )
+            """)
+    Page<OrdemServico> searchBudgets(
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("tipo") TipoOS tipo,
+            @org.springframework.data.repository.query.Param("status") String status,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("normalizedSearch") String normalizedSearch,
             Pageable pageable);
 
     Page<OrdemServico> findByClienteId(Long clienteId, Pageable pageable);

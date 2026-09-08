@@ -12,20 +12,53 @@ import {
   ContatoClienteRequest,
   ContatoClienteResponse,
   DocumentoClienteRequest,
-  DocumentoClienteResponse
+  DocumentoClienteResponse,
+  OrigemCliente,
+  StatusCliente,
+  TipoCliente,
+  TipoContato
 } from '../models/cliente.models';
+
+export interface ClienteListResponseDTO {
+  id: number;
+  displayName: string;
+  type: TipoCliente;
+  maskedTaxId?: string | null;
+  primaryContactSummary?: string | null;
+  status: StatusCliente;
+}
+
+export interface ClienteDetailResponseDTO {
+  id: number;
+  displayName: string;
+  type: TipoCliente;
+  status: StatusCliente;
+  maskedTaxId?: string | null;
+  maskedEmail?: string | null;
+  origin?: OrigemCliente | null;
+  hasRelationshipNotes: boolean;
+}
+
+export interface ContatoClienteSummaryDTO {
+  id: number;
+  tipoContato: TipoContato;
+  maskedValue: string;
+  principal: boolean;
+}
+
+export interface EnderecoClienteSummaryDTO {
+  id: number;
+  locationSummary: string;
+  maskedPostalCode: string;
+  country: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.baseUrl;
 
-  // Headers são gerenciados pelos interceptors (tenant-interceptor e token-interceptor)
-  // Não precisamos adicionar manualmente X-Tenant-Id e Authorization
-
-  // ========== CLIENTES ==========
-
-  list(filters: Record<string, any>): Observable<Page<ClienteResponse>> {
+  list(filters: Record<string, any>): Observable<Page<ClienteListResponseDTO>> {
     const url = `${this.base}/v1/clientes`;
     let params = new HttpParams();
     Object.entries(filters || {}).forEach(([k, v]) => {
@@ -36,47 +69,69 @@ export class ClientesService {
     return this.http.get<any>(url, { params }).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
-  create(dto: ClienteRequest): Observable<ClienteResponse> {
-    const url = `${this.base}/v1/clientes`;
-    return this.http.post<ClienteResponse>(url, dto);
+  getSummary(id: number | string): Observable<ClienteDetailResponseDTO> {
+    return this.http.get<ClienteDetailResponseDTO>(`${this.base}/v1/clientes/${id}/resumo`);
   }
 
+  listContactSummaries(clienteId: number | string): Observable<Page<ContatoClienteSummaryDTO>> {
+    return this.http.get<Page<ContatoClienteSummaryDTO>>(`${this.base}/v1/clientes/${clienteId}/contatos/resumo`);
+  }
+
+  listAddressSummaries(clienteId: number | string): Observable<Page<EnderecoClienteSummaryDTO>> {
+    return this.http.get<Page<EnderecoClienteSummaryDTO>>(`${this.base}/v1/clientes/${clienteId}/enderecos/resumo`);
+  }
+
+  create(dto: ClienteRequest): Observable<ClienteResponse> {
+    return this.http.post<ClienteResponse>(`${this.base}/v1/clientes`, dto);
+  }
+
+  getForEdit(id: number | string): Observable<ClienteResponse> {
+    return this.http
+      .get<any>(`${this.base}/v1/clientes/${id}/edicao`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
+  }
+
+  /** @deprecated Contrato completo legado. Novas leituras usam getSummary e edição usa getForEdit. */
   getById(id: number | string): Observable<ClienteResponse> {
-    const url = `${this.base}/v1/clientes/${id}`;
-    return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
+    return this.http
+      .get<any>(`${this.base}/v1/clientes/${id}`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   update(id: number | string, dto: Partial<ClienteRequest>): Observable<ClienteResponse> {
-    const url = `${this.base}/v1/clientes/${id}`;
-    return this.http.put<ClienteResponse>(url, dto);
+    return this.http.put<ClienteResponse>(`${this.base}/v1/clientes/${id}`, dto);
   }
 
+  deactivate(id: number | string): Observable<ClienteResponse> {
+    return this.http.patch<ClienteResponse>(`${this.base}/v1/clientes/${id}/inativar`, {});
+  }
+
+  reactivate(id: number | string): Observable<ClienteResponse> {
+    return this.http.patch<ClienteResponse>(`${this.base}/v1/clientes/${id}/reativar`, {});
+  }
+
+  /** @deprecated Use deactivate. O endpoint DELETE legado também é lógico no backend. */
   delete(id: number | string): Observable<void> {
-    const url = `${this.base}/v1/clientes/${id}`;
-    return this.http.delete<void>(url);
+    return this.http.delete<void>(`${this.base}/v1/clientes/${id}`);
   }
 
-  // Alias para deleteCliente
+  /** @deprecated Compatibilidade com telas antigas. */
   deleteCliente(id: number | string): Observable<void> {
     return this.delete(id);
   }
 
-
-  // ========== ENDEREÇOS ==========
-
   listarEnderecos(clienteId: number | string): Observable<Page<EnderecoClienteResponse>> {
-    const url = `${this.base}/v1/clientes/${clienteId}/enderecos`;
-    return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
+    return this.http
+      .get<any>(`${this.base}/v1/clientes/${clienteId}/enderecos`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   buscarEndereco(clienteId: number | string, id: number | string): Observable<EnderecoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
-    return this.http.get<EnderecoClienteResponse>(url);
+    return this.http.get<EnderecoClienteResponse>(`${this.base}/v1/clientes/${clienteId}/enderecos/${id}`);
   }
 
   criarEndereco(clienteId: number | string, endereco: EnderecoClienteRequest): Observable<EnderecoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/enderecos`;
-    return this.http.post<EnderecoClienteResponse>(url, endereco);
+    return this.http.post<EnderecoClienteResponse>(`${this.base}/v1/clientes/${clienteId}/enderecos`, endereco);
   }
 
   atualizarEndereco(
@@ -84,30 +139,31 @@ export class ClientesService {
     id: number | string,
     endereco: EnderecoClienteRequest
   ): Observable<EnderecoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
-    return this.http.put<EnderecoClienteResponse>(url, endereco);
+    return this.http.put<EnderecoClienteResponse>(
+      `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`,
+      endereco
+    );
   }
 
   excluirEndereco(clienteId: number | string, id: number | string): Observable<void> {
-    const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
-    return this.http.delete<void>(url);
+    return this.http.delete<void>(`${this.base}/v1/clientes/${clienteId}/enderecos/${id}`);
   }
 
-  // ========== CONTATOS ==========
-
   listarContatos(clienteId: number | string): Observable<Page<ContatoClienteResponse>> {
-    const url = `${this.base}/v1/clientes/${clienteId}/contatos`;
-    return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
+    return this.http
+      .get<any>(`${this.base}/v1/clientes/${clienteId}/contatos`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   buscarContato(clienteId: number | string, id: number | string): Observable<ContatoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
-    return this.http.get<ContatoClienteResponse>(url);
+    return this.http.get<ContatoClienteResponse>(`${this.base}/v1/clientes/${clienteId}/contatos/${id}`);
   }
 
   criarContato(clienteId: number | string, contato: ContatoClienteRequest): Observable<ContatoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/contatos`;
-    return this.http.post<ContatoClienteResponse>(url, contato);
+    return this.http.post<ContatoClienteResponse>(
+      `${this.base}/v1/clientes/${clienteId}/contatos`,
+      this.normalizeContactPayload(contato)
+    );
   }
 
   atualizarContato(
@@ -115,33 +171,31 @@ export class ClientesService {
     id: number | string,
     contato: ContatoClienteRequest
   ): Observable<ContatoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
-    return this.http.put<ContatoClienteResponse>(url, contato);
+    return this.http.put<ContatoClienteResponse>(
+      `${this.base}/v1/clientes/${clienteId}/contatos/${id}`,
+      this.normalizeContactPayload(contato)
+    );
   }
 
   excluirContato(clienteId: number | string, id: number | string): Observable<void> {
-    const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
-    return this.http.delete<void>(url);
+    return this.http.delete<void>(`${this.base}/v1/clientes/${clienteId}/contatos/${id}`);
   }
 
-  // ========== DOCUMENTOS ==========
-
   listarDocumentos(clienteId: number | string): Observable<Page<DocumentoClienteResponse>> {
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos`;
-    return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
+    return this.http
+      .get<any>(`${this.base}/v1/clientes/${clienteId}/documentos`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   buscarDocumento(clienteId: number | string, id: number | string): Observable<DocumentoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
-    return this.http.get<DocumentoClienteResponse>(url);
+    return this.http.get<DocumentoClienteResponse>(`${this.base}/v1/clientes/${clienteId}/documentos/${id}`);
   }
 
   criarDocumento(
     clienteId: number | string,
     doc: DocumentoClienteRequest
   ): Observable<DocumentoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos`;
-    return this.http.post<DocumentoClienteResponse>(url, doc);
+    return this.http.post<DocumentoClienteResponse>(`${this.base}/v1/clientes/${clienteId}/documentos`, doc);
   }
 
   atualizarDocumento(
@@ -149,8 +203,10 @@ export class ClientesService {
     id: number | string,
     doc: DocumentoClienteRequest
   ): Observable<DocumentoClienteResponse> {
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
-    return this.http.put<DocumentoClienteResponse>(url, doc);
+    return this.http.put<DocumentoClienteResponse>(
+      `${this.base}/v1/clientes/${clienteId}/documentos/${id}`,
+      doc
+    );
   }
 
   uploadDocumento(
@@ -162,27 +218,32 @@ export class ClientesService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tipoDocumento', tipoDocumento);
-    if (descricao) {
-      formData.append('descricao', descricao);
-    }
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos/upload`;
-    return this.http.post<DocumentoClienteResponse>(url, formData);
+    if (descricao) formData.append('descricao', descricao);
+    return this.http.post<DocumentoClienteResponse>(
+      `${this.base}/v1/clientes/${clienteId}/documentos/upload`,
+      formData
+    );
   }
 
   downloadDocumento(clienteId: number | string, id: number | string): Observable<Blob> {
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}/download`;
-    return this.http.get(url, { responseType: 'blob' });
+    return this.http.get(`${this.base}/v1/clientes/${clienteId}/documentos/${id}/download`, {
+      responseType: 'blob',
+    });
   }
 
   excluirDocumento(clienteId: number | string, id: number | string): Observable<void> {
-    const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
-    return this.http.delete<void>(url);
+    return this.http.delete<void>(`${this.base}/v1/clientes/${clienteId}/documentos/${id}`);
   }
 
+  private normalizeContactPayload(contact: ContatoClienteRequest) {
+    return {
+      tipoContato: contact.tipoContato,
+      contato: contact.contato ?? contact.valor ?? '',
+      principal: Boolean(contact.principal),
+    };
+  }
 }
 
-// Re-export legacy interfaces for backward compatibility
 export interface ClienteResponseDTO extends ClienteResponse {}
 export interface ClienteRequestDTO extends ClienteRequest {}
 export { Page };
-

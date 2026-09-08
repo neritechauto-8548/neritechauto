@@ -1,11 +1,12 @@
 package com.neritech.saas.empresa.service;
 
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.empresa.domain.EnderecoEmpresa;
+import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.dto.EnderecoEmpresaRequest;
 import com.neritech.saas.empresa.dto.EnderecoEmpresaResponse;
 import com.neritech.saas.empresa.mapper.EnderecoEmpresaMapper;
 import com.neritech.saas.empresa.repository.EnderecoEmpresaRepository;
-import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
@@ -23,7 +24,8 @@ public class EnderecoEmpresaService {
     private final EmpresaRepository empresaRepository;
     private final EnderecoEmpresaMapper mapper;
 
-    public EnderecoEmpresaService(EnderecoEmpresaRepository repository,
+    public EnderecoEmpresaService(
+            EnderecoEmpresaRepository repository,
             EmpresaRepository empresaRepository,
             EnderecoEmpresaMapper mapper) {
         this.repository = repository;
@@ -32,56 +34,53 @@ public class EnderecoEmpresaService {
     }
 
     public EnderecoEmpresaResponse create(EnderecoEmpresaRequest request) {
-        Empresa empresa = empresaRepository.findById(request.empresaId())
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Empresa nÃ£o encontrada com ID: " + request.empresaId()));
+        Long tenantId = TenantAccess.requireCurrentTenant(request.empresaId());
+        Empresa empresa = empresaRepository.findById(tenantId)
+                .orElseThrow(() -> new EntityNotFoundException("Empresa autenticada não encontrada"));
 
         EnderecoEmpresa endereco = mapper.toEntity(request);
         endereco.setEmpresa(empresa);
 
-        EnderecoEmpresa saved = repository.save(endereco);
-        return mapper.toResponse(saved);
+        return mapper.toResponse(repository.save(endereco));
     }
 
     @Transactional(readOnly = true)
     public EnderecoEmpresaResponse findById(Long id) {
-        EnderecoEmpresa endereco = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("EndereÃ§o nÃ£o encontrado com ID: " + id));
-        return mapper.toResponse(endereco);
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        return mapper.toResponse(findOwned(id, tenantId));
     }
 
     @Transactional(readOnly = true)
     public Page<EnderecoEmpresaResponse> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toResponse);
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        return repository.findByEmpresaId(tenantId, pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public List<EnderecoEmpresaResponse> findByEmpresaId(Long empresaId) {
-        return repository.findByEmpresaId(empresaId).stream()
+        Long tenantId = TenantAccess.requireCurrentTenant(empresaId);
+        return repository.findByEmpresaId(tenantId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     public EnderecoEmpresaResponse update(Long id, EnderecoEmpresaRequest request) {
-        EnderecoEmpresa endereco = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("EndereÃ§o nÃ£o encontrado com ID: " + id));
+        Long tenantId = TenantAccess.requireCurrentTenant(request.empresaId());
+        EnderecoEmpresa endereco = findOwned(id, tenantId);
 
-        if (!endereco.getEmpresa().getId().equals(request.empresaId())) {
-            Empresa empresa = empresaRepository.findById(request.empresaId())
-                    .orElseThrow(
-                            () -> new EntityNotFoundException("Empresa nÃ£o encontrada com ID: " + request.empresaId()));
-            endereco.setEmpresa(empresa);
-        }
-
+        // A empresa do endereço nunca pode ser trocada por input do cliente.
         mapper.updateEntityFromRequest(request, endereco);
-        EnderecoEmpresa updated = repository.save(endereco);
-        return mapper.toResponse(updated);
+        return mapper.toResponse(repository.save(endereco));
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("EndereÃ§o nÃ£o encontrado com ID: " + id);
-        }
-        repository.deleteById(id);
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        EnderecoEmpresa endereco = findOwned(id, tenantId);
+        repository.delete(endereco);
+    }
+
+    private EnderecoEmpresa findOwned(Long id, Long tenantId) {
+        return repository.findByIdAndEmpresaId(id, tenantId)
+                .orElseThrow(() -> new EntityNotFoundException("Endereço não encontrado para a empresa autenticada"));
     }
 }

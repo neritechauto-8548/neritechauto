@@ -1,291 +1,486 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
-
-  <!-- Action Bar (Sticky Top) -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
-      <div class="flex items-center gap-4">
-          <button (click)="voltar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
-              <i class="pi pi-arrow-left text-sm"></i>
-          </button>
-          <div>
-              <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ pageTitle }}</h1>
-              <span class="text-xs text-slate-500 font-normal">{{ isEditMode ? 'Editando registro' : 'Novo registro' }}</span>
-          </div>
-      </div>
-
-      <div class="flex gap-3 items-center">
-          @if (savedClienteId) {
-              <button (click)="excluirCliente()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-                 <i class="pi pi-trash text-[13px]"></i> Excluir
-              </button>
-              <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-          }
-          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
-              Cancelar
-          </button>
-          <button (click)="salvar()" class="px-3.5 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
-              <i class="pi pi-check text-xs"></i> Salvar
-          </button>
-      </div>
-  </div>
-
-  <div class="p-6 w-full space-y-8">
-
-    <!-- Tabs as Pill Navigation -->
-    <div class="flex justify-center">
-        <div class="bg-slate-100 p-1 rounded-lg inline-flex border border-slate-200">
-            @for (tab of tabs; track tab.label; let i = $index) {
-                <button
-                    (click)="activeIndex = i"
-                    [class]="activeIndex === i ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
-                    <i [class]="tab.icon"></i> {{ tab.label }}
-                </button>
-            }
-        </div>
+<section class="customer-form-page" aria-labelledby="customer-form-title">
+  <page-header
+    [canonical]="true"
+    [title]="pageTitle"
+    [description]="pageDescription"
+    [hideBreadcrumb]="true"
+    titleId="customer-form-title"
+  >
+    <div pageHeaderMeta class="customer-form-status" [attr.data-status]="model.status">
+      <span class="customer-form-status__dot" aria-hidden="true"></span>
+      {{ statusLabel }}
     </div>
 
-    <!-- Content Area -->
-    <div class="grid grid-cols-1 gap-6 animate-fade-in-up">
+    <div pageHeaderActions class="customer-form-header-actions">
+      <button type="button" class="nt-button nt-button--secondary" (click)="cancel()" [disabled]="saving">
+        Cancelar
+      </button>
+      <button type="button" class="nt-button nt-button--secondary" (click)="save('back')" [disabled]="saving || loading">
+        Salvar e voltar
+      </button>
+      @if (canCreateVehicle) {
+        <button type="button" class="nt-button nt-button--secondary customer-form-vehicle-action" (click)="saveAndVehicle()" [disabled]="saving || loading">
+          <i class="pi pi-car" aria-hidden="true"></i>
+          Salvar e cadastrar veículo
+        </button>
+      }
+      <button type="button" class="nt-button nt-button--primary" (click)="save()" [disabled]="saving || loading">
+        @if (saving) {
+          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+          Salvando
+        } @else {
+          <i class="pi pi-check" aria-hidden="true"></i>
+          Salvar
+        }
+      </button>
+    </div>
+  </page-header>
 
-        <!-- Tab 0: Dados Gerais -->
+  @if (originContext) {
+    <div class="customer-form-context" role="status">
+      <i class="pi pi-link" aria-hidden="true"></i>
+      <div>
+        <strong>Cadastro aberto a partir de outro fluxo</strong>
+        <span>Ao salvar, o cliente continuará disponível para o contexto {{ originContext }}.</span>
+      </div>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="customer-form-loading" role="status" aria-live="polite">
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      Carregando cadastro do cliente…
+    </div>
+  } @else {
+    <div class="customer-form-tabs" role="tablist" aria-label="Seções do cadastro do cliente">
+      @for (tab of tabs; track tab.label; let index = $index) {
+        <button
+          type="button"
+          role="tab"
+          class="customer-form-tab"
+          [class.customer-form-tab--active]="activeIndex === index"
+          [attr.aria-selected]="activeIndex === index"
+          [attr.aria-controls]="'customer-form-panel-' + index"
+          (click)="activeIndex = index"
+        >
+          <i [class]="tab.icon" aria-hidden="true"></i>
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <div class="customer-form-layout">
+      <main class="customer-form-main">
         @if (activeIndex === 0) {
-            <div class="space-y-6">
+          <section class="nt-form-card" id="customer-form-panel-0" role="tabpanel">
+            <div class="nt-form-card__header">
+              <div>
+                <h2>Dados básicos</h2>
+                <p>Identidade mínima para localizar o cliente e iniciar um atendimento.</p>
+              </div>
+              <span class="nt-form-card__hint">Documento é opcional</span>
+            </div>
 
-                <!-- Section: Info Básica -->
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 text-sm">Informações Básicas</h3>
-                        <div class="flex gap-1 bg-white border border-slate-200 rounded p-0.5" [title]="isEditMode ? 'Tipo de pessoa não pode ser alterado na edição' : ''">
-                            <button (click)="!isEditMode && (model.tipoPessoa = 'Física') && onTipoPessoaChange()" [class.bg-slate-100]="model.tipoPessoa === 'Física'" [disabled]="isEditMode" [class.opacity-60]="isEditMode" [class.cursor-not-allowed]="isEditMode" class="px-3 py-1 rounded text-xs font-bold text-slate-600 transition-colors">Pessoa Física</button>
-                            <button (click)="!isEditMode && (model.tipoPessoa = 'Jurídica') && onTipoPessoaChange()" [class.bg-slate-100]="model.tipoPessoa === 'Jurídica'" [disabled]="isEditMode" [class.opacity-60]="isEditMode" [class.cursor-not-allowed]="isEditMode" class="px-3 py-1 rounded text-xs font-bold text-slate-600 transition-colors">Jurídica</button>
-                         </div>
-                    </div>
+            <div class="nt-form-grid">
+              <div class="nt-field nt-field--4">
+                <label for="customer-type">Tipo de cliente</label>
+                <p-select
+                  inputId="customer-type"
+                  [options]="tipoClienteOptions"
+                  [(ngModel)]="model.tipoCliente"
+                  optionLabel="label"
+                  optionValue="value"
+                  appendTo="body"
+                  styleClass="w-full"
+                  (onChange)="onTipoClienteChange()"
+                />
+                <small>Trocar PF/PJ não apaga silenciosamente os dados já digitados.</small>
+              </div>
 
-                    <div class="p-6 grid grid-cols-12 gap-4">
-                         <!-- Nome / Razão Social -->
-                         <div class="col-span-12 md:col-span-8 space-y-1">
-                             <label class="text-xs font-bold text-slate-700">
-                                 {{ model.tipoPessoa === 'Física' ? 'Nome Completo' : 'Razão Social' }} <span class="text-rose-500">*</span>
-                             </label>
-                             @if (model.tipoPessoa === 'Física') {
-                                 <input type="text" pInputText
-                                     [(ngModel)]="model.nomeRazao"
-                                     class="w-full modern-input"
-                                     placeholder="Ex: João Silva" />
-                             } @else {
-                                 <input type="text" pInputText
-                                     [(ngModel)]="model.razaoSocial"
-                                     class="w-full modern-input"
-                                     placeholder="Ex: NeriTech Ltda" />
-                             }
-                         </div>
-
-                         <!-- Documento -->
-                         <div class="col-span-12 md:col-span-4 space-y-1">
-                             <label class="text-xs font-bold text-slate-700">
-                                 {{ model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ' }} <span class="text-rose-500">*</span>
-                             </label>
-                             @if (model.tipoPessoa === 'Física') {
-                                 <p-inputmask mask="999.999.999-99" [(ngModel)]="model.cpfCnpj" (onBlur)="onDocumentoBlur()" styleClass="w-full" inputStyleClass="w-full modern-input font-mono text-sm" placeholder="000.000.000-00" [unmask]="false"></p-inputmask>
-                             } @else {
-                                 <input pInputText ntCnpjMask [(ngModel)]="model.cpfCnpj" (blur)="onDocumentoBlur()" class="w-full modern-input font-mono text-sm uppercase tracking-wide" placeholder="AA.AAA.AAA/AAAA-00" maxlength="18" />
-                             }
-                         </div>
-
-                         <!-- Fantasia (PJ) ou Email (PF) -->
-                         <div class="col-span-12 md:col-span-6 space-y-1">
-                             @if (model.tipoPessoa === 'Jurídica') {
-                                 <label class="text-xs font-bold text-slate-700">Nome Fantasia</label>
-                                 <input type="text" pInputText [(ngModel)]="model.nomeFantasia" class="w-full modern-input" placeholder="Ex: NeriTech" />
-                             } @else {
-                                 <label class="text-xs font-bold text-slate-700">Email (Opcional)</label>
-                                 <input type="email" pInputText [(ngModel)]="model.email" class="w-full modern-input" placeholder="cliente@email.com" />
-                             }
-                         </div>
-
-                         <!-- Email (PJ) ou Data Nasc (PF) -->
-                         <div class="col-span-12 md:col-span-6 space-y-1">
-                             @if (model.tipoPessoa === 'Jurídica') {
-                                 <label class="text-xs font-bold text-slate-700">Email (Opcional)</label>
-                                 <input type="email" pInputText [(ngModel)]="model.email" class="w-full modern-input" placeholder="cliente@email.com" />
-                             } @else {
-                                  <label class="text-xs font-bold text-slate-700">Data Nasc.</label>
-                                  <p-datepicker [(ngModel)]="model.dataNascimento" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
-                             }
-                         </div>
-
-                         <!-- Sexo (PF) -->
-                         @if (model.tipoPessoa === 'Física') {
-                             <div class="col-span-12 md:col-span-6 space-y-1">
-                                  <label class="text-xs font-bold text-slate-700">Sexo</label>
-                                  <p-select [options]="sexoOptions" [(ngModel)]="model.sexo" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." />
-                             </div>
-                         }
-
-                         <!-- Inscrições (Apenas PJ) -->
-                         @if (model.tipoPessoa === 'Jurídica') {
-                             <div class="col-span-12">
-                                  <div class="grid grid-cols-12 gap-4">
-                                       <div class="col-span-12 md:col-span-6 space-y-1">
-                                           <label class="text-xs font-bold text-slate-700">Inscr. Municipal</label>
-                                           <input type="text" pInputText [(ngModel)]="model.inscricaoMunicipal" class="w-full modern-input" />
-                                       </div>
-                                       <div class="col-span-12 md:col-span-6 space-y-1">
-                                           <label class="text-xs font-bold text-slate-700">Inscr. Estadual</label>
-                                           <input type="text" pInputText [(ngModel)]="model.inscricaoEstadual" class="w-full modern-input" />
-                                       </div>
-                                  </div>
-                             </div>
-                         }
-                    </div>
+              @if (isPessoaFisica) {
+                <div class="nt-field nt-field--8">
+                  <label for="customer-name">Nome completo <span aria-hidden="true">*</span></label>
+                  <input
+                    id="customer-name"
+                    pInputText
+                    [(ngModel)]="model.nomeCompleto"
+                    autocomplete="name"
+                    [class.nt-field__input--invalid]="submitted && !model.nomeCompleto.trim()"
+                    aria-required="true"
+                  />
+                  @if (submitted && !model.nomeCompleto.trim()) {
+                    <small class="nt-field__error">Informe o nome do cliente.</small>
+                  }
                 </div>
 
-                <!-- Section: Status & Origem -->
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6 grid grid-cols-12 gap-4">
-                    <div class="col-span-12 md:col-span-6 space-y-1">
-                         <label class="text-xs font-bold text-slate-700">Origem do Cliente</label>
-                         <p-select [options]="origemOptions" [(ngModel)]="model.origemCliente" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." />
-                    </div>
-                    <div class="col-span-12 md:col-span-6 space-y-1">
-                         <label class="text-xs font-bold text-slate-700">Status</label>
-                         <p-select [options]="situacoes" [(ngModel)]="model.situacao" appendTo="body" styleClass="w-full modern-select" />
-                    </div>
-                    <div class="col-span-12 space-y-1">
-                         <label class="text-xs font-bold text-slate-700">Observações Internas</label>
-                         <textarea pTextarea [(ngModel)]="model.observacao" rows="3" class="w-full modern-input" placeholder="Notas sobre o cliente..."></textarea>
-                    </div>
-                </div>
-
-            </div>
-        }
-
-        <!-- Tab 1: Endereço (Single Section Grid) -->
-        @if (activeIndex === 1) {
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
-                 <div class="grid grid-cols-12 gap-4">
-                      <!-- CEP -->
-                      <div class="col-span-12 md:col-span-3 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">CEP <span class="text-rose-500">*</span></label>
-                          <div class="flex gap-2">
-                              <p-inputmask mask="99999-999" [(ngModel)]="model.cep" (onBlur)="buscarCep()" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="00000-000" [unmask]="false"></p-inputmask>
-                              <button (click)="buscarCep()" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg px-3 border border-slate-200"><i class="pi pi-search"></i></button>
-                          </div>
-                      </div>
-
-                      <!-- Rua / Avenida -->
-                      <div class="col-span-12 md:col-span-9 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">Rua / Avenida <span class="text-rose-500">*</span></label>
-                          <input type="text" pInputText [(ngModel)]="model.logradouro" class="w-full modern-input" />
-                      </div>
-
-                      <!-- Número -->
-                      <div class="col-span-12 md:col-span-2 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">Número <span class="text-rose-500">*</span></label>
-                          <input type="text" pInputText [(ngModel)]="model.numero" class="w-full modern-input" />
-                      </div>
-
-                      <!-- Complemento -->
-                      <div class="col-span-12 md:col-span-4 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">Complemento</label>
-                          <input type="text" pInputText [(ngModel)]="model.complemento" class="w-full modern-input" />
-                      </div>
-
-                      <!-- Bairro -->
-                      <div class="col-span-12 md:col-span-6 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">Bairro <span class="text-rose-500">*</span></label>
-                          <input type="text" pInputText [(ngModel)]="model.bairro" class="w-full modern-input" />
-                      </div>
-
-                      <!-- Cidade -->
-                      <div class="col-span-12 md:col-span-9 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">Cidade <span class="text-rose-500">*</span></label>
-                          <input type="text" pInputText [(ngModel)]="model.cidade" class="w-full modern-input" />
-                      </div>
-
-                      <!-- Estado -->
-                      <div class="col-span-12 md:col-span-3 space-y-1">
-                          <label class="text-xs font-bold text-slate-700">UF <span class="text-rose-500">*</span></label>
-                          <input type="text" pInputText [(ngModel)]="model.estado" class="w-full modern-input" />
-                      </div>
-                 </div>
-            </div>
-        }
-
-        <!-- Tab 2: Contato -->
-        @if (activeIndex === 2) {
-            <div class="space-y-4">
-                 <div class="flex justify-end">
-                     <button (click)="abrirDialogContato()" class="text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 px-3.5 py-2 rounded-md transition-colors border border-blue-300 shadow-sm">
-                         + Adicionar Contato
-                     </button>
-                 </div>
-
-                 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                     <table class="w-full text-sm text-left">
-                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-xs">
-                             <tr>
-                                 <th class="px-6 py-3">Tipo</th>
-                                 <th class="px-6 py-3">Valor</th>
-                                 <th class="px-6 py-3 text-right">Ações</th>
-                             </tr>
-                         </thead>
-                         <tbody class="divide-y divide-slate-100">
-                             @for (cont of contatosList; track i; let i = $index) {
-                                 <tr class="hover:bg-slate-50/50">
-                                     <td class="px-6 py-3">
-                                         <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs border border-slate-200">{{ getTipoContatoLabel(cont.tipoContato) }}</span>
-                                     </td>
-                                     <td class="px-6 py-3 font-medium text-slate-800">{{ formatarContato(cont) }}</td>
-                                     <td class="px-6 py-3 text-right">
-                                         <button (click)="editarContatoLista(i)" class="text-slate-400 hover:text-blue-500 transition-colors mr-3" title="Editar Contato"><i class="pi pi-pencil"></i></button>
-                                         <button (click)="removerContatoLista(i)" class="text-slate-400 hover:text-rose-500 transition-colors" title="Excluir Contato"><i class="pi pi-trash"></i></button>
-                                     </td>
-                                 </tr>
-                             }
-                             @if (contatosList.length === 0) {
-                                 <tr>
-                                     <td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">Nenhum contato adicionado.</td>
-                                 </tr>
-                             }
-                         </tbody>
-                     </table>
-                 </div>
-             </div>
-        }
-
-    </div>
-  </div>
-</div>
-
-<!-- Simple clean dialog for contacts -->
-<p-dialog [(visible)]="showContatoDialog" [modal]="true" [style]="{width: '400px'}" header="Novo Contato" styleClass="modern-dialog">
-    <div class="space-y-4 pt-2">
-        <div class="space-y-1">
-            <label class="text-xs font-bold text-slate-700">Tipo</label>
-            <p-select [options]="tipoContatoOptions" [(ngModel)]="contatoForm.tipoContato" optionLabel="label" optionValue="value" styleClass="w-full modern-select" />
-        </div>
-        <div class="space-y-1">
-            <label class="text-xs font-bold text-slate-700">Valor</label>
-            @if (isPhoneType(contatoForm.tipoContato)) {
-                <p-inputmask 
-                    [mask]="getContactMask(contatoForm.tipoContato)" 
-                    [(ngModel)]="contatoForm.valor" 
+                <div class="nt-field nt-field--4">
+                  <label for="customer-document">CPF <span class="nt-field__optional">opcional</span></label>
+                  <p-inputmask
+                    inputId="customer-document"
+                    mask="999.999.999-99"
+                    [(ngModel)]="model.cpfCnpj"
+                    (onBlur)="onDocumentoBlur()"
                     styleClass="w-full"
-                    inputStyleClass="w-full modern-input"
-                    [placeholder]="getContactPlaceholder(contatoForm.tipoContato)"
-                    [unmask]="false">
-                </p-inputmask>
-            } @else {
-                <input 
-                    type="text" pInputText 
-                    [(ngModel)]="contatoForm.valor" 
-                    class="w-full modern-input" 
-                    placeholder="Digite o contato..." />
+                    inputStyleClass="w-full"
+                    placeholder="000.000.000-00"
+                    [unmask]="false"
+                  />
+                </div>
+
+                <div class="nt-field nt-field--4">
+                  <label for="customer-birth-date">Data de nascimento</label>
+                  <p-datepicker
+                    inputId="customer-birth-date"
+                    [(ngModel)]="model.dataNascimento"
+                    appendTo="body"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                    placeholder="dd/mm/aaaa"
+                    dateFormat="dd/mm/yy"
+                  />
+                </div>
+
+                <div class="nt-field nt-field--4">
+                  <label for="customer-sex">Sexo</label>
+                  <p-select
+                    inputId="customer-sex"
+                    [options]="sexoOptions"
+                    [(ngModel)]="model.sexo"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body"
+                    styleClass="w-full"
+                    placeholder="Não informado"
+                    [showClear]="true"
+                  />
+                </div>
+              } @else {
+                <div class="nt-field nt-field--8">
+                  <label for="customer-company-name">Razão social <span aria-hidden="true">*</span></label>
+                  <input
+                    id="customer-company-name"
+                    pInputText
+                    [(ngModel)]="model.razaoSocial"
+                    autocomplete="organization"
+                    [class.nt-field__input--invalid]="submitted && !model.razaoSocial.trim()"
+                    aria-required="true"
+                  />
+                  @if (submitted && !model.razaoSocial.trim()) {
+                    <small class="nt-field__error">Informe a razão social.</small>
+                  }
+                </div>
+
+                <div class="nt-field nt-field--4">
+                  <label for="customer-document-pj">CNPJ <span class="nt-field__optional">opcional</span></label>
+                  <input
+                    id="customer-document-pj"
+                    pInputText
+                    ntCnpjMask
+                    [(ngModel)]="model.cpfCnpj"
+                    (blur)="onDocumentoBlur()"
+                    class="w-full"
+                    placeholder="00.000.000/0000-00"
+                    maxlength="18"
+                  />
+                  <small>Quando disponível, a consulta externa apenas sugere dados para revisão.</small>
+                </div>
+
+                <div class="nt-field nt-field--6">
+                  <label for="customer-trade-name">Nome fantasia</label>
+                  <input id="customer-trade-name" pInputText [(ngModel)]="model.nomeFantasia" />
+                </div>
+
+                <div class="nt-field nt-field--3">
+                  <label for="customer-ie">Inscrição estadual</label>
+                  <input id="customer-ie" pInputText [(ngModel)]="model.inscricaoEstadual" />
+                </div>
+
+                <div class="nt-field nt-field--3">
+                  <label for="customer-im">Inscrição municipal</label>
+                  <input id="customer-im" pInputText [(ngModel)]="model.inscricaoMunicipal" />
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        @if (activeIndex === 1) {
+          <section class="nt-form-card" id="customer-form-panel-1" role="tabpanel">
+            <div class="nt-form-card__header">
+              <div>
+                <h2>Contatos</h2>
+                <p>Mantenha os canais operacionais separados de qualquer consentimento de marketing.</p>
+              </div>
+              <button type="button" class="nt-button nt-button--secondary" (click)="openContactDialog()">
+                <i class="pi pi-plus" aria-hidden="true"></i>
+                Adicionar contato
+              </button>
+            </div>
+
+            <div class="nt-form-grid nt-form-grid--compact">
+              <div class="nt-field nt-field--12">
+                <label for="customer-email">E-mail operacional</label>
+                <input id="customer-email" type="email" pInputText [(ngModel)]="model.email" autocomplete="email" placeholder="cliente@exemplo.com" />
+                <small>Cadastrar e-mail não significa consentimento para campanhas.</small>
+              </div>
+            </div>
+
+            <div class="customer-contact-list" aria-label="Contatos cadastrados">
+              @for (contact of contacts; track contact.id || $index; let index = $index) {
+                <article class="customer-contact-card">
+                  <div class="customer-contact-card__icon" aria-hidden="true">
+                    <i class="pi pi-phone"></i>
+                  </div>
+                  <div class="customer-contact-card__content">
+                    <div class="customer-contact-card__title">
+                      <strong>{{ contactLabel(contact.tipoContato) }}</strong>
+                      @if (contact.principal) {
+                        <span class="nt-badge nt-badge--info">Principal</span>
+                      }
+                    </div>
+                    <span>{{ formatContact(contact) }}</span>
+                  </div>
+                  <div class="customer-contact-card__actions">
+                    <button type="button" class="nt-icon-button" (click)="openContactDialog(index)" [attr.aria-label]="'Editar ' + contactLabel(contact.tipoContato)">
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="nt-icon-button nt-icon-button--danger" (click)="removeContact(index)" [attr.aria-label]="'Remover ' + contactLabel(contact.tipoContato)">
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </article>
+              } @empty {
+                <div class="nt-empty-state">
+                  <i class="pi pi-phone" aria-hidden="true"></i>
+                  <strong>Nenhum telefone cadastrado</strong>
+                  <span>O cliente pode ser salvo sem telefone e enriquecido posteriormente.</span>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        @if (activeIndex === 2) {
+          <section class="nt-form-card" id="customer-form-panel-2" role="tabpanel">
+            <div class="nt-form-card__header">
+              <div>
+                <h2>Endereço</h2>
+                <p>O endereço é opcional. A consulta de CEP é apenas um auxílio ao preenchimento manual.</p>
+              </div>
+              <span class="nt-form-card__hint">Opcional</span>
+            </div>
+
+            <div class="nt-form-grid">
+              <div class="nt-field nt-field--3">
+                <label for="customer-cep">CEP</label>
+                <div class="nt-field__inline">
+                  <p-inputmask
+                    inputId="customer-cep"
+                    mask="99999-999"
+                    [(ngModel)]="address.cep"
+                    styleClass="w-full"
+                    inputStyleClass="w-full"
+                    placeholder="00000-000"
+                    [unmask]="false"
+                  />
+                  <button type="button" class="nt-icon-button" (click)="buscarCep()" aria-label="Consultar CEP">
+                    <i class="pi pi-search" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="nt-field nt-field--7">
+                <label for="customer-street">Logradouro</label>
+                <input id="customer-street" pInputText [(ngModel)]="address.logradouro" autocomplete="street-address" />
+              </div>
+
+              <div class="nt-field nt-field--2">
+                <label for="customer-number">Número</label>
+                <input id="customer-number" pInputText [(ngModel)]="address.numero" />
+              </div>
+
+              <div class="nt-field nt-field--5">
+                <label for="customer-district">Bairro</label>
+                <input id="customer-district" pInputText [(ngModel)]="address.bairro" />
+              </div>
+
+              <div class="nt-field nt-field--4">
+                <label for="customer-city">Cidade</label>
+                <input id="customer-city" pInputText [(ngModel)]="address.cidade" autocomplete="address-level2" />
+              </div>
+
+              <div class="nt-field nt-field--3">
+                <label for="customer-state">UF</label>
+                <input id="customer-state" pInputText [(ngModel)]="address.estado" maxlength="2" class="uppercase" autocomplete="address-level1" />
+              </div>
+
+              <div class="nt-field nt-field--8">
+                <label for="customer-complement">Complemento / referência</label>
+                <input id="customer-complement" pInputText [(ngModel)]="address.complemento" />
+              </div>
+
+              <div class="nt-field nt-field--4">
+                <label for="customer-country">País</label>
+                <input id="customer-country" pInputText [(ngModel)]="address.pais" autocomplete="country-name" />
+              </div>
+            </div>
+          </section>
+        }
+
+        @if (activeIndex === 3) {
+          <section class="nt-form-card" id="customer-form-panel-3" role="tabpanel">
+            <div class="nt-form-card__header">
+              <div>
+                <h2>Preferências e relacionamento</h2>
+                <p>Informações úteis ao atendimento, sem inferir consentimento de marketing.</p>
+              </div>
+            </div>
+
+            <div class="nt-form-grid">
+              <div class="nt-field nt-field--6">
+                <label for="customer-origin">Origem do cliente</label>
+                <p-select
+                  inputId="customer-origin"
+                  [options]="origemOptions"
+                  [(ngModel)]="model.origemCliente"
+                  optionLabel="label"
+                  optionValue="value"
+                  appendTo="body"
+                  styleClass="w-full"
+                  placeholder="Não informado"
+                  [showClear]="true"
+                />
+              </div>
+
+              <div class="nt-field nt-field--12">
+                <label for="customer-notes">Observações de atendimento</label>
+                <textarea
+                  id="customer-notes"
+                  pTextarea
+                  [(ngModel)]="model.observacoesGerais"
+                  rows="5"
+                  placeholder="Registre apenas informações necessárias ao atendimento. Evite documentos, dados sensíveis ou informações sem finalidade operacional."
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="nt-info-panel">
+              <i class="pi pi-shield" aria-hidden="true"></i>
+              <div>
+                <strong>Marketing é uma finalidade separada</strong>
+                <span>Esta tela não cria opt-in automaticamente. Consentimentos serão vinculados ao módulo de privacidade/marketing quando o contrato correspondente for implementado.</span>
+              </div>
+            </div>
+          </section>
+        }
+      </main>
+
+      <aside class="customer-form-aside" aria-label="Qualidade do cadastro">
+        <section class="nt-side-card">
+          <div class="nt-side-card__header">
+            <div>
+              <span class="nt-side-card__eyebrow">Qualidade do cadastro</span>
+              <strong>{{ completionPercent }}%</strong>
+            </div>
+            <div class="nt-progress" aria-hidden="true">
+              <span [style.width.%]="completionPercent"></span>
+            </div>
+          </div>
+
+          <ul class="nt-check-list">
+            @for (item of completionItems; track item.label) {
+              <li [class.nt-check-list__item--done]="item.done">
+                <i [class]="item.done ? 'pi pi-check-circle' : 'pi pi-circle'" aria-hidden="true"></i>
+                <span>{{ item.label }}</span>
+                @if (item.optional) {
+                  <small>opcional</small>
+                }
+              </li>
             }
-        </div>
+          </ul>
+        </section>
+
+        <section class="nt-side-card">
+          <span class="nt-side-card__eyebrow">Duplicidades</span>
+          <strong>Revisão no servidor</strong>
+          <p>Documento, quando informado, é validado e verificado no backend. O fluxo avançado de candidatos mascarados ainda está pendente do read model D5.</p>
+        </section>
+
+        @if (isEditMode) {
+          <section class="nt-side-card">
+            <span class="nt-side-card__eyebrow">Ciclo de vida</span>
+            <strong>{{ statusLabel }}</strong>
+            <p>Inativação preserva veículos, contatos e histórico. Exclusão física não é uma ação operacional desta tela.</p>
+
+            @if (statusLabel === 'Inativo' && canReactivate) {
+              <button type="button" class="nt-button nt-button--secondary nt-button--full" (click)="reactivate()">
+                <i class="pi pi-refresh" aria-hidden="true"></i>
+                Reativar cliente
+              </button>
+            } @else if (statusLabel !== 'Inativo' && canDeactivate) {
+              <button type="button" class="nt-button nt-button--danger-outline nt-button--full" (click)="deactivate()">
+                <i class="pi pi-ban" aria-hidden="true"></i>
+                Inativar cliente
+              </button>
+            }
+          </section>
+        }
+      </aside>
     </div>
-    <div class="flex justify-end gap-2 mt-6">
-        <button (click)="showContatoDialog = false" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 text-sm font-bold">Cancelar</button>
-        <button (click)="salvarContatoLista()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-bold">Adicionar</button>
+  }
+
+  <div class="customer-form-mobile-actions" aria-label="Ações do cadastro">
+    <button type="button" class="nt-button nt-button--secondary" (click)="cancel()" [disabled]="saving">Cancelar</button>
+    <button type="button" class="nt-button nt-button--primary" (click)="save()" [disabled]="saving || loading">
+      @if (saving) { Salvando… } @else { Salvar }
+    </button>
+  </div>
+</section>
+
+<p-dialog
+  [(visible)]="showContactDialog"
+  [modal]="true"
+  [style]="{ width: 'min(92vw, 440px)' }"
+  [header]="contactEditIndex === null ? 'Adicionar contato' : 'Editar contato'"
+  styleClass="customer-contact-dialog"
+>
+  <div class="customer-contact-dialog__body">
+    <div class="nt-field">
+      <label for="contact-type">Tipo</label>
+      <p-select
+        inputId="contact-type"
+        [options]="tipoContatoOptions"
+        [(ngModel)]="contactForm.tipoContato"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+      />
     </div>
+
+    <div class="nt-field">
+      <label for="contact-value">Contato</label>
+      @if (isPhoneType(contactForm.tipoContato)) {
+        <p-inputmask
+          inputId="contact-value"
+          [mask]="contactMask(contactForm.tipoContato)"
+          [(ngModel)]="contactForm.contato"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          [unmask]="false"
+        />
+      } @else {
+        <input id="contact-value" pInputText [(ngModel)]="contactForm.contato" placeholder="Informe o contato" />
+      }
+    </div>
+
+    <label class="customer-contact-dialog__checkbox">
+      <input type="checkbox" [(ngModel)]="contactForm.principal" />
+      <span>Definir como contato principal</span>
+    </label>
+  </div>
+
+  <div class="customer-contact-dialog__actions">
+    <button type="button" class="nt-button nt-button--secondary" (click)="showContactDialog = false">Cancelar</button>
+    <button type="button" class="nt-button nt-button--primary" (click)="saveContactDraft()">Salvar contato</button>
+  </div>
 </p-dialog>

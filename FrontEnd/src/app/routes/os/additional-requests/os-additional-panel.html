@@ -1,0 +1,113 @@
+<section class="additional-panel" aria-labelledby="additional-title">
+  <header class="panel-header">
+    <div>
+      <span class="eyebrow">Novo escopo descoberto</span>
+      <h2 id="additional-title">Adicionais e aprovação complementar</h2>
+      <p>Proponha alterações sem liberar execução silenciosamente. A decisão do cliente acontece exclusivamente pelo link seguro.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="secondary-button" (click)="load()" [disabled]="!!busyKey"><nt-icon name="refresh" [size]="16" />Atualizar</button>
+      <button *ngIf="canEdit" type="button" class="primary-button" (click)="openCreate()"><nt-icon name="plus" [size]="16" />Novo adicional</button>
+    </div>
+  </header>
+
+  <div *ngIf="actionMessage" class="feedback" role="status"><nt-icon name="alert-triangle" [size]="17" /><span>{{ actionMessage }}</span></div>
+
+  <div *ngIf="generatedLink" class="secure-link" role="status">
+    <nt-icon name="shield-check" [size]="21" />
+    <div><strong>Link seguro gerado</strong><span>Este é o único momento em que o token bruto é exibido. Copie antes de sair ou recarregar.</span><code>{{ generatedLink }}</code></div>
+    <button type="button" class="secondary-button" (click)="copyGeneratedLink()">Copiar link</button>
+  </div>
+
+  <div *ngIf="state === 'loading'" class="state-box" role="status"><div class="skeleton wide"></div><div class="skeleton cards"></div><span>Carregando adicionais…</span></div>
+  <div *ngIf="state === 'forbidden' || state === 'error'" class="state-box error" role="alert">
+    <nt-icon [name]="state === 'forbidden' ? 'lock' : 'alert-triangle'" [size]="20" />
+    <div><strong>{{ state === 'forbidden' ? 'Acesso restrito' : 'Adicionais indisponíveis' }}</strong><span>{{ message }}</span></div>
+    <button *ngIf="state === 'error'" type="button" class="secondary-button" (click)="load()">Tentar novamente</button>
+  </div>
+
+  <ng-container *ngIf="state === 'ready' || state === 'empty'">
+    <div class="kpis">
+      <article><span>Solicitações</span><strong>{{ requests.length }}</strong><small>versões registradas</small></article>
+      <article><span>Aguardando cliente</span><strong>{{ pendingCount }}</strong><small>pendentes/visualizadas</small></article>
+      <article><span>Valor autorizado</span><strong>{{ approvedValue | currency:'BRL':'symbol':'1.2-2' }}</strong><small>aprovações total/parcial</small></article>
+      <article><span>Execução</span><strong>Separada</strong><small>aprovação não inicia trabalho</small></article>
+    </div>
+
+    <div *ngIf="state === 'empty' && !editorOpen" class="empty-box">
+      <nt-icon name="clipboard-check" [size]="28" />
+      <strong>Nenhum adicional nesta OS</strong>
+      <span>Quando surgir novo escopo, registre uma proposta separada antes de executar.</span>
+      <button *ngIf="canEdit" type="button" class="primary-button" (click)="openCreate()"><nt-icon name="plus" [size]="16" />Criar primeiro adicional</button>
+    </div>
+
+    <form *ngIf="editorOpen" class="editor-card" (ngSubmit)="saveDraft()">
+      <header><div><strong>{{ editingId ? 'Editar rascunho' : 'Novo adicional' }}</strong><span>O rascunho não altera o escopo vigente da OS.</span></div><button type="button" class="icon-button" aria-label="Fechar" (click)="closeEditor()"><nt-icon name="x" [size]="17" /></button></header>
+      <div class="form-grid">
+        <label><span>Título *</span><input name="additionalTitle" maxlength="160" [(ngModel)]="draft.title" required placeholder="Ex.: Substituição do rolamento dianteiro" /></label>
+        <label class="span-2"><span>Motivo técnico *</span><textarea name="additionalReason" rows="3" [(ngModel)]="draft.reason" required placeholder="Explique por que o novo escopo foi identificado."></textarea></label>
+      </div>
+
+      <div class="items-editor">
+        <div class="items-heading"><div><strong>Itens da proposta</strong><span>Cada item terá decisão própria.</span></div><button type="button" class="secondary-button compact" (click)="addItem()"><nt-icon name="plus" [size]="15" />Adicionar item</button></div>
+        <article class="draft-item" *ngFor="let item of draft.items; let i = index">
+          <div class="item-top">
+            <label><span>Operação</span><select [name]="'operation-' + i" [(ngModel)]="item.operation"><option *ngFor="let option of operations" [value]="option.value">{{ option.label }}</option></select></label>
+            <label><span>Tipo</span><select [name]="'itemType-' + i" [(ngModel)]="item.itemType"><option *ngFor="let option of itemTypes" [value]="option.value">{{ option.label }}</option></select></label>
+            <button type="button" class="icon-danger" aria-label="Remover item" [disabled]="draft.items.length === 1" (click)="removeItem(i)"><nt-icon name="x" [size]="15" /></button>
+          </div>
+          <label class="full"><span>Descrição *</span><input [name]="'description-' + i" maxlength="500" required [(ngModel)]="item.description" placeholder="Serviço, peça ou alteração proposta" /></label>
+          <div class="item-numbers">
+            <label><span>Quantidade</span><input [name]="'quantity-' + i" type="number" min="0.001" step="0.001" [(ngModel)]="item.quantity" /></label>
+            <label><span>Unidade</span><input [name]="'unit-' + i" maxlength="20" [(ngModel)]="item.unit" /></label>
+            <label><span>Impacto no valor</span><input [name]="'amount-' + i" type="number" step="0.01" [(ngModel)]="item.amountDelta" /></label>
+            <label><span>Tempo adicional (min)</span><input [name]="'time-' + i" type="number" min="0" [(ngModel)]="item.timeDeltaMinutes" /></label>
+          </div>
+        </article>
+      </div>
+      <footer><button type="button" class="secondary-button" (click)="closeEditor()" [disabled]="!!busyKey">Cancelar</button><button type="submit" class="primary-button" [disabled]="!!busyKey">{{ busyKey === 'save' ? 'Salvando…' : 'Salvar rascunho' }}</button></footer>
+    </form>
+
+    <form *ngIf="submitOpen && selected" class="submit-card" (ngSubmit)="submitForApproval()">
+      <header><div><strong>Gerar link de aprovação</strong><span>Defina destinatário, canal e validade. Nenhum envio automático é presumido.</span></div><button type="button" class="icon-button" (click)="closeSubmit()"><nt-icon name="x" [size]="17" /></button></header>
+      <div class="form-grid two">
+        <label><span>Destinatário *</span><input name="recipientName" maxlength="160" [(ngModel)]="submitForm.recipientName" /></label>
+        <label><span>Canal</span><select name="channel" [(ngModel)]="submitForm.channel"><option value="LINK_SEGURO">Link seguro</option><option value="WHATSAPP">WhatsApp</option><option value="EMAIL">E-mail</option><option value="PORTAL">Portal</option><option value="PRESENCIAL">Presencial</option></select></label>
+        <label><span>Contato exibido/máscara *</span><input name="recipientMasked" maxlength="180" [(ngModel)]="submitForm.recipientMasked" placeholder="Ex.: ***-****-1234" /></label>
+        <label><span>Validade *</span><input name="expiresAt" type="datetime-local" [(ngModel)]="submitForm.expiresAt" /></label>
+      </div>
+      <p class="authority-note"><nt-icon name="shield-check" [size]="16" />O backend armazenará somente o hash do token. A aprovação não reserva estoque, não inicia execução e não gera cobrança.</p>
+      <footer><button type="button" class="secondary-button" (click)="closeSubmit()">Cancelar</button><button type="submit" class="primary-button" [disabled]="!!busyKey">{{ busyKey === 'submit' ? 'Gerando…' : 'Gerar link seguro' }}</button></footer>
+    </form>
+
+    <div *ngIf="requests.length" class="requests-layout">
+      <aside class="requests-list" aria-label="Solicitações adicionais">
+        <button type="button" *ngFor="let request of requests; trackBy: trackById" [class.active]="selected?.id === request.id" (click)="select(request)">
+          <div class="request-line"><strong>{{ request.title }}</strong><span class="status" [attr.data-tone]="statusTone(request.status)">{{ statusLabel(request) }}</span></div>
+          <span>{{ request.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          <div class="request-meta"><span>{{ request.amountDelta | currency:'BRL':'symbol':'1.2-2' }}</span><span>+{{ request.timeDeltaMinutes || 0 }} min</span><span>{{ request.items.length }} item(ns)</span></div>
+        </button>
+      </aside>
+
+      <article class="request-detail" *ngIf="selected as request">
+        <header>
+          <div><span class="eyebrow">Solicitação #{{ request.id }}</span><h3>{{ request.title }}</h3><p>{{ request.reason }}</p></div>
+          <span class="status large" [attr.data-tone]="statusTone(request.status)">{{ statusLabel(request) }}</span>
+        </header>
+        <div class="detail-summary"><span><b>{{ request.amountDelta | currency:'BRL':'symbol':'1.2-2' }}</b> impacto financeiro</span><span><b>+{{ request.timeDeltaMinutes || 0 }} min</b> impacto técnico</span><span *ngIf="request.recipientMasked"><b>{{ request.recipientMasked }}</b> destinatário mascarado</span></div>
+        <div class="decision-list">
+          <div class="decision-item" *ngFor="let item of request.items; trackBy: trackById">
+            <div><span>{{ operationLabel(item.operation) }} · {{ itemTypeLabel(item.itemType) }}</span><strong>{{ item.description }}</strong><small>{{ item.quantity }} {{ item.unit || 'un' }} · {{ item.amountDelta | currency:'BRL':'symbol':'1.2-2' }} · +{{ item.timeDeltaMinutes || 0 }} min</small></div>
+            <span class="decision" [attr.data-decision]="item.decision">{{ decisionLabel(item.decision) }}</span>
+          </div>
+        </div>
+        <div class="request-actions" *ngIf="canEdit">
+          <button *ngIf="request.allowedActions.includes('EDIT')" type="button" class="secondary-button" (click)="openEdit(request)">Editar rascunho</button>
+          <button *ngIf="request.allowedActions.includes('SUBMIT')" type="button" class="primary-button" (click)="openSubmit(request)"><nt-icon name="external-link" [size]="15" />Gerar aprovação</button>
+          <button *ngIf="request.allowedActions.includes('REVOKE')" type="button" class="danger-button" (click)="revoke(request)" [disabled]="!!busyKey">Revogar link</button>
+        </div>
+        <p *ngIf="request.decidedAt" class="audit-line">Decisão registrada em {{ request.decidedAt | date:'dd/MM/yyyy HH:mm' }}. A aplicação do escopo aprovado será um comando separado.</p>
+      </article>
+    </div>
+  </ng-container>
+</section>

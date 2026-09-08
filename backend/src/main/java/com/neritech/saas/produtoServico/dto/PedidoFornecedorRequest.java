@@ -5,8 +5,10 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
+/**
+ * Payload tenant-neutral: empresa e numeração são sempre definidas pelo backend.
+ */
 public record PedidoFornecedorRequest(
-        @NotNull(message = "O ID da empresa é obrigatório") Long empresaId,
         @NotNull(message = "O ID do fornecedor é obrigatório") Long fornecedorId,
         @NotBlank(message = "O responsável é obrigatório") String responsavel,
         LocalDate dataPrevisao,
@@ -15,4 +17,3 @@ public record PedidoFornecedorRequest(
         String descricaoInterna,
         java.util.List<ItemPedidoFornecedorRequest> itens
 ) {}
-

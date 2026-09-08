@@ -8,10 +8,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/configuracoes-empresa")
+@PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
 public class ConfiguracaoEmpresaController {
 
     private final ConfiguracaoEmpresaService configuracaoEmpresaService;
@@ -22,33 +24,29 @@ public class ConfiguracaoEmpresaController {
 
     @PostMapping
     public ResponseEntity<ConfiguracaoEmpresaResponse> create(@Valid @RequestBody ConfiguracaoEmpresaRequest request) {
-        ConfiguracaoEmpresaResponse response = configuracaoEmpresaService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(configuracaoEmpresaService.create(request));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ConfiguracaoEmpresaResponse> findById(@PathVariable Long id) {
-        ConfiguracaoEmpresaResponse response = configuracaoEmpresaService.findById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(configuracaoEmpresaService.findById(id));
     }
 
     @GetMapping("/empresa/{empresaId}")
     public ResponseEntity<ConfiguracaoEmpresaResponse> findByEmpresaId(@PathVariable Long empresaId) {
-        ConfiguracaoEmpresaResponse response = configuracaoEmpresaService.findByEmpresaId(empresaId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(configuracaoEmpresaService.findByEmpresaId(empresaId));
     }
 
     @GetMapping
     public ResponseEntity<Page<ConfiguracaoEmpresaResponse>> findAll(Pageable pageable) {
-        Page<ConfiguracaoEmpresaResponse> response = configuracaoEmpresaService.findAll(pageable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(configuracaoEmpresaService.findAll(pageable));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ConfiguracaoEmpresaResponse> update(@PathVariable Long id,
+    public ResponseEntity<ConfiguracaoEmpresaResponse> update(
+            @PathVariable Long id,
             @Valid @RequestBody ConfiguracaoEmpresaRequest request) {
-        ConfiguracaoEmpresaResponse response = configuracaoEmpresaService.update(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(configuracaoEmpresaService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

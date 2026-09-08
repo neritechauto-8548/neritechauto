@@ -3,6 +3,8 @@ package com.neritech.saas.cliente.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +20,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpecificationExecutor<Cliente> {
+    @Query("select c from Cliente c where c.empresaId = :empresaId and c.id in :ids")
+    List<Cliente> findAllByEmpresaIdAndIdIn(@Param("empresaId") Long empresaId, @Param("ids") Collection<Long> ids);
+
     @Query("select c from Cliente c where c.id = :id and c.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
     Optional<Cliente> findByIdScoped(@Param("id") Long id);
 

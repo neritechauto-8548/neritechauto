@@ -11,5 +11,7 @@ import java.util.Optional;
 public interface SessaoUsuarioRepository extends JpaRepository<SessaoUsuario, Long> {
     Optional<SessaoUsuario> findByTokenSessao(String tokenSessao);
     Optional<SessaoUsuario> findByRefreshToken(String refreshToken);
+    Optional<SessaoUsuario> findByRefreshTokenAndAtivoTrue(String refreshToken);
+    boolean existsByTokenSessaoAndAtivoTrue(String tokenSessao);
     List<SessaoUsuario> findByUsuarioIdAndAtivoTrue(Long usuarioId);
 }

@@ -1,20 +1,25 @@
 package com.neritech.saas.empresa.controller;
 
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.dto.EmpresaRequest;
 import com.neritech.saas.empresa.dto.EmpresaResponse;
 import com.neritech.saas.empresa.mapper.EmpresaMapper;
+import com.neritech.saas.empresa.service.EmpresaLogoStorageService;
 import com.neritech.saas.empresa.service.EmpresaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.neritech.saas.empresa.service.EmpresaLogoStorageService;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/empresas")
@@ -30,25 +35,30 @@ public class EmpresaController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar empresa", description = "Busca uma empresa pelo ID")
+    @PreAuthorize("hasAuthority('GERAL_USUARIO')")
+    @Operation(summary = "Buscar empresa", description = "Busca somente a empresa da sessão autenticada")
     public ResponseEntity<EmpresaResponse> getById(@PathVariable Long id) {
-        Empresa e = service.findById(id);
-        return ResponseEntity.ok(EmpresaMapper.toResponse(e));
+        Long tenantId = TenantAccess.requireCurrentTenant(id);
+        return ResponseEntity.ok(EmpresaMapper.toResponse(service.findById(tenantId)));
     }
 
     @GetMapping
-    @Operation(summary = "Listar empresa", description = "Lista empresas com filtros opcionais de CNPJ e razÃ£o social")
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Listar empresa", description = "Retorna apenas a empresa da sessão autenticada")
     public ResponseEntity<Page<EmpresaResponse>> list(
             @RequestParam(required = false) String cnpj,
             @RequestParam(required = false) String razaoSocial,
             Pageable pageable) {
-        Page<Empresa> page = service.search(cnpj, razaoSocial, pageable);
-        Page<EmpresaResponse> mapped = page.map(EmpresaMapper::toResponse);
-        return ResponseEntity.ok(mapped);
+        Long tenantId = TenantAccess.requireCurrentTenant();
+        EmpresaResponse current = EmpresaMapper.toResponse(service.findById(tenantId));
+        return ResponseEntity.ok(new PageImpl<>(List.of(current), pageable, 1));
     }
 
     @PostMapping
-    @Operation(summary = "Criar empresa", description = "Cria uma nova empresa")
+    @PreAuthorize("denyAll()")
+    @Operation(
+            summary = "Criar empresa",
+            description = "Bloqueado para sessões tenant até existir autoridade explícita de backoffice da plataforma")
     public ResponseEntity<EmpresaResponse> create(@Valid @RequestBody EmpresaRequest request) {
         Empresa toCreate = EmpresaMapper.toEntity(request);
         Empresa created = service.create(toCreate);
@@ -56,31 +66,44 @@ public class EmpresaController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar empresa", description = "Atualiza os dados de uma empresa existente")
-    public ResponseEntity<EmpresaResponse> update(@PathVariable Long id, @Valid @RequestBody EmpresaRequest request) {
-        Empresa current = service.findById(id);
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Atualizar empresa", description = "Atualiza somente a empresa da sessão autenticada")
+    public ResponseEntity<EmpresaResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody EmpresaRequest request) {
+        Long tenantId = TenantAccess.requireCurrentTenant(id);
+        Empresa current = service.findById(tenantId);
         EmpresaMapper.updateEntity(current, request);
-        Empresa saved = service.update(id, current);
+        Empresa saved = service.update(tenantId, current);
         return ResponseEntity.ok(EmpresaMapper.toResponse(saved));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar empresa", description = "Remove uma empresa pelo ID")
+    @PreAuthorize("denyAll()")
+    @Operation(
+            summary = "Deletar empresa",
+            description = "Bloqueado para sessões tenant; exclusão exige fluxo administrativo próprio da plataforma")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
     @PostMapping("/{id}/logo")
-    @Operation(summary = "Upload da logomarca", description = "Realiza o upload da imagem da logomarca da empresa")
-    public ResponseEntity<EmpresaResponse> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        String path = logoStorageService.store(id, file);
-        Empresa saved = service.updateLogoPath(id, path);
+    @PreAuthorize("hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Upload da logomarca", description = "Atualiza a logomarca somente da empresa autenticada")
+    public ResponseEntity<EmpresaResponse> uploadLogo(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        Long tenantId = TenantAccess.requireCurrentTenant(id);
+        String path = logoStorageService.store(tenantId, file);
+        Empresa saved = service.updateLogoPath(tenantId, path);
         return ResponseEntity.ok(EmpresaMapper.toResponse(saved));
     }
 
+    // A leitura da logomarca permanece pública porque é usada em superfícies externas.
+    // Este endpoint não expõe dados cadastrais e já é explicitamente liberado no SecurityConfig.
     @GetMapping("/{id}/logo")
-    @Operation(summary = "Obter logomarca da empresa", description = "Retorna a imagem da logomarca da empresa")
+    @Operation(summary = "Obter logomarca da empresa", description = "Retorna a imagem pública da logomarca")
     public ResponseEntity<org.springframework.core.io.Resource> getLogo(@PathVariable Long id) {
         Empresa e = service.findById(id);
         if (e.getLogoPath() == null || e.getLogoPath().isBlank()) {

@@ -1,5 +1,6 @@
 package com.neritech.saas.financeiro.controller;
 
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.financeiro.dto.PagamentoRequest;
 import com.neritech.saas.financeiro.dto.PagamentoResponse;
 import com.neritech.saas.financeiro.service.PagamentoService;
@@ -11,73 +12,71 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/financeiro/pagamentos")
 @RequiredArgsConstructor
-@Tag(name = "Pagamentos", description = "GestÃ£o de pagamentos")
+@Tag(name = "Pagamentos", description = "Gestão de pagamentos")
 public class PagamentoController {
 
     private final PagamentoService service;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('FIN_LISTAR_CONTAS','OS_NEG_PAGAMENTO')")
     @Operation(summary = "Listar pagamentos")
-    public ResponseEntity<Page<PagamentoResponse>> findAll(
-            @RequestParam Long empresaId,
-            Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+    public ResponseEntity<Page<PagamentoResponse>> findAll(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(TenantAccess.requireCurrentTenant(), pageable));
     }
 
     @GetMapping("/fatura/{faturaId}")
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('FIN_LISTAR_CONTAS','OS_NEG_PAGAMENTO')")
     @Operation(summary = "Listar pagamentos por fatura")
     public ResponseEntity<Page<PagamentoResponse>> findByFatura(
             @PathVariable Long faturaId,
-            @RequestParam Long empresaId,
             Pageable pageable) {
-        return ResponseEntity.ok(service.findByFatura(empresaId, faturaId, pageable));
+        return ResponseEntity.ok(service.findByFatura(TenantAccess.requireCurrentTenant(), faturaId, pageable));
     }
 
     @GetMapping("/ordem-servico/{osId}")
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('FIN_LISTAR_CONTAS','OS_NEG_PAGAMENTO')")
     @Operation(summary = "Listar pagamentos por ordem de serviço")
     public ResponseEntity<Page<PagamentoResponse>> findByOsId(
             @PathVariable Long osId,
-            @RequestParam Long empresaId,
             Pageable pageable) {
-        return ResponseEntity.ok(service.findByOsId(empresaId, osId, pageable));
+        return ResponseEntity.ok(service.findByOsId(TenantAccess.requireCurrentTenant(), osId, pageable));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('FIN_LISTAR_CONTAS','OS_NEG_PAGAMENTO')")
     @Operation(summary = "Buscar pagamento por ID")
-    public ResponseEntity<PagamentoResponse> findById(
-            @PathVariable Long id,
-            @RequestParam Long empresaId) {
-        return ResponseEntity.ok(service.findById(id, empresaId));
+    public ResponseEntity<PagamentoResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findById(id, TenantAccess.requireCurrentTenant()));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('FIN_INC_CONTAS','OS_NEG_PAGAMENTO')")
     @Operation(summary = "Criar pagamento")
-    public ResponseEntity<PagamentoResponse> create(
-            @RequestParam Long empresaId,
-            @Valid @RequestBody PagamentoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(empresaId, request));
+    public ResponseEntity<PagamentoResponse> create(@Valid @RequestBody PagamentoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.create(TenantAccess.requireCurrentTenant(), request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('FIN_EDIT_CONTA')")
     @Operation(summary = "Atualizar pagamento")
     public ResponseEntity<PagamentoResponse> update(
             @PathVariable Long id,
-            @RequestParam Long empresaId,
             @Valid @RequestBody PagamentoRequest request) {
-        return ResponseEntity.ok(service.update(id, empresaId, request));
+        return ResponseEntity.ok(service.update(id, TenantAccess.requireCurrentTenant(), request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('FIN_EXC_CONTAS')")
     @Operation(summary = "Excluir pagamento")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id,
-            @RequestParam Long empresaId) {
-        service.delete(id, empresaId);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id, TenantAccess.requireCurrentTenant());
         return ResponseEntity.noContent().build();
     }
 }

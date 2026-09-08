@@ -1,29 +1,277 @@
-// Header moderno com efeitos especiais (Stripe Style)
 .matero-header {
   position: sticky;
   top: 0;
   z-index: 1000;
   display: block;
-  background: rgba(246, 249, 252, 0.8) !important; /* Ice Gray com Transparência */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-  transition: all 0.3s ease;
+  border-bottom: 1px solid var(--nt-border-default);
+  background: color-mix(in srgb, var(--nt-surface-panel) 96%, transparent) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-mat-toolbar {
-  background: transparent !important; /* Deixa o fundo do .matero-header brilhar */
-  height: 64px !important;
-  padding: 0 1.5rem !important;
+.neritech-topbar.p-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(310px, auto) minmax(260px, 620px) minmax(260px, auto);
+  gap: var(--nt-space-5);
+  width: 100%;
+  height: 64px;
+  padding: 0 var(--nt-space-5) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--nt-text-primary) !important;
+  box-shadow: none !important;
 }
 
-// Icon Button Hover Effects
-button[mat-icon-button] {
-  @apply rounded-lg;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.03);
+.neritech-topbar__left,
+.neritech-topbar__actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.neritech-topbar__left {
+  gap: 10px;
+}
+
+.neritech-topbar__actions {
+  justify-content: flex-end;
+  gap: var(--nt-space-2);
+}
+
+.neritech-topbar__brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  color: var(--nt-text-primary);
+  text-decoration: none;
+}
+
+.neritech-topbar__brand-mark {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nt-radius-md);
+  background: var(--nt-primary-500);
+  color: var(--nt-surface-panel);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.neritech-topbar__brand-name {
+  overflow: hidden;
+  color: var(--nt-text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.neritech-topbar__brand-name strong {
+  color: var(--nt-text-primary);
+}
+
+.neritech-topbar__separator {
+  width: 1px;
+  height: 24px;
+  margin: 0 2px;
+  background: var(--nt-border-default);
+}
+
+.neritech-topbar__context-wrap,
+.neritech-topbar__search-wrap {
+  display: block;
+  min-width: 0;
+}
+
+.neritech-topbar__context {
+  display: inline-flex;
+  max-width: 220px;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--nt-border-default);
+  border-radius: var(--nt-radius-md);
+  background: var(--nt-surface-canvas);
+  color: var(--nt-text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.neritech-topbar__context span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.neritech-topbar__context:disabled {
+  cursor: not-allowed;
+  opacity: 0.76;
+}
+
+.neritech-topbar__context nt-icon:last-child {
+  color: var(--nt-text-muted);
+}
+
+.neritech-topbar__search-wrap {
+  width: 100%;
+}
+
+.neritech-topbar__search {
+  display: flex;
+  width: 100%;
+  height: 38px;
+  align-items: center;
+  gap: var(--nt-space-2);
+  padding: 0 10px;
+  border: 1px solid var(--nt-border-default);
+  border-radius: var(--nt-radius-md);
+  background: var(--nt-surface-canvas);
+  color: var(--nt-text-muted);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.neritech-topbar__search:focus-within {
+  border-color: var(--nt-primary-300);
+  background: var(--nt-surface-panel);
+  box-shadow: var(--nt-focus-ring);
+}
+
+.neritech-topbar__search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--nt-text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+
+.neritech-topbar__search input::placeholder {
+  color: var(--nt-text-muted);
+}
+
+.neritech-topbar__search kbd {
+  padding: 2px 5px;
+  border: 1px solid var(--nt-border-default);
+  border-radius: var(--nt-radius-sm);
+  background: var(--nt-surface-panel);
+  color: var(--nt-text-muted);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  box-shadow: var(--nt-shadow-panel);
+}
+
+.neritech-topbar__support,
+.neritech-topbar__icon-button {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--nt-radius-md);
+  background: transparent;
+  color: var(--nt-text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.neritech-topbar__support {
+  gap: 7px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.neritech-topbar__icon-button {
+  width: 36px;
+  padding: 0;
+}
+
+.neritech-topbar__support:hover,
+.neritech-topbar__icon-button:hover {
+  border-color: var(--nt-border-default);
+  background: var(--nt-surface-subtle);
+  color: var(--nt-text-primary);
+}
+
+.neritech-topbar__support:focus-visible,
+.neritech-topbar__icon-button:focus-visible {
+  border-color: var(--nt-primary-300);
+  background: var(--nt-surface-panel);
+  color: var(--nt-text-primary);
+  box-shadow: var(--nt-focus-ring);
+}
+
+@media (max-width: 1279px) {
+  .neritech-topbar.p-toolbar {
+    grid-template-columns: minmax(260px, auto) minmax(220px, 1fr) auto;
+    gap: var(--nt-space-3);
+    padding: 0 var(--nt-space-4) !important;
+  }
+
+  .neritech-topbar__support span {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .neritech-topbar.p-toolbar {
+    grid-template-columns: minmax(230px, 1fr) auto;
+  }
+
+  .neritech-topbar__search-wrap {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .neritech-topbar.p-toolbar {
+    height: 56px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0 10px !important;
+  }
+
+  .neritech-topbar__brand-name,
+  .neritech-topbar__separator,
+  .neritech-topbar__context-wrap,
+  .neritech-topbar__support {
+    display: none;
+  }
+
+  .neritech-topbar__left,
+  .neritech-topbar__actions {
+    gap: var(--nt-space-1);
+  }
+
+  .neritech-topbar__icon-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neritech-topbar__search,
+  .neritech-topbar__support,
+  .neritech-topbar__icon-button {
+    transition: none;
   }
 }

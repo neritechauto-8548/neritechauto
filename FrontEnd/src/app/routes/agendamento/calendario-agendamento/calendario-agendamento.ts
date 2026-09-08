@@ -7,14 +7,19 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { LocalStorageService } from '@shared/services/storage.service';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { NgxPermissionsModule } from 'ngx-permissions';
 
 import { AgendamentoService, AgendamentoResponse } from '../agendamento.service';
 import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
+import { NeriTechIcon } from '@shared';
+
+interface MecanicoResumo {
+  id: number;
+  funcionarioId: number;
+}
 
 interface EventoCalendario {
   id: number;
@@ -27,7 +32,7 @@ interface EventoCalendario {
 @Component({
   selector: 'app-calendario-agendamento',
   standalone: true,
-  imports: [CommonModule, FormsModule, DialogModule, ToastModule, ConfirmDialogModule, NgxPermissionsModule],
+  imports: [CommonModule, FormsModule, DialogModule, ToastModule, ConfirmDialogModule, NgxPermissionsModule, NeriTechIcon],
   providers: [MessageService, ConfirmationService],
   templateUrl: './calendario-agendamento.html',
   styleUrls: ['./calendario-agendamento.scss'],
@@ -40,7 +45,6 @@ export class CalendarioAgendamento implements OnInit {
   private messageService = inject(MessageService);
   private router = inject(Router);
   private http = inject(HttpClient);
-  private storage = inject(LocalStorageService);
 
   @Input() embed = false;
   // Toolbar
@@ -49,10 +53,6 @@ export class CalendarioAgendamento implements OnInit {
 
   mecanicoMap = new Map<number, string>();
 
-  get tenantId(): string {
-    const v = this.storage.has('tenantId') ? (this.storage.get('tenantId') as any) : '7';
-    return String(v && typeof v !== 'object' ? v : '7');
-  }
 
   // Calendário
   hoje = new Date();
@@ -60,6 +60,8 @@ export class CalendarioAgendamento implements OnInit {
   viewMode: 'mes' | 'semana' | 'dia' = 'mes';
 
   eventos: EventoCalendario[] = [];
+  carregandoEventos = false;
+  erroCarregamento = false;
 
   // Popup de visualização
   mostrarDialogEvento = false;
@@ -72,14 +74,15 @@ export class CalendarioAgendamento implements OnInit {
   }
 
   carregarFuncionarios() {
-    const headers = new HttpHeaders({ 'X-Tenant-Id': this.tenantId, 'Accept': 'application/json' });
     forkJoin({
       funcionarios: this.funcionarioService.list({ size: 1000 }),
-      mecanicos: this.http.get<any>(`${environment.baseUrl}/v1/rh/mecanicos`, { params: { size: '1000' }, headers })
+      mecanicos: this.http.get<{ content: MecanicoResumo[] }>(`${environment.baseUrl}/v1/rh/mecanicos`, {
+        params: { size: '1000' },
+      }),
     }).subscribe({
       next: (res: any) => {
         const funcList = res.funcionarios?.content || res.funcionarios || [];
-        const mecList = res.mecanicos?.content || res.mecanicos || [];
+        const mecList = res.mecanicos?.content || [];
 
         // Mapear funcionarioId -> nomeCompleto
         const funcMap = new Map<number, string>();
@@ -107,6 +110,9 @@ export class CalendarioAgendamento implements OnInit {
   }
 
   carregarEventos() {
+    this.carregandoEventos = true;
+    this.erroCarregamento = false;
+
     forkJoin({
       agendamentos: this.agendamentoService.listPorEmpresa(),
       clientes: this.clienteService.list({})
@@ -147,8 +153,13 @@ export class CalendarioAgendamento implements OnInit {
             agendamento: a
           };
         });
+        this.carregandoEventos = false;
       },
-      error: err => console.error('Erro ao carregar agendamentos e clientes', err),
+      error: () => {
+        this.eventos = [];
+        this.carregandoEventos = false;
+        this.erroCarregamento = true;
+      },
     });
   }
 
@@ -345,7 +356,6 @@ export class CalendarioAgendamento implements OnInit {
       acceptLabel: 'Sim, Cancelar',
       rejectLabel: 'Não, Manter',
       acceptButtonStyleClass: 'p-button-danger',
-      icon: 'pi pi-exclamation-triangle',
       accept: () => {
         this.agendamentoService.delete(this.eventoSelecionado!.id).subscribe({
           next: () => {

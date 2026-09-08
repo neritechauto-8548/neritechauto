@@ -2,20 +2,22 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { LocalStorageService } from '@shared/services/storage.service';
+import { AuthService } from '@core';
 import { environment } from '../../../environments/environment';
 import { Page, StatusOSRequest, StatusOSResponse } from './models/os.models';
 
 @Injectable({ providedIn: 'root' })
 export class StatusOSService {
   private readonly http = inject(HttpClient);
-  private readonly storage = inject(LocalStorageService);
+  private readonly auth = inject(AuthService);
   private readonly base = `${environment.baseUrl}/v1/status-os`;
 
   private getTenantId(): number {
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-    return Number(tenantId);
+    const tenantId = Number(this.auth.snapshot().empresaId);
+    if (!Number.isInteger(tenantId) || tenantId <= 0) {
+      throw new Error('Empresa autenticada não disponível para a operação de status de OS.');
+    }
+    return tenantId;
   }
 
   list(filters?: Record<string, any>): Observable<Page<StatusOSResponse>> {

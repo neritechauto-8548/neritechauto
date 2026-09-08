@@ -27,13 +27,15 @@ export const defaults: AppSettings = {
   headerPos: 'above',
   showUserPanel: true,
   sidenavOpened: true,
-  sidenavCollapsed: true,
+  // UI Master: desktop inicia com navegação persistente expandida (264 px).
+  sidenavCollapsed: false,
   language: 'pt-BR',
-  primaryColor: 'indigo',
-  primaryColorValue: '{indigo}',
+  primaryColor: 'blue',
+  primaryColorValue: '{blue}',
   surfaceColor: 'slate',
   surfaceColorValue: '{slate}',
-  menuThemeClass: 'bg-slate-800',
-  topbarThemeClass: 'bg-blue-600',
+  // Shell canônico usa superfícies neutras; cor primária fica para ações e estados.
+  menuThemeClass: '',
+  topbarThemeClass: '',
   presetTheme: 'Aura',
 };

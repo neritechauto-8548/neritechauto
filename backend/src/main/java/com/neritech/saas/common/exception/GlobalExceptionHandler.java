@@ -1,7 +1,6 @@
 package com.neritech.saas.common.exception;
 
 import com.neritech.saas.common.dto.ApiErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.RollbackException;
@@ -17,8 +16,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import org.springframework.web.servlet.NoHandlerFoundException;
+
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -26,6 +25,19 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleApiException(ApiException ex) {
+        Map<String, String> errors = new HashMap<>();
+        if (ex.getCode() != null && !ex.getCode().isBlank()) {
+            errors.put("code", ex.getCode());
+        }
+        return buildErrorResponse(
+                ex.getCode() != null && !ex.getCode().isBlank() ? ex.getCode() : "API_ERROR",
+                ex.getMessage(),
+                errors.isEmpty() ? null : errors,
+                ex.getStatus());
+    }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException ex) {
@@ -82,7 +94,7 @@ public class GlobalExceptionHandler {
             return buildErrorResponse("BUSINESS_RULE", userMessage, errors, HttpStatus.CONFLICT);
         }
         if (t instanceof OptimisticLockException || t instanceof OptimisticLockingFailureException) {
-             return buildErrorResponse("BUSINESS_RULE", "Conflito de concorrência: registro foi alterado por outro processo", null, HttpStatus.CONFLICT);
+            return buildErrorResponse("BUSINESS_RULE", "Conflito de concorrência: registro foi alterado por outro processo", null, HttpStatus.CONFLICT);
         }
         return buildErrorResponse("INTERNAL_ERROR", "Falha na transação: " + (t.getMessage() != null ? t.getMessage() : ex.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -93,14 +105,14 @@ public class GlobalExceptionHandler {
         while (t.getCause() != null) t = t.getCause();
 
         if (t instanceof ConstraintViolationException) {
-             return buildErrorResponse("VALIDATION", "Erro de validação: " + t.getMessage(), null, HttpStatus.UNPROCESSABLE_ENTITY);
+            return buildErrorResponse("VALIDATION", "Erro de validação: " + t.getMessage(), null, HttpStatus.UNPROCESSABLE_ENTITY);
         }
         if (isIntegrityViolation(t)) {
-             String raw = extractMessage(ex);
-             String userMessage = explainIntegrityMessage(raw);
-             Map<String, String> errors = new HashMap<>();
-             errors.put("detalhes", raw);
-             return buildErrorResponse("BUSINESS_RULE", userMessage, errors, HttpStatus.CONFLICT);
+            String raw = extractMessage(ex);
+            String userMessage = explainIntegrityMessage(raw);
+            Map<String, String> errors = new HashMap<>();
+            errors.put("detalhes", raw);
+            return buildErrorResponse("BUSINESS_RULE", userMessage, errors, HttpStatus.CONFLICT);
         }
         return buildErrorResponse("INTERNAL_ERROR", "Transação reprovada (rollback): " + (t.getMessage() != null ? t.getMessage() : ex.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -134,7 +146,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
-        ex.printStackTrace(); // Log error
+        ex.printStackTrace();
         return buildErrorResponse("INTERNAL_ERROR", "Erro interno do servidor: " + ex.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -144,9 +156,9 @@ public class GlobalExceptionHandler {
     }
 
     private boolean isIntegrityViolation(Throwable t) {
-        return t instanceof ConstraintViolationException || 
-               t instanceof SQLIntegrityConstraintViolationException || 
-               t instanceof DataIntegrityViolationException;
+        return t instanceof ConstraintViolationException
+                || t instanceof SQLIntegrityConstraintViolationException
+                || t instanceof DataIntegrityViolationException;
     }
 
     private String extractMessage(Exception ex) {

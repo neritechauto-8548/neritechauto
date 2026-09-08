@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { map, of } from 'rxjs';
+import { map } from 'rxjs';
 
 import { Menu } from '@core';
 import { Token, User } from './interface';
@@ -12,37 +12,29 @@ export class LoginService {
   protected readonly http = inject(HttpClient);
 
   login(username: string, password: string, rememberMe = false) {
-    const tenantId = localStorage.getItem('tenantId') || '1';
-    return this.http.post<Token>(
-      '/auth/login',
-      { email: username, senha: password },
-      { headers: { 'X-Tenant-Id': tenantId } }
-    ).pipe(
-      map((response: any) => {
-        // Converter camelCase do backend para snake_case esperado pelo frontend
-        return {
-          access_token: response.accessToken || response.access_token,
-          refresh_token: response.refreshToken || response.refresh_token,
-          token_type: 'Bearer',
-          expires_in: response.expiraEm ? Math.floor((new Date(response.expiraEm).getTime() - Date.now()) / 1000) : 86400
-        } as Token;
-      })
+    return this.http.post<Token>('/auth/login', { email: username, senha: password }).pipe(
+      map((response: any) => ({
+        access_token: response.accessToken || response.access_token,
+        refresh_token: response.refreshToken || response.refresh_token,
+        token_type: 'Bearer',
+        expires_in: response.expiraEm
+          ? Math.floor((new Date(response.expiraEm).getTime() - Date.now()) / 1000)
+          : 86400,
+      } as Token))
     );
   }
 
   refresh(params: Record<string, any>) {
-    const tenantId = localStorage.getItem('tenantId') || '1';
     const refreshToken = params.refresh_token || params.refreshToken;
-    return this.http.post<Token>('/auth/refresh', { refreshToken }, { headers: { 'X-Tenant-Id': tenantId } }).pipe(
-      map((response: any) => {
-        // Converter camelCase do backend para snake_case esperado pelo frontend
-        return {
-          access_token: response.accessToken || response.access_token,
-          refresh_token: response.refreshToken || response.refresh_token,
-          token_type: 'Bearer',
-          expires_in: response.expiraEm ? Math.floor((new Date(response.expiraEm).getTime() - Date.now()) / 1000) : 86400
-        } as Token;
-      })
+    return this.http.post<Token>('/auth/refresh', { refreshToken }).pipe(
+      map((response: any) => ({
+        access_token: response.accessToken || response.access_token,
+        refresh_token: response.refreshToken || response.refresh_token,
+        token_type: 'Bearer',
+        expires_in: response.expiraEm
+          ? Math.floor((new Date(response.expiraEm).getTime() - Date.now()) / 1000)
+          : 86400,
+      } as Token))
     );
   }
 
@@ -60,18 +52,15 @@ export class LoginService {
 
   user() {
     return this.http.get<User>('/usuarios/me').pipe(
-      map((user: any) => {
-        return {
-          ...user,
-          name: user.nomeCompleto || user.name,
-          avatar: user.avatarUrl || user.avatar
-        } as User;
-      })
+      map((user: any) => ({
+        ...user,
+        name: user.nomeCompleto || user.name,
+        avatar: user.avatarUrl || user.avatar,
+      } as User))
     );
   }
 
   menu() {
-    // Busca o arquivo estático da própria URL do frontend, ignorando o BaseUrlInterceptor
     const menuUrl = window.location.origin + '/data/menu.json';
     return this.http.get<any>(menuUrl).pipe(map(res => res.menu || res.response?.menu));
   }

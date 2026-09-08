@@ -4,75 +4,94 @@ import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
 
-    @InjectMocks
-    private JwtService jwtService;
+    private static final String VALID_SECRET = "dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbi1taW5pbXVtLTI1Ni1iaXRzLXJlcXVpcmVkLWZvci1oczI1Ni1hbGdvcml0aG0=";
 
+    private JwtService jwtService;
     private UserDetails userDetails;
 
     @BeforeEach
     void setUp() {
-        // Configurar propriedades via Reflection pois são @Value
-        // Secret key válida em Base64 (256 bits)
-        ReflectionTestUtils.setField(jwtService, "secretKey", "dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbi1taW5pbXVtLTI1Ni1iaXRzLXJlcXVpcmVkLWZvci1oczI1Ni1hbGdvcml0aG0=");
+        jwtService = new JwtService();
+        ReflectionTestUtils.setField(jwtService, "secretKey", VALID_SECRET);
         ReflectionTestUtils.setField(jwtService, "jwtExpiration", 3600000L);
         ReflectionTestUtils.setField(jwtService, "refreshExpiration", 7200000L);
-
+        ReflectionTestUtils.setField(jwtService, "cachedKey", null);
         userDetails = new User("test@email.com", "password", Collections.emptyList());
     }
 
     @Test
-    @DisplayName("Deve gerar token válido")
+    @DisplayName("Deve gerar token valido")
     void deveGerarTokenValido() {
-        // Act
         String token = jwtService.generateToken(userDetails);
 
-        // Assert
-        assertThat(token).isNotNull();
+        assertThat(token).isNotBlank();
         assertThat(jwtService.isTokenValid(token, userDetails)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Cada token deve possuir jti unico mesmo para o mesmo usuario")
+    void deveGerarJtiUnicoPorToken() {
+        String primeiro = jwtService.generateToken(userDetails);
+        String segundo = jwtService.generateToken(userDetails);
+
+        String primeiroJti = jwtService.extractClaim(primeiro, Claims::getId);
+        String segundoJti = jwtService.extractClaim(segundo, Claims::getId);
+
+        assertThat(primeiroJti).isNotBlank();
+        assertThat(segundoJti).isNotBlank();
+        assertThat(segundoJti).isNotEqualTo(primeiroJti);
+        assertThat(segundo).isNotEqualTo(primeiro);
     }
 
     @Test
     @DisplayName("Deve extrair username do token")
     void deveExtrairUsername() {
-        // Arrange
         String token = jwtService.generateToken(userDetails);
 
-        // Act
-        String username = jwtService.extractUsername(token);
-
-        // Assert
-        assertThat(username).isEqualTo(userDetails.getUsername());
+        assertThat(jwtService.extractUsername(token)).isEqualTo(userDetails.getUsername());
     }
 
     @Test
-    @DisplayName("Deve validar token expirado")
-    void deveValidarTokenExpirado() {
-        // Arrange
-        ReflectionTestUtils.setField(jwtService, "jwtExpiration", -1000L); // Expirado
-        String token = jwtService.generateToken(userDetails);
+    @DisplayName("Nao deve iniciar com segredo JWT ausente")
+    void segredoAusenteFalhaRapido() {
+        ReflectionTestUtils.setField(jwtService, "secretKey", " ");
+        ReflectionTestUtils.setField(jwtService, "cachedKey", null);
 
-        // Act & Assert
-        // Dependendo da implementação, pode lançar exceção ou retornar false
-        // Assumindo que lança exceção ao extrair claims de token expirado
-        try {
-            jwtService.isTokenValid(token, userDetails);
-        } catch (Exception e) {
-            assertThat(e).isInstanceOf(io.jsonwebtoken.ExpiredJwtException.class);
-        }
+        assertThatThrownBy(() -> jwtService.generateToken(userDetails))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("JWT_SECRET nao configurado");
+    }
+
+    @Test
+    @DisplayName("Nao deve aceitar segredo JWT Base64 curto")
+    void segredoCurtoFalhaRapido() {
+        ReflectionTestUtils.setField(jwtService, "secretKey", "dGVzdGU=");
+        ReflectionTestUtils.setField(jwtService, "cachedKey", null);
+
+        assertThatThrownBy(() -> jwtService.generateToken(userDetails))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("pelo menos 256 bits");
+    }
+
+    @Test
+    @DisplayName("Token expirado deve ser rejeitado")
+    void deveRejeitarTokenExpirado() throws InterruptedException {
+        ReflectionTestUtils.setField(jwtService, "jwtExpiration", 1L);
+        String token = jwtService.generateToken(userDetails);
+        Thread.sleep(5L);
+
+        assertThatThrownBy(() -> jwtService.isTokenValid(token, userDetails))
+                .isInstanceOf(io.jsonwebtoken.ExpiredJwtException.class);
     }
 }

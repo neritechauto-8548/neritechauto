@@ -29,16 +29,13 @@ public class DashboardService {
         LocalDate startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
 
-        // Clientes Ativos
         Long totalClientes = clienteRepository.countByStatus(com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO);
 
-        // Ordens de Serviço
         long osAbertas = ordemServicoRepository.countAtivas(empresaId);
         long osConcluidas = ordemServicoRepository.countConcluidas(empresaId);
         long osCanceladas = ordemServicoRepository.countCanceladas(empresaId);
-        long osEmAndamento = osAbertas; // No momento tratamos ativas como em andamento/abertas
+        long osEmAndamento = osAbertas;
 
-        // Financeiro - Faturamento e Despesas
         BigDecimal faturamentoMes = contasReceberRepository.calculateFaturamentoMes(empresaId, startOfMonth, endOfMonth);
         if (faturamentoMes == null) faturamentoMes = BigDecimal.ZERO;
 
@@ -47,7 +44,6 @@ public class DashboardService {
 
         BigDecimal lucroMes = faturamentoMes.subtract(despesasMes);
 
-        // Métricas Pro
         BigDecimal ticketMedio = ordemServicoRepository.calculateTicketMedio(empresaId);
         if (ticketMedio == null) ticketMedio = BigDecimal.ZERO;
 
@@ -62,7 +58,6 @@ public class DashboardService {
 
         long veiculosEmAtraso = ordemServicoRepository.countAtrasadas(empresaId);
 
-        // Novas Métricas de Status e Entradas/Saídas
         java.time.LocalDateTime startOfMonthDateTime = startOfMonth.atStartOfDay();
         java.time.LocalDateTime endOfMonthDateTime = endOfMonth.atTime(23, 59, 59, 999999999);
         List<String> codigosAberto = List.of("ABERTA", "DIAGNOSTICO", "AGUARDANDO_APROVACAO");
@@ -83,14 +78,10 @@ public class DashboardService {
         long entradasVeiculosMesVal = ordemServicoRepository.countByPeriod(empresaId, startOfMonthDateTime, endOfMonthDateTime);
         long saidasVeiculosMesVal = ordemServicoRepository.countSaidasByPeriod(empresaId, startOfMonthDateTime, endOfMonthDateTime);
 
-        // Dados do Gráfico (Mock estruturado para evoluir para real)
-        List<BigDecimal> historicoFaturamento = List.of(
-                new BigDecimal("2800"), new BigDecimal("2900"), new BigDecimal("3300"),
-                new BigDecimal("3600"), new BigDecimal("4200"), faturamentoMes);
-        List<BigDecimal> historicoServicos = List.of(
-                new BigDecimal("4500"), new BigDecimal("5200"), new BigDecimal("5300"),
-                new BigDecimal("4900"), new BigDecimal("6200"), faturamentoMes.multiply(new BigDecimal("0.6")));
-        List<String> historicoMeses = List.of("Jan", "Fev", "Mar", "Abr", "Mai", "Jun");
+        // Historico temporal ainda nao possui read model autoritativo. O backend nao fabrica dados.
+        List<BigDecimal> historicoFaturamento = List.of();
+        List<BigDecimal> historicoServicos = List.of();
+        List<String> historicoMeses = List.of();
 
         return new DashboardDTO(
                 totalClientes != null ? totalClientes : 0L,

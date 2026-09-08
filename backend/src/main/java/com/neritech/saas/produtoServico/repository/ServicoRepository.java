@@ -9,8 +9,11 @@ import com.neritech.saas.produtoServico.domain.Servico;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import java.util.Optional;
 
 public interface ServicoRepository extends JpaRepository<Servico, Long> {
+
+    Optional<Servico> findByIdAndEmpresaId(Long id, Long empresaId);
 
     List<Servico> findByEmpresaId(Long empresaId);
 
@@ -30,4 +33,14 @@ public interface ServicoRepository extends JpaRepository<Servico, Long> {
 
     @Query("SELECT s FROM Servico s WHERE s.empresaId = :empresaId AND LOWER(s.nome) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<Servico> search(@Param("empresaId") Long empresaId, @Param("search") String search, Pageable pageable);
+
+    @Query("""
+            SELECT s FROM Servico s
+            WHERE s.empresaId = :empresaId AND s.ativo = true
+              AND LOWER(s.nome) LIKE LOWER(CONCAT('%', :search, '%'))
+            """)
+    Page<Servico> searchActive(
+            @Param("empresaId") Long empresaId,
+            @Param("search") String search,
+            Pageable pageable);
 }

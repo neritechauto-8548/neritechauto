@@ -9,6 +9,7 @@ import org.mapstruct.*;
 public interface FuncionarioMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "empresaId", ignore = true)
     @Mapping(target = "versao", ignore = true)
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
@@ -22,6 +23,7 @@ public interface FuncionarioMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "empresaId", ignore = true)
     @Mapping(target = "versao", ignore = true)
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)

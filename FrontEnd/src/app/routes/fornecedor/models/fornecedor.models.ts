@@ -7,7 +7,6 @@ export interface Page<T> {
 }
 
 export interface FornecedorRequest {
-  empresaId: number;
   tipoPessoa?: 'PF' | 'PJ';
   nome: string;
   nomeFantasia?: string;

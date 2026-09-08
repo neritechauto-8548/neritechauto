@@ -1,6 +1,5 @@
 package com.neritech.saas.cliente.service;
 
-import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.cliente.domain.Cliente;
 import com.neritech.saas.cliente.domain.enums.StatusCliente;
 import com.neritech.saas.cliente.domain.enums.TipoCliente;
@@ -9,10 +8,10 @@ import com.neritech.saas.cliente.mapper.ClienteMapper;
 import com.neritech.saas.cliente.repository.ClienteRepository;
 import com.neritech.saas.cliente.repository.ContatoClienteRepository;
 import com.neritech.saas.cliente.repository.EnderecoClienteRepository;
-import com.neritech.saas.veiculo.repository.VeiculoRepository;
 import com.neritech.saas.common.exception.BusinessException;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.util.DocumentoValidator;
-
+import com.neritech.saas.veiculo.repository.VeiculoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,8 +23,12 @@ import java.util.Optional;
 public class ClienteService {
 
     private final ClienteRepository repository;
+    // Mantidos temporariamente no construtor para compatibilidade estrutural durante o rebuild.
+    @SuppressWarnings("unused")
     private final ContatoClienteRepository contatoRepository;
+    @SuppressWarnings("unused")
     private final EnderecoClienteRepository enderecoRepository;
+    @SuppressWarnings("unused")
     private final VeiculoRepository veiculoRepository;
 
     public ClienteService(ClienteRepository repository,
@@ -38,92 +41,81 @@ public class ClienteService {
         this.veiculoRepository = veiculoRepository;
     }
 
-    /**
-     * Busca um cliente pelo seu ID.
-     *
-     * @param id Identificador Ãºnico do cliente
-     * @return A entidade Cliente encontrada
-     * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
-     */
     @Transactional(readOnly = true)
     public Cliente findById(Long id) {
         return repository.findByIdScoped(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente", "ID", id));
     }
 
-    /**
-     * Cria um novo cliente.
-     *
-     * @param c Entidade Cliente a ser persistida
-     * @return O cliente persistido com ID gerado
-     * @throws BusinessException se houver violaÃ§Ã£o de regras de negÃ³cio (ex:
-     *                           duplicidade)
-     */
     @Transactional
-    public Cliente create(Cliente c) {
-        validateDocumento(c);
-        return repository.save(c);
+    public Cliente create(Cliente cliente) {
+        validateIdentity(cliente);
+        validateDocumento(cliente);
+        // Lifecycle é autoridade do backend: criação operacional sempre inicia ativa.
+        cliente.setStatus(StatusCliente.ATIVO);
+        return repository.save(cliente);
     }
 
-    /**
-     * Atualiza um cliente existente com base em uma entidade completa.
-     * Preserva o ID e o Tenant (empresaId) originais.
-     *
-     * @param id Identificador do cliente a ser atualizado
-     * @param c  Entidade com os novos dados
-     * @return O cliente atualizado
-     * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
-     */
     @Transactional
-    public Cliente update(Long id, Cliente c) {
-        validateDocumento(c);
+    public Cliente update(Long id, Cliente cliente) {
         Cliente current = findById(id);
-        // Garante que o id e o empresaId do registro nÃ£o sejam alterados
-        c.setId(current.getId());
-        c.setEmpresaId(current.getEmpresaId());
-        return repository.save(c);
+        cliente.setId(current.getId());
+        cliente.setEmpresaId(current.getEmpresaId());
+        cliente.setStatus(current.getStatus());
+        validateIdentity(cliente);
+        validateDocumento(cliente);
+        return repository.save(cliente);
     }
 
-    /**
-     * Atualiza um cliente existente com base em um DTO de requisiÃ§Ã£o.
-     * Aplica as alteraÃ§Ãµes na entidade recuperada do banco.
-     *
-     * @param id      Identificador do cliente a ser atualizado
-     * @param request DTO com os dados a serem atualizados
-     * @return O cliente atualizado
-     * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
-     */
     @Transactional
     public Cliente update(Long id, ClienteRequest request) {
         Cliente current = findById(id);
-        // Aplica as alteraÃ§Ãµes do request na entidade carregada do banco
+        StatusCliente lifecycleStatus = current.getStatus();
         ClienteMapper.updateEntity(current, request);
-        // Garante que empresaId nÃ£o serÃ¡ modificado por payload
-        current.setEmpresaId(current.getEmpresaId());
+        current.setStatus(lifecycleStatus);
+        validateIdentity(current);
         validateDocumento(current);
         return repository.save(current);
     }
 
-    private void validateDocumento(Cliente c) {
-        if (c.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
-            if (c.getCpf() != null && !c.getCpf().isBlank()) {
-                if (!DocumentoValidator.isValidCpf(c.getCpf())) {
-                    throw new BusinessException("O CPF informado (" + c.getCpf() + ") é inválido.");
+    private void validateIdentity(Cliente cliente) {
+        if (cliente == null || cliente.getTipoCliente() == null) {
+            throw new BusinessException("Informe o tipo do cliente.");
+        }
+
+        if (cliente.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
+            if (cliente.getNomeCompleto() == null || cliente.getNomeCompleto().isBlank()) {
+                throw new BusinessException("Informe o nome completo do cliente.");
+            }
+            return;
+        }
+
+        if (cliente.getTipoCliente() == TipoCliente.PESSOA_JURIDICA
+                && (cliente.getRazaoSocial() == null || cliente.getRazaoSocial().isBlank())) {
+            throw new BusinessException("Informe a razão social do cliente.");
+        }
+    }
+
+    private void validateDocumento(Cliente cliente) {
+        if (cliente.getTipoCliente() == TipoCliente.PESSOA_FISICA) {
+            if (cliente.getCpf() != null && !cliente.getCpf().isBlank()) {
+                if (!DocumentoValidator.isValidCpf(cliente.getCpf())) {
+                    throw new BusinessException("O CPF informado é inválido.");
                 }
-                repository.findByCpf(c.getCpf()).ifPresent(existing -> {
-                    if (!existing.getId().equals(c.getId())) {
-                        throw new BusinessException("Já existe um cliente cadastrado com este CPF (" + c.getCpf() + ").");
+                repository.findByCpf(cliente.getCpf()).ifPresent(existing -> {
+                    if (!existing.getId().equals(cliente.getId())) {
+                        throw new BusinessException("Já existe um cliente cadastrado com este CPF.");
                     }
                 });
             }
-        } else if (c.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
-            if (c.getCnpj() != null && !c.getCnpj().isBlank()) {
-                if (!DocumentoValidator.isValidCnpj(c.getCnpj())) {
-                    throw new BusinessException("O CNPJ informado (" + c.getCnpj() + ") é inválido.");
+        } else if (cliente.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
+            if (cliente.getCnpj() != null && !cliente.getCnpj().isBlank()) {
+                if (!DocumentoValidator.isValidCnpj(cliente.getCnpj())) {
+                    throw new BusinessException("O CNPJ informado é inválido.");
                 }
-                repository.findByCnpj(c.getCnpj()).ifPresent(existing -> {
-                    if (!existing.getId().equals(c.getId())) {
-                        throw new BusinessException("Já existe um cliente cadastrado com este CNPJ (" + c.getCnpj() + ").");
+                repository.findByCnpj(cliente.getCnpj()).ifPresent(existing -> {
+                    if (!existing.getId().equals(cliente.getId())) {
+                        throw new BusinessException("Já existe um cliente cadastrado com este CNPJ.");
                     }
                 });
             }
@@ -131,65 +123,38 @@ public class ClienteService {
     }
 
     /**
-     * Remove um cliente do sistema.
-     * Realiza exclusÃ£o lÃ³gica ou fÃ­sica dependendo da implementaÃ§Ã£o do repositÃ³rio.
-     *
-     * @param id Identificador do cliente a ser removido
-     * @throws ResourceNotFoundException se o cliente nÃ£o for encontrado
+     * Compatibilidade com o endpoint DELETE legado. A operação é lógica: preserva
+     * cliente, veículos, contatos, endereços e histórico relacionado.
      */
     @Transactional
     public void delete(Long id) {
-        // Verifica existÃªncia restrita ao tenant
-        if (!repository.existsByIdScoped(id)) {
-            throw new ResourceNotFoundException("Cliente", "ID", id);
-        }
-
-        // Remove filhos vinculados ao cliente no banco de dados para evitar FK constraint
-        veiculoRepository.deleteByClienteIdScoped(id);
-        contatoRepository.deleteByClienteIdScoped(id);
-        enderecoRepository.deleteByClienteIdScoped(id);
-
-        // Executa deleÃ§Ã£o restrita ao tenant e valida que ocorreu
-        int affected = repository.deleteByIdScoped(id);
-        if (affected == 0) {
-            throw new ResourceNotFoundException("Cliente", "ID", id);
-        }
+        deactivate(id);
     }
 
-    /**
-     * Busca um cliente pelo CPF.
-     *
-     * @param cpf CPF a ser pesquisado
-     * @return Optional contendo o cliente se encontrado
-     */
+    @Transactional
+    public Cliente deactivate(Long id) {
+        Cliente cliente = findById(id);
+        cliente.setStatus(StatusCliente.INATIVO);
+        return repository.save(cliente);
+    }
+
+    @Transactional
+    public Cliente reactivate(Long id) {
+        Cliente cliente = findById(id);
+        cliente.setStatus(StatusCliente.ATIVO);
+        return repository.save(cliente);
+    }
+
     @Transactional(readOnly = true)
     public Optional<Cliente> findByCpf(String cpf) {
         return repository.findByCpf(cpf);
     }
 
-    /**
-     * Busca um cliente pelo CNPJ.
-     *
-     * @param cnpj CNPJ a ser pesquisado
-     * @return Optional contendo o cliente se encontrado
-     */
     @Transactional(readOnly = true)
     public Optional<Cliente> findByCnpj(String cnpj) {
         return repository.findByCnpj(cnpj);
     }
 
-    /**
-     * Realiza uma busca paginada de clientes com base em mÃºltiplos filtros.
-     *
-     * @param nomeCompleto Filtro por nome (contÃ©m, case insensitive)
-     * @param razaoSocial  Filtro por razÃ£o social (contÃ©m, case insensitive)
-     * @param cpf          Filtro por CPF (exato)
-     * @param cnpj         Filtro por CNPJ (exato)
-     * @param tipoCliente  Filtro por tipo de cliente
-     * @param status       Filtro por status
-     * @param pageable     ParÃ¢metros de paginaÃ§Ã£o
-     * @return PÃ¡gina de clientes encontrados
-     */
     @Transactional(readOnly = true)
     public Page<Cliente> search(String nomeCompleto,
             String razaoSocial,
@@ -198,10 +163,11 @@ public class ClienteService {
             TipoCliente tipoCliente,
             StatusCliente status,
             Pageable pageable) {
-        
-        org.springframework.data.jpa.domain.Specification<Cliente> spec = 
-            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status);
-            
+
+        org.springframework.data.jpa.domain.Specification<Cliente> spec =
+            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(
+                nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status);
+
         return repository.findAll(spec, pageable);
     }
 }

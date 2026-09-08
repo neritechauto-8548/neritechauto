@@ -3,8 +3,8 @@ package com.neritech.saas.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -33,12 +33,18 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/auth/login",
@@ -56,9 +62,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     HttpMethod.GET,
-                    "/v1/ordens-servico/fotos/*/download",
                     "/v1/empresas/*/logo",
-                    "/v1/rh/funcionarios/*/foto",
                     "/v1/produtos/*/foto"
                 ).permitAll()
                 .anyRequest().authenticated()
@@ -95,12 +99,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.setAllowedOriginPatterns(List.of(
-            // Desenvolvimento
             "http://localhost:3000",
             "http://localhost:4200",
             "http://localhost:5173",
             "http://localhost:5174",
-            // Produção (Site e Dashboard)
             "https://www.neritechauto.com.br",
             "https://neritechauto.com.br",
             "https://neritechauto.vercel.app",
@@ -108,8 +110,17 @@ public class SecurityConfig {
             "https://sistema.neritechauto.com.br"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "X-Tenant-Id", "X-Tenant-Header"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "X-Tenant-Id"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "Accept",
+            "Origin",
+            "X-Tenant-Id",
+            "Idempotency-Key",
+            "If-Match"
+        ));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

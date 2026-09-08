@@ -11,7 +11,6 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { SkeletonModule } from 'primeng/skeleton';
 import { NgxPermissionsModule } from 'ngx-permissions';
@@ -19,8 +18,8 @@ import { NgxPermissionsModule } from 'ngx-permissions';
 import { AgendamentoService, AgendamentoResponse } from '../agendamento.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { ComunicacaoService, ComunicacaoEnviadaRequest } from '../comunicacao.service';
-import { EmpresaService } from '../../configuracoes/empresa/services/empresa.service';
 import { forkJoin } from 'rxjs';
+import { NeriTechIcon } from '@shared';
 
 @Component({
   selector: 'app-agendamentos-alertas',
@@ -34,11 +33,11 @@ import { forkJoin } from 'rxjs';
     ToastModule,
     MatMenuModule,
     MatButtonModule,
-    MatIconModule,
     MatDividerModule,
     RouterModule,
     SkeletonModule,
-    NgxPermissionsModule
+    NgxPermissionsModule,
+    NeriTechIcon
   ],
   providers: [MessageService],
   templateUrl: './agendamentos-alertas.html',
@@ -50,7 +49,6 @@ export class AgendamentosAlertas implements OnInit {
   private clienteService = inject(ClientesService);
   private comunicacaoService = inject(ComunicacaoService);
   private messageService = inject(MessageService);
-  private empresaService = inject(EmpresaService);
 
   agendamentos: AgendamentoResponse[] = [];
   loading = false;
@@ -58,7 +56,7 @@ export class AgendamentosAlertas implements OnInit {
   // trigger web pack
   _triggerCache = 1;
 
-  oficinaNome = 'Sua Oficina';
+  oficinaNome = 'NeriTech Auto';
 
   // Filtros de Período
   filtroPeriodo: 'todos' | 'dia' | 'semana' | 'mes' | 'custom' = 'todos';
@@ -115,20 +113,8 @@ export class AgendamentosAlertas implements OnInit {
 
   ngOnInit(): void {
     this.carregarDados();
-    this.carregarNomeOficina();
   }
 
-  carregarNomeOficina(): void {
-    const idEmpresa = this.comunicacaoService.tenantId;
-    this.empresaService.getEmpresa(idEmpresa).subscribe({
-      next: (emp) => {
-        if (emp && (emp.nomeFantasia || emp.razaoSocial)) {
-          this.oficinaNome = emp.nomeFantasia || emp.razaoSocial;
-        }
-      },
-      error: (err) => console.error('Erro ao buscar dados da empresa', err)
-    });
-  }
 
   carregarDados(): void {
     this.loading = true;
@@ -387,7 +373,6 @@ export class AgendamentosAlertas implements OnInit {
     this.salvandoAlerta = true;
 
     const payload: ComunicacaoEnviadaRequest = {
-      empresaId: 1, // injetado dinamicamente internamente no service
       tipoComunicacao: this.alertaEnviarPor,
       destinatarioTipo: 'CLIENTE',
       destinatarioId: this.alertaRecord?.clienteId || 0,

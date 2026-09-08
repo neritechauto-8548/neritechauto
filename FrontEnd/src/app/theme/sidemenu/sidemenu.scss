@@ -1,197 +1,225 @@
-@use '@angular/material' as mat;
-
 .matero-sidemenu {
-  padding: 0.75rem 0.75rem;
   margin: 0;
+  padding: var(--nt-space-2) 10px var(--nt-space-5);
   list-style: none;
 
-  /* Section Heading Style */
   .menu-item-heading {
-    margin-top: 1rem; /* Reduzido de 1.5rem */
-    margin-bottom: 0.25rem; /* Reduzido de 0.5rem */
-    
+    margin: 18px 0 5px;
+
     &:first-child {
-      margin-top: 0.5rem;
+      margin-top: 6px;
     }
 
     .menu-heading-label {
-      padding: 0 16px; /* Aumentado de 14 para 16 */
-      font-size: 11px;
+      padding: 0 var(--nt-space-3);
+      color: var(--nt-text-muted);
+      font-size: 10px;
       font-weight: 700;
-      color: #475569; /* Slate 600 - Melhor Contraste */
-      letter-spacing: 0.08em; /* Aumentado de 0.05 para 0.08 */
+      letter-spacing: 0.08em;
+      line-height: 16px;
       text-transform: uppercase;
-      opacity: 0.8;
     }
   }
 
   .menu-item {
-    overflow: visible;
-    border-radius: 6px;
-    transition: all 200ms ease;
+    position: relative;
     margin-bottom: 2px;
+    overflow: visible;
+    border-radius: var(--nt-radius-md);
 
-    &:not(.menu-item-heading) {
-        >.submenu {
-          height: 0;
-          margin: 0; /* Removido margin default */
-          padding: 0; /* Removido padding default */
-          transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1);
-          overflow: hidden;
-          margin-left: 20px; 
-          border-left: 1px solid #f1f5f9;
-        }
+    &:not(.menu-item-heading) > .submenu {
+      height: 0;
+      margin: 0 0 0 20px;
+      padding: 0;
+      overflow: hidden;
+      border-left: 1px solid var(--nt-border-default);
+      transition: height 160ms ease;
     }
 
-    >.menu-heading {
-      transition: all 250ms ease;
+    > .menu-heading {
       position: relative;
       display: flex;
-      align-items: center;
-      justify-content: flex-start !important; /* Força alinhamento à esquerda */
       width: 100%;
-      padding: 8px 16px;
-      min-height: 38px;
-      font-size: 13.5px;
-      color: #475569; /* Slate 600 */
-      text-decoration: none !important;
-      text-align: left !important;
-      cursor: pointer;
+      min-height: 40px;
+      align-items: center;
+      justify-content: flex-start !important;
+      gap: 0;
+      padding: 8px var(--nt-space-3);
+      border: 1px solid transparent;
+      border-radius: var(--nt-radius-md);
       outline: none;
-      background-color: transparent;
-      border: none;
-      border-radius: 8px;
+      background: transparent;
+      color: var(--nt-text-secondary);
+      font: inherit;
+      font-size: 13.5px;
       font-weight: 500;
-      font-family: 'Inter', sans-serif;
+      line-height: 20px;
+      text-align: left !important;
+      text-decoration: none !important;
+      cursor: pointer;
+      transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
 
       &:hover {
-        background-color: #f1f5f9; /* Slate 100 */
-        color: #0f172a; /* Slate 900 */
+        border-color: color-mix(in srgb, var(--nt-border-default) 70%, transparent);
+        background: var(--nt-surface-subtle);
+        color: var(--nt-text-primary);
+      }
+
+      &:focus-visible {
+        border-color: var(--nt-primary-300);
+        box-shadow: var(--nt-focus-ring);
       }
     }
 
-    /* Active State - Stripe Light (Indigo Pop) */
-    &.active {
-      >.menu-heading {
-        color: #4f46e5; /* Indigo 600 */
-        background-color: #eef2ff; /* Indigo 50 */
-        font-weight: 600;
+    // Selected = surface + foreground + persistent structural indicator.
+    // Never rely on blue text alone for operational state.
+    &.active > .menu-heading {
+      border-color: color-mix(in srgb, var(--nt-primary-200) 65%, transparent);
+      background: var(--nt-primary-50);
+      color: var(--nt-primary-700);
+      font-weight: 650;
 
-        &::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 20%;
-          height: 60%;
-          width: 4px; /* Indicador levemente mais robusto */
-          background-color: #6366f1; /* Indigo 500 indicator */
-          border-radius: 0 8px 8px 0;
-        }
+      &::before {
+        content: '';
+        position: absolute;
+        top: 7px;
+        bottom: 7px;
+        left: -1px;
+        width: 3px;
+        border-radius: 0 var(--nt-radius-sm) var(--nt-radius-sm) 0;
+        background: var(--nt-primary-500);
+      }
 
-        .menu-icon {
-          color: #6366f1 !important;
-          opacity: 1 !important;
-        }
+      .menu-icon {
+        color: var(--nt-primary-600);
       }
     }
 
-    &.expanded {
-      > .submenu {
-        height: auto;
-        padding-top: 4px;
-        padding-bottom: 4px;
-        margin-top: 2px;
-      }
+    &.expanded > .submenu {
+      height: auto;
+      margin-top: 2px;
+      padding: 4px 0 4px 4px;
     }
   }
 
   .menu-icon {
     width: 20px;
     height: 20px;
-    margin-right: 12px;
-    font-size: 16px;
-    line-height: 20px;
-    text-align: center;
-    flex-shrink: 0;
-    color: #000000 !important; /* Cor Preta Absoluta */
-    opacity: 1; /* Aumentando opacidade conforme pedido de ícones pretos */
-    transition: all 0.2s ease;
-
-    &.pi {
-        color: #000000 !important;
-    }
+    flex: 0 0 20px;
+    margin-right: 11px;
+    color: var(--nt-text-muted);
+    transition: color 120ms ease;
 
     &.submenu-icon {
-        font-size: 12px; /* Aumentado significativamente para visibilidade */
-        opacity: 0.8;
-        margin-right: 12px;
+      width: 16px;
+      height: 16px;
+      flex-basis: 16px;
+      margin-right: 10px;
     }
   }
 
   .menu-name {
+    min-width: 0;
     flex: 1;
     overflow: hidden;
+    padding-right: var(--nt-space-1);
     text-overflow: ellipsis;
     white-space: nowrap;
-    letter-spacing: -0.01em;
-    padding-right: 4px; /* Previne que o texto encoste no caret */
+  }
+
+  .menu-label,
+  .menu-badge {
+    display: inline-flex;
+    min-width: 20px;
+    min-height: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--nt-space-2);
+    padding: 1px 6px;
+    border: 1px solid var(--nt-border-default);
+    border-radius: var(--nt-radius-pill);
+    background: var(--nt-surface-panel);
+    color: var(--nt-text-secondary);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 16px;
   }
 
   .menu-caret {
-      font-size: 10px;
-      width: 12px;
-      height: 12px;
-      line-height: 12px;
-      opacity: 0.4;
-      transition: transform 0.2s;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    margin-left: var(--nt-space-2);
+    color: var(--nt-text-muted);
+    transition: transform 140ms ease;
   }
 
   .expanded > .menu-heading .menu-caret {
-      transform: rotate(180deg);
+    transform: rotate(180deg);
   }
 }
 
-/* Sidebar Container - Stripe Ice Gray */
 .matero-sidebar {
-    background: #f6f9fc !important;
-    border-right: 1px solid #e2e8f0 !important;
+  background: var(--nt-surface-panel) !important;
+  border-right: 1px solid var(--nt-border-default) !important;
 }
 
-/* Collapsed Sidebar Refinements (Stripe UX) */
 .matero-sidenav-collapsed {
   .matero-sidemenu {
-    padding: 0.75rem 0;
+    padding: var(--nt-space-2);
 
     .menu-item-heading {
-      display: none !important; /* Hide headings in mini mode */
+      display: none !important;
     }
 
     .menu-item {
       .menu-heading {
-        padding: 8px 0;
-        justify-content: center;
+        min-height: 44px;
+        justify-content: center !important;
+        padding: var(--nt-space-2) 0;
+
+        &::before {
+          top: 8px;
+          bottom: 8px;
+        }
 
         .menu-icon {
-          margin-right: 0;
-          width: 100%;
           display: flex;
+          width: 100%;
+          height: 20px;
+          margin-right: 0;
           justify-content: center;
         }
 
         .menu-name,
+        .menu-label,
+        .menu-badge,
         .menu-caret {
           display: none !important;
         }
-
-        &::before {
-          top: 15%;
-          height: 70%;
-        }
       }
 
+      // Compact mode remains intentionally flat; collapsed submenus do not leak.
       .submenu {
-        display: none !important; /* Matero usually handles this via popover, but hiding ensures no leakage */
+        display: none !important;
       }
     }
+  }
+}
+
+@media (max-width: 767px) {
+  .matero-sidemenu .menu-item > .menu-heading {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matero-sidemenu .menu-item > .menu-heading,
+  .matero-sidemenu .menu-caret,
+  .matero-sidemenu .menu-item > .submenu {
+    transition: none;
   }
 }

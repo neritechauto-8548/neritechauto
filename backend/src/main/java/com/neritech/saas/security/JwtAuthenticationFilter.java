@@ -1,6 +1,9 @@
 package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
+import com.neritech.saas.gestaoUsuarios.domain.Usuario;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
+import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UsuarioRepository usuarioRepository;
+    private final SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @Override
     protected void doFilterInternal(
@@ -30,52 +35,64 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+        // Nunca reutilize contexto de tenant deixado por uma execução anterior da thread.
+        TenantContext.clear();
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        jwt = authHeader.substring(7);
-        
         try {
-            // Extract email and tenant from token
-            userEmail = jwtService.extractUsername(jwt);
-            
-            // Extract Tenant ID from claims and set context
-            Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
-            if (empresaId != null) {
-                TenantContext.setCurrentTenant(empresaId);
-            }
+            final String authHeader = request.getHeader("Authorization");
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                final String jwt = authHeader.substring(7);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                try {
+                    String userEmail = jwtService.extractUsername(jwt);
+                    if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                        // Assinatura/expiração do JWT não são suficientes para uma sessão revogada.
+                        // Logout e rotação de refresh substituem o token_sessao, tornando o token
+                        // anterior inválido imediatamente.
+                        if (!sessaoUsuarioRepository.existsByTokenSessaoAndAtivoTrue(jwt)) {
+                            throw new IllegalStateException("Sessao revogada ou inexistente");
+                        }
+
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+
+                        if (jwtService.isTokenValid(jwt, userDetails)) {
+                            Usuario usuario = usuarioRepository.findByEmailIgnoreCase(userEmail)
+                                    .orElseThrow(() -> new IllegalStateException("Usuario autenticado nao encontrado"));
+
+                            Long tenantFromToken = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
+                            Long tenantFromIdentity = usuario.getEmpresaId();
+
+                            if (tenantFromIdentity == null) {
+                                throw new IllegalStateException("Usuario autenticado sem empresa ativa");
+                            }
+                            if (tenantFromToken != null && !tenantFromIdentity.equals(tenantFromToken)) {
+                                throw new IllegalStateException("Contexto de empresa do token nao corresponde ao vinculo atual");
+                            }
+
+                            // A fonte autoritativa e o vinculo atual do usuario carregado do backend.
+                            TenantContext.setCurrentTenant(tenantFromIdentity);
+
+                            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+                        }
+                    }
+                } catch (Exception e) {
+                    // Token invalido, expirado, revogado ou com contexto inconsistente nunca
+                    // estabelece identidade/tenant.
+                    TenantContext.clear();
+                    SecurityContextHolder.clearContext();
+                    logger.warn("JWT validation failed: " + e.getClass().getSimpleName());
                 }
             }
-        } catch (Exception e) {
-            // If token is invalid, we just ignore it and let the request continue
-            // SecurityConfig will handle whether the request is allowed or not
-            logger.warn("JWT validation failed: " + e.getMessage());
-        }
-        
-        try {
+
             filterChain.doFilter(request, response);
         } finally {
-            // Clear tenant context after request
             TenantContext.clear();
         }
     }

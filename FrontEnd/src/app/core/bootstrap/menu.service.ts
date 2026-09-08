@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, share } from 'rxjs';
 
 export interface MenuTag {
-  color: string; // background color
+  color: string;
   value: string;
 }
 
@@ -11,23 +11,28 @@ export interface MenuPermissions {
   except?: string | string[];
 }
 
+export type MenuItemType = 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading';
+
 export interface MenuChildrenItem {
   route: string;
   name: string;
-  type: 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading';
-  children?: MenuChildrenItem[];
-  permissions?: MenuPermissions;
-}
-
-export interface Menu {
-  route: string;
-  name: string;
-  type: 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading';
-  icon: string;
+  type: MenuItemType;
+  icon?: string;
   label?: MenuTag;
   badge?: MenuTag;
   children?: MenuChildrenItem[];
   permissions?: MenuPermissions;
+  minPlan?: number;
+}
+
+export interface Menu extends MenuChildrenItem {
+  icon: string;
+}
+
+interface MenuTraversalNode {
+  item: MenuChildrenItem;
+  parentNamePathList: string[];
+  realRouteArr: string[];
 }
 
 @Injectable({
@@ -36,94 +41,82 @@ export interface Menu {
 export class MenuService {
   private readonly menu$ = new BehaviorSubject<Menu[]>([]);
 
-  /** Get all the menu data. */
   getAll() {
     return this.menu$.asObservable();
   }
 
-  /** Observe the change of menu data. */
   change() {
     return this.menu$.pipe(share());
   }
 
-  /** Initialize the menu data. */
   set(menu: Menu[]) {
     this.menu$.next(menu);
     return this.menu$.asObservable();
   }
 
-  /** Add one item to the menu data. */
   add(menu: Menu) {
-    const tmpMenu = this.menu$.value;
-    tmpMenu.push(menu);
-    this.menu$.next(tmpMenu);
+    const currentMenu = [...this.menu$.value, menu];
+    this.menu$.next(currentMenu);
   }
 
-  /** Reset the menu data. */
   reset() {
     this.menu$.next([]);
   }
 
-  /** Delete empty values and rebuild route. */
   buildRoute(routeArr: string[]) {
     let route = '';
     routeArr.forEach(item => {
-      if (item && item.trim()) {
+      if (item?.trim()) {
         route += '/' + item.replace(/^\/+|\/+$/g, '');
       }
     });
-    return route;
+    return route || '/';
   }
 
-  /** Get the menu item name based on current route. */
   getItemName(routeArr: string[]) {
     return this.getLevel(routeArr)[routeArr.length - 1];
   }
 
-  // Whether is a leaf menu
   private isLeafItem(item: MenuChildrenItem) {
-    const cond0 = item.route === undefined;
-    const cond1 = item.children === undefined;
-    const cond2 = !cond1 && item.children?.length === 0;
-    return cond0 || cond1 || cond2;
+    return !item.children?.length;
   }
 
-  // Deep clone object could be jsonized
-  private deepClone(obj: any) {
-    return JSON.parse(JSON.stringify(obj));
+  private deepClone<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj)) as T;
   }
 
-  // Whether two objects could be jsonized equal
-  private isJsonObjEqual(obj0: any, obj1: any) {
+  private isJsonObjEqual(obj0: unknown, obj1: unknown) {
     return JSON.stringify(obj0) === JSON.stringify(obj1);
   }
 
-  // Whether routeArr equals realRouteArr (after remove empty route element)
   private isRouteEqual(routeArr: string[], realRouteArr: string[]) {
-    realRouteArr = this.deepClone(realRouteArr);
-    realRouteArr = realRouteArr.filter(r => r !== '');
-    return this.isJsonObjEqual(routeArr, realRouteArr);
+    const normalizedRealRoute = this.deepClone(realRouteArr).filter(route => route !== '');
+    return this.isJsonObjEqual(routeArr, normalizedRealRoute);
   }
 
-  /** Get the menu level. */
   getLevel(routeArr: string[]): string[] {
-    let tmpArr: any[] = [];
+    let matchedLevel: string[] = [];
+
     this.menu$.value.forEach(item => {
-      // Breadth-first traverse
-      let unhandledLayer = [{ item, parentNamePathList: [], realRouteArr: [] }];
+      let unhandledLayer: MenuTraversalNode[] = [
+        { item, parentNamePathList: [], realRouteArr: [] },
+      ];
+
       while (unhandledLayer.length > 0) {
-        let nextUnhandledLayer: any[] = [];
-        for (const ele of unhandledLayer) {
-          const eachItem = ele.item;
-          const currentNamePathList = this.deepClone(ele.parentNamePathList).concat(eachItem.name);
-          const currentRealRouteArr = this.deepClone(ele.realRouteArr).concat(eachItem.route);
-          // Compare the full Array for expandable
+        let nextUnhandledLayer: MenuTraversalNode[] = [];
+
+        for (const element of unhandledLayer) {
+          const eachItem = element.item;
+          const currentNamePathList = [...element.parentNamePathList, eachItem.name];
+          const currentRealRouteArr = [...element.realRouteArr, eachItem.route];
+
           if (this.isRouteEqual(routeArr, currentRealRouteArr)) {
-            tmpArr = currentNamePathList;
+            matchedLevel = currentNamePathList;
             break;
           }
+
           if (!this.isLeafItem(eachItem)) {
-            const wrappedChildren = eachItem.children?.map(child => ({
+            const wrappedChildren: MenuTraversalNode[] = (eachItem.children || []).map(child => ({
               item: child,
               parentNamePathList: currentNamePathList,
               realRouteArr: currentRealRouteArr,
@@ -131,36 +124,31 @@ export class MenuService {
             nextUnhandledLayer = nextUnhandledLayer.concat(wrappedChildren);
           }
         }
+
         unhandledLayer = nextUnhandledLayer;
       }
     });
-    return tmpArr;
+
+    return matchedLevel;
   }
 
-  /** Add namespace for translation. */
   addNamespace(menu: Menu[] | MenuChildrenItem[], namespace: string) {
     menu.forEach(menuItem => {
       const originalName = menuItem.name ?? '';
-      const parentPath = namespace.replace(/^menu\./, ''); // ex.: 'financeiro' ou 'fiscal.nfe'
+      const parentPath = namespace.replace(/^menu\./, '');
 
-      // Se já estiver com prefixo 'menu.', mantém como está
       if (originalName.startsWith('menu.')) {
         menuItem.name = originalName;
-      }
-      // Se o nome do item já inclui o caminho do pai (sem 'menu.') como prefixo, apenas prefixa 'menu.'
-      else if (
+      } else if (
         originalName === parentPath ||
         (parentPath && originalName.startsWith(parentPath + '.'))
       ) {
         menuItem.name = `menu.${originalName}`;
-      }
-      // Caso contrário, concatena o namespace do pai com o nome do item
-      else {
+      } else {
         menuItem.name = `${namespace}.${originalName}`;
       }
 
-      // Processa filhos recursivamente usando o nome já normalizado como novo namespace
-      if (menuItem.children && menuItem.children.length > 0) {
+      if (menuItem.children?.length) {
         this.addNamespace(menuItem.children, menuItem.name);
       }
     });

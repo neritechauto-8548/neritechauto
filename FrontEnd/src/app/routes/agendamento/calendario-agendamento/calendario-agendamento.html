@@ -5,7 +5,7 @@
   <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
       <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-             <i class="pi pi-calendar text-indigo-600 text-lg"></i>
+             <nt-icon name="calendar" [size]="20" />
           </div>
           <div>
               <h1 class="text-base font-semibold text-slate-900 leading-tight">Calendário da Oficina</h1>
@@ -15,7 +15,7 @@
 
       <div class="flex gap-3 items-center">
           <div class="relative w-48 hidden md:block">
-            <i class="pi pi-filter absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <nt-icon name="filter" [size]="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <select [(ngModel)]="funcionarioSelecionado" (ngModelChange)="onFilterChange()" class="w-full modern-select pl-9 py-2 bg-white !text-sm appearance-none cursor-pointer">
               @for (f of funcionarioOptions; track f) {
                 <option [value]="f">Responsável: {{ f }}</option>
@@ -24,11 +24,11 @@
           </div>
 
           <button (click)="calendarioGeral()" class="px-3.5 py-2 rounded-md border border-slate-200 text-slate-600 bg-white font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm flex items-center gap-2">
-            <i class="pi pi-refresh text-xs"></i> Atualizar
+            <nt-icon name="refresh" [size]="16" /> Atualizar
           </button>
 
           <button (click)="criarAgendamento()" class="px-3.5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
-              <i class="pi pi-plus text-xs"></i>
+              <nt-icon name="plus" [size]="16" />
               Novo Agendamento
           </button>
       </div>
@@ -42,10 +42,10 @@
     <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white px-5 py-4 border border-slate-200 rounded-xl shadow-sm">
       <div class="flex items-center gap-2">
         <button (click)="anterior()" class="w-8 h-8 rounded-md flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
-          <i class="pi pi-chevron-left text-xs"></i>
+          <nt-icon name="chevron-left" [size]="16" />
         </button>
         <button (click)="proxima()" class="w-8 h-8 rounded-md flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
-          <i class="pi pi-chevron-right text-xs"></i>
+          <nt-icon name="chevron-right" [size]="16" />
         </button>
         <button (click)="hojeClick()" class="ml-2 px-3 py-1.5 text-sm font-medium border border-slate-200 rounded-md text-slate-700 hover:bg-slate-50 transition-colors">
           Hoje
@@ -53,7 +53,7 @@
       </div>
 
       <div class="text-base font-bold text-slate-800 capitalize flex items-center gap-2">
-        <i class="pi pi-calendar text-indigo-500"></i>
+        <nt-icon name="calendar" [size]="18" />
         {{ tituloMes }}
       </div>
 
@@ -71,8 +71,32 @@
     </div>
     }
 
-    <!-- Grid Custom (Mated Tailwind) -->
-    <div class="cal-grid shadow-sm">
+    @if (carregandoEventos) {
+      <div class="calendar-state" role="status" aria-live="polite">
+        <nt-icon class="calendar-state__spinner" name="loader-2" [size]="24" />
+        <div>
+          <strong>Carregando agenda</strong>
+          <span>Buscando os agendamentos autorizados da sua oficina.</span>
+        </div>
+      </div>
+    }
+
+    @if (erroCarregamento) {
+      <div class="calendar-state calendar-state--error" role="alert">
+        <nt-icon name="alert-triangle" [size]="24" />
+        <div>
+          <strong>Não foi possível carregar a agenda</strong>
+          <span>Verifique sua conexão e tente novamente. Nenhum agendamento foi alterado.</span>
+        </div>
+        <button type="button" (click)="carregarEventos()">
+          <nt-icon name="refresh" [size]="16" />
+          Tentar novamente
+        </button>
+      </div>
+    }
+
+    <!-- Grid Custom -->
+    <div class="cal-grid shadow-sm" [class.hidden]="carregandoEventos || erroCarregamento">
       <div class="header" [ngClass]="viewMode === 'dia' ? 'grid-cols-1' : 'grid-cols-7'">
         @if (viewMode === 'dia') {
           <div class="capitalize text-slate-800 font-bold py-3 text-center bg-slate-100/50">{{ obterNomeDiaDaSemana(corrente) }}</div>
@@ -112,11 +136,11 @@
                   </div>
                   <div class="font-bold text-slate-800 text-sm mt-1">{{ e.titulo }}</div>
                   <div class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                    <i class="pi pi-user text-[10px]"></i>
+                    <nt-icon name="user" [size]="13" />
                     <span>Cliente: <strong class="text-slate-600">{{ e.agendamento.clienteNome }}</strong></span>
                     @if (e.agendamento.veiculoId) {
                       <span class="text-slate-300">•</span>
-                      <i class="pi pi-car text-[10px]"></i>
+                      <nt-icon name="car" [size]="13" />
                       <span>Veículo ID: <strong class="text-slate-600">{{ e.agendamento.veiculoId }}</strong></span>
                     }
                   </div>
@@ -131,7 +155,7 @@
               @if (viewMode === 'dia') {
                 <div class="text-slate-400 text-sm py-12 text-center flex flex-col items-center gap-3">
                   <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                    <i class="pi pi-calendar-times text-xl text-slate-400"></i>
+                    <nt-icon name="calendar-off" [size]="22" />
                   </div>
                   <span class="font-medium text-slate-500">Nenhum agendamento para este dia.</span>
                 </div>
@@ -151,7 +175,7 @@
       <div class="space-y-1 sm:col-span-2">
           <label class="text-xs font-bold text-slate-700">Responsável / Cliente</label>
           <div class="relative">
-              <i class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <nt-icon name="user" [size]="17" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input type="text" [value]="rawEventoSelecionado?.clienteNome || 'Desconhecido'" disabled class="w-full modern-input bg-slate-50 pl-10" />
           </div>
       </div>
@@ -159,7 +183,7 @@
       <div class="space-y-1 w-full">
          <label class="text-xs font-bold text-slate-700">Horário Início</label>
          <div class="relative">
-            <i class="pi pi-clock absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500"></i>
+            <nt-icon name="clock" [size]="17" class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500" />
             <input type="text" [value]="eventoSelecionado?.inicio | date:'dd/MM/yyyy às HH:mm'" disabled class="w-full modern-input bg-slate-50 pl-10 text-emerald-700 font-medium" />
         </div>
       </div>
@@ -167,7 +191,7 @@
       <div class="space-y-1 w-full">
          <label class="text-xs font-bold text-slate-700">Horário Previsto (Fim)</label>
          <div class="relative">
-            <i class="pi pi-check-circle absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <nt-icon name="circle-check" [size]="17" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" [value]="eventoSelecionado?.termino | date:'dd/MM/yyyy às HH:mm'" disabled class="w-full modern-input bg-slate-50 pl-10" />
         </div>
       </div>
@@ -176,7 +200,7 @@
       <div class="space-y-1 w-full">
         <label class="text-xs font-bold text-slate-700">Canal Acionado</label>
         <div class="relative">
-            <i class="pi pi-send absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <nt-icon name="send" [size]="17" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" [value]="rawEventoSelecionado?.canalAgendamento || 'Padrão / Não Informado'" disabled class="w-full modern-input bg-slate-50 pl-10" />
         </div>
       </div>
@@ -184,7 +208,7 @@
       <div class="space-y-1 w-full">
         <label class="text-xs font-bold text-slate-700">Serviço/Status</label>
          <div class="relative">
-            <i class="pi pi-briefcase absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <nt-icon name="briefcase" [size]="17" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" [value]="rawEventoSelecionado?.status || 'PENDENTE'" disabled class="w-full modern-input bg-slate-50 pl-10" />
         </div>
       </div>
@@ -199,17 +223,17 @@
     <ng-template pTemplate="footer">
         <div class="flex justify-between items-center mt-6 border-t border-slate-100 pt-4 pb-2">
             <button (click)="excluir()" class="px-3 py-2 text-sm font-medium text-red-600 bg-transparent hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2">
-                <i class="pi pi-trash text-xs"></i> Cancelar Agendamento
+                <nt-icon name="trash" [size]="16" /> Cancelar Agendamento
             </button>
             <div class="flex gap-2">
                 <button (click)="mostrarDialogEvento=false" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
                     Fechar
                 </button>
                 <button *ngxPermissionsOnly="['OS_INCLUIR']" (click)="criarOsParaAgendamentoSelecionado()" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2">
-                    <i class="pi pi-cog text-xs"></i> Gerar Ordem de Serviço
+                    <nt-icon name="settings" [size]="16" /> Gerar Ordem de Serviço
                 </button>
                 <button (click)="gravarAlteracoes()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
-                    <i class="pi pi-external-link text-xs"></i> Editar Ficha Completa
+                    <nt-icon name="external-link" [size]="16" /> Editar Ficha Completa
                 </button>
             </div>
         </div>

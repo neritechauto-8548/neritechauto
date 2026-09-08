@@ -2,14 +2,15 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { LocalStorageService } from '@shared/services/storage.service';
+import { AuthService } from '@core';
 import { environment } from '../../../environments/environment';
 import { Page, OrdemServicoRequest, OrdemServicoResponse, ItemOSProdutoRequest, ItemOSProdutoResponse, ItemOSServicoRequest, ItemOSServicoResponse, DiagnosticoRequest, DiagnosticoResponse } from './models/os.models';
+import { OrdemServicoCockpitResponse } from './models/os-cockpit.models';
 
 @Injectable({ providedIn: 'root' })
 export class OrdemServicoService {
   private readonly http = inject(HttpClient);
-  private readonly storage = inject(LocalStorageService);
+  private readonly auth = inject(AuthService);
   private readonly base = `${environment.baseUrl}/v1/ordens-servico`;
   private readonly prodUrl = `${environment.baseUrl}/v1/itens-os-produtos`;
   private readonly servUrl = `${environment.baseUrl}/v1/itens-os-servicos`;
@@ -26,9 +27,11 @@ export class OrdemServicoService {
   private readonly catalogServUrl = `${environment.baseUrl}/v1/servicos`;
 
   private getTenantId(): number {
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-    return Number(tenantId);
+    const tenantId = Number(this.auth.snapshot().empresaId);
+    if (!Number.isInteger(tenantId) || tenantId <= 0) {
+      throw new Error('Empresa autenticada não disponível para a operação de ordem de serviço.');
+    }
+    return tenantId;
   }
 
   // ========== ORDEM DE SERVIÇO ==========
@@ -49,6 +52,12 @@ export class OrdemServicoService {
     return this.http.get<any>(`${this.base}/${id}`).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
+  getCockpit(id: number | string): Observable<OrdemServicoCockpitResponse> {
+    return this.http
+      .get<OrdemServicoCockpitResponse>(`${this.base}/${id}/cockpit`)
+      .pipe(map((resp: any) => resp?.data ?? resp));
+  }
+
   create(dto: Omit<OrdemServicoRequest, 'empresaId'>): Observable<OrdemServicoResponse> {
     const tenantId = this.getTenantId();
     const body: OrdemServicoRequest = { ...dto, empresaId: tenantId };
@@ -63,7 +72,6 @@ export class OrdemServicoService {
     };
     return this.http.post<OrdemServicoResponse>(`${this.base}/venda-balcao`, body);
   }
-
 
   update(id: number | string, dto: Omit<OrdemServicoRequest, 'empresaId'>): Observable<OrdemServicoResponse> {
     const tenantId = this.getTenantId();

@@ -5,7 +5,6 @@ export * from './token-interceptor';
 export * from './api-interceptor';
 export * from './error-interceptor';
 export * from './logging-interceptor';
-export * from './tenant-interceptor';
 
 import { apiInterceptor } from './api-interceptor';
 import { baseUrlInterceptor } from './base-url-interceptor';
@@ -14,14 +13,13 @@ import { loggingInterceptor } from './logging-interceptor';
 import { noopInterceptor } from './noop-interceptor';
 import { settingsInterceptor } from './settings-interceptor';
 import { tokenInterceptor } from './token-interceptor';
-import { tenantInterceptor } from './tenant-interceptor';
 
-// Http interceptor providers in outside-in order
+// Http interceptor providers in outside-in order.
+// Tenant is derived and authorized by the backend from the authenticated identity.
 export const interceptors = [
   noopInterceptor,
   baseUrlInterceptor,
   settingsInterceptor,
-  tenantInterceptor,
   tokenInterceptor,
   apiInterceptor,
   errorInterceptor,

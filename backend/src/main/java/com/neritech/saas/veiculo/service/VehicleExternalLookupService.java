@@ -1,94 +1,121 @@
 package com.neritech.saas.veiculo.service;
 
 import com.neritech.saas.veiculo.dto.ExternalVehicleDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class VehicleExternalLookupService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${neritech.vehicle.lookup.base-url:https://wdapi2.com.br/consulta}")
+    private String baseUrl;
+
+    @Value("${neritech.vehicle.lookup.token:${VEHICLE_LOOKUP_TOKEN:}}")
+    private String token;
+
     /**
-     * Busca dados do veículo em uma API externa gratuita.
-     * @param placa Placa do veículo
-     * @return Dados encontrados ou vazio
+     * Enriquecimento opcional. Quando a credencial não estiver configurada, o
+     * cadastro manual continua funcionando e nenhuma chamada externa é realizada.
      */
     public Optional<ExternalVehicleDTO> lookup(String placa) {
-        if (placa == null || placa.isBlank()) return Optional.empty();
+        String cleanPlaca = normalizePlate(placa);
+        if (cleanPlaca == null || token == null || token.isBlank()) {
+            return Optional.empty();
+        }
 
         try {
-            String cleanPlaca = placa.replace("-", "").toUpperCase();
-            
-            // Mock para testes do usuário (PEY-2642) para garantir que a funcionalidade seja vista em ação
-            if ("PEY2642".equals(cleanPlaca)) {
-                return Optional.of(new ExternalVehicleDTO(
-                    "PEY2642", "FORD", "KA SE 1.0 TIVCT FLEX", "2018", "2019", "BRANCA", 
-                    "9BFXXXXXXXXXXXXXX", "011XXXXXXXX", "MOTOR-XXXX", "FLEX", "RECIFE", "PE"
-                ));
+            String url = normalizeBaseUrl(baseUrl) + "/" + cleanPlaca + "/" + token;
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                return Optional.empty();
             }
 
-            // Correção da URL conforme documentação do provedor: /consulta/[PLACA]/[TOKEN]
-            String url = "https://wdapi2.com.br/consulta/" + cleanPlaca + "/7f338d76986927d35150f583597d228c";
-
-            System.out.println("🌐 Consultando API externa para placa: " + cleanPlaca);
-            
-            ResponseEntity<java.util.Map> response = restTemplate.getForEntity(url, java.util.Map.class);
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                java.util.Map<String, Object> rawBody = response.getBody();
-                
-                // Algumas APIs encapsulam em um objeto 'data' ou 'result'
-                java.util.Map<String, Object> body = rawBody;
-                if (rawBody.containsKey("data") && rawBody.get("data") instanceof java.util.Map) {
-                    body = (java.util.Map<String, Object>) rawBody.get("data");
-                } else if (rawBody.containsKey("result") && rawBody.get("result") instanceof java.util.Map) {
-                    body = (java.util.Map<String, Object>) rawBody.get("result");
-                }
-
-                System.out.println("✅ Dados processados da API: " + body);
-
-                String resPlaca = getString(body, "placa");
-                if (resPlaca == null) resPlaca = getString(body, "license_plate");
-
-                if (resPlaca != null) {
-                    return Optional.of(new ExternalVehicleDTO(
-                        resPlaca,
-                        getString(body, "marca"),
-                        getString(body, "modelo"),
-                        getString(body, "ano"),
-                        getString(body, "anoModelo"),
-                        getString(body, "cor"),
-                        getString(body, "chassi"),
-                        getString(body, "renavam"),
-                        getString(body, "motor"),
-                        getString(body, "combustivel"),
-                        getString(body, "municipio"),
-                        getString(body, "uf")
-                    ));
-                }
+            Map<String, Object> body = unwrap(response.getBody());
+            String resPlaca = firstNonBlank(getString(body, "placa"), getString(body, "license_plate"));
+            if (resPlaca == null) {
+                return Optional.empty();
             }
-        } catch (Exception e) {
-            System.err.println("❌ Erro ao consultar API externa: " + e.getMessage());
-        }
 
-        return Optional.empty();
+            return Optional.of(new ExternalVehicleDTO(
+                    normalizePlate(resPlaca),
+                    getString(body, "marca"),
+                    getString(body, "modelo"),
+                    getString(body, "ano"),
+                    getString(body, "anoModelo"),
+                    getString(body, "cor"),
+                    getString(body, "chassi"),
+                    getString(body, "renavam"),
+                    getString(body, "motor"),
+                    getString(body, "combustivel"),
+                    getString(body, "municipio"),
+                    getString(body, "uf")));
+        } catch (Exception ex) {
+            // Não registrar URL, token, placa completa nem payload do provedor.
+            log.warn("Consulta externa de veículo indisponível; cadastro manual permanece habilitado");
+            return Optional.empty();
+        }
     }
 
-    private String getString(java.util.Map<String, Object> map, String key) {
-        if (map == null) return null;
-        Object val = map.get(key);
-        if (val == null) {
-            // Tenta variações de nomes (snake_case vs camelCase)
-            val = map.get(toSnakeCase(key));
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> unwrap(Map rawBody) {
+        Object data = rawBody.get("data");
+        if (data instanceof Map<?, ?> dataMap) {
+            return (Map<String, Object>) dataMap;
         }
-        return val != null ? String.valueOf(val) : null;
+
+        Object result = rawBody.get("result");
+        if (result instanceof Map<?, ?> resultMap) {
+            return (Map<String, Object>) resultMap;
+        }
+
+        return (Map<String, Object>) rawBody;
     }
 
-    private String toSnakeCase(String str) {
-        return str.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    private String getString(Map<String, Object> map, String key) {
+        if (map == null) {
+            return null;
+        }
+        Object value = map.get(key);
+        if (value == null) {
+            value = map.get(toSnakeCase(key));
+        }
+        if (value == null) {
+            return null;
+        }
+        String text = String.valueOf(value).trim();
+        return text.isEmpty() ? null : text;
+    }
+
+    private String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : second;
+    }
+
+    private String normalizePlate(String placa) {
+        if (placa == null) {
+            return null;
+        }
+        String normalized = placa.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        return normalized.isBlank() ? null : normalized;
+    }
+
+    private String normalizeBaseUrl(String value) {
+        if (value == null || value.isBlank()) {
+            return "https://wdapi2.com.br/consulta";
+        }
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    }
+
+    private String toSnakeCase(String value) {
+        return value.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 }

@@ -20,7 +20,7 @@ public class PermissaoController {
     private final PermissaoService permissaoService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PERMISSAO.READ')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
     @Operation(summary = "Listar permissões", description = "Retorna todas as permissões disponíveis")
     public ResponseEntity<List<Permissao>> findAll() {
         return ResponseEntity.ok(permissaoService.findAll());

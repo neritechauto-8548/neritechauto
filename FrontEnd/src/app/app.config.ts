@@ -7,7 +7,6 @@ import {
 } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 
 import { provideDateFnsAdapter } from '@angular/material-date-fns-adapter';
@@ -33,6 +32,7 @@ import {
 import { environment } from '@env/environment';
 import { formlyConfigFactory, PaginatorI18nService } from '@shared';
 import { routes } from './app.routes';
+import NeriTechPreset from './theme/neritech-preset';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -49,22 +49,52 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
-        preset: Aura,
+        preset: NeriTechPreset,
         options: {
           darkModeSelector: '.theme-dark',
+          cssLayer: {
+            name: 'primeng',
+            order: 'tailwind-base, primeng, tailwind-utilities',
+          },
         },
       },
       translation: {
-        dayNames: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
-        dayNamesShort: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
-        dayNamesMin: ["Do", "Se", "Te", "Qu", "Qu", "Se", "Sa"],
-        monthNames: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
-        monthNamesShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+        dayNames: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+        dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+        dayNamesMin: ['Do', 'Se', 'Te', 'Qu', 'Qu', 'Se', 'Sa'],
+        monthNames: [
+          'Janeiro',
+          'Fevereiro',
+          'Março',
+          'Abril',
+          'Maio',
+          'Junho',
+          'Julho',
+          'Agosto',
+          'Setembro',
+          'Outubro',
+          'Novembro',
+          'Dezembro',
+        ],
+        monthNamesShort: [
+          'Jan',
+          'Fev',
+          'Mar',
+          'Abr',
+          'Mai',
+          'Jun',
+          'Jul',
+          'Ago',
+          'Set',
+          'Out',
+          'Nov',
+          'Dez',
+        ],
         today: 'Hoje',
         clear: 'Limpar',
         dateFormat: 'dd/mm/yy',
-        weekHeader: 'Sm'
-      }
+        weekHeader: 'Sm',
+      },
     }),
     provideHotToastConfig({
       position: 'top-right',
@@ -82,14 +112,12 @@ export const appConfig: ApplicationConfig = {
       info: {
         className: 'stripe-toast-info',
         duration: 4000,
-      }
+      },
     }),
     provideTranslateService({
       loader: provideTranslateHttpLoader({ prefix: 'i18n/', suffix: '.json' }),
     }),
-    importProvidersFrom(
-      NgxPermissionsModule.forRoot()
-    ),
+    importProvidersFrom(NgxPermissionsModule.forRoot()),
     provideFormlyCore([...withFormlyMaterial()]),
     {
       provide: FORMLY_CONFIG,
@@ -120,7 +148,7 @@ export const appConfig: ApplicationConfig = {
         dateInput: 'dd/MM/yyyy',
         monthYearLabel: 'MMM yyyy',
         dateA11yLabel: 'LL',
-        monthYearA11yLabel: 'MMM yyyy',
+        monthYearA11yLabel: 'MMMM yyyy',
       },
     }),
     provideDateFnsDatetimeAdapter({

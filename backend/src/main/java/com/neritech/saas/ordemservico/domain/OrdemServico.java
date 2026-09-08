@@ -176,6 +176,9 @@ public class OrdemServico extends BaseEntity {
     @Column(name = "rentabilidade_os", precision = 10, scale = 2)
     private BigDecimal rentabilidadeOS;
 
+    @Column(name = "composition_revision", nullable = false)
+    private Long compositionRevision = 0L;
+
     // Getters and Setters
     public Long getEmpresaId() {
         return empresaId;
@@ -575,5 +578,13 @@ public class OrdemServico extends BaseEntity {
 
     public void setRentabilidadeOS(BigDecimal rentabilidadeOS) {
         this.rentabilidadeOS = rentabilidadeOS;
+    }
+
+    public Long getCompositionRevision() {
+        return compositionRevision;
+    }
+
+    public void setCompositionRevision(Long compositionRevision) {
+        this.compositionRevision = compositionRevision;
     }
 }

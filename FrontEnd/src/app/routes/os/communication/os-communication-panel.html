@@ -1,0 +1,61 @@
+<section class="communication-panel" aria-labelledby="communication-title">
+  <header>
+    <div>
+      <span class="eyebrow">Comunicação</span>
+      <h2 id="communication-title">Compartilhar Ordem de Serviço</h2>
+      <p>Envio controlado por e-mail usando o contrato real da OS. Notas internas e dados não previstos no documento não são enviados pelo frontend.</p>
+    </div>
+    <span class="channel-badge">E-mail</span>
+  </header>
+
+  <div *ngIf="!canSend" class="state-card restricted" role="status">
+    <nt-icon name="lock" [size]="20" />
+    <div>
+      <strong>Envio restrito</strong>
+      <span>Seu perfil pode visualizar a OS, mas não possui permissão de edição para disparar comunicação.</span>
+    </div>
+  </div>
+
+  <ng-container *ngIf="canSend">
+    <div class="communication-grid">
+      <article class="channel-card active">
+        <div class="channel-icon"><nt-icon name="file-invoice" [size]="21" /></div>
+        <div>
+          <strong>E-mail da Ordem de Serviço</strong>
+          <span>Se o campo ficar vazio, o backend utiliza o e-mail cadastrado do cliente.</span>
+        </div>
+      </article>
+
+      <article class="channel-card disabled" aria-disabled="true">
+        <div class="channel-icon"><nt-icon name="external-link" [size]="21" /></div>
+        <div>
+          <strong>WhatsApp</strong>
+          <span>Disponível quando existir contrato auditável de comunicação. Não será simulado no navegador.</span>
+        </div>
+      </article>
+    </div>
+
+    <form class="send-form" (ngSubmit)="send()">
+      <label>
+        <span>E-mail alternativo</span>
+        <input
+          name="email"
+          type="email"
+          maxlength="180"
+          [(ngModel)]="email"
+          placeholder="Opcional — usa o cadastro do cliente quando vazio"
+          autocomplete="email"
+        />
+        <small>Informe somente se desejar substituir o endereço cadastrado para este envio.</small>
+      </label>
+      <button type="submit" [disabled]="sending">
+        {{ sending ? 'Enviando…' : 'Enviar por e-mail' }}
+      </button>
+    </form>
+
+    <div *ngIf="message" class="feedback" [class.success]="success" [class.error]="!success" role="status" aria-live="polite">
+      <nt-icon [name]="success ? 'shield-check' : 'alert-triangle'" [size]="18" />
+      <span>{{ message }}</span>
+    </div>
+  </ng-container>
+</section>

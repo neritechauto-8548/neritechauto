@@ -1,100 +1,136 @@
 <p-toast [style]="{ marginTop: '80px' }" />
 <p-confirmDialog />
-<!-- Barra de Ações Superior (Sticky Top) -->
-<div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 mb-6">
+
+<!-- Barra de ações contextual. O backend continua sendo a autoridade final. -->
+<div class="bg-white px-4 md:px-6 py-3.5 border-b border-slate-200/60 flex flex-col xl:flex-row xl:items-center justify-between gap-3 sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90 mb-4 md:mb-6">
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton [label]="isOrcamento ? 'Salvar Orçamento' : 'Salvar OS'" icon="pi pi-check" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm flex items-center gap-2" (click)="onAction('salvar')"></button>
+    <button *ngIf="canEditOS" pButton [label]="isOrcamento ? 'Salvar orçamento' : 'Salvar OS'" icon="pi pi-check" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('salvar')"></button>
+    <span *ngIf="!canEditOS" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+      <i class="pi pi-lock"></i> Visualização somente leitura
+    </span>
   </div>
+
   <div class="flex flex-wrap items-center gap-2">
-    <button pButton label="Imprimir" icon="pi pi-print" class="btn-secondary px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('imprimir')" [disabled]="isGeneratingPdf"></button>
+    <button *ngIf="canPrintOS" pButton label="Imprimir" icon="pi pi-print" class="btn-secondary px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('imprimir')" [disabled]="isGeneratingPdf"></button>
     <button pButton label="Enviar" icon="pi pi-send" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirEnviarDialog()"></button>
-    <div class="w-[1px] h-6 bg-slate-200 mx-2 hidden sm:block"></div>
-    <button *ngIf="!isOrcamento && !isPagamentoPago()" pButton label="Gerar Financeiro" icon="pi pi-money-bill" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')" [disabled]="!isOSFinalizada()" [pTooltip]="!isOSFinalizada() ? 'Finalize a OS primeiro para liberar o financeiro' : ''"></button>
+    <div class="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
+    <button *ngIf="!isOrcamento && canNegotiatePayment && !isPagamentoPago()" pButton label="Abrir Financeiro" icon="pi pi-wallet" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('pagamento')" [disabled]="!isOSFinalizada()" [pTooltip]="!isOSFinalizada() ? 'Finalize a OS primeiro para liberar o fluxo financeiro' : 'Abrir a OS no módulo Financeiro'"></button>
     <button *ngIf="!isOrcamento && isPagamentoPago()" pButton label="Comprovante" icon="pi pi-check-circle" class="btn-success px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="mostrarRecibo()"></button>
-    <button pButton label="Fotos" icon="pi pi-camera" class="btn-stripe-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('fotos')"></button>
-    <button *ngIf="!isOrcamento" pButton label="NF-e" icon="pi pi-file" class="btn-stripe-purple px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
-    <button *ngIf="isOrcamento" pButton label="Aprovar/Converter" icon="pi pi-exchange" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
+    <button *ngIf="canUploadPhotos" pButton label="Fotos" icon="pi pi-camera" class="btn-stripe-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('fotos')"></button>
+    <button *ngIf="!isOrcamento" pButton label="Abrir Fiscal" icon="pi pi-file" class="btn-stripe-purple px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('emitir-nfe')"></button>
+    <button *ngIf="isOrcamento && canEditOS" pButton label="Converter em OS" icon="pi pi-arrow-right-arrow-left" class="btn-stripe-blue px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="onAction('converter-orcamento')"></button>
+  </div>
+</div>
+
+<!-- Estados canônicos do cockpit -->
+<div *ngIf="cockpitState === 'loading'" class="mx-4 md:mx-6 mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 flex items-center gap-3 text-sm text-blue-800" role="status" aria-live="polite">
+  <i class="pi pi-spin pi-spinner"></i>
+  <div>
+    <strong class="block">Carregando contexto da OS</strong>
+    <span class="text-blue-700">Buscando dados operacionais e fontes relacionadas.</span>
+  </div>
+</div>
+
+<div *ngIf="cockpitState === 'forbidden' || cockpitState === 'not-found' || cockpitState === 'conflict' || cockpitState === 'error'" class="mx-4 md:mx-6 mb-5 rounded-xl border px-4 py-3 flex items-start gap-3 text-sm" [ngClass]="cockpitState === 'conflict' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-rose-200 bg-rose-50 text-rose-900'" role="alert">
+  <i [class]="cockpitState === 'conflict' ? 'pi pi-exclamation-triangle mt-0.5' : 'pi pi-ban mt-0.5'"></i>
+  <div class="flex-1">
+    <strong class="block mb-0.5">{{ cockpitState === 'conflict' ? 'Dados desatualizados' : 'Não foi possível abrir o cockpit' }}</strong>
+    <span>{{ cockpitMessage }}</span>
+  </div>
+  <button *ngIf="orcamentoNumero" type="button" class="rounded-lg border border-current/20 px-3 py-1.5 text-xs font-bold hover:bg-white/50" (click)="carregarOS(orcamentoNumero)">Atualizar</button>
+</div>
+
+<div *ngIf="hasPartialSources" class="mx-4 md:mx-6 mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3 text-sm text-amber-900" role="status">
+  <i class="pi pi-info-circle mt-0.5"></i>
+  <div>
+    <strong class="block">Cockpit carregado parcialmente</strong>
+    <span>Algumas fontes não responderam: {{ partialSourceWarnings.join(', ') }}. Os demais dados continuam disponíveis sem preenchimento fictício.</span>
   </div>
 </div>
 
 <!-- Cabeçalho da OS -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-        <i class="pi pi-file-edit text-sm"></i>
+      <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm">
+        <i class="pi pi-wrench text-sm"></i>
       </div>
       <div>
-        <h2 class="text-base font-bold text-slate-800 tracking-tight m-0">
-          {{ isOrcamento ? 'Orçamento' : 'Ordem de Serviço' }} 
-          <span class="text-slate-400 font-medium ml-1">#{{ orcamentoNumero }}</span>
-        </h2>
-        <p class="text-[11px] text-slate-500 font-medium">Informações do cliente e do veículo</p>
+        <h1 class="text-lg md:text-xl font-bold text-slate-900 tracking-tight m-0">
+          {{ isOrcamento ? 'Orçamento' : 'Ordem de Serviço' }}
+          <span class="text-slate-400 font-semibold ml-1">#{{ currentOS?.numeroOS || orcamentoNumero }}</span>
+        </h1>
+        <p class="text-xs text-slate-500 font-medium mt-1 mb-0">Contexto operacional, próxima ação e fontes relacionadas em uma única visão.</p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <div *ngIf="isPagamentoPago()" class="text-xs font-bold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm">
-        <i class="pi pi-check-circle"></i> Pago em: <span class="text-emerald-800">{{ dataPagamentoRealizado }}</span>
+    <div class="flex flex-wrap items-center gap-2">
+      <div *ngIf="isPagamentoPago()" class="text-xs font-bold text-emerald-700 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+        <i class="pi pi-check-circle"></i> Pago <span *ngIf="dataPagamentoRealizado">em {{ dataPagamentoRealizado }}</span>
       </div>
-      <div class="text-xs font-bold text-slate-500 flex items-center gap-2 bg-white px-3 py-1.5 rounded border border-slate-200 shadow-sm">
-        <i class="pi pi-calendar"></i> Entrada: <span class="text-slate-800">{{ dataEntrada.data }} às {{ dataEntrada.hora }}</span>
+      <div class="text-xs font-semibold text-slate-600 flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+        <i class="pi pi-calendar"></i>
+        Entrada: <span class="text-slate-900">{{ dataEntrada.data || '—' }}<span *ngIf="dataEntrada.hora"> às {{ dataEntrada.hora }}</span></span>
       </div>
     </div>
   </div>
 
-  <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="space-y-1">
-      <label class="text-xs font-bold text-slate-700">Placa do Veículo</label>
-      <div class="flex items-center gap-2 w-full modern-input bg-slate-50 cursor-not-allowed">
-        <i class="pi pi-id-card text-slate-400"></i> <span class="font-mono font-bold">{{ placa || 'N/A' }}</span>
+  <div class="p-5 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+    <div class="space-y-1.5">
+      <label class="text-xs font-bold text-slate-700">Placa do veículo</label>
+      <div class="flex items-center gap-2 w-full modern-input bg-slate-50">
+        <i class="pi pi-id-card text-slate-400"></i>
+        <span class="font-mono font-bold">{{ placa || 'Não informada' }}</span>
       </div>
     </div>
-    <div class="space-y-1">
+    <div class="space-y-1.5">
       <label class="text-xs font-bold text-slate-700">Veículo</label>
-      <div class="flex items-center gap-2 w-full modern-input bg-slate-50 cursor-not-allowed">
-        <i class="pi pi-car text-slate-400"></i> <span class="font-medium">{{ veiculo }}</span>
+      <div class="flex items-center gap-2 w-full modern-input bg-slate-50">
+        <i class="pi pi-car text-slate-400"></i>
+        <span class="font-medium">{{ veiculo || 'Não informado' }}</span>
       </div>
     </div>
-    <div class="space-y-1">
+    <div class="space-y-1.5">
       <label class="text-xs font-bold text-slate-700">Cliente</label>
       <div class="flex items-center gap-2 w-full modern-input bg-slate-50">
-        <i class="pi pi-user text-slate-400"></i> <a href="#" class="text-blue-600 hover:text-blue-800 font-bold transition-colors cursor-pointer" [pTooltip]="'Abrir cadastro do cliente'">{{ cliente }}</a>
+        <i class="pi pi-user text-slate-400"></i>
+        <span class="font-bold text-slate-800">{{ cliente || 'Não informado' }}</span>
       </div>
     </div>
   </div>
 </div>
 
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-     <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-        <i class="pi pi-chart-pie text-sm"></i>
+<!-- Status e andamento -->
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+      <i class="pi pi-route text-sm"></i>
     </div>
     <div>
-        <h3 class="font-bold text-slate-800 text-sm">Status e Andamento</h3>
-        <p class="text-[11px] text-slate-500 font-medium">Controle de prazos, responsáveis e localização</p>
+      <h2 class="font-bold text-slate-800 text-sm m-0">Status e andamento</h2>
+      <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Prazo, responsável e contexto operacional sem criar estados paralelos.</p>
     </div>
   </div>
-  
-  <div class="p-6">
+
+  <div class="p-5 md:p-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-      <!-- Status -->
       <div class="space-y-1">
-        <label class="text-xs font-bold text-slate-700">Status do {{ isOrcamento ? 'Orçamento' : 'Serviço' }}</label>
-        <div class="flex items-start h-[38px] pt-1">
-          <p-tag [value]="status" [severity]="getStatusSeverity(status)" [icon]="getStatusIcon(status)" class="cursor-pointer shadow-sm hover:opacity-90 transition-opacity" (click)="abrirStatusDialog()" />
+        <label class="text-xs font-bold text-slate-700">Status da OS</label>
+        <div class="flex items-start min-h-[38px] pt-1">
+          <p-tag *ngIf="status; else statusAusente" [value]="status" [severity]="getStatusSeverity(status)" [icon]="getStatusIcon(status)" [class.cursor-pointer]="canEditOS" [pTooltip]="canEditOS ? 'Alterar status' : 'Status somente leitura'" (click)="canEditOS && abrirStatusDialog()" />
+          <ng-template #statusAusente>
+            <span class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Status não informado</span>
+          </ng-template>
         </div>
       </div>
-      <!-- Quilometragem -->
       <div class="space-y-1">
         <label class="text-xs font-bold text-slate-700">Quilometragem (KM)</label>
-        <input pInputText [(ngModel)]="quilometragem" [disabled]="!editing" class="w-full modern-input" />
+        <input pInputText [(ngModel)]="quilometragem" [disabled]="!canEditOS" class="w-full modern-input" />
       </div>
-      <!-- Previsão -->
       <div class="space-y-1">
-        <label class="text-xs font-bold text-slate-700">Previsão de Saída</label>
+        <label class="text-xs font-bold text-slate-700">Previsão de saída</label>
         <div class="flex gap-2">
-          <input pInputText type="date" [(ngModel)]="previsaoSaidaDate" [disabled]="!editing" class="flex-1 modern-input" />
-          <input pInputText type="time" [(ngModel)]="previsaoSaidaHora" [disabled]="!editing" class="w-24 modern-input text-center" />
+          <input pInputText type="date" [(ngModel)]="previsaoSaidaDate" [disabled]="!canEditOS" class="flex-1 modern-input" />
+          <input pInputText type="time" [(ngModel)]="previsaoSaidaHora" [disabled]="!canEditOS" class="w-24 modern-input text-center" />
         </div>
       </div>
     </div>
@@ -102,175 +138,156 @@
     <div class="w-full h-px bg-slate-100 my-6"></div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-      <!-- Situação -->
       <div class="space-y-1">
-        <label class="text-xs font-bold text-slate-700">Situação Oficina</label>
-        <p-select [(ngModel)]="situacao" [options]="situacaoOptions" [disabled]="!editing" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
+        <label class="text-xs font-bold text-slate-700">Situação da oficina</label>
+        <p-select [(ngModel)]="situacao" [options]="situacaoOptions" [disabled]="!canEditOS || !situacaoOptions.length" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" [placeholder]="situacaoOptions.length ? 'Selecione...' : 'Fonte indisponível'" />
       </div>
-      <!-- Localização -->
       <div class="space-y-1">
-        <label class="text-xs font-bold text-slate-700">Localização no Pátio</label>
-        <p-select [(ngModel)]="localizacao" [options]="localizacaoOptions" [disabled]="!editing" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
+        <label class="text-xs font-bold text-slate-700">Localização no pátio</label>
+        <p-select [(ngModel)]="localizacao" [options]="localizacaoOptions" [disabled]="!canEditOS || !localizacaoOptions.length" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" [placeholder]="localizacaoOptions.length ? 'Selecione...' : 'Fonte indisponível'" />
       </div>
-      <!-- Responsável -->
       <div class="space-y-1">
-        <label class="text-xs font-bold text-slate-700">Responsável Técnico</label>
-        <p-select [(ngModel)]="responsavel" [options]="responsavelOptions" [disabled]="!editing" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
+        <label class="text-xs font-bold text-slate-700">Responsável técnico</label>
+        <p-select [(ngModel)]="responsavel" [options]="responsavelOptions" [disabled]="!canEditOS || !responsavelOptions.length" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" [placeholder]="responsavelOptions.length ? 'Selecione...' : 'Equipe indisponível'" />
       </div>
     </div>
   </div>
 </div>
 
 <!-- Produtos e Serviços -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex flex-row items-center justify-between gap-4 w-full">
-    
-    <!-- Esquerda: Título -->
-    <div class="flex items-center gap-3 flex-1 justify-start">
-       <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
-          <i class="pi pi-box text-sm"></i>
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
+        <i class="pi pi-box text-sm"></i>
       </div>
-      <div class="hidden sm:block">
-          <h3 class="font-bold text-slate-800 text-sm whitespace-nowrap">Produtos e Serviços</h3>
-          <p class="text-[11px] text-slate-500 font-medium hidden lg:block whitespace-nowrap">Itens e serviços lançados na ordem de serviço</p>
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm whitespace-nowrap m-0">Produtos e serviços</h3>
+        <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Escopo exibido a partir dos itens persistidos na OS.</p>
       </div>
     </div>
-    
-    <!-- Centro: Pesquisa -->
-    <div class="flex justify-center flex-1">
-      <div class="p-inputgroup w-full max-w-sm">
+
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+      <div class="p-inputgroup w-full lg:w-80">
         <span class="p-inputgroup-addon bg-white border-slate-200"><i class="pi pi-search text-slate-400"></i></span>
         <input pInputText [(ngModel)]="prodServBusca" placeholder="Pesquisar itens..." class="border-l-0 modern-input !h-[38px] w-full" />
       </div>
+      <button *ngIf="canIncludeItems" pButton label="Incluir item" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm whitespace-nowrap" (click)="abrirIncluirDialog()"></button>
     </div>
-
-    <!-- Direita: Botão -->
-    <div class="flex items-center justify-end flex-1 shrink-0">
-      <button pButton label="Incluir Item" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm whitespace-nowrap" (click)="abrirIncluirDialog()"></button>
-    </div>
-
   </div>
 
   <p-table [value]="filteredItens" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:100px">Ações</th>
+        <th *ngIf="canEditOS" class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:100px">Ações</th>
         <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:100px">Tipo</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5">Código / Descrição</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5">Descrição</th>
         <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-center" style="width:100px">Qtd</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-right" style="width:140px">Valor Unitário</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-right" style="width:140px">Total</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-center" style="width:80px">Status</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-right" style="width:140px">Valor unitário</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-right" style="width:140px">Total do item</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-center" style="width:100px">Autorização</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-i>
       <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="!py-0.5">
-          <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-6 w-6 p-0" [pTooltip]="'Editar item'" (click)="editarItem(i)"></button>
-          <button pButton icon="pi pi-trash" class="p-button-text p-button-sm text-slate-500 hover:text-red-600 h-6 w-6 p-0" [pTooltip]="'Excluir item'" (click)="removerItem(i)"></button>
+        <td *ngIf="canEditOS" class="!py-1">
+          <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-7 w-7 p-0" [pTooltip]="'Editar item'" (click)="editarItem(i)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-text p-button-sm text-slate-500 hover:text-red-600 h-7 w-7 p-0" [pTooltip]="'Remover item'" (click)="removerItem(i)"></button>
         </td>
-        <td class="!py-0.5">
-          <span class="px-2 py-0.5 text-[9px] font-bold rounded-md shadow-sm" [ngClass]="{'bg-indigo-50 text-indigo-700 border border-indigo-200': i.tipo === 'servico', 'bg-amber-50 text-amber-700 border border-amber-200': i.tipo === 'produto'}">
+        <td class="!py-1">
+          <span class="px-2 py-0.5 text-[9px] font-bold rounded-md" [ngClass]="{'bg-indigo-50 text-indigo-700 border border-indigo-200': i.tipo === 'servico', 'bg-amber-50 text-amber-700 border border-amber-200': i.tipo === 'produto'}">
             {{ i.tipo === 'servico' ? 'SERVIÇO' : 'PRODUTO' }}
           </span>
         </td>
-        <td class="font-medium text-slate-800 text-[12px] !py-0.5">{{ i.descricao }}</td>
-        <td class="text-center font-medium text-slate-700 text-[12px] !py-0.5">{{ i.qtd }}</td>
-        <td class="text-right font-medium text-slate-700 text-[12px] !py-0.5">{{ i.preco | currency:'BRL' }}</td>
-        <td class="text-right font-medium text-slate-800 text-[12px] !py-0.5">{{ i.total | currency:'BRL' }}</td>
-        <td class="text-center !py-0.5">
-          <button pButton 
-            [icon]="i.status === 'aprovado' ? 'pi pi-check-circle' : i.status === 'aguardando' ? 'pi pi-clock' : 'pi pi-times-circle'" 
-            [class]="'p-button-rounded p-button-text p-button-sm h-6 w-6 p-0 transition-all ' + 
-              (i.status === 'aprovado' ? 'text-emerald-500 hover:bg-emerald-50' : 
-               i.status === 'aguardando' ? 'text-orange-500 hover:bg-orange-50' : 
-               'text-red-500 hover:bg-red-50')"
-            [pTooltip]="i.status | uppercase"
-            (click)="alternarStatusItem(i)">
-          </button>
+        <td class="font-medium text-slate-800 text-[12px] !py-1">{{ i.descricao }}</td>
+        <td class="text-center font-medium text-slate-700 text-[12px] !py-1">{{ i.qtd }}</td>
+        <td class="text-right font-medium text-slate-700 text-[12px] !py-1">{{ i.preco | currency:'BRL' }}</td>
+        <td class="text-right font-medium text-slate-800 text-[12px] !py-1">{{ i.total | currency:'BRL' }}</td>
+        <td class="text-center !py-1">
+          <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold" [ngClass]="i.status === 'aprovado' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'" [pTooltip]="i.status === 'aprovado' ? 'Autorização registrada no backend' : 'Não há aprovação positiva registrada no contrato atual'">
+            <i [class]="i.status === 'aprovado' ? 'pi pi-check-circle' : 'pi pi-clock'"></i>
+            {{ i.status === 'aprovado' ? 'Aprovado' : 'Aguardando' }}
+          </span>
         </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="7" class="text-center py-4 text-slate-500 font-medium text-[12px]">Nenhum item encontrado.</td>
+        <td [attr.colspan]="canEditOS ? 7 : 6" class="text-center py-6 text-slate-500 font-medium text-[12px]">Nenhum produto ou serviço retornado para esta OS.</td>
       </tr>
     </ng-template>
   </p-table>
 
-  <div class="bg-slate-50 border-t border-slate-100 p-1.5 flex flex-wrap items-center justify-between text-[11px]">
-    <div class="flex gap-3">
-      <div class="flex items-center gap-1.5 text-slate-600 font-medium"><i class="pi pi-times-circle text-red-500 text-[10px]"></i> Negado: {{ totalNegado | currency:'BRL' }}</div>
-      <div class="flex items-center gap-1.5 text-slate-600 font-medium"><i class="pi pi-clock text-orange-500 text-[10px]"></i> Aguardando: {{ totalAguardando | currency:'BRL' }}</div>
+  <div class="bg-slate-50 border-t border-slate-100 p-3 flex flex-col lg:flex-row gap-3 lg:items-center justify-between text-[11px]">
+    <div class="flex flex-wrap gap-3">
+      <div class="flex items-center gap-1.5 text-slate-600 font-medium"><i class="pi pi-clock text-amber-500 text-[10px]"></i> Aguardando: {{ totalAguardando | currency:'BRL' }}</div>
       <div class="flex items-center gap-1.5 text-slate-800 font-bold"><i class="pi pi-check-circle text-emerald-500 text-[10px]"></i> Aprovado: {{ totalAprovado | currency:'BRL' }}</div>
     </div>
-    <div class="flex items-center gap-4">
-      <div class="text-slate-600 font-medium">Serviços: {{ totalServicos | currency:'BRL' }}</div>
-      <div class="text-slate-600 font-medium">Produtos: {{ totalProdutos | currency:'BRL' }}</div>
-      <div class="text-[15px] font-bold text-slate-900 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm">Total: {{ total | currency:'BRL' }}</div>
+    <div class="flex flex-wrap items-center gap-4">
+      <div class="text-slate-600 font-medium">Serviços exibidos: {{ totalServicos | currency:'BRL' }}</div>
+      <div class="text-slate-600 font-medium">Produtos exibidos: {{ totalProdutos | currency:'BRL' }}</div>
+      <div class="text-[14px] font-bold text-slate-900 bg-white px-3 py-1.5 rounded-lg border border-slate-200" pTooltip="Valor total autoritativo retornado pela Ordem de Serviço">Total da OS: {{ total | currency:'BRL' }}</div>
     </div>
   </div>
 </div>
 
-<!-- Solicitações -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+<!-- Solicitações / Diagnósticos -->
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-       <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
-          <i class="pi pi-shopping-cart text-sm"></i>
+      <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
+        <i class="pi pi-stethoscope text-sm"></i>
       </div>
       <div>
-          <h3 class="font-bold text-slate-800 text-sm">Solicitações de Peças</h3>
-      <p class="text-[11px] text-slate-500 font-medium">Requisições feitas ao setor de compras ou estoque para este {{ isOrcamento ? 'orçamento' : 'serviço' }}</p>
+        <h3 class="font-bold text-slate-800 text-sm m-0">Solicitações e diagnósticos</h3>
+        <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Achados e solicitações vinculados ao contexto desta OS.</p>
       </div>
     </div>
-    <button pButton label="Nova Solicitação" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirSolicitacaoDialog()"></button>
+    <button *ngIf="canEditOS" pButton label="Nova solicitação" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirSolicitacaoDialog()"></button>
   </div>
-  <p-table [value]="solicitacoes" styleClass="p-datatable-sm">
+  <p-table [value]="solicitacoes" styleClass="p-datatable-sm" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:100px">Ações</th>
+        <th *ngIf="canEditOS" class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:100px">Ações</th>
         <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-center" style="width:120px">Quantidade</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5">Descricao</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:160px">Codigo original</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:120px">Codigo</th>
-        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5 text-right" style="width:140px">ID Solicitação</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5">Descrição</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:160px">Código original</th>
+        <th class="bg-slate-50 text-slate-600 text-[10px] uppercase font-bold !py-1.5" style="width:120px">Código</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-s>
       <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="!py-0.5">
-          <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-6 w-6 p-0" pTooltip="Editar" (click)="editarSolicitacao(s)"></button>
-          <button pButton icon="pi pi-trash" class="p-button-text p-button-sm text-slate-500 hover:text-red-600 h-6 w-6 p-0" pTooltip="Excluir" (click)="excluirSolicitacao(s)"></button>
+        <td *ngIf="canEditOS" class="!py-1">
+          <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-7 w-7 p-0" pTooltip="Editar" (click)="editarSolicitacao(s)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-text p-button-sm text-slate-500 hover:text-red-600 h-7 w-7 p-0" pTooltip="Excluir" (click)="excluirSolicitacao(s)"></button>
         </td>
-        <td class="text-center font-medium text-slate-700 text-[12px] !py-0.5">{{ s.quantidade }}</td>
-        <td class="font-medium text-slate-800 text-[12px] !py-0.5">{{ s.descricao }}</td>
-        <td class="text-slate-600 text-[12px] !py-0.5">{{ s.codigoOriginal }}</td>
-        <td class="text-slate-600 text-[12px] !py-0.5">{{ s.codigo }}</td>
-        <td class="text-right text-slate-500 text-[12px] !py-0.5">#{{ s.idSolicitacao }}</td>
+        <td class="text-center font-medium text-slate-700 text-[12px] !py-1">{{ s.quantidade }}</td>
+        <td class="font-medium text-slate-800 text-[12px] !py-1">{{ s.descricao }}</td>
+        <td class="text-slate-600 text-[12px] !py-1">{{ s.codigoOriginal || '—' }}</td>
+        <td class="text-slate-600 text-[12px] !py-1">{{ s.codigo || '—' }}</td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="6" class="text-center py-4 text-slate-500 font-medium text-[12px]">Nenhuma solicitação encontrada.</td></tr>
+      <tr><td [attr.colspan]="canEditOS ? 5 : 4" class="text-center py-6 text-slate-500 font-medium text-[12px]">Nenhuma solicitação ou diagnóstico retornado.</td></tr>
     </ng-template>
   </p-table>
 </div>
 
 <!-- Checklist -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-       <div class="w-8 h-8 rounded-lg bg-purple-500 text-white flex items-center justify-center shadow-sm">
-          <i class="pi pi-list-check text-sm"></i>
+      <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center shadow-sm">
+        <i class="pi pi-list-check text-sm"></i>
       </div>
       <div>
-          <h3 class="font-bold text-slate-800 text-sm">Checklist de Inspeção</h3>
-          <p class="text-[11px] text-slate-500 font-medium">Itens inspecionados na entrada ou saída do veículo</p>
+        <h3 class="font-bold text-slate-800 text-sm m-0">Checklist e inspeção</h3>
+        <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Evidências de inspeção no contexto da execução.</p>
       </div>
     </div>
-    <button pButton label="Adicionar Checklist" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirChecklistDialog()"></button>
+    <button *ngIf="canAddChecklist" pButton label="Adicionar checklist" icon="pi pi-plus" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirChecklistDialog()"></button>
   </div>
-  <div *ngIf="!checklistsOS.length" class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">{{ checklistMsg }}</div>
+  <div *ngIf="!checklistsOS.length" class="text-center py-6 text-slate-500 font-medium text-[12px] bg-slate-50/50">{{ checklistMsg }}</div>
   <p-table *ngIf="checklistsOS.length" [value]="checklistsOS" styleClass="p-datatable-sm">
     <ng-template pTemplate="header">
       <tr>
@@ -281,32 +298,32 @@
     </ng-template>
     <ng-template pTemplate="body" let-item>
       <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-medium text-slate-800 text-[12px] !py-0.5">{{ item.descricao }}</td>
-        <td class="text-center !py-0.5">
-          <p-checkbox [(ngModel)]="item.feito" binary="true" (onChange)="toggleChecklistItem(item)" />
+        <td class="font-medium text-slate-800 text-[12px] !py-1">{{ item.descricao }}</td>
+        <td class="text-center !py-1">
+          <p-checkbox [(ngModel)]="item.feito" binary="true" [disabled]="!canEditChecklist" (onChange)="toggleChecklistItem(item)" />
         </td>
-        <td class="text-center text-slate-500 text-[12px] !py-0.5">{{ item.ordem }}</td>
+        <td class="text-center text-slate-500 text-[12px] !py-1">{{ item.ordem }}</td>
       </tr>
     </ng-template>
   </p-table>
 </div>
 
-<!-- Pagamentos -->
-<div *ngIf="!isOrcamento" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+<!-- Financeiro: somente projeção/atalho; owner permanece no módulo Financeiro -->
+<div *ngIf="!isOrcamento" class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-       <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-          <i class="pi pi-money-bill text-sm"></i>
+      <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+        <i class="pi pi-wallet text-sm"></i>
       </div>
       <div>
-          <h3 class="font-bold text-slate-800 text-sm">Registro de Pagamentos</h3>
-          <p class="text-[11px] text-slate-500 font-medium">Histórico financeiro desta ordem de serviço</p>
+        <h3 class="font-bold text-slate-800 text-sm m-0">Financeiro relacionado</h3>
+        <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Somente leitura no cockpit; negociação e baixa acontecem no módulo Financeiro.</p>
       </div>
     </div>
-    <button pButton label="Negociar Pagamento" icon="pi pi-dollar" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()" [disabled]="isPagamentoPago() || (status.toUpperCase() !== 'FINALIZADA' && status.toUpperCase() !== 'ENTREGUE')" [pTooltip]="(status.toUpperCase() !== 'FINALIZADA' && status.toUpperCase() !== 'ENTREGUE') ? 'Finalize a OS primeiro para liberar o pagamento' : ''"></button>
+    <button *ngIf="canNegotiatePayment" pButton label="Abrir Financeiro" icon="pi pi-external-link" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirPagamentoDialog()" [disabled]="!isOSFinalizada()" [pTooltip]="!isOSFinalizada() ? 'Finalize a OS primeiro para liberar o fluxo financeiro' : 'Abrir contas a receber com o contexto desta OS'"></button>
   </div>
 
-  <div *ngIf="!pagamentosExistentes.length" class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhum pagamento registrado para esta OS.</div>
+  <div *ngIf="!pagamentosExistentes.length" class="text-center py-6 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhum pagamento retornado para esta OS.</div>
 
   <p-table *ngIf="pagamentosExistentes.length" [value]="pagamentosExistentes" styleClass="p-datatable-sm">
     <ng-template pTemplate="header">
@@ -320,35 +337,35 @@
     </ng-template>
     <ng-template pTemplate="body" let-p>
       <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="font-medium text-slate-800 text-[12px] !py-0.5">{{ p.formaPagamentoNome || '—' }}</td>
-        <td class="text-slate-600 text-[12px] !py-0.5">{{ p.dataPagamento }}</td>
-        <td class="text-right font-medium text-slate-800 text-[12px] !py-0.5">{{ p.valorTotal | currency:'BRL' }}</td>
-        <td class="text-center !py-0.5">
+        <td class="font-medium text-slate-800 text-[12px] !py-1">{{ p.formaPagamentoNome || '—' }}</td>
+        <td class="text-slate-600 text-[12px] !py-1">{{ p.dataPagamento || '—' }}</td>
+        <td class="text-right font-medium text-slate-800 text-[12px] !py-1">{{ p.valorTotal | currency:'BRL' }}</td>
+        <td class="text-center !py-1">
           <span class="px-2 py-0.5 text-[10px] font-bold rounded-md" [ngClass]="{'bg-emerald-50 text-emerald-700 border border-emerald-200': p.status === 'CONFIRMADO', 'bg-red-50 text-red-700 border border-red-200': p.status === 'CANCELADO', 'bg-blue-50 text-blue-700 border border-blue-200': p.status !== 'CONFIRMADO' && p.status !== 'CANCELADO'}">
             {{ p.status || 'PENDENTE' }}
           </span>
         </td>
-        <td class="text-center !py-0.5">
-          <button pButton icon="pi pi-print" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-6 w-6 p-0" (click)="imprimirComprovante(p.id)" pTooltip="Imprimir Comprovante"></button>
+        <td class="text-center !py-1">
+          <button pButton icon="pi pi-print" class="p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-7 w-7 p-0" (click)="imprimirComprovante(p.id)" pTooltip="Imprimir comprovante"></button>
         </td>
       </tr>
     </ng-template>
   </p-table>
 </div>
 
-<!-- Fotos -->
-<div id="os-fotos-panel" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+<!-- Fotos / evidências -->
+<div id="os-fotos-panel" class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-       <div class="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-sm">
-          <i class="pi pi-camera text-sm"></i>
+      <div class="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-sm">
+        <i class="pi pi-camera text-sm"></i>
       </div>
       <div>
-          <h3 class="font-bold text-slate-800 text-sm">Dossiê Fotográfico</h3>
-          <p class="text-[11px] text-slate-500 font-medium">Fotos de vistoria e acompanhamento de serviço</p>
+        <h3 class="font-bold text-slate-800 text-sm m-0">Evidências e fotos</h3>
+        <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Dossiê visual da inspeção e execução da OS.</p>
       </div>
     </div>
-    <button pButton label="Adicionar Foto" icon="pi pi-image" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirDialogFoto()"></button>
+    <button *ngIf="canUploadPhotos" pButton label="Adicionar foto" icon="pi pi-image" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="abrirDialogFoto()"></button>
   </div>
 
   <p-table *ngIf="osFotos.length; else noFotos" [value]="osFotos" styleClass="p-datatable-sm">
@@ -361,102 +378,91 @@
     </ng-template>
     <ng-template pTemplate="body" let-f>
       <tr class="hover:bg-slate-50/50 transition-colors">
-        <td class="text-center !py-0.5">
-          <div class="w-8 h-8 bg-slate-100 rounded text-slate-400 flex items-center justify-center mx-auto border border-slate-200 shadow-sm overflow-hidden cursor-pointer" (click)="visualizarFotoOS(f)">
+        <td class="text-center !py-1">
+          <button type="button" class="w-9 h-9 bg-slate-100 rounded-lg text-slate-400 flex items-center justify-center mx-auto border border-slate-200 hover:border-blue-300 hover:text-blue-600" (click)="visualizarFotoOS(f)" aria-label="Visualizar foto">
             <i class="pi pi-image text-sm"></i>
-          </div>
+          </button>
         </td>
-        <td class="font-medium text-slate-800 text-[12px] !py-0.5">{{ f.descricao || 'Sem descrição' }}</td>
-        <td class="text-center !py-0.5">
-          <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-6 w-6 p-0" [pTooltip]="'Visualizar'" (click)="visualizarFotoOS(f)"></button>
-          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:text-red-600 h-6 w-6 p-0" [pTooltip]="'Excluir'" (click)="excluirFotoOS(f)"></button>
+        <td class="font-medium text-slate-800 text-[12px] !py-1">{{ f.descricao || 'Sem descrição' }}</td>
+        <td class="text-center !py-1">
+          <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:text-blue-600 h-7 w-7 p-0" [pTooltip]="'Visualizar'" (click)="visualizarFotoOS(f)"></button>
+          <button *ngIf="canUploadPhotos" pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:text-red-600 h-7 w-7 p-0" [pTooltip]="'Excluir'" (click)="excluirFotoOS(f)"></button>
         </td>
       </tr>
     </ng-template>
   </p-table>
   <ng-template #noFotos>
-    <div class="text-center py-4 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhuma foto cadastrada.</div>
+    <div class="text-center py-6 text-slate-500 font-medium text-[12px] bg-slate-50/50">Nenhuma evidência fotográfica retornada.</div>
   </ng-template>
 </div>
 
-<p-dialog header="Visualizar Foto" [(visible)]="showFotoViewDialog" [modal]="true" [style]="{ width: '720px' }" styleClass="modern-dialog">
+<p-dialog header="Visualizar Foto" [(visible)]="showFotoViewDialog" [modal]="true" [style]="{ width: 'min(720px, 95vw)' }" styleClass="modern-dialog">
   <div class="flex flex-col gap-3 pt-2">
-    <img [src]="selectedFotoUrl" alt="Foto OS" class="w-full max-h-[540px] object-contain rounded-xl border border-slate-200 shadow-sm" />
-    <div class="text-sm font-medium text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">{{ selectedFotoDesc }}</div>
+    <img [src]="selectedFotoUrl" alt="Evidência fotográfica da ordem de serviço" class="w-full max-h-[540px] object-contain rounded-xl border border-slate-200 shadow-sm" />
+    <div class="text-sm font-medium text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">{{ selectedFotoDesc || 'Sem descrição' }}</div>
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 w-full mt-4">
-        <a [href]="selectedFotoUrl" target="_blank" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm no-underline flex items-center">Abrir Original</a>
-        <button pButton label="Fechar Visualização" class="px-4 py-2 rounded-lg bg-slate-800 text-white font-bold hover:bg-slate-900 shadow-sm transition-all text-sm" (click)="showFotoViewDialog=false"></button>
+      <a [href]="selectedFotoUrl" target="_blank" rel="noopener" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm no-underline flex items-center">Abrir original</a>
+      <button pButton label="Fechar" class="px-4 py-2 rounded-lg bg-slate-800 text-white font-bold hover:bg-slate-900 shadow-sm transition-all text-sm" (click)="showFotoViewDialog=false"></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Adicionar Foto" [(visible)]="showFotoDialog" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '500px' }">
+<p-dialog header="Adicionar Foto" [(visible)]="showFotoDialog" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: 'min(500px, 95vw)' }">
   <div class="flex flex-col gap-5 pt-2">
     <div>
-      <label class="block text-sm font-semibold text-slate-700 mb-1.5">Descrição da Imagem</label>
-      <input pInputText [(ngModel)]="fotoDescricao" class="w-full" placeholder="Ex: Roda danificada, odômetro..." />
-      <span class="text-xs text-slate-500 mt-1 block">Esta descrição será salva no dossiê fotográfico da OS.</span>
+      <label class="block text-sm font-semibold text-slate-700 mb-1.5">Descrição da imagem</label>
+      <input pInputText [(ngModel)]="fotoDescricao" class="w-full" placeholder="Ex.: avaria na roda dianteira" />
     </div>
     <div>
-      <label class="block text-sm font-semibold text-slate-700 mb-1.5">Arquivo de Imagem (JPG, PNG)</label>
+      <label class="block text-sm font-semibold text-slate-700 mb-1.5">Arquivo de imagem</label>
       <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 hover:bg-slate-50 transition-colors flex items-center justify-center">
-        <p-fileUpload mode="basic" chooseLabel="Selecionar do computador..." accept="image/*" (onSelect)="onFotoSelected($event)" [auto]="false" styleClass="w-full" chooseStyleClass="p-button-outlined p-button-secondary w-full" />
+        <p-fileUpload mode="basic" chooseLabel="Selecionar imagem" accept="image/*" (onSelect)="onFotoSelected($event)" [auto]="false" styleClass="w-full" chooseStyleClass="p-button-outlined p-button-secondary w-full" />
       </div>
       <div *ngIf="fotoFile" class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
         <i class="pi pi-check-circle text-emerald-600 text-xl"></i>
-        <div class="text-sm">
-          <span class="block font-bold text-emerald-800">Imagem pronta:</span>
-          <span class="text-emerald-600 overflow-hidden text-ellipsis whitespace-nowrap">{{ fotoFile.name }} ({{ (fotoFile.size / 1024).toFixed(1) }} KB)</span>
+        <div class="text-sm min-w-0">
+          <span class="block font-bold text-emerald-800">Imagem pronta</span>
+          <span class="text-emerald-600 block truncate">{{ fotoFile.name }} ({{ (fotoFile.size / 1024).toFixed(1) }} KB)</span>
         </div>
       </div>
     </div>
   </div>
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 w-full mt-2 bg-slate-50 -mx-[1.5rem] px-[1.5rem] -mb-[1.5rem] py-4 rounded-b-xl">
-      <button pButton label="Cancelar" class="p-button-text text-slate-600 hover:bg-slate-100 font-semibold px-4" (click)="showFotoDialog = false"></button>
-      <button pButton label="Salvar Imagem" icon="pi pi-cloud-upload" class="btn-stripe-blue font-semibold px-6 shadow-sm" (click)="salvarFotoOS()" [disabled]="!fotoFile"></button>
+    <div class="flex justify-end gap-3 w-full">
+      <button pButton label="Cancelar" class="p-button-text" (click)="showFotoDialog = false"></button>
+      <button pButton label="Salvar imagem" icon="pi pi-cloud-upload" class="btn-stripe-blue" (click)="salvarFotoOS()" [disabled]="!fotoFile"></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<!-- Observações / Sempre Visíveis -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-    <div class="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shadow-sm">
-      <i class="pi pi-file-edit text-sm"></i>
-    </div>
+<!-- Observações -->
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shadow-sm"><i class="pi pi-file-edit text-sm"></i></div>
     <div>
-      <h3 class="font-bold text-slate-800 text-sm">Anotações e Observações</h3>
-      <p class="text-[11px] text-slate-500 font-medium">Gerencie as observações internas e as descrições destinadas ao cliente</p>
+      <h3 class="font-bold text-slate-800 text-sm m-0">Anotações e observações</h3>
+      <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Separação entre contexto interno e comunicação destinada ao cliente.</p>
     </div>
   </div>
-  <div class="p-6">
+  <div class="p-5 md:p-6">
     <p-tabs [value]="0">
       <p-tablist class="border-b border-slate-100 mb-4">
-        <p-tab [value]="0" class="flex items-center gap-2">
-          <i class="pi pi-lock text-xs text-slate-500"></i>
-          <span class="font-bold text-sm">Observação Interna</span>
-        </p-tab>
-        <p-tab [value]="1" class="flex items-center gap-2">
-          <i class="pi pi-user text-xs text-slate-500"></i>
-          <span class="font-bold text-sm">Descrição para o Cliente</span>
-        </p-tab>
+        <p-tab [value]="0"><span class="font-bold text-sm">Observação interna</span></p-tab>
+        <p-tab [value]="1"><span class="font-bold text-sm">Descrição para o cliente</span></p-tab>
       </p-tablist>
-      
       <p-tabpanels class="pt-2 pb-0">
         <p-tabpanel [value]="0">
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-semibold text-slate-500">Anotações visíveis apenas para a oficina.</label>
-            <textarea pTextarea rows="4" [(ngModel)]="observacaoInterna" [disabled]="!editing" class="w-full modern-input !h-auto resize-none p-4" placeholder="Anotações visíveis apenas para a oficina..."></textarea>
+            <label class="text-xs font-semibold text-slate-500">Visível apenas para a oficina.</label>
+            <textarea pTextarea rows="4" [(ngModel)]="observacaoInterna" [disabled]="!canEditOS" class="w-full modern-input !h-auto resize-none p-4"></textarea>
           </div>
         </p-tabpanel>
-        
         <p-tabpanel [value]="1">
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-semibold text-slate-500">Ficará visível no comprovante impresso.</label>
-            <textarea pTextarea rows="4" [(ngModel)]="descricaoCliente" [disabled]="!editing" class="w-full modern-input !h-auto resize-none p-4" placeholder="Ficará visível no comprovante impresso..."></textarea>
+            <label class="text-xs font-semibold text-slate-500">Conteúdo destinado ao cliente quando o fluxo utilizar esta observação.</label>
+            <textarea pTextarea rows="4" [(ngModel)]="descricaoCliente" [disabled]="!canEditOS" class="w-full modern-input !h-auto resize-none p-4"></textarea>
           </div>
         </p-tabpanel>
       </p-tabpanels>
@@ -464,27 +470,22 @@
   </div>
 </div>
 
-<!-- Comentarios -->
-<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all hover:shadow-md mb-6">
-  <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-     <div class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm">
-        <i class="pi pi-comments text-sm"></i>
-    </div>
+<!-- Diário -->
+<div class="mx-4 md:mx-6 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mb-6">
+  <div class="bg-slate-50/50 px-5 md:px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-sm"><i class="pi pi-comments text-sm"></i></div>
     <div>
-        <h3 class="font-bold text-slate-800 text-sm">Diário da OS</h3>
-        <p class="text-[11px] text-slate-500 font-medium">Relatório de atividades e mensagens da equipe</p>
+      <h3 class="font-bold text-slate-800 text-sm m-0">Diário da OS</h3>
+      <p class="text-[11px] text-slate-500 font-medium m-0 mt-0.5">Atualizações operacionais identificadas pelo usuário autenticado.</p>
     </div>
   </div>
-  <div class="p-6 max-h-[320px] overflow-y-auto space-y-4 bg-slate-50/30">
-    <div *ngIf="!comentarios.length" class="text-sm font-medium text-slate-500 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">Nenhuma mensagem registrada no diário.</div>
+  <div class="p-5 md:p-6 max-h-[320px] overflow-y-auto space-y-4 bg-slate-50/30">
+    <div *ngIf="!comentarios.length" class="text-sm font-medium text-slate-500 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">Nenhuma atualização registrada no diário.</div>
     <div class="flex items-start gap-4" *ngFor="let c of comentarios">
-      <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0 shadow-sm border border-slate-300">
-        {{ c.autor.charAt(0) || 'U' }}
-      </div>
-      <div class="flex-1 bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative group hover:border-slate-300 transition-colors">
-        <div class="absolute w-2 h-2 bg-white border-t border-l border-slate-200 transform -rotate-45 top-4 -left-[5px] group-hover:border-slate-300 transition-colors"></div>
-        <div class="flex justify-between items-center mb-2 border-b border-slate-50 pb-2">
-          <span class="font-bold text-slate-800 text-sm">{{ c.autor }}</span>
+      <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-300">{{ c.autor?.charAt(0) || 'U' }}</div>
+      <div class="flex-1 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-2 border-b border-slate-50 pb-2 gap-3">
+          <span class="font-bold text-slate-800 text-sm">{{ c.autor || 'Usuário autenticado' }}</span>
           <span class="text-[11px] text-slate-400 font-semibold">{{ c.data }}</span>
         </div>
         <div class="text-sm text-slate-600 leading-relaxed">{{ c.texto }}</div>
@@ -492,395 +493,197 @@
     </div>
   </div>
 
-  <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
-    <input pInputText [(ngModel)]="novoComentario" (keyup.enter)="adicionarComentario()" placeholder="Escreva a nova atualização para o diário..." class="flex-1 modern-input shadow-inner" />
-    <button pButton icon="pi pi-send" label="Enviar" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm shrink-0" (click)="adicionarComentario()"></button>
+  <div *ngIf="canComment; else diarioSomenteLeitura" class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+    <input pInputText [(ngModel)]="novoComentario" (keyup.enter)="adicionarComentario()" placeholder="Registrar atualização no diário..." class="flex-1 modern-input" />
+    <button pButton icon="pi pi-send" label="Enviar" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm shrink-0" (click)="adicionarComentario()" [disabled]="!novoComentario.trim()"></button>
   </div>
+  <ng-template #diarioSomenteLeitura>
+    <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs font-semibold text-slate-500 flex items-center gap-2"><i class="pi pi-lock"></i> Você pode consultar o diário, mas não possui capability para adicionar comentários.</div>
+  </ng-template>
 </div>
 
 <!-- Modal: Enviar Orçamento/OS -->
-<p-dialog [(visible)]="enviarDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '480px' }" styleClass="modern-dialog">
+<p-dialog [(visible)]="enviarDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: 'min(480px, 95vw)' }" styleClass="modern-dialog">
   <ng-template pTemplate="header">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
-        <i class="pi pi-send text-white text-sm"></i>
-      </div>
+      <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm"><i class="pi pi-send text-white text-sm"></i></div>
       <div>
-        <h3 class="font-bold text-slate-800 text-base m-0">Enviar {{ isOrcamento ? 'Orçamento' : 'OS' }}</h3>
-        <p class="text-[11px] text-slate-400 m-0">Escolha o canal de envio para o cliente</p>
+        <h3 class="font-bold text-slate-800 text-base m-0">Enviar {{ isOrcamento ? 'orçamento' : 'OS' }}</h3>
+        <p class="text-[11px] text-slate-400 m-0">Escolha o canal de comunicação.</p>
       </div>
     </div>
   </ng-template>
 
   <div class="flex flex-col gap-5 pt-2">
-    <!-- Seleção de Canal -->
     <div class="grid grid-cols-2 gap-3">
-      <div class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
-           [ngClass]="enviarCanal === 'whatsapp' ? 'border-emerald-400 bg-emerald-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
-           (click)="enviarCanal = 'whatsapp'">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center" [ngClass]="enviarCanal === 'whatsapp' ? 'bg-emerald-500' : 'bg-slate-100'">
-          <i class="pi pi-whatsapp text-lg" [ngClass]="enviarCanal === 'whatsapp' ? 'text-white' : 'text-slate-400'"></i>
-        </div>
-        <span class="text-sm font-bold" [ngClass]="enviarCanal === 'whatsapp' ? 'text-emerald-700' : 'text-slate-600'">WhatsApp</span>
-        <span class="text-[10px]" [ngClass]="enviarCanal === 'whatsapp' ? 'text-emerald-500' : 'text-slate-400'">Link direto</span>
-        <div *ngIf="enviarCanal === 'whatsapp'" class="absolute top-2 right-2 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
-          <i class="pi pi-check text-white" style="font-size:8px"></i>
-        </div>
-      </div>
-      <div class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all"
-           [ngClass]="enviarCanal === 'email' ? 'border-blue-400 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
-           (click)="enviarCanal = 'email'">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center" [ngClass]="enviarCanal === 'email' ? 'bg-blue-500' : 'bg-slate-100'">
-          <i class="pi pi-envelope text-lg" [ngClass]="enviarCanal === 'email' ? 'text-white' : 'text-slate-400'"></i>
-        </div>
-        <span class="text-sm font-bold" [ngClass]="enviarCanal === 'email' ? 'text-blue-700' : 'text-slate-600'">E-mail</span>
-        <span class="text-[10px]" [ngClass]="enviarCanal === 'email' ? 'text-blue-500' : 'text-slate-400'">Envio automático</span>
-        <div *ngIf="enviarCanal === 'email'" class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-          <i class="pi pi-check text-white" style="font-size:8px"></i>
-        </div>
-      </div>
+      <button type="button" class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all" [ngClass]="enviarCanal === 'whatsapp' ? 'border-emerald-400 bg-emerald-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'" (click)="enviarCanal = 'whatsapp'">
+        <i class="pi pi-whatsapp text-xl" [ngClass]="enviarCanal === 'whatsapp' ? 'text-emerald-600' : 'text-slate-400'"></i>
+        <span class="text-sm font-bold">WhatsApp</span>
+      </button>
+      <button type="button" class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all" [ngClass]="enviarCanal === 'email' ? 'border-blue-400 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'" (click)="enviarCanal = 'email'">
+        <i class="pi pi-envelope text-xl" [ngClass]="enviarCanal === 'email' ? 'text-blue-600' : 'text-slate-400'"></i>
+        <span class="text-sm font-bold">E-mail</span>
+      </button>
     </div>
 
-    <!-- Campo de e-mail (só aparece quando canal = email) -->
     <div *ngIf="enviarCanal === 'email'" class="flex flex-col gap-2">
       <label class="text-xs font-bold text-slate-700">E-mail do destinatário</label>
-      <div class="p-inputgroup">
-        <span class="p-inputgroup-addon bg-white border-slate-200"><i class="pi pi-envelope text-slate-400"></i></span>
-        <input pInputText [(ngModel)]="enviarEmail" type="email" placeholder="cliente@email.com" class="border-l-0 modern-input" />
-      </div>
-      <span class="text-[11px] text-slate-400">Se deixar em branco, usará o e-mail cadastrado no perfil do cliente.</span>
+      <input pInputText [(ngModel)]="enviarEmail" type="email" placeholder="cliente@email.com" class="modern-input" />
+      <span class="text-[11px] text-slate-400">Em branco, o backend poderá utilizar o e-mail cadastrado conforme contrato.</span>
     </div>
 
-    <!-- Info WhatsApp -->
-    <div *ngIf="enviarCanal === 'whatsapp'" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
-      <i class="pi pi-info-circle text-emerald-600 text-lg shrink-0"></i>
-      <p class="text-sm text-emerald-700 m-0">Será aberto um link do WhatsApp com um resumo da {{ isOrcamento ? 'orçamento' : 'OS' }} para o telefone cadastrado no cliente.</p>
+    <div *ngIf="enviarCanal === 'whatsapp'" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+      <i class="pi pi-info-circle text-emerald-600 text-lg shrink-0 mt-0.5"></i>
+      <p class="text-sm text-emerald-700 m-0">Será aberto o WhatsApp com um resumo contextual para compartilhamento manual.</p>
     </div>
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 w-full mt-2 bg-slate-50 -mx-[1.5rem] px-[1.5rem] -mb-[1.5rem] py-4 rounded-b-xl">
-      <button pButton label="Cancelar" class="p-button-text text-slate-600 hover:bg-slate-100 font-semibold px-4" (click)="enviarDialogVisible = false"></button>
-      <button pButton [label]="enviarCanal === 'email' ? 'Enviar por E-mail' : 'Abrir WhatsApp'" 
-              [icon]="enviarCanal === 'email' ? 'pi pi-envelope' : 'pi pi-whatsapp'"
-              [class]="enviarCanal === 'email' ? 'btn-stripe-blue font-semibold px-6 shadow-sm' : 'btn-success font-semibold px-6 shadow-sm'"
-              (click)="confirmarEnvio()" [disabled]="isSendingEmail"></button>
+    <div class="flex justify-end gap-3 w-full">
+      <button pButton label="Cancelar" class="p-button-text" (click)="enviarDialogVisible = false"></button>
+      <button pButton [label]="enviarCanal === 'email' ? 'Enviar por e-mail' : 'Abrir WhatsApp'" [icon]="enviarCanal === 'email' ? 'pi pi-envelope' : 'pi pi-whatsapp'" [class]="enviarCanal === 'email' ? 'btn-stripe-blue' : 'btn-success'" (click)="confirmarEnvio()" [disabled]="isSendingEmail"></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<!-- Dialogs -->
-<p-dialog header="Status da OS" [(visible)]="statusDialogVisible" [modal]="true" [closable]="true" [style]="{ width: '480px' }" [dismissableMask]="true" styleClass="modern-dialog">
-  <div class="mb-5">
-    <h3 class="text-lg font-bold text-slate-800 tracking-tight mb-2">Qual a etapa atual?</h3>
-    <p class="text-sm text-slate-500 mb-4 leading-relaxed">Selecione abaixo a fase em que o veículo/orçamento se encontra.</p>
-    <div class="flex flex-col gap-2">
-      <button class="w-full justify-start text-left px-4 py-3 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-lg transition-colors flex items-center gap-3 text-sm font-semibold text-slate-700 hover:text-orange-700" (click)="setStatus('Aguardando')">
-        <i class="pi pi-clock text-orange-400 text-lg"></i>
-        <div>
-          <span class="block text-slate-800">Aguardando Aprovação</span>
-          <span class="block text-xs font-normal text-slate-500 mt-0.5">Esperando resposta do cliente.</span>
+<!-- Status real da API -->
+<p-dialog header="Status da OS" [(visible)]="statusDialogVisible" [modal]="true" [closable]="true" [style]="{ width: 'min(520px, 95vw)' }" [dismissableMask]="true" styleClass="modern-dialog">
+  <div class="mb-3">
+    <h3 class="text-lg font-bold text-slate-800 tracking-tight mb-2">Selecione um status disponível</h3>
+    <p class="text-sm text-slate-500 mb-4 leading-relaxed">A lista abaixo vem do catálogo de status da empresa. O frontend não cria estados paralelos.</p>
+    <div *ngIf="statusLista.length; else semStatusCatalogo" class="flex flex-col gap-2 max-h-[360px] overflow-y-auto pr-1">
+      <button *ngFor="let st of statusLista" type="button" class="w-full justify-start text-left px-4 py-3 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg transition-colors flex items-center gap-3 text-sm font-semibold text-slate-700" (click)="setStatus(st)">
+        <i class="pi pi-circle-fill text-blue-500" style="font-size:8px"></i>
+        <div class="min-w-0 flex-1">
+          <span class="block text-slate-800">{{ st.nome || st.codigo }}</span>
+          <span *ngIf="st.descricao" class="block text-xs font-normal text-slate-500 mt-0.5">{{ st.descricao }}</span>
         </div>
-      </button>
-      <button class="w-full justify-start text-left px-4 py-3 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg transition-colors flex items-center gap-3 text-sm font-semibold text-slate-700 hover:text-emerald-700" (click)="setStatus('Aprovado')">
-        <i class="pi pi-check-circle text-emerald-500 text-lg"></i>
-        <div>
-          <span class="block text-slate-800">OS Aprovada</span>
-          <span class="block text-xs font-normal text-slate-500 mt-0.5">Orçamento aprovado para iniciar.</span>
-        </div>
-      </button>
-      <button class="w-full justify-start text-left px-4 py-3 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-300 rounded-lg transition-colors flex items-center gap-3 text-sm font-semibold text-slate-700 hover:text-red-700" (click)="setStatus('Negado')">
-        <i class="pi pi-times-circle text-red-500 text-lg"></i>
-        <div>
-          <span class="block text-slate-800">OS Negada</span>
-          <span class="block text-xs font-normal text-slate-500 mt-0.5">O cliente recusou o serviço.</span>
-        </div>
-      </button>
-      <button class="w-full justify-start text-left px-4 py-3 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg transition-colors flex items-center gap-3 text-sm font-semibold text-slate-700 hover:text-blue-700" (click)="setStatus('Entregue')">
-        <i class="pi pi-flag text-blue-500 text-lg"></i>
-        <div>
-          <span class="block text-slate-800">Serviço Entregue</span>
-          <span class="block text-xs font-normal text-slate-500 mt-0.5">Veículo finalizado e entregue.</span>
-        </div>
+        <span *ngIf="st.finalizaOS" class="text-[10px] rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 px-2 py-1 font-bold">FINALIZA</span>
       </button>
     </div>
+    <ng-template #semStatusCatalogo>
+      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">O catálogo de status não está disponível. Nenhuma alteração pode ser feita com segurança.</div>
+    </ng-template>
   </div>
 </p-dialog>
 
-<p-dialog header="Adicionar Checklist" [(visible)]="checklistDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '720px' }" styleClass="modern-dialog">
+<p-dialog header="Adicionar Checklist" [(visible)]="checklistDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: 'min(720px, 95vw)' }" styleClass="modern-dialog">
   <div class="mb-4 pt-2">
     <div class="p-inputgroup">
       <span class="p-inputgroup-addon bg-slate-50 border-slate-200"><i class="pi pi-search text-slate-400"></i></span>
-      <input pInputText placeholder="Buscar modelo de checklist..." (input)="buscarChecklists($event.target.value)" class="border-l-0 modern-input !h-[38px]" />
+      <input pInputText placeholder="Buscar modelo de checklist..." (input)="buscarChecklists($any($event.target).value)" class="border-l-0 modern-input !h-[38px]" />
     </div>
   </div>
   <div class="border border-slate-200 rounded-xl overflow-hidden mb-4 shadow-sm">
     <p-table [value]="checklistLista" styleClass="p-datatable-sm" [paginator]="true" [rows]="5">
-      <ng-template pTemplate="header">
-        <tr>
-          <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2">Nome do Modelo</th>
-          <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold text-center py-2" style="width:120px">Inspecionar</th>
-          <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold text-center py-2" style="width:100px">Selecionar</th>
-        </tr>
-      </ng-template>
+      <ng-template pTemplate="header"><tr><th>Modelo</th><th class="text-center" style="width:120px">Inspecionar</th><th class="text-center" style="width:100px">Selecionar</th></tr></ng-template>
       <ng-template pTemplate="body" let-c>
-        <tr class="hover:bg-slate-50/50 transition-colors" [ngClass]="{'bg-indigo-50/50': checklistSelecionado?.id === c.id}">
+        <tr [ngClass]="{'bg-indigo-50/50': checklistSelecionado?.id === c.id}">
           <td class="font-medium text-slate-800">{{ c.dsChecklist || c.nome || ('Checklist #' + c.id) }}</td>
-          <td class="text-center">
-            <button pButton icon="pi pi-list" class="p-button-rounded p-button-text p-button-secondary hover:bg-slate-200" [pTooltip]="'Ver Itens'" (click)="verItensChecklist(c)"></button>
-          </td>
-          <td class="text-center">
-            <p-radiobutton name="chk" [value]="c" [(ngModel)]="checklistSelecionado" />
-          </td>
+          <td class="text-center"><button pButton icon="pi pi-list" class="p-button-rounded p-button-text p-button-secondary" [pTooltip]="'Ver itens'" (click)="verItensChecklist(c)"></button></td>
+          <td class="text-center"><p-radiobutton name="chk" [value]="c" [(ngModel)]="checklistSelecionado" /></td>
         </tr>
       </ng-template>
     </p-table>
   </div>
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-3 w-full mt-4">
-      <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharChecklistDialog()"></button>
-      <button pButton label="Adicionar à OS" icon="pi pi-check" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" [disabled]="!checklistSelecionado" (click)="adicionarChecklist()"></button>
+    <div class="flex justify-end gap-3 w-full">
+      <button pButton label="Cancelar" class="p-button-text" (click)="fecharChecklistDialog()"></button>
+      <button pButton label="Adicionar à OS" icon="pi pi-check" class="p-button-info" [disabled]="!checklistSelecionado" (click)="adicionarChecklist()"></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Nova Solicitação" [(visible)]="solicitacaoDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '820px' }" styleClass="modern-dialog">
+<p-dialog header="Nova Solicitação" [(visible)]="solicitacaoDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: 'min(820px, 95vw)' }" styleClass="modern-dialog">
   <div class="flex flex-col gap-4 pt-2">
-    <div>
-      <label class="block text-xs font-bold text-slate-700 mb-1.5">Descrição do Problema / Solicitação</label>
-      <input pInputText [(ngModel)]="solicitacao.descricao" class="w-full modern-input" placeholder="Ex: Barulho na suspensão ao fazer curvas" />
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Quantidade</label>
-        <input pInputText type="number" [(ngModel)]="solicitacao.quantidade" class="w-full text-center modern-input" />
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Código Original</label>
-        <input pInputText [(ngModel)]="solicitacao.codigoOriginal" class="w-full modern-input" placeholder="Opcional..." />
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Código Interno</label>
-        <input pInputText [(ngModel)]="solicitacao.codigo" class="w-full modern-input" placeholder="Opcional..." />
-      </div>
-      <div class="flex items-center pt-[28px] px-2 bg-slate-50 border border-slate-200 rounded-lg justify-center pb-2 cursor-pointer transition-colors hover:bg-slate-100" (click)="solicitacao.duvida = !solicitacao.duvida">
-        <p-checkbox [(ngModel)]="solicitacao.duvida" binary="true" inputId="chkDuvida" class="pointer-events-none" />
-        <label for="chkDuvida" class="ml-2 !mb-0 text-xs font-bold text-slate-700 pointer-events-none cursor-pointer">Marcar Dúvida</label>
-      </div>
+    <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Descrição</label><input pInputText [(ngModel)]="solicitacao.descricao" class="w-full modern-input" /></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Quantidade</label><input pInputText type="number" [(ngModel)]="solicitacao.quantidade" class="w-full text-center modern-input" /></div>
+      <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Código original</label><input pInputText [(ngModel)]="solicitacao.codigoOriginal" class="w-full modern-input" /></div>
+      <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Código interno</label><input pInputText [(ngModel)]="solicitacao.codigo" class="w-full modern-input" /></div>
     </div>
   </div>
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-3 w-full mt-4">
-      <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharSolicitacaoDialog()"></button>
-      <button pButton label="Salvar Solicitação" icon="pi pi-check" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="incluirSolicitacao()" [disabled]="!solicitacao.descricao || solicitacao.quantidade <= 0"></button>
+    <div class="flex justify-end gap-3 w-full">
+      <button pButton label="Cancelar" class="p-button-text" (click)="fecharSolicitacaoDialog()"></button>
+      <button pButton label="Salvar solicitação" icon="pi pi-check" class="p-button-info" (click)="incluirSolicitacao()" [disabled]="!solicitacao.descricao || solicitacao.quantidade <= 0"></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Incluir Item" [(visible)]="incluirDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '900px' }" styleClass="modern-dialog">
+<p-dialog header="Incluir Item" [(visible)]="incluirDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: 'min(900px, 96vw)' }" styleClass="modern-dialog">
   <div class="pt-2">
     <p-tabs [(value)]="incluirTabIndex">
       <p-tablist>
-        <p-tab [value]="0"><span class="font-bold text-sm">Serviço Avulso</span></p-tab>
-        <p-tab [value]="1"><span class="font-bold text-sm">Catálogo</span></p-tab>
-        <p-tab [value]="2"><span class="font-bold text-sm">Produto Avulso</span></p-tab>
-        <p-tab [value]="3"><span class="font-bold text-sm">Estoque</span></p-tab>
+        <p-tab [value]="0"><span class="font-bold text-sm">Serviço avulso</span></p-tab>
+        <p-tab [value]="1"><span class="font-bold text-sm">Catálogo de serviços</span></p-tab>
+        <p-tab [value]="2"><span class="font-bold text-sm">Produto avulso</span></p-tab>
+        <p-tab [value]="3"><span class="font-bold text-sm">Catálogo de produtos</span></p-tab>
       </p-tablist>
       <p-tabpanels class="pt-4 pb-0">
         <p-tabpanel [value]="0">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Responsável pela execução</label>
-              <p-select [(ngModel)]="incluir.funcionario" [options]="funcionarioOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." appendTo="body" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Setor</label>
-              <p-select [(ngModel)]="incluir.setor" [options]="setorOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." appendTo="body" />
-            </div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Responsável</label><p-select [(ngModel)]="incluir.funcionario" [options]="funcionarioOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" placeholder="Selecione..." appendTo="body" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Setor</label><p-select [(ngModel)]="incluir.setor" [options]="setorOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" appendTo="body" /></div>
           </div>
-          <div class="mb-4">
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Descrição do Serviço</label>
-            <input pInputText [(ngModel)]="incluir.descricao" class="w-full modern-input" placeholder="Ex: Troca de óleo..." />
-          </div>
+          <div class="mb-4"><label class="block text-xs font-bold text-slate-700 mb-1.5">Descrição do serviço</label><input pInputText [(ngModel)]="incluir.descricao" class="w-full modern-input" /></div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Quantidade</label>
-              <input pInputText type="number" [(ngModel)]="incluir.quantidade" (ngModelChange)="calcularTotal()" class="w-full modern-input" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor Unitário</label>
-              <p-inputnumber [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor de Custo</label>
-              <p-inputnumber [(ngModel)]="incluir.valorCusto" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Total</label>
-              <p-inputnumber [(ngModel)]="incluir.total" [disabled]="true" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input bg-slate-100 font-bold text-slate-900 cursor-not-allowed" />
-            </div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Quantidade</label><input pInputText type="number" [(ngModel)]="incluir.quantidade" (ngModelChange)="calcularTotal()" class="w-full modern-input" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Valor unitário</label><p-inputnumber [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Valor de custo</label><p-inputnumber [(ngModel)]="incluir.valorCusto" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Total do item</label><p-inputnumber [(ngModel)]="incluir.total" [disabled]="true" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input bg-slate-100 font-bold" /></div>
           </div>
         </p-tabpanel>
 
-        <!-- Aba 1: Serviço do Catálogo -->
         <p-tabpanel [value]="1">
-          <div class="mb-4">
-            <div class="p-inputgroup">
-              <span class="p-inputgroup-addon bg-slate-50 border-slate-200"><i class="pi pi-search text-slate-400"></i></span>
-              <input pInputText placeholder="Pesquisar no catálogo de serviços..." (input)="buscarServicos($event.target.value)" class="border-l-0 modern-input !h-[38px]" />
-            </div>
-          </div>
-          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-            <p-table [value]="listaServicos" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10]" responsiveLayout="scroll">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2">Serviço</th>
-                  <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2 text-right" style="width:120px">Preço Base</th>
-                  <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2 text-center" style="width:100px">Ações</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-s>
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="font-medium text-slate-700 text-sm py-2">{{ s.nome }}</td>
-                  <td class="text-right font-bold text-slate-800 text-sm py-2">{{ s.precoBase | currency:'BRL' }}</td>
-                  <td class="text-center py-2">
-                    <button pButton icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" (click)="selecionarServico(s)"></button>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
+          <div class="mb-4"><div class="p-inputgroup"><span class="p-inputgroup-addon"><i class="pi pi-search"></i></span><input pInputText placeholder="Pesquisar serviços..." (input)="buscarServicos($any($event.target).value)" class="modern-input" /></div></div>
+          <p-table [value]="listaServicos" styleClass="p-datatable-sm" [paginator]="true" [rows]="5">
+            <ng-template pTemplate="header"><tr><th>Serviço</th><th class="text-right">Preço base</th><th class="text-center">Selecionar</th></tr></ng-template>
+            <ng-template pTemplate="body" let-s><tr><td>{{ s.nome }}</td><td class="text-right">{{ s.precoBase | currency:'BRL' }}</td><td class="text-center"><button pButton icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" (click)="selecionarServico(s)"></button></td></tr></ng-template>
+          </p-table>
         </p-tabpanel>
 
-        <!-- Aba 2: Produto Avulso -->
         <p-tabpanel [value]="2">
-          <div class="mb-4">
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Descrição do Produto</label>
-            <input pInputText [(ngModel)]="incluir.descricao" class="w-full modern-input" placeholder="Ex: Óleo 5W30, Filtro..." />
-          </div>
+          <div class="mb-4"><label class="block text-xs font-bold text-slate-700 mb-1.5">Descrição do produto</label><input pInputText [(ngModel)]="incluir.descricao" class="w-full modern-input" /></div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Quantidade</label>
-              <input pInputText type="number" [(ngModel)]="incluir.quantidade" (ngModelChange)="calcularTotal()" class="w-full modern-input" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor Unitário</label>
-              <p-inputnumber [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Valor de Custo</label>
-              <p-inputnumber [(ngModel)]="incluir.valorCusto" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Total</label>
-              <p-inputnumber [(ngModel)]="incluir.total" [disabled]="true" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input bg-slate-100 font-bold text-slate-900 cursor-not-allowed" />
-            </div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Quantidade</label><input pInputText type="number" [(ngModel)]="incluir.quantidade" (ngModelChange)="calcularTotal()" class="w-full modern-input" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Valor unitário</label><p-inputnumber [(ngModel)]="incluir.valor" (ngModelChange)="calcularTotal()" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Valor de custo</label><p-inputnumber [(ngModel)]="incluir.valorCusto" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" /></div>
+            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Total do item</label><p-inputnumber [(ngModel)]="incluir.total" [disabled]="true" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input bg-slate-100 font-bold" /></div>
           </div>
         </p-tabpanel>
 
-        <!-- Aba 3: Produto do Estoque -->
         <p-tabpanel [value]="3">
-          <div class="mb-4">
-            <div class="p-inputgroup">
-              <span class="p-inputgroup-addon bg-slate-50 border-slate-200"><i class="pi pi-search text-slate-400"></i></span>
-              <input pInputText placeholder="Pesquisar produtos no estoque..." (input)="buscarProdutos($event.target.value)" class="border-l-0 modern-input !h-[38px]" />
-            </div>
-          </div>
-          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-            <p-table [value]="listaProdutos" styleClass="p-datatable-sm" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10]" responsiveLayout="scroll">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2">Produto</th>
-                  <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2 text-right" style="width:100px">Preço</th>
-                  <th class="bg-slate-50 text-slate-600 text-xs uppercase font-bold py-2 text-center" style="width:80px">Ações</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-p>
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                  <td class="font-medium text-slate-700 text-sm py-2">{{ p.nome }}</td>
-                  <td class="text-right font-bold text-slate-800 text-sm py-2">{{ p.precoVenda | currency:'BRL' }}</td>
-                  <td class="text-center py-2">
-                    <button pButton icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" (click)="selecionarProduto(p)"></button>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
+          <div class="mb-4"><div class="p-inputgroup"><span class="p-inputgroup-addon"><i class="pi pi-search"></i></span><input pInputText placeholder="Pesquisar produtos..." (input)="buscarProdutos($any($event.target).value)" class="modern-input" /></div></div>
+          <p-table [value]="listaProdutos" styleClass="p-datatable-sm" [paginator]="true" [rows]="5">
+            <ng-template pTemplate="header"><tr><th>Produto</th><th class="text-right">Preço</th><th class="text-center">Selecionar</th></tr></ng-template>
+            <ng-template pTemplate="body" let-p><tr><td>{{ p.nome }}</td><td class="text-right">{{ p.precoVenda | currency:'BRL' }}</td><td class="text-center"><button pButton icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" (click)="selecionarProduto(p)"></button></td></tr></ng-template>
+          </p-table>
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
   </div>
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-3 w-full mt-4">
-      <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharIncluirDialog()"></button>
-      <button pButton label="Adicionar à OS" icon="pi pi-check" class="p-button-info px-4 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="incluirItem()" [disabled]="!incluir.descricao || incluir.quantidade <= 0 || incluir.valor <= 0"></button>
+    <div class="flex justify-end gap-3 w-full">
+      <button pButton label="Cancelar" class="p-button-text" (click)="fecharIncluirDialog()"></button>
+      <button pButton [label]="editandoItem ? 'Salvar item' : 'Adicionar à OS'" icon="pi pi-check" class="p-button-info" (click)="incluirItem()" [disabled]="!incluir.descricao || incluir.quantidade <= 0 || incluir.valor <= 0"></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<!-- Diálogo: Gerar Financeiro -->
-<p-dialog header="Gerar Financeiro" [(visible)]="pagamentoDialogVisible" [modal]="true" [closable]="true" [dismissableMask]="true" [style]="{ width: '700px' }" styleClass="modern-dialog">
-  <div class="flex flex-col gap-5 pt-2">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Forma de Pagamento</label>
-        <p-select [(ngModel)]="pagamento.forma" [options]="formaPagamentoOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" (onChange)="calcularPagamento()" />
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Conta de Destino</label>
-        <p-select [(ngModel)]="pagamento.contaDestino" [options]="contaDestinoOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" />
-      </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Desconto (%)</label>
-        <input pInputText type="number" [(ngModel)]="pagamento.desconto" (ngModelChange)="calcularPagamento()" class="w-full modern-input" />
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Juros (%)</label>
-        <input pInputText type="number" [(ngModel)]="pagamento.juros" (ngModelChange)="calcularPagamento()" class="w-full modern-input" />
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Parcelas</label>
-        <p-select [(ngModel)]="pagamento.parcelas" [options]="parcelasOptions" optionLabel="label" optionValue="value" styleClass="w-full modern-select" (onChange)="calcularPagamento()" />
-      </div>
-    </div>
-
-    <div class="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 shadow-inner mt-2">
-      <div class="flex justify-between items-center mb-3 pb-3 border-b border-emerald-100">
-        <span class="text-sm font-bold text-emerald-700">Valor Base da OS:</span>
-        <span class="text-sm font-bold text-emerald-800">{{ total | currency:'BRL' }}</span>
-      </div>
-      <div class="flex justify-between items-center">
-        <span class="text-base font-bold text-emerald-900 uppercase tracking-tight">Total Negociado:</span>
-        <span class="text-2xl font-extrabold text-emerald-600">{{ pagamento.valorPagar | currency:'BRL' }}</span>
-      </div>
-    </div>
+<!-- Modal financeiro legado mantido somente para compatibilidade de estado; a ação principal redireciona ao owner Financeiro. -->
+<p-dialog header="Fluxo Financeiro" [(visible)]="pagamentoDialogVisible" [modal]="true" [closable]="true" [style]="{ width: 'min(540px, 95vw)' }">
+  <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+    O cockpit não registra recebimentos diretamente. Use o módulo Financeiro para negociação, parcelas, baixa e conciliação.
   </div>
-  
-  <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-3 w-full mt-4">
-      <button pButton label="Cancelar" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="fecharPagamentoDialog()"></button>
-      <button pButton label="Gerar Financeiro" icon="pi pi-check" class="p-button-info px-6 py-2 rounded-lg font-bold shadow-sm transition-all text-sm" (click)="salvarPagamento()"></button>
-    </div>
-  </ng-template>
+  <ng-template pTemplate="footer"><button pButton label="Fechar" class="p-button-text" (click)="fecharPagamentoDialog()"></button><button pButton label="Abrir Financeiro" icon="pi pi-external-link" class="btn-stripe-blue" (click)="abrirPagamentoDialog()"></button></ng-template>
 </p-dialog>
 
-<!-- Diálogo: Recibo / Sucesso -->
-<p-dialog header="Financeiro Gerado" [(visible)]="reciboDialogVisible" [modal]="true" [closable]="true" [style]="{ width: '400px' }" styleClass="modern-dialog">
+<p-dialog header="Comprovante" [(visible)]="reciboDialogVisible" [modal]="true" [closable]="true" [style]="{ width: 'min(400px, 95vw)' }" styleClass="modern-dialog">
   <div class="text-center py-6">
-    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border-4 border-emerald-50">
-      <i class="pi pi-check text-4xl font-bold"></i>
-    </div>
-    <h3 class="text-xl font-bold text-slate-800 mb-2">Tudo Certo!</h3>
-    <p class="text-sm text-slate-500 leading-relaxed px-4">O financeiro foi gerado com sucesso e a OS foi atualizada.</p>
+    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4"><i class="pi pi-check text-2xl"></i></div>
+    <h3 class="text-lg font-bold text-slate-800 mb-2">Pagamento identificado</h3>
+    <p class="text-sm text-slate-500">O cockpit apenas apresenta o pagamento retornado pelo Financeiro.</p>
   </div>
-  <ng-template pTemplate="footer">
-    <div class="flex flex-col gap-3 w-full pt-2">
-      <button pButton label="Imprimir Comprovante" icon="pi pi-print" class="w-full justify-center px-4 py-3 rounded-xl !bg-blue-600 !border-blue-600 hover:!bg-blue-700 hover:!border-blue-700 text-white font-bold shadow-sm transition-all text-sm" (click)="imprimirComprovante()"></button>
-      <button pButton label="Fechar" class="w-full justify-center px-4 py-3 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 font-bold transition-colors text-sm" (click)="reciboDialogVisible = false"></button>
-    </div>
-  </ng-template>
+  <ng-template pTemplate="footer"><div class="flex flex-col gap-3 w-full"><button pButton label="Imprimir comprovante" icon="pi pi-print" class="w-full justify-center btn-stripe-blue" (click)="imprimirComprovante()"></button><button pButton label="Fechar" class="w-full justify-center p-button-text" (click)="reciboDialogVisible = false"></button></div></ng-template>
 </p-dialog>
-

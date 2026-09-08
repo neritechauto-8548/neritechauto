@@ -1,0 +1,335 @@
+<section class="budget-detail-page" aria-labelledby="budget-detail-title">
+  <page-header
+    [canonical]="true"
+    [hideBreadcrumb]="true"
+    eyebrow="Movimentação · Orçamentos"
+    [title]="budget?.numero || 'Detalhe do orçamento'"
+    titleId="budget-detail-title"
+    description="Cockpit comercial do orçamento, conectado ao contexto do cliente, veículo e composição calculada pelo servidor."
+  >
+    @if (budget) {
+      <div pageHeaderMeta class="object-meta">
+        <span class="object-status" [ngClass]="statusClass()">
+          <span class="object-status__dot" aria-hidden="true"></span>
+          {{ statusLabel() }}
+        </span>
+        <span class="object-meta__item">
+          <i class="pi pi-bookmark" aria-hidden="true"></i>
+          {{ versionLabel }}
+        </span>
+        <span class="object-meta__item">
+          <i class="pi pi-clock" aria-hidden="true"></i>
+          {{ budget.atualizadoEm ? (budget.atualizadoEm | date:'dd/MM/yyyy HH:mm') : 'Atualização indisponível' }}
+        </span>
+      </div>
+    }
+
+    <div pageHeaderActions class="detail-header-actions">
+      <button type="button" class="nt-button nt-button--secondary" (click)="voltar()">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        Voltar
+      </button>
+      @if (canContinueEdit) {
+        <button type="button" class="nt-button nt-button--primary" (click)="abrirComposicao()">
+          <i class="pi pi-pencil" aria-hidden="true"></i>
+          Continuar edição
+        </button>
+      }
+    </div>
+  </page-header>
+
+  @if (isLoading) {
+    <div class="detail-skeleton" role="status" aria-live="polite" aria-label="Carregando orçamento">
+      <span class="sr-only">Carregando o cockpit do orçamento.</span>
+      <p-skeleton width="100%" height="154px"></p-skeleton>
+      <div class="detail-skeleton__grid">
+        <p-skeleton width="100%" height="420px"></p-skeleton>
+        <p-skeleton width="100%" height="420px"></p-skeleton>
+      </div>
+    </div>
+  } @else if (loadError || !budget || !composition) {
+    <div class="state-panel" [class.state-panel--forbidden]="forbidden" role="alert">
+      <span class="state-panel__icon">
+        <i class="pi" [ngClass]="forbidden ? 'pi-lock' : 'pi-exclamation-triangle'" aria-hidden="true"></i>
+      </span>
+      <div>
+        <h2>{{ forbidden ? 'Acesso restrito' : 'Orçamento não encontrado' }}</h2>
+        <p>
+          {{ forbidden
+            ? 'Seu perfil não pode consultar este orçamento ou sua composição.'
+            : 'O registro não existe neste contexto autenticado ou a composição deixou de estar disponível.' }}
+        </p>
+        @if (!forbidden) {
+          <button type="button" class="nt-button nt-button--secondary" (click)="tentarNovamente()">
+            Tentar novamente
+          </button>
+        }
+      </div>
+    </div>
+  } @else {
+    <section class="commercial-hero" aria-label="Resumo comercial do orçamento">
+      <div class="commercial-hero__identity">
+        <div>
+          <span>Orçamento</span>
+          <strong>{{ budget.numero }}</strong>
+        </div>
+        <span class="object-status" [ngClass]="statusClass()">
+          <span class="object-status__dot" aria-hidden="true"></span>
+          {{ statusLabel() }}
+        </span>
+      </div>
+
+      <div class="commercial-hero__main">
+        <div class="hero-metric">
+          <span>Total atual</span>
+          <strong>{{ formatCurrency(budget.total.amount) }}</strong>
+          <small>Valor persistido no backend</small>
+        </div>
+        <div class="hero-metric">
+          <span>Composição</span>
+          <strong class="hero-metric__secondary">{{ composition.groupCount }} grupos · {{ composition.lineCount }} itens</strong>
+          <small>{{ calculationLabel }} · revisão {{ composition.revision }}</small>
+        </div>
+        <div class="hero-action">
+          <span>Próxima ação</span>
+          <strong>{{ nextActionLabel() }}</strong>
+          @if (budget.proximaAcao === 'CONTINUAR_EDICAO') {
+            <button type="button" class="nt-button nt-button--primary" (click)="executarProximaAcao()">
+              Abrir itens e serviços
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </button>
+          } @else {
+            <small>A execução será liberada somente pelo contrato específico desta etapa.</small>
+          }
+        </div>
+      </div>
+    </section>
+
+    <nav class="detail-tabs" role="tablist" aria-label="Seções do orçamento">
+      @for (tab of tabs; track tab.label) {
+        @if (tab.route) {
+          <a
+            role="tab"
+            class="detail-tab"
+            [routerLink]="['/orcamentos', budgetId, tab.route]"
+            [attr.aria-selected]="false"
+          >
+            {{ tab.label }} <span>{{ tab.contract }}</span>
+          </a>
+        } @else {
+          <button
+            type="button"
+            role="tab"
+            class="detail-tab"
+            [class.detail-tab--active]="tab.active"
+            [attr.aria-selected]="tab.active"
+            [disabled]="!tab.active"
+            [title]="tab.active ? 'Seção atual' : tab.contract + ' ainda não possui superfície própria'"
+          >
+            {{ tab.label }} @if (!tab.active) { <span>{{ tab.contract }}</span> }
+          </button>
+        }
+      }
+    </nav>
+
+    <div class="cockpit-layout" role="tabpanel" aria-label="Resumo do orçamento">
+      <main class="cockpit-main">
+        <section class="detail-card" aria-labelledby="context-title">
+          <header>
+            <span class="section-icon"><i class="pi pi-users" aria-hidden="true"></i></span>
+            <div>
+              <span>Contexto do atendimento</span>
+              <h2 id="context-title">Cliente e veículo</h2>
+            </div>
+          </header>
+
+          <div class="entity-grid">
+            <article class="entity-card">
+              <div>
+                <span class="entity-card__label">Cliente</span>
+                <strong>{{ budget.cliente?.nome || 'Não disponível' }}</strong>
+                <small>Referência minimizada e tenant-safe</small>
+              </div>
+              @if (budget.cliente?.id) {
+                <button type="button" (click)="abrirCliente()">
+                  Abrir ficha <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+                </button>
+              }
+            </article>
+
+            <article class="entity-card">
+              <div>
+                <span class="entity-card__label">Veículo</span>
+                <strong>{{ budget.veiculo?.descricao || 'Não vinculado' }}</strong>
+                @if (budget.veiculo?.placa) {
+                  <small class="plate-value">{{ budget.veiculo?.placa }}</small>
+                }
+              </div>
+              @if (budget.veiculo?.id) {
+                <button type="button" (click)="abrirVeiculo()">
+                  Abrir veículo <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+                </button>
+              }
+            </article>
+          </div>
+
+          <dl class="metadata-grid">
+            <div><dt>Versão</dt><dd>{{ versionLabel }}</dd></div>
+            <div><dt>Criado em</dt><dd>{{ budget.criadoEm ? (budget.criadoEm | date:'dd/MM/yyyy HH:mm') : 'Não disponível' }}</dd></div>
+            <div><dt>Atualizado em</dt><dd>{{ budget.atualizadoEm ? (budget.atualizadoEm | date:'dd/MM/yyyy HH:mm') : 'Não disponível' }}</dd></div>
+            <div><dt>Responsável</dt><dd>{{ budget.responsavelId ? 'Referência #' + budget.responsavelId : 'Não definido' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="detail-card" aria-labelledby="composition-title">
+          <header>
+            <span class="section-icon section-icon--violet"><i class="pi pi-wrench" aria-hidden="true"></i></span>
+            <div>
+              <span>ORC-004 conectado</span>
+              <h2 id="composition-title">Itens, serviços e grupos</h2>
+            </div>
+            <button type="button" class="nt-button nt-button--secondary" (click)="abrirComposicao()">
+              {{ canContinueEdit ? 'Editar composição' : 'Ver composição' }}
+            </button>
+          </header>
+
+          <div class="unavailable-grid" aria-label="Indicadores da composição">
+            <article><span>Serviços</span><strong>{{ formatCurrency(composition.laborTotal) }}</strong><small>Calculado no servidor</small></article>
+            <article><span>Peças</span><strong>{{ formatCurrency(composition.partsTotal) }}</strong><small>Calculado no servidor</small></article>
+            <article><span>Grupos</span><strong>{{ composition.groupCount }}</strong><small>{{ visibleGroups.length }} visíveis ao cliente</small></article>
+            <article><span>Linhas</span><strong>{{ composition.lineCount }}</strong><small>{{ calculationLabel }}</small></article>
+          </div>
+
+          @if (composition.groups.length > 0) {
+            <div class="integrity-list">
+              @for (group of composition.groups | slice:0:4; track group.id) {
+                <div class="integrity-row" [class.integrity-row--ready]="group.lines.length > 0">
+                  <i class="pi" [ngClass]="group.lines.length > 0 ? 'pi-check-circle' : 'pi-circle'" aria-hidden="true"></i>
+                  <div>
+                    <strong>{{ group.title }}</strong>
+                    <span>{{ group.lines.length }} {{ group.lines.length === 1 ? 'item' : 'itens' }} · {{ group.visibility === 'CUSTOMER_VISIBLE' ? 'Visível ao cliente' : 'Somente interno' }}</span>
+                  </div>
+                  <em>{{ formatCurrency(group.subtotal) }}</em>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-card-state">
+              <span><i class="pi pi-file-plus" aria-hidden="true"></i></span>
+              <div>
+                <strong>Composição vazia</strong>
+                <p>Crie o primeiro grupo e adicione serviços, peças ou kits para formar a proposta.</p>
+                @if (canContinueEdit) {
+                  <button type="button" class="nt-button nt-button--primary" (click)="abrirComposicao()">Adicionar itens</button>
+                }
+              </div>
+            </div>
+          }
+        </section>
+
+        <section class="detail-card" aria-labelledby="commercial-title">
+          <header>
+            <span class="section-icon section-icon--amber"><i class="pi pi-percentage" aria-hidden="true"></i></span>
+            <div>
+              <span>Política comercial</span>
+              <h2 id="commercial-title">Descontos e ajustes</h2>
+            </div>
+          </header>
+
+          <div class="unavailable-grid">
+            <article><span>Descontos explícitos</span><strong>{{ formatCurrency(explicitDiscountTotal) }}</strong><small>Somatório dos snapshots de linha</small></article>
+            <article><span>Ajuste de pacote</span><strong>{{ formatCurrency(packageAdjustmentTotal) }}</strong><small>Distribuição calculada no backend</small></article>
+            <article><span>Aprovações pendentes</span><strong>{{ pendingDiscountApprovals }}</strong><small>Exceções de desconto</small></article>
+            <article><span>Revisável</span><strong>{{ composition.canReview ? 'Sim' : 'Não' }}</strong><small>Autoridade do read model</small></article>
+          </div>
+
+          @if (composition.blockers.length > 0) {
+            <div class="contract-state" role="note">
+              <i class="pi pi-alert-triangle" aria-hidden="true"></i>
+              <div>
+                <strong>Existem bloqueios para avançar</strong>
+                <span>{{ composition.blockers.join(' · ') }}</span>
+              </div>
+            </div>
+          }
+        </section>
+
+        <section class="detail-card" aria-labelledby="progress-title">
+          <header>
+            <span class="section-icon section-icon--green"><i class="pi pi-chart-line" aria-hidden="true"></i></span>
+            <div>
+              <span>Fluxo do orçamento</span>
+              <h2 id="progress-title">Da recepção à ordem de serviço</h2>
+            </div>
+          </header>
+
+          <ol class="progress-list">
+            <li class="progress-list__item progress-list__item--ready">
+              <span class="progress-list__marker"><i class="pi pi-check" aria-hidden="true"></i></span>
+              <div><strong>Rascunho criado</strong><small>{{ budget.criadoEm ? (budget.criadoEm | date:'dd/MM/yyyy HH:mm') : 'Criado' }}</small></div>
+            </li>
+            <li class="progress-list__item" [class.progress-list__item--ready]="compositionReady">
+              <span class="progress-list__marker">@if (compositionReady) { <i class="pi pi-check" aria-hidden="true"></i> }</span>
+              <div><strong>Composição comercial</strong><small>{{ compositionReady ? 'Itens calculados e sincronizados' : 'Adicione itens e resolva bloqueios' }}</small></div>
+            </li>
+            <li class="progress-list__item">
+              <span class="progress-list__marker"></span>
+              <div><strong>Envio e comunicação</strong><small>Será conectado pelo ORC-005</small></div>
+            </li>
+            <li class="progress-list__item">
+              <span class="progress-list__marker"></span>
+              <div><strong>Decisão do cliente</strong><small>Será conectado pelo ORC-007</small></div>
+            </li>
+            <li class="progress-list__item">
+              <span class="progress-list__marker"></span>
+              <div><strong>Conversão em OS</strong><small>Somente após decisão elegível e contrato ORC-008</small></div>
+            </li>
+          </ol>
+        </section>
+      </main>
+
+      <aside class="cockpit-aside" aria-label="Resumo financeiro e integridade">
+        <section class="detail-card financial-card" aria-labelledby="financial-title">
+          <header>
+            <span class="section-icon"><i class="pi pi-wallet" aria-hidden="true"></i></span>
+            <div><span>Resumo financeiro</span><h2 id="financial-title">Valores calculados</h2></div>
+          </header>
+          <div class="financial-total">
+            <span>Total atual</span>
+            <strong>{{ formatCurrency(budget.total.amount) }}</strong>
+            <small>{{ composition.currency }} · revisão {{ composition.revision }}</small>
+          </div>
+          <dl class="financial-lines">
+            <div><dt>Serviços</dt><dd>{{ formatCurrency(composition.laborTotal) }}</dd></div>
+            <div><dt>Peças</dt><dd>{{ formatCurrency(composition.partsTotal) }}</dd></div>
+            <div><dt>Total obrigatório</dt><dd>{{ formatCurrency(composition.requiredTotal) }}</dd></div>
+            <div><dt>Total recomendado</dt><dd>{{ formatCurrency(composition.recommendedTotal) }}</dd></div>
+          </dl>
+          <small class="financial-disclaimer">Nenhum custo ou margem é calculado no navegador.</small>
+        </section>
+
+        <section class="detail-card" aria-labelledby="integrity-title">
+          <header>
+            <span class="section-icon section-icon--green"><i class="pi pi-shield" aria-hidden="true"></i></span>
+            <div><span>Integridade operacional</span><h2 id="integrity-title">Prontidão</h2></div>
+          </header>
+          <div class="integrity-list">
+            <div class="integrity-row integrity-row--ready">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              <div><strong>Tenant e contexto</strong><span>Derivados da sessão e revalidados no servidor.</span></div>
+            </div>
+            <div class="integrity-row" [class.integrity-row--ready]="composition.calculationStatus === 'CURRENT'">
+              <i class="pi" [ngClass]="composition.calculationStatus === 'CURRENT' ? 'pi-check-circle' : 'pi-clock'" aria-hidden="true"></i>
+              <div><strong>Cálculo comercial</strong><span>{{ calculationLabel }}</span></div>
+              <em>{{ composition.calculationStatus }}</em>
+            </div>
+            <div class="integrity-row" [class.integrity-row--ready]="composition.blockers.length === 0">
+              <i class="pi" [ngClass]="composition.blockers.length === 0 ? 'pi-check-circle' : 'pi-alert-triangle'" aria-hidden="true"></i>
+              <div><strong>Bloqueios</strong><span>{{ composition.blockers.length === 0 ? 'Nenhum bloqueio informado' : composition.blockers.length + ' pendência(s)' }}</span></div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  }
+</section>

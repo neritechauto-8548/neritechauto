@@ -1,29 +1,59 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ['class', '.theme-dark'],
-  content: [
-    './src/**/*.{html,ts,scss}',
-    './src/index.html',
-    './public/**/*.{html,ts}',
-  ],
+  content: ['./src/**/*.{html,ts,scss}', './src/index.html', './public/**/*.{html,ts}'],
   theme: {
     extend: {
       colors: {
-        // Primary (NeriTech Blue)
         primary: {
-          DEFAULT: '#2563EB',
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
-          300: '#93C5FD',
-          400: '#60A5FA',
-          500: '#2563EB',
-          600: '#1D4ED8', // Hover
-          700: '#1E40AF', // Active
-          800: '#1E3A8A',
-          900: '#172554',
+          DEFAULT: 'var(--nt-primary-500)',
+          50: 'var(--nt-primary-50)',
+          100: 'var(--nt-primary-100)',
+          200: 'var(--nt-primary-200)',
+          300: 'var(--nt-primary-300)',
+          400: 'var(--nt-primary-400)',
+          500: 'var(--nt-primary-500)',
+          600: 'var(--nt-primary-600)',
+          700: 'var(--nt-primary-700)',
+          800: 'var(--nt-primary-800)',
+          900: 'var(--nt-primary-900)',
         },
-        // Neutral Scale (Gray)
+        surface: {
+          canvas: 'var(--nt-surface-canvas)',
+          panel: 'var(--nt-surface-panel)',
+          subtle: 'var(--nt-surface-subtle)',
+          hover: 'var(--nt-surface-hover)',
+        },
+        border: {
+          DEFAULT: 'var(--nt-border-default)',
+          strong: 'var(--nt-border-strong)',
+        },
+        content: {
+          primary: 'var(--nt-text-primary)',
+          secondary: 'var(--nt-text-secondary)',
+          muted: 'var(--nt-text-muted)',
+        },
+        success: {
+          DEFAULT: 'var(--nt-success-fg)',
+          50: 'var(--nt-success-bg)',
+        },
+        warning: {
+          DEFAULT: 'var(--nt-warning-fg)',
+          50: 'var(--nt-warning-bg)',
+        },
+        danger: {
+          DEFAULT: 'var(--nt-danger-fg)',
+          50: 'var(--nt-danger-bg)',
+        },
+        info: {
+          DEFAULT: 'var(--nt-info-fg)',
+          50: 'var(--nt-info-bg)',
+        },
+        neutral: {
+          DEFAULT: 'var(--nt-neutral-fg)',
+          50: 'var(--nt-neutral-bg)',
+        },
+        // Transitional aliases for legacy screens. Do not use as semantic product tokens.
         slate: {
           50: '#F8FAFC',
           100: '#F1F5F9',
@@ -33,10 +63,9 @@ module.exports = {
           500: '#64748B',
           600: '#475569',
           700: '#334155',
-          800: '#1E293B', // Dark Bg
-          900: '#0F172A', // Darker Bg
+          800: '#1E293B',
+          900: '#0F172A',
         },
-        // Indigo Scale (Stripe-like Sidebar)
         indigo: {
           50: '#f5f7ff',
           100: '#ebf0fe',
@@ -48,48 +77,33 @@ module.exports = {
           700: '#2334ca',
           800: '#1d2ca3',
           900: '#1e2882',
-          950: '#12174d', // Deep Navy/Indigo
+          950: '#12174d',
         },
         violet: {
           50: '#f5f3ff',
           500: '#8b5cf6',
           600: '#7c3aed',
         },
-        // Semantic
-        success: {
-          DEFAULT: '#10b981',
-          50: '#ecfdf5',
-          500: '#10b981',
-          600: '#059669',
-        },
-        warning: {
-          DEFAULT: '#f59e0b',
-          50: '#fffbeb',
-          500: '#f59e0b',
-          600: '#d97706',
-        },
-        danger: {
-          DEFAULT: '#ef4444',
-          50: '#fef2f2',
-          500: '#ef4444',
-          600: '#dc2626',
-        },
-        info: {
-          DEFAULT: '#3b82f6',
-          50: '#eff6ff',
-          500: '#3b82f6',
-          600: '#2563eb',
-        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
+      borderRadius: {
+        sm: 'var(--nt-radius-sm)',
+        md: 'var(--nt-radius-md)',
+        lg: 'var(--nt-radius-lg)',
+        xl: 'var(--nt-radius-xl)',
       },
       boxShadow: {
-        'soft': '0px 2px 4px rgba(0, 0, 0, 0.02), 0px 4px 12px rgba(0, 0, 0, 0.05)',
-        'soft-md': '0px 4px 6px -1px rgba(0, 0, 0, 0.05), 0px 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        'soft-lg': '0px 10px 25px -5px rgba(0, 0, 0, 0.05), 0px 8px 10px -6px rgba(0, 0, 0, 0.01)',
-        'soft-xl': '0px 20px 25px -5px rgba(0, 0, 0, 0.05), 0px 10px 10px -5px rgba(0, 0, 0, 0.02)',
-      }
+        panel: 'var(--nt-shadow-panel)',
+        overlay: 'var(--nt-shadow-overlay)',
+        modal: 'var(--nt-shadow-modal)',
+        // Legacy aliases kept until current screens are migrated.
+        soft: 'var(--nt-shadow-panel)',
+        'soft-md': 'var(--nt-shadow-overlay)',
+        'soft-lg': 'var(--nt-shadow-overlay)',
+        'soft-xl': 'var(--nt-shadow-modal)',
+      },
     },
   },
   plugins: [],

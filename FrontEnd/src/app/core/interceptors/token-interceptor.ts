@@ -1,8 +1,8 @@
-import { HttpErrorResponse, HttpHandlerFn, HttpRequest } from '@angular/common/http';
+import { HttpHandlerFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TokenService } from '@core/authentication';
-import { catchError, tap, throwError } from 'rxjs';
+import { tap } from 'rxjs';
 import { BASE_URL, hasHttpScheme } from './base-url-interceptor';
 
 export function tokenInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
@@ -18,35 +18,27 @@ export function tokenInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
   };
 
   const shouldAppendToken = (url: string) => !hasHttpScheme(url) || includeBaseUrl(url);
+  const isPublicAuthRequest = ['/auth/login', '/auth/refresh', '/auth/recover-password', '/auth/reset-password']
+    .some(path => req.url.includes(path));
 
   const handler = () => {
     if (req.url.includes('/auth/logout')) {
       router.navigateByUrl('/auth/login');
     }
 
-    if (router.url.includes('/auth/login')) {
+    if (router.url.includes('/auth/login') && tokenService.valid()) {
       router.navigateByUrl('/dashboard');
     }
   };
 
-  const skipAuth = [
-
-
-  ].some(p => req.url.includes(p));
-  if (skipAuth) {
-    return next(req).pipe(tap(() => handler()));
-  }
-
-  if (shouldAppendToken(req.url)
-  ) {
+  const bearerToken = tokenService.getBearerToken();
+  if (!isPublicAuthRequest && shouldAppendToken(req.url) && bearerToken) {
     return next(
       req.clone({
-        headers: req.headers.append('Authorization', tokenService.getBearerToken()),
+        headers: req.headers.set('Authorization', bearerToken),
         withCredentials: true,
       })
-    ).pipe(
-      tap(() => handler())
-    );
+    ).pipe(tap(() => handler()));
   }
 
   return next(req).pipe(tap(() => handler()));

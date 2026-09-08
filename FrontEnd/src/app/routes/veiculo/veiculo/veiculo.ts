@@ -1,19 +1,24 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
-import { ToastModule } from 'primeng/toast';
+import { ActivatedRoute, Router } from '@angular/router';
+import { PageHeader } from '@shared';
 import { MenuItem, MessageService } from 'primeng/api';
-import { SkeletonModule } from 'primeng/skeleton';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
+import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
+import { ToastModule } from 'primeng/toast';
 import { NgxPermissionsService } from 'ngx-permissions';
 
+import {
+  StatusVeiculo,
+  StatusVeiculoLabels,
+  VeiculoResponse,
+  getStatusVeiculoOptions,
+} from '../models/veiculo.models';
 import { VeiculoService } from './veiculo.service';
-import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
 
 @Component({
   selector: 'veiculo',
@@ -23,208 +28,256 @@ import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
   imports: [
     CommonModule,
     FormsModule,
+    PageHeader,
     InputTextModule,
     ButtonModule,
-    TooltipModule,
+    SelectModule,
     ToastModule,
     SkeletonModule,
     MenuModule,
-    RouterModule
   ],
-  providers: [MessageService]
+  providers: [MessageService],
 })
 export class Veiculo implements OnInit {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly veiculoService = inject(VeiculoService);
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
 
-  // Estado
+  readonly statusOptions = [{ label: 'Todos os status', value: null }, ...getStatusVeiculoOptions()];
+
   loading = false;
-  error: string | null = null;
+  loadError = false;
   searchTerm = '';
-
-  // Dados
+  selectedStatus: StatusVeiculo | null = null;
   vehicles: VeiculoResponse[] = [];
-
-  // Paginação
   rows = 10;
   first = 0;
-
-  get totalRecords() {
-    return this.filtered.length;
-  }
-
-  get currentPage() {
-    return Math.floor(this.first / this.rows) + 1;
-  }
-
-  jumpPageInput = '';
-
-  get rangeStart() {
-    return this.totalRecords === 0 ? 0 : this.first + 1;
-  }
-
-  get rangeEnd() {
-    return Math.min(this.first + this.rows, this.totalRecords);
-  }
+  activeMenuItems: MenuItem[] = [];
 
   ngOnInit() {
+    const query = this.route.snapshot.queryParamMap;
+    const status = query.get('status') as StatusVeiculo | null;
+    const page = Number(query.get('page'));
+
+    if (status && Object.values(StatusVeiculo).includes(status)) this.selectedStatus = status;
+    if (Number.isInteger(page) && page > 0) this.first = (page - 1) * this.rows;
     this.loadVehicles();
   }
 
-  loadVehicles(clienteId?: number) {
-    this.loading = true;
-    this.error = null;
-    this.veiculoService.list(clienteId).subscribe({
-      next: (res: any) => {
-        let list: VeiculoResponse[] = [];
-        if (Array.isArray(res)) {
-          list = res;
-        } else if (res && Array.isArray(res.content)) {
-          list = res.content;
-        } else if (res && Array.isArray(res.items)) {
-          list = res.items;
-        } else if (res && res.data && Array.isArray(res.data)) {
-          list = res.data;
-        }
-        this.vehicles = list;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Erro ao carregar veículos:', err);
-        this.error = 'Erro ao carregar veículos. Tente novamente.';
-        this.loading = false;
-      }
+  get canCreateVehicle() { return Boolean(this.permissionsService.getPermission('VEICULO_CRIAR')); }
+  get canEditVehicle() { return Boolean(this.permissionsService.getPermission('VEICULO_EDITAR')); }
+  get canCreateBudget() { return Boolean(this.permissionsService.getPermission('OS_INCLUIR')); }
+  get canSchedule() { return Boolean(this.permissionsService.getPermission('GERAL_AGENDAMENTO_EDITAR')); }
+
+  get filtered() {
+    const term = this.normalizeSearch(this.searchTerm);
+    return this.vehicles.filter(vehicle => {
+      if (this.selectedStatus && vehicle.status !== this.selectedStatus) return false;
+      if (!term) return true;
+      return [vehicle.placa, vehicle.marcaNome, vehicle.modeloNome, vehicle.clienteNome]
+        .filter(Boolean)
+        .some(value => this.normalizeSearch(String(value)).includes(term));
     });
   }
 
-  // Filtrados
-  get filtered() {
-    const term = this.searchTerm.trim().toLowerCase();
-    const source = Array.isArray(this.vehicles) ? this.vehicles : [];
+  get pagedData() { return this.filtered.slice(this.first, this.first + this.rows); }
+  get totalRecords() { return this.filtered.length; }
+  get rangeStart() { return this.totalRecords === 0 ? 0 : this.first + 1; }
+  get rangeEnd() { return Math.min(this.first + this.rows, this.totalRecords); }
+  get currentPage() { return Math.floor(this.first / this.rows) + 1; }
+  get totalPages() { return Math.max(1, Math.ceil(this.totalRecords / this.rows)); }
+  get hasActiveFilters() { return Boolean(this.searchTerm.trim() || this.selectedStatus); }
 
-    if (!term) return source;
-
-    return source.filter(v =>
-      (v.placa || '').toLowerCase().includes(term) ||
-      (v.marcaNome || '').toLowerCase().includes(term) ||
-      (v.modeloNome || '').toLowerCase().includes(term) ||
-      (v.clienteNome || '').toLowerCase().includes(term)
-    );
-  }
-
-  get pagedData() {
-    const data = Array.isArray(this.filtered) ? this.filtered : [];
-    return data.slice(this.first, this.first + this.rows);
+  loadVehicles() {
+    this.loading = true;
+    this.loadError = false;
+    this.veiculoService.list().subscribe({
+      next: response => {
+        this.vehicles = Array.isArray(response) ? response : [];
+        this.loading = false;
+        this.clampPage();
+      },
+      error: () => {
+        this.vehicles = [];
+        this.loading = false;
+        this.loadError = true;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Não foi possível carregar os veículos',
+          detail: 'Tente novamente. A consulta foi interrompida sem simular dados.',
+        });
+      },
+    });
   }
 
   onSearch() {
     this.first = 0;
+    this.syncNonSensitiveQueryState();
+  }
+
+  onFilterChange() {
+    this.first = 0;
+    this.syncNonSensitiveQueryState();
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedStatus = null;
+    this.first = 0;
+    this.syncNonSensitiveQueryState();
   }
 
   goPrev() {
+    if (this.first === 0 || this.loading) return;
     this.first = Math.max(0, this.first - this.rows);
+    this.syncNonSensitiveQueryState();
   }
 
   goNext() {
-    if (this.first + this.rows < this.totalRecords) {
-      this.first = this.first + this.rows;
-    }
-  }
-
-  jumpToPage() {
-    const page = Number(this.jumpPageInput);
-    if (!isNaN(page) && page >= 1) {
-      const maxPage = Math.max(1, Math.ceil(this.totalRecords / this.rows));
-      const clamped = Math.min(page, maxPage);
-      this.first = (clamped - 1) * this.rows;
-    }
-  }
-
-  // Menu popup
-  activeRow: any = null;
-  activeMenuItems: MenuItem[] = [];
-
-  toggleMenu(row: any, event: Event, menu: any) {
-    this.currentVeiculo = row;
-    this.activeMenuItems = this.menuItemsFor(row);
-    menu.toggle(event);
-  }
-
-  menuItemsFor(row: any): MenuItem[] {
-    const items: MenuItem[] = [];
-    if (this.permissionsService.getPermission('VEICULO_EDITAR')) {
-      items.push({
-        label: 'Editar Veículo',
-        icon: 'pi pi-pencil',
-        routerLink: ['/veiculo/editar', row.id]
-      });
-    }
-    items.push({
-      label: 'Visualizar Cliente',
-      icon: 'pi pi-user',
-      routerLink: ['/cliente/editar', row.clienteId]
-    });
-    items.push({
-      label: 'Nova OS',
-      icon: 'pi pi-file-edit',
-      routerLink: ['/os/cadastro'],
-      queryParams: { veiculoId: row.id }
-    });
-    return items;
+    if (this.first + this.rows >= this.totalRecords || this.loading) return;
+    this.first += this.rows;
+    this.syncNonSensitiveQueryState();
   }
 
   cadastrarVeiculo() {
-    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Seu perfil não possui permissão para realizar esta operação.'
-      });
-      return;
-    }
-    this.router.navigate(['/veiculo/cadastro']);
+    if (!this.canCreateVehicle) return this.warnPermission();
+    this.router.navigate(['/veiculos/novo']);
   }
 
-  editarVeiculo(veiculo: VeiculoResponse) {
-    if (!this.permissionsService.getPermission('VEICULO_EDITAR')) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Seu perfil não possui permissão para realizar esta operação.'
-      });
-      return;
-    }
-    this.router.navigate(['/veiculo/editar', veiculo.id]);
+  editarVeiculo(vehicle: VeiculoResponse) {
+    if (!this.canEditVehicle) return this.warnPermission();
+    this.router.navigate(['/veiculos', vehicle.id, 'editar']);
   }
 
-  // Helpers
-  getStatusBadgeClass(status: StatusVeiculo | string | undefined | null): string {
-    if (!status) return 'nt-badge nt-badge--neutral';
+  abrirPassaporte(vehicle: VeiculoResponse) {
+    this.router.navigate(['/veiculos', vehicle.id]);
+  }
 
+  abrirVinculos(vehicle: VeiculoResponse) {
+    this.router.navigate(['/veiculos', vehicle.id, 'vinculos']);
+  }
+
+  abrirRevisoes(vehicle: VeiculoResponse) {
+    this.router.navigate(['/veiculos', vehicle.id, 'revisoes']);
+  }
+
+  abrirCliente(vehicle: VeiculoResponse) {
+    if (!vehicle.clienteId) return;
+    this.router.navigate(['/clientes', vehicle.clienteId]);
+  }
+
+  criarOrcamento(vehicle: VeiculoResponse) {
+    if (!this.canCreateBudget || !vehicle.clienteId) return this.warnPermission();
+    this.router.navigate(['/orcamentos/novo'], {
+      queryParams: { clienteId: vehicle.clienteId, veiculoId: vehicle.id },
+    });
+  }
+
+  agendar(vehicle: VeiculoResponse) {
+    if (!this.canSchedule || !vehicle.clienteId) return this.warnPermission();
+    this.router.navigate(['/agenda/novo'], {
+      queryParams: { clienteId: vehicle.clienteId, veiculoId: vehicle.id },
+    });
+  }
+
+  toggleMenu(vehicle: VeiculoResponse, event: Event, menu: { toggle: (event: Event) => void }) {
+    this.activeMenuItems = this.menuItemsFor(vehicle);
+    menu.toggle(event);
+  }
+
+  menuItemsFor(vehicle: VeiculoResponse): MenuItem[] {
+    const items: MenuItem[] = [
+      {
+        label: 'Abrir passaporte',
+        icon: 'pi pi-id-card',
+        command: () => this.abrirPassaporte(vehicle),
+      },
+      {
+        label: 'Histórico de vínculos',
+        icon: 'pi pi-link',
+        command: () => this.abrirVinculos(vehicle),
+      },
+      {
+        label: 'Próximas revisões',
+        icon: 'pi pi-calendar-clock',
+        command: () => this.abrirRevisoes(vehicle),
+      },
+    ];
+    if (this.canEditVehicle) {
+      items.push({ label: 'Editar veículo', icon: 'pi pi-pencil', command: () => this.editarVeiculo(vehicle) });
+    }
+    if (vehicle.clienteId) {
+      items.push({ label: 'Abrir cliente', icon: 'pi pi-user', command: () => this.abrirCliente(vehicle) });
+    }
+    if (this.canCreateBudget && vehicle.clienteId && vehicle.status === StatusVeiculo.ATIVO) {
+      items.push({ label: 'Novo orçamento', icon: 'pi pi-file-edit', command: () => this.criarOrcamento(vehicle) });
+    }
+    if (this.canSchedule && vehicle.clienteId && vehicle.status === StatusVeiculo.ATIVO) {
+      items.push({ label: 'Agendar serviço', icon: 'pi pi-calendar', command: () => this.agendar(vehicle) });
+    }
+    return items;
+  }
+
+  vehicleName(vehicle: VeiculoResponse) {
+    const name = [vehicle.marcaNome, vehicle.modeloNome].filter(Boolean).join(' ');
+    return name || `Veículo #${vehicle.id}`;
+  }
+
+  yearLabel(vehicle: VeiculoResponse) {
+    if (vehicle.anoFabricacao && vehicle.anoModelo) return `${vehicle.anoFabricacao}/${vehicle.anoModelo}`;
+    return String(vehicle.anoModelo || vehicle.anoFabricacao || 'Não informado');
+  }
+
+  odometerLabel(value?: number) {
+    return value == null ? 'Não informado' : `${new Intl.NumberFormat('pt-BR').format(value)} km`;
+  }
+
+  statusLabel(status?: StatusVeiculo) {
+    return status ? StatusVeiculoLabels[status] || status : 'Não informado';
+  }
+
+  statusClass(status?: StatusVeiculo) {
     switch (status) {
       case StatusVeiculo.ATIVO:
-      case 'ATIVO': return 'nt-badge nt-badge--success';
-      case StatusVeiculo.INATIVO:
-      case 'INATIVO': return 'nt-badge nt-badge--neutral';
-      case StatusVeiculo.VENDIDO:
-      case 'VENDIDO': return 'nt-badge nt-badge--info';
-      case StatusVeiculo.SINISTRO:
-      case 'SINISTRO':
+        return 'status-badge--success';
       case StatusVeiculo.BLOQUEADO:
-      case 'BLOQUEADO': return 'nt-badge nt-badge--danger';
-      default: return 'nt-badge nt-badge--neutral';
+      case StatusVeiculo.SINISTRO:
+        return 'status-badge--danger';
+      case StatusVeiculo.VENDIDO:
+        return 'status-badge--info';
+      default:
+        return 'status-badge--neutral';
     }
   }
 
-  formatPlaca(placa: string): string {
-    return placa || '';
+  private normalizeSearch(value: string) {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s-]/g, '').toLowerCase();
   }
 
-  // Menu helper
-  currentVeiculo: VeiculoResponse | null = null;
-  setVeiculo(veiculo: VeiculoResponse) {
-    this.currentVeiculo = veiculo;
+  private clampPage() {
+    const lastPageStart = Math.max(0, (this.totalPages - 1) * this.rows);
+    if (this.first > lastPageStart) this.first = lastPageStart;
+  }
+
+  private syncNonSensitiveQueryState() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        status: this.selectedStatus || null,
+        page: this.currentPage > 1 ? this.currentPage : null,
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private warnPermission() {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Acesso restrito',
+      detail: 'Seu perfil não possui permissão para esta ação.',
+    });
   }
 }
