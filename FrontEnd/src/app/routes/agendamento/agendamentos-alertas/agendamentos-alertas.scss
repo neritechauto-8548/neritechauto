@@ -59,3 +59,16 @@
     padding: 0 14px;
   }
 }
+
+
+.alert-send-spinner {
+  animation: alert-spin 800ms linear infinite;
+}
+
+@keyframes alert-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-send-spinner { animation-duration: 1600ms; }
+}
