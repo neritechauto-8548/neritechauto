@@ -15,6 +15,11 @@ import { AgendamentoService, AgendamentoResponse } from '../agendamento.service'
 import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 
+interface MecanicoResumo {
+  id: number;
+  funcionarioId: number;
+}
+
 interface EventoCalendario {
   id: number;
   titulo: string;
@@ -68,13 +73,13 @@ export class CalendarioAgendamento implements OnInit {
   carregarFuncionarios() {
     forkJoin({
       funcionarios: this.funcionarioService.list({ size: 1000 }),
-      mecanicos: this.http.get<unknown>(`${environment.baseUrl}/v1/rh/mecanicos`, {
+      mecanicos: this.http.get<{ content: MecanicoResumo[] }>(`${environment.baseUrl}/v1/rh/mecanicos`, {
         params: { size: '1000' },
       }),
     }).subscribe({
       next: (res: any) => {
         const funcList = res.funcionarios?.content || res.funcionarios || [];
-        const mecList = res.mecanicos?.content || res.mecanicos || [];
+        const mecList = res.mecanicos?.content || [];
 
         // Mapear funcionarioId -> nomeCompleto
         const funcMap = new Map<number, string>();
