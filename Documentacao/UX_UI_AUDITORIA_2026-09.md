@@ -94,3 +94,11 @@ enquanto esses contratos não estiverem disponíveis.
 - Removidos PrimeIcons das telas de autenticação e do shell de acesso, incluindo estados de carregamento, proteção, ajuda, sucesso, link inválido e visibilidade de senha.
 - Preservadas as respostas anti-enumeração de e-mail, bloqueio por tentativas e invalidação de token expirado ou reutilizado.
 - Mantidos alvos de toque de 44 px, foco visível, `aria-busy`, mensagens acessíveis e comportamento responsivo.
+
+
+## Checkpoint — 2026-09-08 — Estados sistêmicos
+
+- Telas 403, 404 e 500 reconstruídas em português com hierarquia, ações e orientação contextual.
+- Removida a dependência de Angular Material do componente compartilhado de erro.
+- Substituído o visual legado Matero por tokens NeriTech, Tabler, foco visível e layout responsivo.
+- A tela 500 oferece nova tentativa real e retorno seguro à Home; 403 não sugere bypass de permissão.

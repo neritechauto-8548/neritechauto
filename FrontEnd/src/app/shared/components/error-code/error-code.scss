@@ -1,32 +1,167 @@
-@use 'long-shadow';
+.nt-error-page {
+  display: grid;
+  width: min(100%, 1500px);
+  min-height: calc(100vh - 160px);
+  margin: 0 auto;
+  padding: var(--nt-space-8, 32px);
+  place-items: center;
+  color: var(--nt-text-primary, #0f172a);
+}
 
-.matero-error-wrap {
+.nt-error-card {
+  width: min(100%, 560px);
+  padding: var(--nt-space-8, 32px);
+  border: 1px solid var(--nt-border-default, #e2e8f0);
+  border-radius: var(--nt-radius-xl, 16px);
+  background: var(--nt-surface-panel, #fff);
+  box-shadow: var(--nt-shadow-panel, 0 8px 28px rgba(15, 23, 42, 0.06));
   text-align: center;
 }
 
-.matero-error-code {
-  padding: 1.25rem 0;
-  font-size: 10rem;
-  text-shadow:
-    long-shadow.long-shadow(
-      $direction: 45deg,
-      $length: 3.75rem,
-      $color: rgba(0, 0, 0, .03),
-      $fade: rgba(0, 0, 0, .0015),
-      $shadow-count: 20
-    );
+.nt-error-card__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nt-space-3, 12px);
+  margin-bottom: var(--nt-space-5, 20px);
 }
 
-.matero-error-title {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
-  font-weight: 500;
-  line-height: 2rem;
+.nt-error-card__icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nt-radius-lg, 12px);
+  background: var(--nt-primary-50, #eff6ff);
+  color: var(--nt-primary-600, #1d4ed8);
 }
 
-.matero-error-message {
-  margin: 0 0 1rem;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.75rem;
+.nt-error-card__code {
+  color: var(--nt-text-muted, #64748b);
+  font-size: 40px;
+  font-weight: 750;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.nt-error-card__eyebrow {
+  display: block;
+  margin-bottom: var(--nt-space-2, 8px);
+  color: var(--nt-primary-600, #1d4ed8);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nt-error-card h1 {
+  margin: 0;
+  color: var(--nt-text-primary, #0f172a);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 36px;
+}
+
+.nt-error-card > p {
+  max-width: 460px;
+  margin: var(--nt-space-3, 12px) auto 0;
+  color: var(--nt-text-secondary, #475569);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.nt-error-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nt-space-3, 12px);
+  margin-top: var(--nt-space-6, 24px);
+}
+
+.nt-error-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nt-space-2, 8px);
+  padding: 0 var(--nt-space-4, 16px);
+  border: 1px solid transparent;
+  border-radius: var(--nt-radius-md, 8px);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nt-error-action--primary {
+  background: var(--nt-primary-600, #1d4ed8);
+  color: #fff;
+}
+
+.nt-error-action--primary:hover {
+  background: var(--nt-primary-700, #1e40af);
+}
+
+.nt-error-action--secondary {
+  border-color: var(--nt-border-default, #e2e8f0);
+  background: var(--nt-surface-panel, #fff);
+  color: var(--nt-text-primary, #0f172a);
+}
+
+.nt-error-action:focus-visible {
+  outline: 0;
+  box-shadow: var(--nt-focus-ring, 0 0 0 3px rgba(37, 99, 235, 0.2));
+}
+
+.nt-error-card__support {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--nt-space-2, 8px);
+  margin-top: var(--nt-space-6, 24px);
+  padding: var(--nt-space-3, 12px);
+  border-radius: var(--nt-radius-md, 8px);
+  background: var(--nt-surface-subtle, #f1f5f9);
+  color: var(--nt-text-secondary, #475569);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: left;
+}
+
+.nt-error-card__support .nt-icon {
+  margin-top: 1px;
+  color: var(--nt-primary-600, #1d4ed8);
+}
+
+@media (max-width: 767px) {
+  .nt-error-page {
+    min-height: calc(100vh - 120px);
+    padding: var(--nt-space-4, 16px);
+  }
+
+  .nt-error-card {
+    padding: var(--nt-space-6, 24px) var(--nt-space-4, 16px);
+  }
+
+  .nt-error-card h1 {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .nt-error-card__actions {
+    flex-direction: column;
+  }
+
+  .nt-error-action {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nt-error-action {
+    transition: none;
+  }
 }

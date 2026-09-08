@@ -1,12 +1,39 @@
-<div class="matero-error-wrap">
-  <div class="matero-error-code">{{code}}</div>
-  @if (title) {
-    <div class="matero-error-title">{{title}}</div>
-  }
-  @if (message) {
-    <div class="matero-error-message">{{message}}</div>
-  }
-  <div>
-    <a mat-raised-button color="primary" routerLink="/">Back to Home</a>
-  </div>
-</div>
+<main class="nt-error-page" [attr.aria-labelledby]="'error-title-' + code">
+  <section class="nt-error-card">
+    <div class="nt-error-card__visual" aria-hidden="true">
+      <span class="nt-error-card__icon">
+        <nt-icon [name]="icon" [size]="28" />
+      </span>
+      <span class="nt-error-card__code">{{ code }}</span>
+    </div>
+
+    <span class="nt-error-card__eyebrow">{{ eyebrow }}</span>
+    <h1 [id]="'error-title-' + code">{{ title }}</h1>
+    <p>{{ message }}</p>
+
+    <div class="nt-error-card__actions">
+      @if (retry) {
+        <button type="button" class="nt-error-action nt-error-action--primary" (click)="reloadPage()">
+          <nt-icon name="refresh" [size]="18" />
+          {{ primaryLabel }}
+        </button>
+      } @else {
+        <a class="nt-error-action nt-error-action--primary" [routerLink]="primaryRoute">
+          <nt-icon name="arrow-left" [size]="18" />
+          {{ primaryLabel }}
+        </a>
+      }
+
+      @if (secondaryLabel && secondaryRoute) {
+        <a class="nt-error-action nt-error-action--secondary" [routerLink]="secondaryRoute">
+          {{ secondaryLabel }}
+        </a>
+      }
+    </div>
+
+    <div class="nt-error-card__support">
+      <nt-icon name="help-circle" [size]="17" />
+      <span>Se o problema continuar, registre o horário e a operação realizada para facilitar o atendimento.</span>
+    </div>
+  </section>
+</main>
