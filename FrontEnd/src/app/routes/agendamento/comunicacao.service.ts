@@ -2,10 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LocalStorageService } from '@shared/services/storage.service';
 
 export interface ComunicacaoEnviadaRequest {
-  empresaId: number;
   templateId?: number;
   campanhaId?: number;
   tipoComunicacao: string; // EMAIL, SMS, WHATSAPP, PUSH_NOTIFICATION, LIGACAO
@@ -27,23 +25,18 @@ export interface ComunicacaoEnviadaRequest {
 
 export interface ComunicacaoEnviadaResponse {
   id: number;
-  // Outros campos de resposta sÃ£o ignorados se nÃ£o precisarmos
+  // Outros campos de resposta são ignorados quando não forem necessários
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ComunicacaoService {
-  private http = inject(HttpClient);
-  private storage = inject(LocalStorageService);
-  private api = `${environment.baseUrl}/v1/comunicacao/envios`;
-
-  get tenantId(): number {
-    return this.storage.get('tenantId') || 1;
-  }
+  private readonly http = inject(HttpClient);
+  private readonly api = `${environment.baseUrl}/v1/comunicacao/envios`;
 
   enviarComunicacao(data: ComunicacaoEnviadaRequest): Observable<ComunicacaoEnviadaResponse> {
-    data.empresaId = this.tenantId;
+    // A empresa é resolvida pela sessão autenticada no backend. O payload não concede autoridade de tenant.
     return this.http.post<ComunicacaoEnviadaResponse>(this.api, data);
   }
 }

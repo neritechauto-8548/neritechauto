@@ -7,8 +7,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { LocalStorageService } from '@shared/services/storage.service';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { NgxPermissionsModule } from 'ngx-permissions';
 
@@ -40,7 +39,6 @@ export class CalendarioAgendamento implements OnInit {
   private messageService = inject(MessageService);
   private router = inject(Router);
   private http = inject(HttpClient);
-  private storage = inject(LocalStorageService);
 
   @Input() embed = false;
   // Toolbar
@@ -49,10 +47,6 @@ export class CalendarioAgendamento implements OnInit {
 
   mecanicoMap = new Map<number, string>();
 
-  get tenantId(): string {
-    const v = this.storage.has('tenantId') ? (this.storage.get('tenantId') as any) : '7';
-    return String(v && typeof v !== 'object' ? v : '7');
-  }
 
   // Calendário
   hoje = new Date();
@@ -72,10 +66,11 @@ export class CalendarioAgendamento implements OnInit {
   }
 
   carregarFuncionarios() {
-    const headers = new HttpHeaders({ 'X-Tenant-Id': this.tenantId, 'Accept': 'application/json' });
     forkJoin({
       funcionarios: this.funcionarioService.list({ size: 1000 }),
-      mecanicos: this.http.get<any>(`${environment.baseUrl}/v1/rh/mecanicos`, { params: { size: '1000' }, headers })
+      mecanicos: this.http.get<unknown>(`${environment.baseUrl}/v1/rh/mecanicos`, {
+        params: { size: '1000' },
+      }),
     }).subscribe({
       next: (res: any) => {
         const funcList = res.funcionarios?.content || res.funcionarios || [];

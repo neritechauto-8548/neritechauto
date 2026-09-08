@@ -110,3 +110,11 @@ enquanto esses contratos não estiverem disponíveis.
 - Removida da navegação de produção a orquestração de baixa de estoque + criação financeira no navegador, que não garantia atomicidade.
 - PDV agora apresenta estados responsivos e acionáveis com acessos reais a Estoque, OS e Contas a Receber.
 - Dependência explícita: comando transacional backend para venda e read models tenant-safe para lista/detalhe.
+
+
+## Checkpoint — 2026-09-08 — Tenancy em Agenda
+
+- Removidos os fallbacks de tenant `7` e `empresaId: 1` dos fluxos de calendário e alertas.
+- `ComunicacaoService` deixou de ler ou sobrescrever autoridade de empresa pelo `localStorage`.
+- Requisições de mecânicos e comunicações agora dependem da sessão/interceptor e da autorização final do backend.
+- A comunicação não recebe mais `empresaId` no payload; isso reduz risco de cross-tenant por manipulação do navegador.
