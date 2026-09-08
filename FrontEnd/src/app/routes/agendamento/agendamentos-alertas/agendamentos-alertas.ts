@@ -11,7 +11,6 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { SkeletonModule } from 'primeng/skeleton';
 import { NgxPermissionsModule } from 'ngx-permissions';
@@ -20,6 +19,7 @@ import { AgendamentoService, AgendamentoResponse } from '../agendamento.service'
 import { ClientesService } from '../../cliente/cliente/cliente.service';
 import { ComunicacaoService, ComunicacaoEnviadaRequest } from '../comunicacao.service';
 import { forkJoin } from 'rxjs';
+import { NeriTechIcon } from '@shared';
 
 @Component({
   selector: 'app-agendamentos-alertas',
@@ -33,11 +33,11 @@ import { forkJoin } from 'rxjs';
     ToastModule,
     MatMenuModule,
     MatButtonModule,
-    MatIconModule,
     MatDividerModule,
     RouterModule,
     SkeletonModule,
-    NgxPermissionsModule
+    NgxPermissionsModule,
+    NeriTechIcon
   ],
   providers: [MessageService],
   templateUrl: './agendamentos-alertas.html',

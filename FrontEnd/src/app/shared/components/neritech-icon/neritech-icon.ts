@@ -49,7 +49,14 @@ export type NeriTechIconName =
   | 'clock'
   | 'send'
   | 'briefcase'
-  | 'calendar-off';
+  | 'calendar-off'
+  | 'bell'
+  | 'bell-plus'
+  | 'dots-vertical'
+  | 'edit'
+  | 'language'
+  | 'mail'
+  | 'brand-whatsapp';
 
 /**
  * Lightweight Angular 20-compatible wrapper around Tabler-style SVG geometry.
@@ -145,6 +152,13 @@ export type NeriTechIconName =
         @case ('send') { <path d="m22 2-7 20-4-9-9-4z" /><path d="M22 2 11 13" /> }
         @case ('briefcase') { <rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /> }
         @case ('calendar-off') { <path d="m3 3 18 18" /><path d="M8 3v4M16 3v4M4 11h7M15 11h5" /><path d="M5 5a2 2 0 0 0-1 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 1.7-1" /><path d="M20 15V7a2 2 0 0 0-2-2H9" /> }
+        @case ('bell') { <path d="M10 5a2 2 0 0 1 4 0 7 7 0 0 1 4 6v3l2 2H4l2-2v-3a7 7 0 0 1 4-6" /><path d="M9 20h6" /> }
+        @case ('bell-plus') { <path d="M10 5a2 2 0 0 1 4 0 7 7 0 0 1 4 6v3l2 2H4l2-2v-3a7 7 0 0 1 4-6" /><path d="M9 20h6M12 8v4M10 10h4" /> }
+        @case ('dots-vertical') { <circle cx="12" cy="5" r="1" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none" /> }
+        @case ('edit') { <path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16z" /><path d="m13.5 6.5 4 4" /> }
+        @case ('language') { <circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /> }
+        @case ('mail') { <rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /> }
+        @case ('brand-whatsapp') { <path d="M3 21l1.7-5A9 9 0 1 1 8 19.3z" /><path d="M9 8c.5 2 2 3.5 4 4l1-1c.5-.5 1-.5 1.5-.2l2 1.2c.5.3.6.8.4 1.3-.7 1.7-2 2.7-3.7 2.5-4.4-.6-7.4-3.6-8-8-.2-1.7.8-3 2.5-3.7.5-.2 1 .1 1.3.6l1.1 2c.3.5.3 1-.2 1.5z" /> }
       }
     </svg>
   `,

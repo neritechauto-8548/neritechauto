@@ -126,3 +126,10 @@ enquanto esses contratos não estiverem disponíveis.
 - Adicionados estados acessíveis de carregamento e falha com nova tentativa real, sem apagar dados silenciosamente.
 - Ações de navegação, filtro, criação, cancelamento, geração de OS e edição preservam rótulo textual e alvo de toque.
 - Removido PrimeIcon do diálogo de confirmação e mantida a grade responsiva de mês, semana e dia.
+
+
+## Checkpoint — 2026-09-08 — Agenda e Alertas
+
+- Central de Agenda e Alertas migrou toda a iconografia visível de Material Symbols/PrimeIcons para Tabler via `NeriTechIcon`.
+- Cards de indicadores, busca, filtros, tabela, paginação, menu de ações e diálogo de comunicação agora usam a mesma linguagem visual.
+- Mantidos rótulos textuais nas ações e estados vazios; removido `MatIconModule` da tela.
