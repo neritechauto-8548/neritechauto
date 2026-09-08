@@ -102,3 +102,11 @@ enquanto esses contratos não estiverem disponíveis.
 - Removida a dependência de Angular Material do componente compartilhado de erro.
 - Substituído o visual legado Matero por tokens NeriTech, Tabler, foco visível e layout responsivo.
 - A tela 500 oferece nova tentativa real e retorno seguro à Home; 403 não sugere bypass de permissão.
+
+
+## Checkpoint — 2026-09-08 — PDV seguro
+
+- Rotas de PDV, listagem e detalhe deixaram de expor o fluxo legado que fabricava vendedores, formas de pagamento, consumidor padrão e numeração aleatória.
+- Removida da navegação de produção a orquestração de baixa de estoque + criação financeira no navegador, que não garantia atomicidade.
+- PDV agora apresenta estados responsivos e acionáveis com acessos reais a Estoque, OS e Contas a Receber.
+- Dependência explícita: comando transacional backend para venda e read models tenant-safe para lista/detalhe.
