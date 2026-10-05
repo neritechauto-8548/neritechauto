@@ -39,6 +39,7 @@ export interface DashboardDTO {
   comparacaoDisponivel: boolean;
   geradoEm: string;
   dadosParciais: boolean;
+  dadosDisponiveis: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
