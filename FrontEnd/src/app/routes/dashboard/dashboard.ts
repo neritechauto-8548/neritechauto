@@ -8,6 +8,13 @@ import { DashboardDTO, DashboardService } from './dashboard.service';
 
 type DashboardView = 'standard' | 'managerial' | 'financial' | 'estimates';
 
+interface DashboardKpi {
+  label: string;
+  value: string;
+  hint: string;
+  state?: 'normal' | 'warning' | 'danger';
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -92,7 +99,7 @@ export class Dashboard implements OnInit {
     }
   }
 
-  get standardKpis() {
+  get standardKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
       { label: 'OS em andamento', value: this.formatNumber(s?.osEmAndamento), hint: 'Atendimentos ativos' },
@@ -103,7 +110,7 @@ export class Dashboard implements OnInit {
     ];
   }
 
-  get managerialKpis() {
+  get managerialKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
       { label: 'Faturamento', value: this.formatCurrency(s?.faturamentoMes), hint: 'Recebimentos do mês' },
@@ -113,7 +120,7 @@ export class Dashboard implements OnInit {
     ];
   }
 
-  get financialKpis() {
+  get financialKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
       { label: 'Contas a receber', value: this.formatCurrency(s?.contasReceber), hint: 'Carteira em aberto' },
@@ -123,7 +130,7 @@ export class Dashboard implements OnInit {
     ];
   }
 
-  get estimateKpis() {
+  get estimateKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
       { label: 'Abertos', value: this.formatNumber(s?.abertosMes), hint: 'No mês atual' },
@@ -133,7 +140,7 @@ export class Dashboard implements OnInit {
     ];
   }
 
-  get currentKpis() {
+  get currentKpis(): DashboardKpi[] {
     switch (this.selectedView) {
       case 'managerial': return this.managerialKpis;
       case 'financial': return this.financialKpis;
