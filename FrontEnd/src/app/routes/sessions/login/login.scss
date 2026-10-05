@@ -10,7 +10,7 @@
   justify-content: center;
   padding: 32px 20px;
   background:
-    radial-gradient(circle at 50% -10%, rgba(99, 91, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.08), transparent 34%),
     #f8fafc;
   color: #0f172a;
 }
@@ -34,7 +34,7 @@
   display: grid;
   place-items: center;
   border-radius: 9px;
-  background: #635bff;
+  background: #2563EB;
   color: #fff;
   font-size: 16px;
   font-weight: 800;
@@ -111,7 +111,7 @@
 }
 
 .field-label-row a {
-  color: #635bff;
+  color: #2563EB;
   font-size: 12px;
   font-weight: 650;
   text-decoration: none;
@@ -140,8 +140,8 @@
 }
 
 .field input:not([type='checkbox']):focus {
-  border-color: #635bff;
-  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .password-field {
@@ -152,7 +152,7 @@
   padding-right: 44px !important;
 }
 
- .password-toggle {
+.password-toggle {
   position: absolute;
   top: 50%;
   right: 2px;
@@ -208,7 +208,7 @@
 .remember-field input {
   width: 15px;
   height: 15px;
-  accent-color: #635bff;
+  accent-color: #2563EB;
 }
 
 .field-error {
@@ -223,7 +223,7 @@
   height: 42px;
   border: 0;
   border-radius: 8px;
-  background: #635bff;
+  background: #2563EB;
   color: #fff;
   font-size: 14px;
   font-weight: 650;
@@ -232,7 +232,7 @@
 }
 
 .auth-primary:hover:not(:disabled) {
-  background: #5851e5;
+  background: #1D4ED8;
 }
 
 .auth-primary:active:not(:disabled) {
