@@ -77,7 +77,7 @@ public class DashboardService {
         BigDecimal ticketMedioComparacao = safe(ordemServicoRepository.calculateTicketMedioPeriod(empresaId, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999L)));
 
         return new DashboardDTO(totalClientes, osAbertas, osEmAndamento, osConcluidas, osCanceladas,
-                faturamento, despesas, lucro, ticketMedio, contasReceber, contasPagar, valoresVencidos, veiculosEmAtraso,
+                faturamento, despesas, lucro, ticketMedio, contasReceber, contasPagar, valoresVencidos, ordensEmAtraso,
                 historicoFaturamento, historicoServicos, historicoMeses, abertosMes, abertosTotal, autorizadosMes, autorizadosTotal,
                 canceladosMes, canceladosTotal, fechadosMes, fechadosTotal, entradas, saidas,
                 period, current.start(), current.end(), comparison, faturamentoComparacao, osConcluidasComparacao,
