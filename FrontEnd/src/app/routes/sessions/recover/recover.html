@@ -16,7 +16,7 @@
 
       <div *ngIf="emailSent" class="success-state" role="status" aria-live="polite">
         <div class="success-icon" aria-hidden="true">
-          <i class="pi pi-check"></i>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4.5 4.5L19 7"></path></svg>
         </div>
         <h2>Verifique seu e-mail</h2>
         <p>
@@ -61,14 +61,14 @@
         <button type="submit" class="auth-primary" [disabled]="recoverForm.invalid || isSubmitting">
           <span *ngIf="!isSubmitting">Enviar link de recuperação</span>
           <span *ngIf="isSubmitting" class="loading-content">
-            <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+            <span class="spinner" aria-hidden="true"></span>
             Enviando...
           </span>
         </button>
       </form>
 
       <a *ngIf="!emailSent" routerLink="/auth/login" class="back-link">
-        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
         Voltar para o login
       </a>
     </div>
