@@ -163,7 +163,7 @@ export class Dashboard implements OnInit {
         label: 'OS em atraso',
         value: this.formatNumber(s?.ordensEmAtraso),
         hint: 'Exigem acompanhamento',
-        state: s?.veiculosEmAtraso ? 'warning' : 'normal',
+        state: s?.ordensEmAtraso ? 'warning' : 'normal',
       },
       {
         label: 'Ticket médio',
