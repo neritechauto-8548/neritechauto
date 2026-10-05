@@ -1,191 +1,191 @@
-<div class="dashboard-container font-sans bg-slate-50/50 dark:bg-slate-900 min-h-screen">
-  
-  <!-- Loading State -->
-  @if (loading) {
-    <div class="fixed inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
-      <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      <span class="text-sm font-bold text-slate-700 dark:text-slate-200 animate-pulse tracking-wide">CARREGANDO...</span>
-    </div>
-  }
-
-   <div class="p-6 md:p-8 space-y-6">
-
-    <!-- Top Grid: Status Cards (Aberto, Autorizado, Cancelado, Fechado) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <!-- Card 1: Aberto -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50/50 text-blue-600 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-400">Aberto</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Abertos - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ abertosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ abertosTotal }}</span>
-        </div>
+<main class="home-dashboard" aria-labelledby="home-title">
+  <div class="home-content">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Visão geral</div>
+        <h1 id="home-title">Início</h1>
+        <p>{{ subtitle }}</p>
       </div>
 
-      <!-- Card 2: Autorizado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-amber-200 dark:hover:border-amber-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-amber-200 bg-amber-50/50 text-amber-600 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">Autorizado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Autorizados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ autorizadosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ autorizadosTotal }}</span>
-        </div>
+      <button class="refresh-button" type="button" (click)="loadDashboard()" [disabled]="loading" aria-label="Atualizar dados">
+        <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
+        <svg *ngIf="!loading" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"></path>
+          <path d="M5 4v4h4M19 20v-4h-4"></path>
+        </svg>
+        <span>{{ loading ? 'Atualizando' : 'Atualizar' }}</span>
+      </button>
+    </header>
+
+    <section class="dashboard-selector" aria-label="Visão do Início">
+      <div class="selector-tabs" role="tablist" aria-label="Visões">
+        <button *ngFor="let view of views" type="button" role="tab"
+          [attr.aria-selected]="selectedView === view.id"
+          [class.active]="selectedView === view.id"
+          (click)="selectView(view.id)">
+          {{ view.label }}
+        </button>
+      </div>
+    </section>
+
+    <section class="filter-bar" aria-label="Filtros do dashboard">
+      <div class="filter-field">
+        <label for="period">Período</label>
+        <select id="period" [(ngModel)]="selectedPeriod" (ngModelChange)="onFilterChange()">
+          <option value="today">Hoje</option>
+          <option value="7d">Últimos 7 dias</option>
+          <option value="30d">Últimos 30 dias</option>
+          <option value="month">Este mês</option>
+        </select>
       </div>
 
-      <!-- Card 3: Cancelado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-red-200 dark:hover:border-red-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50/50 text-red-600 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400">Cancelado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Cancelados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ canceladosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ canceladosTotal }}</span>
-        </div>
+      <div class="filter-field">
+        <label for="unit">Unidade</label>
+        <select id="unit" [(ngModel)]="selectedUnit" (ngModelChange)="onFilterChange()">
+          <option value="current">Unidade atual</option>
+        </select>
       </div>
 
-      <!-- Card 4: Fechado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-emerald-200 bg-emerald-50/50 text-emerald-600 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">Fechado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Fechados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ fechadosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ fechadosTotal }}</span>
-        </div>
+      <div class="filter-field">
+        <label for="comparison">Comparar com</label>
+        <select id="comparison" [(ngModel)]="selectedComparison" (ngModelChange)="onFilterChange()">
+          <option value="previous">Período anterior</option>
+          <option value="same">Mesmo período anterior</option>
+        </select>
       </div>
 
+      <div class="filter-context">
+        <span>{{ periodLabel }}</span>
+        <span class="context-dot" aria-hidden="true"></span>
+        <span>{{ lastUpdated ? ('Atualizado às ' + (lastUpdated | date:'HH:mm')) : 'Aguardando dados' }}</span>
+      </div>
+    </section>
+
+    <div *ngIf="error" class="state-panel error-state" role="alert">
+      <div>
+        <strong>Não foi possível carregar o Início.</strong>
+        <p>Os dados anteriores não estão disponíveis nesta sessão.</p>
+      </div>
+      <button type="button" class="secondary-button" (click)="retry()">Tentar novamente</button>
     </div>
 
-    <!-- Middle Grid: Chart + Entries/Exits and Informativos -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <ng-container *ngIf="!error && stats">
+      <section class="kpi-grid" aria-label="Indicadores principais">
+        <article *ngFor="let kpi of currentKpis" class="kpi-card"
+          [class.warning]="kpi.state === 'warning'"
+          [class.danger]="kpi.state === 'danger'">
+          <span class="kpi-label">{{ kpi.label }}</span>
+          <strong class="kpi-value">{{ kpi.value }}</strong>
+          <span class="kpi-hint">{{ kpi.hint }}</span>
+        </article>
+      </section>
 
-      <!-- Relatório de Peças e Serviços (Area Chart) -->
-      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-2">
+      <section class="content-grid">
+        <article class="surface chart-surface">
+          <div class="surface-header">
             <div>
-              <h3 class="text-lg font-bold text-slate-800 dark:text-white">Relatório de Peças e Serviços</h3>
-              <p class="text-xs text-slate-400 dark:text-slate-500">Periodo: Últimos seis meses</p>
-            </div>
-            <div class="flex gap-2">
-              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors">
-                <i class="pi pi-filter text-xs"></i>
-              </button>
-              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors" (click)="exportarRelatorio()">
-                <i class="pi pi-external-link text-xs"></i>
-              </button>
+              <h2>Evolução no período</h2>
+              <p>Dados consolidados da operação.</p>
             </div>
           </div>
-          <div id="chart" class="h-[350px]">
-            <apx-chart
-              [series]="chartOptions.series!"
-              [chart]="chartOptions.chart!"
-              [xaxis]="chartOptions.xaxis!"
-              [yaxis]="chartOptions.yaxis!"
-              [stroke]="chartOptions.stroke!"
-              [tooltip]="chartOptions.tooltip!"
-              [dataLabels]="chartOptions.dataLabels!"
-              [legend]="chartOptions.legend!"
-              [colors]="chartOptions.colors!"
-              [grid]="chartOptions.grid!"
-              [fill]="chartOptions.fill!"
-            />
-          </div>
-        </div>
-      </div>
+          <apx-chart
+            [series]="chartOptions.series"
+            [chart]="chartOptions.chart"
+            [colors]="chartOptions.colors"
+            [dataLabels]="chartOptions.dataLabels"
+            [stroke]="chartOptions.stroke"
+            [xaxis]="chartOptions.xaxis"
+            [yaxis]="chartOptions.yaxis"
+            [grid]="chartOptions.grid"
+            [legend]="chartOptions.legend"
+            [fill]="chartOptions.fill"
+            [tooltip]="chartOptions.tooltip">
+          </apx-chart>
+        </article>
 
-      <!-- Right Column: Entry/Exit counters & Informativos stacked -->
-      <div class="flex flex-col gap-6">
-
-        <!-- Entradas de veículos no mês -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
-          <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-center shadow-sm">
-            <i class="pi pi-arrow-down text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Entradas de veículos no mês</p>
-            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ entradasVeiculosMes }}</h3>
-          </div>
-        </div>
-
-        <!-- Saídas de veículos no mês -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
-          <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 border border-rose-100 dark:border-rose-900/40 flex items-center justify-center shadow-sm">
-            <i class="pi pi-arrow-up text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Saídas de veículos no mês</p>
-            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ saidasVeiculosMes }}</h3>
-          </div>
-        </div>
-
-        <!-- Informativos (Últimos 7 dias) -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Informativos (Últimos 7 dias)</h3>
-            <div class="space-y-4">
-              
-              <!-- Item 1: Veículos em Atraso -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Veículos com entrega atrasada</p>
-                    <p class="text-[10px] text-slate-400">Verifique os prazos prometidos</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold px-2 py-0.5 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 rounded-md">{{ veiculosEmAtraso }}</span>
-              </div>
-
-              <!-- Item 2: Clientes Ativos -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Total de clientes ativos</p>
-                    <p class="text-[10px] text-slate-400">Expansão da base cadastral</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-amber-400 rounded-md">{{ stats.totalClientes || 0 }}</span>
-              </div>
-
-              <!-- Item 3: Ticket Médio -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ticket médio geral das OS</p>
-                    <p class="text-[10px] text-slate-400">Faturamento médio por ordem</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">R$ {{ (stats.ticketMedio || 0) | number:'1.2-2' }}</span>
-              </div>
-
+        <article class="surface side-surface" *ngIf="selectedView === 'standard'">
+          <div class="surface-header">
+            <div>
+              <h2>Status da operação</h2>
+              <p>Acompanhamento consolidado.</p>
             </div>
           </div>
+          <div class="metric-list">
+            <div *ngFor="let row of statusRows" class="metric-row">
+              <div class="row-label">
+                <span class="status-dot" [class]="row.tone"></span>
+                {{ row.label }}
+              </div>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </div>
+          <button type="button" class="text-link" (click)="openOperational()">Abrir Ordens de Serviço</button>
+        </article>
+
+        <article class="surface side-surface" *ngIf="selectedView === 'financial'">
+          <div class="surface-header">
+            <div>
+              <h2>Resumo financeiro</h2>
+              <p>Valores do escopo atual.</p>
+            </div>
+          </div>
+          <div class="metric-list">
+            <div *ngFor="let row of financialRows" class="metric-row">
+              <div>
+                <span class="row-label">{{ row.label }}</span>
+                <small>{{ row.detail }}</small>
+              </div>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </div>
+          <button type="button" class="text-link" (click)="openFinancial()">Abrir Contas a Receber</button>
+        </article>
+
+        <article class="surface side-surface" *ngIf="selectedView === 'managerial'">
+          <div class="surface-header">
+            <div>
+              <h2>Leitura gerencial</h2>
+              <p>Indicadores para decisão.</p>
+            </div>
+          </div>
+          <div class="insight-list">
+            <div><span>Produção</span><strong>{{ formatNumber(stats?.osConcluidas) }} OS concluídas</strong></div>
+            <div><span>Clientes</span><strong>{{ formatNumber(stats?.totalClientes) }} ativos</strong></div>
+            <div><span>Atrasos</span><strong [class.alert-value]="stats?.veiculosEmAtraso">{{ formatNumber(stats?.veiculosEmAtraso) }} veículos</strong></div>
+          </div>
+          <button type="button" class="text-link" (click)="openOperational()">Investigar operação</button>
+        </article>
+
+        <article class="surface side-surface" *ngIf="selectedView === 'estimates'">
+          <div class="surface-header">
+            <div>
+              <h2>Funil de orçamento</h2>
+              <p>Estados registrados no mês atual.</p>
+            </div>
+          </div>
+          <div class="funnel-list">
+            <div><span>Abertos</span><strong>{{ formatNumber(stats?.abertosTotal) }}</strong></div>
+            <div><span>Autorizados</span><strong>{{ formatNumber(stats?.autorizadosTotal) }}</strong></div>
+            <div><span>Cancelados</span><strong>{{ formatNumber(stats?.canceladosTotal) }}</strong></div>
+            <div><span>Fechados</span><strong>{{ formatNumber(stats?.fechadosTotal) }}</strong></div>
+          </div>
+          <button type="button" class="text-link" (click)="openEstimates()">Abrir Orçamentos</button>
+        </article>
+      </section>
+
+      <section class="surface freshness-bar">
+        <div>
+          <strong>Fonte dos indicadores</strong>
+          <span>Dados consolidados pelos módulos proprietários. O Início não altera registros.</span>
         </div>
+        <span class="freshness"><span class="freshness-dot"></span> Dados disponíveis</span>
+      </section>
+    </ng-container>
 
-      </div>
-
+    <div *ngIf="loading && !stats" class="skeleton-grid" aria-label="Carregando dashboard">
+      <div *ngFor="let item of [1,2,3,4,5]" class="skeleton-card"></div>
+      <div class="skeleton-large"></div>
+      <div class="skeleton-side"></div>
     </div>
   </div>
-</div>
+</main>
