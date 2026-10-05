@@ -15,7 +15,7 @@ export interface DashboardDTO {
   contasReceber: number;
   contasPagar: number;
   valoresVencidos: number;
-  veiculosEmAtraso: number;
+  ordensEmAtraso: number;
   historicoFaturamento: number[];
   historicoServicos: number[];
   historicoMeses: string[];
