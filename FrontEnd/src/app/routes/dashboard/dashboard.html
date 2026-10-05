@@ -113,7 +113,7 @@
           <div class="metric-list">
             <div *ngFor="let row of statusRows" class="metric-row">
               <div class="row-label">
-                <span class="status-dot" [class]="row.tone"></span>
+                <span class="status-dot" [ngClass]="row.tone"></span>
                 {{ row.label }}
               </div>
               <strong>{{ row.value }}</strong>
