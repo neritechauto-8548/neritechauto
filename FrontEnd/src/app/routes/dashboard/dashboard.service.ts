@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { LocalStorageService } from '@shared/services/storage.service';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '@env/environment';
 
 export interface DashboardDTO {
@@ -30,36 +29,37 @@ export interface DashboardDTO {
   fechadosTotal: number;
   entradasVeiculosMes: number;
   saidasVeiculosMes: number;
+  periodo: string;
+  inicio: string;
+  fim: string;
+  comparacao: string;
+  faturamentoComparacao: number;
+  osConcluidasComparacao: number;
+  ticketMedioComparacao: number;
+  comparacaoDisponivel: boolean;
+  geradoEm: string;
+  dadosParciais: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private http = inject(HttpClient);
-  private storage = inject(LocalStorageService);
-  private apiUrl = environment.baseUrl || '/api';        
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.baseUrl || '/api';
 
-  getDashboardData() {
-    let empresaId = this.storage.get('tenantId');
-    
-    // Se tenantId for um objeto vazio (default do storage.get) ou não existir, tenta empresaId
-    if (!empresaId || (typeof empresaId === 'object' && Object.keys(empresaId).length === 0)) {
-      empresaId = this.storage.get('empresaId');
+  getDashboardData(
+    period: string,
+    comparison: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    let params = new HttpParams()
+      .set('period', period)
+      .set('comparison', comparison);
+
+    if (period === 'custom' && startDate && endDate) {
+      params = params.set('startDate', startDate).set('endDate', endDate);
     }
 
-    // Se ainda for um objeto, tenta extrair o id
-    if (empresaId && typeof empresaId === 'object') {
-      if (empresaId.id) {
-        empresaId = empresaId.id;
-      } else if (Object.keys(empresaId).length === 0) {
-        empresaId = null;
-      }
-    }
-
-    const params: any = {};
-    if (empresaId && `${empresaId}` !== '' && `${empresaId}` !== '[object Object]') {
-      params.empresaId = empresaId;
-    }
-    
-    return this.http.get<DashboardDTO>(`${this.apiUrl}/dashboard`, { params });
+    return this.http.get<DashboardDTO>(`${this.apiUrl}/v1/dashboards/home`, { params });
   }
 }
