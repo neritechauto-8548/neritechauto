@@ -7,12 +7,15 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardDTO, DashboardService } from './dashboard.service';
 
 type DashboardView = 'standard' | 'managerial' | 'financial' | 'estimates';
+type DashboardPeriod = 'today' | '7d' | '30d' | 'month' | 'custom';
 
 interface DashboardKpi {
   label: string;
   value: string;
   hint: string;
   state?: 'normal' | 'warning' | 'danger';
+  delta?: string;
+  deltaTone?: 'positive' | 'negative' | 'neutral';
 }
 
 @Component({
@@ -34,9 +37,10 @@ export class Dashboard implements OnInit {
   ];
 
   selectedView: DashboardView = 'standard';
-  selectedPeriod = 'month';
+  selectedPeriod: DashboardPeriod = 'month';
   selectedComparison = 'previous';
-  selectedUnit = 'current';
+  customStartDate = '';
+  customEndDate = '';
 
   loading = true;
   error = false;
@@ -50,21 +54,27 @@ export class Dashboard implements OnInit {
   }
 
   loadDashboard(): void {
+    if (this.selectedPeriod === 'custom' && (!this.customStartDate || !this.customEndDate)) {
+      return;
+    }
+
     this.loading = true;
     this.error = false;
 
-    this.dashboardService.getDashboardData().subscribe({
-      next: data => {
-        this.stats = data;
-        this.lastUpdated = new Date();
-        this.buildChart();
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.error = true;
-      },
-    });
+    this.dashboardService
+      .getDashboardData(this.selectedPeriod, this.selectedComparison, this.customStartDate, this.customEndDate)
+      .subscribe({
+        next: data => {
+          this.stats = data;
+          this.lastUpdated = data.geradoEm ? new Date(data.geradoEm) : new Date();
+          this.buildChart();
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+          this.error = true;
+        },
+      });
   }
 
   selectView(view: DashboardView): void {
@@ -73,7 +83,24 @@ export class Dashboard implements OnInit {
     this.buildChart();
   }
 
-  onFilterChange(): void {
+  onPeriodChange(): void {
+    if (this.selectedPeriod !== 'custom') {
+      this.loadDashboard();
+    }
+  }
+
+  onCustomDateChange(): void {
+    if (
+      this.selectedPeriod === 'custom' &&
+      this.customStartDate &&
+      this.customEndDate &&
+      this.customStartDate <= this.customEndDate
+    ) {
+      this.loadDashboard();
+    }
+  }
+
+  onComparisonChange(): void {
     this.loadDashboard();
   }
 
@@ -91,52 +118,124 @@ export class Dashboard implements OnInit {
   }
 
   get periodLabel(): string {
+    if (this.stats?.inicio && this.stats?.fim) {
+      const start = new Date(`${this.stats.inicio}T00:00:00`);
+      const end = new Date(`${this.stats.fim}T00:00:00`);
+      if (this.selectedPeriod === 'custom') {
+        return `${start.toLocaleDateString('pt-BR')} — ${end.toLocaleDateString('pt-BR')}`;
+      }
+    }
+
     switch (this.selectedPeriod) {
       case 'today': return 'Hoje';
       case '7d': return 'Últimos 7 dias';
       case '30d': return 'Últimos 30 dias';
+      case 'custom': return 'Período personalizado';
       default: return 'Este mês';
     }
+  }
+
+  get comparisonLabel(): string {
+    return this.selectedComparison === 'same' ? 'Mesmo período do ano anterior' : 'Período anterior';
   }
 
   get standardKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
-      { label: 'OS em andamento', value: this.formatNumber(s?.osEmAndamento), hint: 'Atendimentos ativos' },
-      { label: 'OS concluídas', value: this.formatNumber(s?.osConcluidas), hint: 'No período atual' },
-      { label: 'Clientes ativos', value: this.formatNumber(s?.totalClientes), hint: 'Base cadastral' },
-      { label: 'Veículos em atraso', value: this.formatNumber(s?.veiculosEmAtraso), hint: 'Exigem acompanhamento', state: s?.veiculosEmAtraso ? 'warning' : 'normal' },
-      { label: 'Ticket médio', value: this.formatCurrency(s?.ticketMedio), hint: 'Valor médio por OS' },
+      {
+        label: 'OS em andamento',
+        value: this.formatNumber(s?.osEmAndamento),
+        hint: 'Atendimentos ativos no período',
+        delta: this.countDelta(s?.osEmAndamento, s?.osConcluidasComparacao),
+        deltaTone: 'neutral',
+      },
+      {
+        label: 'OS concluídas',
+        value: this.formatNumber(s?.osConcluidas),
+        hint: 'No período selecionado',
+        delta: this.countDelta(s?.osConcluidas, s?.osConcluidasComparacao),
+        deltaTone: this.deltaTone(s?.osConcluidas, s?.osConcluidasComparacao),
+      },
+      { label: 'Clientes ativos', value: this.formatNumber(s?.totalClientes), hint: 'Base cadastral atual' },
+      {
+        label: 'Veículos em atraso',
+        value: this.formatNumber(s?.veiculosEmAtraso),
+        hint: 'Exigem acompanhamento',
+        state: s?.veiculosEmAtraso ? 'warning' : 'normal',
+      },
+      {
+        label: 'Ticket médio',
+        value: this.formatCurrency(s?.ticketMedio),
+        hint: 'Valor médio por OS concluída',
+        delta: this.currencyDelta(s?.ticketMedio, s?.ticketMedioComparacao),
+        deltaTone: this.deltaTone(s?.ticketMedio, s?.ticketMedioComparacao),
+      },
     ];
   }
 
   get managerialKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
-      { label: 'Faturamento', value: this.formatCurrency(s?.faturamentoMes), hint: 'Recebimentos do mês' },
-      { label: 'Ticket médio', value: this.formatCurrency(s?.ticketMedio), hint: 'Valor médio por OS' },
-      { label: 'OS concluídas', value: this.formatNumber(s?.osConcluidas), hint: 'Produção no período' },
-      { label: 'Clientes atendidos', value: this.formatNumber(s?.totalClientes), hint: 'Base atual' },
+      {
+        label: 'Faturamento',
+        value: this.formatCurrency(s?.faturamentoMes),
+        hint: 'Recebimentos no período',
+        delta: this.currencyDelta(s?.faturamentoMes, s?.faturamentoComparacao),
+        deltaTone: this.deltaTone(s?.faturamentoMes, s?.faturamentoComparacao),
+      },
+      {
+        label: 'Ticket médio',
+        value: this.formatCurrency(s?.ticketMedio),
+        hint: 'Valor médio por OS concluída',
+        delta: this.currencyDelta(s?.ticketMedio, s?.ticketMedioComparacao),
+        deltaTone: this.deltaTone(s?.ticketMedio, s?.ticketMedioComparacao),
+      },
+      {
+        label: 'OS concluídas',
+        value: this.formatNumber(s?.osConcluidas),
+        hint: 'Produção no período',
+        delta: this.countDelta(s?.osConcluidas, s?.osConcluidasComparacao),
+        deltaTone: this.deltaTone(s?.osConcluidas, s?.osConcluidasComparacao),
+      },
+      { label: 'Clientes atendidos', value: this.formatNumber(s?.totalClientes), hint: 'Base ativa atual' },
     ];
   }
 
   get financialKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
-      { label: 'Contas a receber', value: this.formatCurrency(s?.contasReceber), hint: 'Carteira em aberto' },
-      { label: 'Contas a pagar', value: this.formatCurrency(s?.contasPagar), hint: 'Compromissos em aberto' },
-      { label: 'Valores vencidos', value: this.formatCurrency(s?.valoresVencidos), hint: 'Necessitam cobrança', state: s?.valoresVencidos ? 'danger' : 'normal' },
-      { label: 'Resultado do mês', value: this.formatCurrency(s?.lucroMes), hint: 'Receitas menos despesas' },
+      {
+        label: 'Contas a receber',
+        value: this.formatCurrency(s?.contasReceber),
+        hint: 'Carteira em aberto',
+      },
+      {
+        label: 'Contas a pagar',
+        value: this.formatCurrency(s?.contasPagar),
+        hint: 'Compromissos em aberto',
+      },
+      {
+        label: 'Valores vencidos',
+        value: this.formatCurrency(s?.valoresVencidos),
+        hint: 'Necessitam cobrança',
+        state: s?.valoresVencidos ? 'danger' : 'normal',
+      },
+      { label: 'Resultado do período', value: this.formatCurrency(s?.lucroMes), hint: 'Receitas menos despesas' },
     ];
   }
 
   get estimateKpis(): DashboardKpi[] {
     const s = this.stats;
     return [
-      { label: 'Abertos', value: this.formatNumber(s?.abertosMes), hint: 'No mês atual' },
-      { label: 'Autorizados', value: this.formatNumber(s?.autorizadosMes), hint: 'No mês atual' },
-      { label: 'Cancelados', value: this.formatNumber(s?.canceladosMes), hint: 'No mês atual', state: s?.canceladosMes ? 'danger' : 'normal' },
-      { label: 'Fechados', value: this.formatNumber(s?.fechadosMes), hint: 'No mês atual' },
+      { label: 'Abertos', value: this.formatNumber(s?.abertosMes), hint: 'No período selecionado' },
+      { label: 'Autorizados', value: this.formatNumber(s?.autorizadosMes), hint: 'No período selecionado' },
+      {
+        label: 'Cancelados',
+        value: this.formatNumber(s?.canceladosMes),
+        hint: 'No período selecionado',
+        state: s?.canceladosMes ? 'danger' : 'normal',
+      },
+      { label: 'Fechados', value: this.formatNumber(s?.fechadosMes), hint: 'No período selecionado' },
     ];
   }
 
@@ -224,6 +323,25 @@ export class Dashboard implements OnInit {
         },
       },
     };
+  }
+
+  private deltaTone(current?: number, comparison?: number): 'positive' | 'negative' | 'neutral' {
+    if (current == null || comparison == null || comparison === 0) return 'neutral';
+    return current >= comparison ? 'positive' : 'negative';
+  }
+
+  private countDelta(current?: number, comparison?: number): string {
+    if (current == null || comparison == null || !this.stats?.comparacaoDisponivel) return '';
+    const diff = current - comparison;
+    if (diff === 0) return '0 vs. comparação';
+    return `${diff > 0 ? '+' : ''}${diff.toLocaleString('pt-BR')} vs. comparação`;
+  }
+
+  private currencyDelta(current?: number, comparison?: number): string {
+    if (current == null || comparison == null || !this.stats?.comparacaoDisponivel) return '';
+    if (comparison === 0) return current === 0 ? 'Sem variação' : 'Sem base para comparação';
+    const percent = ((current - comparison) / Math.abs(comparison)) * 100;
+    return `${percent > 0 ? '+' : ''}${percent.toFixed(1).replace('.', ',')}% vs. comparação`;
   }
 
   formatNumber(value: number | null | undefined): string {
