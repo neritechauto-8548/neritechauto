@@ -74,7 +74,7 @@ public class DashboardService {
 
         BigDecimal faturamentoComparacao = safe(contasReceberRepository.calculateFaturamentoMes(empresaId, compare.start(), compare.end()));
         long osConcluidasComparacao = ordemServicoRepository.countByFinalizaOSAndPeriod(empresaId, true, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999L));
-        BigDecimal ticketMedioComparacao = safe(ordemServicoRepository.calculateTicketMedioPeriod(empresaId, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999L));
+        BigDecimal ticketMedioComparacao = safe(ordemServicoRepository.calculateTicketMedioPeriod(empresaId, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999L)));
 
         return new DashboardDTO(totalClientes, osAbertas, osEmAndamento, osConcluidas, osCanceladas,
                 faturamento, despesas, lucro, ticketMedio, contasReceber, contasPagar, valoresVencidos, veiculosEmAtraso,
