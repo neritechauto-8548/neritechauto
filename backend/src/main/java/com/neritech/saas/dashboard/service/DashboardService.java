@@ -45,7 +45,7 @@ public class DashboardService {
         BigDecimal contasReceber = safe(contasReceberRepository.calculateTotalPendentes(empresaId));
         BigDecimal contasPagar = safe(contasPagarRepository.calculateTotalPendentes(empresaId));
         BigDecimal valoresVencidos = safe(contasReceberRepository.calculateTotalVencidos(empresaId, LocalDate.now()));
-        long veiculosEmAtraso = ordemServicoRepository.countAtrasadas(empresaId);
+        long ordensEmAtraso = ordemServicoRepository.countAtrasadas(empresaId);
 
         List<String> abertos = List.of("ABERTA", "DIAGNOSTICO", "AGUARDANDO_APROVACAO");
         List<String> autorizados = List.of("APROVADA", "EM_EXECUCAO", "AGUARDANDO_PECAS");
