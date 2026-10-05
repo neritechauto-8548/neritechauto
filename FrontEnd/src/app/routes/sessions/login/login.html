@@ -1,89 +1,97 @@
-<div class="bg-white dark:bg-gray-900">
-  <div class="flex min-h-screen w-screen">
-    <div
-      class="hidden bg-cover lg:block lg:w-2/3"
-      style="background-image: url('/images/login.png')"
-    >
-      <div class="flex items-center h-full px-20 bg-gray-900 bg-opacity-40">
-        <div>
-          <h2 class="text-4xl font-bold text-white">Simplifique a gestão da sua oficina.</h2>
-          <p class="max-w-xl mt-3 text-gray-300">
-             Com a NeriTechAuto, você otimiza o dia a dia do seu negócio e foca no que realmente importa: atender bem e lucrar mais.
+<main class="auth-page">
+  <section class="auth-shell" aria-labelledby="login-title">
+    <header class="auth-brand">
+      <div class="brand-mark" aria-hidden="true">N</div>
+      <div>
+        <span class="brand-name">NERITECH</span>
+        <span class="brand-product">AUTO</span>
+      </div>
+    </header>
+
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1 id="login-title">Entrar no NERITECH AUTO</h1>
+        <p>Acesse sua operação de oficina com segurança.</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="login()" class="auth-form" novalidate>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="username"
+            autocomplete="username"
+            placeholder="voce@empresa.com"
+            [attr.aria-invalid]="username.invalid && (username.dirty || username.touched)"
+            [attr.aria-describedby]="username.invalid && (username.dirty || username.touched) ? 'email-error' : null"
+          />
+          <p
+            *ngIf="username.invalid && (username.dirty || username.touched)"
+            id="email-error"
+            class="field-error"
+          >
+            <span *ngIf="username.errors?.['required']">Informe seu e-mail.</span>
+            <span *ngIf="username.errors?.['remote']">{{ username.errors?.['remote'] }}</span>
           </p>
         </div>
-      </div>
-    </div>
 
-    <div class="flex items-center w-full max-w-md px-6 mx-auto lg:w-2/6">
-      <div class="flex-1">
-        <div class="text-center">
-          <h2 class="text-[28px] font-bold text-center text-slate-800 tracking-tight dark:text-white">NeriTechAuto</h2>
-          <p class="mt-2 text-[13px] font-medium text-slate-500 dark:text-gray-300">Faça login para acessar sua conta</p>
+        <div class="field">
+          <div class="field-label-row">
+            <label for="password">Senha</label>
+            <a routerLink="/auth/recover">Esqueci minha senha</a>
+          </div>
+
+          <div class="password-field">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Digite sua senha"
+              [attr.aria-invalid]="password.invalid && (password.dirty || password.touched)"
+              [attr.aria-describedby]="password.invalid && (password.dirty || password.touched) ? 'password-error' : null"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+              [attr.aria-pressed]="showPassword"
+            >
+              <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <p
+            *ngIf="password.invalid && (password.dirty || password.touched)"
+            id="password-error"
+            class="field-error"
+          >
+            <span *ngIf="password.errors?.['required']">Informe sua senha.</span>
+            <span *ngIf="password.errors?.['remote']">{{ password.errors?.['remote'] }}</span>
+          </p>
         </div>
 
-        <div class="mt-8">
-          <form [formGroup]="loginForm" (ngSubmit)="login()" class="space-y-4">
-            <div>
-              <label for="email" class="block mb-1.5 text-[13px] font-semibold text-slate-700 dark:text-gray-200">Endereço de e-mail</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                formControlName="username"
-                class="block w-full h-10 px-3 py-2 text-[14px] text-slate-800 placeholder-slate-400 bg-white border border-slate-300 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-sm"
-                [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': username.invalid && (username.dirty || username.touched)}"
-              />
-              <div *ngIf="username.invalid && (username.dirty || username.touched)" class="mt-1 text-xs text-red-500">
-                <span *ngIf="username.errors?.['required']">Por favor, informe seu e-mail.</span>
-                <span *ngIf="username.errors?.['remote']">{{ username.errors?.['remote'] }}</span>
-              </div>
-            </div>
+        <label class="remember-field">
+          <input type="checkbox" formControlName="rememberMe" />
+          <span>Manter meu e-mail preenchido</span>
+        </label>
 
-            <div class="mt-6">
-              <div class="flex justify-between mb-1.5 items-center">
-                <label for="password" class="text-[13px] font-semibold text-slate-700 dark:text-gray-200">Senha</label>
-                <a routerLink="/auth/recover" class="text-[12px] font-semibold text-blue-600 focus:text-blue-700 hover:text-blue-700 hover:underline transition-colors">Esqueceu a senha?</a>
-              </div>
-
-              <div class="relative">
-                <input
-                  [type]="showPassword ? 'text' : 'password'"
-                  name="password"
-                  id="password"
-                  formControlName="password"
-                  class="block w-full h-10 px-3 pr-10 py-2 text-[14px] text-slate-800 placeholder-slate-400 bg-white border border-slate-300 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none shadow-sm"
-                  [ngClass]="{'border-red-500 focus:border-red-500 focus:ring-red-500': password.invalid && (password.dirty || password.touched)}"
-                />
-                <button
-                  type="button"
-                  (click)="togglePasswordVisibility()"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors"
-                  [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Ver senha'"
-                >
-                  <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-sm"></i>
-                </button>
-              </div>
-              <div *ngIf="password.invalid && (password.dirty || password.touched)" class="mt-1 text-xs text-red-500">
-                <span *ngIf="password.errors?.['required']">Por favor, informe sua senha.</span>
-                <span *ngIf="password.errors?.['remote']">{{ password.errors?.['remote'] }}</span>
-              </div>
-            </div>
-
-            <div class="mt-6 pt-2">
-              <button
-                type="submit"
-                [disabled]="isSubmitting"
-                class="w-full flex justify-center items-center h-10 px-4 py-2 text-[14px] font-semibold tracking-wide text-white transition-all transform bg-[#635BFF] rounded-md hover:bg-[#5851E5] focus:outline-none disabled:bg-indigo-400 disabled:cursor-not-allowed shadow-sm"
-              >
-                <span *ngIf="!isSubmitting">Entrar</span>
-                <span *ngIf="isSubmitting"><i class="pi pi-spinner pi-spin"></i></span>
-              </button>
-            </div>
-          </form>
-
-
-        </div>
-      </div>
+        <button type="submit" class="auth-primary" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Entrar</span>
+          <span *ngIf="isSubmitting" class="loading-content">
+            <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+            Entrando...
+          </span>
+        </button>
+      </form>
     </div>
-  </div>
-</div>
+
+    <footer class="auth-footer">
+      <span>NERITECH AUTO</span>
+      <span aria-hidden="true">•</span>
+      <span>Gestão inteligente para oficinas</span>
+    </footer>
+  </section>
+</main>
