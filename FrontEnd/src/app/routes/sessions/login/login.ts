@@ -66,7 +66,6 @@ export class Login {
   constructor() {}
 
   login() {
-    // Remove os erros da tentativa anterior antes de validar novamente
     if (this.username.hasError('remote')) {
       this.username.setErrors(null);
       this.username.updateValueAndValidity({ emitEvent: false });
@@ -91,14 +90,19 @@ export class Login {
       )
       .subscribe({
         next: () => {
-          // Nunca persistir a senha no navegador. O "lembrar" controla apenas a conveniência do acesso.
           if (this.rememberMe.value) {
             this.storage.set('loginDefaults', { username: this.username.value });
           } else {
             this.storage.remove('loginDefaults');
           }
-          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Login realizado com sucesso!' });
-          this.router.navigateByUrl('/');
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Login realizado com sucesso!',
+          });
+
+          this.router.navigateByUrl('/home');
         },
         error: (errorRes: HttpErrorResponse) => {
           if (errorRes.status === 401) {
@@ -128,19 +132,18 @@ export class Login {
                 form.get(controlKey)?.setErrors({ remote: msg });
               });
             }
-            this.messageService.add({ 
-              severity: 'error', 
-              summary: 'Erro de validação', 
-              detail: 'Por favor, verifique os campos destacados.' 
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro de validação',
+              detail: 'Por favor, verifique os campos destacados.',
             });
           } else {
-            this.messageService.add({ 
-              severity: 'error', 
-              summary: 'Erro de Login', 
-              detail: errorRes.error?.message || 'E-mail ou senha incorretos.' 
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro de Login',
+              detail: errorRes.error?.message || 'E-mail ou senha incorretos.',
             });
           }
-          // isSubmitting é resetado no finalize
         },
       });
   }
