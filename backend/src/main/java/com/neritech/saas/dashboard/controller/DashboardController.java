@@ -30,6 +30,10 @@ public class DashboardController {
             @RequestParam(required = false) LocalDate endDate) {
         Long empresaId = TenantContext.getCurrentTenant();
         if (empresaId == null) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        return ResponseEntity.ok(dashboardService.getDashboardData(empresaId, period, comparison, startDate, endDate));
+        try {
+            return ResponseEntity.ok(dashboardService.getDashboardData(empresaId, period, comparison, startDate, endDate));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 }
