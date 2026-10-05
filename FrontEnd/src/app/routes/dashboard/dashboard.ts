@@ -146,8 +146,6 @@ export class Dashboard implements OnInit {
         label: 'OS em andamento',
         value: this.formatNumber(s?.osEmAndamento),
         hint: 'Atendimentos ativos no período',
-        delta: this.countDelta(s?.osEmAndamento, s?.osConcluidasComparacao),
-        deltaTone: 'neutral',
       },
       {
         label: 'OS concluídas',
