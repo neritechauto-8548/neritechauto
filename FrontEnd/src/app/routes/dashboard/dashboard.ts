@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { DashboardDTO, DashboardService } from './dashboard.service';
 
@@ -44,6 +45,7 @@ export class Dashboard implements OnInit {
 
   loading = true;
   error = false;
+  forbidden = false;
   lastUpdated: Date | null = null;
   stats: DashboardDTO | null = null;
 
@@ -60,6 +62,7 @@ export class Dashboard implements OnInit {
 
     this.loading = true;
     this.error = false;
+    this.forbidden = false;
 
     this.dashboardService
       .getDashboardData(this.selectedPeriod, this.selectedComparison, this.customStartDate, this.customEndDate)
@@ -70,9 +73,10 @@ export class Dashboard implements OnInit {
           this.buildChart();
           this.loading = false;
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
           this.loading = false;
           this.error = true;
+          this.forbidden = error.status === 403;
         },
       });
   }
