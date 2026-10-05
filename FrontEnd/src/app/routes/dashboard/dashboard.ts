@@ -160,7 +160,7 @@ export class Dashboard implements OnInit {
       },
       { label: 'Clientes ativos', value: this.formatNumber(s?.totalClientes), hint: 'Base cadastral atual' },
       {
-        label: 'Veículos em atraso',
+        label: 'OS em atraso',
         value: this.formatNumber(s?.ordensEmAtraso),
         hint: 'Exigem acompanhamento',
         state: s?.veiculosEmAtraso ? 'warning' : 'normal',
