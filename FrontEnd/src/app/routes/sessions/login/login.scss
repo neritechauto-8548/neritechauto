@@ -152,7 +152,7 @@
   padding-right: 44px !important;
 }
 
-.password-toggle {
+ .password-toggle {
   position: absolute;
   top: 50%;
   right: 2px;
@@ -164,6 +164,31 @@
   background: transparent;
   color: #64748b;
   cursor: pointer;
+}
+
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-spin 650ms linear infinite;
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
 }
 
 .password-toggle:hover {
