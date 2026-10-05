@@ -81,7 +81,9 @@ public class DashboardService {
                 historicoFaturamento, historicoServicos, historicoMeses, abertosMes, abertosTotal, autorizadosMes, autorizadosTotal,
                 canceladosMes, canceladosTotal, fechadosMes, fechadosTotal, entradas, saidas,
                 period, current.start(), current.end(), comparison, faturamentoComparacao, osConcluidasComparacao,
-                ticketMedioComparacao, true, LocalDateTime.now(), false);
+                ticketMedioComparacao, true, LocalDateTime.now(), false,
+                totalClientes > 0 || osAbertas > 0 || osConcluidas > 0 || osCanceladas > 0
+                        || faturamento.signum() > 0 || despesas.signum() > 0 || contasReceber.signum() > 0 || contasPagar.signum() > 0);
     }
 
     private PeriodRange resolvePeriod(String period, LocalDate requestedStart, LocalDate requestedEnd) {
