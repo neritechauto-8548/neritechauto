@@ -91,8 +91,11 @@ export class Login {
       )
       .subscribe({
         next: () => {
+          // Nunca persistir a senha no navegador. O "lembrar" controla apenas a conveniência do acesso.
           if (this.rememberMe.value) {
-            this.storage.set('loginDefaults', { username: this.username.value, password: this.password.value });
+            this.storage.set('loginDefaults', { username: this.username.value });
+          } else {
+            this.storage.remove('loginDefaults');
           }
           this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Login realizado com sucesso!' });
           this.router.navigateByUrl('/');
