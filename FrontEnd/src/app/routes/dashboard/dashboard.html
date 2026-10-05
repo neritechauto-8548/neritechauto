@@ -21,6 +21,7 @@
       <div class="selector-tabs" role="tablist" aria-label="Visões">
         <button *ngFor="let view of views" type="button" role="tab"
           [attr.aria-selected]="selectedView === view.id"
+          [attr.tabindex]="selectedView === view.id ? 0 : -1"
           [class.active]="selectedView === view.id"
           (click)="selectView(view.id)">
           {{ view.label }}
@@ -31,45 +32,62 @@
     <section class="filter-bar" aria-label="Filtros do dashboard">
       <div class="filter-field">
         <label for="period">Período</label>
-        <select id="period" [(ngModel)]="selectedPeriod" (ngModelChange)="onFilterChange()">
+        <select id="period" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
           <option value="today">Hoje</option>
           <option value="7d">Últimos 7 dias</option>
           <option value="30d">Últimos 30 dias</option>
           <option value="month">Este mês</option>
+          <option value="custom">Personalizado</option>
         </select>
       </div>
 
-      <div class="filter-field">
-        <label for="unit">Unidade</label>
-        <select id="unit" [(ngModel)]="selectedUnit" (ngModelChange)="onFilterChange()">
-          <option value="current">Unidade atual</option>
-        </select>
-      </div>
+      <ng-container *ngIf="selectedPeriod === 'custom'">
+        <div class="filter-field">
+          <label for="startDate">De</label>
+          <input id="startDate" type="date" [(ngModel)]="customStartDate" (ngModelChange)="onCustomDateChange()" />
+        </div>
+
+        <div class="filter-field">
+          <label for="endDate">Até</label>
+          <input id="endDate" type="date" [(ngModel)]="customEndDate" [min]="customStartDate"
+            (ngModelChange)="onCustomDateChange()" />
+        </div>
+      </ng-container>
 
       <div class="filter-field">
         <label for="comparison">Comparar com</label>
-        <select id="comparison" [(ngModel)]="selectedComparison" (ngModelChange)="onFilterChange()">
+        <select id="comparison" [(ngModel)]="selectedComparison" (ngModelChange)="onComparisonChange()">
           <option value="previous">Período anterior</option>
-          <option value="same">Mesmo período anterior</option>
+          <option value="same">Mesmo período do ano anterior</option>
         </select>
       </div>
 
       <div class="filter-context">
         <span>{{ periodLabel }}</span>
         <span class="context-dot" aria-hidden="true"></span>
-        <span>{{ lastUpdated ? ('Atualizado às ' + (lastUpdated | date:'HH:mm')) : 'Aguardando dados' }}</span>
+        <span>{{ comparisonLabel }}</span>
+        <span class="context-dot" aria-hidden="true"></span>
+        <span *ngIf="lastUpdated">Atualizado às {{ lastUpdated | date:'HH:mm:ss' }}</span>
+        <span *ngIf="!lastUpdated">Aguardando dados</span>
       </div>
     </section>
 
     <div *ngIf="error" class="state-panel error-state" role="alert">
       <div>
         <strong>Não foi possível carregar o Início.</strong>
-        <p>Os dados anteriores não estão disponíveis nesta sessão.</p>
+        <p>Verifique sua conexão e tente novamente. Nenhum dado parcial é apresentado como se estivesse atualizado.</p>
       </div>
       <button type="button" class="secondary-button" (click)="retry()">Tentar novamente</button>
     </div>
 
     <ng-container *ngIf="!error && stats">
+      <div *ngIf="stats.dadosParciais" class="state-panel partial-state" role="status">
+        <div>
+          <strong>Dados parcialmente disponíveis.</strong>
+          <p>Alguns indicadores podem estar temporariamente indisponíveis.</p>
+        </div>
+      </div>
+
       <section class="kpi-grid" aria-label="Indicadores principais">
         <article *ngFor="let kpi of currentKpis" class="kpi-card"
           [class.warning]="kpi.state === 'warning'"
@@ -77,6 +95,8 @@
           <span class="kpi-label">{{ kpi.label }}</span>
           <strong class="kpi-value">{{ kpi.value }}</strong>
           <span class="kpi-hint">{{ kpi.hint }}</span>
+          <span *ngIf="kpi.delta" class="kpi-delta" [class.positive]="kpi.deltaTone === 'positive'"
+            [class.negative]="kpi.deltaTone === 'negative'">{{ kpi.delta }}</span>
         </article>
       </section>
 
@@ -84,8 +104,8 @@
         <article class="surface chart-surface">
           <div class="surface-header">
             <div>
-              <h2>Evolução no período</h2>
-              <p>Dados consolidados da operação.</p>
+              <h2>Evolução recente</h2>
+              <p>Faturamento recebido e serviços concluídos nos últimos seis meses.</p>
             </div>
           </div>
           <apx-chart
@@ -152,6 +172,7 @@
             <div><span>Produção</span><strong>{{ formatNumber(stats?.osConcluidas) }} OS concluídas</strong></div>
             <div><span>Clientes</span><strong>{{ formatNumber(stats?.totalClientes) }} ativos</strong></div>
             <div><span>Atrasos</span><strong [class.alert-value]="stats?.veiculosEmAtraso">{{ formatNumber(stats?.veiculosEmAtraso) }} veículos</strong></div>
+            <div><span>Comparação</span><strong>{{ comparisonLabel }}</strong></div>
           </div>
           <button type="button" class="text-link" (click)="openOperational()">Investigar operação</button>
         </article>
@@ -160,14 +181,14 @@
           <div class="surface-header">
             <div>
               <h2>Funil de orçamento</h2>
-              <p>Estados registrados no mês atual.</p>
+              <p>Estados registrados no período selecionado.</p>
             </div>
           </div>
           <div class="funnel-list">
-            <div><span>Abertos</span><strong>{{ formatNumber(stats?.abertosTotal) }}</strong></div>
-            <div><span>Autorizados</span><strong>{{ formatNumber(stats?.autorizadosTotal) }}</strong></div>
-            <div><span>Cancelados</span><strong>{{ formatNumber(stats?.canceladosTotal) }}</strong></div>
-            <div><span>Fechados</span><strong>{{ formatNumber(stats?.fechadosTotal) }}</strong></div>
+            <div><span>Abertos</span><strong>{{ formatNumber(stats?.abertosMes) }}</strong></div>
+            <div><span>Autorizados</span><strong>{{ formatNumber(stats?.autorizadosMes) }}</strong></div>
+            <div><span>Cancelados</span><strong>{{ formatNumber(stats?.canceladosMes) }}</strong></div>
+            <div><span>Fechados</span><strong>{{ formatNumber(stats?.fechadosMes) }}</strong></div>
           </div>
           <button type="button" class="text-link" (click)="openEstimates()">Abrir Orçamentos</button>
         </article>
@@ -176,9 +197,12 @@
       <section class="surface freshness-bar">
         <div>
           <strong>Fonte dos indicadores</strong>
-          <span>Dados consolidados pelos módulos proprietários. O Início não altera registros.</span>
+          <span>Dados consolidados pelos módulos proprietários. O Início é somente leitura.</span>
         </div>
-        <span class="freshness"><span class="freshness-dot"></span> Dados disponíveis</span>
+        <span class="freshness">
+          <span class="freshness-dot"></span>
+          {{ stats.dadosParciais ? 'Dados parciais' : 'Dados atualizados' }}
+        </span>
       </section>
     </ng-container>
 
