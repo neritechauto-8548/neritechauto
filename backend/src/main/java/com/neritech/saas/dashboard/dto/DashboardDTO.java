@@ -15,4 +15,4 @@ public record DashboardDTO(
         Long entradasVeiculosMes, Long saidasVeiculosMes,
         String periodo, LocalDate inicio, LocalDate fim, String comparacao,
         BigDecimal faturamentoComparacao, Long osConcluidasComparacao, BigDecimal ticketMedioComparacao,
-        boolean comparacaoDisponivel, LocalDateTime geradoEm, boolean dadosParciais) {}
+        boolean comparacaoDisponivel, LocalDateTime geradoEm, boolean dadosParciais, boolean dadosDisponiveis) {}
