@@ -171,7 +171,7 @@
           <div class="insight-list">
             <div><span>Produção</span><strong>{{ formatNumber(stats?.osConcluidas) }} OS concluídas</strong></div>
             <div><span>Clientes</span><strong>{{ formatNumber(stats?.totalClientes) }} ativos</strong></div>
-            <div><span>Atrasos</span><strong [class.alert-value]="stats?.veiculosEmAtraso">{{ formatNumber(stats?.veiculosEmAtraso) }} veículos</strong></div>
+            <div><span>Atrasos</span><strong [class.alert-value]="stats?.veiculosEmAtraso">{{ formatNumber(stats?.ordensEmAtraso) }} OS</strong></div>
             <div><span>Comparação</span><strong>{{ comparisonLabel }}</strong></div>
           </div>
           <button type="button" class="text-link" (click)="openOperational()">Investigar operação</button>
