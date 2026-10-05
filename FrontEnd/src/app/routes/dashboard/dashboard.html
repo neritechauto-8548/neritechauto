@@ -74,13 +74,13 @@
 
     <div *ngIf="error" class="state-panel error-state" role="alert">
       <div>
-        <strong>Não foi possível carregar o Início.</strong>
-        <p>Verifique sua conexão e tente novamente. Nenhum dado parcial é apresentado como se estivesse atualizado.</p>
+        <strong>{{ forbidden ? 'Você não tem permissão para visualizar o Início.' : 'Não foi possível carregar o Início.' }}</strong>
+        <p>{{ forbidden ? 'Solicite ao administrador uma permissão compatível com os indicadores do Dashboard.' : 'Verifique sua conexão e tente novamente. Nenhum dado parcial é apresentado como se estivesse atualizado.' }}</p>
       </div>
       <button type="button" class="secondary-button" (click)="retry()">Tentar novamente</button>
     </div>
 
-    <ng-container *ngIf="!error && stats">
+    <ng-container *ngIf="!error && stats?.dadosDisponiveis">
       <div *ngIf="stats.dadosParciais" class="state-panel partial-state" role="status">
         <div>
           <strong>Dados parcialmente disponíveis.</strong>
@@ -205,6 +205,13 @@
         </span>
       </section>
     </ng-container>
+
+    <section *ngIf="!loading && !error && stats && !stats.dadosDisponiveis" class="state-panel empty-state" aria-live="polite">
+      <div>
+        <strong>Nenhum dado disponível para o período.</strong>
+        <p>Os indicadores aparecem quando existirem registros nos módulos proprietários. Zero é exibido normalmente quando o negócio possui dados, mas o indicador do período é zero.</p>
+      </div>
+    </section>
 
     <div *ngIf="loading && !stats" class="skeleton-grid" aria-label="Carregando dashboard">
       <div *ngFor="let item of [1,2,3,4,5]" class="skeleton-card"></div>
