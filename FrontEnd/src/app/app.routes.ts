@@ -17,8 +17,9 @@ export const routes: Routes = [
     canActivate: [authGuard, subscriptionGuard],
     canActivateChild: [authGuard, subscriptionGuard],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: Dashboard, data: { title: 'Dashboard' } },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: Dashboard, data: { title: 'Início' } },
+      { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' },
       { path: '403', component: Error403 },
       { path: '404', component: Error404 },
       { path: '500', component: Error500 },
@@ -117,5 +118,5 @@ export const routes: Routes = [
       { path: 'reset-password', component: ResetPassword },
     ],
   },
-  { path: '**', redirectTo: 'dashboard' },
+  { path: '**', redirectTo: 'home' },
 ];
