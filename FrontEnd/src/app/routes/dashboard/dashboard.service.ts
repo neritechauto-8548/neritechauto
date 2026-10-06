@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
 
 export interface DashboardDTO {
@@ -15,9 +15,9 @@ export interface DashboardDTO {
   contasReceber: number;
   contasPagar: number;
   valoresVencidos: number;
-  ordensEmAtraso: number;
+  veiculosEmAtraso: number;
   historicoFaturamento: number[];
-  historicoServicos: number[];
+  historicoDespesas: number[];
   historicoMeses: string[];
   abertosMes: number;
   abertosTotal: number;
@@ -29,38 +29,14 @@ export interface DashboardDTO {
   fechadosTotal: number;
   entradasVeiculosMes: number;
   saidasVeiculosMes: number;
-  periodo: string;
-  inicio: string;
-  fim: string;
-  comparacao: string;
-  faturamentoComparacao: number;
-  osConcluidasComparacao: number;
-  ticketMedioComparacao: number;
-  comparacaoDisponivel: boolean;
-  geradoEm: string;
-  dadosParciais: boolean;
-  dadosDisponiveis: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = environment.baseUrl || '/api';
+  private http = inject(HttpClient);
+  private apiUrl = environment.baseUrl || '/api';
 
-  getDashboardData(
-    period: string,
-    comparison: string,
-    startDate?: string,
-    endDate?: string,
-  ) {
-    let params = new HttpParams()
-      .set('period', period)
-      .set('comparison', comparison);
-
-    if (period === 'custom' && startDate && endDate) {
-      params = params.set('startDate', startDate).set('endDate', endDate);
-    }
-
-    return this.http.get<DashboardDTO>(`${this.apiUrl}/v1/dashboards/home`, { params });
+  getDashboardData() {
+    return this.http.get<DashboardDTO>(`${this.apiUrl}/dashboard`);
   }
 }
