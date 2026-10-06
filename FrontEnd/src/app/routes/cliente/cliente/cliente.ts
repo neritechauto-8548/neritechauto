@@ -105,7 +105,7 @@ export class Cliente implements OnInit {
   backendPage: Page<ClienteResponseDTO> | null = null;
 
   // Paginação
-  rows = 5;
+  rows = 10;
   first = 0;
 
   get totalRecords() {
@@ -137,6 +137,23 @@ export class Cliente implements OnInit {
   onSearch() {
     this.first = 0;
     this.fetchPage();
+  }
+
+  onFilterChange(): void {
+    this.first = 0;
+    this.fetchPage();
+  }
+
+  limparFiltros(): void {
+    this.searchTerm = '';
+    this.selectedTipo = null;
+    this.selectedStatus = null;
+    this.first = 0;
+    this.fetchPage();
+  }
+
+  get hasFilters(): boolean {
+    return !!this.searchTerm.trim() || !!this.selectedTipo || !!this.selectedStatus;
   }
 
   goPrev() {
@@ -275,7 +292,7 @@ export class Cliente implements OnInit {
 
     console.log(`[PAGINATION] first: ${this.first}, rows: ${this.rows}, pageIndex to API: ${pageIndex}`);
 
-    const filters: any = { page: pageIndex, size: this.rows, sort: 'id,desc' }; // Restaurado para id,desc
+    const filters: any = { page: pageIndex, size: this.rows, sort: 'nomeCompleto,asc' }; // Restaurado para id,desc
 
     // Filtro de busca por nome ou documento
     if (this.searchTerm.trim()) {
