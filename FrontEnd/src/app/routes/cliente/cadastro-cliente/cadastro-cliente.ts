@@ -17,7 +17,7 @@ import { TagModule } from 'primeng/tag';
 import { InputMaskModule } from 'primeng/inputmask';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ClientesService, ClienteRequestDTO, ClienteResponseDTO } from '../cliente/cliente.service';
-import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels,
+import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels, getStatusClienteOptions, StatusClienteLabels,
   Sexo, EstadoCivil, OrigemCliente, getSexoOptions, getEstadoCivilOptions, getOrigemClienteOptions
 } from '../models/cliente.models';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
@@ -94,7 +94,8 @@ export class CadastroCliente implements OnInit {
   savedClienteId: string | number | null = null;
 
   tiposPessoa = ['Física', 'Jurídica'];
-  situacoes = ['Ativo', 'Inativo'];
+  situacoes = getStatusClienteOptions();
+  statusLabels = StatusClienteLabels;
 
   // Options for Dropdowns
   sexoOptions = getSexoOptions();
@@ -107,7 +108,7 @@ export class CadastroCliente implements OnInit {
 
   model = {
     tipoPessoa: 'Física' as 'Física' | 'Jurídica',
-    situacao: 'Ativo' as 'Ativo' | 'Inativo',
+    situacao: StatusCliente.ATIVO as StatusCliente,
     nomeRazao: '',
     cpfCnpj: '',
     inscricaoMunicipal: '', // Adicionado para ambas as pessoas
@@ -195,7 +196,7 @@ export class CadastroCliente implements OnInit {
 
   patchModel(data: ClienteResponseDTO) {
     this.model.tipoPessoa = (data.tipoCliente === 'PESSOA_JURIDICA') ? 'Jurídica' : 'Física';
-    this.model.situacao = (data.status === 'ATIVO') ? 'Ativo' : 'Inativo';
+    this.model.situacao = (data.status as StatusCliente) || StatusCliente.ATIVO;
     this.model.origemCliente = data.origemCliente as OrigemCliente || null;
 
     if (this.model.tipoPessoa === 'Física') {
@@ -416,7 +417,7 @@ export class CadastroCliente implements OnInit {
       estadoCivil: this.model.tipoPessoa === 'Física' ? (this.model.estadoCivil || undefined) : undefined,
       profissao: this.model.tipoPessoa === 'Física' ? (this.model.profissao || undefined) : undefined,
       origemCliente: this.model.origemCliente || undefined,
-      status: this.model.situacao === 'Ativo' ? StatusCliente.ATIVO : StatusCliente.INATIVO,
+      status: this.model.situacao,
       observacoesGerais: this.model.observacao || undefined,
       email: this.model.email || undefined,
     };
