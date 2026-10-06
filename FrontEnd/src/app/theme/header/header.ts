@@ -2,11 +2,9 @@ import { Component, EventEmitter, Input, Output, ViewEncapsulation, inject } fro
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ToolbarModule } from 'primeng/toolbar';
-import { ButtonModule } from 'primeng/button';
+
 import screenfull from 'screenfull';
 
 import { NotificationButton } from '../widgets/notification-button';
@@ -23,10 +21,6 @@ import { SettingsService } from '@core';
   encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
-    ToolbarModule,
-    ButtonModule,
-    MatButtonModule,
-    MatIconModule,
     MatTooltipModule,
     NotificationButton,
     UserButton,
