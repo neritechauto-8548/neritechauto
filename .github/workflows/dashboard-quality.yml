@@ -5,6 +5,7 @@ on:
     branches: ["feature/develop"]
     paths:
       - "FrontEnd/src/app/routes/dashboard/**"
+      - "FrontEnd/src/app/routes/home/**"
       - "FrontEnd/src/app/app.routes.ts"
       - "backend/src/main/java/com/neritech/saas/dashboard/**"
       - "backend/src/main/java/com/neritech/saas/ordemservico/repository/OrdemServicoRepository.java"
