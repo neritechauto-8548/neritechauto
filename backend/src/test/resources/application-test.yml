@@ -16,6 +16,13 @@ spring:
     validate-on-migrate: false
 
 # JWT Config para testes
+spring:
+  security:
+    jwt:
+      secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
 application:
   security:
     jwt:
