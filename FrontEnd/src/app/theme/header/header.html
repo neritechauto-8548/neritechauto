@@ -1,6 +1,6 @@
 <header class="nt-topbar">
   <div class="nt-topbar-left">
-    @if (showToggle || !settings.options.sidenavOpened) {
+    @if (true) {
       <button class="nt-topbar-icon" type="button" (click)="toggleSidenav.emit()" [attr.aria-label]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'" [matTooltip]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
       </button>
