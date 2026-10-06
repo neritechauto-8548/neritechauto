@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { LocalStorageService } from '@shared/services/storage.service';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '@env/environment';
 
 export interface DashboardDTO {
@@ -18,7 +17,7 @@ export interface DashboardDTO {
   valoresVencidos: number;
   veiculosEmAtraso: number;
   historicoFaturamento: number[];
-  historicoServicos: number[];
+  historicoDespesas: number[];
   historicoMeses: string[];
   abertosMes: number;
   abertosTotal: number;
@@ -35,31 +34,13 @@ export interface DashboardDTO {
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
-  private storage = inject(LocalStorageService);
-  private apiUrl = environment.baseUrl || '/api';        
+  private apiUrl = environment.baseUrl || '/api';
 
-  getDashboardData() {
-    let empresaId = this.storage.get('tenantId');
-    
-    // Se tenantId for um objeto vazio (default do storage.get) ou não existir, tenta empresaId
-    if (!empresaId || (typeof empresaId === 'object' && Object.keys(empresaId).length === 0)) {
-      empresaId = this.storage.get('empresaId');
+  getDashboardData(empresaId?: string | number | null) {
+    let params = new HttpParams();
+    if (empresaId !== undefined && empresaId !== null && String(empresaId) !== '') {
+      params = params.set('empresaId', String(empresaId));
     }
-
-    // Se ainda for um objeto, tenta extrair o id
-    if (empresaId && typeof empresaId === 'object') {
-      if (empresaId.id) {
-        empresaId = empresaId.id;
-      } else if (Object.keys(empresaId).length === 0) {
-        empresaId = null;
-      }
-    }
-
-    const params: any = {};
-    if (empresaId && `${empresaId}` !== '' && `${empresaId}` !== '[object Object]') {
-      params.empresaId = empresaId;
-    }
-    
     return this.http.get<DashboardDTO>(`${this.apiUrl}/dashboard`, { params });
   }
 }
