@@ -22,8 +22,8 @@
           <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
               Cancelar
           </button>
-          <button (click)="salvar()" class="px-3.5 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
-              <i class="pi pi-check text-xs"></i> Salvar
+          <button (click)="salvar()" class="px-4 py-2 rounded-lg bg-slate-950 text-white font-medium hover:bg-slate-800 shadow-sm transition-colors text-sm flex items-center gap-2 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
+              <i class="pi pi-check text-xs"></i> Salvar cliente
           </button>
       </div>
   </div>
@@ -31,13 +31,13 @@
   <div class="p-6 w-full space-y-8">
 
     <!-- Tabs as Pill Navigation -->
-    <div class="flex justify-center">
-        <div class="bg-slate-100 p-1 rounded-lg inline-flex border border-slate-200">
+    <div class="flex justify-start overflow-x-auto pb-1">
+        <div class="bg-white p-1 rounded-xl inline-flex border border-slate-200 shadow-sm">
             @for (tab of tabs; track tab.label; let i = $index) {
                 <button
                     (click)="activeIndex = i"
                     [class]="activeIndex === i ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
+                    class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap">
                     <i [class]="tab.icon"></i> {{ tab.label }}
                 </button>
             }
@@ -113,6 +113,18 @@
                                   <p-datepicker [(ngModel)]="model.dataNascimento" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
                              }
                          </div>
+
+                         <!-- Dados complementares (PF) -->
+                         @if (model.tipoPessoa === 'Física') {
+                             <div class="col-span-12 md:col-span-6 space-y-1">
+                                  <label class="text-xs font-bold text-slate-700">Estado civil</label>
+                                  <p-select [options]="estadoCivilOptions" [(ngModel)]="model.estadoCivil" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." />
+                             </div>
+                             <div class="col-span-12 md:col-span-6 space-y-1">
+                                  <label class="text-xs font-bold text-slate-700">Profissão</label>
+                                  <input type="text" pInputText [(ngModel)]="model.profissao" class="w-full modern-input" placeholder="Ex: Mecânico" />
+                             </div>
+                         }
 
                          <!-- Sexo (PF) -->
                          @if (model.tipoPessoa === 'Física') {
