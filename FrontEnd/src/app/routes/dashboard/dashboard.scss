@@ -1,1 +1,112 @@
-/* Styles handled by TailwindCSS */
+.dashboard-kpi,
+.dashboard-metric,
+.dashboard-panel {
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255);
+  border-radius: 12px;
+}
+
+.dashboard-kpi {
+  min-height: 132px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dashboard-kpi span,
+.dashboard-metric span {
+  color: rgb(100 116 139);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard-kpi strong,
+.dashboard-metric strong {
+  color: rgb(15 23 42);
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.dashboard-kpi small,
+.dashboard-metric small,
+.dashboard-panel p {
+  color: rgb(100 116 139);
+  font-size: 12px;
+}
+
+.dashboard-metric {
+  min-height: 128px;
+  padding: 18px 20px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.dashboard-metric:hover {
+  border-color: rgb(148 163 184);
+  box-shadow: 0 4px 16px rgb(15 23 42 / 0.06);
+}
+
+.dashboard-metric span {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.dashboard-metric strong {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.dashboard-panel {
+  padding: 22px;
+}
+
+.dashboard-panel h2 {
+  color: rgb(15 23 42);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 4px;
+  border-bottom: 1px solid rgb(241 245 249);
+  color: rgb(71 85 105);
+  text-align: left;
+  font-size: 13px;
+}
+
+.dashboard-row:hover {
+  color: rgb(15 23 42);
+}
+
+.dashboard-row strong {
+  color: rgb(15 23 42);
+  font-weight: 650;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dashboard-kpi,
+  .dashboard-metric,
+  .dashboard-panel {
+    border-color: rgb(30 41 59);
+    background: rgb(15 23 42);
+  }
+
+  .dashboard-kpi strong,
+  .dashboard-metric strong,
+  .dashboard-panel h2,
+  .dashboard-row strong {
+    color: rgb(248 250 252);
+  }
+
+  .dashboard-row {
+    border-color: rgb(30 41 59);
+    color: rgb(148 163 184);
+  }
+}
