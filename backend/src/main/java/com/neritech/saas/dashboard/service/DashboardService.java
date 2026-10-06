@@ -76,10 +76,10 @@ public class DashboardService {
         long osConcluidasComparacao = ordemServicoRepository.countByFinalizaOSAndPeriod(empresaId, true, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999));
         BigDecimal ticketMedioComparacao = safe(ordemServicoRepository.calculateTicketMedioPeriod(empresaId, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999)));
 
-        return new DashboardDTO(Math.toIntExact(totalClientes), Math.toIntExact(osAbertas), osEmAndamento, Math.toIntExact(osConcluidas), Math.toIntExact(osCanceladas),
-                faturamento, despesas, lucro, ticketMedio, contasReceber, contasPagar, valoresVencidos, Math.toIntExact(ordensEmAtraso),
-                historicoFaturamento, historicoServicos, historicoMeses, Math.toIntExact(abertosMes), Math.toIntExact(abertosTotal), Math.toIntExact(autorizadosMes), Math.toIntExact(autorizadosTotal),
-                Math.toIntExact(canceladosMes), Math.toIntExact(canceladosTotal), Math.toIntExact(fechadosMes), Math.toIntExact(fechadosTotal), Math.toIntExact(entradas), Math.toIntExact(saidas),
+        return new DashboardDTO(totalClientes, osAbertas, osEmAndamento, osConcluidas, osCanceladas,
+                faturamento, despesas, lucro, ticketMedio, contasReceber, contasPagar, valoresVencidos, ordensEmAtraso,
+                historicoFaturamento, historicoServicos, historicoMeses, abertosMes, abertosTotal, autorizadosMes, autorizadosTotal,
+                canceladosMes, canceladosTotal, fechadosMes, fechadosTotal, entradas, saidas,
                 period, current.start(), current.end(), comparison, faturamentoComparacao, osConcluidasComparacao,
                 ticketMedioComparacao, true, LocalDateTime.now(), false,
                 totalClientes > 0 || osAbertas > 0 || osConcluidas > 0 || osCanceladas > 0
