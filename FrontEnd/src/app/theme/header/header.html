@@ -12,7 +12,17 @@
 
   <div class="nt-global-search">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-    <input type="text" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" />
+    <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" />
+    @if (searchResults.length) {
+      <div class="nt-search-results" role="listbox">
+        @for (result of searchResults; track result.route) {
+          <button type="button" class="nt-search-result" (click)="navigateSearch(result.route)" role="option">
+            <span>{{ result.name }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
+        }
+      </div>
+    }
     <kbd>Ctrl K</kbd>
   </div>
 
