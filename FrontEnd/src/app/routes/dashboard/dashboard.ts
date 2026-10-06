@@ -263,10 +263,10 @@ export class Dashboard implements OnInit {
   get statusRows() {
     const s = this.stats;
     return [
-      { label: 'Abertos', value: this.formatNumber(s?.abertosTotal), tone: 'neutral' },
-      { label: 'Autorizados', value: this.formatNumber(s?.autorizadosTotal), tone: 'info' },
-      { label: 'Cancelados', value: this.formatNumber(s?.canceladosTotal), tone: 'danger' },
-      { label: 'Fechados', value: this.formatNumber(s?.fechadosTotal), tone: 'success' },
+      { label: 'Abertos', value: this.formatNumber(s?.abertosTotal), tone: 'neutral', detail: 'Entrada' },
+      { label: 'Autorizados', value: this.formatNumber(s?.autorizadosTotal), tone: 'info', detail: 'Em execução' },
+      { label: 'Cancelados', value: this.formatNumber(s?.canceladosTotal), tone: 'danger', detail: 'Fora do fluxo' },
+      { label: 'Fechados', value: this.formatNumber(s?.fechadosTotal), tone: 'success', detail: 'Concluído' },
     ];
   }
 
