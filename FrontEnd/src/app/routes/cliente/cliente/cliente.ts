@@ -195,9 +195,9 @@ export class Cliente implements OnInit {
   menuItemsFor(row: any): MenuItem[] {
     return [
       { label: 'Visualizar / Editar Cliente', icon: 'pi pi-user', routerLink: ['/cliente/editar', row.uuid] },
-      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', routerLink: ['/agendamento/cadastro'] },
-      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', routerLink: ['/veiculo'] },
-      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', routerLink: ['/os/cadastro'] },
+      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', routerLink: ['/agendamento/cadastro'], queryParams: { clienteId: row.id ?? row.uuid } },
+      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', routerLink: ['/veiculo'], queryParams: { clienteId: row.id ?? row.uuid } },
+      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', routerLink: ['/os/cadastro'], queryParams: { clienteId: row.id ?? row.uuid } },
     ];
   }
 
