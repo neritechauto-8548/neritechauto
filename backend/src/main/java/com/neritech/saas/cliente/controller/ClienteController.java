@@ -86,7 +86,7 @@ public class ClienteController {
                         @Parameter(description = "Status do cliente para filtro") @RequestParam(required = false) StatusCliente status,
                         @org.springframework.data.web.PageableDefault(size = 5, sort = "nomeCompleto", direction = org.springframework.data.domain.Sort.Direction.ASC) Pageable pageable) {
 
-                return service.search(nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, pageable)
+                return service.search(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, pageable)
                                 .map(ClienteMapper::toResponse);
         }
 
