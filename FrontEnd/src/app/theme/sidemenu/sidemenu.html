@@ -112,12 +112,9 @@
 
 <ng-template #linkTypeTpl let-item="item" let-level="level">
   @if (item.icon) {
-    <i [class]="item.icon + ' menu-icon'" [class.submenu-icon]="level > 0"></i>
-  } @else {
-    <span class="menu-icon" [class.submenu-icon]="level > 0">
-      {{ item.name | translate | slice: 0 : 1 }}
-    </span>
-  }
+    <svg class="menu-icon" [class.submenu-icon]="level > 0" viewBox="0 0 24 24" aria-hidden="true">
+    @for (path of iconPaths(item); track path) { <path [attr.d]="path"></path> }
+  </svg>
   <span class="menu-name">{{ item.name | translate }}</span>
   @if (item.label) {
     <span class="menu-label bg-{{ item.label.color }}">{{ item.label.value }}</span>
@@ -126,7 +123,9 @@
     <span class="menu-badge bg-{{ item.badge.color }}">{{ item.badge.value }}</span>
   }
   @if (item.type !== 'link') {
-    <i class="menu-caret pi" [ngClass]="item.type === 'sub' ? 'pi-chevron-down' : 'pi-external-link'"></i>
+    <svg class="menu-caret" viewBox="0 0 24 24" aria-hidden="true">
+    <path [attr.d]="item.type === 'sub' ? 'M6 9l6 6 6-6' : 'M7 17 17 7M9 7h8v8'"></path>
+  </svg>
   }
 </ng-template>
 
