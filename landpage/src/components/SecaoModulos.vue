@@ -96,8 +96,10 @@ const modules = [
 
 .module-card h3 {
   font-size: 1.0625rem;
-  font-weight: 800;
+  font-weight: 600;
   font-family: var(--font-heading);
+  letter-spacing: -0.015em;
+  color: var(--midnight-navy);
 }
 
 .module-card > p {

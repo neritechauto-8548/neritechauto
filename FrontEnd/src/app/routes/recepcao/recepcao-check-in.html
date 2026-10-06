@@ -1,0 +1,163 @@
+<main class="checkin-page" aria-labelledby="checkin-title">
+  <page-header
+    canonical
+    title="Novo check-in"
+    titleId="checkin-title"
+    eyebrow="Recepção"
+    description="Registre a chegada e prepare o encaminhamento sem criar orçamento ou OS automaticamente."
+    hideBreadcrumb
+  >
+    <a pageHeaderActions class="nt-button nt-button--secondary" routerLink="/recepcao/fila">
+      <nt-icon name="arrow-left" [size]="16" />
+      Voltar à fila
+    </a>
+  </page-header>
+
+  <nav class="stepper" aria-label="Etapas do check-in">
+    @for (etapa of etapas; track etapa; let indice = $index) {
+      <button
+        type="button"
+        [class.stepper__item--active]="etapaAtual === indice"
+        [class.stepper__item--complete]="indice < etapaAtual"
+        [disabled]="indice > maiorEtapaVisitada"
+        [attr.aria-current]="etapaAtual === indice ? 'step' : null"
+        (click)="irParaEtapa(indice)"
+      >
+        <span>{{ indice + 1 }}</span>
+        <strong>{{ etapa }}</strong>
+      </button>
+    }
+  </nav>
+
+  <div class="checkin-layout">
+    <section class="form-card" [attr.aria-labelledby]="'checkin-step-' + etapaAtual">
+      @if (etapaAtual === 0) {
+        <div class="card-heading">
+          <div><span>Etapa 1 de 4</span><h2 id="checkin-step-0">Contexto do atendimento</h2><p>Identifique a origem, o cliente, o veículo e a unidade autorizada.</p></div>
+        </div>
+
+        <fieldset class="origin-selector">
+          <legend>Como o veículo chegou?</legend>
+          <label [class.origin-selector__option--selected]="formulario.origem === 'AGENDAMENTO'">
+            <input type="radio" name="origem" value="AGENDAMENTO" [(ngModel)]="formulario.origem" />
+            <nt-icon name="calendar" [size]="20" />
+            <span><strong>Com agendamento</strong><small>Vincular uma reserva já confirmada</small></span>
+          </label>
+          <label [class.origin-selector__option--selected]="formulario.origem === 'ESPONTANEO'">
+            <input type="radio" name="origem" value="ESPONTANEO" [(ngModel)]="formulario.origem" />
+            <nt-icon name="car" [size]="20" />
+            <span><strong>Atendimento espontâneo</strong><small>Registrar uma chegada sem reserva</small></span>
+          </label>
+        </fieldset>
+
+        <div class="form-grid">
+          @if (formulario.origem === 'AGENDAMENTO') {
+            <label class="field field--12">
+              <span>Agendamento <b>*</b></span>
+              <input [(ngModel)]="formulario.agendamentoId" placeholder="Buscar por cliente, placa ou horário" />
+              @if (tentouAvancar && !formulario.agendamentoId.trim()) { <small class="error">Selecione o agendamento de origem.</small> }
+            </label>
+          }
+          <label class="field field--6">
+            <span>Cliente <b>*</b></span>
+            <input [(ngModel)]="formulario.cliente" autocomplete="off" placeholder="Buscar por nome, CPF ou telefone" />
+            @if (tentouAvancar && !formulario.cliente.trim()) { <small class="error">Selecione um cliente.</small> }
+          </label>
+          <label class="field field--6">
+            <span>Veículo <b>*</b></span>
+            <input [(ngModel)]="formulario.veiculo" autocomplete="off" placeholder="Buscar por placa, chassi ou modelo" />
+            @if (tentouAvancar && !formulario.veiculo.trim()) { <small class="error">Selecione um veículo vinculado.</small> }
+          </label>
+          <label class="field field--6">
+            <span>Unidade de atendimento <b>*</b></span>
+            <input [(ngModel)]="formulario.unidade" autocomplete="off" placeholder="Selecionar unidade autorizada" />
+            <small>As opções virão do contexto autenticado, nunca de um tenant informado pelo navegador.</small>
+            @if (tentouAvancar && !formulario.unidade.trim()) { <small class="error">Selecione a unidade.</small> }
+          </label>
+        </div>
+      }
+
+      @if (etapaAtual === 1) {
+        <div class="card-heading"><div><span>Etapa 2 de 4</span><h2 id="checkin-step-1">Condição de chegada</h2><p>Registre fatos observáveis e o relato do cliente sem antecipar diagnóstico.</p></div></div>
+        <div class="form-grid">
+          <label class="field field--12">
+            <span>Queixa principal ou motivo da visita <b>*</b></span>
+            <textarea [(ngModel)]="formulario.queixa" rows="5" maxlength="1000" placeholder="Descreva o relato com as palavras do cliente"></textarea>
+            <small>{{ formulario.queixa.length }}/1000 caracteres</small>
+            @if (tentouAvancar && !formulario.queixa.trim()) { <small class="error">Informe o motivo da visita.</small> }
+          </label>
+          <label class="field field--4">
+            <span>Quilometragem <b>*</b></span>
+            <input [(ngModel)]="formulario.quilometragem" type="number" min="0" inputmode="numeric" placeholder="0" />
+            @if (tentouAvancar && (formulario.quilometragem === null || formulario.quilometragem < 0)) { <small class="error">Informe uma quilometragem válida.</small> }
+          </label>
+          <label class="field field--4">
+            <span>Nível de combustível <b>*</b></span>
+            <select [(ngModel)]="formulario.combustivel">
+              <option value="">Selecionar</option><option value="RESERVA">Reserva</option><option value="UM_QUARTO">1/4</option><option value="METADE">1/2</option><option value="TRES_QUARTOS">3/4</option><option value="CHEIO">Cheio</option>
+            </select>
+            @if (tentouAvancar && !formulario.combustivel) { <small class="error">Informe o nível de combustível.</small> }
+          </label>
+          <label class="field field--4"><span>Chegada <b>*</b></span><input [(ngModel)]="formulario.chegada" type="datetime-local" /></label>
+          <label class="field field--4">
+            <span>Prioridade</span>
+            <select [(ngModel)]="formulario.prioridade"><option value="NORMAL">Normal</option><option value="PRIORITARIO">Prioritário</option><option value="URGENTE">Urgente</option></select>
+          </label>
+        </div>
+      }
+
+      @if (etapaAtual === 2) {
+        <div class="card-heading"><div><span>Etapa 3 de 4</span><h2 id="checkin-step-2">Planejamento inicial</h2><p>Defina quem assume a triagem e o que deve acontecer em seguida.</p></div></div>
+        <div class="form-grid">
+          <label class="field field--6">
+            <span>Responsável pela recepção <b>*</b></span>
+            <input [(ngModel)]="formulario.responsavel" autocomplete="off" placeholder="Buscar usuário autorizado" />
+            @if (tentouAvancar && !formulario.responsavel.trim()) { <small class="error">Selecione um responsável.</small> }
+          </label>
+          <label class="field field--6"><span>Previsão de avaliação</span><input [(ngModel)]="formulario.previsaoAvaliacao" type="datetime-local" /></label>
+          <label class="toggle-field field--12">
+            <input type="checkbox" [(ngModel)]="formulario.checklistRecepcao" />
+            <span><strong>Preparar checklist de recepção</strong><small>O checklist será iniciado após o check-in, sem concluir inspeções automaticamente.</small></span>
+          </label>
+          <label class="field field--12"><span>Observações internas</span><textarea [(ngModel)]="formulario.observacoes" rows="4" maxlength="1000" placeholder="Orientações necessárias para a triagem; evite dados sensíveis sem finalidade operacional"></textarea></label>
+        </div>
+      }
+
+      @if (etapaAtual === 3) {
+        <div class="card-heading"><div><span>Etapa 4 de 4</span><h2 id="checkin-step-3">Revisão do check-in</h2><p>Confira o contexto antes de registrar a chegada.</p></div></div>
+        <div class="review-grid">
+          <article><span>Atendimento</span><strong>{{ formulario.origem === 'AGENDAMENTO' ? 'Com agendamento' : 'Espontâneo' }}</strong><small>{{ textoOuPendente(formulario.agendamentoId) }}</small></article>
+          <article><span>Cliente</span><strong>{{ textoOuPendente(formulario.cliente) }}</strong><small>{{ textoOuPendente(formulario.veiculo) }}</small></article>
+          <article><span>Chegada</span><strong>{{ textoOuPendente(formulario.chegada) }}</strong><small>{{ formulario.quilometragem ?? 'Não informado' }} km · {{ textoOuPendente(formulario.combustivel) }}</small></article>
+          <article><span>Encaminhamento</span><strong>{{ textoOuPendente(formulario.responsavel) }}</strong><small>Prioridade {{ formulario.prioridade.toLowerCase() }}</small></article>
+        </div>
+        <div class="availability-note" role="status">
+          <nt-icon name="info-circle" [size]="20" />
+          <div><strong>Interface pronta; gravação ainda não conectada</strong><p>O botão final será habilitado quando existir <code>POST /api/v1/receptions/check-ins</code> com idempotência, autorização por unidade e resposta de próximo passo.</p></div>
+        </div>
+      }
+
+      <footer class="form-actions">
+        <button type="button" class="nt-button nt-button--secondary" (click)="voltar()">{{ etapaAtual === 0 ? 'Cancelar' : 'Voltar' }}</button>
+        @if (etapaAtual < 3) {
+          <button type="button" class="nt-button nt-button--primary" (click)="avancar()">Continuar <nt-icon name="chevron-right" [size]="16" /></button>
+        } @else {
+          <button type="button" class="nt-button nt-button--primary" disabled>Registrar check-in</button>
+        }
+      </footer>
+    </section>
+
+    <aside class="summary-card" aria-label="Resumo permanente do check-in">
+      <span class="summary-card__eyebrow">Resumo do atendimento</span>
+      <h2>{{ textoOuPendente(formulario.veiculo) }}</h2>
+      <p>{{ textoOuPendente(formulario.cliente) }}</p>
+      <dl>
+        <div><dt>Origem</dt><dd>{{ formulario.origem === 'AGENDAMENTO' ? 'Agendamento' : 'Espontâneo' }}</dd></div>
+        <div><dt>Unidade</dt><dd>{{ textoOuPendente(formulario.unidade) }}</dd></div>
+        <div><dt>Prioridade</dt><dd>{{ formulario.prioridade }}</dd></div>
+        <div><dt>Responsável</dt><dd>{{ textoOuPendente(formulario.responsavel) }}</dd></div>
+      </dl>
+      <div class="summary-card__rule"><nt-icon name="shield-check" [size]="18" /><span>O check-in não cria OS, orçamento nem execução implicitamente.</span></div>
+    </aside>
+  </div>
+</main>

@@ -281,7 +281,7 @@ const integrations = [
 
 .func-intro__title {
   font-size: clamp(2.25rem, 5vw, 3.25rem);
-  font-weight: 800;
+  font-weight: 400;
   color: white !important;
   line-height: 1.1;
   letter-spacing: -0.04em;
@@ -339,7 +339,7 @@ const integrations = [
 
 .modulo-title {
   font-size: clamp(1.5rem, 3vw, 2.125rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
   line-height: 1.15;
   letter-spacing: -0.03em;
@@ -458,7 +458,7 @@ const integrations = [
   color: var(--midnight-navy);
 }
 
-.mm-row-value--bold { font-weight: 800; font-size: 0.9375rem; }
+.mm-row-value--bold { font-weight: 600; font-size: 0.9375rem; font-feature-settings: "tnum" 1; }
 .mm-row-value--green { color: #059669; }
 .mm-row-value--red { color: #ef4444; }
 
@@ -502,8 +502,9 @@ const integrations = [
 
 .intg-name {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
+  letter-spacing: -0.01em;
 }
 
 .intg-desc {
@@ -517,9 +518,10 @@ const integrations = [
 .cta-content { display: flex; flex-direction: column; align-items: center; }
 .cta-title {
   font-size: clamp(1.75rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
   margin-bottom: 0.875rem;
   max-width: 560px;
 }
@@ -527,10 +529,11 @@ const integrations = [
 .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 .btn-cta-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--primary); color: white !important; font-weight: 700;
-  font-size: 1rem; padding: 0.9rem 1.75rem; border-radius: var(--radius-md);
+  background: var(--primary); color: white !important; font-weight: 500;
+  font-size: 0.9375rem; padding: 0.85rem 1.65rem; border-radius: var(--radius-md);
   transition: all var(--transition-base); box-shadow: var(--shadow-indigo);
   text-decoration: none;
+  letter-spacing: -0.01em;
 }
 .btn-cta-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
 .btn-cta-primary:hover .cta-arrow { transform: translateX(4px); }

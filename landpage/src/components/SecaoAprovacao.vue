@@ -2,12 +2,13 @@
   <section id="aprovacao" class="approval section-surface section-surface--light section-spacer">
     <div class="container approval-inner">
       <div class="approval-copy aos-init">
-        <span class="section-label">Aprovação Online</span>
+        <span class="section-label">Comunicação com o cliente</span>
         <h2 class="section-title" style="text-align:left;">
-          Orçamentos aprovados em segundos
+          Orçamentos aprovados mais rápido — com transparência.
         </h2>
         <p class="section-subtitle" style="text-align:left; margin-bottom:1.5rem;">
-          Envie orçamentos detalhados pelo WhatsApp. O cliente visualiza peças, serviços e valores — e aprova com um clique, sem ligações ou idas até a oficina.
+          Envie orçamento com peças, mão de obra e fotos pelo WhatsApp ou link.
+          O cliente aprova no celular; sua equipe recebe na hora e inicia o serviço.
         </p>
         <ul class="approval-list">
           <li v-for="item in items" :key="item">
@@ -101,10 +102,11 @@ const budgetLines = [
 
 .approval-stat strong {
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--primary);
   font-family: var(--font-heading);
   letter-spacing: -0.03em;
+  font-feature-settings: "tnum" 1;
 }
 
 .approval-stat span {
@@ -145,8 +147,10 @@ const budgetLines = [
 
 .approval-total strong {
   font-size: 1.25rem;
+  font-weight: 600;
   color: var(--midnight-navy);
   font-family: var(--font-heading);
+  letter-spacing: -0.02em;
 }
 
 .approval-btn {
@@ -156,7 +160,9 @@ const budgetLines = [
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-weight: 700;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
   font-size: 0.9375rem;
   font-family: var(--font-body);
   cursor: default;

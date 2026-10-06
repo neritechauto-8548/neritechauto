@@ -136,10 +136,10 @@ onMounted(() => {
 
 .precos-intro__title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
+  font-weight: 400;
   color: white !important;
-  letter-spacing: -0.04em;
-  line-height: 1.12;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
   margin-bottom: 0.5rem;
 }
 
@@ -326,9 +326,10 @@ onMounted(() => {
 
 .cta-title {
   font-size: clamp(1.375rem, 3vw, 1.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
 }
 
 .cta-actions {
@@ -343,8 +344,9 @@ onMounted(() => {
   align-items: center;
   background: var(--primary);
   color: white !important;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.9375rem;
+  letter-spacing: -0.01em;
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-indigo);

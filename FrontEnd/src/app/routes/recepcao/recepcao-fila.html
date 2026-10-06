@@ -1,0 +1,101 @@
+<main class="reception-page" aria-labelledby="reception-title">
+  <page-header
+    canonical
+    title="Fila de recepção"
+    titleId="reception-title"
+    eyebrow="Operacional"
+    description="Organize chegadas, prioridades e responsáveis antes de abrir orçamento ou ordem de serviço."
+    hideBreadcrumb
+  >
+    <a pageHeaderActions class="nt-button nt-button--primary" routerLink="/recepcao/check-in">
+      <nt-icon name="plus" [size]="16" />
+      Novo check-in
+    </a>
+  </page-header>
+
+  <section class="flow-strip" aria-labelledby="reception-flow-title">
+    <div class="flow-strip__heading">
+      <span>Fluxo da recepção</span>
+      <strong id="reception-flow-title">Da chegada ao encaminhamento</strong>
+    </div>
+    <ol>
+      <li><span>1</span><div><strong>Identificar</strong><small>Cliente, veículo e origem</small></div></li>
+      <li><span>2</span><div><strong>Registrar</strong><small>Queixa, chegada e prioridade</small></div></li>
+      <li><span>3</span><div><strong>Encaminhar</strong><small>Responsável e próxima ação</small></div></li>
+    </ol>
+  </section>
+
+  <section class="filter-card" aria-labelledby="reception-filter-title">
+    <div class="filter-card__header">
+      <div>
+        <h2 id="reception-filter-title">Atendimentos do dia</h2>
+        <p>Os filtros permanecem prontos para o read model da recepção.</p>
+      </div>
+      @if (possuiFiltros) {
+        <button type="button" class="filter-clear" (click)="limparFiltros()">
+          <nt-icon name="filter-x" [size]="16" />
+          Limpar filtros
+        </button>
+      }
+    </div>
+
+    <div class="filters">
+      <label class="field field--search">
+        <span>Buscar atendimento</span>
+        <span class="input-with-icon">
+          <nt-icon name="search" [size]="18" />
+          <input [(ngModel)]="busca" type="search" placeholder="Cliente, placa ou veículo" />
+        </span>
+      </label>
+
+      <label class="field">
+        <span>Data</span>
+        <input [(ngModel)]="data" type="date" />
+      </label>
+
+      <label class="field">
+        <span>Origem</span>
+        <select [(ngModel)]="origem">
+          <option value="">Todas</option>
+          <option value="AGENDAMENTO">Agendamento</option>
+          <option value="ESPONTANEO">Espontâneo</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Prioridade</span>
+        <select [(ngModel)]="prioridade">
+          <option value="">Todas</option>
+          <option value="NORMAL">Normal</option>
+          <option value="PRIORITARIO">Prioritário</option>
+          <option value="URGENTE">Urgente</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Situação</span>
+        <select [(ngModel)]="situacao">
+          <option value="">Todas</option>
+          <option value="AGUARDANDO">Aguardando</option>
+          <option value="EM_ATENDIMENTO">Em atendimento</option>
+          <option value="ENCAMINHADO">Encaminhado</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="queue-card" aria-label="Fila de atendimentos">
+    <div class="queue-card__columns" aria-hidden="true">
+      <span>Chegada</span><span>Cliente e veículo</span><span>Origem</span><span>Prioridade</span><span>Responsável</span><span>Próxima ação</span>
+    </div>
+    <nt-data-view-state
+      kind="info"
+      icon="database"
+      title="Fila aguardando dados da recepção"
+      description="A estrutura da tela está pronta. Os atendimentos serão exibidos quando a API fornecer paginação estável, prioridade, tempo de espera e responsável com isolamento por empresa e unidade."
+    >
+      <a class="state-action" routerLink="/recepcao/check-in">Registrar check-in</a>
+      <a class="state-action state-action--secondary" routerLink="/agendamentos/calendario">Abrir agenda</a>
+    </nt-data-view-state>
+  </section>
+</main>

@@ -3,8 +3,8 @@
     <div class="container">
       <div v-if="!hideHeader" class="pricing-header aos-init">
         <span class="section-label">Preços</span>
-        <h2 class="pricing-title">Preço justo para <span class="text-gradient">escalar seu negócio.</span></h2>
-        <p class="pricing-subtitle">Sem surpresas. Cancele quando quiser. Comece a usar hoje mesmo.</p>
+        <h2 class="pricing-title">Preço claro para a oficina crescer.</h2>
+        <p class="pricing-subtitle">Comece grátis. Sem surpresas. Cancele quando quiser.</p>
       </div>
 
       <div class="pricing-grid">
@@ -178,14 +178,19 @@ const contactSales = () => {
 }
 
 .pricing-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  margin-bottom: 0.75rem;
+  /* Stripe: seção heading 36-48px, weight 300 */
+  font-size: clamp(2.125rem, 4vw, 3.125rem);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  margin-bottom: 0.875rem;
+  color: #0A2540;
 }
 
 .pricing-subtitle {
-  font-size: 1.125rem;
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
   color: var(--text-muted);
+  line-height: 1.65;
   margin-bottom: 2rem;
 }
 
@@ -248,7 +253,7 @@ const contactSales = () => {
 .plan-name {
   font-family: var(--font-heading);
   font-size: 1.375rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   margin-bottom: 0.375rem;
   letter-spacing: -0.02em;
@@ -274,17 +279,19 @@ const contactSales = () => {
 
 .currency {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
 .amount {
   font-family: var(--font-heading);
   font-size: 3.5rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--midnight-navy);
   letter-spacing: -0.04em;
   line-height: 1;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .amount--consult {
@@ -356,7 +363,7 @@ const contactSales = () => {
   align-items: center;
   justify-content: center;
   font-size: 0.65rem;
-  font-weight: 800;
+  font-weight: 600;
   flex-shrink: 0;
   margin-top: 1px;
 }

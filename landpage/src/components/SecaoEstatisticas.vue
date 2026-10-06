@@ -164,10 +164,11 @@ const chartData = [
 
 .stats-title {
   font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
   margin-bottom: 1rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
 
 .stats-subtitle {
@@ -216,9 +217,10 @@ const chartData = [
 
 .auto-feature-card h3 {
   font-size: 1.125rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   margin-bottom: 0.75rem;
+  letter-spacing: -0.015em;
 }
 
 .auto-feature-card p {
@@ -356,10 +358,11 @@ const chartData = [
 
 .widget-value {
   font-size: 1.375rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   font-family: var(--font-heading);
   letter-spacing: -0.03em;
+  font-feature-settings: "tnum" 1;
 }
 
 .widget-trend {

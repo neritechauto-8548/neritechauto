@@ -1,0 +1,63 @@
+<main class="painel-home" [attr.aria-labelledby]="'painel-home-titulo'">
+  <page-header
+    canonical
+    hideBreadcrumb
+    [title]="dados.titulo"
+    titleId="painel-home-titulo"
+    eyebrow="Home"
+    [description]="dados.descricao"
+  />
+
+  <section class="contexto" aria-labelledby="contexto-titulo">
+    <div class="contexto__icone"><nt-icon name="layout-dashboard" [size]="22" /></div>
+    <div>
+      <h2 id="contexto-titulo">Acompanhamento do período</h2>
+      <p>{{ dados.contexto }}</p>
+    </div>
+    <span class="contexto__periodo"><nt-icon name="calendar" [size]="16" /> Período definido pela API</span>
+  </section>
+
+  <section aria-labelledby="metricas-titulo">
+    <div class="cabecalho-secao">
+      <div>
+        <h2 id="metricas-titulo">Indicadores acompanhados</h2>
+        <p>Valores, comparações e tendências só são exibidos quando a consolidação estiver autorizada.</p>
+      </div>
+      <span class="selo-indisponivel"><nt-icon name="database" [size]="15" /> Aguardando read model</span>
+    </div>
+
+    <div class="metricas">
+      @for (metrica of dados.metricas; track metrica.rotulo) {
+        <article class="metrica">
+          <span class="metrica__icone"><nt-icon [name]="metrica.icone" [size]="19" /></span>
+          <div>
+            <span class="metrica__rotulo">{{ metrica.rotulo }}</span>
+            <strong aria-label="Indicador indisponível">—</strong>
+            <small>{{ metrica.descricao }}</small>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section aria-labelledby="acessos-titulo">
+    <div class="cabecalho-secao">
+      <div>
+        <h2 id="acessos-titulo">Próximas ações</h2>
+        <p>Continue em uma área conectada, mantendo a operação separada por domínio.</p>
+      </div>
+    </div>
+
+    <div class="acessos">
+      @for (acesso of dados.acessos; track acesso.rota) {
+        <a [routerLink]="acesso.rota">
+          <span class="acessos__icone"><nt-icon [name]="acesso.icone" [size]="21" /></span>
+          <span class="acessos__texto"><strong>{{ acesso.titulo }}</strong><small>{{ acesso.descricao }}</small></span>
+          <nt-icon name="chevron-right" [size]="17" />
+        </a>
+      }
+    </div>
+  </section>
+
+  <nt-data-view-state kind="info" icon="shield-check" title="Visão consolidada em integração" [description]="dados.aviso" />
+</main>

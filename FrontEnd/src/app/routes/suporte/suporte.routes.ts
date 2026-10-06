@@ -1,0 +1,2 @@
+import { Routes } from '@angular/router'; import { permissionGuard } from '@core';
+export const routes: Routes=[{path:'',canActivate:[permissionGuard],data:{title:'Central de Suporte',permissions:['GERAL_USUARIO']},loadComponent:()=>import('./suporte-central').then(m=>m.SuporteCentral)},{path:'nova-solicitacao',canActivate:[permissionGuard],data:{title:'Nova Solicitação',permissions:['GERAL_USUARIO']},loadComponent:()=>import('./nova-solicitacao').then(m=>m.NovaSolicitacao)}];
