@@ -43,6 +43,7 @@ export class Header {
   pageTitle = 'Dashboard';
   searchTerm = '';
   searchResults: Array<{ name: string; route: string }> = [];
+  private menuItems: Menu[] = [];
 
   onSearch(term: string): void {
     this.searchTerm = term;
@@ -58,8 +59,12 @@ export class Header {
         if (item.children?.length) walk(item.children, [...parents, name]);
       });
     };
-    this.menu.getAll().subscribe(menu => walk(menu));
+    walk(this.menuItems);
     this.searchResults = items.slice(0, 6);
+  }
+
+  openFirstSearchResult(): void {
+    if (this.searchResults.length) this.navigateSearch(this.searchResults[0].route);
   }
 
   navigateSearch(route: string): void {
@@ -79,6 +84,7 @@ export class Header {
   }
 
   constructor() {
+    this.menu.getAll().subscribe(menu => this.menuItems = menu);
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
