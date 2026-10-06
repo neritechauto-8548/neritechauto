@@ -2,7 +2,6 @@ import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterLink } from '@angular/router';
 import { NotificacaoService, NotificacaoSistemaResponse } from '@core/services/notificacao.service';
@@ -14,8 +13,7 @@ import { Subscription, interval } from 'rxjs';
   template: `
     <button mat-icon-button [matMenuTriggerFor]="menu" (click)="loadNotifications()"
       class="!text-inherit hover:!bg-black/10 dark:hover:!bg-white/10 !transition-colors !duration-200">
-      <mat-icon [matBadge]="unreadCount" [matBadgeHidden]="unreadCount === 0" 
-        matBadgeColor="warn" class="!text-[22px] !w-[22px] !h-[22px]">notifications</mat-icon>
+      <span class="nt-notification-icon" [attr.data-count]="unreadCount" [class.has-count]="unreadCount > 0" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg></span>
     </button>
 
     <mat-menu #menu="matMenu" backdropClass="stripe-menu-backdrop" class="!rounded-2xl !border !border-slate-200 !shadow-[0_20px_50px_rgba(0,0,0,0.1)] !py-0 !overflow-hidden">
@@ -53,7 +51,7 @@ import { Subscription, interval } from 'rxjs';
                 <!-- Icon Container -->
                 <div [class]="getIconBg(item.tipoNotificacao)" 
                   class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-black/5">
-                  <mat-icon [class]="getIconColor(item.tipoNotificacao)" class="!text-[18px] !w-[18px] !h-[18px]">{{ getIcon(item.tipoNotificacao) }}</mat-icon>
+                  <svg class="nt-inline-icon" [class]="getIconColor(item.tipoNotificacao)" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg>
                 </div>
 
                 <!-- Content -->
@@ -70,7 +68,7 @@ import { Subscription, interval } from 'rxjs';
           } @else {
             <div class="py-12 flex flex-col items-center justify-center gap-3">
               <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center">
-                <mat-icon class="text-slate-300">notifications_none</mat-icon>
+                <svg class="nt-empty-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path></svg>
               </div>
               <span class="text-xs text-slate-400 font-medium">Nenhuma nova notificação</span>
             </div>
@@ -102,7 +100,7 @@ import { Subscription, interval } from 'rxjs';
       background: #e2e8f0;
       border-radius: 10px;
     }
-    .line-clamp-2 {
+    .nt-notification-icon{position:relative;display:grid;place-items:center}.nt-notification-icon svg,.nt-inline-icon,.nt-empty-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.nt-notification-icon.has-count::after{content:attr(data-count);position:absolute;top:-6px;right:-7px;min-width:14px;height:14px;padding:0 3px;border:2px solid #fff;border-radius:999px;background:#dc2626;color:#fff;font:800 8px/10px Inter,sans-serif;display:grid;place-items:center}.nt-empty-icon{width:20px;height:20px;color:#cbd5e1}.line-clamp-2 {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -110,7 +108,7 @@ import { Subscription, interval } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [CommonModule, MatBadgeModule, MatButtonModule, MatIconModule, MatMenuModule, RouterLink],
+  imports: [CommonModule, MatBadgeModule, MatButtonModule, MatMenuModule, RouterLink],
 })
 export class NotificationButton implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificacaoService);
