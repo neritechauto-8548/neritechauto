@@ -18,8 +18,6 @@ import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
 import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { LocalStorageService } from '@shared/services/storage.service';
-import { ConfirmationService } from '@shared/services/confirmation.service';
 import { NgxPermissionsService } from 'ngx-permissions';
 import {
   TipoCliente,
@@ -54,8 +52,6 @@ export class Cliente implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
-  private readonly storage = inject(LocalStorageService);
-  private readonly confirmationService = inject(ConfirmationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
@@ -199,9 +195,9 @@ export class Cliente implements OnInit {
   menuItemsFor(row: any): MenuItem[] {
     return [
       { label: 'Visualizar / Editar Cliente', icon: 'pi pi-user', routerLink: ['/cliente/editar', row.uuid] },
-      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', routerLink: ['/agendamento/cadastro'], command: () => {} },
-      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', routerLink: ['/veiculo'], command: () => {} },
-      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', routerLink: ['/os/cadastro'], command: () => {} },
+      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', routerLink: ['/agendamento/cadastro'] },
+      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', routerLink: ['/veiculo'] },
+      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', routerLink: ['/os/cadastro'] },
     ];
   }
 
@@ -250,8 +246,6 @@ export class Cliente implements OnInit {
 
 
 
-  // SplitButton gerencia abertura do menu; não precisamos do handler manual
-
   ngOnInit() {
     const qp = this.route.snapshot.queryParamMap;
     const statusParam = qp.get('status') as StatusCliente | null;
@@ -288,7 +282,6 @@ export class Cliente implements OnInit {
     const pageIndex = Math.floor(this.first / this.rows) + 1;
     this.isLoading = true;
 
-    console.log(`[PAGINATION] first: ${this.first}, rows: ${this.rows}, pageIndex to API: ${pageIndex}`);
 
     const filters: any = { page: pageIndex, size: this.rows, sort: 'nomeCompleto,asc' };
 
@@ -310,13 +303,8 @@ export class Cliente implements OnInit {
       filters.status = this.selectedStatus;
     }
 
-    // Console log the filters for debugging if needed
-    // console.log('📤 Sending filters to API:', filters);
-
-
     this.clientesService.list(filters).subscribe({
       next: (res: Page<ClienteResponseDTO>) => {
-        console.log('[API RESPONSE] Backend Page:', res);
         this.backendPage = res;
         this.clients = (res.content || []).map((d: ClienteResponseDTO) => this.mapToRow(d));
 
@@ -328,7 +316,7 @@ export class Cliente implements OnInit {
       },
       error: (err: any) => {
         this.isLoading = false;
-        console.error('❌ Erro ao carregar clientes:', err);
+        console.error('Erro ao carregar clientes:', err);
         
         if (err.status !== 403) {
           this.messageService.add({ 
@@ -345,20 +333,12 @@ export class Cliente implements OnInit {
     const currentPageRows = this.clients;
     if (!currentPageRows || !currentPageRows.length) return;
 
-    // Log do tenant/empresa para diagnosticar chamadas multi-tenant
-    const tenantId = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
-    console.debug('🔎 Buscando contatos para página atual', {
-      rows: currentPageRows.map(r => ({ id: (r as any).id ?? r.uuid, uuid: r.uuid })),
-      tenantId,
-    });
-
     const requests = currentPageRows.map(row =>
       this.clientesService
         .listarContatos((row as any).id ?? row.uuid)
         .pipe(
           map((res: Page<ContatoClienteResponse>) => ({ id: (row as any).id ?? row.uuid, contatos: res.content || [] })),
           catchError(err => {
-            console.error('Erro ao carregar contatos do cliente', (row as any).id ?? row.uuid, err);
             return of({ id: (row as any).id ?? row.uuid, contatos: [] as ContatoClienteResponse[] });
           })
         )
