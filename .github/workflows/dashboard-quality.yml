@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: yarn
           cache-dependency-path: FrontEnd/yarn.lock
       - run: yarn install --frozen-lockfile
@@ -38,4 +38,4 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: maven
-      - run: ./mvnw test -DskipTests=false
+      - run: mvn -B test -DskipTests=false
