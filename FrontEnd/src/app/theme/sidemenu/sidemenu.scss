@@ -73,8 +73,8 @@
     /* Active State - Stripe Light (Indigo Pop) */
     &.active {
       >.menu-heading {
-        color: #4f46e5; /* Indigo 600 */
-        background-color: #eef2ff; /* Indigo 50 */
+        color:#0f172a
+        background-color:#f1f5f9
         font-weight: 600;
 
         &::before {
@@ -84,48 +84,15 @@
           top: 20%;
           height: 60%;
           width: 4px; /* Indicador levemente mais robusto */
-          background-color: #6366f1; /* Indigo 500 indicator */
+          background-color:#2563eb
           border-radius: 0 8px 8px 0;
         }
 
-        .menu-icon {
-          color: #6366f1 !important;
-          opacity: 1 !important;
-        }
-      }
-    }
-
-    &.expanded {
-      > .submenu {
-        height: auto;
-        padding-top: 4px;
-        padding-bottom: 4px;
-        margin-top: 2px;
-      }
-    }
-  }
-
-  .menu-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 12px;
-    font-size: 16px;
-    line-height: 20px;
-    text-align: center;
-    flex-shrink: 0;
-    color: #000000 !important; /* Cor Preta Absoluta */
-    opacity: 1; /* Aumentando opacidade conforme pedido de ícones pretos */
-    transition: all 0.2s ease;
-
-    &.pi {
-        color: #000000 !important;
-    }
-
-    &.submenu-icon {
-        font-size: 12px; /* Aumentado significativamente para visibilidade */
-        opacity: 0.8;
-        margin-right: 12px;
-    }
+        .menu-icon{
+    width:20px;height:20px;margin-right:12px;flex:0 0 20px;
+    fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+    color:#64748b;opacity:1;transition:color .15s ease,transform .15s ease;
+    &.submenu-icon{width:16px;height:16px;flex-basis:16px;margin-right:12px}
   }
 
   .menu-name {
@@ -137,15 +104,7 @@
     padding-right: 4px; /* Previne que o texto encoste no caret */
   }
 
-  .menu-caret {
-      font-size: 10px;
-      width: 12px;
-      height: 12px;
-      line-height: 12px;
-      opacity: 0.4;
-      transition: transform 0.2s;
-  }
-
+  .menu-caret{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.45;transition:transform .2s}
   .expanded > .menu-heading .menu-caret {
       transform: rotate(180deg);
   }
