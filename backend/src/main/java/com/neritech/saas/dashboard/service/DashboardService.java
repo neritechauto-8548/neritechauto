@@ -31,7 +31,7 @@ public class DashboardService {
         PeriodRange compare = resolveComparison(current, comparison);
         long totalClientes = clienteRepository.countByStatus(com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO);
         LocalDateTime start = current.start().atStartOfDay();
-        LocalDateTime end = current.end().atTime(23, 59, 59, 999_999_999L);
+        LocalDateTime end = current.end().atTime(23, 59, 59, 999_999_999);
 
         long osAbertas = ordemServicoRepository.countAtivas(empresaId);
         long osEmAndamento = ordemServicoRepository.countAtivasAndPeriod(empresaId, start, end);
@@ -68,13 +68,13 @@ public class DashboardService {
             LocalDate monthStart = firstMonth.plusMonths(i);
             LocalDate monthEnd = monthStart.with(TemporalAdjusters.lastDayOfMonth());
             historicoFaturamento.add(safe(contasReceberRepository.calculateFaturamentoMes(empresaId, monthStart, monthEnd)));
-            historicoServicos.add(safe(ordemServicoRepository.calculateServicosPeriod(empresaId, monthStart.atStartOfDay(), monthEnd.atTime(23, 59, 59, 999_999_999L))));
+            historicoServicos.add(safe(ordemServicoRepository.calculateServicosPeriod(empresaId, monthStart.atStartOfDay(), monthEnd.atTime(23, 59, 59, 999_999_999))));
             historicoMeses.add(formatMonth(monthStart));
         }
 
         BigDecimal faturamentoComparacao = safe(contasReceberRepository.calculateFaturamentoMes(empresaId, compare.start(), compare.end()));
-        long osConcluidasComparacao = ordemServicoRepository.countByFinalizaOSAndPeriod(empresaId, true, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999L));
-        BigDecimal ticketMedioComparacao = safe(ordemServicoRepository.calculateTicketMedioPeriod(empresaId, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999L)));
+        long osConcluidasComparacao = ordemServicoRepository.countByFinalizaOSAndPeriod(empresaId, true, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999));
+        BigDecimal ticketMedioComparacao = safe(ordemServicoRepository.calculateTicketMedioPeriod(empresaId, compare.start().atStartOfDay(), compare.end().atTime(23, 59, 59, 999_999_999)));
 
         return new DashboardDTO(Math.toIntExact(totalClientes), Math.toIntExact(osAbertas), osEmAndamento, Math.toIntExact(osConcluidas), Math.toIntExact(osCanceladas),
                 faturamento, despesas, lucro, ticketMedio, contasReceber, contasPagar, valoresVencidos, Math.toIntExact(ordensEmAtraso),
