@@ -7,6 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import screenfull from 'screenfull';
 
+import { Branding } from '../widgets/branding';
 import { NotificationButton } from '../widgets/notification-button';
 import { UserButton } from '../widgets/user-button';
 import { Menu, MenuChildrenItem, MenuService, SettingsService } from '@core';
@@ -24,6 +25,7 @@ import { FormsModule } from '@angular/forms';
     CommonModule,
     FormsModule,
     MatTooltipModule,
+    Branding,
     NotificationButton,
     UserButton,
   ],
