@@ -191,7 +191,8 @@ public class ClienteService {
      * @return PÃ¡gina de clientes encontrados
      */
     @Transactional(readOnly = true)
-    public Page<Cliente> search(String nomeCompleto,
+    public Page<Cliente> search(String busca,
+            String nomeCompleto,
             String razaoSocial,
             String cpf,
             String cnpj,
@@ -200,7 +201,7 @@ public class ClienteService {
             Pageable pageable) {
         
         org.springframework.data.jpa.domain.Specification<Cliente> spec = 
-            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status);
+            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status);
             
         return repository.findAll(spec, pageable);
     }
