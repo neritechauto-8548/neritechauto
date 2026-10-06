@@ -8,33 +8,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 20px;
-  background:
-    radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.08), transparent 34%),
-    #f8fafc;
+  box-sizing: border-box;
+  padding: 56px 48px;
+  background: #f8fafc;
   color: #0f172a;
 }
 
 .auth-shell {
-  width: 100%;
-  max-width: 420px;
+  width: min(100%, 560px);
 }
 
 .auth-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
-  margin-bottom: 28px;
+  margin: 0 0 24px 2px;
 }
 
 .brand-mark {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
+  flex: 0 0 36px;
   border-radius: 9px;
-  background: #2563EB;
+  background: #2563eb;
   color: #fff;
   font-size: 16px;
   font-weight: 800;
@@ -59,41 +57,43 @@
 }
 
 .auth-card {
+  width: 100%;
+  box-sizing: border-box;
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 32px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
 }
 
 .auth-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .auth-header h1 {
   margin: 0;
   color: #0f172a;
-  font-size: 24px;
-  line-height: 1.25;
+  font-size: 28px;
+  line-height: 1.2;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .auth-header p {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   color: #64748b;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .auth-form {
   display: grid;
-  gap: 20px;
+  gap: 22px;
 }
 
 .field {
   display: grid;
-  gap: 7px;
+  gap: 8px;
 }
 
 .field label,
@@ -107,28 +107,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
 }
 
 .field-label-row a {
-  color: #2563EB;
+  color: #2563eb;
   font-size: 12px;
   font-weight: 650;
   text-decoration: none;
 }
 
 .field-label-row a:hover {
+  color: #1d4ed8;
   text-decoration: underline;
 }
 
 .field input:not([type='checkbox']) {
   width: 100%;
-  height: 42px;
+  height: 46px;
   box-sizing: border-box;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #fff;
-  padding: 0 12px;
+  padding: 0 13px;
   color: #0f172a;
   font-size: 14px;
   outline: none;
@@ -139,9 +140,17 @@
   color: #94a3b8;
 }
 
+.field input:not([type='checkbox']):hover {
+  border-color: #94a3b8;
+}
+
 .field input:not([type='checkbox']):focus {
-  border-color: #2563EB;
+  border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.field input:not([type='checkbox'])[aria-invalid='true'] {
+  border-color: #dc2626;
 }
 
 .password-field {
@@ -149,21 +158,28 @@
 }
 
 .password-field input {
-  padding-right: 44px !important;
+  padding-right: 48px !important;
 }
 
 .password-toggle {
   position: absolute;
   top: 50%;
-  right: 2px;
+  right: 4px;
   width: 38px;
   height: 38px;
   transform: translateY(-50%);
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: #64748b;
   cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: #334155;
+  background: #f8fafc;
 }
 
 .password-toggle svg {
@@ -177,38 +193,22 @@
   stroke-linejoin: round;
 }
 
-.spinner {
-  width: 15px;
-  height: 15px;
-  display: inline-block;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: auth-spin 650ms linear infinite;
-}
-
-@keyframes auth-spin {
-  to { transform: rotate(360deg); }
-}
-
-.password-toggle:hover {
-  color: #334155;
-  background: #f8fafc;
-}
-
 .remember-field {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   color: #64748b;
   font-size: 12px;
+  line-height: 1.4;
   cursor: pointer;
+  user-select: none;
 }
 
 .remember-field input {
-  width: 15px;
-  height: 15px;
-  accent-color: #2563EB;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #2563eb;
 }
 
 .field-error {
@@ -220,10 +220,10 @@
 
 .auth-primary {
   width: 100%;
-  height: 42px;
+  height: 46px;
   border: 0;
   border-radius: 8px;
-  background: #2563EB;
+  background: #2563eb;
   color: #fff;
   font-size: 14px;
   font-weight: 650;
@@ -232,18 +232,11 @@
 }
 
 .auth-primary:hover:not(:disabled) {
-  background: #1D4ED8;
+  background: #1d4ed8;
 }
 
 .auth-primary:active:not(:disabled) {
   transform: translateY(1px);
-}
-
-.auth-primary:focus-visible,
-.password-toggle:focus-visible,
-.field-label-row a:focus-visible {
-  outline: 3px solid rgba(99, 91, 255, 0.2);
-  outline-offset: 2px;
 }
 
 .auth-primary:disabled {
@@ -251,33 +244,84 @@
   cursor: not-allowed;
 }
 
+.auth-primary:focus-visible,
+.password-toggle:focus-visible,
+.field-label-row a:focus-visible,
+.remember-field input:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 2px;
+}
+
 .loading-content {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-spin 650ms linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .auth-footer {
   display: flex;
   justify-content: center;
   gap: 7px;
-  margin-top: 20px;
+  margin-top: 18px;
   color: #94a3b8;
   font-size: 11px;
 }
 
-@media (max-width: 480px) {
+@media (min-width: 1024px) {
   .auth-page {
-    padding: 20px 16px;
+    padding: 72px 64px;
+  }
+
+  .auth-shell {
+    width: 560px;
   }
 
   .auth-card {
-    padding: 24px 20px;
-    border-radius: 12px;
+    padding: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 24px 16px;
+  }
+
+  .auth-shell {
+    width: 100%;
+  }
+
+  .auth-brand {
+    margin-bottom: 20px;
+  }
+
+  .auth-card {
+    padding: 28px 22px;
+    border-radius: 10px;
+  }
+
+  .auth-header {
+    margin-bottom: 26px;
   }
 
   .auth-header h1 {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .auth-footer {
@@ -289,5 +333,9 @@
   .field input:not([type='checkbox']),
   .auth-primary {
     transition: none;
+  }
+
+  .spinner {
+    animation: none;
   }
 }
