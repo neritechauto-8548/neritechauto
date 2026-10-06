@@ -1,8 +1,8 @@
 @use '../../../styles/grid/breakpoints';
 
 :host {
-  --nt-sidebar-bg: #ffffff;
-  --nt-sidebar-border: #e2e8f0;
+  --nt-sidebar-bg: var(--nt-surface, #ffffff);
+  --nt-sidebar-border: var(--nt-border, #e2e8f0);
   --nt-sidebar-width: 248px;
   --nt-sidebar-collapsed-width: 72px;
 
@@ -11,7 +11,7 @@
   width: var(--sidenav-width, var(--nt-sidebar-width));
   height: 100%;
   background: var(--nt-sidebar-bg);
-  color: #0f172a;
+  color: var(--nt-text, #0f172a);
 }
 
 .nt-sidebar-header {
@@ -21,7 +21,7 @@
   min-height: 64px;
   padding: 0 14px 0 18px;
   border-bottom: 1px solid var(--nt-sidebar-border);
-  background: #ffffff;
+  background: var(--nt-surface, #ffffff);
 }
 
 .nt-sidebar-brand {
@@ -41,15 +41,15 @@
   border: 1px solid transparent;
   border-radius: 7px;
   background: transparent;
-  color: #64748b;
+  color: var(--nt-text-muted, #64748b);
   cursor: pointer;
   transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
 
 .nt-sidebar-toggle:hover {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  color: #0f172a;
+  background: var(--nt-surface-subtle, #f8fafc);
+  border-color: var(--nt-border, #e2e8f0);
+  color: var(--nt-text, #0f172a);
 }
 
 .nt-sidebar-toggle:focus-visible {
