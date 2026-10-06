@@ -9,6 +9,8 @@ on:
       - "backend/src/main/java/com/neritech/saas/dashboard/**"
       - "backend/src/main/java/com/neritech/saas/ordemservico/repository/OrdemServicoRepository.java"
       - ".github/workflows/dashboard-quality.yml"
+      - "backend/src/test/resources/application-test.properties"
+      - "backend/src/main/resources/application.yml"
   workflow_dispatch:
 
 jobs:
