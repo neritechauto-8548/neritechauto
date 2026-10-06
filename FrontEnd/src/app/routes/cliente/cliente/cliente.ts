@@ -278,8 +278,8 @@ export class Cliente implements OnInit {
   }
 
   private fetchPage() {
-    // Backend usa 1-indexed parameters (page 1 é a primeira), então somamos 1
-    const pageIndex = Math.floor(this.first / this.rows) + 1;
+    // Spring Data Pageable usa paginação 0-indexed: a primeira página é page=0.
+    const pageIndex = Math.floor(this.first / this.rows);
     this.isLoading = true;
 
 
