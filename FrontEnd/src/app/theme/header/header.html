@@ -12,7 +12,7 @@
 
   <div class="nt-global-search">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-    <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" />
+    <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" (keydown.enter)="openFirstSearchResult()" />
     @if (searchResults.length) {
       <div class="nt-search-results" role="listbox">
         @for (result of searchResults; track result.route) {
