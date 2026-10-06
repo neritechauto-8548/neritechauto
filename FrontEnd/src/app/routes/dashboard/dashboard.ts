@@ -26,6 +26,7 @@ interface DashboardKpi {
   styleUrl: './dashboard.scss',
   imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule],
 })
+/** Quality gate: dashboard production contract. */
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly router = inject(Router);
