@@ -157,10 +157,32 @@
         </aside>
       </section>
 
-      <section class="context-section" *ngIf="selectedView === 'standard' || selectedView === 'managerial'">
+      <section class="operational-ledger" *ngIf="selectedView === 'standard' || selectedView === 'managerial'" aria-labelledby="ledger-title">
         <header class="section-header">
-          <div><span class="eyebrow">CONTEXTO</span><h2>Leitura gerencial</h2></div>
+          <div>
+            <span class="eyebrow">LEITURA OPERACIONAL</span>
+            <h2 id="ledger-title">Fluxo das Ordens de Serviço</h2>
+          </div>
+          <button type="button" class="text-action" (click)="openOperational()">Abrir oficina <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
         </header>
+        <div class="ledger-table-wrap">
+          <table class="ledger-table">
+            <thead>
+              <tr><th scope="col">FLUXO</th><th scope="col">VOLUME</th><th scope="col">SITUAÇÃO</th><th scope="col" class="ledger-action-col">ATUAÇÃO</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of statusRows">
+                <td><span class="ledger-name"><span class="status-dot" [ngClass]="row.tone"></span>{{ row.label }}</span></td>
+                <td class="ledger-number">{{ row.value }}</td>
+                <td><span class="ledger-state" [ngClass]="row.tone">{{ row.detail }}</span></td>
+                <td class="ledger-action-col"><button type="button" class="row-action" (click)="openOperational()">Ver OS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="context-section compact-context" *ngIf="selectedView === 'standard' || selectedView === 'managerial'">
         <div class="context-grid">
           <div><span>Clientes ativos</span><strong>{{ formatNumber(stats?.totalClientes) }}</strong></div>
           <div><span>OS em atraso</span><strong [class.alert-value]="stats?.ordensEmAtraso">{{ formatNumber(stats?.ordensEmAtraso) }}</strong></div>
