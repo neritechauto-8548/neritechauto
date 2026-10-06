@@ -31,8 +31,8 @@ public class DashboardService {
         LocalDate startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
 
-        Long totalClientes = clienteRepository.countByStatus(
-                com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO);
+        Long totalClientes = clienteRepository.countByStatusAndEmpresaId(
+                com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO, empresaId);
 
         long osAbertas = ordemServicoRepository.countAtivas(empresaId);
         long osConcluidas = ordemServicoRepository.countConcluidas(empresaId);
