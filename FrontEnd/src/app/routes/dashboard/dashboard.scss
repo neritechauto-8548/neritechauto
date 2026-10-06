@@ -86,7 +86,8 @@
 .row-action:hover{color:#1d4ed8}
 .row-action svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-.compact-context{margin-top:14px;}border-top:1px solid #dfe6ee;border-bottom:1px solid #dfe6ee;background:#fff}
+.context-section{margin-top:26px;border-top:1px solid #dfe6ee;border-bottom:1px solid #dfe6ee;background:#fff}
+.compact-context{margin-top:14px;}
 .section-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px 12px}
 .section-header h2{margin:4px 0 0;color:#0f172a;font-size:13px;line-height:18px;font-weight:680}
 .context-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #eef2f6}
