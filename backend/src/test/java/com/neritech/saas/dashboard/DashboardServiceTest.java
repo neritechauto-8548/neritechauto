@@ -12,9 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
@@ -27,44 +28,25 @@ class DashboardServiceTest {
     @InjectMocks DashboardService dashboardService;
 
     @Test
-    void shouldResolveCustomPeriodAndExposeEmptyDataState() {
-        DashboardDTO result = dashboardService.getDashboardData(
-                10L,
-                "custom",
-                "previous",
-                LocalDate.of(2026, 9, 1),
-                LocalDate.of(2026, 9, 30));
+    void shouldBuildDashboardDataForCompany() {
+        DashboardDTO result = dashboardService.getDashboardData(10L);
 
-        assertEquals("custom", result.periodo());
-        assertEquals(LocalDate.of(2026, 9, 1), result.inicio());
-        assertEquals(LocalDate.of(2026, 9, 30), result.fim());
-        assertEquals("previous", result.comparacao());
-        assertFalse(result.dadosDisponiveis());
-        assertFalse(result.dadosParciais());
-        assertTrue(result.comparacaoDisponivel());
-    }
-
-    @Test
-    void shouldRejectInvalidCustomPeriod() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> dashboardService.getDashboardData(
-                        10L,
-                        "custom",
-                        "previous",
-                        LocalDate.of(2026, 10, 10),
-                        LocalDate.of(2026, 10, 1)));
-    }
-
-    @Test
-    void shouldRejectUnknownPeriod() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> dashboardService.getDashboardData(
-                        10L,
-                        "quarter",
-                        "previous",
-                        null,
-                        null));
+        assertNotNull(result);
+        assertEquals(0L, result.totalClientes());
+        assertEquals(0L, result.osAbertas());
+        assertEquals(0L, result.osEmAndamento());
+        assertEquals(0L, result.osConcluidas());
+        assertEquals(0L, result.osCanceladas());
+        assertEquals(BigDecimal.ZERO, result.faturamentoMes());
+        assertEquals(BigDecimal.ZERO, result.despesasMes());
+        assertEquals(BigDecimal.ZERO, result.lucroMes());
+        assertEquals(BigDecimal.ZERO, result.ticketMedio());
+        assertEquals(BigDecimal.ZERO, result.contasReceber());
+        assertEquals(BigDecimal.ZERO, result.contasPagar());
+        assertEquals(BigDecimal.ZERO, result.valoresVencidos());
+        assertEquals(0L, result.veiculosEmAtraso());
+        assertEquals(6, result.historicoFaturamento().size());
+        assertEquals(6, result.historicoDespesas().size());
+        assertEquals(6, result.historicoMeses().size());
     }
 }
