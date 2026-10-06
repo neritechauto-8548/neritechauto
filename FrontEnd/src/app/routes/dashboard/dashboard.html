@@ -1,35 +1,32 @@
 <main class="home-dashboard" aria-labelledby="home-title">
   <div class="home-content">
-
-    <header class="page-header">
-      <div class="page-heading">
-        <span class="section-kicker">NERITECH AUTO</span>
-        <h1 id="home-title">Início</h1>
-        <p>{{ subtitle }}</p>
+    <header class="home-header">
+      <div class="brand-line">
+        <span class="brand-rule" aria-hidden="true"></span>
+        <span>NERITECH AUTO</span>
       </div>
-
-      <div class="page-actions">
-        <div class="data-status" *ngIf="lastUpdated">
-          <span class="status-live" aria-hidden="true"></span>
-          <span>Atualizado às {{ lastUpdated | date:'HH:mm' }}</span>
+      <div class="header-main">
+        <div>
+          <h1 id="home-title">Início</h1>
+          <p>{{ subtitle }}</p>
         </div>
-
-        <button class="refresh-button" type="button" (click)="loadDashboard()" [disabled]="loading">
-          <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
-          <svg *ngIf="!loading" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"></path>
-            <path d="M5 4v4h4M19 20v-4h-4"></path>
-          </svg>
-          <span>{{ loading ? 'Atualizando' : 'Atualizar' }}</span>
-        </button>
+        <div class="header-meta">
+          <span class="data-status" *ngIf="lastUpdated">
+            <span class="status-live" aria-hidden="true"></span>
+            Atualizado {{ lastUpdated | date:'HH:mm' }}
+          </span>
+          <button class="refresh-button" type="button" (click)="loadDashboard()" [disabled]="loading">
+            <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
+            <svg *ngIf="!loading" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"></path><path d="M5 4v4h4M19 20v-4h-4"></path></svg>
+            <span>{{ loading ? 'Atualizando' : 'Atualizar' }}</span>
+          </button>
+        </div>
       </div>
     </header>
 
     <nav class="view-navigation" aria-label="Visões do Início">
       <div class="view-navigation-inner" role="tablist">
-        <button *ngFor="let view of views"
-          type="button"
-          role="tab"
+        <button *ngFor="let view of views" type="button" role="tab"
           [attr.aria-selected]="selectedView === view.id"
           [attr.tabindex]="selectedView === view.id ? 0 : -1"
           [class.active]="selectedView === view.id"
@@ -39,10 +36,10 @@
       </div>
     </nav>
 
-    <section class="control-bar" aria-label="Controles do dashboard">
-      <div class="control-group">
+    <section class="command-bar" aria-label="Controles do dashboard">
+      <div class="command-fields">
         <div class="control-field">
-          <label for="period">Período</label>
+          <label for="period">PERÍODO</label>
           <select id="period" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
             <option value="today">Hoje</option>
             <option value="7d">Últimos 7 dias</option>
@@ -51,40 +48,33 @@
             <option value="custom">Personalizado</option>
           </select>
         </div>
-
         <ng-container *ngIf="selectedPeriod === 'custom'">
           <div class="control-field">
-            <label for="startDate">De</label>
+            <label for="startDate">DE</label>
             <input id="startDate" type="date" [(ngModel)]="customStartDate" (ngModelChange)="onCustomDateChange()" />
           </div>
-
           <div class="control-field">
-            <label for="endDate">Até</label>
-            <input id="endDate" type="date" [(ngModel)]="customEndDate" [min]="customStartDate"
-              (ngModelChange)="onCustomDateChange()" />
+            <label for="endDate">ATÉ</label>
+            <input id="endDate" type="date" [(ngModel)]="customEndDate" [min]="customStartDate" (ngModelChange)="onCustomDateChange()" />
           </div>
         </ng-container>
-
         <div class="control-field">
-          <label for="comparison">Comparação</label>
+          <label for="comparison">COMPARAR</label>
           <select id="comparison" [(ngModel)]="selectedComparison" (ngModelChange)="onComparisonChange()">
             <option value="previous">Período anterior</option>
             <option value="same">Mesmo período do ano anterior</option>
           </select>
         </div>
       </div>
-
-      <div class="control-context">
-        <span class="context-period">{{ periodLabel }}</span>
-        <span class="context-separator" aria-hidden="true"></span>
+      <div class="command-context">
+        <strong>{{ periodLabel }}</strong>
+        <span aria-hidden="true">/</span>
         <span>{{ comparisonLabel }}</span>
       </div>
     </section>
 
     <div *ngIf="error" class="state-panel error-state" role="alert">
-      <div class="state-icon danger-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="m10.3 3.8-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.2l-8-14a2 2 0 0 0-3.4 0Z"></path></svg>
-      </div>
+      <div class="state-icon danger-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="m10.3 3.8-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.2l-8-14a2 2 0 0 0-3.4 0Z"></path></svg></div>
       <div class="state-copy">
         <strong>{{ forbidden ? 'Acesso não autorizado' : 'Não foi possível carregar o Início' }}</strong>
         <p>{{ forbidden ? 'Sua conta não possui permissão para visualizar estes indicadores.' : 'Verifique sua conexão e tente novamente.' }}</p>
@@ -94,48 +84,42 @@
 
     <ng-container *ngIf="!error && stats?.dadosDisponiveis">
       <div *ngIf="stats?.dadosParciais" class="state-panel partial-state" role="status">
-        <div class="state-icon warning-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="m10.3 3.8-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.2l-8-14a2 2 0 0 0-3.4 0Z"></path></svg>
-        </div>
-        <div class="state-copy">
-          <strong>Dados parcialmente disponíveis</strong>
-          <p>Alguns indicadores podem estar temporariamente indisponíveis.</p>
-        </div>
+        <div class="state-icon warning-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="m10.3 3.8-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.2l-8-14a2 2 0 0 0-3.4 0Z"></path></svg></div>
+        <div class="state-copy"><strong>Dados parcialmente disponíveis</strong><p>Alguns indicadores podem estar temporariamente indisponíveis.</p></div>
       </div>
 
-      <section class="kpi-grid" aria-label="Indicadores principais">
-        <article *ngFor="let kpi of currentKpis"
-          class="kpi-card"
-          [class.warning]="kpi.state === 'warning'"
-          [class.danger]="kpi.state === 'danger'">
-          <div class="kpi-topline">
-            <span class="kpi-label">{{ kpi.label }}</span>
-            <span *ngIf="kpi.state === 'warning'" class="kpi-state warning">Atenção</span>
-            <span *ngIf="kpi.state === 'danger'" class="kpi-state danger">Ação</span>
+      <section class="metric-strip" aria-label="Indicadores principais">
+        <article *ngFor="let kpi of currentKpis" class="metric">
+          <div class="metric-heading">
+            <span>{{ kpi.label }}</span>
+            <span *ngIf="kpi.state === 'warning'" class="metric-state warning">Atenção</span>
+            <span *ngIf="kpi.state === 'danger'" class="metric-state danger">Ação</span>
           </div>
-          <strong class="kpi-value">{{ kpi.value }}</strong>
-          <div class="kpi-bottom">
-            <span class="kpi-hint">{{ kpi.hint }}</span>
-            <span *ngIf="kpi.delta"
-              class="kpi-delta"
-              [class.positive]="kpi.deltaTone === 'positive'"
-              [class.negative]="kpi.deltaTone === 'negative'">
-              {{ kpi.delta }}
-            </span>
+          <strong>{{ kpi.value }}</strong>
+          <div class="metric-detail">
+            <span>{{ kpi.hint }}</span>
+            <span *ngIf="kpi.delta" class="metric-delta" [class.positive]="kpi.deltaTone === 'positive'" [class.negative]="kpi.deltaTone === 'negative'">{{ kpi.delta }}</span>
           </div>
         </article>
       </section>
 
-      <section class="main-grid">
-        <article class="surface chart-surface">
-          <header class="surface-header">
+      <section class="operation-intro" aria-labelledby="operation-title">
+        <div>
+          <span class="eyebrow">CENTRAL DE OPERAÇÃO</span>
+          <h2 id="operation-title">O que está acontecendo na oficina</h2>
+        </div>
+        <span class="operation-period">{{ periodLabel }}</span>
+      </section>
+
+      <section class="primary-grid">
+        <article class="performance-panel">
+          <header class="panel-header">
             <div>
-              <span class="surface-kicker">Performance</span>
+              <span class="eyebrow">DESEMPENHO</span>
               <h2>Evolução da operação</h2>
-              <p>Recebimentos e serviços concluídos ao longo do período.</p>
+              <p>Faturamento e serviços acompanhados no período selecionado.</p>
             </div>
           </header>
-
           <div class="chart-frame">
             <apx-chart
               [series]="chartOptions.series"
@@ -153,129 +137,75 @@
           </div>
         </article>
 
-        <aside class="surface operation-surface">
-          <header class="surface-header">
+        <aside class="operation-panel" aria-labelledby="operation-status-title">
+          <header class="panel-header">
             <div>
-              <span class="surface-kicker">Operação</span>
-              <h2>Panorama da oficina</h2>
-              <p>Leitura rápida do fluxo atual.</p>
+              <span class="eyebrow">FLUXO DA OFICINA</span>
+              <h2 id="operation-status-title">Status das OS</h2>
             </div>
           </header>
-
-          <div class="operation-list">
-            <div *ngFor="let row of operationalSummary" class="operation-row">
-              <div class="operation-label">
-                <span class="status-dot" [ngClass]="row.tone"></span>
-                <span>{{ row.label }}</span>
-              </div>
+          <div class="status-list">
+            <div *ngFor="let row of operationalSummary" class="status-row">
+              <div class="status-label"><span class="status-dot" [ngClass]="row.tone"></span>{{ row.label }}</div>
               <strong>{{ row.value }}</strong>
             </div>
           </div>
-
-          <button type="button" class="surface-link" (click)="openOperational()">
+          <button type="button" class="text-action" (click)="openOperational()">
             Ver Ordens de Serviço
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
           </button>
         </aside>
       </section>
 
-      <section class="secondary-grid">
-        <article class="surface insight-surface" *ngIf="selectedView === 'standard' || selectedView === 'managerial'">
-          <header class="surface-header compact">
-            <div>
-              <span class="surface-kicker">Gestão</span>
-              <h2>Leitura gerencial</h2>
-            </div>
-          </header>
+      <section class="context-section" *ngIf="selectedView === 'standard' || selectedView === 'managerial'">
+        <header class="section-header">
+          <div><span class="eyebrow">CONTEXTO</span><h2>Leitura gerencial</h2></div>
+        </header>
+        <div class="context-grid">
+          <div><span>Clientes ativos</span><strong>{{ formatNumber(stats?.totalClientes) }}</strong></div>
+          <div><span>OS em atraso</span><strong [class.alert-value]="stats?.ordensEmAtraso">{{ formatNumber(stats?.ordensEmAtraso) }}</strong></div>
+          <div><span>Resultado</span><strong>{{ formatCurrency(stats?.lucroMes) }}</strong></div>
+        </div>
+      </section>
 
-          <div class="insight-columns">
-            <div>
-              <span>Clientes ativos</span>
-              <strong>{{ formatNumber(stats?.totalClientes) }}</strong>
-            </div>
-            <div>
-              <span>OS em atraso</span>
-              <strong [class.alert-value]="stats?.ordensEmAtraso">{{ formatNumber(stats?.ordensEmAtraso) }}</strong>
-            </div>
-            <div>
-              <span>Resultado</span>
-              <strong>{{ formatCurrency(stats?.lucroMes) }}</strong>
-            </div>
-          </div>
-        </article>
+      <section class="context-section" *ngIf="selectedView === 'financial'">
+        <header class="section-header">
+          <div><span class="eyebrow">FINANCEIRO</span><h2>Posição financeira</h2></div>
+          <button type="button" class="text-action" (click)="openFinancial()">Abrir Financeiro <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+        </header>
+        <div class="context-grid">
+          <div><span>Contas a receber</span><strong>{{ formatCurrency(stats?.contasReceber) }}</strong></div>
+          <div><span>Contas a pagar</span><strong>{{ formatCurrency(stats?.contasPagar) }}</strong></div>
+          <div><span>Vencidos</span><strong [class.alert-value]="stats?.valoresVencidos">{{ formatCurrency(stats?.valoresVencidos) }}</strong></div>
+        </div>
+      </section>
 
-        <article class="surface insight-surface" *ngIf="selectedView === 'financial'">
-          <header class="surface-header compact">
-            <div>
-              <span class="surface-kicker">Financeiro</span>
-              <h2>Posição financeira</h2>
-            </div>
-          </header>
-
-          <div class="insight-columns">
-            <div><span>Receber</span><strong>{{ formatCurrency(stats?.contasReceber) }}</strong></div>
-            <div><span>Pagar</span><strong>{{ formatCurrency(stats?.contasPagar) }}</strong></div>
-            <div><span>Vencidos</span><strong [class.alert-value]="stats?.valoresVencidos">{{ formatCurrency(stats?.valoresVencidos) }}</strong></div>
-          </div>
-
-          <button type="button" class="surface-link" (click)="openFinancial()">
-            Abrir Financeiro
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-          </button>
-        </article>
-
-        <article class="surface insight-surface" *ngIf="selectedView === 'estimates'">
-          <header class="surface-header compact">
-            <div>
-              <span class="surface-kicker">Orçamentos</span>
-              <h2>Funil comercial</h2>
-            </div>
-          </header>
-
-          <div class="insight-columns">
-            <div><span>Abertos</span><strong>{{ formatNumber(stats?.abertosMes) }}</strong></div>
-            <div><span>Autorizados</span><strong>{{ formatNumber(stats?.autorizadosMes) }}</strong></div>
-            <div><span>Cancelados</span><strong [class.alert-value]="stats?.canceladosMes">{{ formatNumber(stats?.canceladosMes) }}</strong></div>
-          </div>
-
-          <button type="button" class="surface-link" (click)="openEstimates()">
-            Abrir Orçamentos
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-          </button>
-        </article>
+      <section class="context-section" *ngIf="selectedView === 'estimates'">
+        <header class="section-header">
+          <div><span class="eyebrow">ORÇAMENTOS</span><h2>Funil comercial</h2></div>
+          <button type="button" class="text-action" (click)="openEstimates()">Abrir Orçamentos <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+        </header>
+        <div class="context-grid">
+          <div><span>Abertos</span><strong>{{ formatNumber(stats?.abertosMes) }}</strong></div>
+          <div><span>Autorizados</span><strong>{{ formatNumber(stats?.autorizadosMes) }}</strong></div>
+          <div><span>Cancelados</span><strong [class.alert-value]="stats?.canceladosMes">{{ formatNumber(stats?.canceladosMes) }}</strong></div>
+        </div>
       </section>
 
       <footer class="dashboard-footer">
-        <div>
-          <span class="footer-mark" aria-hidden="true">N</span>
-          <div>
-            <strong>Dados NERITECH AUTO</strong>
-            <span>O Início consolida informações dos módulos proprietários e não altera dados transacionais.</span>
-          </div>
-        </div>
-        <span class="footer-state">
-          <span class="status-live" aria-hidden="true"></span>
-          {{ stats?.dadosParciais ? 'Atualização parcial' : 'Dados atualizados' }}
-        </span>
+        <div class="footer-brand"><span class="footer-mark">N</span><span>NERITECH AUTO</span></div>
+        <span><span class="status-live" aria-hidden="true"></span>{{ stats?.dadosParciais ? 'Atualização parcial' : 'Dados atualizados' }}</span>
       </footer>
     </ng-container>
 
-    <section *ngIf="!loading && !error && stats && !stats.dadosDisponiveis"
-      class="state-panel empty-state"
-      aria-live="polite">
-      <div class="state-icon empty-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="M8 9h8M8 13h5"></path></svg>
-      </div>
-      <div class="state-copy">
-        <strong>Nenhum dado disponível para o período</strong>
-        <p>Os indicadores aparecem quando existirem registros nos módulos proprietários.</p>
-      </div>
+    <section *ngIf="!loading && !error && stats && !stats.dadosDisponiveis" class="state-panel empty-state" aria-live="polite">
+      <div class="state-icon empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="M8 9h8M8 13h5"></path></svg></div>
+      <div class="state-copy"><strong>Nenhum dado disponível para o período</strong><p>Os indicadores aparecem quando existirem registros nos módulos proprietários.</p></div>
     </section>
 
     <div *ngIf="loading && !stats" class="skeleton-grid" aria-label="Carregando dashboard">
       <div *ngFor="let item of [1,2,3,4]" class="skeleton-card"></div>
-      <div class="skeleton-main"></div>
-      <div class="skeleton-side"></div>
+      <div class="skeleton-main"></div><div class="skeleton-side"></div>
     </div>
   </div>
 </main>
