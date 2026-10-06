@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
 
 export interface DashboardDTO {
@@ -36,11 +36,7 @@ export class DashboardService {
   private http = inject(HttpClient);
   private apiUrl = environment.baseUrl || '/api';
 
-  getDashboardData(empresaId?: string | number | null) {
-    let params = new HttpParams();
-    if (empresaId !== undefined && empresaId !== null && String(empresaId) !== '') {
-      params = params.set('empresaId', String(empresaId));
-    }
-    return this.http.get<DashboardDTO>(`${this.apiUrl}/dashboard`, { params });
+  getDashboardData() {
+    return this.http.get<DashboardDTO>(`${this.apiUrl}/dashboard`);
   }
 }
