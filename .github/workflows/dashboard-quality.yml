@@ -8,6 +8,7 @@ on:
       - "FrontEnd/src/app/app.routes.ts"
       - "backend/src/main/java/com/neritech/saas/dashboard/**"
       - "backend/src/main/java/com/neritech/saas/ordemservico/repository/OrdemServicoRepository.java"
+      - ".github/workflows/dashboard-quality.yml"
   workflow_dispatch:
 
 jobs:
