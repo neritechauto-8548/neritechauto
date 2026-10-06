@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardService, DashboardDTO } from './dashboard.service';
-import { LocalStorageService } from '@shared/services/storage.service';
 
 type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 
@@ -18,7 +17,6 @@ type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
-  private storage = inject(LocalStorageService);
 
   loading = true;
   error = false;
@@ -65,15 +63,7 @@ export class Dashboard implements OnInit {
     this.loading = true;
     this.error = false;
 
-    let empresaId = this.storage.get('tenantId');
-    if (!empresaId || (typeof empresaId === 'object' && Object.keys(empresaId).length === 0)) {
-      empresaId = this.storage.get('empresaId');
-    }
-    if (empresaId && typeof empresaId === 'object') {
-      empresaId = empresaId.id ?? null;
-    }
-
-    this.dashboardService.getDashboardData(empresaId).subscribe({
+    this.dashboardService.getDashboardData().subscribe({
       next: data => {
         this.data = data;
         this.chartOptions = this.buildChart(data);
