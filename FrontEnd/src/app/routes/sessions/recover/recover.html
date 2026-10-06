@@ -1,32 +1,82 @@
 <main class="auth-page">
-  <section class="auth-shell" aria-labelledby="recover-title">
-    <header class="auth-brand">
-      <div class="brand-mark" aria-hidden="true">N</div>
-      <div>
-        <span class="brand-name">NERITECH</span>
-        <span class="brand-product">AUTO</span>
-      </div>
-    </header>
+  <section class="auth-visual" aria-label="NERITECH AUTO">
+    <div class="visual-grid" aria-hidden="true"></div>
+    <div class="visual-glow visual-glow-one" aria-hidden="true"></div>
+    <div class="visual-glow visual-glow-two" aria-hidden="true"></div>
 
-    <div class="auth-card">
+    <div class="visual-content">
+      <div class="visual-brand">
+        <div class="brand-mark" aria-hidden="true">N</div>
+        <div>
+          <span class="brand-name">NERITECH</span>
+          <span class="brand-product">AUTO</span>
+        </div>
+      </div>
+
+      <div class="visual-copy">
+        <span class="visual-eyebrow">ACESSO SEGURO</span>
+        <h2>Recupere seu acesso sem interromper a operação.</h2>
+        <p>Informe o e-mail da sua conta. Enviaremos as instruções para criar uma nova senha com segurança.</p>
+      </div>
+
+      <div class="visual-illustration" aria-hidden="true">
+        <svg viewBox="0 0 900 520" role="presentation">
+          <defs>
+            <linearGradient id="recover-car-stroke" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#60a5fa" stop-opacity=".98"></stop>
+              <stop offset="1" stop-color="#a5b4fc" stop-opacity=".38"></stop>
+            </linearGradient>
+            <linearGradient id="recover-car-fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#1e3a8a" stop-opacity=".64"></stop>
+              <stop offset="1" stop-color="#0f172a" stop-opacity=".08"></stop>
+            </linearGradient>
+          </defs>
+          <path d="M108 332c34-7 63-29 91-64l73-91c18-22 44-35 73-36l193-6c35-1 68 12 93 36l77 78c19 19 44 31 73 37l41 9c22 5 38 26 38 49v22H100v-20c0-7 3-12 8-14Z" fill="url(#recover-car-fill)" stroke="url(#recover-car-stroke)" stroke-width="5"></path>
+          <path d="M270 140l-55 97h226l20-101" fill="none" stroke="#93c5fd" stroke-opacity=".66" stroke-width="3"></path>
+          <path d="M463 135l11 102h134l-88-88c-15-14-35-21-57-21Z" fill="none" stroke="#93c5fd" stroke-opacity=".66" stroke-width="3"></path>
+          <path d="M110 342h706" stroke="#60a5fa" stroke-opacity=".4" stroke-width="3"></path>
+          <path d="M160 366c0 35 28 63 63 63s63-28 63-63M590 366c0 35 28 63 63 63s63-28 63-63" fill="#0f172a" stroke="#93c5fd" stroke-opacity=".82" stroke-width="5"></path>
+          <circle cx="223" cy="366" r="25" fill="#020617" stroke="#60a5fa" stroke-opacity=".58" stroke-width="3"></circle>
+          <circle cx="653" cy="366" r="25" fill="#020617" stroke="#60a5fa" stroke-opacity=".58" stroke-width="3"></circle>
+          <path d="M130 305H70M782 305h-60" stroke="#60a5fa" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"></path>
+          <path d="M310 285h250" stroke="#bfdbfe" stroke-opacity=".3" stroke-width="2"></path>
+        </svg>
+      </div>
+    </div>
+
+    <div class="visual-footer" aria-hidden="true">
+      <span>SEGURANÇA</span><span>•</span><span>OPERAÇÃO</span><span>•</span><span>GESTÃO</span>
+    </div>
+  </section>
+
+  <section class="auth-panel" aria-labelledby="recover-title">
+    <div class="auth-content">
+      <header class="auth-brand-mobile">
+        <div class="brand-mark" aria-hidden="true">N</div>
+        <div>
+          <span class="brand-name">NERITECH</span>
+          <span class="brand-product">AUTO</span>
+        </div>
+      </header>
+
       <div class="auth-header">
+        <span class="auth-eyebrow">RECUPERAÇÃO DE ACESSO</span>
         <h1 id="recover-title">Recuperar acesso</h1>
         <p>Informe seu e-mail e enviaremos as instruções para redefinir sua senha.</p>
       </div>
 
       <div *ngIf="emailSent" class="success-state" role="status" aria-live="polite">
         <div class="success-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4.5 4.5L19 7"></path></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m5 12 4.5 4.5L19 7"></path>
+          </svg>
         </div>
         <h2>Verifique seu e-mail</h2>
         <p>
           Se <strong>{{ email.value }}</strong> estiver cadastrado, enviaremos um link para redefinir sua senha.
           Por segurança, não informamos se um endereço está ou não cadastrado.
         </p>
-
-        <button type="button" class="auth-primary" routerLink="/auth/login">
-          Voltar para o login
-        </button>
+        <button type="button" class="auth-primary" routerLink="/auth/login">Voltar para o login</button>
       </div>
 
       <form
@@ -48,11 +98,7 @@
             aria-describedby="recover-email-help recover-email-error"
           />
           <p id="recover-email-help" class="field-help">Use o e-mail associado ao seu acesso.</p>
-          <p
-            *ngIf="email.invalid && email.touched"
-            id="recover-email-error"
-            class="field-error"
-          >
+          <p *ngIf="email.invalid && email.touched" id="recover-email-error" class="field-error">
             <span *ngIf="email.errors?.['required']">Informe seu e-mail.</span>
             <span *ngIf="email.errors?.['email']">Informe um e-mail válido.</span>
           </p>
@@ -68,9 +114,15 @@
       </form>
 
       <a *ngIf="!emailSent" routerLink="/auth/login" class="back-link">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path>
+        </svg>
         Voltar para o login
       </a>
+
+      <footer class="auth-footer">
+        <span>NERITECH AUTO</span><span aria-hidden="true">•</span><span>Gestão inteligente para oficinas</span>
+      </footer>
     </div>
   </section>
 </main>
