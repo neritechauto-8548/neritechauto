@@ -1,25 +1,35 @@
 <main class="home-dashboard" aria-labelledby="home-title">
   <div class="home-content">
+
     <header class="page-header">
-      <div>
-        <div class="eyebrow">Visão geral</div>
+      <div class="page-heading">
+        <span class="section-kicker">NERITECH AUTO</span>
         <h1 id="home-title">Início</h1>
         <p>{{ subtitle }}</p>
       </div>
 
-      <button class="refresh-button" type="button" (click)="loadDashboard()" [disabled]="loading" aria-label="Atualizar dados">
-        <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
-        <svg *ngIf="!loading" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"></path>
-          <path d="M5 4v4h4M19 20v-4h-4"></path>
-        </svg>
-        <span>{{ loading ? 'Atualizando' : 'Atualizar' }}</span>
-      </button>
+      <div class="page-actions">
+        <div class="data-status" *ngIf="lastUpdated">
+          <span class="status-live" aria-hidden="true"></span>
+          <span>Atualizado às {{ lastUpdated | date:'HH:mm' }}</span>
+        </div>
+
+        <button class="refresh-button" type="button" (click)="loadDashboard()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
+          <svg *ngIf="!loading" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"></path>
+            <path d="M5 4v4h4M19 20v-4h-4"></path>
+          </svg>
+          <span>{{ loading ? 'Atualizando' : 'Atualizar' }}</span>
+        </button>
+      </div>
     </header>
 
-    <section class="dashboard-selector" aria-label="Visão do Início">
-      <div class="selector-tabs" role="tablist" aria-label="Visões">
-        <button *ngFor="let view of views" type="button" role="tab"
+    <nav class="view-navigation" aria-label="Visões do Início">
+      <div class="view-navigation-inner" role="tablist">
+        <button *ngFor="let view of views"
+          type="button"
+          role="tab"
           [attr.aria-selected]="selectedView === view.id"
           [attr.tabindex]="selectedView === view.id ? 0 : -1"
           [class.active]="selectedView === view.id"
@@ -27,195 +37,244 @@
           {{ view.label }}
         </button>
       </div>
-    </section>
+    </nav>
 
-    <section class="filter-bar" aria-label="Filtros do dashboard">
-      <div class="filter-field">
-        <label for="period">Período</label>
-        <select id="period" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
-          <option value="today">Hoje</option>
-          <option value="7d">Últimos 7 dias</option>
-          <option value="30d">Últimos 30 dias</option>
-          <option value="month">Este mês</option>
-          <option value="custom">Personalizado</option>
-        </select>
-      </div>
-
-      <ng-container *ngIf="selectedPeriod === 'custom'">
-        <div class="filter-field">
-          <label for="startDate">De</label>
-          <input id="startDate" type="date" [(ngModel)]="customStartDate" (ngModelChange)="onCustomDateChange()" />
+    <section class="control-bar" aria-label="Controles do dashboard">
+      <div class="control-group">
+        <div class="control-field">
+          <label for="period">Período</label>
+          <select id="period" [(ngModel)]="selectedPeriod" (ngModelChange)="onPeriodChange()">
+            <option value="today">Hoje</option>
+            <option value="7d">Últimos 7 dias</option>
+            <option value="30d">Últimos 30 dias</option>
+            <option value="month">Este mês</option>
+            <option value="custom">Personalizado</option>
+          </select>
         </div>
 
-        <div class="filter-field">
-          <label for="endDate">Até</label>
-          <input id="endDate" type="date" [(ngModel)]="customEndDate" [min]="customStartDate"
-            (ngModelChange)="onCustomDateChange()" />
-        </div>
-      </ng-container>
+        <ng-container *ngIf="selectedPeriod === 'custom'">
+          <div class="control-field">
+            <label for="startDate">De</label>
+            <input id="startDate" type="date" [(ngModel)]="customStartDate" (ngModelChange)="onCustomDateChange()" />
+          </div>
 
-      <div class="filter-field">
-        <label for="comparison">Comparar com</label>
-        <select id="comparison" [(ngModel)]="selectedComparison" (ngModelChange)="onComparisonChange()">
-          <option value="previous">Período anterior</option>
-          <option value="same">Mesmo período do ano anterior</option>
-        </select>
+          <div class="control-field">
+            <label for="endDate">Até</label>
+            <input id="endDate" type="date" [(ngModel)]="customEndDate" [min]="customStartDate"
+              (ngModelChange)="onCustomDateChange()" />
+          </div>
+        </ng-container>
+
+        <div class="control-field">
+          <label for="comparison">Comparação</label>
+          <select id="comparison" [(ngModel)]="selectedComparison" (ngModelChange)="onComparisonChange()">
+            <option value="previous">Período anterior</option>
+            <option value="same">Mesmo período do ano anterior</option>
+          </select>
+        </div>
       </div>
 
-      <div class="filter-context">
-        <span>{{ periodLabel }}</span>
-        <span class="context-dot" aria-hidden="true"></span>
+      <div class="control-context">
+        <span class="context-period">{{ periodLabel }}</span>
+        <span class="context-separator" aria-hidden="true"></span>
         <span>{{ comparisonLabel }}</span>
-        <span class="context-dot" aria-hidden="true"></span>
-        <span *ngIf="lastUpdated">Atualizado às {{ lastUpdated | date:'HH:mm:ss' }}</span>
-        <span *ngIf="!lastUpdated">Aguardando dados</span>
       </div>
     </section>
 
     <div *ngIf="error" class="state-panel error-state" role="alert">
-      <div>
-        <strong>{{ forbidden ? 'Você não tem permissão para visualizar o Início.' : 'Não foi possível carregar o Início.' }}</strong>
-        <p>{{ forbidden ? 'Solicite ao administrador uma permissão compatível com os indicadores do Dashboard.' : 'Verifique sua conexão e tente novamente. Nenhum dado parcial é apresentado como se estivesse atualizado.' }}</p>
+      <div class="state-icon danger-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="m10.3 3.8-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.2l-8-14a2 2 0 0 0-3.4 0Z"></path></svg>
       </div>
-      <button type="button" class="secondary-button" (click)="retry()">Tentar novamente</button>
+      <div class="state-copy">
+        <strong>{{ forbidden ? 'Acesso não autorizado' : 'Não foi possível carregar o Início' }}</strong>
+        <p>{{ forbidden ? 'Sua conta não possui permissão para visualizar estes indicadores.' : 'Verifique sua conexão e tente novamente.' }}</p>
+      </div>
+      <button *ngIf="!forbidden" type="button" class="secondary-button" (click)="retry()">Tentar novamente</button>
     </div>
 
     <ng-container *ngIf="!error && stats?.dadosDisponiveis">
       <div *ngIf="stats?.dadosParciais" class="state-panel partial-state" role="status">
-        <div>
-          <strong>Dados parcialmente disponíveis.</strong>
+        <div class="state-icon warning-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="m10.3 3.8-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.2l-8-14a2 2 0 0 0-3.4 0Z"></path></svg>
+        </div>
+        <div class="state-copy">
+          <strong>Dados parcialmente disponíveis</strong>
           <p>Alguns indicadores podem estar temporariamente indisponíveis.</p>
         </div>
       </div>
 
       <section class="kpi-grid" aria-label="Indicadores principais">
-        <article *ngFor="let kpi of currentKpis" class="kpi-card"
+        <article *ngFor="let kpi of currentKpis"
+          class="kpi-card"
           [class.warning]="kpi.state === 'warning'"
           [class.danger]="kpi.state === 'danger'">
-          <span class="kpi-label">{{ kpi.label }}</span>
+          <div class="kpi-topline">
+            <span class="kpi-label">{{ kpi.label }}</span>
+            <span *ngIf="kpi.state === 'warning'" class="kpi-state warning">Atenção</span>
+            <span *ngIf="kpi.state === 'danger'" class="kpi-state danger">Ação</span>
+          </div>
           <strong class="kpi-value">{{ kpi.value }}</strong>
-          <span class="kpi-hint">{{ kpi.hint }}</span>
-          <span *ngIf="kpi.delta" class="kpi-delta" [class.positive]="kpi.deltaTone === 'positive'"
-            [class.negative]="kpi.deltaTone === 'negative'">{{ kpi.delta }}</span>
+          <div class="kpi-bottom">
+            <span class="kpi-hint">{{ kpi.hint }}</span>
+            <span *ngIf="kpi.delta"
+              class="kpi-delta"
+              [class.positive]="kpi.deltaTone === 'positive'"
+              [class.negative]="kpi.deltaTone === 'negative'">
+              {{ kpi.delta }}
+            </span>
+          </div>
         </article>
       </section>
 
-      <section class="content-grid">
+      <section class="main-grid">
         <article class="surface chart-surface">
-          <div class="surface-header">
+          <header class="surface-header">
             <div>
-              <h2>Evolução recente</h2>
-              <p>Faturamento recebido e serviços concluídos nos últimos seis meses.</p>
+              <span class="surface-kicker">Performance</span>
+              <h2>Evolução da operação</h2>
+              <p>Recebimentos e serviços concluídos ao longo do período.</p>
             </div>
+          </header>
+
+          <div class="chart-frame">
+            <apx-chart
+              [series]="chartOptions.series"
+              [chart]="chartOptions.chart"
+              [colors]="chartOptions.colors"
+              [dataLabels]="chartOptions.dataLabels"
+              [stroke]="chartOptions.stroke"
+              [xaxis]="chartOptions.xaxis"
+              [yaxis]="chartOptions.yaxis"
+              [grid]="chartOptions.grid"
+              [legend]="chartOptions.legend"
+              [fill]="chartOptions.fill"
+              [tooltip]="chartOptions.tooltip">
+            </apx-chart>
           </div>
-          <apx-chart
-            [series]="chartOptions.series"
-            [chart]="chartOptions.chart"
-            [colors]="chartOptions.colors"
-            [dataLabels]="chartOptions.dataLabels"
-            [stroke]="chartOptions.stroke"
-            [xaxis]="chartOptions.xaxis"
-            [yaxis]="chartOptions.yaxis"
-            [grid]="chartOptions.grid"
-            [legend]="chartOptions.legend"
-            [fill]="chartOptions.fill"
-            [tooltip]="chartOptions.tooltip">
-          </apx-chart>
         </article>
 
-        <article class="surface side-surface" *ngIf="selectedView === 'standard'">
-          <div class="surface-header">
+        <aside class="surface operation-surface">
+          <header class="surface-header">
             <div>
-              <h2>Status da operação</h2>
-              <p>Acompanhamento consolidado.</p>
+              <span class="surface-kicker">Operação</span>
+              <h2>Panorama da oficina</h2>
+              <p>Leitura rápida do fluxo atual.</p>
             </div>
-          </div>
-          <div class="metric-list">
-            <div *ngFor="let row of statusRows" class="metric-row">
-              <div class="row-label">
+          </header>
+
+          <div class="operation-list">
+            <div *ngFor="let row of operationalSummary" class="operation-row">
+              <div class="operation-label">
                 <span class="status-dot" [ngClass]="row.tone"></span>
-                {{ row.label }}
+                <span>{{ row.label }}</span>
               </div>
               <strong>{{ row.value }}</strong>
             </div>
           </div>
-          <button type="button" class="text-link" (click)="openOperational()">Abrir Ordens de Serviço</button>
-        </article>
 
-        <article class="surface side-surface" *ngIf="selectedView === 'financial'">
-          <div class="surface-header">
-            <div>
-              <h2>Resumo financeiro</h2>
-              <p>Valores do escopo atual.</p>
-            </div>
-          </div>
-          <div class="metric-list">
-            <div *ngFor="let row of financialRows" class="metric-row">
-              <div>
-                <span class="row-label">{{ row.label }}</span>
-                <small>{{ row.detail }}</small>
-              </div>
-              <strong>{{ row.value }}</strong>
-            </div>
-          </div>
-          <button type="button" class="text-link" (click)="openFinancial()">Abrir Contas a Receber</button>
-        </article>
+          <button type="button" class="surface-link" (click)="openOperational()">
+            Ver Ordens de Serviço
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
+        </aside>
+      </section>
 
-        <article class="surface side-surface" *ngIf="selectedView === 'managerial'">
-          <div class="surface-header">
+      <section class="secondary-grid">
+        <article class="surface insight-surface" *ngIf="selectedView === 'standard' || selectedView === 'managerial'">
+          <header class="surface-header compact">
             <div>
+              <span class="surface-kicker">Gestão</span>
               <h2>Leitura gerencial</h2>
-              <p>Indicadores para decisão.</p>
+            </div>
+          </header>
+
+          <div class="insight-columns">
+            <div>
+              <span>Clientes ativos</span>
+              <strong>{{ formatNumber(stats?.totalClientes) }}</strong>
+            </div>
+            <div>
+              <span>OS em atraso</span>
+              <strong [class.alert-value]="stats?.ordensEmAtraso">{{ formatNumber(stats?.ordensEmAtraso) }}</strong>
+            </div>
+            <div>
+              <span>Resultado</span>
+              <strong>{{ formatCurrency(stats?.lucroMes) }}</strong>
             </div>
           </div>
-          <div class="insight-list">
-            <div><span>Produção</span><strong>{{ formatNumber(stats?.osConcluidas) }} OS concluídas</strong></div>
-            <div><span>Clientes</span><strong>{{ formatNumber(stats?.totalClientes) }} ativos</strong></div>
-            <div><span>Atrasos</span><strong [class.alert-value]="stats?.ordensEmAtraso">{{ formatNumber(stats?.ordensEmAtraso) }} OS</strong></div>
-            <div><span>Comparação</span><strong>{{ comparisonLabel }}</strong></div>
-          </div>
-          <button type="button" class="text-link" (click)="openOperational()">Investigar operação</button>
         </article>
 
-        <article class="surface side-surface" *ngIf="selectedView === 'estimates'">
-          <div class="surface-header">
+        <article class="surface insight-surface" *ngIf="selectedView === 'financial'">
+          <header class="surface-header compact">
             <div>
-              <h2>Funil de orçamento</h2>
-              <p>Estados registrados no período selecionado.</p>
+              <span class="surface-kicker">Financeiro</span>
+              <h2>Posição financeira</h2>
             </div>
+          </header>
+
+          <div class="insight-columns">
+            <div><span>Receber</span><strong>{{ formatCurrency(stats?.contasReceber) }}</strong></div>
+            <div><span>Pagar</span><strong>{{ formatCurrency(stats?.contasPagar) }}</strong></div>
+            <div><span>Vencidos</span><strong [class.alert-value]="stats?.valoresVencidos">{{ formatCurrency(stats?.valoresVencidos) }}</strong></div>
           </div>
-          <div class="funnel-list">
+
+          <button type="button" class="surface-link" (click)="openFinancial()">
+            Abrir Financeiro
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
+        </article>
+
+        <article class="surface insight-surface" *ngIf="selectedView === 'estimates'">
+          <header class="surface-header compact">
+            <div>
+              <span class="surface-kicker">Orçamentos</span>
+              <h2>Funil comercial</h2>
+            </div>
+          </header>
+
+          <div class="insight-columns">
             <div><span>Abertos</span><strong>{{ formatNumber(stats?.abertosMes) }}</strong></div>
             <div><span>Autorizados</span><strong>{{ formatNumber(stats?.autorizadosMes) }}</strong></div>
-            <div><span>Cancelados</span><strong>{{ formatNumber(stats?.canceladosMes) }}</strong></div>
-            <div><span>Fechados</span><strong>{{ formatNumber(stats?.fechadosMes) }}</strong></div>
+            <div><span>Cancelados</span><strong [class.alert-value]="stats?.canceladosMes">{{ formatNumber(stats?.canceladosMes) }}</strong></div>
           </div>
-          <button type="button" class="text-link" (click)="openEstimates()">Abrir Orçamentos</button>
+
+          <button type="button" class="surface-link" (click)="openEstimates()">
+            Abrir Orçamentos
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
         </article>
       </section>
 
-      <section class="surface freshness-bar">
+      <footer class="dashboard-footer">
         <div>
-          <strong>Fonte dos indicadores</strong>
-          <span>Dados consolidados pelos módulos proprietários. O Início é somente leitura.</span>
+          <span class="footer-mark" aria-hidden="true">N</span>
+          <div>
+            <strong>Dados NERITECH AUTO</strong>
+            <span>O Início consolida informações dos módulos proprietários e não altera dados transacionais.</span>
+          </div>
         </div>
-        <span class="freshness">
-          <span class="freshness-dot"></span>
-          {{ stats?.dadosParciais ? 'Dados parciais' : 'Dados atualizados' }}
+        <span class="footer-state">
+          <span class="status-live" aria-hidden="true"></span>
+          {{ stats?.dadosParciais ? 'Atualização parcial' : 'Dados atualizados' }}
         </span>
-      </section>
+      </footer>
     </ng-container>
 
-    <section *ngIf="!loading && !error && stats && !stats.dadosDisponiveis" class="state-panel empty-state" aria-live="polite">
-      <div>
-        <strong>Nenhum dado disponível para o período.</strong>
-        <p>Os indicadores aparecem quando existirem registros nos módulos proprietários. Zero é exibido normalmente quando o negócio possui dados, mas o indicador do período é zero.</p>
+    <section *ngIf="!loading && !error && stats && !stats.dadosDisponiveis"
+      class="state-panel empty-state"
+      aria-live="polite">
+      <div class="state-icon empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="M8 9h8M8 13h5"></path></svg>
+      </div>
+      <div class="state-copy">
+        <strong>Nenhum dado disponível para o período</strong>
+        <p>Os indicadores aparecem quando existirem registros nos módulos proprietários.</p>
       </div>
     </section>
 
     <div *ngIf="loading && !stats" class="skeleton-grid" aria-label="Carregando dashboard">
-      <div *ngFor="let item of [1,2,3,4,5]" class="skeleton-card"></div>
-      <div class="skeleton-large"></div>
+      <div *ngFor="let item of [1,2,3,4]" class="skeleton-card"></div>
+      <div class="skeleton-main"></div>
       <div class="skeleton-side"></div>
     </div>
   </div>
