@@ -10,6 +10,7 @@ import screenfull from 'screenfull';
 import { NotificationButton } from '../widgets/notification-button';
 import { UserButton } from '../widgets/user-button';
 import { Menu, MenuChildrenItem, MenuService, SettingsService } from '@core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-header',
@@ -21,6 +22,7 @@ import { Menu, MenuChildrenItem, MenuService, SettingsService } from '@core';
   encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
+    FormsModule,
     MatTooltipModule,
     NotificationButton,
     UserButton,
