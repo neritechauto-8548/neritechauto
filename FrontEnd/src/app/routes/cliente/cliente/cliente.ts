@@ -292,14 +292,14 @@ export class Cliente implements OnInit {
 
     console.log(`[PAGINATION] first: ${this.first}, rows: ${this.rows}, pageIndex to API: ${pageIndex}`);
 
-    const filters: any = { page: pageIndex, size: this.rows, sort: 'nomeCompleto,asc' }; // Restaurado para id,desc
+    const filters: any = { page: pageIndex, size: this.rows, sort: 'nomeCompleto,asc' };
 
     // Filtro de busca por nome ou documento
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.trim();
-      filters.nomeCompleto = term;
-      // Mandamos no cpf também para o backend procurar no CPF e CNPJ
-      filters.cpf = term.replace(/[^a-zA-Z0-9]/g, '');
+      // A busca é tratada no backend como OR entre nome/razão/nome fantasia/CPF/CNPJ.
+      // Isso evita exigir que o mesmo termo exista simultaneamente em nome e documento.
+      filters.busca = term;
     }
 
     // Filtro por tipo de cliente
