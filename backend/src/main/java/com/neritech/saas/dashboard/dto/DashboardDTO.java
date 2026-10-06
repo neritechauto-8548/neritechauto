@@ -18,7 +18,7 @@ public record DashboardDTO(
         BigDecimal valoresVencidos,
         Long veiculosEmAtraso,
         List<BigDecimal> historicoFaturamento,
-        List<BigDecimal> historicoServicos,
+        List<BigDecimal> historicoDespesas,
         List<String> historicoMeses,
         Long abertosMes,
         Long abertosTotal,
