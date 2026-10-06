@@ -121,6 +121,16 @@ export class Dashboard implements OnInit {
     }
   }
 
+  get operationalSummary() {
+    const s = this.stats;
+    return [
+      { label: 'Abertas', value: this.formatNumber(s?.abertosTotal), tone: 'neutral' },
+      { label: 'Autorizadas', value: this.formatNumber(s?.autorizadosTotal), tone: 'info' },
+      { label: 'Em atraso', value: this.formatNumber(s?.ordensEmAtraso), tone: s?.ordensEmAtraso ? 'warning' : 'success' },
+      { label: 'Concluídas', value: this.formatNumber(s?.fechadosTotal), tone: 'success' },
+    ];
+  }
+
   get periodLabel(): string {
     if (this.stats?.inicio && this.stats?.fim) {
       const start = new Date(`${this.stats.inicio}T00:00:00`);
@@ -147,9 +157,16 @@ export class Dashboard implements OnInit {
     const s = this.stats;
     return [
       {
+        label: 'Receita',
+        value: this.formatCurrency(s?.faturamentoMes),
+        hint: 'Recebimentos no período',
+        delta: this.currencyDelta(s?.faturamentoMes, s?.faturamentoComparacao),
+        deltaTone: this.deltaTone(s?.faturamentoMes, s?.faturamentoComparacao),
+      },
+      {
         label: 'OS em andamento',
         value: this.formatNumber(s?.osEmAndamento),
-        hint: 'Atendimentos ativos no período',
+        hint: 'Atendimentos ativos agora',
       },
       {
         label: 'OS concluídas',
@@ -158,17 +175,10 @@ export class Dashboard implements OnInit {
         delta: this.countDelta(s?.osConcluidas, s?.osConcluidasComparacao),
         deltaTone: this.deltaTone(s?.osConcluidas, s?.osConcluidasComparacao),
       },
-      { label: 'Clientes ativos', value: this.formatNumber(s?.totalClientes), hint: 'Base cadastral atual' },
-      {
-        label: 'OS em atraso',
-        value: this.formatNumber(s?.ordensEmAtraso),
-        hint: 'Exigem acompanhamento',
-        state: s?.ordensEmAtraso ? 'warning' : 'normal',
-      },
       {
         label: 'Ticket médio',
         value: this.formatCurrency(s?.ticketMedio),
-        hint: 'Valor médio por OS concluída',
+        hint: 'Por OS concluída',
         delta: this.currencyDelta(s?.ticketMedio, s?.ticketMedioComparacao),
         deltaTone: this.deltaTone(s?.ticketMedio, s?.ticketMedioComparacao),
       },
