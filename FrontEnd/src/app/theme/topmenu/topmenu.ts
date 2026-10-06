@@ -8,7 +8,6 @@ import {
   inject,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -39,7 +38,6 @@ export interface TopmenuState {
     RouterLink,
     RouterLinkActive,
     MatButtonModule,
-    MatIconModule,
     MatMenuModule,
     MatTabsModule,
     NgxPermissionsModule,
