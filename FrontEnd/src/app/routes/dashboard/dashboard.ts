@@ -3,21 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { HttpErrorResponse } from '@angular/common/http';
+import { DashboardService, DashboardDTO } from './dashboard.service';
 
-import { DashboardDTO, DashboardService } from './dashboard.service';
-
-type DashboardView = 'standard' | 'managerial' | 'financial' | 'estimates';
-type DashboardPeriod = 'today' | '7d' | '30d' | 'month' | 'custom';
-
-interface DashboardKpi {
-  label: string;
-  value: string;
-  hint: string;
-  state?: 'normal' | 'warning' | 'danger';
-  delta?: string;
-  deltaTone?: 'positive' | 'negative' | 'neutral';
-}
+type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,342 +14,117 @@ interface DashboardKpi {
   styleUrl: './dashboard.scss',
   imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule],
 })
-/** Quality gate: dashboard production contract. */
 export class Dashboard implements OnInit {
-  private readonly dashboardService = inject(DashboardService);
-  private readonly router = inject(Router);
-
-  readonly views: Array<{ id: DashboardView; label: string }> = [
-    { id: 'standard', label: 'Padrão' },
-    { id: 'managerial', label: 'Gerencial' },
-    { id: 'financial', label: 'Financeiro' },
-    { id: 'estimates', label: 'Orçamento' },
-  ];
-
-  selectedView: DashboardView = 'standard';
-  selectedPeriod: DashboardPeriod = 'month';
-  selectedComparison = 'previous';
-  customStartDate = '';
-  customEndDate = '';
+  private dashboardService = inject(DashboardService);
+  private router = inject(Router);
 
   loading = true;
   error = false;
-  forbidden = false;
-  lastUpdated: Date | null = null;
-  stats: DashboardDTO | null = null;
+  data: DashboardDTO | null = null;
+  selectedView: DashboardView = 'padrao';
+  chartOptions: any = null;
 
-  chartOptions: any = {};
+  readonly viewOptions: { value: DashboardView; label: string }[] = [
+    { value: 'padrao', label: 'Padrão' },
+    { value: 'gerencial', label: 'Gerencial' },
+    { value: 'financeiro', label: 'Financeiro' },
+    { value: 'orcamento', label: 'Orçamento' },
+  ];
 
   ngOnInit(): void {
-    this.loadDashboard();
+    this.carregarDados();
   }
 
-  loadDashboard(): void {
-    if (this.selectedPeriod === 'custom' && (!this.customStartDate || !this.customEndDate)) {
-      return;
-    }
+  get mesAnoAtualLabel(): string {
+    const data = new Date();
+    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    return `${meses[data.getMonth()]}/${data.getFullYear()}`;
+  }
 
+  get hasData(): boolean {
+    if (!this.data) return false;
+    return [
+      this.data.totalClientes,
+      this.data.osAbertas,
+      this.data.osConcluidas,
+      this.data.faturamentoMes,
+      this.data.contasReceber,
+      this.data.abertosTotal,
+      this.data.autorizadosTotal,
+      this.data.fechadosTotal,
+    ].some(value => Number(value) > 0);
+  }
+
+  get metaEntregasPercentual(): number {
+    return Math.min(Math.round(((this.data?.osConcluidas ?? 0) / 50) * 100), 100);
+  }
+
+  carregarDados(): void {
     this.loading = true;
     this.error = false;
-    this.forbidden = false;
 
-    this.dashboardService
-      .getDashboardData(this.selectedPeriod, this.selectedComparison, this.customStartDate, this.customEndDate)
-      .subscribe({
-        next: data => {
-          this.stats = data;
-          this.lastUpdated = data.geradoEm ? new Date(data.geradoEm) : new Date();
-          this.buildChart();
-          this.loading = false;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.loading = false;
-          this.error = true;
-          this.forbidden = error.status === 403;
-        },
-      });
-  }
-
-  selectView(view: DashboardView): void {
-    if (this.selectedView === view) return;
-    this.selectedView = view;
-    this.buildChart();
-  }
-
-  onPeriodChange(): void {
-    if (this.selectedPeriod !== 'custom') {
-      this.loadDashboard();
-    }
-  }
-
-  onCustomDateChange(): void {
-    if (
-      this.selectedPeriod === 'custom' &&
-      this.customStartDate &&
-      this.customEndDate &&
-      this.customStartDate <= this.customEndDate
-    ) {
-      this.loadDashboard();
-    }
-  }
-
-  onComparisonChange(): void {
-    this.loadDashboard();
-  }
-
-  retry(): void {
-    this.loadDashboard();
-  }
-
-  get subtitle(): string {
-    switch (this.selectedView) {
-      case 'managerial': return 'Desempenho comercial e operacional da oficina.';
-      case 'financial': return 'Visão consolidada da situação financeira.';
-      case 'estimates': return 'Acompanhamento do funil de orçamentos.';
-      default: return 'Visão resumida da operação da oficina.';
-    }
-  }
-
-  get operationalSummary() {
-    const s = this.stats;
-    return [
-      { label: 'Abertas', value: this.formatNumber(s?.abertosTotal), tone: 'neutral' },
-      { label: 'Autorizadas', value: this.formatNumber(s?.autorizadosTotal), tone: 'info' },
-      { label: 'Em atraso', value: this.formatNumber(s?.ordensEmAtraso), tone: s?.ordensEmAtraso ? 'warning' : 'success' },
-      { label: 'Concluídas', value: this.formatNumber(s?.fechadosTotal), tone: 'success' },
-    ];
-  }
-
-  get periodLabel(): string {
-    if (this.stats?.inicio && this.stats?.fim) {
-      const start = new Date(`${this.stats.inicio}T00:00:00`);
-      const end = new Date(`${this.stats.fim}T00:00:00`);
-      if (this.selectedPeriod === 'custom') {
-        return `${start.toLocaleDateString('pt-BR')} — ${end.toLocaleDateString('pt-BR')}`;
-      }
-    }
-
-    switch (this.selectedPeriod) {
-      case 'today': return 'Hoje';
-      case '7d': return 'Últimos 7 dias';
-      case '30d': return 'Últimos 30 dias';
-      case 'custom': return 'Período personalizado';
-      default: return 'Este mês';
-    }
-  }
-
-  get comparisonLabel(): string {
-    return this.selectedComparison === 'same' ? 'Mesmo período do ano anterior' : 'Período anterior';
-  }
-
-  get standardKpis(): DashboardKpi[] {
-    const s = this.stats;
-    return [
-      {
-        label: 'Receita',
-        value: this.formatCurrency(s?.faturamentoMes),
-        hint: 'Recebimentos no período',
-        delta: this.currencyDelta(s?.faturamentoMes, s?.faturamentoComparacao),
-        deltaTone: this.deltaTone(s?.faturamentoMes, s?.faturamentoComparacao),
+    this.dashboardService.getDashboardData().subscribe({
+      next: data => {
+        this.data = data;
+        this.chartOptions = this.buildChart(data);
+        this.loading = false;
       },
-      {
-        label: 'OS em andamento',
-        value: this.formatNumber(s?.osEmAndamento),
-        hint: 'Atendimentos ativos agora',
+      error: () => {
+        this.error = true;
+        this.loading = false;
       },
-      {
-        label: 'OS concluídas',
-        value: this.formatNumber(s?.osConcluidas),
-        hint: 'No período selecionado',
-        delta: this.countDelta(s?.osConcluidas, s?.osConcluidasComparacao),
-        deltaTone: this.deltaTone(s?.osConcluidas, s?.osConcluidasComparacao),
-      },
-      {
-        label: 'Ticket médio',
-        value: this.formatCurrency(s?.ticketMedio),
-        hint: 'Por OS concluída',
-        delta: this.currencyDelta(s?.ticketMedio, s?.ticketMedioComparacao),
-        deltaTone: this.deltaTone(s?.ticketMedio, s?.ticketMedioComparacao),
-      },
-    ];
+    });
   }
 
-  get managerialKpis(): DashboardKpi[] {
-    const s = this.stats;
-    return [
-      {
-        label: 'Faturamento',
-        value: this.formatCurrency(s?.faturamentoMes),
-        hint: 'Recebimentos no período',
-        delta: this.currencyDelta(s?.faturamentoMes, s?.faturamentoComparacao),
-        deltaTone: this.deltaTone(s?.faturamentoMes, s?.faturamentoComparacao),
-      },
-      {
-        label: 'Ticket médio',
-        value: this.formatCurrency(s?.ticketMedio),
-        hint: 'Valor médio por OS concluída',
-        delta: this.currencyDelta(s?.ticketMedio, s?.ticketMedioComparacao),
-        deltaTone: this.deltaTone(s?.ticketMedio, s?.ticketMedioComparacao),
-      },
-      {
-        label: 'OS concluídas',
-        value: this.formatNumber(s?.osConcluidas),
-        hint: 'Produção no período',
-        delta: this.countDelta(s?.osConcluidas, s?.osConcluidasComparacao),
-        deltaTone: this.deltaTone(s?.osConcluidas, s?.osConcluidasComparacao),
-      },
-      { label: 'Clientes atendidos', value: this.formatNumber(s?.totalClientes), hint: 'Base ativa atual' },
-    ];
-  }
-
-  get financialKpis(): DashboardKpi[] {
-    const s = this.stats;
-    return [
-      {
-        label: 'Contas a receber',
-        value: this.formatCurrency(s?.contasReceber),
-        hint: 'Carteira em aberto',
-      },
-      {
-        label: 'Contas a pagar',
-        value: this.formatCurrency(s?.contasPagar),
-        hint: 'Compromissos em aberto',
-      },
-      {
-        label: 'Valores vencidos',
-        value: this.formatCurrency(s?.valoresVencidos),
-        hint: 'Necessitam cobrança',
-        state: s?.valoresVencidos ? 'danger' : 'normal',
-      },
-      { label: 'Resultado do período', value: this.formatCurrency(s?.lucroMes), hint: 'Receitas menos despesas' },
-    ];
-  }
-
-  get estimateKpis(): DashboardKpi[] {
-    const s = this.stats;
-    return [
-      { label: 'Abertos', value: this.formatNumber(s?.abertosMes), hint: 'No período selecionado' },
-      { label: 'Autorizados', value: this.formatNumber(s?.autorizadosMes), hint: 'No período selecionado' },
-      {
-        label: 'Cancelados',
-        value: this.formatNumber(s?.canceladosMes),
-        hint: 'No período selecionado',
-        state: s?.canceladosMes ? 'danger' : 'normal',
-      },
-      { label: 'Fechados', value: this.formatNumber(s?.fechadosMes), hint: 'No período selecionado' },
-    ];
-  }
-
-  get currentKpis(): DashboardKpi[] {
-    switch (this.selectedView) {
-      case 'managerial': return this.managerialKpis;
-      case 'financial': return this.financialKpis;
-      case 'estimates': return this.estimateKpis;
-      default: return this.standardKpis;
-    }
-  }
-
-  get statusRows() {
-    const s = this.stats;
-    return [
-      { label: 'Abertos', value: this.formatNumber(s?.abertosTotal), tone: 'neutral', detail: 'Entrada' },
-      { label: 'Autorizados', value: this.formatNumber(s?.autorizadosTotal), tone: 'info', detail: 'Em execução' },
-      { label: 'Cancelados', value: this.formatNumber(s?.canceladosTotal), tone: 'danger', detail: 'Fora do fluxo' },
-      { label: 'Fechados', value: this.formatNumber(s?.fechadosTotal), tone: 'success', detail: 'Concluído' },
-    ];
-  }
-
-  get financialRows() {
-    const s = this.stats;
-    return [
-      { label: 'Contas a receber', value: this.formatCurrency(s?.contasReceber), detail: 'Em aberto' },
-      { label: 'Contas a pagar', value: this.formatCurrency(s?.contasPagar), detail: 'Em aberto' },
-      { label: 'Vencidos', value: this.formatCurrency(s?.valoresVencidos), detail: 'Cobrança necessária' },
-      { label: 'Resultado', value: this.formatCurrency(s?.lucroMes), detail: 'Receita - despesa' },
-    ];
-  }
-
-  openOperational(): void {
-    this.router.navigate(['/os']);
-  }
-
-  openFinancial(): void {
-    this.router.navigate(['/financeiro/receber']);
-  }
-
-  openEstimates(): void {
-    this.router.navigate(['/orcamento/orcamento']);
-  }
-
-  private buildChart(): void {
-    const s = this.stats;
-    if (!s) return;
-
-    this.chartOptions = {
+  private buildChart(data: DashboardDTO): any {
+    return {
       series: [
-        { name: this.selectedView === 'financial' ? 'Recebimentos' : 'Faturamento', data: s.historicoFaturamento },
-        { name: 'Serviços', data: s.historicoServicos },
+        { name: 'Faturamento', data: data.historicoFaturamento ?? [] },
+        { name: 'Despesas', data: data.historicoDespesas ?? [] },
       ],
       chart: {
         type: 'area',
-        height: 300,
+        height: 320,
         toolbar: { show: false },
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+        zoom: { enabled: false },
       },
-      colors: ['#2563EB', '#94A3B8'],
       dataLabels: { enabled: false },
-      stroke: { width: 2, curve: 'smooth' },
-      xaxis: {
-        categories: s.historicoMeses,
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-        labels: { style: { colors: '#64748B', fontFamily: 'Inter, system-ui, sans-serif' } },
-      },
-      yaxis: {
-        labels: {
-          style: { colors: '#64748B', fontFamily: 'Inter, system-ui, sans-serif' },
-          formatter: (value: number) => `R$ ${Math.round(value).toLocaleString('pt-BR')}`,
-        },
-      },
-      grid: { borderColor: '#E2E8F0', strokeDashArray: 4 },
-      legend: { position: 'top', horizontalAlign: 'left', fontFamily: 'Inter, system-ui, sans-serif' },
+      stroke: { curve: 'smooth', width: 2.5 },
+      colors: ['#111827', '#94a3b8'],
       fill: {
         type: 'gradient',
-        gradient: { opacityFrom: 0.18, opacityTo: 0.02, stops: [0, 90, 100] },
+        gradient: { opacityFrom: 0.18, opacityTo: 0.02, stops: [0, 100] },
+      },
+      grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
+      xaxis: {
+        categories: data.historicoMeses ?? [],
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        labels: { formatter: (value: number) => this.formatCurrency(value) },
       },
       tooltip: {
-        y: {
-          formatter: (value: number) =>
-            `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-        },
+        y: { formatter: (value: number) => this.formatCurrency(value) },
       },
+      legend: { position: 'top', horizontalAlign: 'left' },
     };
   }
 
-  private deltaTone(current?: number, comparison?: number): 'positive' | 'negative' | 'neutral' {
-    if (current == null || comparison == null || comparison === 0) return 'neutral';
-    return current >= comparison ? 'positive' : 'negative';
-  }
-
-  private countDelta(current?: number, comparison?: number): string {
-    if (current == null || comparison == null || !this.stats?.comparacaoDisponivel) return '';
-    const diff = current - comparison;
-    if (diff === 0) return '0 vs. comparação';
-    return `${diff > 0 ? '+' : ''}${diff.toLocaleString('pt-BR')} vs. comparação`;
-  }
-
-  private currencyDelta(current?: number, comparison?: number): string {
-    if (current == null || comparison == null || !this.stats?.comparacaoDisponivel) return '';
-    if (comparison === 0) return current === 0 ? 'Sem variação' : 'Sem base para comparação';
-    const percent = ((current - comparison) / Math.abs(comparison)) * 100;
-    return `${percent > 0 ? '+' : ''}${percent.toFixed(1).replace('.', ',')}% vs. comparação`;
-  }
-
-  formatNumber(value: number | null | undefined): string {
-    return (value ?? 0).toLocaleString('pt-BR');
-  }
-
   formatCurrency(value: number | null | undefined): string {
-    return (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0,
+    }).format(Number(value ?? 0));
+  }
+
+  selecionarVisao(view: DashboardView): void {
+    this.selectedView = view;
+  }
+
+  navegarPara(route: string): void {
+    this.router.navigateByUrl(route);
   }
 }
