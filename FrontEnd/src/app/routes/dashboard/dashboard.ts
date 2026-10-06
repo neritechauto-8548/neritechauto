@@ -24,6 +24,7 @@ export class Dashboard implements OnInit {
   error = false;
   data: DashboardDTO | null = null;
   selectedView: DashboardView = 'padrao';
+  chartOptions: any = null;
 
   readonly viewOptions: { value: DashboardView; label: string }[] = [
     { value: 'padrao', label: 'Padrão' },
@@ -31,8 +32,6 @@ export class Dashboard implements OnInit {
     { value: 'financeiro', label: 'Financeiro' },
     { value: 'orcamento', label: 'Orçamento' },
   ];
-
-  chartOptions: any = null;
 
   ngOnInit(): void {
     this.carregarDados();
@@ -59,8 +58,7 @@ export class Dashboard implements OnInit {
   }
 
   get metaEntregasPercentual(): number {
-    const meta = 50;
-    return Math.min(Math.round(((this.data?.osConcluidas ?? 0) / meta) * 100), 100);
+    return Math.min(Math.round(((this.data?.osConcluidas ?? 0) / 50) * 100), 100);
   }
 
   carregarDados(): void {
@@ -75,9 +73,7 @@ export class Dashboard implements OnInit {
       empresaId = empresaId.id ?? null;
     }
 
-    const params = empresaId ? { empresaId } : undefined;
-
-    this.dashboardService.getDashboardData(params).subscribe({
+    this.dashboardService.getDashboardData(empresaId).subscribe({
       next: data => {
         this.data = data;
         this.chartOptions = this.buildChart(data);
@@ -117,9 +113,7 @@ export class Dashboard implements OnInit {
         axisTicks: { show: false },
       },
       yaxis: {
-        labels: {
-          formatter: (value: number) => this.formatCurrency(value),
-        },
+        labels: { formatter: (value: number) => this.formatCurrency(value) },
       },
       tooltip: {
         y: { formatter: (value: number) => this.formatCurrency(value) },
@@ -136,15 +130,11 @@ export class Dashboard implements OnInit {
     }).format(Number(value ?? 0));
   }
 
-  navegarPara(route: string): void {
-    this.router.navigateByUrl(route);
-  }
-
   selecionarVisao(view: DashboardView): void {
     this.selectedView = view;
   }
 
-  trackView(_: number, item: { value: DashboardView }): string {
-    return item.value;
+  navegarPara(route: string): void {
+    this.router.navigateByUrl(route);
   }
 }
