@@ -89,7 +89,7 @@ export class StartupService {
     return [
       { route: 'patio', name: 'Gestão de Pátio', type: 'extLink', icon: 'warehouse' },
       { route: 'home', name: 'Início', type: 'link', icon: 'home' },
-      { route: 'clientes', name: 'Clientes', type: 'sub', icon: 'people', children: [
+      { route: 'cliente', name: 'Clientes', type: 'sub', icon: 'people', children: [
         { route: 'listar', name: 'Clientes', type: 'link' },
         { route: 'crm', name: 'CRM', type: 'sub', children: [
           { route: 'comunicacao', name: 'Comunicação', type: 'link' },
@@ -107,7 +107,7 @@ export class StartupService {
         ...['Contas','Contas a Receber','Contas a Pagar','Lançamentos Bancários','Movimento de Caixa','Movimento Bancário','Comissões'].map((name, i) => ({ route: ['contas','receber','pagar','lancamentos','caixa','bancario','comissoes'][i], name, type: 'link' as const })),
       ] },
       { route: 'fiscal', name: 'Fiscal', type: 'sub', icon: 'fiscal', children: [
-        ...['Documentos Fiscais','NF-e','NFC-e / Cupom','NFS-e','Manifestação','Inutilização','NCM','SINTEGRA'].map((name, i) => ({ route: ['documentos','nfe','nfce','nfse','manifestacao','inutilizacao','ncm','sin­tegra'][i], name, type: 'link' as const })),
+        ...['Documentos Fiscais','NF-e','NFC-e / Cupom','NFS-e','Manifestação','Inutilização','NCM','SINTEGRA'].map((name, i) => ({ route: ['documentos','nfe','nfce','nfse','manifestacao','inutilizacao','ncm','sintegra'][i], name, type: 'link' as const })),
       ] },
       { route: 'inteligencia-artificial', name: 'Inteligência Artificial', type: 'sub', icon: 'ia', children: [
         { route: 'assistente', name: 'Assistente', type: 'link' },
