@@ -16,7 +16,8 @@ import {
   FotoVeiculoRequest,
   FotoVeiculoResponse,
   DocumentoVeiculoRequest,
-  DocumentoVeiculoResponse
+  DocumentoVeiculoResponse,
+  StatusVeiculo
 } from '../models/veiculo.models';
 
 @Injectable({ providedIn: 'root' })
