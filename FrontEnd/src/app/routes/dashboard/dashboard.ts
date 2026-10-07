@@ -154,6 +154,10 @@ export class Dashboard implements OnInit {
     };
   }
 
+  barHeight(value: number | null | undefined): number {
+    return Math.max(18, Math.round((Number(value ?? 0) / 140000) * 100));
+  }
+
   formatCurrency(value: number | null | undefined): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
