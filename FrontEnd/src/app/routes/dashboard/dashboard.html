@@ -47,7 +47,7 @@
       <section class="command-grid">
         <article class="hero-metric">
           <div class="metric-top">
-            <span>{{ selectedView === 'financeiro' ? 'Receita no período' : selectedView === 'orcamento' ? 'Faturamento originado' : 'Faturamento no período' }}</span>
+            <span>{{ primaryMetricLabel }}</span>
             <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')">↗</button>
           </div>
           <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
@@ -63,16 +63,16 @@
         </article>
 
         <button type="button" class="signal-card" (click)="navegarPara('/os')">
-          <div class="signal-label"><span class="signal-dot amber"></span> Em atendimento</div>
-          <strong>{{ data?.osEmAndamento ?? 0 }}</strong>
-          <p>OS em andamento agora</p>
+          <div class="signal-label"><span class="signal-dot amber"></span> {{ signalOneLabel }}</div>
+          <strong>{{ selectedView === 'financeiro' ? formatCurrency(signalOneValue) : signalOneValue }}</strong>
+          <p>{{ signalOneDescription }}</p>
           <span class="card-link">Ver operação <b>→</b></span>
         </button>
 
         <button type="button" class="signal-card" (click)="navegarPara('/os')">
-          <div class="signal-label"><span class="signal-dot"></span> Concluídas</div>
-          <strong>{{ data?.osConcluidas ?? 0 }}</strong>
-          <p>ordens concluídas no período</p>
+          <div class="signal-label"><span class="signal-dot"></span> {{ signalTwoLabel }}</div>
+          <strong>{{ selectedView === 'financeiro' ? formatCurrency(signalTwoValue) : signalTwoValue }}</strong>
+          <p>{{ signalTwoDescription }}</p>
           <span class="card-link">Ver histórico <b>→</b></span>
         </button>
 
