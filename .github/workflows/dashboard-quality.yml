@@ -2,7 +2,7 @@ name: Dashboard Quality
 
 on:
   push:
-    branches: ["feature/develop"]
+    branches: ["develop", "feature/develop"]
     paths:
       - "FrontEnd/src/app/routes/dashboard/**"
       - "FrontEnd/src/app/routes/home/**"
