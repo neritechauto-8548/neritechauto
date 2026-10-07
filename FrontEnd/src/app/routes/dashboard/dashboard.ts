@@ -41,6 +41,22 @@ export class Dashboard implements OnInit {
     return `${meses[data.getMonth()]}/${data.getFullYear()}`;
   }
 
+  get saudacao(): string {
+    const h = new Date().getHours();
+    return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  }
+
+  get margemPercentual(): number {
+    const faturamento = Number(this.data?.faturamentoMes ?? 0);
+    return faturamento > 0 ? Math.round((Number(this.data?.lucroMes ?? 0) / faturamento) * 100) : 0;
+  }
+
+  get taxaConversaoOrcamento(): number {
+    const abertos = Number(this.data?.abertosMes ?? 0);
+    const fechados = Number(this.data?.fechadosMes ?? 0);
+    return abertos > 0 ? Math.round((fechados / abertos) * 100) : 0;
+  }
+
   get hasData(): boolean {
     if (!this.data) return false;
     return [
