@@ -4,13 +4,13 @@
       <div class="home-heading">
         <span class="eyebrow">Visão geral</span>
         <h1>{{ saudacao }}, sua oficina.</h1>
-        <p>O que está acontecendo hoje e onde sua equipe precisa de atenção.</p>
+        <p>{{ viewDescription }}</p>
       </div>
 
       <div class="home-controls">
         <button type="button" class="period-control">
           <span class="period-dot"></span>
-          <span>Outubro 2026</span>
+          <span>{{ periodoAtualLabel }}</span>
           <span class="chevron">⌄</span>
         </button>
         <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
@@ -47,12 +47,12 @@
       <section class="command-grid">
         <article class="hero-metric">
           <div class="metric-top">
-            <span>Faturamento no período</span>
+            <span>{{ selectedView === 'financeiro' ? 'Receita no período' : selectedView === 'orcamento' ? 'Faturamento originado' : 'Faturamento no período' }}</span>
             <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')">↗</button>
           </div>
           <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
           <div class="hero-footer">
-            <span class="trend positive">↑ 8,4%</span>
+            <span class="trend" [class.positive]="faturamentoCrescimentoPercentual >= 0" [class.negative]="faturamentoCrescimentoPercentual < 0">{{ faturamentoCrescimentoPercentual >= 0 ? '↑' : '↓' }} {{ Math.abs(faturamentoCrescimentoPercentual) | number:'1.1-1' }}%</span>
             <span>vs. mês anterior</span>
           </div>
           <div class="mini-bars" aria-hidden="true">
@@ -70,10 +70,10 @@
         </button>
 
         <button type="button" class="signal-card" (click)="navegarPara('/os')">
-          <div class="signal-label"><span class="signal-dot"></span> Para entregar</div>
+          <div class="signal-label"><span class="signal-dot"></span> Concluídas</div>
           <strong>{{ data?.osConcluidas ?? 0 }}</strong>
-          <p>serviços concluídos no mês</p>
-          <span class="card-link">Ver entregas <b>→</b></span>
+          <p>ordens concluídas no período</p>
+          <span class="card-link">Ver histórico <b>→</b></span>
         </button>
 
         <button type="button" class="signal-card attention" (click)="navegarPara('/financeiro')">
@@ -107,18 +107,18 @@
 
         <aside class="surface health">
           <div class="surface-header compact">
-            <div><span class="eyebrow">Saúde da operação</span><h2>Hoje</h2></div>
+            <div><span class="eyebrow">Saúde da operação</span><h2>{{ viewLabel }}</h2></div>
             <span class="live-pill"><i></i> Atualizado</span>
           </div>
 
           <button class="health-row" type="button" (click)="navegarPara('/agendamento')">
             <span class="health-icon calendar">◷</span>
-            <span><b>Entradas</b><small>veículos previstos</small></span>
+            <span><b>Entradas</b><small>veículos registrados no período</small></span>
             <strong>{{ data?.entradasVeiculosMes ?? 0 }}</strong>
           </button>
           <button class="health-row" type="button" (click)="navegarPara('/os')">
             <span class="health-icon">✓</span>
-            <span><b>Saídas</b><small>veículos concluídos</small></span>
+            <span><b>Saídas</b><small>veículos entregues no período</small></span>
             <strong>{{ data?.saidasVeiculosMes ?? 0 }}</strong>
           </button>
           <button class="health-row" type="button" (click)="navegarPara('/os')">
