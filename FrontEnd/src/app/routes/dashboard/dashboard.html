@@ -52,7 +52,7 @@
           </div>
           <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
           <div class="hero-footer">
-            <span class="trend" [class.positive]="faturamentoCrescimentoPercentual >= 0" [class.negative]="faturamentoCrescimentoPercentual < 0">{{ faturamentoCrescimentoPercentual >= 0 ? '↑' : '↓' }} {{ Math.abs(faturamentoCrescimentoPercentual) | number:'1.1-1' }}%</span>
+            <span class="trend" [class.positive]="faturamentoCrescimentoPercentual >= 0" [class.negative]="faturamentoCrescimentoPercentual < 0">{{ faturamentoCrescimentoPercentual >= 0 ? '↑' : '↓' }} {{ (faturamentoCrescimentoPercentual < 0 ? -faturamentoCrescimentoPercentual : faturamentoCrescimentoPercentual) | number:'1.1-1' }}%</span>
             <span>vs. mês anterior</span>
           </div>
           <div class="mini-bars" aria-hidden="true">
