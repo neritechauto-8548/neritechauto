@@ -1,91 +1,172 @@
-<main class="min-h-full bg-slate-50/70 dark:bg-slate-950">
-  <div class="mx-auto max-w-[1600px] space-y-6 p-5 md:p-7 lg:p-8">
-    <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-slate-800 md:flex-row md:items-end md:justify-between">
-      <div>
-        <p class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Visão da oficina</p>
-        <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Início</h1>
-        <p class="mt-1 text-sm text-slate-500">Indicadores operacionais e financeiros da sua empresa.</p>
+<main class="home-shell">
+  <div class="home-container">
+    <header class="home-header">
+      <div class="home-heading">
+        <span class="eyebrow">Visão geral</span>
+        <h1>{{ saudacao }}, sua oficina.</h1>
+        <p>O que está acontecendo hoje e onde sua equipe precisa de atenção.</p>
       </div>
-      <div class="inline-flex w-full overflow-x-auto rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900 md:w-auto">
-        @for (option of viewOptions; track option.value) {
-          <button type="button"
-            class="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition"
-            [class.bg-slate-950]="selectedView === option.value"
-            [class.text-white]="selectedView === option.value"
-            [class.text-slate-600]="selectedView !== option.value"
-            [class.dark:bg-white]="selectedView === option.value"
-            [class.dark:text-slate-950]="selectedView === option.value"
-            (click)="selecionarVisao(option.value)">
-            {{ option.label }}
-          </button>
-        }
+
+      <div class="home-controls">
+        <button type="button" class="period-control">
+          <span class="period-dot"></span>
+          <span>Outubro 2026</span>
+          <span class="chevron">⌄</span>
+        </button>
+        <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
+          @for (option of viewOptions; track option.value) {
+            <button type="button"
+              [class.active]="selectedView === option.value"
+              (click)="selecionarVisao(option.value)">
+              {{ option.label }}
+            </button>
+          }
+        </div>
       </div>
     </header>
 
     @if (loading) {
-      <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Carregando dashboard">
-        @for (item of [1,2,3,4]; track item) {
-          <div class="h-32 animate-pulse rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"></div>
-        }
+      <section class="skeleton-grid">
+        <div class="skeleton hero"></div><div class="skeleton"></div><div class="skeleton"></div>
+        <div class="skeleton wide"></div><div class="skeleton"></div>
       </section>
     } @else if (error) {
-      <section class="rounded-xl border border-red-200 bg-white p-8 text-center dark:border-red-900/50 dark:bg-slate-900">
-        <p class="text-sm font-semibold text-slate-900 dark:text-white">Não foi possível carregar o dashboard.</p>
-        <p class="mt-1 text-sm text-slate-500">Verifique sua conexão e tente novamente.</p>
-        <button type="button" class="mt-5 rounded-lg bg-slate-950 px-4 py-2 text-sm font-medium text-white" (click)="carregarDados()">Tentar novamente</button>
+      <section class="state-card">
+        <span class="state-icon">!</span>
+        <div><strong>Não conseguimos atualizar sua visão.</strong><p>Os dados da oficina não puderam ser carregados agora.</p></div>
+        <button type="button" class="secondary-button" (click)="carregarDados()">Tentar novamente</button>
       </section>
     } @else if (!hasData) {
-      <section class="rounded-xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
-        <p class="text-sm font-semibold text-slate-900 dark:text-white">Ainda não há dados para esta empresa.</p>
-        <p class="mt-1 text-sm text-slate-500">Quando a operação começar, os indicadores aparecerão aqui automaticamente.</p>
+      <section class="empty-state">
+        <span class="empty-mark">+</span>
+        <h2>Comece pela operação.</h2>
+        <p>Quando clientes, veículos e ordens entrarem no sistema, o Home passa a contar a história da sua oficina automaticamente.</p>
+        <button type="button" class="primary-button" (click)="navegarPara('/cliente/cadastro')">Cadastrar primeiro cliente</button>
       </section>
     } @else {
-      @if (selectedView === 'padrao' || selectedView === 'orcamento') {
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <article class="dashboard-kpi"><span>Abertos</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>{{ mesAnoAtualLabel }} · {{ data?.abertosTotal ?? 0 }} no total</small></article>
-          <article class="dashboard-kpi"><span>Autorizados</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>{{ mesAnoAtualLabel }} · {{ data?.autorizadosTotal ?? 0 }} no total</small></article>
-          <article class="dashboard-kpi"><span>Cancelados</span><strong>{{ data?.canceladosMes ?? 0 }}</strong><small>{{ mesAnoAtualLabel }} · {{ data?.canceladosTotal ?? 0 }} no total</small></article>
-          <article class="dashboard-kpi"><span>Fechados</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>{{ mesAnoAtualLabel }} · {{ data?.fechadosTotal ?? 0 }} no total</small></article>
-        </section>
-      }
+      <section class="command-grid">
+        <article class="hero-metric">
+          <div class="metric-top">
+            <span>Faturamento no período</span>
+            <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')">↗</button>
+          </div>
+          <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
+          <div class="hero-footer">
+            <span class="trend positive">↑ 8,4%</span>
+            <span>vs. mês anterior</span>
+          </div>
+          <div class="mini-bars" aria-hidden="true">
+            @for (value of data?.historicoFaturamento ?? []; track $index) {
+              <i [style.height.%]="Math.max(18, Math.round((value / 140000) * 100))"></i>
+            }
+          </div>
+        </article>
 
-      @if (selectedView === 'gerencial' || selectedView === 'padrao') {
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/os')"><span>OS abertas</span><strong>{{ data?.osAbertas ?? 0 }}</strong><small>Em atendimento</small></button>
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/os')"><span>OS concluídas</span><strong>{{ data?.osConcluidas ?? 0 }}</strong><small>{{ metaEntregasPercentual }}% da meta de 50</small></button>
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/cliente')"><span>Clientes ativos</span><strong>{{ data?.totalClientes ?? 0 }}</strong><small>Base cadastral</small></button>
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/os')"><span>Entregas em atraso</span><strong [class.text-red-600]="(data?.veiculosEmAtraso ?? 0) > 0">{{ data?.veiculosEmAtraso ?? 0 }}</strong><small>Exigem atenção</small></button>
-        </section>
-      }
+        <button type="button" class="signal-card" (click)="navegarPara('/os')">
+          <div class="signal-label"><span class="signal-dot amber"></span> Em atendimento</div>
+          <strong>{{ data?.osEmAndamento ?? 0 }}</strong>
+          <p>OS em andamento agora</p>
+          <span class="card-link">Ver operação <b>→</b></span>
+        </button>
 
-      @if (selectedView === 'financeiro' || selectedView === 'padrao') {
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/financeiro')"><span>Faturamento do mês</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Recebido no período</small></button>
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/financeiro')"><span>Despesas do mês</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong><small>Pago no período</small></button>
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/financeiro')"><span>Resultado do mês</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Faturamento menos despesas</small></button>
-          <button type="button" class="dashboard-metric text-left" (click)="navegarPara('/financeiro')"><span>Contas vencidas</span><strong [class.text-red-600]="(data?.valoresVencidos ?? 0) > 0">{{ formatCurrency(data?.valoresVencidos) }}</strong><small>Carteira em cobrança</small></button>
-        </section>
-      }
+        <button type="button" class="signal-card" (click)="navegarPara('/os')">
+          <div class="signal-label"><span class="signal-dot"></span> Para entregar</div>
+          <strong>{{ data?.osConcluidas ?? 0 }}</strong>
+          <p>serviços concluídos no mês</p>
+          <span class="card-link">Ver entregas <b>→</b></span>
+        </button>
 
-      <section class="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-        <article class="dashboard-panel">
-          <div class="mb-5 flex items-start justify-between gap-4">
-            <div><h2>Desempenho financeiro</h2><p>Recebimentos e pagamentos dos últimos seis meses.</p></div>
-            <span class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">6 meses</span>
+        <button type="button" class="signal-card attention" (click)="navegarPara('/financeiro')">
+          <div class="signal-label"><span class="signal-dot red"></span> Atenção</div>
+          <strong>{{ formatCurrency(data?.valoresVencidos) }}</strong>
+          <p>em contas vencidas</p>
+          <span class="card-link">Resolver pendências <b>→</b></span>
+        </button>
+      </section>
+
+      <section class="workspace-grid">
+        <article class="surface performance">
+          <div class="surface-header">
+            <div>
+              <span class="eyebrow">Performance</span>
+              <h2>Receita acompanhando a operação</h2>
+              <p>Faturamento e despesas nos últimos seis meses.</p>
+            </div>
+            <div class="legend"><span><i></i> Receita</span><span><i class="muted"></i> Despesas</span></div>
           </div>
           @if (chartOptions) {
-            <apx-chart [series]="chartOptions.series" [chart]="chartOptions.chart" [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke" [colors]="chartOptions.colors" [fill]="chartOptions.fill" [grid]="chartOptions.grid" [legend]="chartOptions.legend" [tooltip]="chartOptions.tooltip" [dataLabels]="chartOptions.dataLabels"></apx-chart>
+            <apx-chart class="performance-chart"
+              [series]="chartOptions.series" [chart]="chartOptions.chart"
+              [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis"
+              [stroke]="chartOptions.stroke" [colors]="chartOptions.colors"
+              [fill]="chartOptions.fill" [grid]="chartOptions.grid"
+              [legend]="{show:false}" [tooltip]="chartOptions.tooltip"
+              [dataLabels]="chartOptions.dataLabels"></apx-chart>
           }
         </article>
 
-        <article class="dashboard-panel">
-          <div class="mb-5"><h2>Operação hoje</h2><p>Resumo dos principais movimentos da oficina.</p></div>
-          <div>
-            <button type="button" class="dashboard-row" (click)="navegarPara('/os')"><span>Entradas de veículos</span><strong>{{ data?.entradasVeiculosMes ?? 0 }}</strong></button>
-            <button type="button" class="dashboard-row" (click)="navegarPara('/os')"><span>Saídas de veículos</span><strong>{{ data?.saidasVeiculosMes ?? 0 }}</strong></button>
-            <button type="button" class="dashboard-row" (click)="navegarPara('/os')"><span>Ticket médio das OS</span><strong>{{ formatCurrency(data?.ticketMedio) }}</strong></button>
-            <button type="button" class="dashboard-row" (click)="navegarPara('/financeiro')"><span>Contas a receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></button>
-            <button type="button" class="dashboard-row" (click)="navegarPara('/financeiro')"><span>Contas a pagar</span><strong>{{ formatCurrency(data?.contasPagar) }}</strong></button>
+        <aside class="surface health">
+          <div class="surface-header compact">
+            <div><span class="eyebrow">Saúde da operação</span><h2>Hoje</h2></div>
+            <span class="live-pill"><i></i> Atualizado</span>
+          </div>
+
+          <button class="health-row" type="button" (click)="navegarPara('/agendamento')">
+            <span class="health-icon calendar">◷</span>
+            <span><b>Entradas</b><small>veículos previstos</small></span>
+            <strong>{{ data?.entradasVeiculosMes ?? 0 }}</strong>
+          </button>
+          <button class="health-row" type="button" (click)="navegarPara('/os')">
+            <span class="health-icon">✓</span>
+            <span><b>Saídas</b><small>veículos concluídos</small></span>
+            <strong>{{ data?.saidasVeiculosMes ?? 0 }}</strong>
+          </button>
+          <button class="health-row" type="button" (click)="navegarPara('/os')">
+            <span class="health-icon">R$</span>
+            <span><b>Ticket médio</b><small>por ordem de serviço</small></span>
+            <strong>{{ formatCurrency(data?.ticketMedio) }}</strong>
+          </button>
+
+          <div class="health-divider"></div>
+          <div class="health-summary">
+            <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
+            <div><span>Conversão</span><strong>{{ taxaConversaoOrcamento }}%</strong></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="lower-grid">
+        <article class="surface insight">
+          <div class="surface-header compact">
+            <div><span class="eyebrow">Inteligência</span><h2>O que merece sua atenção</h2></div>
+            <button type="button" class="text-button" (click)="navegarPara('/os')">Abrir operação →</button>
+          </div>
+          <div class="insight-list">
+            <button type="button" (click)="navegarPara('/os')">
+              <span class="insight-number">01</span><span><b>{{ data?.veiculosEmAtraso ?? 0 }} veículos em atraso</b><small>Há veículos aguardando conclusão além do prazo previsto.</small></span><span>→</span>
+            </button>
+            <button type="button" (click)="navegarPara('/financeiro')">
+              <span class="insight-number">02</span><span><b>{{ formatCurrency(data?.contasReceber) }} para receber</b><small>Acompanhe sua carteira e reduza o tempo de recebimento.</small></span><span>→</span>
+            </button>
+            <button type="button" (click)="navegarPara('/cliente')">
+              <span class="insight-number">03</span><span><b>{{ data?.totalClientes ?? 0 }} clientes ativos</b><small>Sua base atual de relacionamento.</small></span><span>→</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="surface finance-summary">
+          <div class="surface-header compact">
+            <div><span class="eyebrow">Financeiro</span><h2>Posição do mês</h2></div>
+            <button type="button" class="text-button" (click)="navegarPara('/financeiro')">Ver financeiro →</button>
+          </div>
+          <div class="finance-main">
+            <span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong>
+            <small>Faturamento menos despesas</small>
+          </div>
+          <div class="finance-lines">
+            <div><span>Receita</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong></div>
+            <div><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong></div>
+            <div><span>A receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
           </div>
         </article>
       </section>
