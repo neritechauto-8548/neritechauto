@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 import {
@@ -21,6 +21,17 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class VeiculoService {
+  private readonly previewVeiculos: VeiculoResponse[] = [
+    { id: 1, clienteId: 1, placa: 'ABC1D23', marcaNome: 'Toyota', modeloNome: 'Corolla', anoFabricacao: 2022, anoModelo: 2023, combustivelNome: 'Flex', quilometragemAtual: 48200, status: StatusVeiculo.ATIVO },
+    { id: 2, clienteId: 2, placa: 'DEF4G56', marcaNome: 'Honda', modeloNome: 'Civic', anoFabricacao: 2021, anoModelo: 2022, combustivelNome: 'Flex', quilometragemAtual: 53100, status: StatusVeiculo.ATIVO },
+    { id: 3, clienteId: 3, placa: 'GHI7J89', marcaNome: 'Volkswagen', modeloNome: 'T-Cross', anoFabricacao: 2023, anoModelo: 2023, combustivelNome: 'Flex', quilometragemAtual: 28700, status: StatusVeiculo.ATIVO },
+    { id: 4, clienteId: 4, placa: 'KLM1N23', marcaNome: 'Chevrolet', modeloNome: 'S10', anoFabricacao: 2020, anoModelo: 2021, combustivelNome: 'Diesel', quilometragemAtual: 89400, status: StatusVeiculo.ATIVO },
+    { id: 5, clienteId: 5, placa: 'OPQ4R56', marcaNome: 'Hyundai', modeloNome: 'Creta', anoFabricacao: 2024, anoModelo: 2024, combustivelNome: 'Flex', quilometragemAtual: 12100, status: StatusVeiculo.ATIVO },
+    { id: 6, clienteId: 6, placa: 'STU7V89', marcaNome: 'Fiat', modeloNome: 'Toro', anoFabricacao: 2022, anoModelo: 2022, combustivelNome: 'Diesel', quilometragemAtual: 61700, status: StatusVeiculo.ATIVO },
+    { id: 7, clienteId: 7, placa: 'WXY1Z23', marcaNome: 'Jeep', modeloNome: 'Compass', anoFabricacao: 2021, anoModelo: 2022, combustivelNome: 'Flex', quilometragemAtual: 45800, status: StatusVeiculo.ATIVO },
+    { id: 8, clienteId: 8, placa: 'ABC4D56', marcaNome: 'Ford', modeloNome: 'Ranger', anoFabricacao: 2023, anoModelo: 2024, combustivelNome: 'Diesel', quilometragemAtual: 33600, status: StatusVeiculo.ATIVO },
+  ];
+
   private readonly http = inject(HttpClient);
   private readonly base = environment.baseUrl;
 
@@ -30,6 +41,9 @@ export class VeiculoService {
   // ========== VEÍCULOS ==========
 
   list(clienteId?: number): Observable<VeiculoResponse[]> {
+    if (environment.uxPreview) {
+      return of(clienteId == null ? [...this.previewVeiculos] : this.previewVeiculos.filter(v => v.clienteId === Number(clienteId)));
+    }
     const url = `${this.base}/v1/veiculos`;
     let params = new HttpParams();
     if (clienteId !== undefined && clienteId !== null) {
@@ -39,6 +53,7 @@ export class VeiculoService {
   }
 
   getById(id: number | string): Observable<VeiculoResponse> {
+    if (environment.uxPreview) return of(this.previewVeiculos.find(v => v.id === Number(id)) || this.previewVeiculos[0]);
     const url = `${this.base}/v1/veiculos/${id}`;
     return this.http.get<VeiculoResponse>(url);
   }
