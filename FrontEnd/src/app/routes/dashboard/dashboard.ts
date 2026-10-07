@@ -60,6 +60,61 @@ export class Dashboard implements OnInit {
     return descriptions[this.selectedView];
   }
 
+  get primaryMetricLabel(): string {
+    return {
+      padrao: 'Faturamento no período',
+      gerencial: 'Faturamento no período',
+      financeiro: 'Receita no período',
+      orcamento: 'Faturamento originado',
+    }[this.selectedView];
+  }
+
+  get signalOneLabel(): string {
+    return {
+      padrao: 'Em atendimento',
+      gerencial: 'Em atendimento',
+      financeiro: 'A receber',
+      orcamento: 'Aguardando aprovação',
+    }[this.selectedView];
+  }
+
+  get signalOneValue(): number {
+    return this.selectedView === 'financeiro'
+      ? Number(this.data?.contasReceber ?? 0)
+      : this.selectedView === 'orcamento'
+        ? Number(this.data?.abertosMes ?? 0)
+        : Number(this.data?.osEmAndamento ?? 0);
+  }
+
+  get signalOneDescription(): string {
+    return {
+      padrao: 'OS em andamento agora',
+      gerencial: 'OS em andamento agora',
+      financeiro: 'carteira em aberto',
+      orcamento: 'orçamentos em análise',
+    }[this.selectedView];
+  }
+
+  get signalTwoLabel(): string {
+    return this.selectedView === 'orcamento' ? 'Autorizados' : this.selectedView === 'financeiro' ? 'Despesas' : 'Concluídas';
+  }
+
+  get signalTwoValue(): number {
+    return this.selectedView === 'financeiro'
+      ? Number(this.data?.despesasMes ?? 0)
+      : this.selectedView === 'orcamento'
+        ? Number(this.data?.autorizadosMes ?? 0)
+        : Number(this.data?.osConcluidas ?? 0);
+  }
+
+  get signalTwoDescription(): string {
+    return this.selectedView === 'financeiro'
+      ? 'despesas no período'
+      : this.selectedView === 'orcamento'
+        ? 'orçamentos autorizados'
+        : 'ordens concluídas no período';
+  }
+
   get faturamentoCrescimentoPercentual(): number {
     const historico = this.data?.historicoFaturamento ?? [];
     if (historico.length < 2) return 0;
