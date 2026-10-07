@@ -96,11 +96,11 @@ export class StartupService {
           { route: 'pesquisa', name: 'Questionamento de pesquisa', type: 'link' },
         ] },
       ] },
-      { route: 'oficina', name: 'Oficina', type: 'sub', icon: 'oficina', children: [
+      { route: '', name: 'Oficina', type: 'sub', icon: 'oficina', children: [
         ...['Agenda','Orçamentos','Ordens de Serviço','Diagnósticos','Inspeções','Serviços','Veículos','Entregas','Vendas','Histórico']
           .map((name, i) => ({ route: ['agendamento','orcamento','os','diagnostico','inspecao','produtos-servicos','veiculo','entrega','pdv','historico'][i], name, type: 'link' as const })),
       ] },
-      { route: 'estoque-compras', name: 'Estoque & Compras', type: 'sub', icon: 'estoque', children: [
+      { route: '', name: 'Estoque & Compras', type: 'sub', icon: 'estoque', children: [
         ...['Estoque','Produtos','Kits','Compras','Cotações','Inventário','Movimentações'].map((name, i) => ({ route: ['estoque','produtos','kits','compras','cotacoes','inventario','movimentacoes'][i], name, type: 'link' as const })),
       ] },
       { route: 'financeiro', name: 'Financeiro', type: 'sub', icon: 'financeiro', children: [
@@ -109,7 +109,7 @@ export class StartupService {
       { route: 'fiscal', name: 'Fiscal', type: 'sub', icon: 'fiscal', children: [
         ...['Documentos Fiscais','NF-e','NFC-e / Cupom','NFS-e','Manifestação','Inutilização','NCM','SINTEGRA'].map((name, i) => ({ route: ['documentos','nfe','nfce','nfse','manifestacao','inutilizacao','ncm','sintegra'][i], name, type: 'link' as const })),
       ] },
-      { route: 'inteligencia-artificial', name: 'Inteligência Artificial', type: 'sub', icon: 'ia', children: [
+      { route: '', name: 'Inteligência Artificial', type: 'sub', icon: 'ia', children: [
         { route: 'assistente', name: 'Assistente', type: 'link' },
         { route: 'automacoes', name: 'Automações IA', type: 'link' },
       ] },
