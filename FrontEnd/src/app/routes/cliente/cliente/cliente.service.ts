@@ -13,7 +13,9 @@ import {
   ContatoClienteRequest,
   ContatoClienteResponse,
   DocumentoClienteRequest,
-  DocumentoClienteResponse
+  DocumentoClienteResponse,
+  TipoCliente,
+  StatusCliente
 } from '../models/cliente.models';
 
 @Injectable({ providedIn: 'root' })
