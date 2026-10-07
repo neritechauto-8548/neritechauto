@@ -46,6 +46,32 @@ export class Dashboard implements OnInit {
     return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   }
 
+  get viewLabel(): string {
+    return this.viewOptions.find(option => option.value === this.selectedView)?.label ?? 'Padrão';
+  }
+
+  get viewDescription(): string {
+    const descriptions: Record<DashboardView, string> = {
+      padrao: 'Uma visão equilibrada da operação, clientes e resultado.',
+      gerencial: 'Indicadores para acompanhar ritmo, produtividade e resultado.',
+      financeiro: 'Receita, despesas, resultado e valores que exigem atenção.',
+      orcamento: 'Conversão, volume de orçamentos e impacto no faturamento.',
+    };
+    return descriptions[this.selectedView];
+  }
+
+  get faturamentoCrescimentoPercentual(): number {
+    const historico = this.data?.historicoFaturamento ?? [];
+    if (historico.length < 2) return 0;
+    const atual = Number(historico[historico.length - 1] ?? 0);
+    const anterior = Number(historico[historico.length - 2] ?? 0);
+    return anterior > 0 ? Math.round(((atual - anterior) / anterior) * 1000) / 10 : 0;
+  }
+
+  get periodoAtualLabel(): string {
+    return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date());
+  }
+
   get margemPercentual(): number {
     const faturamento = Number(this.data?.faturamentoMes ?? 0);
     return faturamento > 0 ? Math.round((Number(this.data?.lucroMes ?? 0) / faturamento) * 100) : 0;
