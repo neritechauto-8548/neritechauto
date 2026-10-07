@@ -57,7 +57,7 @@
           </div>
           <div class="mini-bars" aria-hidden="true">
             @for (value of data?.historicoFaturamento ?? []; track $index) {
-              <i [style.height.%]="Math.max(18, Math.round((value / 140000) * 100))"></i>
+              <i [style.height.%]="barHeight(value)"></i>
             }
           </div>
         </article>
