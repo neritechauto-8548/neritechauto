@@ -19,6 +19,8 @@
         <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
           @for (option of viewOptions; track option.value) {
             <button type="button"
+              role="tab"
+              [attr.aria-selected]="selectedView === option.value"
               [class.active]="selectedView === option.value"
               (click)="selecionarVisao(option.value)">
               {{ option.label }}
@@ -46,7 +48,7 @@
         <p>Quando clientes, veículos e ordens entrarem no sistema, o Home passa a contar a história da sua oficina automaticamente.</p>
         <button type="button" class="primary-button" (click)="navegarPara('/cliente/cadastro')">Cadastrar primeiro cliente</button>
       </section>
-    } @else {
+    } @else if (selectedView === 'padrao') {
       <section class="command-grid">
         <article class="hero-metric">
           <div class="metric-top">
@@ -172,6 +174,78 @@
             <div><span>A receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
           </div>
         </article>
+      </section>
+    } @else if (selectedView === 'gerencial') {
+      <section class="view-section-heading">
+        <span class="eyebrow">Painel gerencial</span>
+        <h2>Visão consolidada da oficina</h2>
+        <p>Indicadores para acompanhar resultado, equipe e relacionamento com clientes.</p>
+      </section>
+      <section class="view-dashboard-grid">
+        <article class="view-stat-card stat-blue"><span>Faturamento no mês</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Receita registrada no período</small></article>
+        <article class="view-stat-card stat-green"><span>Resultado do mês</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Receita menos despesas</small></article>
+        <article class="view-stat-card stat-amber"><span>OS em andamento</span><strong>{{ data?.osEmAndamento ?? 0 }}</strong><small>Ordens em execução</small></article>
+        <article class="view-stat-card stat-violet"><span>Clientes cadastrados</span><strong>{{ data?.totalClientes ?? 0 }}</strong><small>Base de relacionamento</small></article>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Evolução</span><h2>Receita e despesas</h2><p>Comparativo dos últimos meses disponíveis.</p></div></div>
+        @if (chartOptions) {
+          <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
+            [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
+            [colors]="chartOptions.colors" [fill]="chartOptions.fill" [grid]="chartOptions.grid"
+            [legend]="{show:false}" [tooltip]="chartOptions.tooltip" [dataLabels]="chartOptions.dataLabels"></apx-chart>
+        }
+      </section>
+    } @else if (selectedView === 'financeiro') {
+      <section class="view-section-heading">
+        <span class="eyebrow">Painel financeiro</span>
+        <h2>Receita, resultado e compromissos</h2>
+        <p>Acompanhe os principais números financeiros do período demonstrado.</p>
+      </section>
+      <section class="view-dashboard-grid">
+        <article class="view-stat-card stat-blue"><span>Faturamento</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Receita no mês</small></article>
+        <article class="view-stat-card stat-amber"><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong><small>Custos e despesas registrados</small></article>
+        <article class="view-stat-card stat-green"><span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Faturamento menos despesas</small></article>
+        <article class="view-stat-card stat-red"><span>Valores vencidos</span><strong>{{ formatCurrency(data?.valoresVencidos) }}</strong><small>Contas vencidas a acompanhar</small></article>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Fluxo financeiro</span><h2>Receita e despesas por mês</h2><p>Use os valores como visão de acompanhamento, não como conciliação contábil.</p></div></div>
+        @if (chartOptions) {
+          <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
+            [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
+            [colors]="chartOptions.colors" [fill]="chartOptions.fill" [grid]="chartOptions.grid"
+            [legend]="{show:false}" [tooltip]="chartOptions.tooltip" [dataLabels]="chartOptions.dataLabels"></apx-chart>
+        }
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Posição financeira</span><h2>Carteira e compromissos</h2></div></div>
+        <div class="finance-lines view-finance-lines">
+          <div><span>A receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
+          <div><span>A pagar</span><strong>{{ formatCurrency(data?.contasPagar) }}</strong></div>
+          <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
+        </div>
+        <button type="button" class="primary-button" (click)="navegarPara('/financeiro')">Abrir módulo Financeiro</button>
+      </section>
+    } @else if (selectedView === 'orcamento') {
+      <section class="view-section-heading">
+        <span class="eyebrow">Painel de orçamentos</span>
+        <h2>Do orçamento à aprovação</h2>
+        <p>Acompanhe a movimentação dos orçamentos e identifique oportunidades de conversão.</p>
+      </section>
+      <section class="view-dashboard-grid">
+        <article class="view-stat-card stat-blue"><span>Orçamentos abertos no mês</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>Entradas registradas no período</small></article>
+        <article class="view-stat-card stat-green"><span>Autorizados no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>Orçamentos aprovados</small></article>
+        <article class="view-stat-card stat-violet"><span>Fechados no mês</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>Orçamentos finalizados</small></article>
+        <article class="view-stat-card stat-red"><span>Cancelados no mês</span><strong>{{ data?.canceladosMes ?? 0 }}</strong><small>Verifique os motivos de perda</small></article>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Conversão</span><h2>Indicadores de orçamento</h2><p>Taxa calculada a partir dos totais disponíveis no serviço atual.</p></div></div>
+        <div class="quote-conversion">
+          <div><span>Conversão estimada</span><strong>{{ taxaConversaoOrcamento }}%</strong></div>
+          <div><span>Orçamentos autorizados</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
+          <div><span>Orçamentos cancelados</span><strong>{{ data?.canceladosMes ?? 0 }}</strong></div>
+        </div>
+        <button type="button" class="primary-button" (click)="navegarPara('/orcamentos')">Abrir módulo Orçamentos</button>
       </section>
     }
   </div>
