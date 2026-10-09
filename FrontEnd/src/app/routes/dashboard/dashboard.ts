@@ -55,8 +55,8 @@ export class Dashboard implements OnInit {
 
   get taxaConversaoOrcamento(): number {
     const abertos = Number(this.data?.abertosMes ?? 0);
-    const fechados = Number(this.data?.fechadosMes ?? 0);
-    return abertos > 0 ? Math.round((fechados / abertos) * 100) : 0;
+    const autorizados = Number(this.data?.autorizadosMes ?? 0);
+    return abertos > 0 ? Math.min(100, Math.round((autorizados / abertos) * 100)) : 0;
   }
 
   get hasData(): boolean {
