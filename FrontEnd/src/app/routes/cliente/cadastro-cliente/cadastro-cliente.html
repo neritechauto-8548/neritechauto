@@ -9,6 +9,11 @@
           <div>
               <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ pageTitle }}</h1>
               <span class="text-xs text-slate-500 font-normal">{{ isEditMode ? 'Editando registro' : 'Novo registro' }}</span>
+              @if (isUxPreview) {
+                <span class="mt-1 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700" role="status">
+                  <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Homologação · dados demonstrativos
+                </span>
+              }
           </div>
       </div>
 
@@ -32,9 +37,12 @@
 
     <!-- Tabs as Pill Navigation -->
     <div class="flex justify-start overflow-x-auto pb-1">
-        <div class="bg-white p-1 rounded-xl inline-flex border border-slate-200 shadow-sm">
+        <div class="bg-white p-1 rounded-xl inline-flex border border-slate-200 shadow-sm" role="tablist" aria-label="Seções do cadastro do cliente">
             @for (tab of tabs; track tab.label; let i = $index) {
                 <button
+                    type="button"
+                    role="tab"
+                    [attr.aria-selected]="activeIndex === i"
                     (click)="activeIndex = i"
                     [class]="activeIndex === i ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
                     class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap">
@@ -160,7 +168,7 @@
                     </div>
                     <div class="col-span-12 md:col-span-6 space-y-1">
                          <label class="text-xs font-bold text-slate-700">Status</label>
-                         <p-select [options]="situacoes" [(ngModel)]="model.situacao" appendTo="body" styleClass="w-full modern-select" />
+                         <p-select [options]="situacoes" [(ngModel)]="model.situacao" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
                     </div>
                     <div class="col-span-12 space-y-1">
                          <label class="text-xs font-bold text-slate-700">Observações Internas</label>
