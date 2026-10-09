@@ -27,6 +27,7 @@ import { ConfirmationService } from '@shared/services/confirmation.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
 import { CnpjMaskDirective } from '@shared/directives/cnpj-mask';
+import { environment } from '../../../../environments/environment';
 
 interface ContatoExtra {
   tipoContato: string;
@@ -71,6 +72,7 @@ interface DocumentoExtra {
   ],
 })
 export class CadastroCliente implements OnInit {
+  readonly isUxPreview = environment.uxPreview;
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
