@@ -188,7 +188,7 @@ export class Dashboard implements OnInit {
       },
       dataLabels: { enabled: false },
       stroke: { curve: 'smooth', width: 2.5 },
-      colors: ['#111827', '#94a3b8'],
+      colors: ['#2563eb', '#f59e0b'],
       fill: {
         type: 'gradient',
         gradient: { opacityFrom: 0.18, opacityTo: 0.02, stops: [0, 100] },
