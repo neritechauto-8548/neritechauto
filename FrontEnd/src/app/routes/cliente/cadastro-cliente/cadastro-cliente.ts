@@ -489,7 +489,7 @@ export class CadastroCliente implements OnInit {
     // 2. Contatos da Lista
     if (this.contatosList.length > 0) {
       this.contatosList.forEach((contato: any) => {
-        const payload = { tipoContato: contato.tipoContato, valor: contato.valor };
+        const payload = { tipoContato: contato.tipoContato, contato: contato.valor };
 
         if (contato.id) {
             requests.push(this.clientesService.atualizarContato(clienteId, contato.id, payload as any));
@@ -552,7 +552,7 @@ export class CadastroCliente implements OnInit {
       ? this.stripNonDigits(this.contatoForm.valor) 
       : this.contatoForm.valor;
 
-    const payload = { tipoContato: this.contatoForm.tipoContato, valor: valorSalvar };
+    const payload = { tipoContato: this.contatoForm.tipoContato, contato: valorSalvar };
 
     if (this.savedClienteId) {
       // Auto-save logic (Edição remota)
