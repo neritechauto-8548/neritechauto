@@ -130,6 +130,11 @@ export class Dashboard implements OnInit {
     };
   }
 
+  barHeight(value: number | null | undefined): number {
+    const numericValue = Number(value ?? 0);
+    return Math.max(18, Math.min(100, Math.round((numericValue / 140000) * 100)));
+  }
+
   formatCurrency(value: number | null | undefined): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
