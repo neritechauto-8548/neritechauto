@@ -20,16 +20,24 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
-  private readonly previewClientes: ClienteResponse[] = [
-    { id: 1, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Carlos Eduardo Silva', cpf: '123.456.789-00', email: 'carlos@example.com', status: StatusCliente.ATIVO },
-    { id: 2, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Mariana Oliveira', cpf: '234.567.890-11', email: 'mariana@example.com', status: StatusCliente.ATIVO },
-    { id: 3, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'João Pedro Santos', cpf: '345.678.901-22', email: 'joao@example.com', status: StatusCliente.ATIVO },
-    { id: 4, empresaId: 1, tipoCliente: TipoCliente.PESSOA_JURIDICA, razaoSocial: 'Transportes Alfa Ltda.', nomeFantasia: 'Alfa Transportes', cnpj: '12.345.678/0001-90', email: 'contato@alfa.example.com', status: StatusCliente.ATIVO },
-    { id: 5, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Fernanda Costa', cpf: '456.789.012-33', email: 'fernanda@example.com', status: StatusCliente.ATIVO },
-    { id: 6, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Ricardo Almeida', cpf: '567.890.123-44', email: 'ricardo@example.com', status: StatusCliente.ATIVO },
-    { id: 7, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Patrícia Gomes', cpf: '678.901.234-55', email: 'patricia@example.com', status: StatusCliente.ATIVO },
-    { id: 8, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'André Martins', cpf: '789.012.345-66', email: 'andre@example.com', status: StatusCliente.ATIVO },
+  private previewClientes: ClienteResponse[] = [
+    { id: 1, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Carlos Eduardo Silva', cpf: '529.982.247-25', email: 'carlos@example.com', status: StatusCliente.ATIVO },
+    { id: 2, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Mariana Oliveira', cpf: '111.444.777-35', email: 'mariana@example.com', status: StatusCliente.ATIVO },
+    { id: 3, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'João Pedro Santos', cpf: '935.411.347-80', email: 'joao@example.com', status: StatusCliente.INATIVO },
+    { id: 4, empresaId: 1, tipoCliente: TipoCliente.PESSOA_JURIDICA, razaoSocial: 'Transportes Alfa Ltda.', nomeFantasia: 'Alfa Transportes', cnpj: '11.222.333/0001-81', email: 'contato@alfa.example.com', status: StatusCliente.ATIVO },
+    { id: 5, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Fernanda Costa', cpf: '168.995.350-09', email: 'fernanda@example.com', status: StatusCliente.BLOQUEADO },
+    { id: 6, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Ricardo Almeida', cpf: '286.255.878-87', email: 'ricardo@example.com', status: StatusCliente.ATIVO },
+    { id: 7, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Patrícia Gomes', cpf: '935.411.347-80', email: 'patricia@example.com', status: StatusCliente.ATIVO },
+    { id: 8, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'André Martins', cpf: '168.995.350-09', email: 'andre@example.com', status: StatusCliente.ATIVO },
   ];
+  private previewEnderecos: EnderecoClienteResponse[] = [];
+  private previewContatos: ContatoClienteResponse[] = [
+    { id: 1, clienteId: 1, tipoContato: (TipoCliente.PESSOA_FISICA as any) && 'CELULAR' as any, valor: '(81) 99999-1010' },
+    { id: 2, clienteId: 2, tipoContato: 'WHATSAPP' as any, valor: '(81) 98888-2020' },
+    { id: 3, clienteId: 4, tipoContato: 'TELEFONE_FIXO' as any, valor: '(81) 3333-4040' },
+  ];
+  private previewDocumentos: DocumentoClienteResponse[] = [];
+  private previewNextId = 20;
 
   private readonly http = inject(HttpClient);
   private readonly base = environment.baseUrl;
@@ -41,11 +49,25 @@ export class ClientesService {
 
   list(filters: Record<string, any>): Observable<Page<ClienteResponse>> {
     if (environment.uxPreview) {
-      const term = String(filters?.['search'] || filters?.['nome'] || '').trim().toLowerCase();
-      const content = this.previewClientes.filter(c =>
-        !term || [c.nomeCompleto, c.nomeFantasia, c.razaoSocial, c.cpf, c.cnpj].some(v => String(v || '').toLowerCase().includes(term))
-      );
-      return of({ content, totalElements: content.length, totalPages: 1, number: 0, size: content.length || 10 });
+      const term = String(filters?.['busca'] || filters?.['search'] || filters?.['nome'] || '').trim().toLocaleLowerCase('pt-BR');
+      const tipo = filters?.['tipoCliente'];
+      const status = filters?.['status'];
+      const filtered = this.previewClientes
+        .filter(c => !term || [c.nomeCompleto, c.nomeFantasia, c.razaoSocial, c.cpf, c.cnpj, c.email]
+          .some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(term)))
+        .filter(c => !tipo || c.tipoCliente === tipo)
+        .filter(c => !status || c.status === status)
+        .sort((a, b) => this.getClientName(a).localeCompare(this.getClientName(b), 'pt-BR'));
+      const page = Math.max(0, Number(filters?.['page'] ?? 0));
+      const size = Math.max(1, Number(filters?.['size'] ?? 10));
+      const start = page * size;
+      return of({
+        content: filtered.slice(start, start + size),
+        totalElements: filtered.length,
+        totalPages: Math.ceil(filtered.length / size),
+        number: page,
+        size
+      });
     }
     const url = `${this.base}/v1/clientes`;
     let params = new HttpParams();
@@ -57,25 +79,52 @@ export class ClientesService {
     return this.http.get<any>(url, { params }).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
+  private getClientName(c: ClienteResponse): string {
+    return c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '';
+  }
+
   create(dto: ClienteRequest): Observable<ClienteResponse> {
+    if (environment.uxPreview) {
+      const created: ClienteResponse = { ...dto, id: this.previewNextId++, empresaId: 1, status: dto.status || StatusCliente.ATIVO };
+      this.previewClientes = [...this.previewClientes, created];
+      return of(created);
+    }
     const url = `${this.base}/v1/clientes`;
     return this.http.post<ClienteResponse>(url, dto);
   }
 
   getById(id: number | string): Observable<ClienteResponse> {
     if (environment.uxPreview) {
-      return of(this.previewClientes.find(c => c.id === Number(id)) || this.previewClientes[0]);
+      const cliente = this.previewClientes.find(c => c.id === Number(id));
+      if (cliente) return of(cliente);
+      throw new Error('Cliente demonstrativo não encontrado.');
     }
     const url = `${this.base}/v1/clientes/${id}`;
     return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   update(id: number | string, dto: Partial<ClienteRequest>): Observable<ClienteResponse> {
+    if (environment.uxPreview) {
+      const numericId = Number(id);
+      const existing = this.previewClientes.find(c => c.id === numericId);
+      if (!existing) throw new Error('Cliente demonstrativo não encontrado.');
+      const updated = { ...existing, ...dto, id: numericId, empresaId: existing.empresaId };
+      this.previewClientes = this.previewClientes.map(c => c.id === numericId ? updated : c);
+      return of(updated);
+    }
     const url = `${this.base}/v1/clientes/${id}`;
     return this.http.put<ClienteResponse>(url, dto);
   }
 
   delete(id: number | string): Observable<void> {
+    if (environment.uxPreview) {
+      const numericId = Number(id);
+      this.previewClientes = this.previewClientes.filter(c => c.id !== numericId);
+      this.previewEnderecos = this.previewEnderecos.filter(e => e.clienteId !== numericId);
+      this.previewContatos = this.previewContatos.filter(c => c.clienteId !== numericId);
+      this.previewDocumentos = this.previewDocumentos.filter(d => d.clienteId !== numericId);
+      return of(void 0);
+    }
     const url = `${this.base}/v1/clientes/${id}`;
     return this.http.delete<void>(url);
   }
