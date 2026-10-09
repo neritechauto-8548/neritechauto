@@ -11,11 +11,10 @@
       </div>
 
       <div class="home-controls">
-        <button type="button" class="period-control">
-          <span class="period-dot"></span>
-          <span>Outubro 2026</span>
-          <span class="chevron">⌄</span>
-        </button>
+        <div class="period-control" aria-label="Período atual">
+          <span class="period-dot" aria-hidden="true"></span>
+          <span>{{ mesAnoAtualLabel }}</span>
+        </div>
         <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
           @for (option of viewOptions; track option.value) {
             <button type="button"
