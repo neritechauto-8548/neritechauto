@@ -1,58 +1,37 @@
-<!-- Cabeçalho Moderno com Efeitos Especiais -->
-<p-toolbar [styleClass]="(settings.options.topbarThemeClass || '!bg-[var(--p-surface-0)] dark:!bg-[var(--p-surface-900)] !text-[var(--p-text-color)]') + ' !border-b !border-[var(--p-content-border-color)] !h-16 !px-4 sticky top-0 z-50 flex items-center justify-between w-full !rounded-none !border-x-0 !border-t-0 shadow-sm transition-colors duration-200'">
-
-  <!-- Left: Logo & Toggle -->
-  <div class="flex items-center gap-4">
+<header class="nt-topbar">
+  <div class="nt-topbar-left">
     @if (showToggle) {
-      <p-button icon="pi pi-bars" [text]="true" [rounded]="true" severity="secondary" styleClass="!text-current hover:!bg-black/10 dark:hover:!bg-white/10" (click)="toggleSidenav.emit()"></p-button>
+      <button class="nt-topbar-icon" type="button" (click)="toggleSidenav.emit()" [attr.aria-label]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'" [matTooltip]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'">
+        <svg viewBox="0 0 24 24" aria-hidden="true">@if (settings.options.sidenavCollapsed) {<path d="M9 5l7 7-7 7"></path>} @else {<path d="M15 5l-7 7 7 7"></path>}</svg>
+      </button>
     }
-
-    <!-- Logo (Visible on Mobile or when Branding hidden in Sidebar) -->
-    <div class="flex items-center gap-2" [class.hidden]="!showBranding">
-        <div class="flex items-center gap-2 font-inter scale-95 origin-left cursor-pointer"
-             matTooltip="Configurações da Empresa&#10;Gerencie os dados cadastrais, fiscais, horários e comunicações da sua oficina"
-             matTooltipClass="whitespace-pre-line">
-          <div class="w-7 h-7 rounded-lg bg-[var(--p-primary-color)] flex items-center justify-center text-[var(--p-primary-contrast-color)] font-black text-xs shadow-md">
-            N
-          </div>
-          <span class="font-bold text-[18px] tracking-tight text-inherit leading-none">
-            NeriTech<span class="opacity-80">Auto</span>
-          </span>
-        </div>
-    </div>
+    @if (showBranding) {
+      <app-branding [showName]="true" />
+    }
   </div>
 
-  <!-- Center: Global Search (Command Bar Style) -->
-  <div class="flex-1 px-4 max-w-xl hidden md:block">
-    <div class="relative group">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <mat-icon class="text-slate-400 text-[18px] w-[18px] h-[18px]">search</mat-icon>
+  <div class="nt-global-search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+    <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" (keydown.enter)="openFirstSearchResult()" />
+    @if (searchResults.length) {
+      <div class="nt-search-results" role="listbox">
+        @for (result of searchResults; track result.route) {
+          <button type="button" class="nt-search-result" (click)="navigateSearch(result.route)" role="option">
+            <span>{{ result.name }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </button>
+        }
       </div>
-      <input
-        type="text"
-        class="block w-full pl-9 pr-12 py-1.5 !border !border-[var(--p-content-border-color)] !rounded-lg leading-5 !bg-[var(--p-surface-50)] dark:!bg-[var(--p-surface-800)] !text-[var(--p-text-color)] placeholder-[var(--p-text-muted-color)] focus:outline-none focus:ring-2 focus:ring-[var(--p-primary-color)] sm:text-sm transition-all duration-200"
-        placeholder="Buscar e navegar... (Ctrl+K)"
-      />
-      <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-        <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 font-sans text-[10px] font-medium text-slate-400 shadow-sm">
-          ⌘K
-        </kbd>
-      </div>
-    </div>
+    }
+    <kbd>Ctrl K</kbd>
   </div>
 
-  <!-- Right: Actions -->
-  <div class="flex items-center gap-2">
-
-    <!-- Theme Toggle -->
-    <p-button icon="pi pi-moon" [text]="true" [rounded]="true" severity="secondary" styleClass="!text-current hover:!bg-black/10 dark:hover:!bg-white/10" (click)="toggleTheme()"></p-button>
-
-
-    <!-- Notifications -->
+  <div class="nt-topbar-actions">
+    <button class="nt-topbar-icon" type="button" (click)="toggleTheme()" aria-label="Alternar tema"
+      [matTooltip]="settings.getThemeColor() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z"></path></svg>
+    </button>
     <app-notification />
-
-    <!-- User Profile -->
     <app-user />
   </div>
-
-</p-toolbar>
+</header>

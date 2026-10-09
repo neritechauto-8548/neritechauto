@@ -106,7 +106,7 @@ const openChat = (e) => {
   background: var(--primary-indigo);
   border-radius: 8px;
   color: white;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1rem;
   font-family: var(--font-heading);
   display: flex;
@@ -117,9 +117,9 @@ const openChat = (e) => {
 .logo-wordmark {
   font-family: var(--font-heading);
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: white;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
 }
 
 .logo-accent { color: var(--primary-cyan); }

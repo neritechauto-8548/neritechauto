@@ -62,10 +62,15 @@
     <meta name="twitter:title" content="NeriTech — Gestão Inteligente para Oficinas Mecânicas" />
     <meta name="twitter:description" content="Gestão financeira, OS digital, estoque e CRM para oficinas de alto desempenho." />
 
-    <!-- Google Fonts: Inter + Plus Jakarta Sans -->
+    <!-- Tipografia Oficial Stripe: Söhne (sohne-var) + SourceCodePro + Fallbacks -->
+    <link rel="preconnect" href="https://b.stripecdn.com" crossorigin>
+    <link rel="preload" href="https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/Sohne.cb178166.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="https://b.stripecdn.com/mkt-ssr-statics/assets/_next/static/media/SourceCodePro-Medium.f5ba3e6a.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
@@ -73,12 +78,12 @@
   <body>
     <div id="app">
       <!-- Fallback de Carregamento e SEO para Motores de Busca -->
-      <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 100px auto; text-align: center; padding: 20px;">
-        <h1 style="color: #1e3a8a; font-size: 2.2rem; font-weight: 800; margin-bottom: 20px;">NeriTech</h1>
-        <p style="color: #4b5563; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
+      <div style="font-family: 'Switzer', 'Inter', -apple-system, sans-serif; max-width: 600px; margin: 100px auto; text-align: center; padding: 20px;">
+        <h1 style="color: #0A2540; font-size: 2.2rem; font-weight: 400; letter-spacing: -0.03em; margin-bottom: 20px;">NeriTech</h1>
+        <p style="color: #425466; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
           O sistema de gestão mais completo para oficinas mecânicas. Controle financeiro, ordens de serviço (O.S. digital), controle de estoque, cadastro de clientes e emissão de notas fiscais (NFe/NFSe) tudo em um só lugar.
         </p>
-        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #E6EBF1; border-top: 4px solid #635BFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
         <style>
           @keyframes spin {
             0% { transform: rotate(0deg); }

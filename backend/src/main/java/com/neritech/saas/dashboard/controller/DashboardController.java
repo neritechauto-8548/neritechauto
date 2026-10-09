@@ -5,7 +5,6 @@ import com.neritech.saas.gestaoUsuarios.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.neritech.saas.dashboard.dto.DashboardDTO;
@@ -26,12 +25,9 @@ public class DashboardController {
 
     @GetMapping
     @Operation(summary = "Obter dados sumarizados do dashboard")
-    public ResponseEntity<DashboardDTO> getDashboard(@RequestParam(required = false) Long empresaId) {
-        Long effectiveEmpresaId = empresaId;
-        if (effectiveEmpresaId == null) {
-            var currentUser = usuarioService.getCurrentUser();
-            effectiveEmpresaId = currentUser != null ? currentUser.getEmpresaId() : null;
-        }
+    public ResponseEntity<DashboardDTO> getDashboard() {
+        var currentUser = usuarioService.getCurrentUser();
+        Long effectiveEmpresaId = currentUser != null ? currentUser.getEmpresaId() : null;
         if (effectiveEmpresaId == null) {
             return ResponseEntity.badRequest().build();
         }

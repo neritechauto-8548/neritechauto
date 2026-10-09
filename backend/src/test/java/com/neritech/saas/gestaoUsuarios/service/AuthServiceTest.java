@@ -85,7 +85,7 @@ class AuthServiceTest {
             when(usuarioRepository.findByEmailIgnoreCase(usuario.getEmail())).thenReturn(Optional.of(usuario));
             
             // Corrigido: generateToken recebe apenas UserDetails (ou Map + UserDetails)
-            when(jwtService.generateToken(any(UserDetails.class))).thenReturn("access.token");
+            when(jwtService.generateToken(anyMap(), any(UserDetails.class))).thenReturn("access.token");
             // Corrigido: generateRefreshToken recebe apenas UserDetails
             when(jwtService.generateRefreshToken(any(UserDetails.class))).thenReturn("refresh.token");
             
@@ -154,7 +154,8 @@ class AuthServiceTest {
             when(jwtService.extractUsername(request.getRefreshToken())).thenReturn(email);
             when(usuarioRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.of(usuario));
             when(jwtService.isTokenValid(eq(request.getRefreshToken()), any(UserDetails.class))).thenReturn(true);
-            when(jwtService.generateToken(any(UserDetails.class))).thenReturn("new.access.token");
+            when(sessaoUsuarioRepository.findByRefreshToken(request.getRefreshToken())).thenReturn(Optional.of(SessaoUsuario.builder().usuario(usuario).refreshToken(request.getRefreshToken()).ativo(true).build()));
+            when(jwtService.generateToken(anyMap(), any(UserDetails.class))).thenReturn("new.access.token");
             when(jwtService.getExpirationTime()).thenReturn(3600000L);
 
             // Act

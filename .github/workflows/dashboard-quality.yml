@@ -1,0 +1,73 @@
+name: Dashboard Quality
+
+on:
+  push:
+    branches: ["feature/develop"]
+    paths:
+      - "FrontEnd/src/app/routes/dashboard/**"
+      - "FrontEnd/src/app/routes/home/**"
+      - "FrontEnd/src/app/app.routes.ts"
+      - "backend/src/main/java/com/neritech/saas/dashboard/**"
+      - "backend/src/main/java/com/neritech/saas/ordemservico/repository/OrdemServicoRepository.java"
+      - ".github/workflows/dashboard-quality.yml"
+      - "backend/src/test/resources/application-test.properties"
+      - "backend/src/test/resources/application-test.yml"
+      - "FrontEnd/src/app/routes/cliente/**"
+      - "FrontEnd/src/app/routes/agendamento/**"
+      - "FrontEnd/src/app/routes/veiculo/**"
+      - "FrontEnd/src/app/routes/os/**"
+      - "backend/src/main/java/com/neritech/saas/cliente/**"
+      - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantInterceptor.java"
+      - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
+      - "backend/src/main/resources/application.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "FrontEnd/src/app/routes/dashboard/**"
+      - "FrontEnd/src/app/routes/home/**"
+      - "FrontEnd/src/app/app.routes.ts"
+      - "backend/src/main/java/com/neritech/saas/dashboard/**"
+      - "backend/src/main/java/com/neritech/saas/ordemservico/repository/OrdemServicoRepository.java"
+      - "backend/src/test/resources/application-test.properties"
+      - "backend/src/test/resources/application-test.yml"
+      - "FrontEnd/src/app/routes/cliente/**"
+      - "FrontEnd/src/app/routes/agendamento/**"
+      - "FrontEnd/src/app/routes/veiculo/**"
+      - "FrontEnd/src/app/routes/os/**"
+      - "backend/src/main/java/com/neritech/saas/cliente/**"
+      - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantInterceptor.java"
+      - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
+      - "backend/src/main/resources/application.yml"
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - run: mvn -B clean test -DskipTests=false
+        env:
+          SPRING_PROFILES_ACTIVE: test

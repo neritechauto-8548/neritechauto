@@ -2,37 +2,35 @@
   <main class="pagina-home">
     <SecaoPrincipal />
     <SecaoBeneficios />
-    <SecaoPrints />
-    <SecaoAprovacao />
+    <SecaoEstatisticasStripe />
     <SecaoSegmentos />
+    <SecaoDepoimentos />
     <SecaoVantagens />
     <SecaoPrecos />
     <SecaoFAQ />
     <SecaoContato />
 
-    <section class="final-cta section-surface section-surface--alt" id="cta-final">
+    <section class="final-cta" id="cta-final">
       <div class="container cta-content aos-init">
-        <span class="section-label">Começar agora</span>
         <h2 class="cta-title">
-          Sua oficina mais organizada em horas, não dias.
+          Pronto para profissionalizar a gestão da oficina?
         </h2>
         <p class="cta-desc">
-          Configure o sistema hoje, cadastre seus clientes e comece a emitir OS digitais ainda esta semana — sem burocracia e sem treinamento complicado.
+          Comece grátis, configure o fluxo do pátio e envie o primeiro orçamento digital ainda esta semana.
         </p>
         <div class="cta-actions">
           <router-link to="/teste-gratis" class="btn-cta-primary" id="home-cta-main">
-            Começar teste grátis
-            <span class="cta-arrow">→</span>
+            Começar agora
           </router-link>
           <a href="/#contato" class="btn-cta-secondary" id="home-cta-contact">
             Falar com a equipe
           </a>
         </div>
         <div class="cta-guarantees">
-          <span><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> 180 dias grátis</span>
-          <span><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Sem cartão de crédito</span>
-          <span><svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Cancele quando quiser</span>
-          <span>🇧🇷 Suporte em português</span>
+          <span>180 dias grátis</span>
+          <span>Sem cartão de crédito</span>
+          <span>Cancele quando quiser</span>
+          <span>Suporte em português</span>
         </div>
       </div>
     </section>
@@ -42,16 +40,16 @@
 </template>
 
 <script setup>
-import SecaoPrincipal    from '../components/SecaoPrincipal.vue';
-import SecaoBeneficios   from '../components/SecaoBeneficios.vue';
-import SecaoPrints       from '../components/SecaoPrints.vue';
-import SecaoAprovacao    from '../components/SecaoAprovacao.vue';
-import SecaoSegmentos    from '../components/SecaoSegmentos.vue';
-import SecaoVantagens    from '../components/SecaoVantagens.vue';
-import SecaoPrecos       from '../components/SecaoPrecos.vue';
-import SecaoFAQ          from '../components/SecaoFAQ.vue';
-import SecaoContato      from '../components/SecaoContato.vue';
-import SecaoRodape       from '../components/SecaoRodape.vue';
+import SecaoPrincipal from '../components/SecaoPrincipal.vue';
+import SecaoBeneficios from '../components/SecaoBeneficios.vue';
+import SecaoEstatisticasStripe from '../components/SecaoEstatisticasStripe.vue';
+import SecaoSegmentos from '../components/SecaoSegmentos.vue';
+import SecaoDepoimentos from '../components/SecaoDepoimentos.vue';
+import SecaoVantagens from '../components/SecaoVantagens.vue';
+import SecaoPrecos from '../components/SecaoPrecos.vue';
+import SecaoFAQ from '../components/SecaoFAQ.vue';
+import SecaoContato from '../components/SecaoContato.vue';
+import SecaoRodape from '../components/SecaoRodape.vue';
 import { useScrollAnimation } from '../composables/useScrollAnimation.js';
 
 useScrollAnimation();
@@ -59,9 +57,10 @@ useScrollAnimation();
 
 <style scoped>
 .final-cta {
-  padding: 6rem 0;
+  padding: 6.5rem 0;
   text-align: center;
-  border-top: 1px solid var(--border);
+  background: #F6F9FC;
+  border-top: 1px solid #E6EBF1;
 }
 
 .cta-content {
@@ -71,21 +70,22 @@ useScrollAnimation();
 }
 
 .cta-title {
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  font-weight: 800;
-  color: var(--midnight-navy);
-  line-height: 1.12;
-  letter-spacing: -0.04em;
-  margin-bottom: 1rem;
-  max-width: 640px;
+  /* Stripe: CTA heading grande, leve, impactante */
+  font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+  font-weight: 300;
+  color: #0A2540;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  margin-bottom: 1.125rem;
+  max-width: 680px;
 }
 
 .cta-desc {
-  font-size: 1.0625rem;
-  color: var(--text-muted);
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+  color: #6B7C93;
   max-width: 520px;
   line-height: 1.65;
-  margin-bottom: 2rem;
+  margin-bottom: 2.25rem;
 }
 
 .cta-actions {
@@ -93,71 +93,55 @@ useScrollAnimation();
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .btn-cta-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--primary);
+  background: #635BFF;
   color: white !important;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 0.9rem 1.75rem;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-indigo);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(99, 91, 255, 0.35);
 }
 
 .btn-cta-primary:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
+  background: #7A73FF;
+  transform: translateY(-1px);
 }
-
-.btn-cta-primary:hover .cta-arrow { transform: translateX(4px); }
-
-.cta-arrow { transition: transform 0.2s; display: inline-block; }
 
 .btn-cta-secondary {
   display: inline-flex;
   align-items: center;
-  background: white;
-  color: var(--midnight-navy) !important;
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 0.9rem 1.75rem;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  transition: all var(--transition-base);
+  background: transparent;
+  color: #0A2540 !important;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid #E6EBF1;
+  transition: all 0.2s ease;
 }
 
 .btn-cta-secondary:hover {
-  border-color: var(--primary);
-  color: var(--primary) !important;
-  background: var(--primary-light);
+  border-color: #635BFF;
+  color: #635BFF !important;
 }
 
 .cta-guarantees {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
   justify-content: center;
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.cta-guarantees span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.cta-guarantees svg {
-  color: var(--primary);
-  flex-shrink: 0;
+  font-weight: 400;
+  color: #8898AA;
 }
 
 @media (max-width: 640px) {

@@ -77,7 +77,8 @@ public class ClienteController {
                         @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
         })
         public Page<ClienteResponse> search(
-                        @Parameter(description = "Nome completo para filtro") @RequestParam(required = false) String nomeCompleto,
+                        @Parameter(description = "Busca por nome, razão social, nome fantasia, e-mail, CPF ou CNPJ") @RequestParam(required = false) String busca,
+                        @Parameter(description = "Nome completo para filtro legado") @RequestParam(required = false) String nomeCompleto,
                         @Parameter(description = "RazÃ£o social para filtro") @RequestParam(required = false) String razaoSocial,
                         @Parameter(description = "CPF para filtro") @RequestParam(required = false) String cpf,
                         @Parameter(description = "CNPJ para filtro") @RequestParam(required = false) String cnpj,
@@ -85,7 +86,7 @@ public class ClienteController {
                         @Parameter(description = "Status do cliente para filtro") @RequestParam(required = false) StatusCliente status,
                         @org.springframework.data.web.PageableDefault(size = 5, sort = "nomeCompleto", direction = org.springframework.data.domain.Sort.Direction.ASC) Pageable pageable) {
 
-                return service.search(nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, pageable)
+                return service.search(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, pageable)
                                 .map(ClienteMapper::toResponse);
         }
 

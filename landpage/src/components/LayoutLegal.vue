@@ -66,10 +66,11 @@ defineProps({
 
 .legal-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
+  font-weight: 400;
   color: white !important;
   margin-bottom: 1rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
 
 .legal-updated {

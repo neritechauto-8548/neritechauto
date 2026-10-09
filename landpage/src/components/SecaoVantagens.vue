@@ -1,35 +1,29 @@
 <template>
   <section class="advantages">
     <div class="container">
-      
-      <!-- Premium Stripe-style Light Header -->
       <div class="adv-header aos-init">
-        <span class="section-label">Diferenciais</span>
-        <h2 class="adv-title">Mais do que um sistema — <span class="text-gradient">um parceiro de negócio.</span></h2>
-        <p class="adv-subtitle">Diferente dos softwares genéricos e complexos, a NeriTechAuto foi desenhada focando no fluxo real das oficinas brasileiras.</p>
+        <span class="section-label">Feito para a vida da oficina</span>
+        <h2 class="adv-title">Simples de usar. Completo de verdade.</h2>
+        <p class="adv-subtitle">
+          Fácil de aprender, rápido no dia a dia e pensado para cada função da equipe —
+          do consultor ao técnico e ao dono.
+        </p>
       </div>
 
-      <!-- Stripe-style Clean Cards Grid -->
       <div class="adv-grid">
         <div
           class="adv-card aos-init"
-          :class="[`adv-card-accent`, card.accent]"
           v-for="card in cards"
           :key="card.title"
         >
-          <div class="adv-icon" :style="{ background: card.iconBg }">
-            <span>{{ card.icon }}</span>
+          <div class="adv-icon" :style="{ color: card.color, background: card.iconBg }">
+            <StripeIcon :name="card.icon" :size="22" />
           </div>
           <h3>{{ card.title }}</h3>
           <p>{{ card.desc }}</p>
-          <div class="adv-highlight" v-if="card.highlight">
-            <span class="adv-highlight-icon">{{ card.highlightIcon }}</span>
-            <span>{{ card.highlight }}</span>
-          </div>
         </div>
       </div>
 
-      <!-- Clean Comparison Strip (UltraCar & ClickUp Inspired) -->
       <div class="adv-compare aos-init">
         <div class="compare-inner">
           <div class="compare-item" v-for="c in compares" :key="c.them">
@@ -50,246 +44,169 @@
 </template>
 
 <script setup>
+import StripeIcon from './StripeIcon.vue';
+
 const cards = [
   {
-    icon: '🤝',
-    iconBg: 'linear-gradient(135deg, rgba(99,91,255,0.08), rgba(139,92,246,0.05))',
-    title: 'Suporte Humano via Chat Online',
-    desc: 'Nada de robôs ou filas intermináveis. Nosso time técnico atende diretamente pelo Chat Online (Tawk) para resolver qualquer dúvida operacional na hora.',
-    highlight: 'Suporte humanizado em horário comercial',
-    highlightIcon: '⚡',
-    accent: '',
+    icon: 'support',
+    iconBg: 'rgba(99, 91, 255, 0.08)',
+    color: '#635BFF',
+    title: 'Suporte humano de ponta a ponta',
+    desc: 'Time especializado em oficina, no chat — do onboarding às dúvidas do dia a dia. Sem robô, sem ticket eterno.',
   },
   {
-    icon: '🚀',
-    iconBg: 'linear-gradient(135deg, rgba(0,200,83,0.08), rgba(16,185,129,0.05))',
-    title: 'Implantação Descomplicada',
-    desc: 'Nossa equipe ajuda você a cadastrar seus primeiros serviços, configurar a tabela de preço de peças e cadastrar seus técnicos em poucos minutos.',
-    highlight: 'Pronto para faturar no primeiro dia',
-    highlightIcon: '📦',
-    accent: '',
+    icon: 'rocket',
+    iconBg: 'rgba(13, 148, 136, 0.08)',
+    color: '#0D9488',
+    title: 'Implantação sem dor de cabeça',
+    desc: 'Ajudamos a cadastrar serviços, peças e equipe. Migração de dados do sistema antigo incluída, sem custo.',
   },
   {
-    icon: '🛡️',
-    iconBg: 'linear-gradient(135deg, rgba(0,216,255,0.08), rgba(8,145,178,0.05))',
-    title: 'Sem Multas ou Contrato de Fidelidade',
-    desc: 'Acreditamos no valor do nosso produto. Assine mensalmente e cancele quando quiser, sem burocracias ou letras miúdas de fidelidade.',
-    highlight: 'Liberdade total e transparência',
-    highlightIcon: '🛡️',
-    accent: '',
+    icon: 'shield',
+    iconBg: 'rgba(0, 212, 255, 0.1)',
+    color: '#0891B2',
+    title: 'Sem fidelidade e sem multa',
+    desc: 'Assinatura mensal transparente. Cancele quando quiser — acreditamos no produto, não no contrato.',
   },
   {
-    icon: '🔄',
-    iconBg: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,0.05))',
-    title: 'Melhorias Contínuas',
-    desc: 'Estamos em constante evolução, lançando novas facilidades para otimizar o seu fluxo de ordens de serviço semanalmente.',
-    highlight: 'Novos recursos sem cobranças adicionais',
-    highlightIcon: '📊',
-    accent: '',
+    icon: 'refresh',
+    iconBg: 'rgba(255, 176, 32, 0.12)',
+    color: '#B47A00',
+    title: 'Evolução contínua',
+    desc: 'Novos recursos no fluxo de OS, checklist e financeiro — sem taxa extra por atualização.',
   },
 ];
 
 const compares = [
-  { them: 'Sistemas antigos e complexos com instalação local', us: 'Sistema na nuvem moderno e rápido' },
-  { them: 'Suporte demorado por e-mail ou tickets burocráticos', us: 'Atendimento humanizado direto no Chat Online' },
-  { them: 'Contratos rígidos com 12 meses de fidelidade', us: 'Assinatura flexível sem fidelidade ou multa' },
-  { them: 'Checklists e vistorias feitos em fichas de papel', us: 'Vistoria digital integrada com envio de fotos' },
+  { them: 'Sistema local lento e difícil de atualizar', us: '100% nuvem — PC, tablet e celular' },
+  { them: 'Orçamento no papel e aprovação por telefone', us: 'Orçamento digital com aprovação no WhatsApp' },
+  { them: 'Checklist em ficha e fotos perdidas', us: 'Inspeção digital com fotos na OS' },
+  { them: 'Financeiro e fiscal em planilhas separadas', us: 'Caixa, OS e NF-e no mesmo fluxo' },
 ];
 </script>
 
 <style scoped>
 .advantages {
   padding: 6rem 0;
-  background: var(--surface-blue-50);
+  background: #fff;
   position: relative;
   overflow: hidden;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid #E6EBF1;
 }
 
-.advantages::before {
-  content: '';
-  position: absolute;
-  top: -150px;
-  right: -150px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(99,91,255,0.03) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-/* ── Header ── */
 .adv-header {
-  text-align: center;
-  max-width: 720px;
-  margin: 0 auto 3.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: left;
+  max-width: 640px;
+  margin: 0 0 3.5rem;
 }
 
 .adv-title {
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 800;
-  color: var(--midnight-navy);
-  margin-bottom: 1rem;
-  letter-spacing: -0.03em;
+  font-size: clamp(2.125rem, 4vw, 3.125rem);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  margin-bottom: 0.875rem;
+  color: #0A2540;
 }
 
 .adv-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-main);
-  line-height: 1.6;
+  font-size: 1.0625rem;
+  color: #6B7C93;
+  line-height: 1.55;
 }
 
-/* ── Grid ── */
 .adv-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 4rem;
+  gap: 1.75rem;
+  margin-bottom: 3.5rem;
 }
 
 .adv-card {
-  background: #ffffff;
-  border: 1px solid #edf2f7;
-  border-radius: var(--radius-xl);
-  padding: 2rem;
-  transition: all var(--transition-base);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: 0 4px 10px rgba(10, 37, 64, 0.02);
-}
-
-.adv-card:hover {
-  background: #ffffff;
-  border-color: rgba(99,91,255,0.25);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(10, 37, 64, 0.05);
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .adv-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.1rem;
 }
 
 .adv-card h3 {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--midnight-navy);
-  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  color: #0A2540;
 }
 
 .adv-card p {
-  font-size: 0.9rem;
-  color: var(--text-main);
-  line-height: 1.6;
+  font-size: 0.9375rem;
+  color: #6B7C93;
+  line-height: 1.55;
 }
 
-.adv-highlight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid #edf2f7;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.adv-highlight-icon {
-  font-size: 1rem;
-}
-
-/* ── Comparison Strip ── */
 .adv-compare {
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
-  border-radius: var(--radius-xl);
-  padding: 2rem;
+  background: #F6F9FC;
+  border: 1px solid #E6EBF1;
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
 }
 
 .compare-inner {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .compare-item {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   gap: 1rem;
-  padding: 1rem;
-  border-radius: var(--radius-lg);
-  background: #ffffff;
-  border: 1px solid #edf2f7;
-  box-shadow: 0 2px 4px rgba(10, 37, 64, 0.02);
+  align-items: center;
 }
 
-.compare-them {
-  flex: 1;
+.compare-them,
+.compare-us {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.875rem;
-  color: var(--text-muted);
-  text-decoration: line-through;
+  color: #425466;
 }
 
 .compare-x {
-  color: #ef4444;
-  font-weight: 700;
-  font-size: 0.875rem;
+  color: #8898AA;
+  font-weight: 600;
+}
+.compare-check {
+  color: #635BFF;
+  font-weight: 600;
 }
 
 .compare-divider {
   width: 1px;
-  height: 28px;
-  background: #edf2f7;
-  flex-shrink: 0;
+  height: 24px;
+  background: #E6EBF1;
 }
 
-.compare-us {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--midnight-navy);
-}
-
-.compare-check {
-  width: 20px;
-  height: 20px;
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-/* ── Responsive ── */
 @media (max-width: 1024px) {
   .adv-grid { grid-template-columns: repeat(2, 1fr); }
-  .compare-inner { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
   .adv-grid { grid-template-columns: 1fr; }
-  .compare-item { flex-direction: column; text-align: center; gap: 0.75rem; }
-  .compare-divider { width: 40px; height: 1px; }
+  .compare-item {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .compare-divider { display: none; }
 }
 </style>

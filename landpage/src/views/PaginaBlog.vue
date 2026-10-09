@@ -310,9 +310,9 @@ const filteredPosts = computed(() => {
 
 .article-title {
   font-size: clamp(2rem, 4.5vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy) !important;
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: -0.035em;
   margin-bottom: 1.25rem;
   font-family: var(--font-heading);
@@ -359,21 +359,23 @@ const filteredPosts = computed(() => {
 
 .article-body :deep(h2) {
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--midnight-navy);
   margin-top: 2.75rem;
   margin-bottom: 1.25rem;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
   font-family: var(--font-heading);
 }
 
 .article-body :deep(h3) {
   font-size: 1.45rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--midnight-navy);
   margin-top: 2.5rem;
   margin-bottom: 1.25rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
   font-family: var(--font-heading);
 }
 
@@ -534,8 +536,8 @@ const filteredPosts = computed(() => {
 
 .post-title {
   font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.35;
+  font-weight: 500;
+  line-height: 1.3;
   margin-bottom: 1rem;
   color: var(--midnight-navy);
   letter-spacing: -0.025em;

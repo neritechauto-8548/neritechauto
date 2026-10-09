@@ -1,1 +1,168 @@
-/* Styles handled by TailwindCSS */
+.home-shell{min-height:100%;background:#f7f8fa;color:#0f172a}
+.home-container{max-width:1540px;margin:0 auto;padding:34px 38px 52px}
+.home-header{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin-bottom:30px}
+.home-heading .eyebrow,.eyebrow{display:block;text-transform:uppercase;letter-spacing:.13em;font-size:10px;font-weight:700;color:#7b8492}
+.home-heading h1{margin:6px 0 4px;font-size:30px;line-height:1.1;letter-spacing:-.045em;font-weight:650;color:#101828}
+.home-heading p{margin:0;color:#667085;font-size:13px}
+.home-controls{display:flex;align-items:center;gap:10px}
+.period-control,.view-switcher{height:38px;border:1px solid #e4e7ec;background:#fff;border-radius:9px}
+.period-control{display:flex;align-items:center;gap:9px;padding:0 12px;color:#344054;font-size:12px;font-weight:600}
+.period-dot{width:7px;height:7px;border-radius:50%;background:#12b76a}
+.chevron{color:#98a2b3;margin-left:4px}
+.view-switcher{display:flex;align-items:center;padding:3px}
+.view-switcher button{height:30px;padding:0 11px;border:0;border-radius:6px;background:transparent;color:#667085;font-size:11px;font-weight:600}
+.view-switcher button.active{background:#111827;color:#fff;box-shadow:0 1px 2px #00000012}
+.command-grid{display:grid;grid-template-columns:1.65fr repeat(3,1fr);gap:10px;margin-bottom:10px}
+.hero-metric,.signal-card{min-height:174px;border:1px solid #e4e7ec;border-radius:12px;background:#fff}
+.hero-metric{position:relative;overflow:hidden;padding:20px 22px}
+.metric-top{display:flex;justify-content:space-between;align-items:center;color:#667085;font-size:11px;font-weight:600}
+.metric-top button{border:0;background:transparent;color:#98a2b3;font-size:18px;cursor:pointer}
+.hero-metric>strong{display:block;margin-top:18px;font-size:34px;line-height:1;letter-spacing:-.05em;font-weight:650}
+.hero-footer{display:flex;gap:7px;margin-top:10px;font-size:11px;color:#98a2b3}
+.trend.positive{color:#039855;font-weight:700}
+.mini-bars{position:absolute;left:0;right:0;bottom:0;height:52px;display:flex;align-items:end;gap:6px;padding:0 22px}
+.mini-bars i{flex:1;min-width:8px;background:#d9dee7;border-radius:3px 3px 0 0}
+.signal-card{text-align:left;padding:19px 20px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.signal-card:hover{transform:translateY(-1px);border-color:#c7cdd6;box-shadow:0 5px 18px #1018280d}
+.signal-label{display:flex;align-items:center;gap:7px;color:#667085;font-size:11px;font-weight:600}
+.signal-dot{width:7px;height:7px;border-radius:50%;background:#12b76a}.signal-dot.amber{background:#f79009}.signal-dot.red{background:#f04438}
+.signal-card strong{display:block;margin-top:22px;font-size:29px;letter-spacing:-.04em;font-weight:650}
+.signal-card p{margin:5px 0 17px;color:#98a2b3;font-size:11px}
+.card-link{color:#344054;font-size:11px;font-weight:650}.card-link b{margin-left:4px}
+.signal-card.attention strong{color:#d92d20}
+.workspace-grid{display:grid;grid-template-columns:minmax(0,1.72fr) minmax(320px,.8fr);gap:10px}
+.surface{border:1px solid #e4e7ec;border-radius:12px;background:#fff}
+.performance{min-height:414px;padding:22px 24px}
+.surface-header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.surface-header h2{margin:5px 0 3px;font-size:15px;line-height:1.25;letter-spacing:-.02em;font-weight:650;color:#101828}
+.surface-header p{margin:0;color:#98a2b3;font-size:11px}
+.legend{display:flex;gap:14px;color:#667085;font-size:10px;padding-top:5px}
+.legend span{display:flex;gap:6px;align-items:center}.legend i{width:6px;height:6px;border-radius:50%;background:#111827}.legend i.muted{background:#98a2b3}
+.performance-chart{display:block;margin-top:16px}
+.health{padding:22px 20px}
+.compact{align-items:center}
+.live-pill{display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid #e4e7ec;border-radius:6px;color:#667085;font-size:9px;font-weight:600}.live-pill i{width:5px;height:5px;border-radius:50%;background:#12b76a}
+.health-row{width:100%;display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:9px;padding:16px 0;border:0;border-bottom:1px solid #f0f2f5;background:transparent;text-align:left;cursor:pointer}
+.health-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:7px;background:#f2f4f7;color:#475467;font-size:9px;font-weight:700}
+.health-icon.calendar{font-size:15px}.health-row span:nth-child(2){display:flex;flex-direction:column;gap:2px}.health-row b{font-size:11px;color:#344054}.health-row small{font-size:9px;color:#98a2b3}.health-row>strong{font-size:13px;color:#101828}
+.health-divider{height:18px}
+.health-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.health-summary div{padding:12px;border-radius:8px;background:#f8f9fb}.health-summary span{display:block;color:#98a2b3;font-size:9px}.health-summary strong{display:block;margin-top:4px;font-size:18px;letter-spacing:-.03em}
+.lower-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:10px;margin-top:10px}
+.insight,.finance-summary{padding:22px 24px;min-height:285px}
+.text-button{border:0;background:transparent;color:#475467;font-size:10px;font-weight:650;cursor:pointer}
+.insight-list{margin-top:12px}
+.insight-list button{width:100%;display:grid;grid-template-columns:32px 1fr 20px;align-items:center;gap:12px;padding:15px 0;border:0;border-bottom:1px solid #f0f2f5;background:transparent;text-align:left;cursor:pointer}
+.insight-number{color:#98a2b3;font-size:9px;font-weight:700}
+.insight-list b{display:block;color:#344054;font-size:11px}.insight-list small{display:block;margin-top:4px;color:#98a2b3;font-size:9px;line-height:1.45}.insight-list button>span:last-child{color:#98a2b3}
+.finance-main{padding:20px 0 17px;border-bottom:1px solid #f0f2f5}.finance-main span,.finance-main small{display:block;color:#98a2b3;font-size:10px}.finance-main strong{display:block;margin:5px 0;font-size:27px;letter-spacing:-.045em;font-weight:650}
+.finance-lines{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;padding-top:17px}.finance-lines span{display:block;color:#98a2b3;font-size:9px}.finance-lines strong{display:block;margin-top:4px;color:#344054;font-size:11px}
+.state-card,.empty-state{border:1px solid #e4e7ec;border-radius:12px;background:#fff;padding:30px}.state-card{display:flex;align-items:center;gap:14px}.state-card p,.empty-state p{color:#667085;font-size:12px;margin:5px 0 0}.state-icon,.empty-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fef3f2;color:#d92d20;font-weight:700}.secondary-button,.primary-button{border:0;border-radius:7px;padding:9px 13px;font-size:11px;font-weight:650;cursor:pointer}.secondary-button{margin-left:auto;background:#f2f4f7;color:#344054}.primary-button{margin-top:18px;background:#111827;color:#fff}
+.empty-state{text-align:center;padding:70px 30px}.empty-state .empty-mark{margin:0 auto;background:#f2f4f7;color:#344054}.empty-state h2{margin:14px 0 5px;font-size:17px}.empty-state p{max-width:470px;margin:0 auto}
+.skeleton-grid{display:grid;grid-template-columns:1.6fr repeat(3,1fr);gap:10px}.skeleton{height:174px;border-radius:12px;background:linear-gradient(90deg,#eef0f3,#f7f8fa,#eef0f3);background-size:200% 100%;animation:shine 1.2s infinite}.skeleton.hero{height:174px}.skeleton.wide{height:410px;grid-column:span 2}@keyframes shine{to{background-position:-200% 0}}
+@media(max-width:1050px){.home-container{padding:26px 20px}.command-grid{grid-template-columns:repeat(2,1fr)}.hero-metric{grid-column:span 2}.workspace-grid,.lower-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.home-container{padding:20px 14px}.home-header{align-items:flex-start;flex-direction:column}.home-controls{width:100%;overflow:auto}.command-grid{grid-template-columns:1fr}.hero-metric{grid-column:auto}.skeleton-grid{grid-template-columns:1fr}.skeleton.wide{grid-column:auto}.finance-lines{grid-template-columns:1fr 1fr}.view-switcher{min-width:max-content}}
+
+
+/* NERITECH AUTO — camada visual premium do dashboard */
+.home-shell {
+  background:
+    radial-gradient(ellipse at 82% 0%, rgba(219, 234, 254, .42), transparent 34%),
+    #f5f7fb;
+}
+
+.home-heading .eyebrow,
+.home-header .eyebrow { color: #2563eb; }
+.home-heading h1 { color: #101b35; }
+
+.view-switcher button.active {
+  background: linear-gradient(135deg, #1d4ed8, #4338ca);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, .22);
+}
+
+.hero-metric {
+  color: #fff;
+  border-color: #244fbd;
+  background: radial-gradient(circle at 90% 12%, rgba(129, 190, 255, .34), transparent 34%),
+    linear-gradient(125deg, #173b8f 0%, #245bd7 58%, #4f46e5 100%);
+  box-shadow: 0 8px 22px rgba(37, 80, 180, .12);
+}
+.hero-metric .metric-top,
+.hero-metric .metric-top button,
+.hero-metric .hero-footer { color: rgba(255, 255, 255, .78); }
+.hero-metric > strong { color: #fff; }
+.hero-metric .trend.positive { color: #a7f3d0; }
+.hero-metric .trend.negative { color: #fecaca; }
+.mini-bars i { background: rgba(255, 255, 255, .24); transition: background .18s ease, transform .18s ease; }
+.mini-bars i:nth-child(3n + 1) { background: rgba(191, 219, 254, .55); }
+.mini-bars i:hover { background: #fff; transform: translateY(-2px); }
+
+.signal-card {
+  position: relative; overflow: hidden; border-color: #e1e8f4;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, .025);
+}
+.signal-card::before { position: absolute; top: 0; left: 0; width: 100%; height: 3px; content: ''; background: #3b82f6; }
+.signal-card:nth-child(2)::before { background: linear-gradient(90deg, #0d9488, #2dd4bf); }
+.signal-card:nth-child(3)::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.signal-card:nth-child(4)::before { background: linear-gradient(90deg, #ea580c, #fb7185); }
+.signal-card:nth-child(2) .signal-dot { background: #0d9488; }
+.signal-card:nth-child(3) .signal-dot { background: #7c3aed; }
+.signal-card:nth-child(4) { background: linear-gradient(145deg, #fff 0%, #fff8f5 100%); }
+.signal-card:hover { transform: translateY(-2px); border-color: #bfcef0; box-shadow: 0 10px 24px rgba(37, 66, 130, .08); }
+
+.performance, .health, .insight, .finance-summary { box-shadow: 0 2px 8px rgba(15, 23, 42, .025); }
+.surface { border-color: #e0e7f1; box-shadow: 0 2px 8px rgba(15, 23, 42, .025); }
+.surface-header .eyebrow { color: #2563eb; }
+.legend i { background: #2563eb; }
+.legend i.muted { background: #f59e0b; }
+.health-icon { background: #eaf1ff; color: #245bd7; }
+.health-row:nth-of-type(2) .health-icon { background: #e0f7f2; color: #0f8a78; }
+.health-row:nth-of-type(3) .health-icon { background: #f1eaff; color: #7c3aed; }
+.health-summary div:first-child { background: linear-gradient(135deg, #eef4ff, #f6f8ff); }
+.health-summary div:last-child { background: linear-gradient(135deg, #e8faf4, #f3fcf8); }
+.health-summary div:first-child strong { color: #245bd7; }
+.health-summary div:last-child strong { color: #0f8a78; }
+.insight-list button:hover { background: #f8faff; }
+.insight-number { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: #edf3ff; color: #245bd7; }
+.primary-button { background: linear-gradient(135deg, #1d4ed8, #4338ca); box-shadow: 0 4px 10px rgba(37, 99, 235, .18); }
+.primary-button:hover { filter: brightness(1.06); }
+.period-control:hover { border-color: #b7c9f2; background: #f8faff; }
+
+.preview-indicator {
+  display: inline-flex; align-items: center; gap: 7px; width: fit-content; margin-top: 12px;
+  padding: 6px 9px; border: 1px solid #bfdbfe; border-radius: 7px; background: #eff6ff;
+  color: #1d4ed8; font-size: 10px; font-weight: 650; letter-spacing: .01em;
+}
+.preview-indicator i {
+  width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .12); flex: 0 0 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-card, .mini-bars i, .primary-button { transition: none; }
+  .skeleton { animation: none; }
+}
+
+/* Visões funcionais do dashboard: cada aba apresenta indicadores do seu contexto. */
+.view-section-heading{margin:4px 0 18px}
+.view-section-heading h2{margin:6px 0 4px;color:#101b35;font-size:22px;letter-spacing:-.035em}
+.view-section-heading p{margin:0;color:#667085;font-size:12px}
+.view-dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.view-stat-card{position:relative;overflow:hidden;min-height:142px;padding:20px;border:1px solid #e4e7ec;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(16,24,40,.025)}
+.view-stat-card:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:#2563eb}
+.view-stat-card span,.view-stat-card small{display:block;color:#667085;font-size:11px}
+.view-stat-card strong{display:block;margin:17px 0 7px;color:#101828;font-size:27px;line-height:1.05;letter-spacing:-.04em}
+.view-stat-card small{font-size:10px;color:#98a2b3}
+.view-stat-card.stat-green{background:linear-gradient(145deg,#fff,#f0fdf4)}.view-stat-card.stat-green:before{background:#16a34a}
+.view-stat-card.stat-amber{background:linear-gradient(145deg,#fff,#fffbeb)}.view-stat-card.stat-amber:before{background:#d97706}
+.view-stat-card.stat-violet{background:linear-gradient(145deg,#fff,#f5f3ff)}.view-stat-card.stat-violet:before{background:#7c3aed}
+.view-stat-card.stat-red{background:linear-gradient(145deg,#fff,#fff1f2)}.view-stat-card.stat-red:before{background:#e11d48}
+.view-chart-card{padding:22px 24px;margin-bottom:12px}
+.view-finance-lines{max-width:800px}
+.quote-conversion{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:24px 0}
+.quote-conversion>div{padding:18px;border-radius:9px;background:#f5f7fb;border:1px solid #e8edf5}
+.quote-conversion span{display:block;color:#667085;font-size:11px}
+.quote-conversion strong{display:block;margin-top:8px;color:#172b59;font-size:25px;letter-spacing:-.035em}
+.view-chart-card .primary-button{background:linear-gradient(135deg,#1d4ed8,#4338ca);box-shadow:0 3px 8px rgba(37,99,235,.18)}
+@media(max-width:1050px){.view-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.view-dashboard-grid,.quote-conversion{grid-template-columns:1fr}.view-chart-card{padding:18px}.view-section-heading h2{font-size:19px}}

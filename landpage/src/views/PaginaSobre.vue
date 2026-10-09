@@ -142,7 +142,7 @@ const valores = [
 
 .sobre-intro__title {
   font-size: clamp(2.25rem, 5vw, 3.25rem);
-  font-weight: 800;
+  font-weight: 400;
   color: white !important;
   line-height: 1.1;
   letter-spacing: -0.04em;
@@ -208,7 +208,7 @@ const valores = [
 
 .sobre-mockup-body h3 {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
 }
 
@@ -231,9 +231,11 @@ const valores = [
 
 .smb-stat-number {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--primary-emerald);
   font-family: var(--font-heading);
+  letter-spacing: -0.03em;
+  font-feature-settings: "tnum" 1;
 }
 
 .smb-stat-label {
@@ -265,7 +267,7 @@ const valores = [
 
 .valor-card h3 {
   font-size: 1.0625rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   font-family: var(--font-body);
 }
@@ -291,9 +293,10 @@ const valores = [
 
 .cta-title {
   font-size: clamp(1.75rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
   margin-bottom: 0.875rem;
   max-width: 560px;
 }

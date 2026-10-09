@@ -92,30 +92,112 @@ mat-icon {
   font-family: 'Material Icons' !important;
 }
 
-/* Card Styles (Stripe-UX) */
-.card,
-.mat-mdc-card {
-  background-color: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: theme('boxShadow.soft');
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* ========================================================================== 
+   NERITECH AUTO — Design System Foundation
+   PrimeNG remains infrastructure; these tokens define the product language.
+   ========================================================================== */
 
-  &:hover {
-    box-shadow: theme('boxShadow.soft-lg');
-  }
-
-  .dark & {
-    background-color: var(--slate-800);
-    border-color: var(--slate-700);
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
-  }
+:root {
+  --nt-canvas: #f8fafc;
+  --nt-surface: #ffffff;
+  --nt-surface-subtle: #f8fafc;
+  --nt-border: #e2e8f0;
+  --nt-border-strong: #cbd5e1;
+  --nt-text: #0f172a;
+  --nt-text-secondary: #475569;
+  --nt-text-muted: #64748b;
+  --nt-primary: #2563eb;
+  --nt-primary-hover: #1d4ed8;
+  --nt-success: #16a34a;
+  --nt-warning: #d97706;
+  --nt-danger: #dc2626;
+  --nt-radius-sm: 6px;
+  --nt-radius-md: 8px;
+  --nt-radius-lg: 10px;
+  --nt-shadow-sm: 0 1px 2px rgba(15, 23, 42, .04);
+  --nt-sidebar-width: 248px;
+  --nt-topbar-height: 60px;
 }
 
-/* Global Background refine */
-html, body {
-  @apply bg-[#f6f9fc] dark:bg-slate-950;
+html,
+body {
+  background: var(--nt-canvas);
+  color: var(--nt-text);
+}
+
+.dark {
+  --nt-canvas: #0b1220;
+  --nt-surface: #111827;
+  --nt-surface-subtle: #0f172a;
+  --nt-border: #243244;
+  --nt-border-strong: #334155;
+  --nt-text: #f8fafc;
+  --nt-text-secondary: #cbd5e1;
+  --nt-text-muted: #94a3b8;
+}
+
+/*
+ * Base surfaces are deliberately quiet.
+ * NERITECH uses hierarchy, typography and spacing instead of a grid of floating cards.
+ */
+.card,
+.mat-mdc-card {
+  background: var(--nt-surface);
+  border: 1px solid var(--nt-border);
+  border-radius: var(--nt-radius-md);
+  box-shadow: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.card:hover,
+.mat-mdc-card:hover {
+  border-color: var(--nt-border-strong);
+  box-shadow: var(--nt-shadow-sm);
+}
+
+.dark .card,
+.dark .mat-mdc-card {
+  background: var(--nt-surface);
+  border-color: var(--nt-border);
+  box-shadow: none;
+}
+
+/* PrimeNG surfaces inherit NERITECH geometry instead of their theme's default personality. */
+.p-component {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.p-inputtext,
+.p-dropdown,
+.p-multiselect,
+.p-calendar,
+.p-inputnumber,
+.p-autocomplete,
+.p-button {
+  border-radius: var(--nt-radius-md);
+}
+
+.p-inputtext,
+.p-dropdown,
+.p-multiselect,
+.p-calendar,
+.p-inputnumber,
+.p-autocomplete {
+  border-color: var(--nt-border);
+}
+
+.p-inputtext:focus,
+.p-dropdown:not(.p-disabled).p-focus,
+.p-multiselect:not(.p-disabled).p-focus {
+  border-color: #93b4f5;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+}
+
+/* Keep native/legacy surfaces aligned with the same product canvas. */
+mat-dialog-container,
+.mat-mdc-dialog-container,
+.p-dialog {
+  border-radius: var(--nt-radius-lg);
 }
 
 // Toast Z-Index Fix

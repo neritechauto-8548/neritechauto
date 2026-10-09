@@ -37,56 +37,56 @@ defineProps({
 
 .logo-symbol {
   flex-shrink: 0;
-  background: var(--primary);
-  border-radius: 9px;
+  background: #635BFF;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--transition-base), background var(--transition-base);
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .logo-symbol__letter {
   font-family: var(--font-heading);
-  font-weight: 800;
+  font-weight: 600;
   color: white;
   line-height: 1;
   letter-spacing: -0.04em;
 }
 
-.logo-marca--sm .logo-symbol { width: 28px; height: 28px; border-radius: 8px; }
-.logo-marca--sm .logo-symbol__letter { font-size: 0.875rem; }
+.logo-marca--sm .logo-symbol { width: 26px; height: 26px; border-radius: 5px; }
+.logo-marca--sm .logo-symbol__letter { font-size: 0.8125rem; }
 
-.logo-marca--md .logo-symbol { width: 34px; height: 34px; }
-.logo-marca--md .logo-symbol__letter { font-size: 1rem; }
+.logo-marca--md .logo-symbol { width: 28px; height: 28px; }
+.logo-marca--md .logo-symbol__letter { font-size: 0.875rem; }
 
-.logo-marca--lg .logo-symbol { width: 40px; height: 40px; border-radius: 10px; }
-.logo-marca--lg .logo-symbol__letter { font-size: 1.125rem; }
+.logo-marca--lg .logo-symbol { width: 34px; height: 34px; border-radius: 7px; }
+.logo-marca--lg .logo-symbol__letter { font-size: 1rem; }
 
 .logo-marca:hover .logo-symbol {
   transform: scale(1.03);
-  background: var(--primary-dark);
+  background: #7A73FF;
 }
 
 .logo-wordmark {
   font-family: var(--font-heading);
-  font-weight: 800;
-  color: var(--midnight-navy);
-  letter-spacing: -0.04em;
+  font-weight: 600;
+  color: #0A2540;
+  letter-spacing: -0.035em;
   line-height: 1;
-  transition: color var(--transition-base);
+  transition: color 0.2s ease;
 }
 
-.logo-marca--sm .logo-wordmark { font-size: 1.0625rem; }
-.logo-marca--md .logo-wordmark { font-size: 1.2rem; }
-.logo-marca--lg .logo-wordmark { font-size: 1.375rem; }
+.logo-marca--sm .logo-wordmark { font-size: 1rem; }
+.logo-marca--md .logo-wordmark { font-size: 1.0625rem; }
+.logo-marca--lg .logo-wordmark { font-size: 1.25rem; }
 
-.logo-wordmark__accent { 
-  color: var(--primary); 
-  transition: color var(--transition-base);
+.logo-wordmark__accent {
+  color: #635BFF;
+  transition: color 0.2s ease;
 }
-.logo-wordmark__suffix { 
-  font-weight: 700; 
-  color: var(--text-muted); 
-  transition: color var(--transition-base);
+.logo-wordmark__suffix {
+  font-weight: 500;
+  color: #425466;
+  transition: color 0.2s ease;
 }
 </style>

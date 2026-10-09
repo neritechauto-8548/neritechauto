@@ -1,121 +1,98 @@
 <template>
   <section class="hero">
-    <!-- Glow decorativo de fundo -->
-    <div class="hero-glow hero-glow--1" aria-hidden="true"></div>
-    <div class="hero-glow hero-glow--2" aria-hidden="true"></div>
-    <div class="hero-dots" aria-hidden="true"></div>
+    <div class="hero-mesh" aria-hidden="true">
+      <canvas ref="canvasEl" class="hero-canvas"></canvas>
+      <div class="hero-mesh-skew"></div>
+    </div>
 
     <div class="container hero-container">
-      <!-- ── Conteúdo (lado esquerdo) ── -->
-      <div class="hero-content">
-        <span class="hero-badge aos-init">
-          🇧🇷 Sistema feito para oficinas automotivas brasileiras
-        </span>
+      <div class="hero-copy">
+        <p class="hero-eyebrow aos-init">NeriTech Auto</p>
 
         <h1 class="hero-title aos-init aos-delay-1">
-          Chega de papel e planilha.<br>Gerencie sua oficina do jeito certo.
+          Software de gestão<br>
+          para oficinas crescerem.
         </h1>
 
         <p class="hero-subtitle aos-init aos-delay-2">
-          OS digital com checklist fotográfico, financeiro integrado, controle de estoque e portal do cliente — tudo em um sistema simples, rápido e feito para o dia a dia da sua oficina.
+          Tudo em um só lugar: workflow do pátio, orçamentos com aprovação digital,
+          checklist com fotos, estoque, financeiro, NF-e e portal do cliente —
+          da entrada do veículo até a entrega.
         </p>
 
         <div class="hero-actions aos-init aos-delay-3">
           <router-link to="/teste-gratis" class="btn-hero-primary" id="hero-cta-start">
-            Começar teste grátis
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            Começar agora
           </router-link>
-          <a href="#demonstracao" class="btn-hero-secondary" id="hero-cta-demo">
-            Ver o sistema funcionando
+          <a href="#demonstracao" class="btn-hero-link" id="hero-cta-demo">
+            Ver o produto
+            <StripeIcon name="arrow" :size="14" />
           </a>
         </div>
 
-        <div class="hero-trust aos-init aos-delay-4">
-          <span>✓ 180 dias grátis</span>
-          <span>✓ Sem cartão de crédito</span>
-          <span>✓ Suporte via Chat</span>
-        </div>
+        <p class="hero-trust aos-init aos-delay-4">
+          180 dias grátis · Sem cartão · Cancele quando quiser
+        </p>
       </div>
 
-      <!-- ── Visual/Mockup (lado direito) ── -->
-      <div class="hero-visual aos-init aos-delay-2">
-        <div class="mockup-wrapper">
-          <!-- Bezel do laptop -->
-          <div class="mockup-bezel">
-            <!-- Barra do browser -->
-            <div class="mockup-bar">
-              <span class="dot dot--red"></span>
-              <span class="dot dot--yellow"></span>
-              <span class="dot dot--green"></span>
-              <span class="mockup-url">app.neritechauto.com.br</span>
-            </div>
-            <!-- Dashboard App -->
-            <div class="app-dashboard">
-              <aside class="app-sidebar">
-                <div class="sidebar-logo">N</div>
-                <nav class="sidebar-nav">
-                  <span class="nav-item nav-item--active">Dashboard</span>
-                  <span class="nav-item">Ordens</span>
-                  <span class="nav-item">Financeiro</span>
-                  <span class="nav-item">Estoque</span>
-                </nav>
-              </aside>
-              <main class="app-main">
-                <div class="app-header">
-                  <h3>Visão geral</h3>
-                  <span class="status-pill">Pátio ativo</span>
-                </div>
-                <div class="app-stats">
-                  <div class="stat-card" v-for="s in stats" :key="s.label">
-                    <span class="stat-value">{{ s.value }}</span>
-                    <span class="stat-label">{{ s.label }}</span>
-                  </div>
-                </div>
-                <div class="app-table">
-                  <div class="table-head">
-                    <span>Veículo</span><span>Serviço</span><span>Status</span>
-                  </div>
-                  <div class="table-row" v-for="row in osRows" :key="row.plate">
-                    <span>
-                      <strong>{{ row.vehicle }}</strong>
-                      <small>{{ row.plate }}</small>
-                    </span>
-                    <span>{{ row.service }}</span>
-                    <span :class="['os-status', `os-status--${row.status}`]">{{ row.statusLabel }}</span>
-                  </div>
-                </div>
-              </main>
-            </div>
+      <div class="hero-stage aos-init aos-delay-2">
+        <div class="stage-card stage-card--main">
+          <div class="stage-bar">
+            <span class="dot dot--red"></span>
+            <span class="dot dot--yellow"></span>
+            <span class="dot dot--green"></span>
+            <span class="stage-url">app.neritechauto.com.br</span>
           </div>
-          <!-- Base do laptop -->
-          <div class="mockup-base"></div>
-        </div>
-
-        <!-- Floating cards -->
-        <div class="float-card float-card--1">
-          <div class="float-icon float-icon--blue">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </div>
-          <div>
-            <span class="float-label">OS em andamento</span>
-            <strong>5 veículos no pátio</strong>
+          <div class="app-shell">
+            <aside class="app-side">
+              <div class="side-logo">N</div>
+              <span class="side-item side-item--on">Pátio</span>
+              <span class="side-item">Ordens</span>
+              <span class="side-item">Financeiro</span>
+              <span class="side-item">Estoque</span>
+            </aside>
+            <div class="app-body">
+              <div class="app-top">
+                <span class="app-top-title">Workflow do pátio</span>
+                <span class="app-pill">Ao vivo</span>
+              </div>
+              <div class="app-metrics">
+                <div class="metric" v-for="s in stats" :key="s.label">
+                  <strong>{{ s.value }}</strong>
+                  <span>{{ s.label }}</span>
+                </div>
+              </div>
+              <div class="app-rows">
+                <div class="row" v-for="row in osRows" :key="row.plate">
+                  <div>
+                    <strong>{{ row.vehicle }}</strong>
+                    <small>{{ row.plate }}</small>
+                  </div>
+                  <span>{{ row.service }}</span>
+                  <span :class="['tag', `tag--${row.status}`]">{{ row.statusLabel }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="float-card float-card--2">
-          <div class="float-icon float-icon--green">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v20M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+        <div class="stage-float stage-float--os">
+          <div class="float-icon float-icon--indigo">
+            <StripeIcon name="camera" :size="16" />
           </div>
           <div>
-            <span class="float-label">Financeiro</span>
-            <strong>R$ 4.280 a receber</strong>
+            <span>Checklist digital</span>
+            <strong>12 fotos enviadas</strong>
+          </div>
+        </div>
+
+        <div class="stage-float stage-float--money">
+          <div class="float-icon float-icon--teal">
+            <StripeIcon name="message" :size="16" />
+          </div>
+          <div>
+            <span>Orçamento aprovado</span>
+            <strong>R$ 1.480 · WhatsApp</strong>
           </div>
         </div>
       </div>
@@ -124,397 +101,371 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
+import { createStripeGradient } from '../lib/stripeGradient.js';
+import StripeIcon from './StripeIcon.vue';
+
+const canvasEl = ref(null);
+let gradientApi = null;
+
 const stats = [
-  { value: '12', label: 'OS abertas' },
-  { value: 'R$ 8.4k', label: 'Faturamento mês' },
-  { value: '3', label: 'Alertas estoque' },
+  { value: '8', label: 'Na baia' },
+  { value: '5', label: 'Aguardando' },
+  { value: '3', label: 'Entrega' },
 ];
 
 const osRows = [
-  { vehicle: 'Honda Civic', plate: 'BRA-2E12', service: 'Revisão de freios', status: 'active', statusLabel: 'Em andamento' },
-  { vehicle: 'Toyota Corolla', plate: 'KEL-4910', service: 'Troca de óleo', status: 'waiting', statusLabel: 'Aguardando' },
-  { vehicle: 'Chevrolet Onix', plate: 'PXT-9182', service: 'Diagnóstico', status: 'done', statusLabel: 'Concluído' },
+  { vehicle: 'Honda Civic', plate: 'BRA-2E12', service: 'Freios + pastilha', status: 'active', statusLabel: 'Em serviço' },
+  { vehicle: 'Toyota Corolla', plate: 'KEL-4910', service: 'Revisão 40 mil', status: 'waiting', statusLabel: 'Orçamento' },
+  { vehicle: 'Chevrolet Onix', plate: 'PXT-9182', service: 'Diagnóstico OBD', status: 'done', statusLabel: 'Pronto' },
 ];
+
+onMounted(() => {
+  gradientApi = createStripeGradient(canvasEl.value);
+});
+
+onUnmounted(() => {
+  gradientApi?.destroy();
+});
 </script>
 
 <style scoped>
-/* ── Section ── */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
-  color: white;
-  padding: 130px 0 90px;
+  isolation: isolate;
+  padding: 132px 0 0;
+  overflow: hidden;
+  background: #fff;
+  min-height: 720px;
+}
+
+.hero-mesh {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 72px;
+  height: min(620px, 78vh);
+  z-index: 0;
+  pointer-events: none;
+  transform: skewY(-8deg);
+  transform-origin: 0;
+  border-radius: 0 0 40% 0 / 0 0 80px 0;
   overflow: hidden;
 }
 
-/* Decoração de fundo */
-.hero-glow {
+.hero-canvas {
   position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
+  inset: -12% -4% -8%;
+  width: 108%;
+  height: 120%;
+  transform: skewY(8deg);
+  display: block;
 }
-.hero-glow--1 {
-  width: 600px;
-  height: 600px;
-  top: -200px;
-  right: -100px;
-  background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 65%);
-}
-.hero-glow--2 {
-  width: 400px;
-  height: 400px;
-  bottom: -100px;
-  left: -80px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 65%);
-}
-.hero-dots {
+
+.hero-mesh-skew {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 80%);
-  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 80%);
+  background: linear-gradient(180deg, rgba(255,255,255,0) 55%, rgba(255,255,255,0.85) 88%, #fff 100%);
+  pointer-events: none;
 }
 
-/* ── Layout ── */
 .hero-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 4rem;
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 3rem;
+  align-items: start;
+  padding-bottom: 64px;
 }
 
-/* ── Content (left) ── */
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.hero-copy {
+  padding-top: 28px;
+  max-width: 540px;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 6px 14px;
-  border-radius: 9999px;
-  margin-bottom: 1.5rem;
-  backdrop-filter: blur(4px);
+.hero-eyebrow {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0A2540;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
 }
 
 .hero-title {
-  font-size: clamp(2rem, 3.5vw, 3.25rem);
-  font-weight: 800;
-  color: white !important;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
+  /* Stripe hero: 56px+ com weight 300 */
+  font-size: clamp(2.75rem, 5.5vw, 4.5rem);
+  font-weight: 300;
+  color: #0A2540 !important;
+  letter-spacing: -0.05em;
+  line-height: 1.0;
+  margin-bottom: 1.5rem;
 }
 
 .hero-subtitle {
-  font-size: 1.0625rem;
-  color: rgba(255, 255, 255, 0.75) !important;
-  line-height: 1.65;
-  margin-bottom: 2rem;
+  /* Stripe: 18-20px no subtítulo do hero */
+  font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
+  font-weight: 400;
+  color: #425466 !important;
+  line-height: 1.6;
+  margin-bottom: 2.25rem;
   max-width: 480px;
 }
 
 .hero-actions {
   display: flex;
-  gap: 0.875rem;
+  align-items: center;
+  gap: 1.25rem;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .btn-hero-primary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: white;
-  color: #1d4ed8 !important;
-  font-weight: 700;
-  font-size: 0.9375rem;
+  background: #635BFF;
+  color: #fff !important;
+  font-weight: 500;
+  /* Stripe CTA: 1rem, padding generoso */
+  font-size: 1rem;
   padding: 0.8125rem 1.625rem;
   border-radius: 9999px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(99, 91, 255, 0.35);
+  transition: all 0.2s ease;
   text-decoration: none;
+  letter-spacing: -0.01em;
 }
 .btn-hero-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-  background: #f8fafc;
+  background: #7A73FF;
+  transform: translateY(-1px);
 }
 
-.btn-hero-secondary {
+.btn-hero-link {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  color: white !important;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  padding: 0.8125rem 1.625rem;
-  border-radius: 9999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.25s;
+  gap: 6px;
+  color: #635BFF !important;
+  font-weight: 500;
+  font-size: 1rem;
   text-decoration: none;
-  backdrop-filter: blur(4px);
+  transition: gap 0.2s ease;
+  letter-spacing: -0.01em;
 }
-.btn-hero-secondary:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.5);
-}
+.btn-hero-link:hover { gap: 10px; }
 
 .hero-trust {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  color: #8898AA;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
-.hero-trust span { display: flex; align-items: center; gap: 5px; }
 
-/* ── Visual / Mockup ── */
-.hero-visual {
+.hero-stage {
   position: relative;
+  padding: 24px 8px 40px;
 }
 
-.mockup-wrapper {
-  position: relative;
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.35));
-}
-
-.mockup-bezel {
-  background: #1e293b;
-  border-radius: 14px 14px 0 0;
-  border: 2px solid #334155;
-  border-bottom: none;
+.stage-card--main {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(50, 50, 93, 0.08);
+  box-shadow:
+    0 50px 100px -20px rgba(50, 50, 93, 0.25),
+    0 30px 60px -30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  transform: perspective(1200px) rotateY(-6deg) rotateX(4deg);
+  transition: transform 0.5s ease;
+}
+.hero-stage:hover .stage-card--main {
+  transform: perspective(1200px) rotateY(-3deg) rotateX(2deg);
 }
 
-.mockup-bar {
+.stage-bar {
   height: 36px;
-  background: #0f172a;
-  border-bottom: 1px solid #1e293b;
+  background: #F6F9FC;
+  border-bottom: 1px solid #E6EBF1;
   display: flex;
   align-items: center;
   padding: 0 14px;
-  gap: 8px;
+  gap: 7px;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.dot--red    { background: #FF5F57; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+.dot--red { background: #FF5F57; }
 .dot--yellow { background: #FFBD2E; }
-.dot--green  { background: #28C840; }
+.dot--green { background: #28C840; }
 
-.mockup-url {
+.stage-url {
   flex: 1;
   margin-left: 6px;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #fff;
+  border: 1px solid #E6EBF1;
   border-radius: 6px;
-  padding: 4px 12px;
+  padding: 3px 10px;
   font-size: 0.625rem;
-  color: #64748b;
-  font-family: var(--font-body);
+  color: #8898AA;
 }
 
-.mockup-base {
-  height: 14px;
-  background: linear-gradient(180deg, #334155, #1e293b);
-  border-radius: 0 0 14px 14px;
-  margin: 0 8%;
-}
-
-/* ── App Dashboard ── */
-.app-dashboard {
+.app-shell {
   display: grid;
-  grid-template-columns: 110px 1fr;
-  min-height: 340px;
-  background: #f8fafc;
+  grid-template-columns: 108px 1fr;
+  min-height: 320px;
+  background: #fff;
 }
 
-.app-sidebar {
-  background: #f1f5f9;
-  border-right: 1px solid #e2e8f0;
-  padding: 16px 10px;
+.app-side {
+  background: #F6F9FC;
+  border-right: 1px solid #E6EBF1;
+  padding: 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 6px;
 }
 
-.sidebar-logo {
-  width: 30px;
-  height: 30px;
-  background: #2563eb;
-  color: white;
-  border-radius: 8px;
-  font-weight: 800;
-  font-size: 0.875rem;
+.side-logo {
+  width: 28px;
+  height: 28px;
+  background: #635BFF;
+  color: #fff;
+  border-radius: 7px;
+  font-weight: 600;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
+  margin: 0 auto 10px;
 }
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nav-item {
+.side-item {
   font-size: 0.6875rem;
-  font-weight: 600;
-  color: #64748b;
+  font-weight: 500;
+  color: #6B7C93;
   padding: 6px 8px;
   border-radius: 6px;
-  text-align: left;
-  cursor: pointer;
 }
-.nav-item--active {
-  background: #dbeafe;
-  color: #1d4ed8;
+.side-item--on {
+  background: #F0EFFF;
+  color: #635BFF;
 }
 
-.app-main {
-  padding: 18px;
+.app-body {
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background: white;
+  gap: 12px;
 }
 
-.app-header {
+.app-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.app-header h3 {
+.app-top-title {
   font-size: 0.875rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-weight: 500;
+  color: #0A2540;
 }
-
-.status-pill {
+.app-pill {
   font-size: 0.625rem;
-  font-weight: 700;
-  padding: 3px 10px;
+  font-weight: 500;
+  padding: 3px 9px;
   border-radius: 9999px;
-  background: rgba(5, 150, 105, 0.1);
-  color: #059669;
+  background: rgba(13, 148, 136, 0.1);
+  color: #0D9488;
 }
 
-.app-stats {
+.app-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
-
-.stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+.metric {
+  background: #F6F9FC;
+  border: 1px solid #E6EBF1;
   border-radius: 8px;
   padding: 10px 8px;
   text-align: center;
 }
-.stat-value {
+.metric strong {
   display: block;
   font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-weight: 500;
+  color: #0A2540;
+  letter-spacing: -0.02em;
 }
-.stat-label {
+.metric span {
   font-size: 0.5rem;
-  color: #64748b;
-  font-weight: 600;
+  color: #8898AA;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
-.app-table {
+.app-rows {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.table-head {
+.row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 0.8fr;
-  padding: 0 10px;
-  font-size: 0.5625rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.table-row {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 0.8fr;
+  grid-template-columns: 1.2fr 1fr 0.85fr;
   gap: 6px;
   align-items: center;
   padding: 8px 10px;
-  background: #f8fafc;
+  background: #F6F9FC;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E6EBF1;
   font-size: 0.6875rem;
+  color: #425466;
 }
-.table-row strong {
+.row strong {
   display: block;
-  color: #0f172a;
+  color: #0A2540;
   font-size: 0.75rem;
+  font-weight: 500;
 }
-.table-row small {
-  color: #94a3b8;
+.row small {
+  color: #8898AA;
   font-size: 0.5625rem;
 }
 
-.os-status {
+.tag {
   font-size: 0.5625rem;
-  font-weight: 700;
+  font-weight: 500;
   padding: 3px 7px;
   border-radius: 4px;
   width: fit-content;
 }
-.os-status--active  { background: #dbeafe; color: #1d4ed8; }
-.os-status--waiting { background: rgba(245, 158, 11, 0.12); color: #d97706; }
-.os-status--done    { background: rgba(5, 150, 105, 0.1); color: #059669; }
+.tag--active  { background: #F0EFFF; color: #635BFF; }
+.tag--waiting { background: rgba(255, 176, 32, 0.14); color: #B47A00; }
+.tag--done    { background: rgba(13, 148, 136, 0.1); color: #0D9488; }
 
-/* ── Float cards ── */
-.float-card {
+.stage-float {
   position: absolute;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: #fff;
+  border: 1px solid rgba(50, 50, 93, 0.08);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 15px 35px rgba(50, 50, 93, 0.12), 0 5px 15px rgba(0, 0, 0, 0.06);
   z-index: 5;
+  animation: float-bob 5.5s ease-in-out infinite;
 }
-.float-card--1 {
-  top: 15%;
-  left: -40px;
-  animation: float-bob 5s ease-in-out infinite;
+.stage-float span {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: #8898AA;
 }
-.float-card--2 {
-  bottom: 18%;
-  right: -40px;
-  animation: float-bob 6s ease-in-out infinite 0.6s;
+.stage-float strong {
+  font-size: 0.8125rem;
+  color: #0A2540;
+  font-weight: 500;
 }
+.stage-float--os { top: 8%; left: -28px; }
+.stage-float--money { bottom: 12%; right: -20px; animation-delay: 0.7s; }
 
 .float-icon {
   width: 32px;
@@ -525,78 +476,31 @@ const osRows = [
   justify-content: center;
   flex-shrink: 0;
 }
-.float-icon--blue { background: #dbeafe; color: #1d4ed8; }
-.float-icon--green { background: rgba(5, 150, 105, 0.1); color: #059669; }
-
-.float-label {
-  display: block;
-  font-size: 0.5625rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.float-card strong {
-  font-size: 0.75rem;
-  color: #0f172a;
-  font-weight: 700;
-}
+.float-icon--indigo { background: #F0EFFF; color: #635BFF; }
+.float-icon--teal { background: rgba(13, 148, 136, 0.1); color: #0D9488; }
 
 @keyframes float-bob {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-8px); }
 }
 
-/* ── Dark Mode ── */
-:global(.p-dark) .hero {
-  background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e293b 100%) !important;
-}
-
-/* ── Responsive ── */
 @media (max-width: 1100px) {
-  .float-card { display: none; }
+  .stage-float { display: none; }
 }
 
 @media (max-width: 900px) {
-  .hero {
-    padding: 110px 0 60px;
-  }
-  .hero-container {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    text-align: center;
-  }
-  .hero-content {
-    align-items: center;
-  }
-  .hero-subtitle {
-    max-width: 540px;
-  }
-  .hero-actions {
-    justify-content: center;
-  }
-  .hero-trust {
-    justify-content: center;
-  }
+  .hero { padding-top: 110px; min-height: auto; }
+  .hero-mesh { top: 64px; height: 520px; }
+  .hero-container { grid-template-columns: 1fr; gap: 2.5rem; }
+  .hero-copy { padding-top: 12px; max-width: 100%; }
+  .stage-card--main,
+  .hero-stage:hover .stage-card--main { transform: none; }
 }
 
 @media (max-width: 600px) {
-  .hero {
-    padding: 100px 0 50px;
-  }
-  .hero-title {
-    font-size: 2rem;
-  }
-  .hero-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  .btn-hero-primary,
-  .btn-hero-secondary {
-    width: 100%;
-    justify-content: center;
-  }
-  .app-sidebar { display: none; }
-  .app-dashboard { grid-template-columns: 1fr; }
+  .hero-title { font-size: 2.15rem; }
+  .hero-actions { flex-direction: column; align-items: flex-start; }
+  .app-side { display: none; }
+  .app-shell { grid-template-columns: 1fr; }
 }
 </style>

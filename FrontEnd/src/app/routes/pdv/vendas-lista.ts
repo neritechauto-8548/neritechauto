@@ -1,0 +1,2 @@
+import { ChangeDetectionStrategy,Component } from '@angular/core'; import { FormsModule } from '@angular/forms'; import { RouterLink } from '@angular/router'; import { DataViewState,NeriTechIcon,PageHeader } from '@shared';
+@Component({standalone:true,selector:'app-vendas-lista',changeDetection:ChangeDetectionStrategy.OnPush,imports:[FormsModule,RouterLink,PageHeader,NeriTechIcon,DataViewState],templateUrl:'./vendas-lista.html',styleUrl:'./vendas-lista.scss'}) export class VendasLista { busca='';periodo='HOJE';situacao='';caixa='';unidade=''; }

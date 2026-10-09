@@ -17,7 +17,7 @@ import { TagModule } from 'primeng/tag';
 import { InputMaskModule } from 'primeng/inputmask';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ClientesService, ClienteRequestDTO, ClienteResponseDTO } from '../cliente/cliente.service';
-import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels,
+import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels, getStatusClienteOptions, StatusClienteLabels,
   Sexo, EstadoCivil, OrigemCliente, getSexoOptions, getEstadoCivilOptions, getOrigemClienteOptions
 } from '../models/cliente.models';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
@@ -27,6 +27,7 @@ import { ConfirmationService } from '@shared/services/confirmation.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
 import { CnpjMaskDirective } from '@shared/directives/cnpj-mask';
+import { environment } from '../../../../environments/environment';
 
 interface ContatoExtra {
   tipoContato: string;
@@ -71,6 +72,7 @@ interface DocumentoExtra {
   ],
 })
 export class CadastroCliente implements OnInit {
+  readonly isUxPreview = environment.uxPreview;
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
@@ -94,7 +96,8 @@ export class CadastroCliente implements OnInit {
   savedClienteId: string | number | null = null;
 
   tiposPessoa = ['Física', 'Jurídica'];
-  situacoes = ['Ativo', 'Inativo'];
+  situacoes = getStatusClienteOptions();
+  statusLabels = StatusClienteLabels;
 
   // Options for Dropdowns
   sexoOptions = getSexoOptions();
@@ -107,7 +110,7 @@ export class CadastroCliente implements OnInit {
 
   model = {
     tipoPessoa: 'Física' as 'Física' | 'Jurídica',
-    situacao: 'Ativo' as 'Ativo' | 'Inativo',
+    situacao: StatusCliente.ATIVO as StatusCliente,
     nomeRazao: '',
     cpfCnpj: '',
     inscricaoMunicipal: '', // Adicionado para ambas as pessoas
@@ -166,7 +169,7 @@ export class CadastroCliente implements OnInit {
   }
 
   ngOnInit() {
-    this.loadMarcas(); // Carrega marcas para o combo de veículo
+    if (!this.isUxPreview) this.loadMarcas(); // Não exigir backend para homologar o cadastro
     // Verifica se há ID na rota para edição
     const uuid = this.route.snapshot.paramMap.get('uuid');
     if (uuid) {
@@ -187,7 +190,7 @@ export class CadastroCliente implements OnInit {
         this.loadVeiculos(id);
       },
       error: (err) => {
-        console.error('Erro ao carregars cliente', err);
+        console.error('Erro ao carregar cliente', err);
         // O interceptor global já mostrará o erro de rede.
       }
     });
@@ -195,7 +198,7 @@ export class CadastroCliente implements OnInit {
 
   patchModel(data: ClienteResponseDTO) {
     this.model.tipoPessoa = (data.tipoCliente === 'PESSOA_JURIDICA') ? 'Jurídica' : 'Física';
-    this.model.situacao = (data.status === 'ATIVO') ? 'Ativo' : 'Inativo';
+    this.model.situacao = (data.status as StatusCliente) || StatusCliente.ATIVO;
     this.model.origemCliente = data.origemCliente as OrigemCliente || null;
 
     if (this.model.tipoPessoa === 'Física') {
@@ -273,6 +276,21 @@ export class CadastroCliente implements OnInit {
 
   onDocumentoBlur() {
     if (!this.model.cpfCnpj) return;
+
+    // No preview, a validação local permite testar o formulário sem API.
+    if (this.isUxPreview) {
+      const valido = this.model.tipoPessoa === 'Física'
+        ? isValidCpf(this.model.cpfCnpj)
+        : isValidCnpj(this.model.cpfCnpj);
+      if (!valido) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Documento inválido',
+          detail: `O ${this.model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ'} informado não é válido.`
+        });
+      }
+      return;
+    }
 
     this.utilService.validarDocumento(this.model.cpfCnpj, this.model.tipoPessoa).subscribe({
       next: (isValid) => {
@@ -360,20 +378,14 @@ export class CadastroCliente implements OnInit {
   salvar() {
     this.submitted = true; // Ativa validação visual imediatamente
 
-    console.log('💾 salvar() chamado. Model:', this.model);
-    console.log('📝 isEditMode:', this.isEditMode, 'ID:', this.savedClienteId);
-
     // Validação simples alinhada ao backend
     const obrigatorios =
       this.model.tipoPessoa === 'Física'
         ? [this.model.nomeRazao, this.model.cpfCnpj]
         : [this.model.razaoSocial, this.model.cpfCnpj];
 
-    console.log('🔍 Campos obrigatórios preenchidos?', obrigatorios);
-
     const invalid = obrigatorios.some(v => !v);
     if (invalid) {
-      console.warn('❌ Validação falhou. Campos vazios.');
       this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha os campos obrigatórios (Nome/Razão e CPF/CNPJ).' });
       return;
     }
@@ -416,7 +428,7 @@ export class CadastroCliente implements OnInit {
       estadoCivil: this.model.tipoPessoa === 'Física' ? (this.model.estadoCivil || undefined) : undefined,
       profissao: this.model.tipoPessoa === 'Física' ? (this.model.profissao || undefined) : undefined,
       origemCliente: this.model.origemCliente || undefined,
-      status: this.model.situacao === 'Ativo' ? StatusCliente.ATIVO : StatusCliente.INATIVO,
+      status: this.model.situacao,
       observacoesGerais: this.model.observacao || undefined,
       email: this.model.email || undefined,
     };
@@ -461,7 +473,7 @@ export class CadastroCliente implements OnInit {
           },
           error: (err: unknown) => {
             console.error('Erro ao salvar cliente', err);
-            alert('Erro ao salvar cliente.');
+            this.messageService.add({ severity: 'error', summary: 'Não foi possível salvar', detail: 'Verifique os dados e tente novamente.' });
           },
         });
     }
@@ -943,7 +955,10 @@ export class CadastroCliente implements OnInit {
   private formatDate(date: any): string | undefined {
       if (!date) return undefined;
       if (date instanceof Date) {
-          return date.toISOString().split('T')[0];
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
       }
       if (typeof date === 'string' && date.trim()) {
            return date.split('T')[0];

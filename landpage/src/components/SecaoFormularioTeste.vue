@@ -311,10 +311,10 @@ const lidarRegistro = async () => {
 
 .form-card-title {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--midnight-navy);
   margin-bottom: 0.35rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 .form-card-subtitle {

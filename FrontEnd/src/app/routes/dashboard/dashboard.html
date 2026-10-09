@@ -1,191 +1,251 @@
-<div class="dashboard-container font-sans bg-slate-50/50 dark:bg-slate-900 min-h-screen">
-  
-  <!-- Loading State -->
-  @if (loading) {
-    <div class="fixed inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
-      <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      <span class="text-sm font-bold text-slate-700 dark:text-slate-200 animate-pulse tracking-wide">CARREGANDO...</span>
-    </div>
-  }
-
-   <div class="p-6 md:p-8 space-y-6">
-
-    <!-- Top Grid: Status Cards (Aberto, Autorizado, Cancelado, Fechado) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <!-- Card 1: Aberto -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-blue-200 bg-blue-50/50 text-blue-600 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-400">Aberto</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Abertos - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ abertosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ abertosTotal }}</span>
-        </div>
+<main class="home-shell">
+  <div class="home-container">
+    <header class="home-header">
+      <div class="home-heading">
+        <span class="eyebrow">Visão geral</span>
+        <h1>{{ saudacao }}, sua oficina.</h1>
+        <p>O que está acontecendo hoje e onde sua equipe precisa de atenção.</p>
+        @if (isUxPreview) {
+          <span class="preview-indicator" role="status"><i aria-hidden="true"></i> Modo de homologação · dados demonstrativos</span>
+        }
       </div>
 
-      <!-- Card 2: Autorizado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-amber-200 dark:hover:border-amber-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-amber-200 bg-amber-50/50 text-amber-600 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">Autorizado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Autorizados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ autorizadosMes }}</h3>
+      <div class="home-controls">
+        <div class="period-control" aria-label="Período atual">
+          <span class="period-dot" aria-hidden="true"></span>
+          <span>{{ mesAnoAtualLabel }}</span>
         </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ autorizadosTotal }}</span>
-        </div>
-      </div>
-
-      <!-- Card 3: Cancelado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-red-200 dark:hover:border-red-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-red-200 bg-red-50/50 text-red-600 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400">Cancelado</span>
-          </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Cancelados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ canceladosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ canceladosTotal }}</span>
+        <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
+          @for (option of viewOptions; track option.value) {
+            <button type="button"
+              role="tab"
+              [attr.aria-selected]="selectedView === option.value"
+              [class.active]="selectedView === option.value"
+              (click)="selecionarVisao(option.value)">
+              {{ option.label }}
+            </button>
+          }
         </div>
       </div>
+    </header>
 
-      <!-- Card 4: Fechado -->
-      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700/80 flex flex-col justify-between min-h-[170px] relative transition-all duration-300 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800/40 cursor-default">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border border-emerald-200 bg-emerald-50/50 text-emerald-600 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400">Fechado</span>
+    @if (loading) {
+      <section class="skeleton-grid">
+        <div class="skeleton hero"></div><div class="skeleton"></div><div class="skeleton"></div>
+        <div class="skeleton wide"></div><div class="skeleton"></div>
+      </section>
+    } @else if (error) {
+      <section class="state-card">
+        <span class="state-icon">!</span>
+        <div><strong>Não conseguimos atualizar sua visão.</strong><p>Os dados da oficina não puderam ser carregados agora.</p></div>
+        <button type="button" class="secondary-button" (click)="carregarDados()">Tentar novamente</button>
+      </section>
+    } @else if (!hasData) {
+      <section class="empty-state">
+        <span class="empty-mark">+</span>
+        <h2>Comece pela operação.</h2>
+        <p>Quando clientes, veículos e ordens entrarem no sistema, o Home passa a contar a história da sua oficina automaticamente.</p>
+        <button type="button" class="primary-button" (click)="navegarPara('/cliente/cadastro')">Cadastrar primeiro cliente</button>
+      </section>
+    } @else if (selectedView === 'padrao') {
+      <section class="command-grid">
+        <article class="hero-metric">
+          <div class="metric-top">
+            <span>Faturamento no período</span>
+            <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')">↗</button>
           </div>
-          <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-1">Fechados - {{ mesAnoAtualLabel }}</p>
-          <h3 class="text-3xl font-bold text-slate-800 dark:text-white">{{ fechadosMes }}</h3>
-        </div>
-        <div class="border-t border-slate-100 dark:border-slate-700/60 pt-3 mt-4 flex justify-between items-baseline">
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Total de orçamentos</p>
-          <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ fechadosTotal }}</span>
-        </div>
-      </div>
+          <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
+          <div class="hero-footer">
+            <span class="trend" [class.positive]="variacaoFaturamentoPercentual >= 0" [class.negative]="variacaoFaturamentoPercentual < 0">{{ variacaoFaturamentoPercentual >= 0 ? '↑' : '↓' }} {{ variacaoFaturamentoLabel }}</span>
+            <span>vs. mês anterior</span>
+          </div>
+          <div class="mini-bars" aria-hidden="true">
+            @for (value of data?.historicoFaturamento ?? []; track $index) {
+              <i [style.height.%]="barHeight(value)"></i>
+            }
+          </div>
+        </article>
 
-    </div>
+        <button type="button" class="signal-card" (click)="navegarPara('/os')">
+          <div class="signal-label"><span class="signal-dot amber"></span> Em atendimento</div>
+          <strong>{{ data?.osEmAndamento ?? 0 }}</strong>
+          <p>OS em andamento agora</p>
+          <span class="card-link">Ver operação <b>→</b></span>
+        </button>
 
-    <!-- Middle Grid: Chart + Entries/Exits and Informativos -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <button type="button" class="signal-card" (click)="navegarPara('/os')">
+          <div class="signal-label"><span class="signal-dot"></span> Para entregar</div>
+          <strong>{{ data?.osConcluidas ?? 0 }}</strong>
+          <p>serviços concluídos no mês</p>
+          <span class="card-link">Ver entregas <b>→</b></span>
+        </button>
 
-      <!-- Relatório de Peças e Serviços (Area Chart) -->
-      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-2">
+        <button type="button" class="signal-card attention" (click)="navegarPara('/financeiro')">
+          <div class="signal-label"><span class="signal-dot red"></span> Atenção</div>
+          <strong>{{ formatCurrency(data?.valoresVencidos) }}</strong>
+          <p>em contas vencidas</p>
+          <span class="card-link">Resolver pendências <b>→</b></span>
+        </button>
+      </section>
+
+      <section class="workspace-grid">
+        <article class="surface performance">
+          <div class="surface-header">
             <div>
-              <h3 class="text-lg font-bold text-slate-800 dark:text-white">Relatório de Peças e Serviços</h3>
-              <p class="text-xs text-slate-400 dark:text-slate-500">Periodo: Últimos seis meses</p>
+              <span class="eyebrow">Performance</span>
+              <h2>Receita acompanhando a operação</h2>
+              <p>Faturamento e despesas nos últimos seis meses.</p>
             </div>
-            <div class="flex gap-2">
-              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors">
-                <i class="pi pi-filter text-xs"></i>
-              </button>
-              <button class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors" (click)="exportarRelatorio()">
-                <i class="pi pi-external-link text-xs"></i>
-              </button>
-            </div>
+            <div class="legend"><span><i></i> Receita</span><span><i class="muted"></i> Despesas</span></div>
           </div>
-          <div id="chart" class="h-[350px]">
-            <apx-chart
-              [series]="chartOptions.series!"
-              [chart]="chartOptions.chart!"
-              [xaxis]="chartOptions.xaxis!"
-              [yaxis]="chartOptions.yaxis!"
-              [stroke]="chartOptions.stroke!"
-              [tooltip]="chartOptions.tooltip!"
-              [dataLabels]="chartOptions.dataLabels!"
-              [legend]="chartOptions.legend!"
-              [colors]="chartOptions.colors!"
-              [grid]="chartOptions.grid!"
-              [fill]="chartOptions.fill!"
-            />
+          @if (chartOptions) {
+            <apx-chart class="performance-chart"
+              [series]="chartOptions.series" [chart]="chartOptions.chart"
+              [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis"
+              [stroke]="chartOptions.stroke" [colors]="chartOptions.colors"
+              [fill]="chartOptions.fill" [grid]="chartOptions.grid"
+              [legend]="{show:false}" [tooltip]="chartOptions.tooltip"
+              [dataLabels]="chartOptions.dataLabels"></apx-chart>
+          }
+        </article>
+
+        <aside class="surface health">
+          <div class="surface-header compact">
+            <div><span class="eyebrow">Saúde da operação</span><h2>Hoje</h2></div>
+            <span class="live-pill"><i></i> Atualizado</span>
           </div>
+
+          <button class="health-row" type="button" (click)="navegarPara('/agendamento')">
+            <span class="health-icon calendar">◷</span>
+            <span><b>Entradas</b><small>veículos previstos</small></span>
+            <strong>{{ data?.entradasVeiculosMes ?? 0 }}</strong>
+          </button>
+          <button class="health-row" type="button" (click)="navegarPara('/os')">
+            <span class="health-icon">✓</span>
+            <span><b>Saídas</b><small>veículos concluídos</small></span>
+            <strong>{{ data?.saidasVeiculosMes ?? 0 }}</strong>
+          </button>
+          <button class="health-row" type="button" (click)="navegarPara('/os')">
+            <span class="health-icon">R$</span>
+            <span><b>Ticket médio</b><small>por ordem de serviço</small></span>
+            <strong>{{ formatCurrency(data?.ticketMedio) }}</strong>
+          </button>
+
+          <div class="health-divider"></div>
+          <div class="health-summary">
+            <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
+            <div><span>Conversão</span><strong>{{ taxaConversaoOrcamento }}%</strong></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="lower-grid">
+        <article class="surface insight">
+          <div class="surface-header compact">
+            <div><span class="eyebrow">Inteligência</span><h2>O que merece sua atenção</h2></div>
+            <button type="button" class="text-button" (click)="navegarPara('/os')">Abrir operação →</button>
+          </div>
+          <div class="insight-list">
+            <button type="button" (click)="navegarPara('/os')">
+              <span class="insight-number">01</span><span><b>{{ data?.veiculosEmAtraso ?? 0 }} veículos em atraso</b><small>Há veículos aguardando conclusão além do prazo previsto.</small></span><span>→</span>
+            </button>
+            <button type="button" (click)="navegarPara('/financeiro')">
+              <span class="insight-number">02</span><span><b>{{ formatCurrency(data?.contasReceber) }} para receber</b><small>Acompanhe sua carteira e reduza o tempo de recebimento.</small></span><span>→</span>
+            </button>
+            <button type="button" (click)="navegarPara('/cliente')">
+              <span class="insight-number">03</span><span><b>{{ data?.totalClientes ?? 0 }} clientes ativos</b><small>Sua base atual de relacionamento.</small></span><span>→</span>
+            </button>
+          </div>
+        </article>
+
+        <article class="surface finance-summary">
+          <div class="surface-header compact">
+            <div><span class="eyebrow">Financeiro</span><h2>Posição do mês</h2></div>
+            <button type="button" class="text-button" (click)="navegarPara('/financeiro')">Ver financeiro →</button>
+          </div>
+          <div class="finance-main">
+            <span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong>
+            <small>Faturamento menos despesas</small>
+          </div>
+          <div class="finance-lines">
+            <div><span>Receita</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong></div>
+            <div><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong></div>
+            <div><span>A receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
+          </div>
+        </article>
+      </section>
+    } @else if (selectedView === 'gerencial') {
+      <section class="view-section-heading">
+        <span class="eyebrow">Painel gerencial</span>
+        <h2>Visão consolidada da oficina</h2>
+        <p>Indicadores para acompanhar resultado, equipe e relacionamento com clientes.</p>
+      </section>
+      <section class="view-dashboard-grid">
+        <article class="view-stat-card stat-blue"><span>Faturamento no mês</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Receita registrada no período</small></article>
+        <article class="view-stat-card stat-green"><span>Resultado do mês</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Receita menos despesas</small></article>
+        <article class="view-stat-card stat-amber"><span>OS em andamento</span><strong>{{ data?.osEmAndamento ?? 0 }}</strong><small>Ordens em execução</small></article>
+        <article class="view-stat-card stat-violet"><span>Clientes cadastrados</span><strong>{{ data?.totalClientes ?? 0 }}</strong><small>Base de relacionamento</small></article>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Evolução</span><h2>Receita e despesas</h2><p>Comparativo dos últimos meses disponíveis.</p></div></div>
+        @if (chartOptions) {
+          <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
+            [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
+            [colors]="chartOptions.colors" [fill]="chartOptions.fill" [grid]="chartOptions.grid"
+            [legend]="{show:false}" [tooltip]="chartOptions.tooltip" [dataLabels]="chartOptions.dataLabels"></apx-chart>
+        }
+      </section>
+    } @else if (selectedView === 'financeiro') {
+      <section class="view-section-heading">
+        <span class="eyebrow">Painel financeiro</span>
+        <h2>Receita, resultado e compromissos</h2>
+        <p>Acompanhe os principais números financeiros do período demonstrado.</p>
+      </section>
+      <section class="view-dashboard-grid">
+        <article class="view-stat-card stat-blue"><span>Faturamento</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Receita no mês</small></article>
+        <article class="view-stat-card stat-amber"><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong><small>Custos e despesas registrados</small></article>
+        <article class="view-stat-card stat-green"><span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Faturamento menos despesas</small></article>
+        <article class="view-stat-card stat-red"><span>Valores vencidos</span><strong>{{ formatCurrency(data?.valoresVencidos) }}</strong><small>Contas vencidas a acompanhar</small></article>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Fluxo financeiro</span><h2>Receita e despesas por mês</h2><p>Use os valores como visão de acompanhamento, não como conciliação contábil.</p></div></div>
+        @if (chartOptions) {
+          <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
+            [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
+            [colors]="chartOptions.colors" [fill]="chartOptions.fill" [grid]="chartOptions.grid"
+            [legend]="{show:false}" [tooltip]="chartOptions.tooltip" [dataLabels]="chartOptions.dataLabels"></apx-chart>
+        }
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Posição financeira</span><h2>Carteira e compromissos</h2></div></div>
+        <div class="finance-lines view-finance-lines">
+          <div><span>A receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
+          <div><span>A pagar</span><strong>{{ formatCurrency(data?.contasPagar) }}</strong></div>
+          <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
         </div>
-      </div>
-
-      <!-- Right Column: Entry/Exit counters & Informativos stacked -->
-      <div class="flex flex-col gap-6">
-
-        <!-- Entradas de veículos no mês -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
-          <div class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-center shadow-sm">
-            <i class="pi pi-arrow-down text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Entradas de veículos no mês</p>
-            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ entradasVeiculosMes }}</h3>
-          </div>
+        <button type="button" class="primary-button" (click)="navegarPara('/financeiro')">Abrir módulo Financeiro</button>
+      </section>
+    } @else if (selectedView === 'orcamento') {
+      <section class="view-section-heading">
+        <span class="eyebrow">Painel de orçamentos</span>
+        <h2>Do orçamento à aprovação</h2>
+        <p>Acompanhe a movimentação dos orçamentos e identifique oportunidades de conversão.</p>
+      </section>
+      <section class="view-dashboard-grid">
+        <article class="view-stat-card stat-blue"><span>Orçamentos abertos no mês</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>Entradas registradas no período</small></article>
+        <article class="view-stat-card stat-green"><span>Autorizados no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>Orçamentos aprovados</small></article>
+        <article class="view-stat-card stat-violet"><span>Fechados no mês</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>Orçamentos finalizados</small></article>
+        <article class="view-stat-card stat-red"><span>Cancelados no mês</span><strong>{{ data?.canceladosMes ?? 0 }}</strong><small>Verifique os motivos de perda</small></article>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Conversão</span><h2>Indicadores de orçamento</h2><p>Taxa calculada a partir dos totais disponíveis no serviço atual.</p></div></div>
+        <div class="quote-conversion">
+          <div><span>Conversão estimada</span><strong>{{ taxaConversaoOrcamento }}%</strong></div>
+          <div><span>Orçamentos autorizados</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
+          <div><span>Orçamentos cancelados</span><strong>{{ data?.canceladosMes ?? 0 }}</strong></div>
         </div>
-
-        <!-- Saídas de veículos no mês -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-600">
-          <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/30 text-rose-500 border border-rose-100 dark:border-rose-900/40 flex items-center justify-center shadow-sm">
-            <i class="pi pi-arrow-up text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium">Saídas de veículos no mês</p>
-            <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-0.5">{{ saidasVeiculosMes }}</h3>
-          </div>
-        </div>
-
-        <!-- Informativos (Últimos 7 dias) -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-4">Informativos (Últimos 7 dias)</h3>
-            <div class="space-y-4">
-              
-              <!-- Item 1: Veículos em Atraso -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Veículos com entrega atrasada</p>
-                    <p class="text-[10px] text-slate-400">Verifique os prazos prometidos</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold px-2 py-0.5 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 rounded-md">{{ veiculosEmAtraso }}</span>
-              </div>
-
-              <!-- Item 2: Clientes Ativos -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Total de clientes ativos</p>
-                    <p class="text-[10px] text-slate-400">Expansão da base cadastral</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-amber-400 rounded-md">{{ stats.totalClientes || 0 }}</span>
-              </div>
-
-              <!-- Item 3: Ticket Médio -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                  <div>
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ticket médio geral das OS</p>
-                    <p class="text-[10px] text-slate-400">Faturamento médio por ordem</p>
-                  </div>
-                </div>
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">R$ {{ (stats.ticketMedio || 0) | number:'1.2-2' }}</span>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
+        <button type="button" class="primary-button" (click)="navegarPara('/orcamento')">Abrir módulo Orçamentos</button>
+      </section>
+    }
   </div>
-</div>
+</main>

@@ -1,71 +1,113 @@
 @use '../../../styles/grid/breakpoints';
 
 :host {
+  --nt-sidebar-bg: var(--nt-surface, #ffffff);
+  --nt-sidebar-border: var(--nt-border, #e2e8f0);
+  --nt-sidebar-width: 248px;
+  --nt-sidebar-collapsed-width: 72px;
+
   display: flex;
   flex-direction: column;
+  width: var(--sidenav-width, var(--nt-sidebar-width));
   height: 100%;
+  background: var(--nt-sidebar-bg);
+  color: var(--nt-text, #0f172a);
 }
 
-.matero-sidebar-header {
-  overflow: hidden;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f6f9fc;
-
-  mat-toolbar {
-    width: var(--sidenav-width);
-    padding: 0 1rem;
-    height: 64px !important;
-    background-color: transparent !important;
-  }
+.nt-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 0 14px 0 18px;
+  border-bottom: 1px solid var(--nt-sidebar-border);
+  background: var(--nt-surface, #ffffff);
 }
 
-.matero-sidebar-main {
+.nt-sidebar-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nt-sidebar-toggle {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--nt-text-muted, #64748b);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.nt-sidebar-toggle:hover {
+  background: var(--nt-surface-subtle, #f8fafc);
+  border-color: var(--nt-border, #e2e8f0);
+  color: var(--nt-text, #0f172a);
+}
+
+.nt-sidebar-toggle:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.nt-sidebar-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nt-sidebar-menu {
   flex: 1;
-  padding: 0.5rem 0;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: #f6f9fc;
-  
-  /* Custom Slim Scrollbar for SaaS look */
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-  }
-
-  @include breakpoints.bp-lt(small) {
-    & {
-      height: calc(100% - var(--mat-toolbar-mobile-height));
-    }
-  }
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
-.matero-sidebar-footer {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #e2e8f0;
-  background: #f6f9fc;
+.nt-sidebar-menu::-webkit-scrollbar {
+  width: 5px;
 }
 
-/* Collapsed Header Fix */
-.matero-sidenav-collapsed {
-    .matero-sidebar-header {
-      mat-toolbar {
-        padding: 0;
-        justify-content: center;
-        
-        app-branding {
-            margin: 0;
-            transform: scale(1.1); /* Slightly larger logo in mini mode */
-        }
-        
-        button {
-            display: none; /* Usually toggle button is hidden or moved in mini mode in Stripe style, but let's just center if kept. Actually Stripe often hides the logo text and keeps the mark. */
-        }
-      }
-    }
+.nt-sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nt-sidebar-menu::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.matero-sidenav-collapsed .nt-sidebar-header {
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.matero-sidenav-collapsed .nt-sidebar-brand {
+  justify-content: center;
+}
+
+.matero-sidenav-collapsed .nt-sidebar-toggle {
+  display: none;
+}
+
+@include breakpoints.bp-lt(small) {
+  :host {
+    width: 100%;
+  }
+
+  .nt-sidebar-header {
+    min-height: 60px;
+  }
 }

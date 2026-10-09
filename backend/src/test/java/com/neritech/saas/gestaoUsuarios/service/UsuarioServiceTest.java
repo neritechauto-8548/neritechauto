@@ -5,7 +5,6 @@ import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
-import com.neritech.saas.gestaoUsuarios.mapper.UsuarioMapper;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +33,6 @@ class UsuarioServiceTest {
     private FuncaoRepository funcaoRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
-    @Mock
-    private UsuarioMapper usuarioMapper;
     @Mock
     private com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository assinaturaEmpresaRepository;
     @Mock
@@ -66,14 +63,8 @@ class UsuarioServiceTest {
             // Arrange
             when(usuarioRepository.existsByEmailIgnoreCase(anyString())).thenReturn(false);
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-            when(usuarioMapper.toEntity(any(UsuarioRequest.class))).thenReturn(usuario);
             when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
             
-            UsuarioResponse expectedResponse = new UsuarioResponse();
-            expectedResponse.setId(1L);
-            expectedResponse.setEmail(usuario.getEmail());
-            when(usuarioMapper.toResponse(any(Usuario.class))).thenReturn(expectedResponse);
-
             // Act
             UsuarioResponse response = usuarioService.create(usuarioRequest);
 
@@ -110,8 +101,6 @@ class UsuarioServiceTest {
             
             UsuarioResponse expectedResponse = new UsuarioResponse();
             expectedResponse.setId(1L);
-            when(usuarioMapper.toResponse(usuario)).thenReturn(expectedResponse);
-
             // Act
             UsuarioResponse response = usuarioService.findById(1L);
 

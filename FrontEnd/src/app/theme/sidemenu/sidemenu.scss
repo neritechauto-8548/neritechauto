@@ -1,197 +1,226 @@
-@use '@angular/material' as mat;
+@use '../../../styles/grid/breakpoints';
 
 .matero-sidemenu {
-  padding: 0.75rem 0.75rem;
+  width: 100%;
+  padding: 14px 12px 24px;
   margin: 0;
   list-style: none;
-
-  /* Section Heading Style */
-  .menu-item-heading {
-    margin-top: 1rem; /* Reduzido de 1.5rem */
-    margin-bottom: 0.25rem; /* Reduzido de 0.5rem */
-    
-    &:first-child {
-      margin-top: 0.5rem;
-    }
-
-    .menu-heading-label {
-      padding: 0 16px; /* Aumentado de 14 para 16 */
-      font-size: 11px;
-      font-weight: 700;
-      color: #475569; /* Slate 600 - Melhor Contraste */
-      letter-spacing: 0.08em; /* Aumentado de 0.05 para 0.08 */
-      text-transform: uppercase;
-      opacity: 0.8;
-    }
-  }
-
-  .menu-item {
-    overflow: visible;
-    border-radius: 6px;
-    transition: all 200ms ease;
-    margin-bottom: 2px;
-
-    &:not(.menu-item-heading) {
-        >.submenu {
-          height: 0;
-          margin: 0; /* Removido margin default */
-          padding: 0; /* Removido padding default */
-          transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1);
-          overflow: hidden;
-          margin-left: 20px; 
-          border-left: 1px solid #f1f5f9;
-        }
-    }
-
-    >.menu-heading {
-      transition: all 250ms ease;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start !important; /* Força alinhamento à esquerda */
-      width: 100%;
-      padding: 8px 16px;
-      min-height: 38px;
-      font-size: 13.5px;
-      color: #475569; /* Slate 600 */
-      text-decoration: none !important;
-      text-align: left !important;
-      cursor: pointer;
-      outline: none;
-      background-color: transparent;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      font-family: 'Inter', sans-serif;
-
-      &:hover {
-        background-color: #f1f5f9; /* Slate 100 */
-        color: #0f172a; /* Slate 900 */
-      }
-    }
-
-    /* Active State - Stripe Light (Indigo Pop) */
-    &.active {
-      >.menu-heading {
-        color: #4f46e5; /* Indigo 600 */
-        background-color: #eef2ff; /* Indigo 50 */
-        font-weight: 600;
-
-        &::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 20%;
-          height: 60%;
-          width: 4px; /* Indicador levemente mais robusto */
-          background-color: #6366f1; /* Indigo 500 indicator */
-          border-radius: 0 8px 8px 0;
-        }
-
-        .menu-icon {
-          color: #6366f1 !important;
-          opacity: 1 !important;
-        }
-      }
-    }
-
-    &.expanded {
-      > .submenu {
-        height: auto;
-        padding-top: 4px;
-        padding-bottom: 4px;
-        margin-top: 2px;
-      }
-    }
-  }
-
-  .menu-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 12px;
-    font-size: 16px;
-    line-height: 20px;
-    text-align: center;
-    flex-shrink: 0;
-    color: #000000 !important; /* Cor Preta Absoluta */
-    opacity: 1; /* Aumentando opacidade conforme pedido de ícones pretos */
-    transition: all 0.2s ease;
-
-    &.pi {
-        color: #000000 !important;
-    }
-
-    &.submenu-icon {
-        font-size: 12px; /* Aumentado significativamente para visibilidade */
-        opacity: 0.8;
-        margin-right: 12px;
-    }
-  }
-
-  .menu-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    letter-spacing: -0.01em;
-    padding-right: 4px; /* Previne que o texto encoste no caret */
-  }
-
-  .menu-caret {
-      font-size: 10px;
-      width: 12px;
-      height: 12px;
-      line-height: 12px;
-      opacity: 0.4;
-      transition: transform 0.2s;
-  }
-
-  .expanded > .menu-heading .menu-caret {
-      transform: rotate(180deg);
-  }
 }
 
-/* Sidebar Container - Stripe Ice Gray */
-.matero-sidebar {
-    background: #f6f9fc !important;
-    border-right: 1px solid #e2e8f0 !important;
+.matero-sidemenu .menu-item-heading {
+  margin: 22px 0 6px;
 }
 
-/* Collapsed Sidebar Refinements (Stripe UX) */
-.matero-sidenav-collapsed {
+.matero-sidemenu .menu-item-heading:first-child {
+  margin-top: 4px;
+}
+
+.matero-sidemenu .menu-heading-label {
+  padding: 0 12px 7px;
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.matero-sidemenu .menu-item {
+  position: relative;
+  overflow: visible;
+  margin: 0 0 2px;
+}
+
+.matero-sidemenu .menu-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: 500 12px/18px Inter, sans-serif;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.matero-sidemenu .menu-heading:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.matero-sidemenu .menu-heading:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.matero-sidemenu .menu-item.active > .menu-heading {
+  background: #eff6ff;
+  border-color: #dbeafe;
+  color: #0f172a;
+  font-weight: 650;
+}
+
+.matero-sidemenu .menu-item.active > .menu-heading::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #2563eb;
+}
+
+.matero-sidemenu .menu-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 11px;
+  flex: 0 0 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #64748b;
+}
+
+.matero-sidemenu .menu-item.active > .menu-heading .menu-icon {
+  color: #2563eb;
+}
+
+.matero-sidemenu .menu-icon.submenu-icon {
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
+  margin-right: 12px;
+}
+
+.matero-sidemenu .menu-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -.01em;
+}
+
+.matero-sidemenu .menu-caret {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #94a3b8;
+  transition: transform .18s ease, color .15s ease;
+}
+
+.matero-sidemenu .expanded > .menu-heading .menu-caret {
+  transform: rotate(180deg);
+  color: #64748b;
+}
+
+.matero-sidemenu .menu-label,
+.matero-sidemenu .menu-badge {
+  margin-left: 7px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+}
+
+.matero-sidemenu .menu-badge {
+  border-radius: 999px;
+}
+
+.matero-sidemenu .menu-item:not(.menu-item-heading) > .submenu {
+  height: 0;
+  margin: 0 0 0 15px;
+  padding: 0 0 0 9px;
+  overflow: hidden;
+  border-left: 1px solid #eef2f6;
+  transition: height .2s ease, padding .2s ease;
+}
+
+.matero-sidemenu .menu-item.expanded > .submenu {
+  height: auto;
+  margin-top: 3px;
+  padding-top: 2px;
+  padding-bottom: 3px;
+}
+
+.matero-sidemenu .submenu .menu-heading {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 11.5px;
+}
+
+.matero-sidemenu .submenu .menu-icon {
+  width: 17px;
+  height: 17px;
+  flex-basis: 17px;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu {
+  padding: 14px 9px 20px;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-item-heading {
+  display: none;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-heading {
+  justify-content: center;
+  min-height: 44px;
+  padding: 9px 0;
+  border-color: transparent;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-heading:hover {
+  background: #f8fafc;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-item.active > .menu-heading {
+  background: #eff6ff;
+  border-color: #dbeafe;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-item.active > .menu-heading::before {
+  left: 0;
+  top: 11px;
+  bottom: 11px;
+  width: 3px;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-icon {
+  width: 21px;
+  height: 21px;
+  margin: 0;
+  flex-basis: 21px;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-name,
+.matero-sidenav-collapsed .matero-sidemenu .menu-caret {
+  display: none;
+}
+
+.matero-sidenav-collapsed .matero-sidemenu .menu-item .submenu {
+  display: none;
+}
+
+@include breakpoints.bp-lt(small) {
   .matero-sidemenu {
-    padding: 0.75rem 0;
-
-    .menu-item-heading {
-      display: none !important; /* Hide headings in mini mode */
-    }
-
-    .menu-item {
-      .menu-heading {
-        padding: 8px 0;
-        justify-content: center;
-
-        .menu-icon {
-          margin-right: 0;
-          width: 100%;
-          display: flex;
-          justify-content: center;
-        }
-
-        .menu-name,
-        .menu-caret {
-          display: none !important;
-        }
-
-        &::before {
-          top: 15%;
-          height: 70%;
-        }
-      }
-
-      .submenu {
-        display: none !important; /* Matero usually handles this via popover, but hiding ensures no leakage */
-      }
-    }
+    padding-bottom: 18px;
   }
 }

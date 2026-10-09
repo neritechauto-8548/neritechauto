@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -38,27 +37,27 @@ import { AboutSystemDialog } from './about-system';
 
         <div class="p-1 flex flex-col">
           <button [routerLink]="['/configuracoes/colaboradores/cadastro', user.id]" [queryParams]="{ byUsuario: true }" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
-            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">account_circle</mat-icon>
+            <svg class="nt-user-menu-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
             <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Meus Dados</span>
           </button>
 
           <button routerLink="/configuracoes/assinatura" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
-            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">credit_card</mat-icon>
+            <svg class="nt-user-menu-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg>
             <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Minha Assinatura</span>
           </button>
 
           <button routerLink="/agendamento/calendario" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
-            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-slate-600 transition-colors">event</mat-icon>
+            <svg class="nt-user-menu-icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M4 10h16"></path></svg>
             <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Minha Agenda</span>
           </button>
 
           <button (click)="openSupport()" mat-menu-item class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
-            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-sky-500 transition-colors">help_outline</mat-icon>
+            <svg class="nt-user-menu-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M9.7 9a2.5 2.5 0 1 1 4.4 1.6c-.9 1-2.1 1.3-2.1 2.9M12 17h.01"></path></svg>
             <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Suporte</span>
           </button>
 
           <button mat-menu-item (click)="showAbout = true" class="!rounded-lg hover:!bg-slate-50 !h-9 !leading-9 transition-all group">
-            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-indigo-500 transition-colors">info</mat-icon>
+            <svg class="nt-user-menu-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
             <span class="!text-[13px] !font-medium !text-slate-700 group-hover:!text-slate-900">Sobre o Sistema</span>
           </button>
         </div>
@@ -67,7 +66,7 @@ import { AboutSystemDialog } from './about-system';
 
         <div class="p-1">
           <button mat-menu-item (click)="logout()" class="!rounded-lg hover:!bg-rose-50 !h-9 !leading-9 transition-all group">
-            <mat-icon class="!text-slate-400 !mr-2.5 !text-[18px] group-hover:!text-rose-500 transition-colors">logout</mat-icon>
+            <svg class="nt-user-menu-icon" viewBox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg>
             <span class="!text-[13px] !font-bold !text-slate-700 group-hover:!text-rose-600">Sair da Conta</span>
           </button>
         </div>
@@ -77,7 +76,7 @@ import { AboutSystemDialog } from './about-system';
     <!-- Dialog Sobre o Sistema -->
     <app-about-system [(visible)]="showAbout" />
   `,
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, TranslateModule, AboutSystemDialog],
+  imports: [RouterLink, MatButtonModule, MatMenuModule, TranslateModule, AboutSystemDialog],
 })
 export class UserButton implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);

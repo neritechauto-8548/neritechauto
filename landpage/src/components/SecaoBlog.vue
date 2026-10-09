@@ -104,8 +104,9 @@ const posts = [
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .preview-body {
@@ -118,6 +119,9 @@ const posts = [
 
 .preview-title {
   font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--midnight-navy);
+  letter-spacing: -0.025em;
   margin-bottom: var(--spacing-xs);
   line-height: 1.3;
 }

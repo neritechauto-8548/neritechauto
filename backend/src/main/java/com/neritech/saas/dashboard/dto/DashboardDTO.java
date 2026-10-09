@@ -1,6 +1,7 @@
 package com.neritech.saas.dashboard.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record DashboardDTO(
         Long totalClientes,
@@ -16,9 +17,9 @@ public record DashboardDTO(
         BigDecimal contasPagar,
         BigDecimal valoresVencidos,
         Long veiculosEmAtraso,
-        java.util.List<java.math.BigDecimal> historicoFaturamento,
-        java.util.List<java.math.BigDecimal> historicoServicos,
-        java.util.List<String> historicoMeses,
+        List<BigDecimal> historicoFaturamento,
+        List<BigDecimal> historicoDespesas,
+        List<String> historicoMeses,
         Long abertosMes,
         Long abertosTotal,
         Long autorizadosMes,
