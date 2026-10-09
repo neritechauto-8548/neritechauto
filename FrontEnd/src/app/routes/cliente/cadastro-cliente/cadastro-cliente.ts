@@ -169,7 +169,7 @@ export class CadastroCliente implements OnInit {
   }
 
   ngOnInit() {
-    this.loadMarcas(); // Carrega marcas para o combo de veículo
+    if (!this.isUxPreview) this.loadMarcas(); // Não exigir backend para homologar o cadastro
     // Verifica se há ID na rota para edição
     const uuid = this.route.snapshot.paramMap.get('uuid');
     if (uuid) {
@@ -276,6 +276,21 @@ export class CadastroCliente implements OnInit {
 
   onDocumentoBlur() {
     if (!this.model.cpfCnpj) return;
+
+    // No preview, a validação local permite testar o formulário sem API.
+    if (this.isUxPreview) {
+      const valido = this.model.tipoPessoa === 'Física'
+        ? isValidCpf(this.model.cpfCnpj)
+        : isValidCnpj(this.model.cpfCnpj);
+      if (!valido) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Documento inválido',
+          detail: `O ${this.model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ'} informado não é válido.`
+        });
+      }
+      return;
+    }
 
     this.utilService.validarDocumento(this.model.cpfCnpj, this.model.tipoPessoa).subscribe({
       next: (isValid) => {
