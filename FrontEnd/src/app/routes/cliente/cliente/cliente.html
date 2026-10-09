@@ -4,6 +4,11 @@
       <p class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Relacionamento</p>
       <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Clientes</h1>
       <p class="mt-1 text-sm text-slate-500">Consulte e gerencie a base de clientes da sua oficina.</p>
+      @if (isUxPreview) {
+        <span class="mt-2 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700" role="status">
+          <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Modo de homologação · dados demonstrativos
+        </span>
+      }
     </div>
     <button type="button" (click)="cadastrarCliente()"
       class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
