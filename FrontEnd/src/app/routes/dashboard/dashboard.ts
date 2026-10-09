@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardService, DashboardDTO } from './dashboard.service';
+import { environment } from '@env/environment';
 
 type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 
@@ -18,6 +19,7 @@ export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
 
+  readonly isUxPreview = environment.uxPreview;
   loading = true;
   error = false;
   data: DashboardDTO | null = null;
