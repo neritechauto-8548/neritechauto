@@ -48,6 +48,18 @@ export class Dashboard implements OnInit {
     return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   }
 
+  get variacaoFaturamentoPercentual(): number {
+    const historico = this.data?.historicoFaturamento ?? [];
+    if (historico.length < 2) return 0;
+    const anterior = Number(historico[historico.length - 2] ?? 0);
+    const atual = Number(historico[historico.length - 1] ?? 0);
+    return anterior > 0 ? Math.round(((atual - anterior) / anterior) * 1000) / 10 : 0;
+  }
+
+  get variacaoFaturamentoLabel(): string {
+    return Math.abs(this.variacaoFaturamentoPercentual).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+  }
+
   get margemPercentual(): number {
     const faturamento = Number(this.data?.faturamentoMes ?? 0);
     return faturamento > 0 ? Math.round((Number(this.data?.lucroMes ?? 0) / faturamento) * 100) : 0;
