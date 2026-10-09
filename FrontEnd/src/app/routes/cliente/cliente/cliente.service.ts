@@ -27,8 +27,8 @@ export class ClientesService {
     { id: 4, empresaId: 1, tipoCliente: TipoCliente.PESSOA_JURIDICA, razaoSocial: 'Transportes Alfa Ltda.', nomeFantasia: 'Alfa Transportes', cnpj: '11.222.333/0001-81', email: 'contato@alfa.example.com', status: StatusCliente.ATIVO },
     { id: 5, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Fernanda Costa', cpf: '168.995.350-09', email: 'fernanda@example.com', status: StatusCliente.BLOQUEADO },
     { id: 6, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Ricardo Almeida', cpf: '286.255.878-87', email: 'ricardo@example.com', status: StatusCliente.ATIVO },
-    { id: 7, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Patrícia Gomes', cpf: '935.411.347-80', email: 'patricia@example.com', status: StatusCliente.ATIVO },
-    { id: 8, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'André Martins', cpf: '168.995.350-09', email: 'andre@example.com', status: StatusCliente.ATIVO },
+    { id: 7, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'Patrícia Gomes', cpf: '123.456.789-09', email: 'patricia@example.com', status: StatusCliente.ATIVO },
+    { id: 8, empresaId: 1, tipoCliente: TipoCliente.PESSOA_FISICA, nomeCompleto: 'André Martins', cpf: '987.654.321-00', email: 'andre@example.com', status: StatusCliente.ATIVO },
   ];
   private previewEnderecos: EnderecoClienteResponse[] = [];
   private previewContatos: ContatoClienteResponse[] = [
