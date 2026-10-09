@@ -33,6 +33,7 @@ public class ClienteSpecification {
                 searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nomeCompleto")), term));
                 searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("razaoSocial")), term));
                 searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nomeFantasia")), term));
+                searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), term));
 
                 if (!termDoc.isBlank()) {
                     searchPredicates.add(criteriaBuilder.equal(root.get("cpf"), termDoc));
