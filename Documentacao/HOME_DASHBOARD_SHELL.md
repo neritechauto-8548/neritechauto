@@ -45,3 +45,12 @@
 - [ ] Menu e rotas respeitam a arquitetura oficial.
 - [ ] Build Angular e pipeline aprovados antes de declarar homologação concluída.
 - [ ] Homologação visual não é confundida com homologação funcional de backend.
+
+## Comportamento das visões
+
+- **Padrão:** resumo da oficina com indicadores de operação, gráfico de receita/despesas, saúde da operação e alertas de atenção.
+- **Gerencial:** faturamento, resultado, ordens em andamento, base de clientes e evolução financeira.
+- **Financeiro:** faturamento, despesas, resultado, valores vencidos, carteira a receber/a pagar e série mensal.
+- **Orçamento:** orçamentos abertos, autorizados, fechados e cancelados no mês, com indicador de conversão.
+- As abas atualizam o conteúdo da mesma rota, sem criar telas redundantes. Os dados vêm do serviço DashboardService; em preview, os números são demonstrativos.
+- Os controles de aba expõem role="tab" e aria-selected para comunicar a seleção às tecnologias assistivas.
