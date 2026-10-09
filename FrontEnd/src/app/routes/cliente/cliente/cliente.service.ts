@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   Page,
@@ -97,7 +97,7 @@ export class ClientesService {
     if (environment.uxPreview) {
       const cliente = this.previewClientes.find(c => c.id === Number(id));
       if (cliente) return of(cliente);
-      throw new Error('Cliente demonstrativo não encontrado.');
+      return throwError(() => new Error('Cliente demonstrativo não encontrado.'));
     }
     const url = `${this.base}/v1/clientes/${id}`;
     return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
@@ -150,7 +150,7 @@ export class ClientesService {
     if (environment.uxPreview) {
       const item = this.previewEnderecos.find(e => e.clienteId === Number(clienteId) && e.id === Number(id));
       if (item) return of(item);
-      throw new Error('Endereço demonstrativo não encontrado.');
+      return throwError(() => new Error('Endereço demonstrativo não encontrado.'));
     }
     const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
     return this.http.get<EnderecoClienteResponse>(url);
@@ -204,7 +204,7 @@ export class ClientesService {
     if (environment.uxPreview) {
       const item = this.previewContatos.find(c => c.clienteId === Number(clienteId) && c.id === Number(id));
       if (item) return of(item);
-      throw new Error('Contato demonstrativo não encontrado.');
+      return throwError(() => new Error('Contato demonstrativo não encontrado.'));
     }
     const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
     return this.http.get<ContatoClienteResponse>(url);
