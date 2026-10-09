@@ -2,6 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 import { MenuItem, MessageService } from 'primeng/api';
 import { ViewChild } from '@angular/core';
@@ -49,6 +50,7 @@ import {
   ],
 })
 export class Cliente implements OnInit {
+  readonly isUxPreview = environment.uxPreview;
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
