@@ -5,6 +5,9 @@
         <span class="eyebrow">Visão geral</span>
         <h1>{{ saudacao }}, sua oficina.</h1>
         <p>{{ viewDescription }}</p>
+        @if (isUxPreview) {
+          <span class="preview-indicator" role="status"><i aria-hidden="true"></i> Modo de homologação · dados demonstrativos</span>
+        }
       </div>
 
       <div class="home-controls">
