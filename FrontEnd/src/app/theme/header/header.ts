@@ -54,7 +54,7 @@ export class Header {
     const items: Array<{ name: string; route: string }> = [];
     const walk = (list: Array<Menu | MenuChildrenItem>, parents: string[] = []) => {
       list.forEach(item => {
-        const name = String(item.name ?? '').replace(/^menu\\./, '').replace(/[._]/g, ' ');
+        const name = String(item.name ?? '').replace(/^menu\./, '').replace(/[._]/g, ' ');
         if (item.route && (item.type === 'link' || item.type === 'extLink' || item.type === 'extTabLink') && name.toLowerCase().includes(normalized)) {
           items.push({ name: [...parents, name].join(' / '), route: this.menu.buildRoute([item.route]) });
         }
