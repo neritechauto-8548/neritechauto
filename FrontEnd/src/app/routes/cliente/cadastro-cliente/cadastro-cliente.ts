@@ -188,7 +188,7 @@ export class CadastroCliente implements OnInit {
         this.loadVeiculos(id);
       },
       error: (err) => {
-        console.error('Erro ao carregars cliente', err);
+        console.error('Erro ao carregar cliente', err);
         // O interceptor global já mostrará o erro de rede.
       }
     });
@@ -361,20 +361,14 @@ export class CadastroCliente implements OnInit {
   salvar() {
     this.submitted = true; // Ativa validação visual imediatamente
 
-    console.log('💾 salvar() chamado. Model:', this.model);
-    console.log('📝 isEditMode:', this.isEditMode, 'ID:', this.savedClienteId);
-
     // Validação simples alinhada ao backend
     const obrigatorios =
       this.model.tipoPessoa === 'Física'
         ? [this.model.nomeRazao, this.model.cpfCnpj]
         : [this.model.razaoSocial, this.model.cpfCnpj];
 
-    console.log('🔍 Campos obrigatórios preenchidos?', obrigatorios);
-
     const invalid = obrigatorios.some(v => !v);
     if (invalid) {
-      console.warn('❌ Validação falhou. Campos vazios.');
       this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha os campos obrigatórios (Nome/Razão e CPF/CNPJ).' });
       return;
     }
@@ -462,7 +456,7 @@ export class CadastroCliente implements OnInit {
           },
           error: (err: unknown) => {
             console.error('Erro ao salvar cliente', err);
-            alert('Erro ao salvar cliente.');
+            this.messageService.add({ severity: 'error', summary: 'Não foi possível salvar', detail: 'Verifique os dados e tente novamente.' });
           },
         });
     }
@@ -493,7 +487,7 @@ export class CadastroCliente implements OnInit {
     // 2. Contatos da Lista
     if (this.contatosList.length > 0) {
       this.contatosList.forEach((contato: any) => {
-        const payload = { tipoContato: contato.tipoContato, contato: contato.valor };
+        const payload = { tipoContato: contato.tipoContato, valor: contato.valor };
 
         if (contato.id) {
             requests.push(this.clientesService.atualizarContato(clienteId, contato.id, payload as any));
@@ -556,7 +550,7 @@ export class CadastroCliente implements OnInit {
       ? this.stripNonDigits(this.contatoForm.valor) 
       : this.contatoForm.valor;
 
-    const payload = { tipoContato: this.contatoForm.tipoContato, contato: valorSalvar };
+    const payload = { tipoContato: this.contatoForm.tipoContato, valor: valorSalvar };
 
     if (this.savedClienteId) {
       // Auto-save logic (Edição remota)
@@ -944,7 +938,10 @@ export class CadastroCliente implements OnInit {
   private formatDate(date: any): string | undefined {
       if (!date) return undefined;
       if (date instanceof Date) {
-          return date.toISOString().split('T')[0];
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
       }
       if (typeof date === 'string' && date.trim()) {
            return date.split('T')[0];
