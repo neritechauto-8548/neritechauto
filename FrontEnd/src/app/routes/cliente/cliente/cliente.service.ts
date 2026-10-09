@@ -32,7 +32,7 @@ export class ClientesService {
   ];
   private previewEnderecos: EnderecoClienteResponse[] = [];
   private previewContatos: ContatoClienteResponse[] = [
-    { id: 1, clienteId: 1, tipoContato: (TipoCliente.PESSOA_FISICA as any) && 'CELULAR' as any, valor: '(81) 99999-1010' },
+    { id: 1, clienteId: 1, tipoContato: 'CELULAR' as any, valor: '(81) 99999-1010' },
     { id: 2, clienteId: 2, tipoContato: 'WHATSAPP' as any, valor: '(81) 98888-2020' },
     { id: 3, clienteId: 4, tipoContato: 'TELEFONE_FIXO' as any, valor: '(81) 3333-4040' },
   ];
@@ -138,16 +138,30 @@ export class ClientesService {
   // ========== ENDEREÇOS ==========
 
   listarEnderecos(clienteId: number | string): Observable<Page<EnderecoClienteResponse>> {
+    if (environment.uxPreview) {
+      const content = this.previewEnderecos.filter(e => e.clienteId === Number(clienteId));
+      return of({ content, totalElements: content.length, totalPages: content.length ? 1 : 0, number: 0, size: Math.max(content.length, 10) });
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/enderecos`;
     return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   buscarEndereco(clienteId: number | string, id: number | string): Observable<EnderecoClienteResponse> {
+    if (environment.uxPreview) {
+      const item = this.previewEnderecos.find(e => e.clienteId === Number(clienteId) && e.id === Number(id));
+      if (item) return of(item);
+      throw new Error('Endereço demonstrativo não encontrado.');
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
     return this.http.get<EnderecoClienteResponse>(url);
   }
 
   criarEndereco(clienteId: number | string, endereco: EnderecoClienteRequest): Observable<EnderecoClienteResponse> {
+    if (environment.uxPreview) {
+      const created: EnderecoClienteResponse = { ...endereco, id: this.previewNextId++, clienteId: Number(clienteId) };
+      this.previewEnderecos = [...this.previewEnderecos, created];
+      return of(created);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/enderecos`;
     return this.http.post<EnderecoClienteResponse>(url, endereco);
   }
@@ -157,11 +171,20 @@ export class ClientesService {
     id: number | string,
     endereco: EnderecoClienteRequest
   ): Observable<EnderecoClienteResponse> {
+    if (environment.uxPreview) {
+      const updated: EnderecoClienteResponse = { ...endereco, id: Number(id), clienteId: Number(clienteId) };
+      this.previewEnderecos = this.previewEnderecos.map(e => e.id === Number(id) && e.clienteId === Number(clienteId) ? updated : e);
+      return of(updated);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
     return this.http.put<EnderecoClienteResponse>(url, endereco);
   }
 
   excluirEndereco(clienteId: number | string, id: number | string): Observable<void> {
+    if (environment.uxPreview) {
+      this.previewEnderecos = this.previewEnderecos.filter(e => !(e.clienteId === Number(clienteId) && e.id === Number(id)));
+      return of(void 0);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/enderecos/${id}`;
     return this.http.delete<void>(url);
   }
@@ -169,16 +192,31 @@ export class ClientesService {
   // ========== CONTATOS ==========
 
   listarContatos(clienteId: number | string): Observable<Page<ContatoClienteResponse>> {
+    if (environment.uxPreview) {
+      const content = this.previewContatos.filter(c => c.clienteId === Number(clienteId));
+      return of({ content, totalElements: content.length, totalPages: content.length ? 1 : 0, number: 0, size: Math.max(content.length, 10) });
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/contatos`;
     return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   buscarContato(clienteId: number | string, id: number | string): Observable<ContatoClienteResponse> {
+    if (environment.uxPreview) {
+      const item = this.previewContatos.find(c => c.clienteId === Number(clienteId) && c.id === Number(id));
+      if (item) return of(item);
+      throw new Error('Contato demonstrativo não encontrado.');
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
     return this.http.get<ContatoClienteResponse>(url);
   }
 
   criarContato(clienteId: number | string, contato: ContatoClienteRequest): Observable<ContatoClienteResponse> {
+    if (environment.uxPreview) {
+      const valor = (contato as any).valor ?? (contato as any).contato ?? '';
+      const created: ContatoClienteResponse = { tipoContato: contato.tipoContato, valor, id: this.previewNextId++, clienteId: Number(clienteId) };
+      this.previewContatos = [...this.previewContatos, created];
+      return of(created);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/contatos`;
     return this.http.post<ContatoClienteResponse>(url, contato);
   }
@@ -188,11 +226,21 @@ export class ClientesService {
     id: number | string,
     contato: ContatoClienteRequest
   ): Observable<ContatoClienteResponse> {
+    if (environment.uxPreview) {
+      const valor = (contato as any).valor ?? (contato as any).contato ?? '';
+      const updated: ContatoClienteResponse = { ...contato, valor, id: Number(id), clienteId: Number(clienteId) };
+      this.previewContatos = this.previewContatos.map(c => c.id === Number(id) && c.clienteId === Number(clienteId) ? updated : c);
+      return of(updated);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
     return this.http.put<ContatoClienteResponse>(url, contato);
   }
 
   excluirContato(clienteId: number | string, id: number | string): Observable<void> {
+    if (environment.uxPreview) {
+      this.previewContatos = this.previewContatos.filter(c => !(c.clienteId === Number(clienteId) && c.id === Number(id)));
+      return of(void 0);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/contatos/${id}`;
     return this.http.delete<void>(url);
   }
@@ -200,6 +248,10 @@ export class ClientesService {
   // ========== DOCUMENTOS ==========
 
   listarDocumentos(clienteId: number | string): Observable<Page<DocumentoClienteResponse>> {
+    if (environment.uxPreview) {
+      const content = this.previewDocumentos.filter(d => d.clienteId === Number(clienteId));
+      return of({ content, totalElements: content.length, totalPages: content.length ? 1 : 0, number: 0, size: Math.max(content.length, 10) });
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos`;
     return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
   }
