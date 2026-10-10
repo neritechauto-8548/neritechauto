@@ -91,3 +91,15 @@ app-user{display:inline-flex;align-items:center;flex:none}
 .nt-profile-menu-panel .nt-profile-action:focus-visible{
   outline:2px solid #2563eb;outline-offset:-2px;
 }
+
+/* Overlay mobile: sem corte horizontal, rolagem vertical e alvos táteis. */
+.nt-profile-menu-panel.mat-mdc-menu-panel{max-height:min(680px,calc(100dvh - 80px));overflow-y:auto;overscroll-behavior:contain}
+.nt-profile-menu-panel .nt-profile-card{min-width:0}
+.nt-profile-menu-panel .nt-profile-identity-name,
+.nt-profile-menu-panel .nt-profile-identity-email{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+@media(max-width:599px){
+ .nt-profile-menu-panel.mat-mdc-menu-panel{width:min(320px,calc(100vw - 20px))!important;min-width:0!important;max-width:calc(100vw - 20px)!important;margin-top:6px}
+ .nt-profile-menu-panel .nt-profile-identity{padding:16px 12px}
+ .nt-profile-menu-panel .nt-profile-large-avatar{height:62px;width:62px}
+ .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action{height:48px!important;min-height:48px!important;padding:0 14px!important}
+}
