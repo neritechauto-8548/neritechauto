@@ -1,10 +1,21 @@
 name: Dashboard Quality
 
+# Mantém apenas a validação mais recente da branch em desenvolvimento.
+concurrency:
+  group: dashboard-quality-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: ["feature/develop"]
     paths:
       - "FrontEnd/src/app/routes/dashboard/**"
+      - "FrontEnd/src/app/routes/sessions/login/**"
+      - "FrontEnd/src/app/routes/sessions/recover/**"
+      - "FrontEnd/src/app/theme/**"
+      - "FrontEnd/src/app/shared/components/**"
+      - "backend/src/main/java/com/neritech/saas/veiculo/**"
+      - "backend/src/test/java/com/neritech/saas/**"
       - "FrontEnd/src/app/routes/home/**"
       - "FrontEnd/src/app/app.routes.ts"
       - "backend/src/main/java/com/neritech/saas/dashboard/**"
@@ -24,6 +35,12 @@ on:
     branches: ["main"]
     paths:
       - "FrontEnd/src/app/routes/dashboard/**"
+      - "FrontEnd/src/app/routes/sessions/login/**"
+      - "FrontEnd/src/app/routes/sessions/recover/**"
+      - "FrontEnd/src/app/theme/**"
+      - "FrontEnd/src/app/shared/components/**"
+      - "backend/src/main/java/com/neritech/saas/veiculo/**"
+      - "backend/src/test/java/com/neritech/saas/**"
       - "FrontEnd/src/app/routes/home/**"
       - "FrontEnd/src/app/app.routes.ts"
       - "backend/src/main/java/com/neritech/saas/dashboard/**"
