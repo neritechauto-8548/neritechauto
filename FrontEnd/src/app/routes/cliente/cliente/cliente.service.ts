@@ -107,7 +107,7 @@ export class ClientesService {
     if (environment.uxPreview) {
       const numericId = Number(id);
       const existing = this.previewClientes.find(c => c.id === numericId);
-      if (!existing) throw new Error('Cliente demonstrativo não encontrado.');
+      if (!existing) return throwError(() => new Error('Cliente demonstrativo não encontrado.'));
       const updated = { ...existing, ...dto, id: numericId, empresaId: existing.empresaId };
       this.previewClientes = this.previewClientes.map(c => c.id === numericId ? updated : c);
       return of(updated);
