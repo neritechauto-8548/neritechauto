@@ -10,3 +10,41 @@
 .modern-input {
   @apply w-full h-10 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
 }
+
+/* UI-MASTER-001: mesma linguagem de cabeçalho, filtros e tabelas do Home. */
+.nt-clients-page{display:flex;min-height:0;min-width:0;flex-direction:column;gap:14px;max-width:1480px;margin:0 auto;color:var(--nt-text,#0f172a)}
+.nt-clients-heading{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:24px;padding:6px 0 22px;border-bottom:1px solid var(--nt-border,#e2e8f0)}
+.nt-clients-heading-copy{min-width:0;flex:1 1 280px}
+.nt-clients-eyebrow{font:700 11px/16px Inter,system-ui,sans-serif;letter-spacing:.11em;text-transform:uppercase;color:#64748b}
+.nt-clients-heading h1{margin:6px 0 4px;font:700 28px/34px Inter,system-ui,sans-serif;letter-spacing:-.035em;color:#0f172a}
+.nt-clients-heading p{margin:0;color:#64748b;font-size:14px;line-height:22px}
+.nt-clients-preview{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 10px;border:1px solid #bfdbfe;border-radius:7px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:600}
+.nt-clients-preview>span{width:6px;height:6px;border-radius:50%;background:#2563eb}
+.nt-clients-primary,.nt-clients-search-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;border:1px solid #2563eb;border-radius:8px;background:#2563eb;color:#fff;font:600 13px/18px Inter,system-ui,sans-serif;padding:0 16px;cursor:pointer;transition:background .15s ease}
+.nt-clients-primary:hover,.nt-clients-search-button:hover{background:#1d4ed8}
+.nt-clients-primary svg,.nt-clients-search-control svg,.nt-contact-icon,.nt-empty-icon,.nt-row-action svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nt-clients-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;padding:16px;background:var(--nt-surface,#fff);border:1px solid var(--nt-border,#e2e8f0);border-radius:12px}
+.nt-clients-search{flex:1 1 300px;min-width:190px}
+.nt-clients-filter{flex:0 1 174px;min-width:150px}
+.nt-clients-toolbar label{display:block;margin-bottom:6px;color:#475569;font-size:12px;font-weight:600}
+.nt-clients-search-control{position:relative}
+.nt-clients-search-control svg{position:absolute;left:13px;top:11px;color:#94a3b8;pointer-events:none}
+.nt-clients-input{height:40px;width:100%;padding:0 12px 0 40px!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#0f172a!important;font-size:13px!important;box-sizing:border-box}
+:host ::ng-deep .nt-clients-select{height:40px;width:100%;border-radius:8px;border-color:#cbd5e1}
+:host ::ng-deep .nt-clients-select .p-select-label{font-size:13px;display:flex;align-items:center}
+.nt-clients-clear{height:40px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:#475569;font-size:12px;font-weight:600;cursor:pointer}
+.nt-clients-clear:hover{background:#f1f5f9;color:#0f172a}
+.nt-clients-primary:focus-visible,.nt-clients-search-button:focus-visible,.nt-clients-clear:focus-visible,.nt-row-action:focus-visible,.nt-clients-input:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.nt-clients-table{font-size:13px}
+.nt-clients-table th{font-size:12px}
+.nt-clients-table td{vertical-align:middle}
+.nt-clients-table tbody tr{min-height:54px}
+.nt-contact-icon{width:15px;height:15px;color:#94a3b8;flex-shrink:0}
+.nt-empty-icon{width:22px;height:22px}
+.nt-row-action{width:34px;height:34px;display:inline-grid;place-items:center;border:0;border-radius:7px;background:transparent;color:#64748b;cursor:pointer}
+.nt-row-action:hover{background:#eff6ff;color:#1d4ed8}
+.nt-row-action svg{width:18px;height:18px;fill:currentColor;stroke:none}
+.nt-clients-error{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #fecaca;border-radius:10px;background:#fff7f7;color:#991b1b}
+.nt-clients-error strong{font-size:13px}.nt-clients-error p{margin:3px 0 0;font-size:12px}
+@media(max-width:720px){.nt-clients-heading{align-items:stretch;gap:14px}.nt-clients-toolbar{padding:12px}.nt-clients-filter{flex:1 1 45%}.nt-clients-search-button{flex:1}.nt-clients-error{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.nt-clients-primary,.nt-clients-search-button{transition:none}}
