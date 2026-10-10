@@ -65,6 +65,9 @@ export class Cliente implements OnInit {
   // Filtros
   searchTerm = '';
   isLoading = false;
+  loadError = false;
+  loadErrorMessage = 'Tente novamente em instantes.';
+  private requestVersion = 0;
 
   // Menu popup
   activeRow: any = null;
@@ -196,10 +199,10 @@ export class Cliente implements OnInit {
 
   menuItemsFor(row: any): MenuItem[] {
     return [
-      { label: 'Visualizar / Editar Cliente', icon: 'pi pi-user', routerLink: ['/cliente/editar', row.uuid] },
-      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', routerLink: ['/agendamento/cadastro'], queryParams: { clienteId: row.id ?? row.uuid } },
-      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', routerLink: ['/veiculo'], queryParams: { clienteId: row.id ?? row.uuid } },
-      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', routerLink: ['/os/cadastro'], queryParams: { clienteId: row.id ?? row.uuid } },
+      { label: 'Visualizar / Editar Cliente', routerLink: ['/cliente/editar', row.uuid] },
+      { label: 'Cadastrar Agendamento / Alerta', routerLink: ['/agendamento/cadastro'], queryParams: { clienteId: row.id ?? row.uuid } },
+      { label: 'Visualizar / Editar Veículos', routerLink: ['/veiculo'], queryParams: { clienteId: row.id ?? row.uuid } },
+      { label: 'Cadastrar OS', routerLink: ['/os/cadastro'], queryParams: { clienteId: row.id ?? row.uuid } },
     ];
   }
 
@@ -280,6 +283,8 @@ export class Cliente implements OnInit {
   }
 
   private fetchPage() {
+    const requestId = ++this.requestVersion;
+    this.loadError = false;
     // Spring Data Pageable usa paginação 0-indexed: a primeira página é page=0.
     const pageIndex = Math.floor(this.first / this.rows);
     this.isLoading = true;
@@ -307,6 +312,7 @@ export class Cliente implements OnInit {
 
     this.clientesService.list(filters).subscribe({
       next: (res: Page<ClienteResponseDTO>) => {
+        if (requestId !== this.requestVersion) return;
         this.backendPage = res;
         this.clients = (res.content || []).map((d: ClienteResponseDTO) => this.mapToRow(d));
 
@@ -314,10 +320,15 @@ export class Cliente implements OnInit {
         this.cdr.detectChanges(); // Forçar atualização da view
 
         // Após mapear clientes, buscar contatos para preencher a coluna "Contato"
-        this.loadContatosForRows();
+        this.loadContatosForRows(requestId);
       },
       error: (err: any) => {
+        if (requestId !== this.requestVersion) return;
         this.isLoading = false;
+        this.loadError = true;
+        this.loadErrorMessage = err.status === 403 ? 'Seu perfil não tem permissão para consultar esta lista.' : 'Verifique sua conexão e tente novamente.';
+        this.backendPage = null;
+        this.clients = [];
         console.error('Erro ao carregar clientes:', err);
         
         if (err.status !== 403) {
@@ -331,7 +342,7 @@ export class Cliente implements OnInit {
     });
   }
 
-  private loadContatosForRows() {
+  private loadContatosForRows(requestId: number) {
     const currentPageRows = this.clients;
     if (!currentPageRows || !currentPageRows.length) return;
 
@@ -347,6 +358,7 @@ export class Cliente implements OnInit {
     );
 
     forkJoin(requests).subscribe(results => {
+      if (requestId !== this.requestVersion) return;
       const byId = new Map(results.map(r => [r.id, r.contatos]));
       this.clients = this.clients.map(c => {
         const key = (c as any).id ?? c.uuid;
