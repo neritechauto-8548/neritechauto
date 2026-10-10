@@ -29,3 +29,39 @@
 .nt-search-result{font-size:13px}
 .nt-search-results{top:45px;border-radius:10px;box-shadow:0 16px 40px rgba(15,23,42,.10)}
 @media(max-width:768px){.nt-topbar{padding-inline:12px;gap:12px}}
+
+/* Breakpoints NERITECH: barra desktop, tablet e busca móvel expansível. */
+.nt-topbar{min-width:0;max-width:100%;box-sizing:border-box}
+.nt-topbar-left{flex:0 0 auto;min-width:0}
+.nt-global-search{flex:1 1 480px;min-width:0;max-width:560px}
+.nt-topbar-actions{flex:0 0 auto}
+.nt-mobile-search-toggle{display:none}
+@media(max-width:1199px){
+ .nt-topbar{gap:12px;padding-inline:16px}
+ .nt-global-search{max-width:420px}
+}
+@media(max-width:959px){
+ .nt-topbar-left{min-width:0}
+ .nt-global-search{max-width:360px}
+ .nt-topbar-actions{margin-left:auto;gap:4px}
+}
+@media(max-width:680px){
+ .nt-topbar{height:56px;padding:0 12px;gap:8px;position:relative}
+ .nt-topbar-icon{width:40px;height:40px;min-width:40px}
+ .nt-topbar-left .branding{gap:7px}
+ .nt-topbar-left .logo-text{font-size:11px;letter-spacing:.01em}
+ .nt-topbar-left .logo-box{width:28px;height:28px}
+ .nt-mobile-search-toggle{display:grid}
+ .nt-global-search{display:none;position:absolute;top:56px;left:0;right:0;width:100%;max-width:none;margin:0;height:auto;padding:10px 12px;background:#fff;border-bottom:1px solid #e2e8f0;box-shadow:0 6px 18px rgba(15,23,42,.06);z-index:1400}
+ .nt-global-search.nt-mobile-search-open{display:flex}
+ .nt-global-search input{height:42px;padding-left:40px;font-size:14px}
+ .nt-global-search>svg{left:25px}
+ .nt-global-search kbd{display:none}
+ .nt-search-results{top:58px;left:12px;right:12px;max-height:min(48vh,340px);overflow-y:auto}
+}
+@media(max-width:379px){
+ .nt-topbar{padding-inline:8px;gap:4px}
+ .nt-topbar-left .logo-text{font-size:10px}
+ .nt-topbar-actions{gap:0}
+ .nt-topbar-icon{width:36px;height:36px;min-width:36px}
+}
