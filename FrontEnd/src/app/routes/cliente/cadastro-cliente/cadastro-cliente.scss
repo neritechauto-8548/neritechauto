@@ -1,2 +1,45 @@
-/* Estilos adicionais (se necessário). Mantemos Tailwind como base. */
-:host { display: block; }
+/* NERITECH AUTO — cadastro/edição de Clientes, padrão UI-MASTER-001.
+   Mantém a estrutura funcional e o mesmo Application Shell de todas as páginas. */
+:host{display:block;min-width:0}
+.nt-client-form-page{max-width:1480px;min-width:0;min-height:100%;margin:0 auto;color:var(--nt-text,#0f172a);font-family:Inter,system-ui,sans-serif}
+.nt-client-form-header{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:24px;padding:6px 0 22px;border-bottom:1px solid var(--nt-border,#e2e8f0)}
+.nt-client-form-title-group{display:flex;align-items:flex-start;gap:14px;flex:1 1 340px;min-width:0}
+.nt-client-form-back{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;padding:0;border:1px solid var(--nt-border,#e2e8f0);border-radius:9px;background:#fff;color:#475569;cursor:pointer}
+.nt-client-form-back:hover{background:#eff6ff;color:#1d4ed8}
+.nt-client-form-eyebrow{display:block;color:#64748b;font-size:11px;font-weight:700;line-height:15px;letter-spacing:.09em;text-transform:uppercase}
+.nt-client-form-header h1{margin:5px 0 4px;font-size:28px;font-weight:700;line-height:36px;letter-spacing:-.035em;color:#0f172a}
+.nt-client-form-header p{margin:0;color:#64748b;font-size:14px;line-height:20px}
+.nt-client-form-actions{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.nt-client-form-back svg,.nt-client-form-actions svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.nt-client-form-actions button:not(.nt-client-form-back){display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 15px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.nt-client-form-secondary{border:1px solid #cbd5e1;background:#fff;color:#334155}
+.nt-client-form-secondary:hover{background:#f8fafc;border-color:#94a3b8}
+.nt-client-form-save{border:1px solid #2563eb;background:#2563eb;color:#fff}
+.nt-client-form-save:hover{background:#1d4ed8;border-color:#1d4ed8}
+.nt-client-form-danger{border:1px solid #fecaca;background:#fff;color:#b91c1c}
+.nt-client-form-danger:hover{background:#fff1f2;border-color:#fda4af}
+.nt-client-form-actions button:disabled{opacity:.6;cursor:wait}
+.nt-client-form-back:focus-visible,.nt-client-form-actions button:focus-visible,.nt-client-form-tabs button:focus-visible{outline:2px solid #2563eb;outline-offset:3px}
+.nt-client-form-preview{display:inline-flex;align-items:center;gap:8px;margin-top:9px;padding:5px 9px;border:1px solid #bfdbfe;border-radius:7px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:600}
+.nt-client-form-preview>span{width:6px;height:6px;background:#2563eb;border-radius:50%}
+.nt-client-form-body{padding:24px 0 40px}
+.nt-client-form-tabs{display:inline-flex;max-width:100%;gap:3px;margin-bottom:24px;padding:4px;border:1px solid var(--nt-border,#e2e8f0);border-radius:10px;background:#fff;overflow-x:auto}
+.nt-client-form-tabs button{min-height:36px;padding:0 18px;border:0;border-radius:7px;background:transparent;color:#64748b;font-family:inherit;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+.nt-client-form-tabs button:hover{background:#f8fafc;color:#0f172a}
+.nt-client-form-tabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 0 0 1px #bfdbfe}
+.nt-client-form-page .modern-input{min-height:40px;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff;color:#0f172a;font-size:13px}
+.nt-client-form-page .modern-input:focus-visible{outline:2px solid #2563eb;outline-offset:1px}
+.nt-client-form-page label{font-size:12px;line-height:18px}
+.nt-client-form-page h3{font-size:14px;font-weight:650}
+.nt-client-form-spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:nt-client-spin .75s linear infinite}
+@keyframes nt-client-spin{to{transform:rotate(360deg)}}
+@media(max-width:740px){
+ .nt-client-form-header{gap:16px}
+ .nt-client-form-title-group{flex-basis:100%}
+ .nt-client-form-header h1{font-size:24px;line-height:30px}
+ .nt-client-form-actions{width:100%;justify-content:flex-start}
+ .nt-client-form-body{padding-top:18px}
+ .nt-client-form-tabs{width:100%;display:flex}
+ .nt-client-form-tabs button{flex:1}
+}
+@media(prefers-reduced-motion:reduce){.nt-client-form-spinner{animation:none}.nt-client-form-actions button{transition:none}}
