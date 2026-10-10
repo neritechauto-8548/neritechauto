@@ -224,3 +224,10 @@
     padding-bottom: 18px;
   }
 }
+
+/* Mesmo contraste, ritmo vertical e tipografia do restante do SaaS. */
+.matero-sidemenu .menu-heading{min-height:42px;font-size:13px;font-weight:500}
+.matero-sidemenu .menu-heading-label{font-size:10px;letter-spacing:.1em;color:#64748b}
+.matero-sidemenu .submenu .menu-heading{font-size:12px;min-height:38px}
+.matero-sidemenu .menu-item.active > .menu-heading{color:#1e40af;background:#eff6ff;border-color:#bfdbfe;font-weight:650}
+.matero-sidemenu .menu-heading:focus-visible{outline:2px solid #2563eb;outline-offset:1px}
