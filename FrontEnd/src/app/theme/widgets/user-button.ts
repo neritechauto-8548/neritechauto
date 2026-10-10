@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ViewEncapsulation, inject } from '@angular/core';
+import { Component, DestroyRef, ViewEncapsulation, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router, RouterLink } from '@angular/router';
@@ -14,7 +14,6 @@ import { environment } from '@env/environment';
   selector: 'app-user',
   standalone: true,
   imports: [MatMenuModule, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
     <button type="button" class="nt-profile-trigger" [matMenuTriggerFor]="profileMenu"
