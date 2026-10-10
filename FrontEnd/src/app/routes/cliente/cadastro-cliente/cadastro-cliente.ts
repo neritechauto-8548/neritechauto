@@ -163,6 +163,7 @@ export class CadastroCliente implements OnInit {
 
   isEditMode = false;
   submitted = false; // Flag para controle de validação visual
+  isSaving = false; // Bloqueia submissões simultâneas e sinaliza o estado da operação
 
   get contatoDialogTitle(): string {
     return 'Adicionar Contato';
@@ -376,6 +377,7 @@ export class CadastroCliente implements OnInit {
 
   // Ações
   salvar() {
+    if (this.isSaving) return;
     this.submitted = true; // Ativa validação visual imediatamente
 
     // Validação simples alinhada ao backend
@@ -413,6 +415,8 @@ export class CadastroCliente implements OnInit {
         return;
     }
 
+    this.isSaving = true;
+
     // Preparar DTO (reaproveita lógica existente)
     const dto: ClienteRequestDTO = {
       tipoCliente: this.model.tipoPessoa === 'Física' ? TipoCliente.PESSOA_FISICA : TipoCliente.PESSOA_JURIDICA,
@@ -436,20 +440,21 @@ export class CadastroCliente implements OnInit {
     if (this.isEditMode && this.savedClienteId) {
       this.clientesService.update(this.savedClienteId, dto).subscribe({
         next: (res) => {
-          this.messageService.add({ severity: 'success', summary: 'Atualizado', detail: 'Cliente atualizado com sucesso!' });
           if (this.modalMode) {
+             this.isSaving = false;
+             this.messageService.add({ severity: 'success', summary: 'Atualizado', detail: 'Cliente atualizado com sucesso!' });
              this.saved.emit(res);
           } else {
-             // Tenta salvar dados adicionais também no update
-             this.salvarDadosAdicionais(this.savedClienteId!, true);
+             this.salvarDadosAdicionais(this.savedClienteId!, false);
           }
           // Salva/Atualiza dados extras (simplesmente chama salvarDadosAdicionais por enquanto)
           // Nota: idealmente teríamos lógica de diff para atualização, mas salvarDadosAdicionais cria novos.
           // Para MVP de edição, focar em salvar o principal.
         },
         error: (err) => {
+             this.isSaving = false;
              console.error('Erro ao atualizar', err);
-             // Interceptor trata o erro de rede
+             this.messageService.add({ severity: 'error', summary: 'Não foi possível atualizar', detail: 'Verifique os dados e tente novamente.' });
         }
       });
     } else {
@@ -460,18 +465,21 @@ export class CadastroCliente implements OnInit {
             this.savedClienteId = id;
 
             if (this.modalMode) {
+              this.isSaving = false;
               this.saved.emit(res);
             } else {
               if (id) {
                 // Ao criar, se tiver ID, tenta salvar endereço também se preenchido
                 this.salvarDadosAdicionais(id);
               } else {
+                 this.isSaving = false;
                  this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Cliente salvo com sucesso!' });
                  // Mantém na mesma aba para o usuário decidir o próximo passo
               }
             }
           },
           error: (err: unknown) => {
+            this.isSaving = false;
             console.error('Erro ao salvar cliente', err);
             this.messageService.add({ severity: 'error', summary: 'Não foi possível salvar', detail: 'Verifique os dados e tente novamente.' });
           },
@@ -518,12 +526,14 @@ export class CadastroCliente implements OnInit {
     if (requests.length > 0) {
       forkJoin(requests).subscribe({
         next: () => {
+          this.isSaving = false;
           if (!omitSuccessToast) {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Cliente e dados cadastrados!' });
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente e dados cadastrados!' });
           }
           // Mantém na mesma aba
         },
         error: (err) => {
+          this.isSaving = false;
           console.error('Erro ao salvar dados adicionais', err);
 
           // Tratamento de erro padronizado
@@ -540,10 +550,11 @@ export class CadastroCliente implements OnInit {
         }
       });
     } else {
+      this.isSaving = false;
       if (!omitSuccessToast) {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Cliente salvo com sucesso!' });
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente salvo com sucesso!' });
       }
-      this.activeIndex = 1;
+      if (!this.isEditMode) this.activeIndex = 1;
     }
   }
 
@@ -783,7 +794,7 @@ export class CadastroCliente implements OnInit {
                   next: () => {
                       this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Cliente deletado com sucesso!' });
                       if (!this.modalMode) {
-                          this.router.navigate(['/cliente']);
+                          this.router.navigate(['/cliente/listar']);
                       } else {
                           this.saved.emit(null);
                       }
@@ -798,14 +809,14 @@ export class CadastroCliente implements OnInit {
   }
 
   voltar() {
-    this.router.navigate(['/cliente']);
+    this.router.navigate(['/cliente/listar']);
   }
 
   cancelar() {
     if (this.modalMode) {
       this.canceled.emit();
     } else {
-      this.router.navigate(['/cliente']);
+      this.router.navigate(['/cliente/listar']);
     }
   }
 
