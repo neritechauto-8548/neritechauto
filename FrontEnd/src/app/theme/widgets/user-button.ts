@@ -21,7 +21,7 @@ import { environment } from '@env/environment';
       <span class="nt-profile-trigger-avatar">
         @if (!avatarUnavailable) {
           <img [src]="avatarUrl" alt="" loading="eager" decoding="async"
-            (error)="onAvatarError()" />
+            (error)="onAvatarError($event)" />
         } @else {
           <svg class="nt-profile-fallback-icon" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="8" r="3.5" /><path d="M5 21a7 7 0 0 1 14 0" />
@@ -39,7 +39,7 @@ import { environment } from '@env/environment';
           <span class="nt-profile-photo">
             @if (!avatarUnavailable) {
               <img [src]="avatarUrl" [alt]="hasRealAvatar ? 'Foto de perfil de ' + displayName : 'Retrato ilustrativo de perfil'"
-                loading="lazy" decoding="async" (error)="onAvatarError()" />
+                loading="lazy" decoding="async" (error)="onAvatarError($event)" />
             } @else {
               <svg class="nt-profile-fallback-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="8" r="3.5" /><path d="M5 21a7 7 0 0 1 14 0" />
@@ -170,11 +170,14 @@ export class UserButton {
     return value.replace(/^ROLE_/, '').replace(/_/g, ' ');
   }
 
-  onAvatarError(): void {
-    if (!this.avatarFallbackActive && this.hasRealAvatar) {
-      this.avatarFallbackActive = true;
-    } else {
+  onAvatarError(event: Event): void {
+    // A foto da topbar e a do menu podem falhar simultaneamente.
+    // Apenas a falha do próprio fallback deve ocultar a imagem.
+    const failedUrl = (event.target as HTMLImageElement).currentSrc || '';
+    if (failedUrl.includes('/images/avatar-profile-demo.webp')) {
       this.avatarUnavailable = true;
+    } else {
+      this.avatarFallbackActive = true;
     }
   }
 
