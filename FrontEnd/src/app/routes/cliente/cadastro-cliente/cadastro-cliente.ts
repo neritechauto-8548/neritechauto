@@ -188,7 +188,7 @@ export class CadastroCliente implements OnInit {
         this.loadContatos(id);
         this.loadEnderecos(id);
         this.loadDocumentos(id);
-        this.loadVeiculos(id);
+        if (!this.isUxPreview) this.loadVeiculos(id);
       },
       error: (err) => {
         console.error('Erro ao carregar cliente', err);
