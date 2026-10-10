@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,11 +43,11 @@ class AuditoriaControllerTest {
         log.setTipoEvento(LogAcesso.TipoEvento.LOGIN_SUCCESS);
         log.setDataEvento(LocalDateTime.now());
         
-        when(logAcessoRepository.findByEmpresaIdOrderByDataEventoDesc(anyLong()))
+        when(logAcessoRepository.findByUsuarioIdOrderByDataEventoDesc(1L))
                 .thenReturn(List.of(log));
 
         // Act & Assert
-        mockMvc.perform(get("/api/auditoria/logs")
+        mockMvc.perform(get("/v1/auditoria/logs-acesso").param("usuarioId", "1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].tipoEvento").value("LOGIN_SUCCESS"));

@@ -60,7 +60,7 @@ class UsuarioControllerTest {
         when(usuarioService.create(any(UsuarioRequest.class))).thenReturn(usuarioResponse);
 
         // Act & Assert
-        mockMvc.perform(post("/api/usuarios")
+        mockMvc.perform(post("/usuarios")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usuarioRequest)))
@@ -76,7 +76,7 @@ class UsuarioControllerTest {
         when(usuarioService.findById(1L)).thenReturn(usuarioResponse);
 
         // Act & Assert
-        mockMvc.perform(get("/api/usuarios/1")
+        mockMvc.perform(get("/usuarios/1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
@@ -89,7 +89,7 @@ class UsuarioControllerTest {
         when(usuarioService.update(eq(1L), any(UsuarioRequest.class))).thenReturn(usuarioResponse);
 
         // Act & Assert
-        mockMvc.perform(put("/api/usuarios/1")
+        mockMvc.perform(put("/usuarios/1")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usuarioRequest)))

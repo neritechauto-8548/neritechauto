@@ -56,7 +56,7 @@ class FuncaoControllerTest {
         when(funcaoService.findAll()).thenReturn(List.of(funcao));
 
         // Act & Assert
-        mockMvc.perform(get("/api/funcoes")
+        mockMvc.perform(get("/v1/funcoes")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nome").value("ADMIN"));
@@ -69,11 +69,11 @@ class FuncaoControllerTest {
         when(funcaoService.save(any(Funcao.class))).thenReturn(funcao);
 
         // Act & Assert
-        mockMvc.perform(post("/api/funcoes")
+        mockMvc.perform(post("/v1/funcoes")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(funcao)))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("ADMIN"));
     }
 }

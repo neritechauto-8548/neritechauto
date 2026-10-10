@@ -6,6 +6,7 @@ import com.neritech.saas.TestDataBuilder;
 import com.neritech.saas.gestaoUsuarios.dto.LoginRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
+    private FuncaoRepository funcaoRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
@@ -45,10 +49,15 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Fluxo Completo: Registro -> Login -> Acesso Protegido")
     void fluxoCompletoAutenticacao() throws Exception {
         // 1. Criar usuário (via repository pois endpoint pode estar protegido ou não existir registro público)
+        // O recurso /usuarios/{id} exige role ADMIN ou permissão GERAL_USUARIO.
+        // O teste precisa autenticar um usuário com essa permissão de verdade.
+        var funcaoAdmin = funcaoRepository.save(
+                TestDataBuilder.umaFuncao().comNome("ADMIN").comEmpresaId(1L).build());
         var usuario = TestDataBuilder.umUsuario()
                 .comEmail("integration@test.com")
                 .comSenha(passwordEncoder.encode("senha123"))
                 .comEmpresaId(1L)
+                .comFuncao(funcaoAdmin)
                 .build();
         usuarioRepository.save(usuario);
 
@@ -58,7 +67,7 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
                 .comSenha("senha123")
                 .build();
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -70,7 +79,7 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
         String accessToken = objectMapper.readTree(responseBody).get("accessToken").asText();
 
         // 3. Acessar endpoint protegido
-        mockMvc.perform(get("/api/usuarios/" + usuario.getId())
+        mockMvc.perform(get("/usuarios/" + usuario.getId())
                 .header("X-Tenant-Id", "1")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
@@ -80,7 +89,7 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Deve falhar acesso sem token")
     void deveFalharAcessoSemToken() throws Exception {
-        mockMvc.perform(get("/api/usuarios/1")
+        mockMvc.perform(get("/usuarios/1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isForbidden()); // ou Unauthorized dependendo da config
     }

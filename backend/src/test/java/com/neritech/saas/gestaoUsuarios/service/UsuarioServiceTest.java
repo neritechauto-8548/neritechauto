@@ -48,7 +48,7 @@ class UsuarioServiceTest {
 
     @BeforeEach
     void setUp() {
-        usuario = TestDataBuilder.umUsuario().build();
+        usuario = TestDataBuilder.umUsuario().comId(1L).build();
         usuarioRequest = TestDataBuilder.umUsuarioRequest().build();
         TenantContext.setCurrentTenant(1L);
     }

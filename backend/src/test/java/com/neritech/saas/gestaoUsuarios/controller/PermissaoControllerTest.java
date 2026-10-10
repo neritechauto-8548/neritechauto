@@ -49,9 +49,9 @@ class PermissaoControllerTest {
         when(permissaoService.findAll()).thenReturn(List.of(permissao));
 
         // Act & Assert
-        mockMvc.perform(get("/api/permissoes")
+        mockMvc.perform(get("/v1/permissoes")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nome").value("USUARIO.READ"));
+                .andExpect(jsonPath("$[0].chave").value("USUARIO.READ"));
     }
 }

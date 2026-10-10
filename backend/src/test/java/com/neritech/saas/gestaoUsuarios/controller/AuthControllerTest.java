@@ -66,7 +66,7 @@ class AuthControllerTest {
         when(authService.login(any(LoginRequest.class))).thenReturn(loginResponse);
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/auth/login")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -83,7 +83,7 @@ class AuthControllerTest {
                 .thenThrow(new BadCredentialsException("Credenciais inválidas"));
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/auth/login")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -98,7 +98,7 @@ class AuthControllerTest {
         when(authService.refreshToken(any(RefreshTokenRequest.class))).thenReturn(loginResponse);
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/auth/refresh")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -113,7 +113,7 @@ class AuthControllerTest {
         doNothing().when(authService).logout(any());
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/logout")
+        mockMvc.perform(post("/auth/logout")
                 .header("X-Tenant-Id", "1")
                 .header("Authorization", "Bearer token"))
                 .andExpect(status().isNoContent());
