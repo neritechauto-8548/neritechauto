@@ -166,3 +166,22 @@
 .view-chart-card .primary-button{background:linear-gradient(135deg,#1d4ed8,#4338ca);box-shadow:0 3px 8px rgba(37,99,235,.18)}
 @media(max-width:1050px){.view-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.view-dashboard-grid,.quote-conversion{grid-template-columns:1fr}.view-chart-card{padding:18px}.view-section-heading h2{font-size:19px}}
+
+/* Acabamento premium consistente com as listas do produto. */
+.home-shell{background:transparent;color:var(--nt-text,#0f172a)}
+.home-container{max-width:1480px;padding:30px 32px 48px}
+.home-header{align-items:flex-end;border-bottom:1px solid var(--nt-border,#e2e8f0);padding-bottom:23px;margin-bottom:24px}
+.home-heading h1{font-size:28px;line-height:1.2;font-weight:700}
+.home-heading p{font-size:14px;line-height:1.5}
+.home-controls{flex-wrap:wrap;justify-content:flex-end}
+.period-control,.view-switcher{height:40px;border-color:var(--nt-border,#e2e8f0);border-radius:9px}
+.view-switcher button{height:32px;font-size:12px}
+.view-switcher button:focus-visible,.period-control:focus-visible,.signal-card:focus-visible,.health-row:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.command-grid,.workspace-grid,.lower-grid{gap:14px}
+.hero-metric,.signal-card,.surface,.view-stat-card{border-color:var(--nt-border,#e2e8f0);border-radius:12px}
+.signal-card{min-height:176px}
+.signal-label,.signal-card p,.card-link{font-size:12px}
+.health-row b{font-size:12px}.health-row small{font-size:11px}
+.surface-header h2{font-size:16px}
+@media(max-width:1024px){.home-container{padding:24px 22px 40px}}
+@media(max-width:640px){.home-container{padding:18px 16px 32px}.home-header{align-items:stretch}.home-controls{justify-content:flex-start}.view-switcher{max-width:100%;overflow-x:auto}}
