@@ -425,3 +425,23 @@
   .auth-primary { transition: none; }
   .spinner { animation: none; }
 }
+
+/* Autenticação desktop-first: composição premium NERITECH, sem card genérico. */
+.auth-visual{background:radial-gradient(ellipse at 10% 0%,rgba(37,99,235,.22),transparent 42%),linear-gradient(140deg,#0d1c35 0%,#07111f 60%,#10152f 100%)}
+.visual-copy{padding-top:50px}
+.visual-copy h2{font-size:clamp(38px,3.55vw,56px);line-height:1.04;max-width:590px}
+.visual-copy p{max-width:480px;color:#c0ccdd}
+.visual-illustration{width:min(132%,1050px);margin-top:8px;margin-bottom:-20px;filter:drop-shadow(0 18px 40px rgba(37,99,235,.12))}
+.visual-journey{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 42px;padding:13px 16px;max-width:680px;border:1px solid rgba(147,197,253,.22);border-radius:12px;background:rgba(15,33,64,.54);backdrop-filter:blur(12px)}
+.visual-journey span{display:inline-flex;align-items:center;gap:7px;color:#cbd5e1;font-size:11px;font-weight:600;white-space:nowrap}
+.visual-journey b{display:grid;place-items:center;width:23px;height:23px;border:1px solid rgba(147,197,253,.26);border-radius:6px;color:#93c5fd;font-size:10px}
+.visual-journey i{height:1px;min-width:8px;flex:1;background:linear-gradient(90deg,#60a5fa,rgba(96,165,250,.1))}
+.auth-content{max-width:440px}
+.auth-header h1{font-size:30px;letter-spacing:-.04em}
+.auth-eyebrow{color:#2563eb}
+.auth-form{gap:20px}
+.auth-primary{box-shadow:0 8px 18px rgba(37,99,235,.14)}
+@media(max-width:1200px){.visual-journey{gap:6px;padding:12px}.visual-journey span{font-size:10px}.visual-journey b{width:21px;height:21px}}
+@media(max-width:980px){.visual-journey{display:none}}
+@media(max-width:860px){.auth-panel{padding:40px 24px}.auth-content{max-width:500px}}
+@media(prefers-reduced-motion:reduce){.visual-illustration{filter:none}}
