@@ -88,10 +88,10 @@ export class CadastroCliente implements OnInit {
 
   activeIndex = 0;
 
-  tabs = [
-      { label: 'Geral', icon: 'pi pi-user' },
-      { label: 'Endereço', icon: 'pi pi-map-marker' },
-      { label: 'Contatos', icon: 'pi pi-phone' }
+  readonly tabs = [
+      { label: 'Geral' },
+      { label: 'Endereço' },
+      { label: 'Contatos' }
   ];
   savedClienteId: string | number | null = null;
 
@@ -166,7 +166,7 @@ export class CadastroCliente implements OnInit {
   isSaving = false; // Bloqueia submissões simultâneas e sinaliza o estado da operação
 
   get contatoDialogTitle(): string {
-    return 'Adicionar Contato';
+    return this.contatoEditIndex !== null ? 'Editar contato' : 'Adicionar contato';
   }
 
   ngOnInit() {
