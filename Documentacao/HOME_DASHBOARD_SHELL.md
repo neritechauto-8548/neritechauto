@@ -67,6 +67,12 @@
 - **Padrão:** resumo da oficina com indicadores de operação, gráfico de receita/despesas, saúde da operação e alertas de atenção.
 - **Gerencial:** faturamento, resultado, ordens em andamento, base de clientes e evolução financeira.
 - **Financeiro:** faturamento, despesas, resultado, valores vencidos, carteira a receber/a pagar e série mensal.
-- **Orçamento:** orçamentos abertos, autorizados, fechados e cancelados no mês, com indicador de conversão.
+- **Orçamento:** a tela mantém o tipo de visão oficial, mas o backend hoje oferece estados de Ordens de Serviço (abertas, autorizadas, finalizadas e canceladas) para essa seção. A interface deve identificá-los como **OS**, sem chamá-los de orçamentos nem apresentar uma taxa de conversão comercial não calculada sobre propostas reais. A futura integração com o módulo Orçamentos exige definição de fonte, eventos e denominadores antes da homologação.
 - As abas atualizam o conteúdo da mesma rota, sem criar telas redundantes. Os dados vêm do serviço DashboardService; em preview, os números são demonstrativos.
 - Os controles de aba expõem role="tab" e aria-selected para comunicar a seleção às tecnologias assistivas.
+
+## Integridade semântica das métricas
+
+- O cartão de OS concluídas no Home Padrão utiliza `fechadosMes` (finalizações do mês) e não `osConcluidas` (contagem geral), mantendo consistência entre valor e legenda.
+- A seção de saúde da operação apresenta a quantidade de OS autorizadas no mês em lugar de converter estados de OS em um percentual denominado conversão de orçamentos.
+- Os dados da visão Orçamento são provisórios quanto à fonte de domínio: a especificação de UI existe, mas os indicadores de propostas precisam de integração real de Orçamentos para homologação.

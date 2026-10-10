@@ -75,8 +75,8 @@
 
         <button type="button" class="signal-card" (click)="navegarPara('/os')">
           <div class="signal-label"><span class="signal-dot"></span> OS concluídas</div>
-          <strong>{{ data?.osConcluidas ?? 0 }}</strong>
-          <p>ordens finalizadas no período</p>
+          <strong>{{ data?.fechadosMes ?? 0 }}</strong>
+          <p>ordens finalizadas no mês</p>
           <span class="card-link">Ver ordens <b>→</b></span>
         </button>
 
@@ -134,7 +134,7 @@
           <div class="health-divider"></div>
           <div class="health-summary">
             <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
-            <div><span>Conversão</span><strong>{{ taxaConversaoOrcamento }}%</strong></div>
+            <div><span>OS autorizadas no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
           </div>
         </aside>
       </section>
@@ -228,21 +228,21 @@
     } @else if (selectedView === 'orcamento') {
       <section class="view-section-heading">
         <span class="eyebrow">Painel de orçamentos</span>
-        <h2>Do orçamento à aprovação</h2>
-        <p>Acompanhe a movimentação dos orçamentos e identifique oportunidades de conversão.</p>
+        <h2>Aprovação e andamento de serviços</h2>
+        <p>Indicadores operacionais baseados nas ordens de serviço. Valores de orçamentos dependem da integração específica.</p>
       </section>
       <section class="view-dashboard-grid">
-        <article class="view-stat-card stat-blue"><span>Orçamentos abertos no mês</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>Entradas registradas no período</small></article>
-        <article class="view-stat-card stat-green"><span>Autorizados no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>Orçamentos aprovados</small></article>
-        <article class="view-stat-card stat-violet"><span>Fechados no mês</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>Orçamentos finalizados</small></article>
+        <article class="view-stat-card stat-blue"><span>OS abertas no mês</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>Registros operacionais do período</small></article>
+        <article class="view-stat-card stat-green"><span>Autorizados no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>OS em estados de autorização ou execução</small></article>
+        <article class="view-stat-card stat-violet"><span>Fechados no mês</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>OS finalizadas no período</small></article>
         <article class="view-stat-card stat-red"><span>Cancelados no mês</span><strong>{{ data?.canceladosMes ?? 0 }}</strong><small>Verifique os motivos de perda</small></article>
       </section>
       <section class="surface view-chart-card">
-        <div class="surface-header"><div><span class="eyebrow">Conversão</span><h2>Indicadores de orçamento</h2><p>Taxa calculada a partir dos totais disponíveis no serviço atual.</p></div></div>
+        <div class="surface-header"><div><span class="eyebrow">Etapas operacionais</span><h2>Situação das ordens de serviço</h2><p>Estes números ainda não representam a conversão real de propostas comerciais.</p></div></div>
         <div class="quote-conversion">
-          <div><span>Conversão estimada</span><strong>{{ taxaConversaoOrcamento }}%</strong></div>
-          <div><span>Orçamentos autorizados</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
-          <div><span>Orçamentos cancelados</span><strong>{{ data?.canceladosMes ?? 0 }}</strong></div>
+          <div><span>OS em estados de abertura</span><strong>{{ data?.abertosMes ?? 0 }}</strong></div>
+          <div><span>OS em estados autorizados</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
+          <div><span>OS canceladas</span><strong>{{ data?.canceladosMes ?? 0 }}</strong></div>
         </div>
         <button type="button" class="primary-button" (click)="navegarPara('/orcamento')">Abrir módulo Orçamentos</button>
       </section>
