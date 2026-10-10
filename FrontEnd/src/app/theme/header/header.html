@@ -10,9 +10,9 @@
     }
   </div>
 
-  <div class="nt-global-search">
+  <div class="nt-global-search" [class.nt-mobile-search-open]="mobileSearchOpen">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-    <input type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" (keydown.enter)="openFirstSearchResult()" />
+    <input #globalSearchInput id="nt-global-search-input" type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" (keydown.enter)="openFirstSearchResult()" />
     @if (searchResults.length) {
       <div class="nt-search-results" role="listbox">
         @for (result of searchResults; track result.route) {
@@ -27,6 +27,17 @@
   </div>
 
   <div class="nt-topbar-actions">
+    <button type="button" class="nt-topbar-icon nt-mobile-search-toggle"
+      [attr.aria-label]="mobileSearchOpen ? 'Fechar busca' : 'Abrir busca'"
+      [attr.aria-expanded]="mobileSearchOpen"
+      aria-controls="nt-global-search-input"
+      (click)="toggleMobileSearch()">
+      @if (mobileSearchOpen) {
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg>
+      } @else {
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
+      }
+    </button>
     <button class="nt-topbar-icon" type="button" (click)="toggleTheme()" aria-label="Alternar tema"
       [matTooltip]="settings.getThemeColor() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z"></path></svg>
