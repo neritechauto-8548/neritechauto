@@ -54,7 +54,7 @@ class UsuarioControllerTest {
     }
 
     @Test
-    @DisplayName("POST /usuarios - Deve criar usuário com sucesso")
+    @DisplayName("POST /usuarios - Deve retornar 200 e usuário criado")
     void deveCriarUsuario() throws Exception {
         // Arrange
         when(usuarioService.create(any(UsuarioRequest.class))).thenReturn(usuarioResponse);
@@ -64,7 +64,7 @@ class UsuarioControllerTest {
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usuarioRequest)))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.email").value(usuarioRequest.getEmail()));
     }

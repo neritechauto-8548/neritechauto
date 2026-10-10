@@ -91,7 +91,6 @@ class AuthServiceTest {
             
             // Corrigido: getters adicionados ao JwtService
             when(jwtService.getExpirationTime()).thenReturn(3600000L);
-            when(jwtService.getRefreshExpirationTime()).thenReturn(7200000L);
 
             // Act
             LoginResponse response = authService.login(loginRequest);
@@ -157,7 +156,6 @@ class AuthServiceTest {
             when(jwtService.isTokenValid(eq(request.getRefreshToken()), any(UserDetails.class))).thenReturn(true);
             when(sessaoUsuarioRepository.findByRefreshToken(request.getRefreshToken())).thenReturn(Optional.of(SessaoUsuario.builder().usuario(usuario).refreshToken(request.getRefreshToken()).ativo(true).build()));
             when(jwtService.generateToken(anyMap(), any(UserDetails.class))).thenReturn("new.access.token");
-            when(jwtService.getExpirationTime()).thenReturn(3600000L);
 
             // Act
             LoginResponse response = authService.refreshToken(request);
