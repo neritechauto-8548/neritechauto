@@ -60,7 +60,7 @@ export class AdminLayout implements OnDestroy {
     return this.isMobileScreen;
   }
 
-  private isMobileScreen = false;
+  private isMobileScreen = false; // Compact view (<960px) uses overlay navigation
 
   private isContentWidthFixed = true;
 
@@ -93,14 +93,10 @@ export class AdminLayout implements OnDestroy {
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_MEDIAQUERY, TABLET_MEDIAQUERY, MONITOR_MEDIAQUERY])
       .subscribe(state => {
-        // SidenavOpened must be reset true when layout changes
-        this.options.sidenavOpened = true;
-
-        this.isMobileScreen = state.breakpoints[MOBILE_MEDIAQUERY];
-        // Only force collapse on tablet, otherwise respect default/user setting
-        if (state.breakpoints[TABLET_MEDIAQUERY]) {
-          this.options.sidenavCollapsed = true;
-        }
+        const wasCompact = this.isMobileScreen;
+        this.isMobileScreen = state.breakpoints[MOBILE_MEDIAQUERY] || state.breakpoints[TABLET_MEDIAQUERY];
+        // Use an overlay on tablets, without overwriting desktop collapse preferences.
+        if (this.isMobileScreen && !wasCompact) this.sidenav?.close();
         this.isContentWidthFixed = state.breakpoints[MONITOR_MEDIAQUERY];
       });
 
@@ -168,8 +164,10 @@ export class AdminLayout implements OnDestroy {
 
   onSidenavOpenedChange(isOpened: boolean) {
     this.isCollapsedWidthFixed = !this.isOver;
-    this.options.sidenavOpened = isOpened;
-    this.settings.setOptions(this.options);
+    if (!this.isOver) {
+      this.options.sidenavOpened = isOpened;
+      this.settings.setOptions(this.options);
+    }
   }
 
   updateOptions(options: AppSettings) {
