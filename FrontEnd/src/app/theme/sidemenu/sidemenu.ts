@@ -9,7 +9,7 @@ import {
 import { MatRippleModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgxPermissionsModule } from 'ngx-permissions';
 
 import { MenuService, SettingsService } from '@core';
@@ -42,6 +42,15 @@ export class Sidemenu {
 
   private readonly menu = inject(MenuService);
   private readonly settings = inject(SettingsService);
+  private readonly translate = inject(TranslateService);
+
+  /** Fallback para labels do menu ainda não presentes no catálogo i18n. */
+  menuLabel(key: string): string {
+    const translated = this.translate.instant(key);
+    if (typeof translated === 'string' && translated !== key) return translated;
+    const label = key.replace(/^menu\./, '').split('.').pop() || key;
+    return label.replace(/[_-]/g, ' ');
+  }
 
   menu$ = this.menu.getAll();
   buildRoute = this.menu.buildRoute;
