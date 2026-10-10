@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
@@ -44,12 +44,24 @@ export class Header {
   private readonly translate = inject(TranslateService);
   private readonly activatedRoute = inject(ActivatedRoute);
 
+  @ViewChild('globalSearchInput') globalSearchInput?: ElementRef<HTMLInputElement>;
+  mobileSearchOpen = false;
   pageTitle = 'Dashboard';
   searchTerm = '';
   searchResults: Array<{ name: string; route: string }> = [];
   private menuItems: Menu[] = [];
 
   /** Busca global com nomes traduzidos e rotas completas de módulos e submódulos. */
+  toggleMobileSearch(): void {
+    this.mobileSearchOpen = !this.mobileSearchOpen;
+    if (!this.mobileSearchOpen) {
+      this.searchResults = [];
+      this.searchTerm = '';
+    } else {
+      queueMicrotask(() => this.globalSearchInput?.nativeElement.focus());
+    }
+  }
+
   onSearch(term: string): void {
     this.searchTerm = term;
     const normalized = term.trim().toLocaleLowerCase('pt-BR');
@@ -93,6 +105,7 @@ export class Header {
   navigateSearch(route: string): void {
     this.searchTerm = '';
     this.searchResults = [];
+    this.mobileSearchOpen = false;
     if (route.startsWith('http')) window.open(route, '_blank', 'noopener,noreferrer');
     else this.router.navigateByUrl(route);
   }
@@ -101,9 +114,14 @@ export class Header {
   onGlobalKeydown(event: KeyboardEvent): void {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
-      document.querySelector<HTMLInputElement>('.nt-global-search input')?.focus();
+      this.mobileSearchOpen = true;
+      queueMicrotask(() => this.globalSearchInput?.nativeElement.focus());
     }
-    if (event.key === 'Escape') { this.searchTerm = ''; this.searchResults = []; }
+    if (event.key === 'Escape') {
+      this.searchTerm = '';
+      this.searchResults = [];
+      this.mobileSearchOpen = false;
+    }
   }
 
   constructor() {
