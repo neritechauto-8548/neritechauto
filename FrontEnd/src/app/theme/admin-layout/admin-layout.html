@@ -32,7 +32,7 @@
       <app-sidebar
         [showToggle]="!isOver"
         [showUser]="false"
-        [showHeader]="false"
+        [showHeader]="true"
         [toggleChecked]="options.sidenavCollapsed"
         (toggleCollapsed)="toggleCollapsed()"
         (closeSidenav)="sidenav.close()"
@@ -46,7 +46,7 @@
     <mat-sidenav-content #content class="matero-content">
       @if (options.showHeader && options.headerPos !== 'above') {
         <app-header
-          [showToggle]="!options.sidenavCollapsed && options.navPos !== 'top'"
+          [showToggle]="options.navPos !== 'top'"
           [showBranding]="options.navPos === 'top'"
           (toggleSidenav)="onSidenavToggle()"
           (toggleSidenavNotice)="sidenavNotice.toggle()"
