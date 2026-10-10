@@ -1,60 +1,57 @@
-<main class="flex h-full min-h-0 flex-col gap-5">
-  <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between">
-    <div>
-      <p class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Relacionamento</p>
-      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Clientes</h1>
-      <p class="mt-1 text-sm text-slate-500">Consulte e gerencie a base de clientes da sua oficina.</p>
+<main class="nt-clients-page">
+  <header class="nt-clients-heading">
+    <div class="nt-clients-heading-copy">
+      <span class="nt-clients-eyebrow">Relacionamento</span>
+      <h1>Clientes</h1>
+      <p>Encontre, cadastre e acompanhe os clientes da sua oficina.</p>
       @if (isUxPreview) {
-        <span class="mt-2 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700" role="status">
-          <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Modo de homologação · dados demonstrativos
-        </span>
+        <span class="nt-clients-preview" role="status"><span aria-hidden="true"></span> Modo de homologação · dados demonstrativos</span>
       }
     </div>
-    <button type="button" (click)="cadastrarCliente()"
-      class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
-      <i class="pi pi-plus text-xs"></i>
+    <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
       Novo cliente
     </button>
   </header>
 
-  <section class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-    <div class="flex flex-col gap-3 xl:flex-row xl:items-center">
-      <div class="relative min-w-0 flex-1">
-        <i class="pi pi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
-        <input pInputText [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
-          placeholder="Buscar por nome, CPF ou CNPJ"
-          aria-label="Buscar clientes"
-          class="w-full !rounded-lg !border-slate-200 !bg-slate-50 !py-2.5 !pl-10 !pr-3 !text-sm focus:!border-slate-400 focus:!ring-0 dark:!border-slate-700 dark:!bg-slate-950" />
+  <section class="nt-clients-toolbar" aria-label="Pesquisa e filtros de clientes">
+    <div class="nt-clients-search">
+      <label for="nt-client-search">Buscar cliente</label>
+      <div class="nt-clients-search-control">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
+        <input id="nt-client-search" pInputText [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
+          placeholder="Nome, CPF, CNPJ ou contato" class="nt-clients-input" />
       </div>
-
-      <p-select [options]="tipoOptions" [(ngModel)]="selectedTipo" optionLabel="label" optionValue="value"
-        [showClear]="false" (onChange)="onFilterChange()" placeholder="Tipo"
-        styleClass="w-full xl:w-44">
-      </p-select>
-
-      <p-select [options]="statusOptions" [(ngModel)]="selectedStatus" optionLabel="label" optionValue="value"
-        [showClear]="false" (onChange)="onFilterChange()" placeholder="Status"
-        styleClass="w-full xl:w-44">
-      </p-select>
-
-      <button type="button" (click)="onSearch()"
-        class="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
-        Buscar
-      </button>
-
-      @if (hasFilters) {
-        <button type="button" (click)="limparFiltros()"
-          class="h-10 rounded-lg px-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white">
-          Limpar
-        </button>
-      }
     </div>
+    <div class="nt-clients-filter">
+      <label for="nt-client-type">Tipo</label>
+      <p-select inputId="nt-client-type" [options]="tipoOptions" [(ngModel)]="selectedTipo"
+        optionLabel="label" optionValue="value" [showClear]="false" (onChange)="onFilterChange()"
+        styleClass="nt-clients-select" />
+    </div>
+    <div class="nt-clients-filter">
+      <label for="nt-client-status">Status</label>
+      <p-select inputId="nt-client-status" [options]="statusOptions" [(ngModel)]="selectedStatus"
+        optionLabel="label" optionValue="value" [showClear]="false" (onChange)="onFilterChange()"
+        styleClass="nt-clients-select" />
+    </div>
+    <button type="button" class="nt-clients-search-button" (click)="onSearch()">Buscar</button>
+    @if (hasFilters) {
+      <button type="button" class="nt-clients-clear" (click)="limparFiltros()">Limpar filtros</button>
+    }
   </section>
+
+  @if (loadError) {
+    <section class="nt-clients-error" role="alert">
+      <div><strong>Não foi possível carregar os clientes.</strong><p>{{ loadErrorMessage }}</p></div>
+      <button type="button" class="nt-clients-search-button" (click)="onSearch()">Tentar novamente</button>
+    </section>
+  }
 
   <section class="min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
     <div class="flex h-full min-h-0 flex-col">
       <div class="min-h-0 flex-1 overflow-auto">
-        <table class="w-full min-w-[820px] border-collapse text-left">
+        <table class="nt-clients-table w-full min-w-[820px] border-collapse text-left"><caption class="sr-only">Lista de clientes cadastrados</caption>
           <thead class="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
             <tr>
               <th class="px-5 py-3 text-xs font-semibold text-slate-500">Cliente</th>
@@ -93,7 +90,7 @@
                   <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ formatCpfCnpj(row.cpfCnpj) || '—' }}</td>
                   <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">
                     @if (row.contato) {
-                      <span class="inline-flex items-center gap-2"><i class="pi pi-phone text-xs text-slate-400"></i>{{ row.contato }}</span>
+                      <span class="inline-flex items-center gap-2"><svg class="nt-contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.7L7 10a16 16 0 0 0 7 7l1.6-2a2 2 0 0 1 1.7-.6l3 .5a2 2 0 0 1 1.7 2z"></path></svg>{{ row.contato }}</span>
                     } @else { <span class="text-slate-400">—</span> }
                   </td>
                   <td class="px-5 py-3.5">
@@ -108,20 +105,20 @@
                     </span>
                   </td>
                   <td class="px-3 py-3.5 text-right">
-                    <button type="button" pButton icon="pi pi-ellipsis-v"
-                      class="p-button-text p-button-rounded p-button-secondary h-8 w-8"
-                      aria-label="Ações do cliente"
-                      (click)="toggleMenu(row, $event, menu)"></button>
+                    <button type="button" class="nt-row-action" [attr.aria-label]="'Ações de ' + row.nome"
+                      (click)="toggleMenu(row, $event, menu)">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"></circle><circle cx="12" cy="12" r="1.2"></circle><circle cx="12" cy="19" r="1.2"></circle></svg>
+                    </button>
                   </td>
                 </tr>
               }
 
-              @if (clients.length === 0) {
+              @if (clients.length === 0 && !loadError) {
                 <tr>
                   <td colspan="5" class="px-6 py-16 text-center">
                     <div class="mx-auto flex max-w-sm flex-col items-center">
                       <div class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-700 dark:bg-slate-800">
-                        <i class="pi pi-users"></i>
+                        <svg class="nt-empty-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"></path></svg>
                       </div>
                       <p class="mt-4 text-sm font-semibold text-slate-900 dark:text-white">Nenhum cliente encontrado</p>
                       <p class="mt-1 text-sm text-slate-500">
