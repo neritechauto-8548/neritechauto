@@ -1,13 +1,15 @@
 import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector:'app-branding',
   template:`
-    <a class="branding" href="/">
+    <a class="branding" routerLink="/home">
       <span class="logo-box"><span class="logo-mark">N</span></span>
       @if (showName) { <span class="logo-text">NERITECH <span class="logo-accent">AUTO</span></span> }
     </a>
   `,
+  imports: [RouterLink],
   styles:`
     .branding{display:flex;align-items:center;gap:9px;text-decoration:none;transition:opacity .15s ease}
     .branding:hover{opacity:.82}
