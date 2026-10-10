@@ -14,7 +14,8 @@
     <app-header
       (toggleSidenav)="onSidenavToggle()"
       (toggleSidenavNotice)="sidenavNotice.toggle()"
-      [showBranding]="true"
+      [showBranding]="isOver || options.navPos === 'top'"
+      [showToggle]="isOver || options.sidenavCollapsed"
     />
   }
 
@@ -47,7 +48,7 @@
       @if (options.showHeader && options.headerPos !== 'above') {
         <app-header
           [showToggle]="isOver || (options.sidenavCollapsed && options.navPos !== 'top')"
-          [showBranding]="options.navPos === 'top'"
+          [showBranding]="isOver || options.navPos === 'top'"
           (toggleSidenav)="onSidenavToggle()"
           (toggleSidenavNotice)="sidenavNotice.toggle()"
         />

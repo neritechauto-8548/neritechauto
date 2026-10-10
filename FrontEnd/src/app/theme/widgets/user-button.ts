@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService, User, TokenService } from '@core';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '@env/environment';
+import { ProfileAvatarService } from './profile-avatar.service';
 
 @Component({
   selector: 'app-user',
@@ -43,7 +44,7 @@ import { environment } from '@env/environment';
             <span>Meu perfil</span>
             <svg class="nt-profile-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           </button>
-          <button mat-menu-item class="nt-profile-action" routerLink="/profile/settings">
+          <button mat-menu-item class="nt-profile-action" routerLink="/profile/overview" fragment="aparencia">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 13.6v-3.2l-2.2-.7-.5-1.2 1-2-2.3-2.3-2 1-1.2-.5L11.1 2H8.9l-.7 2.2-1.2.5-2-1-2.3 2.3 1 2-.5 1.2-2.2.7v3.2l2.2.7.5 1.2-1 2 2.3 2.3 2-1 1.2.5.7 2.2h3.2l.7-2.2 1.2-.5 2 1 2.3-2.3-1-2 .5-1.2 2.2-.7Z" transform="translate(1 1) scale(.91)"/></svg>
             <span>Configurações</span>
             <svg class="nt-profile-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
@@ -69,6 +70,7 @@ import { environment } from '@env/environment';
 })
 export class UserButton implements OnInit {
   private readonly auth = inject(AuthService);
+  readonly avatar = inject(ProfileAvatarService);
   private readonly tokens = inject(TokenService);
   private readonly storage = inject(LocalStorageService);
   private readonly router = inject(Router);
@@ -77,12 +79,10 @@ export class UserButton implements OnInit {
 
   readonly uxPreview = environment.uxPreview;
   user: User = {};
-  avatarFailed = false;
 
   ngOnInit(): void {
     this.auth.user().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
       this.user = user ?? {};
-      this.avatarFailed = false;
       this.cdr.markForCheck();
     });
   }
@@ -103,18 +103,15 @@ export class UserButton implements OnInit {
   }
 
   get isIllustrativeAvatar(): boolean {
-    return this.uxPreview && !(typeof this.user?.avatar === 'string' && this.user.avatar.trim());
+    return this.avatar.isIllustrative(this.user);
   }
 
   get avatarSrc(): string {
-    if (this.avatarFailed) return '/images/nt-profile-default.svg';
-    const avatar = this.user?.avatar;
-    if (typeof avatar === 'string' && avatar.trim()) return avatar.trim();
-    return this.uxPreview ? '/images/nt-profile-demo.webp' : '/images/nt-profile-default.svg';
+    return this.avatar.src(this.user);
   }
 
   onAvatarError(): void {
-    this.avatarFailed = true;
+    this.avatar.reportImageError(this.avatarSrc);
   }
 
   openSupport(): void {

@@ -28,3 +28,66 @@ app-user{display:inline-flex;align-items:center;flex:none}
 .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action-danger:hover,.nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action-danger:focus-visible{background:#fff1f2;color:#b91c1c}
 .nt-profile-menu-panel button:focus-visible{outline:2px solid #2563eb;outline-offset:-2px}
 @media(prefers-reduced-motion:reduce){.nt-profile-trigger{transition:none}}
+
+/* Angular Material wraps menu item children in .mat-mdc-menu-item-text.
+   Layout/font must target the wrapper, otherwise default typography and
+   icon sizing leak into the CDK overlay (as seen in the screenshot). */
+.nt-profile-menu-panel.mat-mdc-menu-panel{
+  width:min(320px,calc(100vw - 24px))!important;
+  min-width:min(320px,calc(100vw - 24px))!important;
+  border-radius:12px!important;
+}
+.nt-profile-menu-panel,
+.nt-profile-menu-panel .mat-mdc-menu-content,
+.nt-profile-menu-panel .mat-mdc-menu-item,
+.nt-profile-menu-panel .mat-mdc-menu-item-text,
+.nt-profile-menu-panel .nt-profile-action span{
+  font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif!important;
+}
+.nt-profile-menu-panel .mat-mdc-menu-item-text{
+  display:flex!important;
+  align-items:center!important;
+  width:100%;
+  min-width:0;
+  gap:12px;
+  font-size:13px!important;
+  font-weight:550!important;
+  letter-spacing:0!important;
+  line-height:20px!important;
+  color:inherit;
+}
+.nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action{
+  height:46px!important;
+  min-height:46px!important;
+  padding:0 14px!important;
+  border-radius:8px;
+  text-align:left;
+}
+.nt-profile-menu-panel .nt-profile-action svg{
+  width:20px!important;
+  height:20px!important;
+  max-width:20px!important;
+  stroke-width:1.8px!important;
+  color:#475569;
+}
+.nt-profile-menu-panel .nt-profile-action svg.nt-profile-chevron{
+  width:15px!important;height:15px!important;max-width:15px!important;
+}
+.nt-profile-menu-panel .nt-profile-action span:not(.mat-mdc-menu-item-text):not(.mat-mdc-menu-ripple){
+  font-size:13px!important;
+  font-weight:550!important;
+  color:inherit!important;
+  white-space:nowrap;
+}
+.nt-profile-eyebrow{font-size:11px;line-height:16px;padding:13px 19px 10px}
+.nt-profile-identity{padding:20px 16px 19px}
+.nt-profile-large-avatar{width:72px;height:72px;margin-bottom:12px}
+.nt-profile-identity-name{font-size:15px;line-height:22px}
+.nt-profile-identity-role{font-size:12px;line-height:19px}
+.nt-profile-demo-label{font-size:11px;line-height:16px}
+.nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action-danger,
+.nt-profile-menu-panel .nt-profile-action-danger .mat-mdc-menu-item-text,
+.nt-profile-menu-panel .nt-profile-action-danger svg{color:#b91c1c!important}
+.nt-profile-menu-panel .nt-profile-action:focus-visible{
+  outline:2px solid #2563eb;outline-offset:-2px;
+}
