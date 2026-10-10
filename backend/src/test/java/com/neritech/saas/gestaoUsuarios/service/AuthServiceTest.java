@@ -103,7 +103,7 @@ class AuthServiceTest {
             
             verify(sessaoUsuarioRepository).saveAndFlush(any(SessaoUsuario.class));
             verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
-            verify(tentativaLoginRepository).deleteByEmailAndEmpresaId(anyString(), anyLong());
+            verify(tentativaLoginRepository).saveAndFlush(any(TentativaLogin.class));
         }
 
         @Test
@@ -112,6 +112,8 @@ class AuthServiceTest {
             // Arrange
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenThrow(new BadCredentialsException("Bad credentials"));
+            // Login falho de usuário conhecido deve registrar o log na empresa correta.
+            when(usuarioRepository.findByEmailIgnoreCase(loginRequest.getEmail())).thenReturn(Optional.of(usuario));
 
             // Act & Assert
             assertThatThrownBy(() -> authService.login(loginRequest))

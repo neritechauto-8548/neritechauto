@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.NonNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -18,6 +19,7 @@ import java.util.List;
  * ConfiguraÃ§Ã£o para registrar o interceptor de tenant e configurar o filtro Hibernate
  */
 @Configuration
+@ConditionalOnProperty(prefix = "neritech.tenancy.web", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TenantFilterConfiguration implements WebMvcConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(TenantFilterConfiguration.class);

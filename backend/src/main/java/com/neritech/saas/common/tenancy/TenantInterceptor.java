@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,6 +19,7 @@ import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
  * e configurÃ¡-lo no TenantContext
  */
 @Component
+@ConditionalOnProperty(prefix = "neritech.tenancy.web", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TenantInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(TenantInterceptor.class);
