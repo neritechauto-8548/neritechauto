@@ -2,7 +2,8 @@ import { ChangeDetectorRef, Component, DestroyRef, OnInit, ViewEncapsulation, in
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, User } from '@core';
+import { AuthService, User, TokenService } from '@core';
+import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '@env/environment';
 
 @Component({
@@ -68,6 +69,8 @@ import { environment } from '@env/environment';
 })
 export class UserButton implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly tokens = inject(TokenService);
+  private readonly storage = inject(LocalStorageService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -125,7 +128,13 @@ export class UserButton implements OnInit {
     }
     this.auth.logout().subscribe({
       next: () => this.router.navigateByUrl('/auth/login'),
-      error: () => this.router.navigateByUrl('/auth/login'),
+      error: () => {
+        // Mesmo se a API estiver offline, encerrar a sessão local.
+        this.tokens.clear();
+        this.storage.remove('tenantId');
+        this.storage.remove('empresaId');
+        this.router.navigateByUrl('/auth/login');
+      },
     });
   }
 }
