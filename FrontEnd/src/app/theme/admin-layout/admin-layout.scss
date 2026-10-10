@@ -195,3 +195,14 @@
  .matero-page-content{padding:16px 12px 24px}
  .matero-container-wrap .matero-sidenav{width:min(280px,calc(100vw - 32px))!important}
 }
+
+/* Desktop sidebar is flush with the application shell, not a floating card. */
+@media(min-width:960px){
+  .matero-container-wrap .matero-sidenav{
+    border-radius:0!important;
+  }
+}
+.matero-container-wrap .matero-sidenav{
+  box-sizing:border-box;
+  background:var(--nt-surface,#fff)!important;
+}

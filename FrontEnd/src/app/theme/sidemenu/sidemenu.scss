@@ -231,3 +231,42 @@
 .matero-sidemenu .submenu .menu-heading{font-size:12px;min-height:38px}
 .matero-sidemenu .menu-item.active > .menu-heading{color:#1e40af;background:#eff6ff;border-color:#bfdbfe;font-weight:650}
 .matero-sidemenu .menu-heading:focus-visible{outline:2px solid #2563eb;outline-offset:1px}
+
+/* Consistent menu rhythm across full, collapsed and overlay navigation. */
+.matero-sidemenu.level-0{padding:16px 12px 28px}
+.matero-sidemenu .menu-heading{
+  min-height:44px;
+  gap:0;
+  padding:10px 12px;
+  font-size:13px;
+  line-height:19px;
+}
+.matero-sidemenu .menu-icon{
+  width:19px;
+  height:19px;
+  flex-basis:19px;
+  margin-right:12px;
+}
+.matero-sidemenu .menu-name{line-height:19px}
+.matero-sidemenu .menu-caret{width:15px;height:15px;flex-basis:15px}
+.matero-sidemenu .menu-item.active > .menu-heading{
+  border-color:#bfdbfe;
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+.matero-sidemenu .menu-item.active > .menu-heading .menu-icon{color:#2563eb}
+.matero-sidemenu .menu-item:not(.menu-item-heading) > .submenu .menu-heading{
+  min-height:38px;
+  padding-block:8px;
+  font-size:12px;
+}
+.matero-sidenav-collapsed .matero-sidemenu.level-0{padding:16px 9px 28px}
+.matero-sidenav-collapsed .matero-sidemenu .menu-heading{justify-content:center;padding:10px 0}
+.matero-sidenav-collapsed .matero-sidemenu .menu-icon{margin:0}
+@media(max-width:959px){
+  .matero-sidemenu.level-0{padding:14px 12px 30px}
+  .matero-sidemenu .menu-heading{min-height:46px}
+}
+@media(prefers-reduced-motion:reduce){
+  .matero-sidemenu .menu-heading,.matero-sidemenu .menu-caret{transition:none}
+}

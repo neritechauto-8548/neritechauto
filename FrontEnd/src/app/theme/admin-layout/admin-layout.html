@@ -33,7 +33,7 @@
       <app-sidebar
         [showToggle]="!isOver"
         [showUser]="false"
-        [showHeader]="options.headerPos !== 'above' || isOver"
+        [showHeader]="true"
         [toggleChecked]="options.sidenavCollapsed && !isOver"
         (toggleCollapsed)="toggleCollapsed()"
         (closeSidenav)="sidenav.close()"

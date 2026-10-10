@@ -111,3 +111,39 @@
     min-height: 60px;
   }
 }
+
+/* Sidebar brand: never hide the header when the desktop topbar is above.
+   Match visual hierarchy to the NERITECH application shell. */
+.nt-sidebar-header{
+  flex:0 0 60px;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  gap:10px;
+}
+.nt-sidebar-brand{
+  flex:1 1 auto;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.nt-sidebar-brand app-branding{
+  display:block;
+  min-width:0;
+}
+.nt-sidebar-toggle{
+  flex:0 0 36px;
+  height:36px;
+  width:36px;
+}
+.matero-sidenav-collapsed .nt-sidebar-header{
+  justify-content:center;
+}
+.matero-sidenav-collapsed .nt-sidebar-brand{
+  justify-content:center;
+  flex:0 0 auto;
+}
+@media(max-width:959px){
+  .nt-sidebar-header{min-height:60px;padding-inline:16px}
+  .nt-sidebar-brand{flex:1 1 auto;justify-content:flex-start}
+  .nt-sidebar-toggle{flex:0 0 36px}
+}
