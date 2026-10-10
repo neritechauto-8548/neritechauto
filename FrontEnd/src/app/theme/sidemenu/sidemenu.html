@@ -25,7 +25,7 @@
         [type]="menuItem.type"
       >
         @if (menuItem.type === 'heading') {
-          <div class="menu-heading-label">{{ menuItem.name | translate }}</div>
+          <div class="menu-heading-label">{{ menuLabel(menuItem.name) }}</div>
         }
 
         @if (menuItem.type === 'link') {
@@ -34,7 +34,7 @@
             [routerLink]="buildRoute(parentRoute.concat([menuItem.route]))"
             matRipple
             [matRippleDisabled]="!ripple"
-            [matTooltip]="menuItem.name | translate"
+            [matTooltip]="menuLabel(menuItem.name)"
             matTooltipPosition="right"
             [matTooltipDisabled]="!isCollapsed"
           >
@@ -51,7 +51,7 @@
             [href]="menuItem.route"
             matRipple
             [matRippleDisabled]="!ripple"
-            [matTooltip]="menuItem.name | translate"
+            [matTooltip]="menuLabel(menuItem.name)"
             matTooltipPosition="right"
             [matTooltipDisabled]="!isCollapsed"
           >
@@ -70,7 +70,7 @@
             rel="noopener noreferrer"
             matRipple
             [matRippleDisabled]="!ripple"
-            [matTooltip]="menuItem.name | translate"
+            [matTooltip]="menuLabel(menuItem.name)"
             matTooltipPosition="right"
             [matTooltipDisabled]="!isCollapsed"
           >
@@ -88,7 +88,7 @@
             class="menu-heading menu-toggle"
             matRipple
             [matRippleDisabled]="!ripple"
-            [matTooltip]="menuItem.name | translate"
+            [matTooltip]="menuLabel(menuItem.name)"
             matTooltipPosition="right"
             [matTooltipDisabled]="!isCollapsed"
           >
@@ -127,7 +127,7 @@
     </svg>
   }
 
-  <span class="menu-name">{{ item.name | translate }}</span>
+  <span class="menu-name">{{ menuLabel(item.name) }}</span>
 
   @if (item.label) {
     <span class="menu-label bg-{{ item.label.color }}">{{ item.label.value }}</span>
