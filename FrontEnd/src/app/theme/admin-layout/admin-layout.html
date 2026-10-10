@@ -46,7 +46,7 @@
     <mat-sidenav-content #content class="matero-content">
       @if (options.showHeader && options.headerPos !== 'above') {
         <app-header
-          [showToggle]="options.navPos !== 'top'"
+          [showToggle]="isOver || (options.sidenavCollapsed && options.navPos !== 'top')"
           [showBranding]="options.navPos === 'top'"
           (toggleSidenav)="onSidenavToggle()"
           (toggleSidenavNotice)="sidenavNotice.toggle()"
