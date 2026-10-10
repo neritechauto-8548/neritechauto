@@ -1,59 +1,50 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
-
-  <!-- Action Bar (Sticky Top) -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
-      <div class="flex items-center gap-4">
-          <button (click)="voltar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
-              <i class="pi pi-arrow-left text-sm"></i>
-          </button>
-          <div>
-              <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ pageTitle }}</h1>
-              <span class="text-xs text-slate-500 font-normal">{{ isEditMode ? 'Editando registro' : 'Novo registro' }}</span>
-              @if (isUxPreview) {
-                <span class="mt-1 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700" role="status">
-                  <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Homologação · dados demonstrativos
-                </span>
-              }
-          </div>
+<main class="nt-client-form-page">
+  <header class="nt-client-form-header">
+    <div class="nt-client-form-title-group">
+      <button type="button" (click)="voltar()" class="nt-client-form-back" aria-label="Voltar para lista de clientes" title="Voltar para Clientes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6M9 12h12"></path></svg>
+      </button>
+      <div>
+        <span class="nt-client-form-eyebrow">Relacionamento / Clientes</span>
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ isEditMode ? 'Atualize os dados e mantenha o histórico do cliente.' : 'Cadastre um novo cliente para iniciar um atendimento.' }}</p>
+        @if (isUxPreview) {
+          <span class="nt-client-form-preview" role="status"><span aria-hidden="true"></span> Homologação · dados demonstrativos</span>
+        }
       </div>
-
-      <div class="flex gap-3 items-center">
-          @if (savedClienteId) {
-              <button (click)="excluirCliente()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-                 <i class="pi pi-trash text-[13px]"></i> Excluir
-              </button>
-              <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-          }
-          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
-              Cancelar
-          </button>
-          <button (click)="salvar()" class="px-4 py-2 rounded-lg bg-slate-950 text-white font-medium hover:bg-slate-800 shadow-sm transition-colors text-sm flex items-center gap-2 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
-              <i class="pi pi-check text-xs"></i> Salvar cliente
-          </button>
-      </div>
-  </div>
-
-  <div class="p-6 w-full space-y-8">
-
-    <!-- Tabs as Pill Navigation -->
-    <div class="flex justify-start overflow-x-auto pb-1">
-        <div class="bg-white p-1 rounded-xl inline-flex border border-slate-200 shadow-sm" role="tablist" aria-label="Seções do cadastro do cliente">
-            @for (tab of tabs; track tab.label; let i = $index) {
-                <button
-                    type="button"
-                    role="tab"
-                    [attr.aria-selected]="activeIndex === i"
-                    (click)="activeIndex = i"
-                    [class]="activeIndex === i ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap">
-                    <i [class]="tab.icon"></i> {{ tab.label }}
-                </button>
-            }
-        </div>
     </div>
+    <div class="nt-client-form-actions">
+      @if (savedClienteId) {
+        <button type="button" class="nt-client-form-danger" [disabled]="isSaving" (click)="excluirCliente()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"></path></svg>
+          Excluir
+        </button>
+      }
+      <button type="button" class="nt-client-form-secondary" [disabled]="isSaving" (click)="cancelar()">Cancelar</button>
+      <button type="button" class="nt-client-form-save" [disabled]="isSaving" [attr.aria-busy]="isSaving" (click)="salvar()">
+        @if (isSaving) {
+          <span class="nt-client-form-spinner" aria-hidden="true"></span> Salvando...
+        } @else {
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+          Salvar cliente
+        }
+      </button>
+    </div>
+  </header>
+
+  <div class="nt-client-form-body">
+    <nav class="nt-client-form-tabs" role="tablist" aria-label="Seções do cadastro de cliente">
+      @for (tab of tabs; track tab.label; let i = $index) {
+        <button type="button" role="tab"
+          [attr.aria-selected]="activeIndex === i"
+          [attr.aria-controls]="'nt-client-form-panel'"
+          [class.active]="activeIndex === i"
+          (click)="activeIndex = i">{{ tab.label }}</button>
+      }
+    </nav>
 
     <!-- Content Area -->
-    <div class="grid grid-cols-1 gap-6 animate-fade-in-up">
+    <div id="nt-client-form-panel" role="tabpanel" class="grid grid-cols-1 gap-6 animate-fade-in-up">
 
         <!-- Tab 0: Dados Gerais -->
         @if (activeIndex === 0) {
@@ -275,7 +266,7 @@
 
     </div>
   </div>
-</div>
+</main>
 
 <!-- Simple clean dialog for contacts -->
 <p-dialog [(visible)]="showContatoDialog" [modal]="true" [style]="{width: '400px'}" header="Novo Contato" styleClass="modern-dialog">
