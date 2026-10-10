@@ -50,6 +50,17 @@ O modo é controlado por `environment.uxPreview` e deve estar habilitado somente
 - A atualização dos dados de demonstração não é persistida após recarregar a aplicação.
 - O modo de homologação não deve ser confundido com persistência real; produção deve usar a API.
 
+## Layout canônico
+- Todas as telas autenticadas utilizam o mesmo AdminLayout, sidebar, breadcrumb e barra superior da NERITECH AUTO.
+- Listagem: título e contexto à esquerda, ação principal à direita; pesquisa e filtros em toolbar compacta, com labels acessíveis.
+- Cadastro/edição: uma única implementação, com cabeçalho no mesmo padrão da listagem, abas Geral / Endereço / Contatos e ações Salvar, Cancelar e Excluir quando permitido.
+- UI-MASTER-001 define a linguagem visual; azul NERITECH (#2563EB) identifica foco e ações primárias, enquanto as cores de status são semânticas.
+- Estado de salvamento deve bloquear cliques duplicados até terminar a operação principal e os dados adicionais; falhas liberam o formulário para nova tentativa.
+- Erro de carregamento da lista aparece como mensagem recuperável com "Tentar novamente", sem apresentá-lo como lista vazia.
+- Requisições antigas de listagem e contatos não devem sobrescrever resultados de filtros ou páginas mais recentes.
+- Ícones de navegação e ações principais são SVG no estilo Tabler; bibliotecas de componentes existentes podem continuar servindo os controles funcionais.
+- Em modo de homologação, a edição não dispara carregamento de veículos dependente do backend.
+
 ## Acessibilidade e UX
 - Campos com rótulos claros, estados de foco visíveis e mensagens de validação.
 - Seções do formulário são tabs acessíveis com `role=tablist`, `role=tab` e `aria-selected`.
@@ -58,14 +69,16 @@ O modo é controlado por `environment.uxPreview` e deve estar habilitado somente
 - Data deve ser formatada como data local para evitar deslocamento de dia por fuso horário.
 
 ## Verificações antes de homologar
-- [ ] Build Angular aprovado no commit atual.
+- [ ] Confirmar o build Angular e os testes Maven do commit atual no GitHub Actions; não inferir aprovação de execuções anteriores.
 - [ ] Busca por nome e documento.
 - [ ] Filtros de tipo e status.
 - [ ] Paginação anterior/próxima e total de resultados.
 - [ ] Criar/editar PF e PJ com documentos válidos.
 - [ ] Endereço obrigatório e CEP.
 - [ ] Incluir/editar/excluir contato.
-- [ ] Reabrir um cliente existente e conferir dados.
+- [ ] Reabrir um cliente existente e conferir dados. Verificar diálogo de inclusão e edição de contatos.
+- [ ] Testar salvamentos repetidos: impedir dupla submissão e confirmar liberação após sucesso ou erro.
+- [ ] Testar erro de servidor, tentar novamente e ausência de sobreposição por respostas antigas de páginas.
 - [ ] Confirmar que modo de preview não faz gravações no backend.
 - [ ] Testar permissões e isolamento por tenant no ambiente integrado.
 - [ ] Conferir comportamento responsivo e teclado.
