@@ -181,3 +181,17 @@
 .matero-page-content{padding:24px 32px 40px}
 @media(max-width:1024px){.matero-page-content{padding:20px 22px 32px}}
 @media(max-width:640px){.matero-page-content{padding:16px}}
+
+/* Tablet e mobile: menu sobreposto, conteúdo sempre usa largura integral. */
+@media(max-width:959px){
+ .matero-container-wrap,.matero-container,.matero-content{min-width:0;max-width:100%}
+ .matero-container-wrap .matero-content{margin-left:0!important;margin-right:0!important}
+ .matero-container-wrap .matero-sidenav{width:min(280px,calc(100vw - 48px))!important;max-width:min(280px,calc(100vw - 48px));border-radius:0 12px 12px 0}
+ .matero-container-wrap .matero-sidenav .nt-sidebar-header{justify-content:space-between;padding-inline:16px}
+ .matero-container-wrap .matero-sidenav .nt-sidebar-menu{overflow-y:auto}
+ .matero-page-content{padding:20px 20px 32px;min-width:0}
+}
+@media(max-width:599px){
+ .matero-page-content{padding:16px 12px 24px}
+ .matero-container-wrap .matero-sidenav{width:min(280px,calc(100vw - 32px))!important}
+}
