@@ -6,6 +6,8 @@ import { Subscription } from 'rxjs';
 import { AppSettings, SettingsService } from '@core';
 import { AuthService } from '@core/authentication/auth.service';
 import { User } from '@core/authentication/interface';
+import { ProfileAvatarService } from '../../../theme/widgets/profile-avatar.service';
+import { environment } from '@env/environment';
 
 // Customizer Imports
 import { MatRadioModule } from '@angular/material/radio';
@@ -42,6 +44,9 @@ export class ProfileOverview implements OnInit, OnDestroy {
   private readonly settings = inject(SettingsService);
   private readonly authService = inject(AuthService);
   private readonly messageService = inject(MessageService);
+  readonly avatar = inject(ProfileAvatarService);
+  readonly uxPreview = environment.uxPreview;
+  private userSubscription = Subscription.EMPTY;
 
   // System Settings (Theme, Header, Nav)
   settingsForm = this.fb.nonNullable.group<AppSettings>(this.settings.options);
@@ -55,8 +60,32 @@ export class ProfileOverview implements OnInit, OnDestroy {
 
   user: User = {};
 
+  get avatarSrc(): string {
+    return this.avatar.src(this.user);
+  }
+
+  onAvatarError(): void {
+    this.avatar.reportImageError(this.avatarSrc);
+  }
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0);
+    if (!file) return;
+    const error = this.avatar.selectLocalPreview(file);
+    if (error) {
+      this.messageService.add({ severity: 'warn', summary: 'Foto de perfil', detail: error });
+    } else {
+      this.messageService.add({
+        severity: 'info', summary: 'Prévia atualizada',
+        detail: 'A foto será exibida apenas nesta sessão de homologação, sem gravação no servidor.'
+      });
+    }
+    input.value = '';
+  }
+
   ngOnInit() {
-    this.authService.user().subscribe(u => {
+    this.userSubscription = this.authService.user().subscribe(u => {
       this.user = u;
       this.profileForm = this.fb.group({
         name: [u.name || ''],
@@ -76,18 +105,17 @@ export class ProfileOverview implements OnInit, OnDestroy {
       if (theme) {
         this.settings.setTheme(theme);
       }
-      this.messageService.add({severity:'success', summary:'Sucesso', detail:'Configurações de sistema atualizadas com sucesso!'});
+      // Preferência local aplicada; não indicar persistência em backend.
     });
   }
 
   ngOnDestroy() {
     this.settingsSubscription.unsubscribe();
+    this.userSubscription.unsubscribe();
   }
 
   saveProfile() {
-    if (this.profileForm.valid) {
-      this.messageService.add({severity:'success', summary:'Sucesso', detail:'Perfil atualizado com sucesso!'});
-    }
+    this.messageService.add({severity:'info', summary:'Indisponível', detail:'A edição do perfil necessita de integração segura com o servidor.'});
   }
 
   savePassword() {
@@ -96,12 +124,8 @@ export class ProfileOverview implements OnInit, OnDestroy {
       this.messageService.add({severity:'error', summary:'Erro', detail:'As senhas não coincidem!'});
       return;
     }
-    this.messageService.add({severity:'success', summary:'Sucesso', detail:'Senha alterada com sucesso!'});
-    this.passwordForm.reset();
+    this.messageService.add({severity:'info', summary:'Indisponível', detail:'A atualização de senha ainda não possui fluxo autenticado de confirmação.'});
   }
 
-  onPhotoUpload(event: any) {
-    this.messageService.add({severity:'success', summary:'Sucesso', detail:'Foto de perfil atualizada!'});
-  }
 }
 
