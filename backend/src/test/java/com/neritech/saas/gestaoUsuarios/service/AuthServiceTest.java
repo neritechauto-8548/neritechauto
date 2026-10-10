@@ -101,8 +101,8 @@ class AuthServiceTest {
             assertThat(response.getAccessToken()).isEqualTo("access.token");
             assertThat(response.getRefreshToken()).isEqualTo("refresh.token");
             
-            verify(sessaoUsuarioRepository).save(any(SessaoUsuario.class));
-            verify(logAcessoRepository).save(any(LogAcesso.class));
+            verify(sessaoUsuarioRepository).saveAndFlush(any(SessaoUsuario.class));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
             verify(tentativaLoginRepository).deleteByEmailAndEmpresaId(anyString(), anyLong());
         }
 
@@ -117,27 +117,26 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.login(loginRequest))
                     .isInstanceOf(BadCredentialsException.class);
             
-            verify(tentativaLoginRepository).save(any(TentativaLogin.class));
-            verify(logAcessoRepository).save(any(LogAcesso.class));
+            verify(tentativaLoginRepository).saveAndFlush(any(TentativaLogin.class));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
         }
 
         @Test
-        @DisplayName("Deve bloquear usuário após múltiplas tentativas falhas")
+        @DisplayName("Deve limitar novas autenticações após cinco tentativas falhas em 15 minutos")
         void deveBloquearUsuarioAposMultiplasTentativas() {
-            // Arrange
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                    .thenThrow(new BadCredentialsException("Bad credentials"));
-            when(tentativaLoginRepository.countByEmailAndEmpresaIdAndSucessoFalseAndDataTentativaAfter(
-                    anyString(), anyLong(), any(LocalDateTime.class)))
-                    .thenReturn(5L); // Limite excedido
-            when(usuarioRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.of(usuario));
+            // A política atual limita temporariamente; não altera o usuário de forma permanente.
+            when(tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(
+                    eq(loginRequest.getEmail()), any(LocalDateTime.class)))
+                    .thenReturn(5L);
 
-            // Act & Assert
             assertThatThrownBy(() -> authService.login(loginRequest))
-                    .isInstanceOf(BadCredentialsException.class);
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Muitas tentativas de login");
 
-            verify(usuarioRepository).save(argThat(u -> u.getBloqueado() == true));
+            verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
+            verify(usuarioRepository, never()).save(any(Usuario.class));
         }
+
     }
 
     @Nested
@@ -163,7 +162,7 @@ class AuthServiceTest {
 
             // Assert
             assertThat(response.getAccessToken()).isEqualTo("new.access.token");
-            verify(logAcessoRepository).save(any(LogAcesso.class));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
         }
     }
 }
