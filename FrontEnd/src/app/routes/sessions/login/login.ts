@@ -46,7 +46,7 @@ export class Login {
   }
 
   loginForm = this.fb.nonNullable.group({
-    username: ['', [Validators.required]],
+    username: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
     rememberMe: [true],
   });
@@ -63,7 +63,10 @@ export class Login {
     return this.loginForm.get('rememberMe')!;
   }
 
-  constructor() {}
+  constructor() {
+    const remembered = this.storage.get('loginDefaults') as { username?: string };
+    if (remembered?.username) this.loginForm.patchValue({ username: remembered.username });
+  }
 
   login() {
     if (this.username.hasError('remote')) {
@@ -141,7 +144,9 @@ export class Login {
             this.messageService.add({
               severity: 'error',
               summary: 'Erro de Login',
-              detail: errorRes.error?.message || 'E-mail ou senha incorretos.',
+              detail: (errorRes.status === 0 || errorRes.status >= 500)
+                ? 'Não foi possível conectar ao servidor. Tente novamente em instantes.'
+                : 'Não foi possível entrar. Verifique seus dados e tente novamente.',
             });
           }
         },
