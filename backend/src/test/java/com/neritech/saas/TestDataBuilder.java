@@ -196,7 +196,7 @@ public class TestDataBuilder {
     }
 
     public static class PermissaoBuilder {
-        private Long id = 1L;
+        private Long id = null;
         private String chave = "USUARIO.READ";
         private String descricao = "Visualizar usuários";
         private String valor = "USUARIO_READ";
