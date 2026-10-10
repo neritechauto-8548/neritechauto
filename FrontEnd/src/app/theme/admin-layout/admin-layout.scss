@@ -168,3 +168,16 @@
     padding-top: var(--gutter);
   }
 }
+
+/* Tokens compartilhados do Application Shell — identidade NERITECH. */
+.matero-container-wrap{
+  --nt-primary:#2563eb;
+  --nt-text:#0f172a;
+  --nt-text-muted:#64748b;
+  --nt-border:#e2e8f0;
+  --nt-surface:#fff;
+  --nt-surface-subtle:#f8fafc;
+}
+.matero-page-content{padding:24px 32px 40px}
+@media(max-width:1024px){.matero-page-content{padding:20px 22px 32px}}
+@media(max-width:640px){.matero-page-content{padding:16px}}
