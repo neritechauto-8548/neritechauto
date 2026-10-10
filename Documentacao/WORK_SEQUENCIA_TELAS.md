@@ -12,12 +12,19 @@
 
 **Complexidade no sistema. Simplicidade para o usuário.** 
 
-- UX visual: inspiração Stripe, identidade própria NERITECH AUTO; operação: Shopmonkey + UltraCar; particularidades brasileiras: OnMotor.
+- **Stripe**: referência central para UX/UI premium, hierarquia, densidade informacional, navegação, formulários, tabelas, filtros, estados e responsividade; preservar identidade própria NERITECH AUTO, sem copiar a marca.
+- **Shopmonkey**: fluxo de operação da oficina, atendimento, orçamentos, inspeções, aprovações, OS e comunicação.
+- **UltraCar**: profundidade das funcionalidades para oficinas brasileiras, regras, cadastros, estoque, financeiro e processos operacionais.
+- **OnMotor**: particularidades do mercado automotivo brasileiro, processos e integrações pertinentes. Usar as referências como orientação de produto, não como licença para copiar interfaces ou implementar funcionalidades fora do escopo oficial.
 - Usar Angular e PrimeNG existentes no repositório, seguindo tokens e família **Tabler Icons** definidos na documentação.
 - Evitar telas, formulários e componentes duplicados. **Uma tela-base não é necessariamente uma rota:** cada menu, processo, permissão, ação ou jornada mantém sua rota e regra oficial quando exigida.
 - Não incorporar Gestão de Pátio à Oficina; continua um sistema independente (Kanban).
 - Não alterar a árvore oficial nem tratar consolidação de telas-base como mudança autorizada na arquitetura.
 - Não simular êxito de ações sem persistência. Modo de homologação sem backend deve estar marcado como demonstrativo e não contamina produção.
+- **Frontend e backend são uma entrega única por tela:** validar endpoints, DTOs, autenticação/autorização, permissões, multiempresa, validações, persistência, transações, tratamento de erro e contratos entre Angular e API. Fazer as correções necessárias no backend, não apenas na interface.
+- **Banco de dados:** usar nomes de tabelas, colunas, chaves e índices novos em **português**, preferindo `snake_case`, sem acentos ou espaços (ex.: `cliente`, `data_cadastro`, `empresa_id`). Manter consistência entre JPA/Hibernate, SQL, DTOs e migrações. Auditar nomes legados em inglês e corrigir quando tecnicamente viável, **sem renomear indiscriminadamente nem quebrar dados, referências, consultas, integrações ou APIs**.
+- **Flyway (migrações de banco):** criar migração **nova e versionada** quando houver mudança de esquema, incluindo renomeação segura de tabela/coluna, índices, FKs, constraints e eventuais migrações de dados. Não editar migrações já executadas, apagar dados, recriar tabelas em produção, desabilitar validações ou usar `ddl-auto=create/update` como substituto do Flyway. Se exigir operação de risco, documentar plano de migração/rollback e exigir aprovação antes de executar em banco de produção.
+- **Compilar e testar:** executar build real do frontend e compilação/testes do backend com as versões configuradas no repositório. Verificar migrações Flyway em banco de teste limpo e banco de teste previamente migrado; executar testes unitários/integrados relevantes e pipeline. Corrigir falhas, inclusive CI, antes de chamar a etapa de funcional/homologada; nunca afirmar sucesso sem evidência.
 - Validar build e testes reais antes de declarar homologação. Registrar commit e evidências; atualizar Notion quando homologado.
 - **Estes 38 itens são unidades de implementação/reutilização propostas**, não uma contagem de ScreenIds oficiais nem autorização para eliminar telas exigidas pela documentação.
 
@@ -69,15 +76,16 @@
 
 ## Critério de conclusão por tela
 
-1. Ler a especificação correspondente no Notion e verificar código/rotas/APIs reais na `feature/develop`.
-2. Reaproveitar AppShell e componentes globais; aplicar UX consistente, estados de carregamento/erro/vazio, acessibilidade, responsividade e permissões.
-3. Implementar operações verdadeiras. Caso backend indisponível, criar/usar somente preview de UX claramente rotulado.
-4. Executar build/testes e corrigir falhas relacionadas. Validar visualmente no navegador quando disponível; não declarar uma evidência não obtida.
-5. Fazer commit na `feature/develop`, registrar arquivos modificados, resultados e pendências, sincronizar a documentação oficial da tela no Notion.
+1. Ler a documentação Notion e inspecionar o estado real de frontend, backend, APIs, entidades, esquema do banco, Flyway e testes na `feature/develop`.
+2. Implementar **tela e backend funcional juntos**; ajustar modelos, endpoints, DTOs, permissões e validações. Preservar isolamento multiempresa e processos oficiais. Reutilizar componentes com UX Stripe/Shopmonkey/UltraCar/OnMotor segundo a responsabilidade de cada referência.
+3. Verificar nomes de tabelas e colunas em português; criar novas migrações Flyway seguras quando necessário e validar compatibilidade com dados e consultas existentes.
+4. Executar build Angular e compilação/testes Maven, testar API, integração, banco/Flyway, estados de erro e funcionamento real. Usar preview rotulado apenas para testes visuais quando backend não estiver disponível.
+5. Validar no navegador em desktop, tablet e celular, com navegação por teclado. Corrigir problemas encontrados; não alegar validação que não ocorreu.
+6. Fazer commit na `feature/develop`, registrar evidências de compilação, testes, migrações e funcionalidade, informar bloqueios e sincronizar documentação Notion. **Não avançar como '100% pronto' enquanto a integração ou os testes falharem.**
 
 ## Como pedir no ChatGPT Work
 
 Peça para ler **este arquivo** na `feature/develop` e iniciar pelo item 00 ou por uma tela numerada. A documentação Notion é a fonte de verdade para navegação e escopo, e este arquivo apenas define sequência e reuso de tela-base.
 
 **Prompt mínimo (após conectar GitHub e Notion ao Work):**
-> Desenvolva a próxima tela da NERITECH AUTO conforme `Documentacao/WORK_SEQUENCIA_TELAS.md` na branch `feature/develop`. Consulte o Notion oficial, preserve a arquitetura, aplique UI-MASTER-001, execute testes, faça commit e informe as evidências e pendências.
+> Desenvolva a próxima tela da NERITECH AUTO conforme `Documentacao/WORK_SEQUENCIA_TELAS.md`, na `feature/develop`. Consulte o Notion; siga UX Stripe e processos Shopmonkey, UltraCar e OnMotor. Implemente frontend e backend funcionais, padronize tabelas/colunas em português com Flyway seguro, compile e teste tudo, faça commit e informe as evidências. Preserve a arquitetura oficial.
