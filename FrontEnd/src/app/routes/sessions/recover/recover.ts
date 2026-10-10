@@ -47,6 +47,11 @@ export class Recover {
   }
 
   recover() {
+    if (this.isSubmitting) return;
+    if (this.recoverForm.invalid) {
+      this.recoverForm.markAllAsTouched();
+      return;
+    }
     this.isSubmitting = true;
     
     this.loginService.recoverPassword(this.email.value).subscribe({
