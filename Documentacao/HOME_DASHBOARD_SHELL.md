@@ -16,6 +16,20 @@
 - O preview permite validar navegação, hierarquia visual, responsividade e estados de frontend; não comprova contratos de backend, tenancy, permissões ou cálculos reais.
 - Dados demonstrativos nunca devem ser usados como fonte de produção.
 
+## Shell e navegação
+- O menu lateral exibe o branding oficial e mantém o link para `/home` sem recarregamento completo.
+- O controle da topbar para abrir/recolher aparece no menu recolhido ou em telas com menu sobreposto; a sidebar expandida mantém seu controle próprio.
+- O breadcrumb utiliza `Início` e caminho contextual na mesma linguagem tipográfica do sistema.
+- Labels da navegação são traduzidos usando o catálogo i18n; quando uma chave ainda não possui tradução, a interface exibe um nome legível no lugar de `menu.*`.
+- A busca global pesquisa os nomes traduzidos e resolve caminhos de submenu completos. Os resultados não alteram a arquitetura nem criam rotas.
+- O menu e o cabeçalho devem ser validados com navegação por teclado, estado ativo, recolhimento/expansão e largura mobile.
+
+## Autenticação e recuperação
+- A tela de login mantém composição em duas seções desktop, com painel ilustrado à esquerda e formulário à direita; no mobile prioriza o formulário.
+- Campos de login têm rótulos, validação de e-mail, erro de conexão distinto de credencial inválida e estado de envio.
+- Recuperação de senha usa feedback genérico que não revela se o endereço está cadastrado, valida o e-mail e bloqueia envios simultâneos.
+- Estas telas permanecem fora do Application Shell autenticado.
+
 ## Identidade visual
 
 - O Dashboard usa identidade própria NERITECH AUTO, com acabamento inspirado em produtos SaaS premium, sem copiar a identidade de outra marca.
@@ -38,12 +52,14 @@
 
 ## Critérios de aceite
 
-- [ ] O frontend abre e permite navegar em modo de homologação sem backend disponível.
+- [ ] Validar no navegador que o frontend abre e permite navegar em modo de homologação sem backend disponível.
+- [ ] Confirmar exibição da marca, controle de recolhimento/expansão e busca global em desktop e mobile.
+- [ ] Confirmar login e recuperação, inclusive erros de validação e de conexão.
 - [ ] O aviso de dados demonstrativos aparece somente com `uxPreview` habilitado.
 - [ ] Receita e despesas são visualmente distinguíveis e a legenda corresponde às cores do gráfico.
 - [ ] A navegação mantém estados ativos legíveis, expansão previsível, recolhimento, tooltips e foco visível.
 - [ ] Menu e rotas respeitam a arquitetura oficial.
-- [ ] Build Angular e pipeline aprovados antes de declarar homologação concluída.
+- [ ] Build Angular e pipeline completo aprovados para o commit final antes de declarar homologação concluída; sucesso do frontend isolado não comprova testes backend.
 - [ ] Homologação visual não é confundida com homologação funcional de backend.
 
 ## Comportamento das visões
