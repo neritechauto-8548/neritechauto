@@ -207,7 +207,7 @@ export class Cliente implements OnInit {
   }
 
   cadastrarCliente() {
-    if (!this.permissionsService.getPermission('CLIENTE_CRIAR')) {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_CRIAR')) {
       this.messageService.add({ 
         severity: 'warn', 
         summary: 'Atenção', 
@@ -219,7 +219,7 @@ export class Cliente implements OnInit {
   }
 
   navigateToEdit(row: { uuid?: string | number }) {
-    if (!this.permissionsService.getPermission('CLIENTE_EDITAR')) {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_EDITAR')) {
       this.messageService.add({ 
         severity: 'warn', 
         summary: 'Atenção', 
@@ -234,7 +234,7 @@ export class Cliente implements OnInit {
   }
 
   navigateToAddVeiculo(row: { id?: string | number; uuid?: string | number; nome?: string }) {
-    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('VEICULO_CRIAR')) {
       this.messageService.add({ 
         severity: 'warn', 
         summary: 'Atenção', 

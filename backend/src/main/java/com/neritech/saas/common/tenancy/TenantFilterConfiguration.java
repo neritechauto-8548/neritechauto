@@ -62,7 +62,7 @@ public class TenantFilterConfiguration implements WebMvcConfigurer {
     public void addArgumentResolvers(@NonNull List<HandlerMethodArgumentResolver> argumentResolvers) {
         log.info("=== CONFIGURING PAGEABLE RESOLVER ===");
         PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
-        resolver.setOneIndexedParameters(true); // PÃ¡ginas comeÃ§am em 1 em vez de 0
+        resolver.setOneIndexedParameters(false); // API /v1/clientes usa page=0 para a primeira página
         resolver.setMaxPageSize(100); // Tamanho mÃ¡ximo de pÃ¡gina
         argumentResolvers.add(resolver);
         log.info("=== PAGEABLE RESOLVER CONFIGURED SUCCESSFULLY ===");

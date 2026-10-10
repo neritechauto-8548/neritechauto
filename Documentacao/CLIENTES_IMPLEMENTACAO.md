@@ -13,7 +13,7 @@ A rota base `/cliente` redireciona para `/cliente/listar`. Não criar rota/tela 
 ## Lista de clientes
 - Pesquisa por nome, razão social, nome fantasia, CPF/CNPJ e e-mail quando permitido.
 - Filtros existentes na UI: tipo de cliente e status.
-- Paginação server-side no ambiente conectado; paginação local simulada no modo de homologação.
+- Paginação server-side no ambiente conectado, com índice inicial `page=0` no backend e numeração visual começando em 1; paginação local simulada no modo de homologação.
 - Ações de visualizar/editar, agendamento, veículos e OS continuam encaminhando para os módulos proprietários.
 - Estados de carregamento, lista vazia e nenhum resultado precisam ser diferenciados.
 - A tabela exibe cliente, documento, contato, status e menu de ações.
@@ -47,6 +47,7 @@ A rota base `/cliente` redireciona para `/cliente/listar`. Não criar rota/tela 
 O modo é controlado por `environment.uxPreview` e deve estar habilitado somente no ambiente de desenvolvimento/homologação. A lista e o formulário exibem aviso explícito de dados demonstrativos.
 - Busca, tipo, status e paginação são simulados sobre dados locais.
 - Criar, editar, excluir cliente e manter endereços/contatos alteram apenas a memória do serviço durante a sessão.
+- Em preview, ações de navegação não devem depender de permissões carregadas do backend; no ambiente real, a validação de permissões permanece obrigatória.
 - A atualização dos dados de demonstração não é persistida após recarregar a aplicação.
 - O modo de homologação não deve ser confundido com persistência real; produção deve usar a API.
 
