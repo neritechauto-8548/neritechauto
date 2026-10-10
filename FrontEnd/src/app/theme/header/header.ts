@@ -12,6 +12,7 @@ import { NotificationButton } from '../widgets/notification-button';
 import { UserButton } from '../widgets/user-button';
 import { Menu, MenuChildrenItem, MenuService, SettingsService } from '@core';
 import { FormsModule } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-header',
@@ -40,6 +41,7 @@ export class Header {
   public readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
   private readonly menu = inject(MenuService);
+  private readonly translate = inject(TranslateService);
   private readonly activatedRoute = inject(ActivatedRoute);
 
   pageTitle = 'Dashboard';
@@ -47,18 +49,37 @@ export class Header {
   searchResults: Array<{ name: string; route: string }> = [];
   private menuItems: Menu[] = [];
 
+  /** Busca global com nomes traduzidos e rotas completas de módulos e submódulos. */
   onSearch(term: string): void {
     this.searchTerm = term;
-    const normalized = term.trim().toLowerCase();
+    const normalized = term.trim().toLocaleLowerCase('pt-BR');
     if (!normalized) { this.searchResults = []; return; }
+
     const items: Array<{ name: string; route: string }> = [];
-    const walk = (list: Array<Menu | MenuChildrenItem>, parents: string[] = []) => {
+    const walk = (
+      list: Array<Menu | MenuChildrenItem>,
+      parentRoutes: string[] = [],
+      parentLabels: string[] = []
+    ) => {
       list.forEach(item => {
-        const name = String(item.name ?? '').replace(/^menu\./, '').replace(/[._]/g, ' ');
-        if (item.route && (item.type === 'link' || item.type === 'extLink' || item.type === 'extTabLink') && name.toLowerCase().includes(normalized)) {
-          items.push({ name: [...parents, name].join(' / '), route: this.menu.buildRoute([item.route]) });
+        const key = String(item.name ?? '');
+        const translated = this.translate.instant(key);
+        const name = translated && translated !== key
+          ? translated
+          : (key.replace(/^menu\./, '').split('.').pop() || key).replace(/[_-]/g, ' ');
+        const routes = item.route ? [...parentRoutes, item.route] : parentRoutes;
+        if (item.route && (item.type === 'link' || item.type === 'extLink' || item.type === 'extTabLink')) {
+          const fullLabel = [...parentLabels, name].join(' / ');
+          if (fullLabel.toLocaleLowerCase('pt-BR').includes(normalized)) {
+            const route = item.type === 'link'
+              ? this.menu.buildRoute(routes)
+              : item.route;
+            if (!items.some(existing => existing.route === route)) {
+              items.push({ name: fullLabel, route });
+            }
+          }
         }
-        if (item.children?.length) walk(item.children, [...parents, name]);
+        if (item.children?.length) walk(item.children, routes, [...parentLabels, name]);
       });
     };
     walk(this.menuItems);
