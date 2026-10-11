@@ -87,6 +87,8 @@ export class AdminLayout implements OnDestroy {
 
   private hoverTimer: any;
   private isHovering = false;
+  private collapsedStateTimer: ReturnType<typeof setTimeout> | undefined;
+  private collapsedStatePending = false;
 
   constructor() {
     this.settings.notify.subscribe(options => { Object.assign(this.options, options); });
@@ -110,6 +112,7 @@ export class AdminLayout implements OnDestroy {
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
+    clearTimeout(this.collapsedStateTimer);
   }
 
   toggleCollapsed() {
@@ -151,11 +154,24 @@ export class AdminLayout implements OnDestroy {
     }
   }
 
-  // TODO: Trigger when transition end
-  resetCollapsedState(timer = 400) {
-    setTimeout(() => {
-      this.settings.setOptions(this.options);
-    }, timer);
+  resetCollapsedState(fallbackMs = 350) {
+    clearTimeout(this.collapsedStateTimer);
+    this.collapsedStatePending = true;
+    this.collapsedStateTimer = setTimeout(() => this.persistCollapsedState(), fallbackMs);
+  }
+
+  onLayoutTransitionEnd(event: TransitionEvent) {
+    if (this.collapsedStatePending && event.target === event.currentTarget && event.propertyName === 'width') {
+      this.persistCollapsedState();
+    }
+  }
+
+  private persistCollapsedState() {
+    if (!this.collapsedStatePending) return;
+
+    this.collapsedStatePending = false;
+    clearTimeout(this.collapsedStateTimer);
+    this.settings.setOptions(this.options);
   }
 
   onSidenavClosedStart() {
