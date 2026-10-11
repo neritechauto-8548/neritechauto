@@ -15,5 +15,8 @@ public interface NotificacaoSistemaRepository extends JpaRepository<NotificacaoS
             Pageable pageable);
 
     Page<NotificacaoSistema> findByEmpresaId(Long empresaId, Pageable pageable);
+    Page<NotificacaoSistema> findByEmpresaIdAndUsuarioDestinatarioId(Long empresaId, Long usuarioDestinatarioId, Pageable pageable);
+    java.util.Optional<NotificacaoSistema> findByIdAndEmpresaId(Long id, Long empresaId);
+    java.util.Optional<NotificacaoSistema> findByIdAndEmpresaIdAndUsuarioDestinatarioId(Long id, Long empresaId, Long usuarioDestinatarioId);
 }
 
