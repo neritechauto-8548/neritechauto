@@ -32,7 +32,7 @@
           <div class="menu-heading-label">{{ menuLabel(menuItem.name) }}</div>
         }
 
-        @if (menuItem.type === 'link') {
+        @if (menuItem.type === 'link' && !menuItem.disabled) {
           <a
             class="menu-heading"
             [routerLink]="buildRoute(parentRoute.concat([menuItem.route]))"
@@ -50,7 +50,7 @@
           </a>
         }
 
-        @if (menuItem.type === 'extLink') {
+        @if (menuItem.type === 'extLink' && !menuItem.disabled && isSafeExternalUrl(menuItem.route)) {
           <a
             class="menu-heading"
             [href]="menuItem.route"
@@ -68,7 +68,7 @@
           </a>
         }
 
-        @if (menuItem.type === 'extTabLink') {
+        @if (menuItem.type === 'extTabLink' && !menuItem.disabled && isSafeExternalUrl(menuItem.route)) {
           <a
             class="menu-heading"
             [href]="menuItem.route"
@@ -86,6 +86,25 @@
               [ngTemplateOutletContext]="{ item: menuItem, level: level }"
             />
           </a>
+        }
+
+        @if (
+          (menuItem.type === 'link' && menuItem.disabled) ||
+          ((menuItem.type === 'extLink' || menuItem.type === 'extTabLink') &&
+            (menuItem.disabled || !isSafeExternalUrl(menuItem.route)))
+        ) {
+          <span
+            class="menu-heading nt-menu-disabled"
+            aria-disabled="true"
+            [attr.aria-label]="menuLabel(menuItem.name) + ', indisponível'"
+            [title]="menuItem.type === 'link' ? 'Tela ainda não disponível na prévia UX' : 'Integração externa não configurada'"
+          >
+            <ng-container
+              [ngTemplateOutlet]="linkTypeTpl"
+              [ngTemplateOutletContext]="{ item: menuItem, level: level }"
+            />
+            <span class="nt-visually-hidden">Indisponível</span>
+          </span>
         }
 
         @if (menuItem.type === 'sub') {
@@ -152,7 +171,7 @@
     </svg>
   }
 
-  @if (item.type === 'extLink' || item.type === 'extTabLink') {
+  @if ((item.type === 'extLink' || item.type === 'extTabLink') && !item.disabled && isSafeExternalUrl(item.route)) {
     <svg class="menu-caret" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M7 17 17 7M9 7h8v8"></path>
     </svg>
