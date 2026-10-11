@@ -40,3 +40,11 @@ A sidebar abre automaticamente o ancestral da rota ativa, inclusive quando o seg
 - Os testes de regressão cobrem filtragem por destinatário/empresa, persistência de leitura, rejeição de outras identidades, modo preview e estados de erro. O pipeline executa compilação Angular, testes do shell no Chrome Headless e testes Maven.
 
 **Gate:** após o pipeline ficar verde, faltará homologação visual real em 320/375/768/1024/1440 px, checagem de contraste, leitor de tela, navegação completa com teclado, trocas de sessão/tenant e ensaio integrado com autenticação real. Nenhuma dessas verificações pode ser marcada como concluída apenas pelo CI.
+
+## Navegação funcional na prévia UX — rotas auditadas (2026-10-11)
+
+A árvore do menu permanece idêntica à arquitetura canônica; a prévia UX **não inventa páginas**. Cada opção com implementação Angular confirmada em `app.routes.ts` e em suas rotas lazy aponta para a URL real. Exemplos: Agenda `/agendamento/calendario`, Orçamentos `/orcamento`, Ordens de Serviço `/os`, Serviços `/produtos-servicos/servicos`, Veículos `/veiculo`, Vendas `/pdv`, Estoque `/produtos-servicos/estoque`, Inventário `/configuracoes/inventario`, NF-e `/fiscal/nfe` e Inutilização `/fiscal/nfe/inutilizar-numeracao`.
+
+Itens oficiais sem rota operacional no frontend atual continuam visíveis **somente como indisponíveis**, com `aria-disabled`, sem `href` ou `routerLink`, e são excluídos da busca global. Isso inclui a Gestão de Pátio enquanto a URL externa não estiver configurada; links externos só funcionam com HTTP(S) válido. Essa indicação diz respeito à disponibilidade de navegação, **não** à homologação funcional dos módulos correspondentes nem à integração real com APIs.
+
+Os testes `theme/sidemenu/preview-menu.spec.ts`, `sidemenu.spec.ts` e `header.spec.ts` cobrem o mapeamento, os destinos externos inválidos e a busca. Qualquer nova tela habilitada na prévia deve ser confrontada com uma rota Angular realmente registrada antes de liberar o clique. Continua pendente inspeção manual com leitor de tela e em todas as larguras do gate.
