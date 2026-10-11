@@ -13,6 +13,7 @@ on:
       - "FrontEnd/src/app/routes/sessions/login/**"
       - "FrontEnd/src/app/routes/sessions/recover/**"
       - "FrontEnd/src/app/theme/**"
+      - "FrontEnd/src/app/core/services/notificacao.service.ts"
       - "FrontEnd/karma.conf.js"
       - "FrontEnd/src/app/shared/components/**"
       - "backend/src/main/java/com/neritech/saas/veiculo/**"
@@ -29,6 +30,7 @@ on:
       - "FrontEnd/src/app/routes/veiculo/**"
       - "FrontEnd/src/app/routes/os/**"
       - "backend/src/main/java/com/neritech/saas/cliente/**"
+      - "backend/src/main/java/com/neritech/saas/comunicacao/**"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantInterceptor.java"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
       - "backend/src/main/resources/application.yml"
@@ -39,6 +41,7 @@ on:
       - "FrontEnd/src/app/routes/sessions/login/**"
       - "FrontEnd/src/app/routes/sessions/recover/**"
       - "FrontEnd/src/app/theme/**"
+      - "FrontEnd/src/app/core/services/notificacao.service.ts"
       - "FrontEnd/karma.conf.js"
       - "FrontEnd/src/app/shared/components/**"
       - "backend/src/main/java/com/neritech/saas/veiculo/**"
@@ -54,6 +57,7 @@ on:
       - "FrontEnd/src/app/routes/veiculo/**"
       - "FrontEnd/src/app/routes/os/**"
       - "backend/src/main/java/com/neritech/saas/cliente/**"
+      - "backend/src/main/java/com/neritech/saas/comunicacao/**"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantInterceptor.java"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
       - "backend/src/main/resources/application.yml"
@@ -75,7 +79,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - name: Testes de regressão do Application Shell
-        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts
 
   backend:
     runs-on: ubuntu-latest
