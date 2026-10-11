@@ -28,3 +28,15 @@ A pesquisa do shell navega apenas pelos itens visíveis no menu disponível à s
 A sidebar abre automaticamente o ancestral da rota ativa, inclusive quando o segmento de um grupo é vazio. Os submenus indicam `aria-expanded`, descendentes recolhidos ficam `inert` para Tab e os links/botões têm nome acessível mesmo com ícones isolados.
 
 **Critérios de aceite pendentes de QA manual:** teclado e leitor de tela; rotas profundas; acesso sem backend em UX Preview; 320/375/768/1024/1440 px; alternância de tema; contraste e zoom. Build e testes unitários, mesmo verdes, não autorizam declarar a Etapa 00 homologada sem essas verificações no navegador.
+
+## Notificações globais: contrato funcional e isolamento
+
+- O sino consulta `GET /v1/comunicacao/notificacoes/me` usando o usuário autenticado, sem aceitar um `usuarioId` escolhido pelo navegador. O servidor recupera a empresa pelo contexto de autenticação e exige correspondência do destinatário e da empresa no repositório.
+- Ao marcar leitura, usar `PATCH /v1/comunicacao/notificacoes/{id}/ler`; o servidor só altera notificações do destinatário atual, persiste `lida` e `dataLeitura` e mantém a operação idempotente. A interface reduz o contador apenas após confirmação de `lida: true` na resposta.
+- Endpoints administrativos legados (`/usuario/{usuarioId}`, `/{id}`, criação, atualização e exclusão) exigem papel ADMIN, com verificação adicional do escopo de empresa no service. O menu operacional não deve chamar esses endpoints.
+- O painel apresenta **carregando / sem dados / erro de rede / usuário não autenticado** como situações distintas; falha de API nunca pode aparecer como “nenhuma notificação”.
+- No modo `uxPreview`, o painel exibe um aviso explícito de prévia e não chama a API nem registra ações falsas. Em produção, a atualização de notificações ocorre por polling com uma única assinatura por usuário ativo.
+- A lista usa controles do tipo button navegáveis por Tab/Enter/Espaço, além de feedback acessível dos erros. A antiga ação “Ver todas as notificações” foi retirada do menu por apontar para uma rota que não existe em `app.routes.ts` ou no módulo de Configurações.
+- Os testes de regressão cobrem filtragem por destinatário/empresa, persistência de leitura, rejeição de outras identidades, modo preview e estados de erro. O pipeline executa compilação Angular, testes do shell no Chrome Headless e testes Maven.
+
+**Gate:** após o pipeline ficar verde, faltará homologação visual real em 320/375/768/1024/1440 px, checagem de contraste, leitor de tela, navegação completa com teclado, trocas de sessão/tenant e ensaio integrado com autenticação real. Nenhuma dessas verificações pode ser marcada como concluída apenas pelo CI.
