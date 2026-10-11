@@ -1,0 +1,8 @@
+# Configuracao de projeto: prioriza menor uso de tokens/creditos.
+# Carregada pelo Codex CLI/IDE em projetos confiaveis; argumentos CLI prevalecem.
+# Para refatoracoes complexas, seguranca ou migracoes, altere o modelo/effort por sessao.
+model = "gpt-5.6-luna"
+model_reasoning_effort = "low"
+model_verbosity = "low"
+model_reasoning_summary = "concise"
+project_doc_max_bytes = 6144
