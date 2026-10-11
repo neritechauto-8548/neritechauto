@@ -1,3 +1,4 @@
+<a class="nt-skip-link" href="#nt-main-content">Ir para o conteúdo principal</a>
 <div
   class="matero-container-wrap"
   [class.matero-sidenav-collapsed]="options.sidenavCollapsed && !isOver && options.navPos !== 'top'"
@@ -60,7 +61,7 @@
 
       <app-breadcrumb />
 
-      <main class="matero-page-content">
+      <main id="nt-main-content" class="matero-page-content" tabindex="-1" aria-label="Conteúdo principal">
         <router-outlet />
       </main>
     </mat-sidenav-content>
