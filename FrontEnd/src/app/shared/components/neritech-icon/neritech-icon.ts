@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 export type NeriTechIconName =
   | 'home' | 'users' | 'settings' | 'search' | 'alert-circle'
   | 'check-circle' | 'info-circle' | 'wifi-off' | 'file-search'
-  | 'lock' | 'loader';
+  | 'lock' | 'loader' | 'eye' | 'eye-off';
 
 @Component({
   selector: 'nt-icon',
@@ -51,6 +51,12 @@ export type NeriTechIconName =
         }
         @case ('loader') {
           <circle cx="12" cy="12" r="9" opacity=".22"/><path d="M12 3a9 9 0 0 1 9 9"/>
+        }
+        @case ('eye') {
+          <path d="M2 12s3.6-6 10-6s10 6 10 6s-3.6 6-10 6s-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/>
+        }
+        @case ('eye-off') {
+          <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.8 10.8 0 0 0 3.7-.7"/>
         }
       }
     </svg>

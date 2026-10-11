@@ -9,9 +9,10 @@ import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
 import { MtxButtonModule } from '@ng-matero/extensions/button';
 import { TranslateModule } from '@ngx-translate/core';
-import { finalize, tap } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '@core/authentication';
+import { NeriTechIcon } from '@shared/components/neritech-icon/neritech-icon';
 import { LocalStorageService } from '@shared/services/storage.service';
 
 import { CommonModule } from '@angular/common';
@@ -29,6 +30,7 @@ import { ToastModule } from 'primeng/toast';
     RouterLink,
     TranslateModule,
     ToastModule,
+    NeriTechIcon,
   ],
 })
 export class Login {
@@ -69,6 +71,8 @@ export class Login {
   }
 
   login() {
+    if (this.isSubmitting) return;
+
     if (this.username.hasError('remote')) {
       this.username.setErrors(null);
       this.username.updateValueAndValidity({ emitEvent: false });
@@ -88,7 +92,6 @@ export class Login {
     this.auth
       .login(this.username.value, this.password.value, this.rememberMe.value)
       .pipe(
-        tap(() => {}),
         finalize(() => this.isSubmitting = false)
       )
       .subscribe({

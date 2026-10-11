@@ -12,11 +12,9 @@ export class LoginService {
   protected readonly http = inject(HttpClient);
 
   login(username: string, password: string, rememberMe = false) {
-    const tenantId = localStorage.getItem('tenantId') || '1';
     return this.http.post<Token>(
       '/auth/login',
-      { email: username, senha: password },
-      { headers: { 'X-Tenant-Id': tenantId } }
+      { email: username, senha: password }
     ).pipe(
       map((response: any) => {
         // Converter camelCase do backend para snake_case esperado pelo frontend
