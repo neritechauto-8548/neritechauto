@@ -11,16 +11,23 @@
       </div>
 
       <div class="home-controls">
-        <div class="period-control" aria-label="Período atual">
-          <span class="period-dot" aria-hidden="true"></span>
-          <span>{{ mesAnoAtualLabel }}</span>
-        </div>
+        <label class="period-control" for="dashboard-period">
+          <nt-icon name="calendar" [size]="16" />
+          <span class="sr-only">Período dos indicadores</span>
+          <select id="dashboard-period" [(ngModel)]="selectedPeriod" (ngModelChange)="carregarDados()" [disabled]="loading">
+            @for (period of periodOptions; track period.value) { <option [value]="period.value">{{ period.label }}</option> }
+          </select>
+        </label>
         <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
           @for (option of viewOptions; track option.value) {
             <button type="button"
               role="tab"
+              [attr.id]="'dashboard-view-' + $index"
+              aria-controls="dashboard-view-panel"
               [attr.aria-selected]="selectedView === option.value"
+              [attr.tabindex]="selectedView === option.value ? 0 : -1"
               [class.active]="selectedView === option.value"
+              (keydown)="onViewTabKeydown($event, $index)"
               (click)="selecionarVisao(option.value)">
               {{ option.label }}
             </button>
@@ -36,28 +43,34 @@
       </section>
     } @else if (error) {
       <section class="state-card">
-        <span class="state-icon">!</span>
-        <div><strong>Não conseguimos atualizar sua visão.</strong><p>Os dados da oficina não puderam ser carregados agora.</p></div>
+        <span class="state-icon"><nt-icon name="alert-circle" [size]="18" /></span>
+        <div><strong>Não conseguimos atualizar sua visão.</strong><p>{{ errorMessage }}</p></div>
         <button type="button" class="secondary-button" (click)="carregarDados()">Tentar novamente</button>
       </section>
     } @else if (!hasData) {
       <section class="empty-state">
-        <span class="empty-mark">+</span>
+        <span class="empty-mark"><nt-icon name="plus" [size]="18" /></span>
         <h2>Comece pela operação.</h2>
         <p>Quando clientes, veículos e ordens entrarem no sistema, o Home passa a contar a história da sua oficina automaticamente.</p>
         <button type="button" class="primary-button" (click)="navegarPara('/cliente/cadastro')">Cadastrar primeiro cliente</button>
       </section>
-    } @else if (selectedView === 'padrao') {
+    } @else {
+      <div id="dashboard-view-panel" role="tabpanel" [attr.aria-labelledby]="'dashboard-view-' + selectedViewIndex">
+      @if (selectedView === 'padrao') {
       <section class="command-grid">
         <article class="hero-metric">
           <div class="metric-top">
-            <span>Faturamento no período</span>
-            <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')">↗</button>
+            <span>Faturamento · {{ periodoSelecionadoLabel }}</span>
+            <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')"><nt-icon name="arrow-up-right" [size]="16" /></button>
           </div>
           <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
           <div class="hero-footer">
-            <span class="trend" [class.positive]="variacaoFaturamentoPercentual >= 0" [class.negative]="variacaoFaturamentoPercentual < 0">{{ variacaoFaturamentoPercentual >= 0 ? '↑' : '↓' }} {{ variacaoFaturamentoLabel }}</span>
-            <span>vs. mês anterior</span>
+            @if (variacaoFaturamentoPercentual !== null) {
+              <span class="trend" [class.positive]="variacaoFaturamentoPercentual >= 0" [class.negative]="variacaoFaturamentoPercentual < 0">
+                <nt-icon [name]="variacaoFaturamentoPercentual >= 0 ? 'trend-up' : 'trend-down'" [size]="14" /> {{ variacaoFaturamentoLabel }}
+              </span>
+              <span>vs. período anterior</span>
+            } @else { <span>Sem base comparativa para {{ periodoSelecionadoLabel.toLowerCase() }}</span> }
           </div>
           <div class="mini-bars" aria-hidden="true">
             @for (value of data?.historicoFaturamento ?? []; track $index) {
@@ -67,24 +80,24 @@
         </article>
 
         <button type="button" class="signal-card" (click)="navegarPara('/os')">
-          <div class="signal-label"><span class="signal-dot amber"></span> Em atendimento</div>
+          <div class="signal-label"><span class="signal-dot amber"></span> OS ativas</div>
           <strong>{{ data?.osEmAndamento ?? 0 }}</strong>
-          <p>OS em andamento agora</p>
-          <span class="card-link">Ver operação <b>→</b></span>
+          <p>ordens não finalizadas ou canceladas</p>
+          <span class="card-link">Ver operação <nt-icon name="arrow-up-right" [size]="14" /></span>
         </button>
 
         <button type="button" class="signal-card" (click)="navegarPara('/os')">
           <div class="signal-label"><span class="signal-dot"></span> OS concluídas</div>
           <strong>{{ data?.fechadosMes ?? 0 }}</strong>
-          <p>ordens finalizadas no mês</p>
-          <span class="card-link">Ver ordens <b>→</b></span>
+          <p>ordens finalizadas no período selecionado</p>
+          <span class="card-link">Ver ordens <nt-icon name="arrow-up-right" [size]="14" /></span>
         </button>
 
         <button type="button" class="signal-card attention" (click)="navegarPara('/financeiro')">
           <div class="signal-label"><span class="signal-dot red"></span> Atenção</div>
           <strong>{{ formatCurrency(data?.valoresVencidos) }}</strong>
           <p>em contas vencidas</p>
-          <span class="card-link">Resolver pendências <b>→</b></span>
+          <span class="card-link">Resolver pendências <nt-icon name="arrow-up-right" [size]="14" /></span>
         </button>
       </section>
 
@@ -94,7 +107,7 @@
             <div>
               <span class="eyebrow">Performance</span>
               <h2>Receita acompanhando a operação</h2>
-              <p>Faturamento e despesas nos últimos seis meses.</p>
+              <p>Faturamento e despesas por mês · {{ periodoSelecionadoLabel.toLowerCase() }}.</p>
             </div>
             <div class="legend"><span><i></i> Receita</span><span><i class="muted"></i> Despesas</span></div>
           </div>
@@ -116,25 +129,25 @@
           </div>
 
           <button class="health-row" type="button" (click)="navegarPara('/agendamento')">
-            <span class="health-icon calendar">◷</span>
+            <span class="health-icon calendar"><nt-icon name="calendar" [size]="15" /></span>
             <span><b>Entradas</b><small>veículos registrados no período</small></span>
             <strong>{{ data?.entradasVeiculosMes ?? 0 }}</strong>
           </button>
           <button class="health-row" type="button" (click)="navegarPara('/os')">
-            <span class="health-icon">✓</span>
+            <span class="health-icon"><nt-icon name="check-circle" [size]="15" /></span>
             <span><b>Saídas</b><small>veículos concluídos</small></span>
             <strong>{{ data?.saidasVeiculosMes ?? 0 }}</strong>
           </button>
           <button class="health-row" type="button" (click)="navegarPara('/os')">
-            <span class="health-icon">R$</span>
+            <span class="health-icon"><nt-icon name="currency-dollar" [size]="15" /></span>
             <span><b>Ticket médio</b><small>por ordem de serviço</small></span>
             <strong>{{ formatCurrency(data?.ticketMedio) }}</strong>
           </button>
 
           <div class="health-divider"></div>
-          <div class="health-summary">
+            <div class="health-summary">
             <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
-            <div><span>OS autorizadas no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
+            <div><span>OS autorizadas no período</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
           </div>
         </aside>
       </section>
@@ -143,25 +156,25 @@
         <article class="surface insight">
           <div class="surface-header compact">
             <div><span class="eyebrow">Inteligência</span><h2>O que merece sua atenção</h2></div>
-            <button type="button" class="text-button" (click)="navegarPara('/os')">Abrir operação →</button>
+            <button type="button" class="text-button" (click)="navegarPara('/os')">Abrir operação <nt-icon name="arrow-up-right" [size]="13" /></button>
           </div>
           <div class="insight-list">
             <button type="button" (click)="navegarPara('/os')">
-              <span class="insight-number">01</span><span><b>{{ data?.veiculosEmAtraso ?? 0 }} veículos em atraso</b><small>Há veículos aguardando conclusão além do prazo previsto.</small></span><span>→</span>
+              <span class="insight-number">01</span><span><b>{{ data?.veiculosEmAtraso ?? 0 }} veículos em atraso</b><small>Há veículos aguardando conclusão além do prazo previsto.</small></span><nt-icon name="arrow-up-right" [size]="15" />
             </button>
             <button type="button" (click)="navegarPara('/financeiro')">
-              <span class="insight-number">02</span><span><b>{{ formatCurrency(data?.contasReceber) }} para receber</b><small>Acompanhe sua carteira e reduza o tempo de recebimento.</small></span><span>→</span>
+              <span class="insight-number">02</span><span><b>{{ formatCurrency(data?.contasReceber) }} para receber</b><small>Acompanhe sua carteira e reduza o tempo de recebimento.</small></span><nt-icon name="arrow-up-right" [size]="15" />
             </button>
             <button type="button" (click)="navegarPara('/cliente')">
-              <span class="insight-number">03</span><span><b>{{ data?.totalClientes ?? 0 }} clientes ativos</b><small>Sua base atual de relacionamento.</small></span><span>→</span>
+              <span class="insight-number">03</span><span><b>{{ data?.totalClientes ?? 0 }} clientes ativos</b><small>Sua base atual de relacionamento.</small></span><nt-icon name="arrow-up-right" [size]="15" />
             </button>
           </div>
         </article>
 
         <article class="surface finance-summary">
           <div class="surface-header compact">
-            <div><span class="eyebrow">Financeiro</span><h2>Posição do mês</h2></div>
-            <button type="button" class="text-button" (click)="navegarPara('/financeiro')">Ver financeiro →</button>
+            <div><span class="eyebrow">Financeiro</span><h2>Posição do período</h2></div>
+            <button type="button" class="text-button" (click)="navegarPara('/financeiro')">Ver financeiro <nt-icon name="arrow-up-right" [size]="13" /></button>
           </div>
           <div class="finance-main">
             <span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong>
@@ -181,13 +194,13 @@
         <p>Indicadores para acompanhar resultado, equipe e relacionamento com clientes.</p>
       </section>
       <section class="view-dashboard-grid">
-        <article class="view-stat-card stat-blue"><span>Faturamento no mês</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Receita registrada no período</small></article>
-        <article class="view-stat-card stat-green"><span>Resultado do mês</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Receita menos despesas</small></article>
-        <article class="view-stat-card stat-amber"><span>OS em andamento</span><strong>{{ data?.osEmAndamento ?? 0 }}</strong><small>Ordens em execução</small></article>
+        <article class="view-stat-card stat-blue"><span>Faturamento · {{ periodoSelecionadoLabel }}</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>{{ comparacaoPercentual(data?.faturamentoMes, data?.faturamentoPeriodoAnterior) }} vs. período anterior</small></article>
+        <article class="view-stat-card stat-green"><span>Resultado · {{ periodoSelecionadoLabel }}</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>{{ comparacaoPercentual(data?.lucroMes, data?.lucroPeriodoAnterior) }} vs. período anterior</small></article>
+        <article class="view-stat-card stat-amber"><span>OS ativas</span><strong>{{ data?.osEmAndamento ?? 0 }}</strong><small>Ordens não finalizadas ou canceladas</small></article>
         <article class="view-stat-card stat-violet"><span>Clientes cadastrados</span><strong>{{ data?.totalClientes ?? 0 }}</strong><small>Base de relacionamento</small></article>
       </section>
       <section class="surface view-chart-card">
-        <div class="surface-header"><div><span class="eyebrow">Evolução</span><h2>Receita e despesas</h2><p>Comparativo dos últimos meses disponíveis.</p></div></div>
+        <div class="surface-header"><div><span class="eyebrow">Evolução</span><h2>Receita e despesas</h2><p>Série mensal · {{ periodoSelecionadoLabel.toLowerCase() }}.</p></div></div>
         @if (chartOptions) {
           <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
             [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
@@ -199,16 +212,30 @@
       <section class="view-section-heading">
         <span class="eyebrow">Painel financeiro</span>
         <h2>Receita, resultado e compromissos</h2>
-        <p>Acompanhe os principais números financeiros do período demonstrado.</p>
+        <p>Indicadores reais para {{ periodoSelecionadoLabel.toLowerCase() }} e comparação com período anterior equivalente.</p>
       </section>
       <section class="view-dashboard-grid">
-        <article class="view-stat-card stat-blue"><span>Faturamento</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>Receita no mês</small></article>
-        <article class="view-stat-card stat-amber"><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong><small>Custos e despesas registrados</small></article>
-        <article class="view-stat-card stat-green"><span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>Faturamento menos despesas</small></article>
+        <article class="view-stat-card stat-blue"><span>Faturamento</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>{{ comparacaoPercentual(data?.faturamentoMes, data?.faturamentoPeriodoAnterior) }} vs. anterior</small></article>
+        <article class="view-stat-card stat-amber"><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong><small>{{ comparacaoPercentual(data?.despesasMes, data?.despesasPeriodoAnterior) }} vs. anterior</small></article>
+        <article class="view-stat-card stat-green"><span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong><small>{{ comparacaoPercentual(data?.lucroMes, data?.lucroPeriodoAnterior) }} vs. anterior</small></article>
         <article class="view-stat-card stat-red"><span>Valores vencidos</span><strong>{{ formatCurrency(data?.valoresVencidos) }}</strong><small>Contas vencidas a acompanhar</small></article>
       </section>
       <section class="surface view-chart-card">
-        <div class="surface-header"><div><span class="eyebrow">Fluxo financeiro</span><h2>Receita e despesas por mês</h2><p>Use os valores como visão de acompanhamento, não como conciliação contábil.</p></div></div>
+        <div class="surface-header"><div><span class="eyebrow">Comparação</span><h2>Resultado financeiro por período</h2><p>Período atual e intervalo imediatamente anterior, com a mesma duração.</p></div></div>
+        <div class="dashboard-table-wrap">
+          <table class="dashboard-table">
+            <caption class="sr-only">Comparação dos indicadores financeiros</caption>
+            <thead><tr><th scope="col">Indicador</th><th scope="col">{{ periodoSelecionadoLabel }}</th><th scope="col">Período anterior</th><th scope="col">Variação</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Faturamento</th><td>{{ formatCurrency(data?.faturamentoMes) }}</td><td>{{ formatCurrency(data?.faturamentoPeriodoAnterior) }}</td><td>{{ comparacaoPercentual(data?.faturamentoMes, data?.faturamentoPeriodoAnterior) }}</td></tr>
+              <tr><th scope="row">Despesas</th><td>{{ formatCurrency(data?.despesasMes) }}</td><td>{{ formatCurrency(data?.despesasPeriodoAnterior) }}</td><td>{{ comparacaoPercentual(data?.despesasMes, data?.despesasPeriodoAnterior) }}</td></tr>
+              <tr><th scope="row">Resultado</th><td>{{ formatCurrency(data?.lucroMes) }}</td><td>{{ formatCurrency(data?.lucroPeriodoAnterior) }}</td><td>{{ comparacaoPercentual(data?.lucroMes, data?.lucroPeriodoAnterior) }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="surface view-chart-card">
+        <div class="surface-header"><div><span class="eyebrow">Fluxo financeiro</span><h2>Receita e despesas por mês</h2><p>{{ periodoSelecionadoLabel }} · visão de acompanhamento, não conciliação contábil.</p></div></div>
         @if (chartOptions) {
           <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
             [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
@@ -232,20 +259,34 @@
         <p>Indicadores operacionais baseados nas ordens de serviço. Valores de orçamentos dependem da integração específica.</p>
       </section>
       <section class="view-dashboard-grid">
-        <article class="view-stat-card stat-blue"><span>OS abertas no mês</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>Registros operacionais do período</small></article>
-        <article class="view-stat-card stat-green"><span>Autorizados no mês</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>OS em estados de autorização ou execução</small></article>
-        <article class="view-stat-card stat-violet"><span>Fechados no mês</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>OS finalizadas no período</small></article>
-        <article class="view-stat-card stat-red"><span>Cancelados no mês</span><strong>{{ data?.canceladosMes ?? 0 }}</strong><small>Verifique os motivos de perda</small></article>
+        <article class="view-stat-card stat-blue"><span>OS abertas · {{ periodoSelecionadoLabel }}</span><strong>{{ data?.abertosMes ?? 0 }}</strong><small>{{ comparacaoPercentual(data?.abertosMes, data?.abertosPeriodoAnterior) }} vs. anterior</small></article>
+        <article class="view-stat-card stat-green"><span>Autorizados · {{ periodoSelecionadoLabel }}</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong><small>{{ comparacaoPercentual(data?.autorizadosMes, data?.autorizadosPeriodoAnterior) }} vs. anterior</small></article>
+        <article class="view-stat-card stat-violet"><span>Fechados · {{ periodoSelecionadoLabel }}</span><strong>{{ data?.fechadosMes ?? 0 }}</strong><small>{{ comparacaoPercentual(data?.fechadosMes, data?.fechadosPeriodoAnterior) }} vs. anterior</small></article>
+        <article class="view-stat-card stat-red"><span>OS abertas no período, hoje canceladas</span><strong>{{ data?.canceladosMes ?? 0 }}</strong><small>Contagem por abertura; sem data do evento de cancelamento</small></article>
       </section>
       <section class="surface view-chart-card">
         <div class="surface-header"><div><span class="eyebrow">Etapas operacionais</span><h2>Situação das ordens de serviço</h2><p>Estes números ainda não representam a conversão real de propostas comerciais.</p></div></div>
+        <div class="dashboard-table-wrap">
+          <table class="dashboard-table">
+            <caption class="sr-only">Ordens de serviço por etapa no período e período anterior</caption>
+            <thead><tr><th scope="col">Etapa da OS</th><th scope="col">{{ periodoSelecionadoLabel }}</th><th scope="col">Período anterior</th><th scope="col">Variação</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Abertas</th><td>{{ data?.abertosMes ?? 0 }}</td><td>{{ data?.abertosPeriodoAnterior ?? '—' }}</td><td>{{ comparacaoPercentual(data?.abertosMes, data?.abertosPeriodoAnterior) }}</td></tr>
+              <tr><th scope="row">Autorizadas</th><td>{{ data?.autorizadosMes ?? 0 }}</td><td>{{ data?.autorizadosPeriodoAnterior ?? '—' }}</td><td>{{ comparacaoPercentual(data?.autorizadosMes, data?.autorizadosPeriodoAnterior) }}</td></tr>
+              <tr><th scope="row">Finalizadas</th><td>{{ data?.fechadosMes ?? 0 }}</td><td>{{ data?.fechadosPeriodoAnterior ?? '—' }}</td><td>{{ comparacaoPercentual(data?.fechadosMes, data?.fechadosPeriodoAnterior) }}</td></tr>
+              <tr><th scope="row">Abertas no período, hoje canceladas</th><td>{{ data?.canceladosMes ?? 0 }}</td><td>{{ data?.canceladosPeriodoAnterior ?? '—' }}</td><td>Não comparável: sem data do evento</td></tr>
+            </tbody>
+          </table>
+        </div>
         <div class="quote-conversion">
           <div><span>OS em estados de abertura</span><strong>{{ data?.abertosMes ?? 0 }}</strong></div>
           <div><span>OS em estados autorizados</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
-          <div><span>OS canceladas</span><strong>{{ data?.canceladosMes ?? 0 }}</strong></div>
+          <div><span>OS abertas no período, hoje canceladas</span><strong>{{ data?.canceladosMes ?? 0 }}</strong></div>
         </div>
         <button type="button" class="primary-button" (click)="navegarPara('/orcamento')">Abrir módulo Orçamentos</button>
       </section>
+      }
+      </div>
     }
   </div>
 </main>

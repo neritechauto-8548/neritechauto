@@ -1,6 +1,7 @@
 package com.neritech.saas.dashboard.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public record DashboardDTO(
@@ -29,5 +30,14 @@ public record DashboardDTO(
         Long fechadosMes,
         Long fechadosTotal,
         Long entradasVeiculosMes,
-        Long saidasVeiculosMes) {
+        Long saidasVeiculosMes,
+        LocalDate inicioPeriodo,
+        LocalDate fimPeriodo,
+        BigDecimal faturamentoPeriodoAnterior,
+        BigDecimal despesasPeriodoAnterior,
+        BigDecimal lucroPeriodoAnterior,
+        Long abertosPeriodoAnterior,
+        Long autorizadosPeriodoAnterior,
+        Long canceladosPeriodoAnterior,
+        Long fechadosPeriodoAnterior) {
 }

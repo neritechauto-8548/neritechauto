@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardService, DashboardDTO } from './dashboard.service';
 import { environment } from '@env/environment';
+import { NeriTechIcon } from '@shared/components/neritech-icon/neritech-icon';
 
 type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 
@@ -13,7 +14,7 @@ type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
   standalone: true,
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
-  imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule],
+  imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule, NeriTechIcon],
 })
 export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
@@ -22,8 +23,10 @@ export class Dashboard implements OnInit {
   readonly isUxPreview = environment.uxPreview;
   loading = true;
   error = false;
+  errorMessage = 'Os dados da oficina não puderam ser carregados agora.';
   data: DashboardDTO | null = null;
   selectedView: DashboardView = 'padrao';
+  selectedPeriod = 'mes';
   chartOptions: any = null;
 
   readonly viewOptions: { value: DashboardView; label: string }[] = [
@@ -32,15 +35,15 @@ export class Dashboard implements OnInit {
     { value: 'financeiro', label: 'Financeiro' },
     { value: 'orcamento', label: 'Orçamento' },
   ];
+  readonly periodOptions = [
+    { value: 'mes', label: 'Este mês' },
+    { value: 'trimestre', label: 'Últimos 3 meses' },
+    { value: 'semestre', label: 'Últimos 6 meses' },
+    { value: 'ano', label: 'Este ano' },
+  ];
 
   ngOnInit(): void {
     this.carregarDados();
-  }
-
-  get mesAnoAtualLabel(): string {
-    const data = new Date();
-    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-    return `${meses[data.getMonth()]}/${data.getFullYear()}`;
   }
 
   get saudacao(): string {
@@ -48,27 +51,29 @@ export class Dashboard implements OnInit {
     return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   }
 
-  get variacaoFaturamentoPercentual(): number {
-    const historico = this.data?.historicoFaturamento ?? [];
-    if (historico.length < 2) return 0;
-    const anterior = Number(historico[historico.length - 2] ?? 0);
-    const atual = Number(historico[historico.length - 1] ?? 0);
-    return anterior > 0 ? Math.round(((atual - anterior) / anterior) * 1000) / 10 : 0;
+  get variacaoFaturamentoPercentual(): number | null {
+    const anterior = Number(this.data?.faturamentoPeriodoAnterior);
+    const atual = Number(this.data?.faturamentoMes);
+    if (!Number.isFinite(anterior) || anterior <= 0) return null;
+    return Math.round(((atual - anterior) / anterior) * 1000) / 10;
   }
 
   get variacaoFaturamentoLabel(): string {
-    return Math.abs(this.variacaoFaturamentoPercentual).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+    return this.variacaoFaturamentoPercentual === null ? '' :
+      Math.abs(this.variacaoFaturamentoPercentual).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+  }
+
+  get periodoSelecionadoLabel(): string {
+    return this.periodOptions.find(option => option.value === this.selectedPeriod)?.label ?? 'Período';
+  }
+
+  get selectedViewIndex(): number {
+    return this.viewOptions.findIndex(option => option.value === this.selectedView);
   }
 
   get margemPercentual(): number {
     const faturamento = Number(this.data?.faturamentoMes ?? 0);
     return faturamento > 0 ? Math.round((Number(this.data?.lucroMes ?? 0) / faturamento) * 100) : 0;
-  }
-
-  get taxaConversaoOrcamento(): number {
-    const abertos = Number(this.data?.abertosMes ?? 0);
-    const autorizados = Number(this.data?.autorizadosMes ?? 0);
-    return abertos > 0 ? Math.min(100, Math.round((autorizados / abertos) * 100)) : 0;
   }
 
   get hasData(): boolean {
@@ -85,25 +90,45 @@ export class Dashboard implements OnInit {
     ].some(value => Number(value) > 0);
   }
 
-  get metaEntregasPercentual(): number {
-    return Math.min(Math.round(((this.data?.osConcluidas ?? 0) / 50) * 100), 100);
-  }
-
   carregarDados(): void {
     this.loading = true;
     this.error = false;
+    const { inicio, fim } = this.getPeriodRange();
 
-    this.dashboardService.getDashboardData().subscribe({
+    this.dashboardService.getDashboardData(inicio, fim).subscribe({
       next: data => {
         this.data = data;
         this.chartOptions = this.buildChart(data);
         this.loading = false;
       },
-      error: () => {
+      error: err => {
         this.error = true;
+        this.errorMessage = err.status === 403
+          ? 'Seu perfil não tem permissão para visualizar estes indicadores.'
+          : 'Os dados da oficina não puderam ser carregados agora. Verifique a conexão e tente novamente.';
         this.loading = false;
       },
     });
+  }
+
+  private getPeriodRange(): { inicio: string; fim: string } {
+    const today = new Date();
+    let firstMonth = today.getMonth();
+    let firstYear = today.getFullYear();
+    if (this.selectedPeriod === 'trimestre') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+      firstMonth = start.getMonth();
+      firstYear = start.getFullYear();
+    } else if (this.selectedPeriod === 'semestre') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+      firstMonth = start.getMonth();
+      firstYear = start.getFullYear();
+    } else if (this.selectedPeriod === 'ano') {
+      firstMonth = 0;
+    }
+    const inicio = new Date(firstYear, firstMonth, 1);
+    const format = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return { inicio: format(inicio), fim: format(today) };
   }
 
   private buildChart(data: DashboardDTO): any {
@@ -157,6 +182,22 @@ export class Dashboard implements OnInit {
 
   selecionarVisao(view: DashboardView): void {
     this.selectedView = view;
+  }
+
+  onViewTabKeydown(event: KeyboardEvent, index: number): void {
+    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    const target = event.key === 'Home' ? 0 : event.key === 'End' ? this.viewOptions.length - 1 :
+      direction ? (index + direction + this.viewOptions.length) % this.viewOptions.length : -1;
+    if (target < 0) return;
+    event.preventDefault();
+    this.selecionarVisao(this.viewOptions[target].value);
+    document.getElementById(`dashboard-view-${target}`)?.focus();
+  }
+
+  comparacaoPercentual(atual: number | null | undefined, anterior: number | null | undefined): string {
+    if (anterior == null || !Number.isFinite(Number(anterior)) || Number(anterior) <= 0) return 'Sem base comparativa';
+    const change = ((Number(atual ?? 0) - Number(anterior)) / Number(anterior)) * 100;
+    return `${Math.abs(change).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% ${change >= 0 ? 'acima' : 'abaixo'}`;
   }
 
   navegarPara(route: string): void {

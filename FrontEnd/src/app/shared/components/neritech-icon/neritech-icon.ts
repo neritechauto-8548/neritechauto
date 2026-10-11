@@ -6,7 +6,8 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 export type NeriTechIconName =
   | 'home' | 'users' | 'settings' | 'search' | 'alert-circle'
   | 'check-circle' | 'info-circle' | 'wifi-off' | 'file-search'
-  | 'lock' | 'loader' | 'eye' | 'eye-off';
+  | 'lock' | 'loader' | 'eye' | 'eye-off' | 'calendar' | 'arrow-up-right'
+  | 'trend-up' | 'trend-down' | 'currency-dollar' | 'plus';
 
 @Component({
   selector: 'nt-icon',
@@ -57,6 +58,24 @@ export type NeriTechIconName =
         }
         @case ('eye-off') {
           <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.8 10.8 0 0 0 3.7-.7"/>
+        }
+        @case ('calendar') {
+          <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2m4 0h2"/>
+        }
+        @case ('arrow-up-right') {
+          <path d="M7 17 17 7M7 7h10v10"/>
+        }
+        @case ('trend-up') {
+          <path d="m3 17 6-6 4 4 8-8M15 7h6v6"/>
+        }
+        @case ('trend-down') {
+          <path d="m3 7 6 6 4-4 8 8m-6 0h6v-6"/>
+        }
+        @case ('currency-dollar') {
+          <path d="M12 2v20m5-15.5C16 5 14.5 4 12 4S7 5.5 7 8s2 3.5 5 4 5 1.5 5 4-2 4-5 4-5-1-5-2.5"/>
+        }
+        @case ('plus') {
+          <path d="M12 5v14M5 12h14"/>
         }
       }
     </svg>

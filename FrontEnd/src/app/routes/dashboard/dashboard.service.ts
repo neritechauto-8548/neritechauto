@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { of } from 'rxjs';
 import { environment } from '@env/environment';
 
@@ -11,6 +11,10 @@ export interface DashboardDTO {
   abertosMes: number; abertosTotal: number; autorizadosMes: number; autorizadosTotal: number;
   canceladosMes: number; canceladosTotal: number; fechadosMes: number; fechadosTotal: number;
   entradasVeiculosMes: number; saidasVeiculosMes: number;
+  inicioPeriodo?: string; fimPeriodo?: string;
+  faturamentoPeriodoAnterior?: number; despesasPeriodoAnterior?: number; lucroPeriodoAnterior?: number;
+  abertosPeriodoAnterior?: number; autorizadosPeriodoAnterior?: number;
+  canceladosPeriodoAnterior?: number; fechadosPeriodoAnterior?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -18,7 +22,7 @@ export class DashboardService {
   private http = inject(HttpClient);
   private apiUrl = environment.baseUrl || '/api';
 
-  getDashboardData() {
+  getDashboardData(inicio?: string, fim?: string) {
     if (environment.uxPreview) {
       return of<DashboardDTO>({
         totalClientes: 428, osAbertas: 37, osEmAndamento: 24, osConcluidas: 86, osCanceladas: 4,
@@ -30,9 +34,15 @@ export class DashboardService {
         abertosMes: 37, abertosTotal: 37, autorizadosMes: 31, autorizadosTotal: 31,
         canceladosMes: 4, canceladosTotal: 4, fechadosMes: 86, fechadosTotal: 86,
         entradasVeiculosMes: 112, saidasVeiculosMes: 98,
+        inicioPeriodo: inicio, fimPeriodo: fim,
+        faturamentoPeriodoAnterior: 118900, despesasPeriodoAnterior: 70400, lucroPeriodoAnterior: 48500,
+        abertosPeriodoAnterior: 33, autorizadosPeriodoAnterior: 28,
+        canceladosPeriodoAnterior: 3, fechadosPeriodoAnterior: 79,
       });
     }
 
-    return this.http.get<DashboardDTO>(this.apiUrl + '/dashboard');
+    let params = new HttpParams();
+    if (inicio && fim) params = params.set('inicio', inicio).set('fim', fim);
+    return this.http.get<DashboardDTO>(this.apiUrl + '/dashboard', { params });
   }
 }

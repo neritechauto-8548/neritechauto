@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +29,14 @@ public class DashboardService {
 
     public DashboardDTO getDashboardData(Long empresaId) {
         LocalDate now = LocalDate.now();
-        LocalDate startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
+        return getDashboardData(empresaId, now.with(TemporalAdjusters.firstDayOfMonth()), now.with(TemporalAdjusters.lastDayOfMonth()));
+    }
+
+    public DashboardDTO getDashboardData(Long empresaId, LocalDate startOfMonth, LocalDate endOfMonth) {
+        LocalDate now = LocalDate.now();
+        long periodDays = ChronoUnit.DAYS.between(startOfMonth, endOfMonth) + 1;
+        LocalDate previousEnd = startOfMonth.minusDays(1);
+        LocalDate previousStart = previousEnd.minusDays(periodDays - 1);
 
         Long totalClientes = clienteRepository.countByStatusAndEmpresaId(
                 com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO, empresaId);
@@ -44,6 +51,11 @@ public class DashboardService {
         BigDecimal despesasMes = zeroIfNull(
                 contasPagarRepository.calculateDespesasMes(empresaId, startOfMonth, endOfMonth));
         BigDecimal lucroMes = faturamentoMes.subtract(despesasMes);
+        BigDecimal faturamentoPeriodoAnterior = zeroIfNull(
+                contasReceberRepository.calculateFaturamentoMes(empresaId, previousStart, previousEnd));
+        BigDecimal despesasPeriodoAnterior = zeroIfNull(
+                contasPagarRepository.calculateDespesasMes(empresaId, previousStart, previousEnd));
+        BigDecimal lucroPeriodoAnterior = faturamentoPeriodoAnterior.subtract(despesasPeriodoAnterior);
 
         BigDecimal ticketMedio = zeroIfNull(ordemServicoRepository.calculateTicketMedio(empresaId));
         BigDecimal contasReceber = zeroIfNull(contasReceberRepository.calculateTotalPendentes(empresaId));
@@ -73,6 +85,16 @@ public class DashboardService {
 
         long fechadosMesVal = ordemServicoRepository.countByFinalizaOSAndPeriod(
                 empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
+        var previousStartDateTime = previousStart.atStartOfDay();
+        var previousEndDateTime = previousEnd.atTime(23, 59, 59, 999999999);
+        long abertosPeriodoAnterior = ordemServicoRepository.countByStatusCodesAndPeriod(
+                empresaId, codigosAberto, previousStartDateTime, previousEndDateTime);
+        long autorizadosPeriodoAnterior = ordemServicoRepository.countByStatusCodesAndPeriod(
+                empresaId, codigosAutorizado, previousStartDateTime, previousEndDateTime);
+        long canceladosPeriodoAnterior = ordemServicoRepository.countByCancelaOSAndPeriod(
+                empresaId, true, previousStartDateTime, previousEndDateTime);
+        long fechadosPeriodoAnterior = ordemServicoRepository.countByFinalizaOSAndPeriod(
+                empresaId, true, previousStartDateTime, previousEndDateTime);
         long fechadosTotalVal = ordemServicoRepository.countByFinalizaOS(empresaId, true);
 
         long entradasVeiculosMesVal = ordemServicoRepository.countByPeriod(
@@ -85,11 +107,11 @@ public class DashboardService {
         List<BigDecimal> historicoDespesas = new ArrayList<>();
         List<String> historicoMeses = new ArrayList<>();
 
-        YearMonth firstMonth = YearMonth.from(now).minusMonths(5);
-        for (int i = 0; i < 6; i++) {
-            YearMonth month = firstMonth.plusMonths(i);
-            LocalDate inicio = month.atDay(1);
-            LocalDate fim = month.atEndOfMonth();
+        YearMonth firstMonth = YearMonth.from(startOfMonth);
+        YearMonth lastMonth = YearMonth.from(endOfMonth);
+        for (YearMonth month = firstMonth; !month.isAfter(lastMonth); month = month.plusMonths(1)) {
+            LocalDate inicio = month.atDay(1).isBefore(startOfMonth) ? startOfMonth : month.atDay(1);
+            LocalDate fim = month.atEndOfMonth().isAfter(endOfMonth) ? endOfMonth : month.atEndOfMonth();
 
             historicoFaturamento.add(zeroIfNull(
                     contasReceberRepository.calculateFaturamentoMes(empresaId, inicio, fim)));
@@ -124,7 +146,16 @@ public class DashboardService {
                 fechadosMesVal,
                 fechadosTotalVal,
                 entradasVeiculosMesVal,
-                saidasVeiculosMesVal);
+                saidasVeiculosMesVal,
+                startOfMonth,
+                endOfMonth,
+                faturamentoPeriodoAnterior,
+                despesasPeriodoAnterior,
+                lucroPeriodoAnterior,
+                abertosPeriodoAnterior,
+                autorizadosPeriodoAnterior,
+                canceladosPeriodoAnterior,
+                fechadosPeriodoAnterior);
     }
 
     private static BigDecimal zeroIfNull(BigDecimal value) {
