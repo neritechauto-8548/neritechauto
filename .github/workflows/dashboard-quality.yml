@@ -13,6 +13,7 @@ on:
       - "FrontEnd/src/app/routes/sessions/login/**"
       - "FrontEnd/src/app/routes/sessions/recover/**"
       - "FrontEnd/src/app/theme/**"
+      - "FrontEnd/src/app/core/bootstrap/**"
       - "FrontEnd/src/app/core/services/notificacao.service.ts"
       - "FrontEnd/karma.conf.js"
       - "FrontEnd/src/app/shared/components/**"
@@ -41,6 +42,7 @@ on:
       - "FrontEnd/src/app/routes/sessions/login/**"
       - "FrontEnd/src/app/routes/sessions/recover/**"
       - "FrontEnd/src/app/theme/**"
+      - "FrontEnd/src/app/core/bootstrap/**"
       - "FrontEnd/src/app/core/services/notificacao.service.ts"
       - "FrontEnd/karma.conf.js"
       - "FrontEnd/src/app/shared/components/**"
@@ -79,7 +81,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - name: Testes de regressão do Application Shell
-        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/sidemenu/preview-menu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts
 
   backend:
     runs-on: ubuntu-latest
