@@ -8,11 +8,14 @@
   let-menuList="menuList"
   let-parentRoute="parentRoute"
   let-level="level"
+  let-expanded="expanded"
 >
   <ul
     navAccordion
     class="matero-sidemenu level-{{ level }}"
     [class.submenu]="level > 0"
+    [attr.inert]="level > 0 && !expanded ? '' : null"
+    [attr.aria-hidden]="level > 0 && !expanded ? 'true' : null"
   >
     @for (menuItem of menuList; track menuItem) {
       <li
@@ -23,6 +26,7 @@
         routerLinkActive="active"
         [route]="menuItem.route"
         [type]="menuItem.type"
+        [activeWhen]="activeRoutes(menuItem, parentRoute)"
       >
         @if (menuItem.type === 'heading') {
           <div class="menu-heading-label">{{ menuLabel(menuItem.name) }}</div>
@@ -32,6 +36,7 @@
           <a
             class="menu-heading"
             [routerLink]="buildRoute(parentRoute.concat([menuItem.route]))"
+            [attr.aria-label]="menuLabel(menuItem.name)"
             matRipple
             [matRippleDisabled]="!ripple"
             [matTooltip]="menuLabel(menuItem.name)"
@@ -49,6 +54,7 @@
           <a
             class="menu-heading"
             [href]="menuItem.route"
+            [attr.aria-label]="menuLabel(menuItem.name)"
             matRipple
             [matRippleDisabled]="!ripple"
             [matTooltip]="menuLabel(menuItem.name)"
@@ -68,6 +74,7 @@
             [href]="menuItem.route"
             target="_blank"
             rel="noopener noreferrer"
+            [attr.aria-label]="menuLabel(menuItem.name)"
             matRipple
             [matRippleDisabled]="!ripple"
             [matTooltip]="menuLabel(menuItem.name)"
@@ -86,6 +93,8 @@
             type="button"
             navAccordionToggle
             class="menu-heading menu-toggle"
+            [attr.aria-label]="menuLabel(menuItem.name)"
+            [attr.aria-expanded]="navItem.expanded"
             matRipple
             [matRippleDisabled]="!ripple"
             [matTooltip]="menuLabel(menuItem.name)"
