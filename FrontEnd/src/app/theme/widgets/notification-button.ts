@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { environment } from '@env/environment';
 import { CommonModule } from '@angular/common';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
-import { RouterLink } from '@angular/router';
 import { NotificacaoService, NotificacaoSistemaResponse } from '@core/services/notificacao.service';
 import { AuthService } from '@core';
 import { Subscription, interval } from 'rxjs';
@@ -11,7 +12,7 @@ import { Subscription, interval } from 'rxjs';
 @Component({
   selector: 'app-notification',
   template: `
-    <button mat-icon-button [matMenuTriggerFor]="menu" (click)="loadNotifications()"
+    <button mat-icon-button [matMenuTriggerFor]="menu" (click)="loadNotifications()" aria-label="Abrir notificações"
       class="!text-inherit hover:!bg-black/10 dark:hover:!bg-white/10 !transition-colors !duration-200">
       <span class="nt-notification-icon" [attr.data-count]="unreadCount" [class.has-count]="unreadCount > 0" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg></span>
     </button>
@@ -27,21 +28,34 @@ import { Subscription, interval } from 'rxjs';
               <span class="px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold">{{ unreadCount }} novas</span>
             }
           </div>
-          <button (click)="markAllAsRead()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors">Marcar todas como lidas</button>
+          @if (!uxPreview && unreadCount > 0) {
+            <button type="button" (click)="markAllAsRead()" [disabled]="loading" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors disabled:opacity-50">Marcar todas como lidas</button>
+          }
         </div>
 
         <!-- Notification List -->
+        @if (actionError) {
+          <div class="px-4 py-2 text-xs text-rose-700 bg-rose-50" role="alert">{{ actionError }}</div>
+        }
         <div class="max-h-[350px] overflow-y-auto custom-scrollbar">
-          @if (loading) {
+          @if (uxPreview) {
+            <div class="p-5 text-sm text-slate-600" role="status">Prévia visual — notificações reais indisponíveis sem autenticação e backend. Nenhuma ação será registrada.</div>
+          } @else if (!usuarioId) {
+            <div class="p-5 text-sm text-slate-600" role="status">Entre na sua conta para consultar notificações.</div>
+          } @else if (loading) {
             <div class="py-12 flex flex-col items-center justify-center gap-2">
                <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                <span class="text-[11px] text-slate-400 font-medium">Carregando...</span>
             </div>
+          } @else if (errorMessage) {
+            <div class="p-5 text-sm text-rose-700" role="alert">{{ errorMessage }}</div>
           } @else if (notifications.length > 0) {
             @for (item of notifications; track item.id) {
-              <div (click)="markAsRead(item)" 
+              <button type="button" (click)="markAsRead(item)"
+                [disabled]="item.lida || pendingIds.has(item.id)" 
+                [attr.aria-label]="(item.lida ? 'Notificação lida: ' : 'Marcar notificação como lida: ') + item.titulo"
                 [class]="!item.lida ? 'bg-slate-50/40' : 'hover:bg-slate-50/60'"
-                class="px-4 py-3 border-b border-slate-100 last:border-0 flex gap-3 cursor-pointer transition-all relative group">
+                class="w-full text-left px-4 py-3 border-0 border-b border-slate-100 last:border-0 flex gap-3 cursor-pointer transition-all relative group focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:cursor-default">
                 
                 <!-- Status Dot -->
                 @if (!item.lida) {
@@ -63,7 +77,7 @@ import { Subscription, interval } from 'rxjs';
                   </div>
                   <span class="text-[11.5px] text-slate-500 leading-snug line-clamp-2">{{ item.mensagem }}</span>
                 </div>
-              </div>
+              </button>
             }
           } @else {
             <div class="py-12 flex flex-col items-center justify-center gap-3">
@@ -75,12 +89,11 @@ import { Subscription, interval } from 'rxjs';
           }
         </div>
 
-        <!-- Footer -->
-        <div class="p-1 px-4 py-2 border-t border-slate-100 bg-slate-50/30 flex items-center justify-center">
-          <button routerLink="/configuracoes/notificacoes" mat-button class="!text-[11.5px] !font-bold !text-slate-500 hover:!text-indigo-600 !w-full !rounded-lg">
-            Ver todas as notificações
-          </button>
-        </div>
+        @if (!uxPreview && usuarioId) {
+          <div class="p-1 px-4 py-2 border-t border-slate-100 bg-slate-50/30 flex items-center justify-center">
+            <button type="button" (click)="loadNotifications()" [disabled]="loading" mat-button class="!text-[11.5px] !font-bold !text-slate-500 hover:!text-indigo-600 !w-full !rounded-lg">Atualizar notificações</button>
+          </div>
+        }
       </div>
     </mat-menu>
   `,
@@ -108,69 +121,105 @@ import { Subscription, interval } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [CommonModule, MatBadgeModule, MatButtonModule, MatMenuModule, RouterLink],
+  imports: [CommonModule, MatBadgeModule, MatButtonModule, MatMenuModule],
 })
 export class NotificationButton implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificacaoService);
   private readonly auth = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
   private pollingSub?: Subscription;
+  private fetchSub?: Subscription;
 
+  readonly uxPreview = environment.uxPreview;
+  readonly pendingIds = new Set<number>();
   notifications: NotificacaoSistemaResponse[] = [];
   unreadCount = 0;
   loading = false;
+  errorMessage = '';
+  actionError = '';
   usuarioId?: number | string | null;
 
   ngOnInit(): void {
-    this.auth.user().subscribe(user => {
-      if (user && user.id) {
-        this.usuarioId = user.id;
+    this.auth.user().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
+      const nextId = user?.id ?? null;
+      if (this.usuarioId === nextId) return;
+      this.pollingSub?.unsubscribe();
+      this.fetchSub?.unsubscribe();
+      this.usuarioId = nextId;
+      this.notifications = [];
+      this.unreadCount = 0;
+      this.pendingIds.clear();
+      this.errorMessage = '';
+      this.actionError = '';
+      this.loading = false;
+      if (nextId && !this.uxPreview) {
         this.loadNotifications();
-        // Polling a cada 2 minutos para notificações reais
-        this.pollingSub = interval(120000).subscribe(() => this.loadNotifications(false));
+        this.pollingSub = interval(120000)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => this.loadNotifications(false));
       }
     });
   }
 
   ngOnDestroy(): void {
     this.pollingSub?.unsubscribe();
+    this.fetchSub?.unsubscribe();
   }
 
   loadNotifications(showLoading = true): void {
-    if (!this.usuarioId) return;
-    
-    if (showLoading) this.loading = true;
-    this.notificationService.findByUsuario(this.usuarioId).subscribe({
-      next: (res) => {
-        this.notifications = res.content || [];
-        this.unreadCount = this.notifications.filter(n => !n.lida).length;
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-      }
-    });
+    if (this.uxPreview || !this.usuarioId) return;
+    this.fetchSub?.unsubscribe();
+    this.loading = showLoading;
+    this.errorMessage = '';
+    const currentId = this.usuarioId;
+    this.fetchSub = this.notificationService.findMine()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => {
+          if (currentId !== this.usuarioId) return;
+          this.notifications = res?.content ?? [];
+          this.unreadCount = this.notifications.filter(n => !n.lida).length;
+          this.loading = false;
+        },
+        error: () => {
+          if (currentId !== this.usuarioId) return;
+          this.loading = false;
+          this.errorMessage = 'Não foi possível carregar as notificações. Tente atualizar.';
+        },
+      });
   }
 
   markAsRead(item: NotificacaoSistemaResponse): void {
-    if (item.lida) return;
-    this.notificationService.marcarComoLida(item.id, item).subscribe(() => {
-      item.lida = true;
-      this.unreadCount = this.notifications.filter(n => !n.lida).length;
-    });
+    if (this.uxPreview || !this.usuarioId || item.lida || this.pendingIds.has(item.id)) return;
+    this.actionError = '';
+    const currentId = this.usuarioId;
+    this.pendingIds.add(item.id);
+    this.notificationService.marcarComoLida(item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: response => {
+          this.pendingIds.delete(item.id);
+          if (currentId !== this.usuarioId) return;
+          const saved = this.notifications.find(n => n.id === item.id);
+          if (saved && response?.lida === true) {
+            saved.lida = true;
+            saved.dataLeitura = response.dataLeitura;
+            this.unreadCount = this.notifications.filter(n => !n.lida).length;
+          } else {
+            this.actionError = 'A leitura não foi confirmada pelo servidor. Tente novamente.';
+          }
+        },
+        error: () => {
+          this.pendingIds.delete(item.id);
+          if (currentId === this.usuarioId) {
+            this.actionError = 'Não foi possível marcar como lida. Tente novamente.';
+          }
+        },
+      });
   }
 
   markAllAsRead(): void {
-    // Para simplificar, percorre todos e marca como lida
     this.notifications.filter(n => !n.lida).forEach(n => this.markAsRead(n));
-  }
-
-  getIcon(type: string): string {
-    switch (type) {
-      case 'SUCESSO': return 'check_circle';
-      case 'AVISO': return 'warning';
-      case 'ERRO': return 'error';
-      default: return 'info';
-    }
   }
 
   getIconColor(type: string): string {
@@ -194,18 +243,12 @@ export class NotificationButton implements OnInit, OnDestroy {
   formatTime(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
+    if (Number.isNaN(date.getTime())) return '';
+    const diffMins = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
     if (diffMins < 1) return 'Agora';
     if (diffMins < 60) return `${diffMins}m`;
-    
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h`;
-    
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   }
 }
-
-
