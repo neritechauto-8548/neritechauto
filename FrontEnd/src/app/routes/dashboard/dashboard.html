@@ -107,7 +107,7 @@
             <div>
               <span class="eyebrow">Performance</span>
               <h2>Receita acompanhando a operação</h2>
-              <p>Faturamento e despesas por mês · {{ periodoSelecionadoLabel.toLowerCase() }}.</p>
+              <p>Valores pagos em títulos com vencimento no período · {{ periodoSelecionadoLabel.toLowerCase() }}. O agrupamento não usa a data efetiva do pagamento.</p>
             </div>
             <div class="legend"><span><i></i> Receita</span><span><i class="muted"></i> Despesas</span></div>
           </div>
@@ -191,7 +191,7 @@
       <section class="view-section-heading">
         <span class="eyebrow">Painel gerencial</span>
         <h2>Visão consolidada da oficina</h2>
-        <p>Indicadores para acompanhar resultado, equipe e relacionamento com clientes.</p>
+        <p>Indicadores para acompanhar resultado, equipe e relacionamento com clientes. Receita e despesas consideram valores pagos em títulos agrupados pela data de vencimento.</p>
       </section>
       <section class="view-dashboard-grid">
         <article class="view-stat-card stat-blue"><span>Faturamento · {{ periodoSelecionadoLabel }}</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>{{ comparacaoPercentual(data?.faturamentoMes, data?.faturamentoPeriodoAnterior) }} vs. período anterior</small></article>
@@ -212,7 +212,7 @@
       <section class="view-section-heading">
         <span class="eyebrow">Painel financeiro</span>
         <h2>Receita, resultado e compromissos</h2>
-        <p>Indicadores reais para {{ periodoSelecionadoLabel.toLowerCase() }} e comparação com período anterior equivalente.</p>
+        <p>Indicadores reais para {{ periodoSelecionadoLabel.toLowerCase() }} e comparação com período anterior equivalente. Receita e despesas somam valores pagos em títulos pela data de vencimento, não pela data efetiva do pagamento.</p>
       </section>
       <section class="view-dashboard-grid">
         <article class="view-stat-card stat-blue"><span>Faturamento</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong><small>{{ comparacaoPercentual(data?.faturamentoMes, data?.faturamentoPeriodoAnterior) }} vs. anterior</small></article>
@@ -235,7 +235,7 @@
         </div>
       </section>
       <section class="surface view-chart-card">
-        <div class="surface-header"><div><span class="eyebrow">Fluxo financeiro</span><h2>Receita e despesas por mês</h2><p>{{ periodoSelecionadoLabel }} · visão de acompanhamento, não conciliação contábil.</p></div></div>
+        <div class="surface-header"><div><span class="eyebrow">Fluxo financeiro</span><h2>Receita e despesas por mês</h2><p>{{ periodoSelecionadoLabel }} · valores pagos agrupados pela data de vencimento, não pela data efetiva do pagamento; visão de acompanhamento, não conciliação contábil.</p></div></div>
         @if (chartOptions) {
           <apx-chart class="performance-chart" [series]="chartOptions.series" [chart]="chartOptions.chart"
             [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
