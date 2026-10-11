@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuthService, User } from '@core/authentication';
 import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
 import { switchMap, tap } from 'rxjs';
-import { Menu, MenuService } from './menu.service';
+import { Menu, MenuChildrenItem, MenuService } from './menu.service';
 import { environment } from '@env/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -126,7 +126,7 @@ export class StartupService {
       '/financeiro/pagar', '/financeiro/caixa', '/financeiro/comissoes',
       '/fiscal/nfe', '/fiscal/nfce', '/fiscal/nfse', '/fiscal/nfe/inutilizar-numeracao',
     ]);
-    const markUnavailable = (items: Array<Menu | import('./menu.service').MenuChildrenItem>, parents: string[] = []) => {
+    const markUnavailable = (items: Array<Menu | MenuChildrenItem>, parents: string[] = []) => {
       for (const item of items) {
         const segments = [...parents, item.route];
         if (item.type === 'link') {
