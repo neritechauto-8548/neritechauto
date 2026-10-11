@@ -59,6 +59,7 @@ public class ClienteMapper {
         r.setOrigemCliente(c.getOrigemCliente());
         r.setStatus(c.getStatus());
         r.setObservacoesGerais(c.getObservacoesGerais());
+        r.setDataCadastro(c.getDataCadastro());
         return r;
     }
 }

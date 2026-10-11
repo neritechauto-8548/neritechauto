@@ -794,7 +794,7 @@ export class CadastroCliente implements OnInit {
                   next: () => {
                       this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Cliente deletado com sucesso!' });
                       if (!this.modalMode) {
-                          this.router.navigate(['/cliente/listar']);
+                          this.voltarParaLista();
                       } else {
                           this.saved.emit(null);
                       }
@@ -809,15 +809,19 @@ export class CadastroCliente implements OnInit {
   }
 
   voltar() {
-    this.router.navigate(['/cliente/listar']);
+    this.voltarParaLista();
   }
 
   cancelar() {
     if (this.modalMode) {
       this.canceled.emit();
     } else {
-      this.router.navigate(['/cliente/listar']);
+      this.voltarParaLista();
     }
+  }
+
+  private voltarParaLista() {
+    this.router.navigate(['/cliente/listar'], { queryParams: this.route.snapshot.queryParams });
   }
 
 

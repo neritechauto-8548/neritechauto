@@ -34,6 +34,8 @@
 :host ::ng-deep .nt-clients-select .p-select-label{font-size:13px;display:flex;align-items:center}
 .nt-clients-clear{height:40px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:#475569;font-size:12px;font-weight:600;cursor:pointer}
 .nt-clients-clear:hover{background:#f1f5f9;color:#0f172a}
+.nt-page-size{height:34px;padding:0 28px 0 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#334155;font-size:12px}
+.nt-page-size:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .nt-clients-primary:focus-visible,.nt-clients-search-button:focus-visible,.nt-clients-clear:focus-visible,.nt-row-action:focus-visible,.nt-clients-input:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .nt-clients-table{font-size:13px}
 .nt-clients-table th{font-size:12px}
