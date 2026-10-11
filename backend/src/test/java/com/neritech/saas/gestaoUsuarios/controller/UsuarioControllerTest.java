@@ -65,8 +65,8 @@ class UsuarioControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usuarioRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.email").value(usuarioRequest.getEmail()));
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.email").value(usuarioRequest.getEmail()));
     }
 
     @Test
@@ -79,7 +79,7 @@ class UsuarioControllerTest {
         mockMvc.perform(get("/usuarios/1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$.data.id").value(1));
     }
 
     @Test
@@ -94,6 +94,6 @@ class UsuarioControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usuarioRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value(usuarioRequest.getEmail()));
+                .andExpect(jsonPath("$.data.email").value(usuarioRequest.getEmail()));
     }
 }

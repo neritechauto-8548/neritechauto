@@ -50,6 +50,6 @@ class AuditoriaControllerTest {
         mockMvc.perform(get("/v1/auditoria/logs-acesso").param("usuarioId", "1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].tipoEvento").value("LOGIN_SUCCESS"));
+                .andExpect(jsonPath("$.data[0].tipoEvento").value("LOGIN_SUCCESS"));
     }
 }

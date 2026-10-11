@@ -59,7 +59,7 @@ class FuncaoControllerTest {
         mockMvc.perform(get("/v1/funcoes")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nome").value("ADMIN"));
+                .andExpect(jsonPath("$.data[0].nome").value("ADMIN"));
     }
 
     @Test
@@ -74,6 +74,6 @@ class FuncaoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(funcao)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("ADMIN"));
+                .andExpect(jsonPath("$.data.nome").value("ADMIN"));
     }
 }

@@ -52,6 +52,6 @@ class PermissaoControllerTest {
         mockMvc.perform(get("/v1/permissoes")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].chave").value("USUARIO.READ"));
+                .andExpect(jsonPath("$.data[0].chave").value("USUARIO.READ"));
     }
 }

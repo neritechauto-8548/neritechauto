@@ -83,7 +83,7 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
                 .header("X-Tenant-Id", "1")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("integration@test.com"));
+                .andExpect(jsonPath("$.data.email").value("integration@test.com"));
     }
 
     @Test
