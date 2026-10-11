@@ -72,6 +72,8 @@ jobs:
           cache-dependency-path: FrontEnd/yarn.lock
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - name: Testes de regressão do Application Shell
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts
 
   backend:
     runs-on: ubuntu-latest
