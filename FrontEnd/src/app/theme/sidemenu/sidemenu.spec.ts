@@ -4,6 +4,7 @@ import { EMPTY } from 'rxjs';
 import { MenuService } from '@core';
 import { NavAccordion } from './nav-accordion';
 import { NavAccordionItem } from './nav-accordion-item';
+import { isSafeExternalUrl } from './sidemenu';
 
 describe('Sidebar active branches', () => {
   let currentUrl = '/cliente/crm/comunicacao';
@@ -36,5 +37,13 @@ describe('Sidebar active branches', () => {
     currentUrl = '/home?tab=gerencial';
     accordion.checkOpenedItems();
     expect(clientes.expanded).toBeFalse();
+  });
+  it('accepts configured HTTP(S) links but rejects placeholders and unsafe schemes', () => {
+    expect(isSafeExternalUrl('https://patio.example.com/')).toBeTrue();
+    expect(isSafeExternalUrl('http://example.org/app')).toBeTrue();
+    expect(isSafeExternalUrl('patio')).toBeFalse();
+    expect(isSafeExternalUrl('javascript:alert(1)')).toBeFalse();
+    expect(isSafeExternalUrl('https://')).toBeFalse();
+    expect(isSafeExternalUrl('https://user:secret@example.com')).toBeFalse();
   });
 });
