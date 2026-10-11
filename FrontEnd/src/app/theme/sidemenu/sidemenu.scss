@@ -267,6 +267,28 @@
   .matero-sidemenu.level-0{padding:14px 12px 30px}
   .matero-sidemenu .menu-heading{min-height:46px}
 }
+.matero-sidemenu .nt-menu-disabled,
+.matero-sidemenu .nt-menu-disabled:hover {
+  cursor: not-allowed;
+  color: #64748b;
+  background: transparent;
+  border-color: transparent;
+  opacity: .65;
+}
+
+.matero-sidemenu .nt-menu-disabled .menu-icon { color: inherit; }
+
+.nt-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 @media(prefers-reduced-motion:reduce){
   .matero-sidemenu .menu-heading,.matero-sidemenu .menu-caret{transition:none}
 }
