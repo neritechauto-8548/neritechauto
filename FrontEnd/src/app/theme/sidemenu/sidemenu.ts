@@ -17,6 +17,17 @@ import { NavAccordion } from './nav-accordion';
 import { NavAccordionItem } from './nav-accordion-item';
 import { NavAccordionToggle } from './nav-accordion-toggle';
 
+/** Only configured absolute HTTP(S) URLs may be exposed as external navigation. */
+export function isSafeExternalUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'https:' || url.protocol === 'http:') &&
+      Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
 @Component({
   selector: 'app-sidemenu',
   templateUrl: './sidemenu.html',
@@ -54,6 +65,7 @@ export class Sidemenu {
 
   menu$ = this.menu.getAll();
   buildRoute = this.menu.buildRoute;
+  isSafeExternalUrl = isSafeExternalUrl;
 
   /** Resolve descendant leaf paths so a parent without a path can remain active. */
   activeRoutes(item: Menu | MenuChildrenItem, parentRoute: string[]): string[] {
@@ -61,7 +73,7 @@ export class Sidemenu {
     if (item.children?.length) {
       return item.children.flatMap(child => this.activeRoutes(child, routeParts));
     }
-    return item.type === 'link' ? [this.buildRoute(routeParts)] : [];
+    return item.type === 'link' && !item.disabled ? [this.buildRoute(routeParts)] : [];
   }
 
   get isCollapsed() {
