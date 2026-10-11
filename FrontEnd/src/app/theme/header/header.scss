@@ -65,3 +65,8 @@
  .nt-topbar-actions{gap:0}
  .nt-topbar-icon{width:36px;height:36px;min-width:36px}
 }
+
+/* Accessible suggestion selection with a non-color-only indicator. */
+.nt-search-result[aria-selected='true']{background:var(--nt-surface-subtle,#eff6ff);box-shadow:inset 3px 0 0 var(--nt-primary,#2563eb)}
+.nt-search-empty{position:absolute;top:45px;left:0;right:0;padding:14px;border:1px solid var(--nt-border,#e2e8f0);border-radius:10px;background:var(--nt-surface,#fff);color:var(--nt-text-muted,#64748b);font-size:13px;box-shadow:0 16px 40px rgba(15,23,42,.10);z-index:1200}
+@media(max-width:680px){.nt-search-empty{top:58px;left:12px;right:12px}}
