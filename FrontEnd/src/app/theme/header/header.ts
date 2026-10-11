@@ -75,6 +75,7 @@ export class Header {
       parentLabels: string[] = []
     ) => {
       list.forEach(item => {
+        if (item.disabled) return;
         const key = String(item.name ?? '');
         const translated = this.translate.instant(key);
         const name = translated && translated !== key
