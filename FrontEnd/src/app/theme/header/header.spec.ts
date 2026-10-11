@@ -28,6 +28,7 @@ describe('Header global search navigation', () => {
       { route: 'cliente', name: 'Clientes', type: 'sub', icon: 'users', children: [
         { route: 'listar', name: 'Listar', type: 'link' },
         { route: 'cadastro', name: 'Cadastrar', type: 'link' },
+        { route: 'crm', name: 'CRM', type: 'link', disabled: true },
       ] },
       { route: 'patio', name: 'Gestão de Pátio', type: 'extLink', icon: 'warehouse' },
     ]);
@@ -58,6 +59,11 @@ describe('Header global search navigation', () => {
     expect(header.searchResults.length).toBe(0);
     expect(header.activeSearchIndex).toBe(-1);
     header.onSearch('impossivel');
+    expect(header.searchResults).toEqual([]);
+  });
+
+  it('does not suggest disabled preview destinations', () => {
+    header.onSearch('crm');
     expect(header.searchResults).toEqual([]);
   });
 
