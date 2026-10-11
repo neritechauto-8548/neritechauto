@@ -12,7 +12,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgxPermissionsModule } from 'ngx-permissions';
 
-import { MenuService, SettingsService } from '@core';
+import { Menu, MenuChildrenItem, MenuService, SettingsService } from '@core';
 import { NavAccordion } from './nav-accordion';
 import { NavAccordionItem } from './nav-accordion-item';
 import { NavAccordionToggle } from './nav-accordion-toggle';
@@ -54,6 +54,15 @@ export class Sidemenu {
 
   menu$ = this.menu.getAll();
   buildRoute = this.menu.buildRoute;
+
+  /** Resolve descendant leaf paths so a parent without a path can remain active. */
+  activeRoutes(item: Menu | MenuChildrenItem, parentRoute: string[]): string[] {
+    const routeParts = [...parentRoute, item.route];
+    if (item.children?.length) {
+      return item.children.flatMap(child => this.activeRoutes(child, routeParts));
+    }
+    return item.type === 'link' ? [this.buildRoute(routeParts)] : [];
+  }
 
   get isCollapsed() {
     return this.settings.options.sidenavCollapsed;
