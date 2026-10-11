@@ -8,10 +8,13 @@
         <span class="nt-clients-preview" role="status"><span aria-hidden="true"></span> Modo de homologação · dados demonstrativos</span>
       }
     </div>
-    <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-      Novo cliente
-    </button>
+    <div class="nt-clients-heading-actions">
+      <button type="button" class="nt-clients-quick" (click)="abrirCadastroRapido()">Cadastro rápido</button>
+      <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Novo cliente
+      </button>
+    </div>
   </header>
 
   <section class="nt-clients-toolbar" aria-label="Pesquisa e filtros de clientes">
@@ -176,3 +179,8 @@
 </main>
 
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
+<p-dialog [(visible)]="isQuickFormOpen" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: 'min(960px, 96vw)' }" [breakpoints]="{'720px': '96vw'}"
+  styleClass="nt-client-quick-dialog" header="Cadastro rápido de cliente">
+  <cadastro-cliente [modalMode]="true" (saved)="onQuickClientSaved()" (canceled)="onQuickClientCanceled()" />
+</p-dialog>

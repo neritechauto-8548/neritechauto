@@ -23,6 +23,7 @@ import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, C
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
 import { VeiculoRequest, VeiculoResponse, MarcaVeiculoResponse, ModeloVeiculoResponse, StatusVeiculo } from '../../veiculo/models/veiculo.models';
 import { forkJoin } from 'rxjs';
+import { NgxPermissionsService } from 'ngx-permissions';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
@@ -81,6 +82,7 @@ export class CadastroCliente implements OnInit {
   private readonly utilService = inject(UtilService);
   private readonly veiculoService = inject(VeiculoService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly permissionsService = inject(NgxPermissionsService);
 
   @Input() modalMode = false;
   @Output() saved = new EventEmitter<any>();
@@ -89,9 +91,10 @@ export class CadastroCliente implements OnInit {
   activeIndex = 0;
 
   readonly tabs = [
-      { label: 'Geral' },
+      { label: 'Dados Gerais' },
       { label: 'Endereço' },
-      { label: 'Contatos' }
+      { label: 'Contatos' },
+      { label: 'Veículos' }
   ];
   savedClienteId: string | number | null = null;
 
@@ -153,6 +156,8 @@ export class CadastroCliente implements OnInit {
 
   // VEÍCULOS
   veiculosList: VeiculoResponse[] = [];
+  veiculosLoading = false;
+  veiculosError = false;
   veiculoModel: Partial<VeiculoRequest> = {};
   marcasOptions: MarcaVeiculoResponse[] = [];
   modelosOptions: ModeloVeiculoResponse[] = [];
@@ -161,12 +166,32 @@ export class CadastroCliente implements OnInit {
     return this.isEditMode ? 'Editar Cliente' : 'Novo Cliente';
   }
 
+  get canSaveForm(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission(this.isEditMode ? 'CLIENTE_EDITAR' : 'CLIENTE_CRIAR');
+  }
+
+  get canDeleteClient(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_EXCLUIR');
+  }
+
   isEditMode = false;
   submitted = false; // Flag para controle de validação visual
   isSaving = false; // Bloqueia submissões simultâneas e sinaliza o estado da operação
+  isLoadingClient = false;
+  clientLoadError = false;
 
   get contatoDialogTitle(): string {
     return this.contatoEditIndex !== null ? 'Editar contato' : 'Adicionar contato';
+  }
+
+  onTabKeydown(event: KeyboardEvent, index: number) {
+    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    const target = event.key === 'Home' ? 0 : event.key === 'End' ? this.tabs.length - 1 :
+      direction ? (index + direction + this.tabs.length) % this.tabs.length : -1;
+    if (target < 0) return;
+    event.preventDefault();
+    this.activeIndex = target;
+    document.getElementById(`nt-client-form-tab-${target}`)?.focus();
   }
 
   ngOnInit() {
@@ -181,16 +206,21 @@ export class CadastroCliente implements OnInit {
   }
 
   loadClienteData(id: string | number) {
+    this.isLoadingClient = true;
+    this.clientLoadError = false;
     this.clientesService.getById(id).subscribe({
       next: (data: ClienteResponseDTO) => {
+        this.isLoadingClient = false;
         this.patchModel(data);
         // Carrega listas dependentes
         this.loadContatos(id);
         this.loadEnderecos(id);
         this.loadDocumentos(id);
-        if (!this.isUxPreview) this.loadVeiculos(id);
+        this.loadVeiculos(id);
       },
       error: (err) => {
+        this.isLoadingClient = false;
+        this.clientLoadError = true;
         console.error('Erro ao carregar cliente', err);
         // O interceptor global já mostrará o erro de rede.
       }
@@ -377,6 +407,11 @@ export class CadastroCliente implements OnInit {
 
   // Ações
   salvar() {
+    const requiredPermission = this.isEditMode ? 'CLIENTE_EDITAR' : 'CLIENTE_CRIAR';
+    if (!this.isUxPreview && !this.permissionsService.getPermission(requiredPermission)) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode salvar este cliente.' });
+      return;
+    }
     if (this.isSaving) return;
     this.submitted = true; // Ativa validação visual imediatamente
 
@@ -441,9 +476,7 @@ export class CadastroCliente implements OnInit {
       this.clientesService.update(this.savedClienteId, dto).subscribe({
         next: (res) => {
           if (this.modalMode) {
-             this.isSaving = false;
-             this.messageService.add({ severity: 'success', summary: 'Atualizado', detail: 'Cliente atualizado com sucesso!' });
-             this.saved.emit(res);
+             this.salvarDadosAdicionais(this.savedClienteId!, true);
           } else {
              this.salvarDadosAdicionais(this.savedClienteId!, false);
           }
@@ -454,7 +487,7 @@ export class CadastroCliente implements OnInit {
         error: (err) => {
              this.isSaving = false;
              console.error('Erro ao atualizar', err);
-             this.messageService.add({ severity: 'error', summary: 'Não foi possível atualizar', detail: 'Verifique os dados e tente novamente.' });
+             this.messageService.add({ severity: 'error', summary: 'Não foi possível atualizar', detail: err.status === 409 ? 'Este CPF/CNPJ já está vinculado a outro cliente da empresa.' : 'Verifique os dados e tente novamente.' });
         }
       });
     } else {
@@ -463,10 +496,14 @@ export class CadastroCliente implements OnInit {
           next: (res: ClienteResponseDTO) => {
             const id = (res as any).id ?? null;
             this.savedClienteId = id;
+            if (id) this.isEditMode = true;
 
             if (this.modalMode) {
-              this.isSaving = false;
-              this.saved.emit(res);
+              if (id) this.salvarDadosAdicionais(id, true);
+              else {
+                this.isSaving = false;
+                this.saved.emit(res);
+              }
             } else {
               if (id) {
                 // Ao criar, se tiver ID, tenta salvar endereço também se preenchido
@@ -481,7 +518,7 @@ export class CadastroCliente implements OnInit {
           error: (err: unknown) => {
             this.isSaving = false;
             console.error('Erro ao salvar cliente', err);
-            this.messageService.add({ severity: 'error', summary: 'Não foi possível salvar', detail: 'Verifique os dados e tente novamente.' });
+            this.messageService.add({ severity: 'error', summary: 'Não foi possível salvar', detail: (err as any)?.status === 409 ? 'Este CPF/CNPJ já está cadastrado para esta empresa.' : 'Verifique os dados e tente novamente.' });
           },
         });
     }
@@ -527,6 +564,10 @@ export class CadastroCliente implements OnInit {
       forkJoin(requests).subscribe({
         next: () => {
           this.isSaving = false;
+          if (this.modalMode) {
+            this.saved.emit({ id: clienteId });
+            return;
+          }
           if (!omitSuccessToast) {
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente e dados cadastrados!' });
           }
@@ -551,6 +592,10 @@ export class CadastroCliente implements OnInit {
       });
     } else {
       this.isSaving = false;
+      if (this.modalMode) {
+        this.saved.emit({ id: clienteId });
+        return;
+      }
       if (!omitSuccessToast) {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente salvo com sucesso!' });
       }
@@ -779,6 +824,10 @@ export class CadastroCliente implements OnInit {
   }
 
   excluirCliente() {
+      if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_EXCLUIR')) {
+          this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode excluir clientes.' });
+          return;
+      }
       if (!this.savedClienteId) return;
 
       this.confirmationService.confirm({
@@ -942,11 +991,46 @@ export class CadastroCliente implements OnInit {
   // ========== VEÍCULOS ==========
 
   loadVeiculos(id: string | number) {
-      // Cast to number if needed, service expects string/number usually fine but let's check
+      this.veiculosLoading = true;
+      this.veiculosError = false;
       this.veiculoService.list(Number(id)).subscribe({
-          next: (res) => this.veiculosList = res,
-          error: (err) => console.error('Erro ao carregar veículos', err)
+          next: (res) => {
+            this.veiculosList = Array.isArray(res) ? res : [];
+            this.veiculosLoading = false;
+          },
+          error: () => {
+            this.veiculosError = true;
+            this.veiculosLoading = false;
+          }
       });
+  }
+
+  openVehicle(vehicle: VeiculoResponse) {
+    if (this.isUxPreview) {
+      this.messageService.add({ severity: 'info', summary: 'Modo demonstrativo', detail: 'A edição de veículos não está disponível na prévia.' });
+      return;
+    }
+    if (!this.isUxPreview && !this.permissionsService.getPermission('VEICULO_EDITAR')) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode editar veículos.' });
+      return;
+    }
+    this.router.navigate(['/veiculo/editar', vehicle.id]);
+  }
+
+  addVehicle() {
+    if (this.isUxPreview) {
+      this.messageService.add({ severity: 'info', summary: 'Modo demonstrativo', detail: 'O cadastro de veículos não está disponível na prévia.' });
+      return;
+    }
+    if (!this.savedClienteId) {
+      this.messageService.add({ severity: 'info', summary: 'Salve o cliente primeiro', detail: 'Depois do cadastro, você poderá vincular um veículo.' });
+      return;
+    }
+    if (!this.isUxPreview && !this.permissionsService.getPermission('VEICULO_CRIAR')) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode cadastrar veículos.' });
+      return;
+    }
+    this.router.navigate(['/veiculo/cadastro'], { queryParams: { clienteId: this.savedClienteId } });
   }
 
   loadMarcas() {

@@ -15,7 +15,9 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MenuModule } from 'primeng/menu';
+import { DialogModule } from 'primeng/dialog';
 import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
+import { CadastroCliente } from '../cadastro-cliente/cadastro-cliente';
 import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -47,6 +49,8 @@ import {
     ToastModule,
     SkeletonModule,
     MenuModule,
+    DialogModule,
+    CadastroCliente,
     RouterModule,
   ],
 })
@@ -128,6 +132,7 @@ export class Cliente implements OnInit {
     return Math.floor(this.first / this.rows) + 1;
   }
   jumpPageInput = '';
+  isQuickFormOpen = false;
 
   // Filtrados (aplicado no frontend para dados já carregados)
   get filtered() {
@@ -250,6 +255,24 @@ export class Cliente implements OnInit {
       return;
     }
     this.router.navigate(['/cliente/cadastro'], { queryParams: this.listQueryParams() });
+  }
+
+  abrirCadastroRapido() {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_CRIAR')) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Seu perfil não possui permissão para cadastrar clientes.' });
+      return;
+    }
+    this.isQuickFormOpen = true;
+  }
+
+  onQuickClientSaved() {
+    this.isQuickFormOpen = false;
+    this.messageService.add({ severity: 'success', summary: 'Cliente salvo', detail: 'O cadastro e os dados associados foram salvos.' });
+    this.fetchPage();
+  }
+
+  onQuickClientCanceled() {
+    this.isQuickFormOpen = false;
   }
 
   navigateToEdit(row: { uuid?: string | number }) {

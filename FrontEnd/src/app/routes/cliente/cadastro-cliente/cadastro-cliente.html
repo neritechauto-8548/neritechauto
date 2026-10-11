@@ -1,9 +1,9 @@
 <main class="nt-client-form-page">
   <header class="nt-client-form-header">
     <div class="nt-client-form-title-group">
-      <button type="button" (click)="voltar()" class="nt-client-form-back" aria-label="Voltar para lista de clientes" title="Voltar para Clientes">
+      @if (!modalMode) { <button type="button" (click)="voltar()" class="nt-client-form-back" aria-label="Voltar para lista de clientes" title="Voltar para Clientes">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6M9 12h12"></path></svg>
-      </button>
+      </button> }
       <div>
         <span class="nt-client-form-eyebrow">Relacionamento / Clientes</span>
         <h1>{{ pageTitle }}</h1>
@@ -14,14 +14,14 @@
       </div>
     </div>
     <div class="nt-client-form-actions">
-      @if (savedClienteId) {
+      @if (savedClienteId && !modalMode && canDeleteClient) {
         <button type="button" class="nt-client-form-danger" [disabled]="isSaving" (click)="excluirCliente()">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"></path></svg>
           Excluir
         </button>
       }
       <button type="button" class="nt-client-form-secondary" [disabled]="isSaving" (click)="cancelar()">Cancelar</button>
-      <button type="button" class="nt-client-form-save" [disabled]="isSaving" [attr.aria-busy]="isSaving" (click)="salvar()">
+      <button type="button" class="nt-client-form-save" [disabled]="isSaving || isLoadingClient || clientLoadError || !canSaveForm" [attr.aria-busy]="isSaving || isLoadingClient" (click)="salvar()">
         @if (isSaving) {
           <span class="nt-client-form-spinner" aria-hidden="true"></span> Salvando...
         } @else {
@@ -32,19 +32,35 @@
     </div>
   </header>
 
-  <div class="nt-client-form-body">
+  @if (isLoadingClient) {
+    <div class="nt-client-form-notice" role="status" aria-live="polite">Carregando dados do cliente…</div>
+  }
+  @if (clientLoadError) {
+    <div class="nt-client-form-notice nt-client-form-notice-error" role="alert">
+      <span>Não foi possível carregar este cliente. Nenhum dado será salvo para evitar sobrescrever informações.</span>
+      <button type="button" (click)="loadClienteData(savedClienteId!)">Tentar novamente</button>
+    </div>
+  }
+  @if (!canSaveForm && !clientLoadError && !isUxPreview) {
+    <div class="nt-client-form-notice nt-client-form-notice-error" role="status">Seu perfil pode consultar este cliente, mas não possui permissão para alterar os dados.</div>
+  }
+
+  @if (!clientLoadError) { <div class="nt-client-form-body">
     <nav class="nt-client-form-tabs" role="tablist" aria-label="Seções do cadastro de cliente">
       @for (tab of tabs; track tab.label; let i = $index) {
         <button type="button" role="tab"
+          [attr.id]="'nt-client-form-tab-' + i"
           [attr.aria-selected]="activeIndex === i"
           [attr.aria-controls]="'nt-client-form-panel'"
+          [attr.tabindex]="activeIndex === i ? 0 : -1"
           [class.active]="activeIndex === i"
+          (keydown)="onTabKeydown($event, i)"
           (click)="activeIndex = i">{{ tab.label }}</button>
       }
     </nav>
 
     <!-- Content Area -->
-    <div id="nt-client-form-panel" role="tabpanel" class="grid grid-cols-1 gap-6 animate-fade-in-up">
+    <div id="nt-client-form-panel" role="tabpanel" [attr.aria-labelledby]="'nt-client-form-tab-' + activeIndex" class="grid grid-cols-1 gap-6 animate-fade-in-up">
 
         <!-- Tab 0: Dados Gerais -->
         @if (activeIndex === 0) {
@@ -264,8 +280,75 @@
              </div>
         }
 
+        @if (activeIndex === 3) {
+            <section class="nt-client-vehicles" aria-labelledby="nt-client-vehicles-title">
+                <header class="nt-client-vehicles-header">
+                    <div>
+                        <h2 id="nt-client-vehicles-title">Veículos vinculados</h2>
+                        <p>Consulte os automóveis associados a este cliente.</p>
+                    </div>
+                    @if (!isUxPreview) { <button type="button" class="nt-client-vehicle-add" (click)="addVehicle()" [disabled]="!savedClienteId">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        Adicionar veículo
+                    </button> }
+                </header>
+
+                @if (!savedClienteId) {
+                    <div class="nt-client-vehicle-state" role="status">Salve o cliente para vincular veículos.</div>
+                } @else if (veiculosLoading) {
+                    <div class="nt-client-vehicle-state" role="status" aria-live="polite">Carregando veículos…</div>
+                } @else if (veiculosError) {
+                    <div class="nt-client-vehicle-state nt-client-vehicle-error" role="alert">
+                        <span>Não foi possível carregar os veículos.</span>
+                        <button type="button" (click)="loadVeiculos(savedClienteId!)">Tentar novamente</button>
+                    </div>
+                } @else if (!veiculosList.length) {
+                    <div class="nt-client-vehicle-state">Nenhum veículo vinculado a este cliente.</div>
+                } @else {
+                    <div class="nt-client-vehicle-list">
+                        @for (vehicle of veiculosList; track vehicle.id) {
+                            <article class="nt-client-vehicle-card">
+                                <div class="nt-client-vehicle-details">
+                                    <div class="nt-client-vehicle-title">
+                                        <div>
+                                            <span class="nt-client-vehicle-plate">{{ vehicle.placa }}</span>
+                                            <h3>{{ vehicle.marcaNome || 'Marca não informada' }} {{ vehicle.modeloNome || '' }}</h3>
+                                            <p>{{ vehicle.anoModelo || vehicle.anoFabricacao || 'Ano não informado' }} <span aria-hidden="true">·</span> {{ vehicle.corExterna || 'Cor não informada' }}</p>
+                                        </div>
+                                        <span class="nt-client-vehicle-status" [class.is-inactive]="vehicle.status !== 'ATIVO'">{{ vehicle.status || 'Status não informado' }}</span>
+                                    </div>
+                                    <dl class="nt-client-vehicle-specs">
+                                        <div><dt>Combustível</dt><dd>{{ vehicle.combustivelNome || '—' }}</dd></div>
+                                        <div><dt>Quilometragem</dt><dd>{{ vehicle.quilometragemAtual != null ? (vehicle.quilometragemAtual | number) + ' km' : '—' }}</dd></div>
+                                        <div><dt>Chassi</dt><dd>{{ vehicle.chassi || '—' }}</dd></div>
+                                        <div><dt>RENAVAM</dt><dd>{{ vehicle.renavam || '—' }}</dd></div>
+                                        <div><dt>Motor</dt><dd>{{ vehicle.numeroMotor || '—' }}</dd></div>
+                                    </dl>
+                                    @if (!isUxPreview) { <button type="button" class="nt-client-vehicle-edit" (click)="openVehicle(vehicle)">Abrir cadastro do veículo</button> }
+                                </div>
+                                <div class="nt-client-vehicle-visual">
+                                    <div class="nt-client-vehicle-placeholder" role="img" [attr.aria-label]="'Ilustração neutra de automóvel para ' + vehicle.placa">
+                                        <span class="nt-client-vehicle-brand">NERITECH AUTO</span>
+                                        <svg viewBox="0 0 320 180" aria-hidden="true">
+                                            <path class="car-shadow" d="M45 132h230l-18 15H63z" />
+                                            <path class="car-body" d="m62 113 16-37c5-12 16-19 30-21l38-6 28 1 40 7c12 2 21 9 27 20l17 36c7 3 12 9 12 17v13H48v-13c0-8 5-14 14-17Z" />
+                                            <path class="car-window" d="m96 77 13-10 37-6v38H81zM154 61l34 1 37 7 14 30h-85z" />
+                                            <circle class="car-wheel" cx="99" cy="132" r="20"/><circle class="car-wheel-inner" cx="99" cy="132" r="8"/>
+                                            <circle class="car-wheel" cx="232" cy="132" r="20"/><circle class="car-wheel-inner" cx="232" cy="132" r="8"/>
+                                            <path class="car-light" d="m52 113 16-6M267 108l12 5" />
+                                        </svg>
+                                        <span>Foto não cadastrada</span>
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        }
+
     </div>
-  </div>
+  </div> }
 </main>
 
 <!-- Simple clean dialog for contacts -->

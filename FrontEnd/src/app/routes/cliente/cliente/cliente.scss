@@ -21,6 +21,9 @@
 .nt-clients-preview{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 10px;border:1px solid #bfdbfe;border-radius:7px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:600}
 .nt-clients-preview>span{width:6px;height:6px;border-radius:50%;background:#2563eb}
 .nt-clients-primary,.nt-clients-search-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;border:1px solid #2563eb;border-radius:8px;background:#2563eb;color:#fff;font:600 13px/18px Inter,system-ui,sans-serif;padding:0 16px;cursor:pointer;transition:background .15s ease}
+.nt-clients-heading-actions{display:flex;align-items:center;gap:9px}
+.nt-clients-quick{min-height:40px;padding:0 13px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#334155;font:600 12px/18px Inter,system-ui,sans-serif;cursor:pointer}
+.nt-clients-quick:hover{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
 .nt-clients-primary:hover,.nt-clients-search-button:hover{background:#1d4ed8}
 .nt-clients-primary svg,.nt-clients-search-control svg,.nt-contact-icon,.nt-empty-icon,.nt-row-action svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nt-clients-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;padding:16px;background:var(--nt-surface,#fff);border:1px solid var(--nt-border,#e2e8f0);border-radius:12px}
@@ -49,4 +52,5 @@
 .nt-clients-error{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #fecaca;border-radius:10px;background:#fff7f7;color:#991b1b}
 .nt-clients-error strong{font-size:13px}.nt-clients-error p{margin:3px 0 0;font-size:12px}
 @media(max-width:720px){.nt-clients-heading{align-items:stretch;gap:14px}.nt-clients-toolbar{padding:12px}.nt-clients-filter{flex:1 1 45%}.nt-clients-search-button{flex:1}.nt-clients-error{flex-wrap:wrap}}
+@media(max-width:480px){.nt-clients-heading-actions{width:100%}.nt-clients-heading-actions>*{flex:1}.nt-clients-quick{padding:0 8px}}
 @media(prefers-reduced-motion:reduce){.nt-clients-primary,.nt-clients-search-button{transition:none}}
