@@ -86,7 +86,7 @@ export class StartupService {
 
   /** Menu canônico para homologação visual. Não é usado em produção. */
   private getPreviewMenu(): Menu[] {
-    return [
+    const menu: Menu[] = [
       { route: 'patio', name: 'Gestão de Pátio', type: 'extLink', icon: 'warehouse' },
       { route: 'home', name: 'Início', type: 'link', icon: 'home' },
       { route: 'cliente', name: 'Clientes', type: 'sub', icon: 'people', children: [
@@ -98,16 +98,16 @@ export class StartupService {
       ] },
       { route: '', name: 'Oficina', type: 'sub', icon: 'oficina', children: [
         ...['Agenda','Orçamentos','Ordens de Serviço','Diagnósticos','Inspeções','Serviços','Veículos','Entregas','Vendas','Histórico']
-          .map((name, i) => ({ route: ['agendamento','orcamento','os','diagnostico','inspecao','produtos-servicos','veiculo','entrega','pdv','historico'][i], name, type: 'link' as const })),
+          .map((name, i) => ({ route: ['agendamento/calendario','orcamento','os','diagnostico','inspecao','produtos-servicos/servicos','veiculo','entrega','pdv','historico'][i], name, type: 'link' as const })),
       ] },
       { route: '', name: 'Estoque & Compras', type: 'sub', icon: 'estoque', children: [
-        ...['Estoque','Produtos','Kits','Compras','Cotações','Inventário','Movimentações'].map((name, i) => ({ route: ['estoque','produtos','kits','compras','cotacoes','inventario','movimentacoes'][i], name, type: 'link' as const })),
+        ...['Estoque','Produtos','Kits','Compras','Cotações','Inventário','Movimentações'].map((name, i) => ({ route: ['produtos-servicos/estoque','produtos','kits','compras','cotacoes','configuracoes/inventario','movimentacoes'][i], name, type: 'link' as const })),
       ] },
       { route: 'financeiro', name: 'Financeiro', type: 'sub', icon: 'financeiro', children: [
         ...['Contas','Contas a Receber','Contas a Pagar','Lançamentos Bancários','Movimento de Caixa','Movimento Bancário','Comissões'].map((name, i) => ({ route: ['contas','receber','pagar','lancamentos','caixa','bancario','comissoes'][i], name, type: 'link' as const })),
       ] },
       { route: 'fiscal', name: 'Fiscal', type: 'sub', icon: 'fiscal', children: [
-        ...['Documentos Fiscais','NF-e','NFC-e / Cupom','NFS-e','Manifestação','Inutilização','NCM','SINTEGRA'].map((name, i) => ({ route: ['documentos','nfe','nfce','nfse','manifestacao','inutilizacao','ncm','sintegra'][i], name, type: 'link' as const })),
+        ...['Documentos Fiscais','NF-e','NFC-e / Cupom','NFS-e','Manifestação','Inutilização','NCM','SINTEGRA'].map((name, i) => ({ route: ['documentos','nfe','nfce','nfse','manifestacao','nfe/inutilizar-numeracao','ncm','sintegra'][i], name, type: 'link' as const })),
       ] },
       { route: '', name: 'Inteligência Artificial', type: 'sub', icon: 'ia', children: [
         { route: 'assistente', name: 'Assistente', type: 'link' },
@@ -115,5 +115,30 @@ export class StartupService {
       ] },
       { route: 'graficos-gerenciais', name: 'Gráficos Gerenciais', type: 'link', icon: 'analytics' },
     ];
+
+    // Apenas destinos confirmados no app.routes.ts e seus módulos lazy-loaded.
+    // A árvore oficial continua visível; funcionalidades futuras não redirecionam
+    // silenciosamente para /home e não simulam telas prontas.
+    const registeredRoutes = new Set([
+      '/home', '/cliente/listar', '/agendamento/calendario', '/orcamento', '/os',
+      '/produtos-servicos/servicos', '/veiculo', '/pdv', '/produtos-servicos/estoque',
+      '/configuracoes/inventario', '/financeiro/contas', '/financeiro/receber',
+      '/financeiro/pagar', '/financeiro/caixa', '/financeiro/comissoes',
+      '/fiscal/nfe', '/fiscal/nfce', '/fiscal/nfse', '/fiscal/nfe/inutilizar-numeracao',
+    ]);
+    const markUnavailable = (items: Array<Menu | import('./menu.service').MenuChildrenItem>, parents: string[] = []) => {
+      for (const item of items) {
+        const segments = [...parents, item.route];
+        if (item.type === 'link') {
+          item.disabled = !registeredRoutes.has(this.menuService.buildRoute(segments));
+        } else if (item.type === 'extLink' || item.type === 'extTabLink') {
+          // A URL real da aplicação Gestão de Pátio ainda não foi configurada.
+          item.disabled = !/^https?:\/\/[^\s/]+/i.test(item.route);
+        }
+        if (item.children?.length) markUnavailable(item.children, segments);
+      }
+    };
+    markUnavailable(menu);
+    return menu;
   }
 }
