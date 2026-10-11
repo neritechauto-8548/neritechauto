@@ -20,3 +20,11 @@ Não recriar a sidebar antiga `SidebarMenuComponent`: usar exclusivamente `theme
 - CI verde **não substitui QA visual** de 320, 375, 768, 1024 e 1440 px nem navegação por teclado;
 - confirmar perfil, permissões, navegação e comportamento sem backend apenas em UX Preview;
 - manter pendências explícitas até a validação real no navegador.
+
+## Acessibilidade da busca e do menu (continuação 2026-10-11)
+
+A pesquisa do shell navega apenas pelos itens visíveis no menu disponível à sessão, usa `role=combobox` / `listbox`, setas, Enter, Escape e Ctrl/Cmd+K, com estado vazio. Destinos externos sem URL HTTP(S) válida não são oferecidos na pesquisa. Essa filtragem é UX, **não substitui a autorização do backend**.
+
+A sidebar abre automaticamente o ancestral da rota ativa, inclusive quando o segmento de um grupo é vazio. Os submenus indicam `aria-expanded`, descendentes recolhidos ficam `inert` para Tab e os links/botões têm nome acessível mesmo com ícones isolados.
+
+**Critérios de aceite pendentes de QA manual:** teclado e leitor de tela; rotas profundas; acesso sem backend em UX Preview; 320/375/768/1024/1440 px; alternância de tema; contraste e zoom. Build e testes unitários, mesmo verdes, não autorizam declarar a Etapa 00 homologada sem essas verificações no navegador.
