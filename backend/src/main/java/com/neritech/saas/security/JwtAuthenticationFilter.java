@@ -1,6 +1,7 @@
 package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @Override
     protected void doFilterInternal(
@@ -54,7 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                if (jwtService.isTokenValid(jwt, userDetails)
+                        && sessaoUsuarioRepository.findByTokenSessao(jwt).map(sessao -> Boolean.TRUE.equals(sessao.getAtivo())).orElse(false)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,

@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { ConfirmationService, ConfirmationConfig } from '../../services/confirmation.service';
 import { Subscription } from 'rxjs';
+import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
 
 @Component({
   selector: 'app-confirmation-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule, MatIconModule],
+  imports: [CommonModule, DialogModule, NeriTechIcon],
   template: `
     <p-dialog
       [(visible)]="visible"
@@ -32,16 +32,16 @@ import { Subscription } from 'rxjs';
                 'bg-blue-100': config?.type === 'info' || !config?.type
               }"
             >
-              <mat-icon
+              <nt-icon
+                [name]="getIconName()"
+                [size]="18"
                 class="!text-[18px] !w-[18px] !h-[18px]"
                 [ngClass]="{
                   'text-rose-600': config?.type === 'danger',
                   'text-amber-600': config?.type === 'warning',
                   'text-blue-600': config?.type === 'info' || !config?.type
                 }"
-              >
-                {{ config?.icon || getDefaultIcon() }}
-              </mat-icon>
+              />
             </div>
             <h3 class="text-base font-semibold text-slate-900">{{ config?.title }}</h3>
           </div>
@@ -100,12 +100,8 @@ export class ConfirmationDialogComponent implements OnInit, OnDestroy {
     this.confirmationService.sendResult(false);
   }
 
-  getDefaultIcon(): string {
-    switch (this.config?.type) {
-      case 'danger': return 'warning';
-      case 'warning': return 'error_outline';
-      case 'info': return 'info';
-      default: return 'help_outline';
-    }
+  getIconName(): NeriTechIconName {
+    if (this.config?.icon === 'delete' || this.config?.icon === 'warning') return 'alert-circle';
+    return this.config?.type === 'danger' || this.config?.type === 'warning' ? 'alert-circle' : 'info-circle';
   }
 }

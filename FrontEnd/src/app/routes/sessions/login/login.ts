@@ -1,14 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { Router, RouterLink } from '@angular/router';
-import { MtxButtonModule } from '@ng-matero/extensions/button';
-import { TranslateModule } from '@ngx-translate/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '@core/authentication';
@@ -17,7 +10,6 @@ import { LocalStorageService } from '@shared/services/storage.service';
 
 import { CommonModule } from '@angular/common';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-login',
@@ -28,14 +20,13 @@ import { ToastModule } from 'primeng/toast';
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
-    TranslateModule,
-    ToastModule,
     NeriTechIcon,
   ],
 })
 export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
   private readonly storage = inject(LocalStorageService);
   private readonly messageService = inject(MessageService);
@@ -108,12 +99,15 @@ export class Login {
             detail: 'Login realizado com sucesso!',
           });
 
-          this.router.navigateByUrl('/home');
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//') && !returnUrl.startsWith('/auth/')
+            ? returnUrl : '/home';
+          this.router.navigateByUrl(destination);
         },
         error: (errorRes: HttpErrorResponse) => {
           if (errorRes.status === 401) {
             const form = this.loginForm;
-            const message = errorRes.error?.message || 'Credenciais inválidas';
+            const message = 'E-mail ou senha inválidos.';
             form.get('username')?.setErrors({ remote: message });
             form.get('password')?.setErrors({ remote: message });
           } else if (errorRes.status === 422) {
@@ -138,11 +132,6 @@ export class Login {
                 form.get(controlKey)?.setErrors({ remote: msg });
               });
             }
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erro de validação',
-              detail: 'Por favor, verifique os campos destacados.',
-            });
           } else {
             this.messageService.add({
               severity: 'error',

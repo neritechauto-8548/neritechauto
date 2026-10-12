@@ -87,11 +87,12 @@ export class StartupService {
   /** Menu canônico para homologação visual. Não é usado em produção. */
   private getPreviewMenu(): Menu[] {
     const menu: Menu[] = [
-      { route: 'patio', name: 'Gestão de Pátio', type: 'extLink', icon: 'warehouse' },
+      { route: 'patio', name: 'Gestão de Pátio', type: 'link', icon: 'warehouse' },
       { route: 'home', name: 'Início', type: 'link', icon: 'home' },
       { route: 'cliente', name: 'Clientes', type: 'sub', icon: 'people', children: [
         { route: 'listar', name: 'Clientes', type: 'link' },
         { route: 'crm', name: 'CRM', type: 'sub', children: [
+          { route: '', name: 'Visão geral', type: 'link' },
           { route: 'comunicacao', name: 'Comunicação', type: 'link' },
           { route: 'pesquisa', name: 'Questionamento de pesquisa', type: 'link' },
         ] },
@@ -120,7 +121,7 @@ export class StartupService {
     // A árvore oficial continua visível; funcionalidades futuras não redirecionam
     // silenciosamente para /home e não simulam telas prontas.
     const registeredRoutes = new Set([
-      '/home', '/cliente/listar', '/agendamento/calendario', '/orcamento', '/os',
+      '/home', '/cliente/listar', '/cliente/crm', '/cliente/crm/pesquisa', '/agendamento/calendario', '/orcamento', '/os',
       '/produtos-servicos/servicos', '/veiculo', '/pdv', '/produtos-servicos/estoque',
       '/configuracoes/inventario', '/financeiro/contas', '/financeiro/receber',
       '/financeiro/pagar', '/financeiro/caixa', '/financeiro/comissoes',
@@ -132,7 +133,7 @@ export class StartupService {
         if (item.type === 'link') {
           item.disabled = !registeredRoutes.has(this.menuService.buildRoute(segments));
         } else if (item.type === 'extLink' || item.type === 'extTabLink') {
-          // A URL real da aplicação Gestão de Pátio ainda não foi configurada.
+          // Links externos só ficam ativos com URL real.
           item.disabled = !/^https?:\/\/[^\s/]+/i.test(item.route);
         }
         if (item.children?.length) markUnavailable(item.children, segments);

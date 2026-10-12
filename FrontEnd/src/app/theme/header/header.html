@@ -12,19 +12,20 @@
 
   <div class="nt-global-search" [class.nt-mobile-search-open]="mobileSearchOpen">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-    <input #globalSearchInput id="nt-global-search-input" type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" role="combobox" aria-autocomplete="list" [attr.aria-expanded]="searchResults.length > 0" [attr.aria-controls]="searchResults.length ? 'nt-search-results' : null" [attr.aria-activedescendant]="activeSearchIndex >= 0 ? 'nt-search-result-' + activeSearchIndex : null" (keydown)="onSearchKeydown($event)" />
-    @if (searchResults.length) {
+    <input #globalSearchInput id="nt-global-search-input" type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" role="combobox" aria-autocomplete="list" [attr.aria-expanded]="!!searchTerm.trim()" [attr.aria-controls]="searchTerm.trim() ? 'nt-search-results' : null" [attr.aria-activedescendant]="activeSearchIndex >= 0 ? 'nt-search-result-' + activeSearchIndex : null" (keydown)="onSearchKeydown($event)" />
+    @if (searchTerm.trim()) {
       <div id="nt-search-results" class="nt-search-results" role="listbox" aria-label="Páginas disponíveis">
-        @for (result of searchResults; track result.route; let i = $index) {
-          <button type="button" class="nt-search-result" [id]="'nt-search-result-' + i" [attr.aria-selected]="activeSearchIndex === i" (mouseenter)="activeSearchIndex = i" (click)="navigateSearch(result.route)" role="option">
-            <span>{{ result.name }}</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-          </button>
+        @if (searchResults.length) {
+          @for (result of searchResults; track result.route; let i = $index) {
+            <button type="button" class="nt-search-result" [id]="'nt-search-result-' + i" [attr.aria-selected]="activeSearchIndex === i" (mouseenter)="activeSearchIndex = i" (click)="navigateSearch(result.route)" role="option">
+              <span>{{ result.name }}</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </button>
+          }
+        } @else {
+          <div class="nt-search-empty" role="option" aria-selected="false" aria-disabled="true">Nenhuma página encontrada no menu disponível.</div>
         }
       </div>
-    }
-    @if (searchTerm.trim() && !searchResults.length) {
-      <div class="nt-search-empty" role="status">Nenhuma página encontrada no menu disponível.</div>
     }
     <kbd>Ctrl K</kbd>
   </div>

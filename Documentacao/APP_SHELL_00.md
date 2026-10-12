@@ -4,12 +4,14 @@
 
 - Navegação principal: `theme/admin-layout`, `theme/sidebar/sidebar.ts`, `theme/sidemenu` e `theme/header`.
 - Branding, menu do usuário e breadcrumb: `theme/widgets`.
-- Busca mobile e desktop com atalhos e responsividade; autenticação e assinatura apenas nos ambientes de produção (prévia UX claramente marcada).
+- Busca mobile e desktop com atalhos e responsividade. A autenticação funciona por padrão também em desenvolvimento; a prévia UX é ativada explicitamente com `?uxPreview=1` apenas no build de desenvolvimento. O build de produção mantém a prévia desativada.
 - Serviços, formulários, filtros, tabelas e telas de domínio preservam a arquitetura congelada no Notion.
 
 ## Rotas de produto
 
 O arquivo `app.routes.ts` registra apenas o Application Shell, autenticação, perfil/conta, estados de erro e os módulos existentes da NERITECH AUTO. Rotas de vitrine de componentes herdadas do template (`design`, `material`, `media`, `forms`, `tables`, `permissions`, `utilities`) **não integram a navegação do produto**. O código de demonstração pode permanecer no repositório enquanto for útil para desenvolvimento, mas não deve gerar telas extras acessíveis na aplicação.
+
+Rotas desconhecidas apresentam a página 404. Respostas 404 de uma API não substituem a página atual. Ao receber 401 em uma operação protegida, o cliente limpa a sessão local e encaminha para o login; após autenticar, retorna à URL interna solicitada. Não há empresa padrão para renovação de token.
 
 Não recriar a sidebar antiga `SidebarMenuComponent`: usar exclusivamente `theme/sidebar/sidebar.ts` e respeitar o menu oficial do Notion. Não criar atalho de rota inexistente para simular módulo ainda não implementado.
 
@@ -45,6 +47,6 @@ A sidebar abre automaticamente o ancestral da rota ativa, inclusive quando o seg
 
 A árvore do menu permanece idêntica à arquitetura canônica; a prévia UX **não inventa páginas**. Cada opção com implementação Angular confirmada em `app.routes.ts` e em suas rotas lazy aponta para a URL real. Exemplos: Agenda `/agendamento/calendario`, Orçamentos `/orcamento`, Ordens de Serviço `/os`, Serviços `/produtos-servicos/servicos`, Veículos `/veiculo`, Vendas `/pdv`, Estoque `/produtos-servicos/estoque`, Inventário `/configuracoes/inventario`, NF-e `/fiscal/nfe` e Inutilização `/fiscal/nfe/inutilizar-numeracao`.
 
-Itens oficiais sem rota operacional no frontend atual continuam visíveis **somente como indisponíveis**, com `aria-disabled`, sem `href` ou `routerLink`, e são excluídos da busca global. Isso inclui a Gestão de Pátio enquanto a URL externa não estiver configurada; links externos só funcionam com HTTP(S) válido. Essa indicação diz respeito à disponibilidade de navegação, **não** à homologação funcional dos módulos correspondentes nem à integração real com APIs.
+Itens oficiais sem rota operacional no frontend atual continuam visíveis **somente como indisponíveis**, com `aria-disabled`, sem `href` ou `routerLink`, e são excluídos da busca global. Gestão de Pátio deve abrir uma tela interna quando a rota e o contrato canônicos forem implementados; não deve apontar para sistema externo. Essa indicação diz respeito à disponibilidade de navegação, **não** à homologação funcional dos módulos correspondentes nem à integração real com APIs.
 
 Os testes `theme/sidemenu/preview-menu.spec.ts`, `sidemenu.spec.ts` e `header.spec.ts` cobrem o mapeamento, os destinos externos inválidos e a busca. Qualquer nova tela habilitada na prévia deve ser confrontada com uma rota Angular realmente registrada antes de liberar o clique. Continua pendente inspeção manual com leitor de tela e em todas as larguras do gate.

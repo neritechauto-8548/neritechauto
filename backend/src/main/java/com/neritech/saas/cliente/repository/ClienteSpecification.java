@@ -8,11 +8,12 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 import com.neritech.saas.common.tenancy.TenantContext;
 
 public class ClienteSpecification {
 
-    public static Specification<Cliente> buildSpecification(String busca, String nomeCompleto, String razaoSocial, String cpf, String cnpj, TipoCliente tipoCliente, StatusCliente status) {
+    public static Specification<Cliente> buildSpecification(String busca, String nomeCompleto, String razaoSocial, String cpf, String cnpj, TipoCliente tipoCliente, StatusCliente status, LocalDate dataInicio, LocalDate dataFim) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -66,6 +67,13 @@ public class ClienteSpecification {
 
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+
+            if (dataInicio != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dataCadastro"), dataInicio.atStartOfDay()));
+            }
+            if (dataFim != null) {
+                predicates.add(criteriaBuilder.lessThan(root.get("dataCadastro"), dataFim.plusDays(1).atStartOfDay()));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

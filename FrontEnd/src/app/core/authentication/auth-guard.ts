@@ -12,5 +12,8 @@ export const authGuard = (route?: ActivatedRouteSnapshot, state?: RouterStateSna
     return true;
   }
 
-  return auth.check() ? true : router.parseUrl('/auth/login');
+  const returnUrl = state?.url;
+  return auth.check() ? true : router.createUrlTree(['/auth/login'], {
+    queryParams: returnUrl?.startsWith('/') ? { returnUrl } : undefined,
+  });
 };

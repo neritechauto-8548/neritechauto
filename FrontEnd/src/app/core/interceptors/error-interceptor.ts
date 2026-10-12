@@ -1,6 +1,8 @@
 import { HttpErrorResponse, HttpHandlerFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { TokenService } from '@core/authentication';
+import { LocalStorageService } from '@shared/services/storage.service';
 import { MessageService } from 'primeng/api';
 import { catchError, throwError } from 'rxjs';
 
@@ -21,135 +23,55 @@ export interface ValidationError {
 
 export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
   const router = inject(Router);
-  const messageService = inject(MessageService);
-  const errorPages = [STATUS.FORBIDDEN, STATUS.NOT_FOUND, STATUS.INTERNAL_SERVER_ERROR];
+  const messages = inject(MessageService);
+  const tokens = inject(TokenService);
+  const storage = inject(LocalStorageService);
   const skipToast = req.headers.has('X-Skip-Toast');
+  const isLogin = /\/auth\/login(?:\?|$)/.test(req.url);
+  const isPublicAuth = /\/auth\/(?:login|recover-password|reset-password)(?:\?|$)/.test(req.url);
 
-  const getMessage = (error: HttpErrorResponse): string => {
-    if (error.error?.message) return error.error.message;
-    if (error.error?.msg) return error.error.msg;
-    if (error.status === STATUS.UNPROCESSABLE_ENTITY && error.error?.details) {
-      const details = error.error.details as ValidationError[];
-      if (Array.isArray(details) && details.length > 0) {
-        return details.map(d => `${d.field}: ${d.message}`).join('; ');
+  const outgoing = skipToast ? req.clone({ headers: req.headers.delete('X-Skip-Toast') }) : req;
+  return next(outgoing).pipe(catchError((error: HttpErrorResponse) => {
+    if (!(error instanceof HttpErrorResponse)) return throwError(() => error);
+
+    if (error.status === STATUS.UNAUTHORIZED && !isPublicAuth) {
+      tokens.clear();
+      storage.remove('tenantId');
+      storage.remove('empresaId');
+      if (!router.url.startsWith('/auth/')) {
+        if (!skipToast) messages.add({ severity: 'warn', summary: 'Sessão expirada', detail: 'Entre novamente para continuar.', sticky: true });
+        const returnUrl = router.url.startsWith('/') ? router.url : '/home';
+        router.navigateByUrl(router.createUrlTree(['/auth/login'], { queryParams: { returnUrl } }));
       }
-    }
-    if (error.status === 0) return 'Servidor indisponível ou erro de conexão.';
-    return `${error.status} ${error.statusText}`;
-  };
-
-  const getValidationErrors = (error: HttpErrorResponse): ValidationError[] => {
-    if (error.error?.type === 'VALIDATION' && error.error?.errors) {
-      return Object.entries(error.error.errors).map(([field, message]) => ({ field, message: String(message) }));
-    }
-    if (error.status === STATUS.UNPROCESSABLE_ENTITY && error.error?.details) {
-      const details = error.error.details;
-      if (Array.isArray(details)) return details as ValidationError[];
-    }
-    return [];
-  };
-
-  return next(req).pipe(
-    catchError((error: HttpErrorResponse) => {
-      // Verifica se é o novo padrão enterprise ApiErrorResponse
-      if (error.error && error.error.type) {
-        console.error('API ERROR (Enterprise Format)', error);
-        
-        if (error.status === STATUS.UNAUTHORIZED) {
-          if (req.url.includes('/api/auth/login')) {
-            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
-          } else if (req.url.includes('/usuarios/me')) {
-            console.warn('[ErrorInterceptor] /usuarios/me retornou 401. Ignorando redirecionamento.');
-          } else {
-            router.navigateByUrl('/auth/login');
-          }
-        } else if (error.error.type === 'BUSINESS_RULE') {
-          // Regras de negócio viram toast de atenção (warn / amarelo)
-          if (!skipToast) messageService.add({ severity: 'warn', summary: 'Atenção', detail: error.error.message });
-        } else if (error.error.type === 'VALIDATION' || error.status === STATUS.UNPROCESSABLE_ENTITY) {
-          const validationErrors = getValidationErrors(error);
-          if (validationErrors.length > 0) {
-            if (!skipToast) validationErrors.forEach(err => {
-              messageService.add({ severity: 'error', summary: 'Validação', detail: `${err.field}: ${err.message}` });
-            });
-          } else {
-            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
-          }
-        } else if (error.error.type === 'FORBIDDEN' || error.status === STATUS.FORBIDDEN) {
-          if (!skipToast) messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Seu perfil não possui permissão para realizar esta operação.' });
-        } else {
-          if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
-        }
-        return throwError(() => error);
-      }
-
-      // Fallback para o comportamento antigo
-      const isApi = req.url.includes('/api/') || req.url.includes('/v1/');
-
-      if (isApi) {
-        console.error('API ERROR', error);
-        const apiErrors = error.error?.errors;
-
-        if (error.status === STATUS.UNAUTHORIZED) {
-          if (req.url.includes('/api/auth/login') || req.url.includes('/auth/login')) {
-            if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: 'Credenciais inválidas' });
-          } else if (req.url.includes('/usuarios/me')) {
-            console.warn('[ErrorInterceptor] /usuarios/me retornou 401. Ignorando redirecionamento.');
-          } else {
-            router.navigateByUrl('/auth/login');
-          }
-        } else if (error.status === STATUS.UNPROCESSABLE_ENTITY) {
-          if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-            if (!skipToast) apiErrors.forEach((err: string) => {
-              messageService.add({ severity: 'error', summary: 'Validação', detail: err });
-            });
-          } else {
-            const validationErrors = getValidationErrors(error);
-            if (validationErrors.length > 0) {
-              if (!skipToast) validationErrors.forEach(err => {
-                messageService.add({ severity: 'error', summary: 'Validação', detail: `${err.field}: ${err.message}` });
-              });
-            } else {
-              if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
-            }
-          }
-        } else {
-          if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-            if (!skipToast) {
-              apiErrors.forEach((err: string) => {
-                const severity = error.status === STATUS.FORBIDDEN ? 'warn' : 'error';
-                const summary = error.status === STATUS.FORBIDDEN ? 'Atenção' : 'Erro';
-                messageService.add({ severity, summary, detail: err });
-              });
-            }
-          } else {
-            if (!skipToast) {
-              const isPermissionError = error.status === STATUS.FORBIDDEN && error.error?.code === 'FORBIDDEN_PERMISSION';
-              
-              const severity = isPermissionError ? 'warn' : 'error';
-              const summary = isPermissionError ? 'Atenção' : 'Erro';
-              const detail = isPermissionError 
-                ? 'Seu perfil não possui permissão para realizar esta operação.' 
-                : getMessage(error);
-                
-              messageService.add({ severity, summary, detail });
-            }
-          }
-        }
-        return throwError(() => error);
-      }
-
-      if (errorPages.includes(error.status)) {
-        router.navigateByUrl(`/${error.status}`, { skipLocationChange: true });
-      } else {
-        console.error('ERROR', error);
-        if (!skipToast) messageService.add({ severity: 'error', summary: 'Erro', detail: getMessage(error) });
-        if (error.status === STATUS.UNAUTHORIZED) {
-          router.navigateByUrl('/auth/login');
-        }
-      }
-
       return throwError(() => error);
-    })
-  );
+    }
+
+    if (skipToast) return throwError(() => error);
+
+    let detail: string;
+    let severity = 'error';
+    let summary = 'Não foi possível concluir';
+    if (isLogin && error.status === STATUS.UNAUTHORIZED) {
+      detail = 'Credenciais inválidas.';
+    } else if (error.status === 0) {
+      detail = 'Sem conexão com o servidor. Verifique sua rede e tente novamente.';
+    } else if (error.status === STATUS.FORBIDDEN) {
+      severity = 'warn';
+      summary = 'Acesso negado';
+      detail = 'Seu perfil não possui permissão para esta operação.';
+    } else if (error.status === STATUS.NOT_FOUND) {
+      detail = 'O recurso solicitado não foi encontrado.';
+    } else if (error.status >= 500) {
+      detail = 'O servidor não conseguiu concluir a operação. Tente novamente mais tarde.';
+    } else if (error.status === STATUS.UNPROCESSABLE_ENTITY || error.status === STATUS.BAD_REQUEST || error.status === STATUS.CONFLICT) {
+      const body = error.error;
+      detail = typeof body?.message === 'string' && body.message.trim()
+        ? body.message : 'Confira os dados informados e tente novamente.';
+    } else {
+      detail = 'Tente novamente. Se o problema persistir, contate o suporte.';
+    }
+
+    messages.add({ severity, summary, detail, sticky: error.status === 0 || error.status >= 500 });
+    return throwError(() => error);
+  }));
 }

@@ -90,5 +90,5 @@ export const routes: Routes = [
       { path: 'reset-password', component: ResetPassword },
     ],
   },
-  { path: '**', redirectTo: 'home' },
+  { path: '**', redirectTo: '404' },
 ];

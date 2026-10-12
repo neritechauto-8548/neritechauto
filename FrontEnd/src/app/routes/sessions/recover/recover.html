@@ -67,9 +67,7 @@
 
       <div *ngIf="emailSent" class="success-state" role="status" aria-live="polite">
         <div class="success-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m5 12 4.5 4.5L19 7"></path>
-          </svg>
+          <nt-icon name="check-circle" [size]="22" />
         </div>
         <h2>Verifique seu e-mail</h2>
         <p>
@@ -114,9 +112,6 @@
       </form>
 
       <a *ngIf="!emailSent" routerLink="/auth/login" class="back-link">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path>
-        </svg>
         Voltar para o login
       </a>
 
@@ -126,4 +121,3 @@
     </div>
   </section>
 </main>
-<p-toast />

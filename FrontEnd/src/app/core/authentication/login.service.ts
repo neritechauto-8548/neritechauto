@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { map, of } from 'rxjs';
 
@@ -10,11 +10,12 @@ import { Token, User } from './interface';
 })
 export class LoginService {
   protected readonly http = inject(HttpClient);
+  private readonly authFeedback = { headers: new HttpHeaders({ 'X-Skip-Toast': 'true' }) };
 
   login(username: string, password: string, rememberMe = false) {
     return this.http.post<Token>(
       '/auth/login',
-      { email: username, senha: password }
+      { email: username, senha: password }, this.authFeedback
     ).pipe(
       map((response: any) => {
         // Converter camelCase do backend para snake_case esperado pelo frontend
@@ -29,9 +30,8 @@ export class LoginService {
   }
 
   refresh(params: Record<string, any>) {
-    const tenantId = localStorage.getItem('tenantId') || '1';
     const refreshToken = params.refresh_token || params.refreshToken;
-    return this.http.post<Token>('/auth/refresh', { refreshToken }, { headers: { 'X-Tenant-Id': tenantId } }).pipe(
+    return this.http.post<Token>('/auth/refresh', { refreshToken }).pipe(
       map((response: any) => {
         // Converter camelCase do backend para snake_case esperado pelo frontend
         return {
@@ -49,11 +49,11 @@ export class LoginService {
   }
 
   recoverPassword(email: string) {
-    return this.http.post<any>('/auth/recover-password', { email });
+    return this.http.post<any>('/auth/recover-password', { email }, this.authFeedback);
   }
 
   resetPassword(params: any) {
-    return this.http.post<any>('/auth/reset-password', params);
+    return this.http.post<any>('/auth/reset-password', params, this.authFeedback);
   }
 
   user() {

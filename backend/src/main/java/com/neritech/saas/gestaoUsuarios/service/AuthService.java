@@ -17,7 +17,12 @@ import com.neritech.saas.gestaoUsuarios.domain.TokenRecuperacaoSenha;
 import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
 import com.neritech.saas.common.mail.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import java.util.UUID;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HexFormat;
 import com.neritech.saas.security.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +44,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UsuarioRepository usuarioRepository;
     private final SessaoUsuarioRepository sessaoUsuarioRepository;
@@ -153,6 +160,7 @@ public class AuthService {
         if (userEmail != null) {
             Usuario usuario = usuarioRepository.findByEmailIgnoreCase(userEmail)
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+            TenantContext.setCurrentTenant(usuario.getEmpresaId());
 
             // Validate token matches session
             SessaoUsuario sessao = sessaoUsuarioRepository.findByRefreshToken(refreshToken)
@@ -160,6 +168,9 @@ public class AuthService {
 
             if (!sessao.getAtivo()) {
                 throw new RuntimeException("Sessão inativa");
+            }
+            if (!sessao.getUsuario().getId().equals(usuario.getId()) || !sessao.getEmpresaId().equals(usuario.getEmpresaId())) {
+                throw new BadCredentialsException("Sessão inválida");
             }
 
             // Generate new Access Token
@@ -206,6 +217,7 @@ public class AuthService {
                 String newAccessToken = jwtService.generateToken(extraClaims, userDetails);
                 
                 // Update Session
+                sessao.setTokenSessao(newAccessToken);
                 sessao.setUltimoAcesso(LocalDateTime.now());
                 sessaoUsuarioRepository.save(sessao);
                 
@@ -242,11 +254,16 @@ public class AuthService {
             // Definir o contexto do tenant para permitir gravação de logs e tokens
             TenantContext.setCurrentTenant(usuario.getEmpresaId());
 
-            // Gerar token único
-            String token = UUID.randomUUID().toString();
+            // Limite por conta; a resposta HTTP permanece genérica para evitar enumeração.
+            if (tokenRepository.countByUsuarioIdAndDataCriacaoAfter(usuario.getId(), LocalDateTime.now().minusMinutes(15)) >= 3) {
+                return;
+            }
+            byte[] random = new byte[32];
+            SECURE_RANDOM.nextBytes(random);
+            String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
             
             TokenRecuperacaoSenha tokenEntity = TokenRecuperacaoSenha.builder()
-                    .token(token)
+                    .token(hashToken(token))
                     .usuario(usuario)
                     .dataExpiracao(LocalDateTime.now().plusMinutes(30))
                     .build();
@@ -262,15 +279,15 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        TokenRecuperacaoSenha tokenEntity = tokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Token de recuperação inválido ou inexistente"));
+        TokenRecuperacaoSenha tokenEntity = tokenRepository.findWithLockByToken(hashToken(request.getToken()))
+                .orElseThrow(() -> new IllegalArgumentException("Link de recuperação inválido"));
 
         if (tokenEntity.getUsado()) {
-            throw new RuntimeException("Este link de recuperação já foi utilizado");
+            throw new IllegalStateException("Este link de recuperação já foi utilizado");
         }
 
         if (tokenEntity.getDataExpiracao().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("O link de recuperação expirou. Por favor, solicite um novo");
+            throw new IllegalStateException("O link de recuperação expirou. Solicite um novo");
         }
 
         Usuario usuario = tokenEntity.getUsuario();
@@ -287,7 +304,22 @@ public class AuthService {
         tokenEntity.setUsado(true);
         tokenRepository.saveAndFlush(tokenEntity);
 
+        // Senha nova invalida todas as sessões ativas, inclusive refresh tokens.
+        for (SessaoUsuario sessao : sessaoUsuarioRepository.findByUsuarioIdAndAtivoTrue(usuario.getId())) {
+            sessao.setAtivo(false);
+            sessaoUsuarioRepository.save(sessao);
+        }
+
         logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS, "Senha redefinida com sucesso via link de e-mail", null, null);
+    }
+
+    private String hashToken(String token) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 indisponível", ex);
+        }
     }
 
     private void createSession(Usuario usuario, String accessToken, String refreshToken, LoginRequest request) {

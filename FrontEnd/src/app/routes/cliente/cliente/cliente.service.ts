@@ -52,11 +52,15 @@ export class ClientesService {
       const term = String(filters?.['busca'] || filters?.['search'] || filters?.['nome'] || '').trim().toLocaleLowerCase('pt-BR');
       const tipo = filters?.['tipoCliente'];
       const status = filters?.['status'];
+      const dataInicio = filters?.['dataInicio'];
+      const dataFim = filters?.['dataFim'];
       const filtered = this.previewClientes
         .filter(c => !term || [c.nomeCompleto, c.nomeFantasia, c.razaoSocial, c.cpf, c.cnpj, c.email]
           .some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(term)))
         .filter(c => !tipo || c.tipoCliente === tipo)
         .filter(c => !status || c.status === status)
+        .filter(c => !dataInicio || !!c.dataCadastro && c.dataCadastro.slice(0, 10) >= dataInicio)
+        .filter(c => !dataFim || !!c.dataCadastro && c.dataCadastro.slice(0, 10) <= dataFim)
         .sort((a, b) => this.getClientName(a).localeCompare(this.getClientName(b), 'pt-BR'));
       const page = Math.max(0, Number(filters?.['page'] ?? 0));
       const size = Math.max(1, Number(filters?.['size'] ?? 10));

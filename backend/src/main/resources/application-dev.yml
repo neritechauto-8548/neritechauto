@@ -1,19 +1,14 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password: 
     driver-class-name: org.h2.Driver
   
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: none
-
-  mvc:
-    throw-exception-if-no-handler-found: true
-  web:
-    resources:
-      add-mappings: false
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
@@ -21,6 +16,12 @@ spring:
         show_sql: true
         jdbc:
           time_zone: UTC
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
   
   h2:
     console:
@@ -29,6 +30,13 @@ spring:
   
   flyway:
     enabled: false
+
+  security:
+    jwt:
+      secret: ${JWT_SECRET:ZHVtbXktc2VjcmV0LWJhc2U2NC1ieXRlcy1mb3Itand0LXNpZ25pbmc=}
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
 
   mail:
     host: smtp.gmail.com

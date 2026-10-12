@@ -73,6 +73,9 @@ public class VeiculoService {
             modelo = modeloRepository.findById(request.modeloId())
                     .orElseThrow(() -> new EntityNotFoundException("Modelo não encontrado"));
         }
+        if (modelo != null && (marca == null || !modelo.getMarca().getId().equals(marca.getId()))) {
+            throw new IllegalArgumentException("O modelo não pertence à marca informada");
+        }
 
         AnoModelo anoModelo = null;
         if (request.anoModeloId() != null) {
@@ -119,6 +122,9 @@ public class VeiculoService {
         if (request.modeloId() != null) {
             modelo = modeloRepository.findById(request.modeloId())
                     .orElseThrow(() -> new EntityNotFoundException("Modelo não encontrado"));
+        }
+        if (modelo != null && (marca == null || !modelo.getMarca().getId().equals(marca.getId()))) {
+            throw new IllegalArgumentException("O modelo não pertence à marca informada");
         }
 
         AnoModelo anoModelo = null;
@@ -212,6 +218,7 @@ public class VeiculoService {
                  external.marca(),
                  modeloId,
                  external.modelo(),
+                 null, // modeloImagemUrl (consulta externa sem imagem cadastrada)
                  null, // anoModeloId
                  external.ano() != null && !external.ano().isBlank() ? Integer.parseInt(external.ano()) : null,
                  external.anoModelo() != null && !external.anoModelo().isBlank() ? Integer.parseInt(external.anoModelo()) : null,

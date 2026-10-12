@@ -161,6 +161,15 @@ export class CadastroCliente implements OnInit {
   veiculoModel: Partial<VeiculoRequest> = {};
   marcasOptions: MarcaVeiculoResponse[] = [];
   modelosOptions: ModeloVeiculoResponse[] = [];
+  showVeiculoDialog = false;
+  isSavingVehicle = false;
+  vehicleFormError = '';
+  vehiclePreviewFailed = false;
+  readonly vehicleImageFailures = new Set<number>();
+
+  get selectedModeloImage(): string | undefined {
+    return this.modelosOptions.find(modelo => modelo.id === this.veiculoModel.modeloId)?.imagemUrl || undefined;
+  }
 
   get pageTitle(): string {
     return this.isEditMode ? 'Editar Cliente' : 'Novo Cliente';
@@ -996,6 +1005,7 @@ export class CadastroCliente implements OnInit {
       this.veiculoService.list(Number(id)).subscribe({
           next: (res) => {
             this.veiculosList = Array.isArray(res) ? res : [];
+            this.vehicleImageFailures.clear();
             this.veiculosLoading = false;
           },
           error: () => {
@@ -1030,23 +1040,38 @@ export class CadastroCliente implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode cadastrar veículos.' });
       return;
     }
-    this.router.navigate(['/veiculo/cadastro'], { queryParams: { clienteId: this.savedClienteId } });
+    this.veiculoModel = {};
+    this.modelosOptions = [];
+    this.vehicleFormError = '';
+    this.vehiclePreviewFailed = false;
+    this.showVeiculoDialog = true;
   }
 
   loadMarcas() {
-      this.veiculoService.listMarcas({}).subscribe(res => {
+      this.veiculoService.listMarcas({ ativo: true, size: 1000 }).subscribe(res => {
           this.marcasOptions = res.content || [];
       });
   }
 
   onMarcaChange() {
-      if (this.veiculoModel.marcaId) {
-          this.veiculoService.listModelos(this.veiculoModel.marcaId).subscribe(res => {
-              this.modelosOptions = res || [];
+      this.vehicleFormError = '';
+      const marcaId = this.veiculoModel.marcaId;
+      this.veiculoModel.modeloId = undefined;
+      this.modelosOptions = [];
+      this.vehiclePreviewFailed = false;
+      if (marcaId) {
+          this.veiculoService.listModelos(marcaId).subscribe({
+            next: res => {
+              if (this.veiculoModel.marcaId === marcaId) this.modelosOptions = res || [];
+            },
+            error: () => this.vehicleFormError = 'Não foi possível carregar os modelos. Tente selecionar a marca novamente.'
           });
-      } else {
-          this.modelosOptions = [];
       }
+  }
+
+  onModeloChange() {
+    this.vehicleFormError = '';
+    this.vehiclePreviewFailed = false;
   }
 
   // ========== HELPERS ==========
@@ -1067,18 +1092,26 @@ export class CadastroCliente implements OnInit {
 
 
   salvarVeiculo() {
+      if (this.isSavingVehicle) return;
+      this.vehicleFormError = '';
       if (!this.savedClienteId) {
-          this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Salve o cliente primeiro antes de adicionar veículos.' });
+          this.vehicleFormError = 'Salve o cliente primeiro antes de adicionar veículos.';
           return;
       }
-      if (!this.veiculoModel.placa || !this.veiculoModel.marcaId || !this.veiculoModel.modeloId) {
-           this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha Placa, Marca e Modelo.' });
+      const placa = (this.veiculoModel.placa || '').trim().toUpperCase();
+      if (!placa || !this.veiculoModel.marcaId || !this.veiculoModel.modeloId) {
+           this.vehicleFormError = 'Preencha placa, marca e modelo.';
            return;
+      }
+
+      if (!this.modelosOptions.some(modelo => modelo.id === this.veiculoModel.modeloId && modelo.marcaId === this.veiculoModel.marcaId)) {
+          this.vehicleFormError = 'Selecione um modelo da marca escolhida.';
+          return;
       }
 
       const dto: VeiculoRequest = {
           clienteId: Number(this.savedClienteId),
-          placa: this.veiculoModel.placa,
+          placa,
           marcaId: this.veiculoModel.marcaId,
           modeloId: this.veiculoModel.modeloId,
           anoModeloId: this.veiculoModel.anoModeloId,
@@ -1089,15 +1122,18 @@ export class CadastroCliente implements OnInit {
           // Adicionar outros campos conforme necessário do form
       };
 
+      this.isSavingVehicle = true;
       this.veiculoService.create(dto).subscribe({
           next: () => {
+              this.isSavingVehicle = false;
+              this.showVeiculoDialog = false;
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Veículo adicionado!' });
               this.veiculoModel = {}; // Reset
               this.loadVeiculos(this.savedClienteId!);
           },
           error: (err) => {
-              console.error(err);
-              // Interceptor trata o erro de rede
+              this.isSavingVehicle = false;
+              this.vehicleFormError = err.status === 409 ? 'Já existe um veículo com esta placa.' : 'Não foi possível salvar o veículo. Confira os dados e tente novamente.';
           }
       });
   }

@@ -37,12 +37,36 @@
     {
       "route": "cliente",
       "name": "cliente",
-      "type": "link",
+      "type": "sub",
       "icon": "pi pi-users",
       "minPlan": 1,
       "permissions": {
         "only": "GERAL_USUARIO"
-      }
+      },
+      "children": [
+        {
+          "route": "listar",
+          "name": "listar",
+          "type": "link"
+        },
+        {
+          "route": "crm",
+          "name": "crm",
+          "type": "sub",
+          "children": [
+            {
+              "route": "",
+              "name": "visao-geral",
+              "type": "link"
+            },
+            {
+              "route": "pesquisa",
+              "name": "pesquisa",
+              "type": "link"
+            }
+          ]
+        }
+      ]
     },
     {
       "route": "veiculo",

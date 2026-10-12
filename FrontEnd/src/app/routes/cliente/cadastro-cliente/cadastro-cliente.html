@@ -285,11 +285,11 @@
                 <header class="nt-client-vehicles-header">
                     <div>
                         <h2 id="nt-client-vehicles-title">Veículos vinculados</h2>
-                        <p>Consulte os automóveis associados a este cliente.</p>
+                        <p>Consulte e cadastre os automóveis associados a este cliente.</p>
                     </div>
                     @if (!isUxPreview) { <button type="button" class="nt-client-vehicle-add" (click)="addVehicle()" [disabled]="!savedClienteId">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                        Adicionar veículo
+                        + Adicionar veículo
                     </button> }
                 </header>
 
@@ -327,6 +327,9 @@
                                     @if (!isUxPreview) { <button type="button" class="nt-client-vehicle-edit" (click)="openVehicle(vehicle)">Abrir cadastro do veículo</button> }
                                 </div>
                                 <div class="nt-client-vehicle-visual">
+                                    @if (vehicle.modeloImagemUrl && !vehicleImageFailures.has(vehicle.id)) {
+                                        <img [src]="vehicle.modeloImagemUrl" [alt]="'Imagem do modelo ' + vehicle.marcaNome + ' ' + vehicle.modeloNome" (error)="vehicleImageFailures.add(vehicle.id)" />
+                                    } @else {
                                     <div class="nt-client-vehicle-placeholder" role="img" [attr.aria-label]="'Ilustração neutra de automóvel para ' + vehicle.placa">
                                         <span class="nt-client-vehicle-brand">NERITECH AUTO</span>
                                         <svg viewBox="0 0 320 180" aria-hidden="true">
@@ -339,6 +342,7 @@
                                         </svg>
                                         <span>Foto não cadastrada</span>
                                     </div>
+                                    }
                                 </div>
                             </article>
                         }
@@ -381,5 +385,37 @@
     <div class="flex justify-end gap-2 mt-6">
         <button (click)="showContatoDialog = false" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 text-sm font-bold">Cancelar</button>
         <button (click)="salvarContatoLista()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-bold">{{ contatoEditIndex !== null ? 'Salvar alterações' : 'Adicionar' }}</button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="showVeiculoDialog" [modal]="true" [closable]="!isSavingVehicle" [closeOnEscape]="!isSavingVehicle" [style]="{width: '440px', maxWidth: 'calc(100vw - 32px)'}" header="Adicionar veículo" styleClass="modern-dialog">
+    <div class="nt-quick-vehicle-form">
+        <p>Cadastro rápido vinculado a este cliente. Para os demais dados, abra o cadastro completo após adicionar.</p>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-plate">Placa *</label>
+            <input id="nt-quick-vehicle-plate" pInputText [(ngModel)]="veiculoModel.placa" maxlength="10" autocomplete="off" placeholder="ABC1D23" class="w-full modern-input" />
+        </div>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-brand">Marca *</label>
+            <p-select inputId="nt-quick-vehicle-brand" [options]="marcasOptions" [(ngModel)]="veiculoModel.marcaId" (onChange)="onMarcaChange()" optionLabel="nome" optionValue="id" placeholder="Selecione a marca" styleClass="w-full modern-select" />
+        </div>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-model">Modelo *</label>
+            <p-select inputId="nt-quick-vehicle-model" [options]="modelosOptions" [(ngModel)]="veiculoModel.modeloId" (onChange)="onModeloChange()" optionLabel="nome" optionValue="id" [disabled]="!veiculoModel.marcaId" placeholder="Selecione o modelo" styleClass="w-full modern-select" />
+        </div>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-color">Cor</label>
+            <input id="nt-quick-vehicle-color" pInputText [(ngModel)]="veiculoModel.corExterna" maxlength="50" placeholder="Opcional" class="w-full modern-input" />
+        </div>
+        @if (selectedModeloImage && !vehiclePreviewFailed) {
+            <div class="nt-quick-vehicle-preview"><img [src]="selectedModeloImage" [alt]="'Imagem do modelo selecionado'" (error)="vehiclePreviewFailed = true" /></div>
+        } @else if (veiculoModel.modeloId) {
+            <p class="nt-quick-vehicle-no-image">Foto não cadastrada para este modelo.</p>
+        }
+        @if (vehicleFormError) { <p class="nt-quick-vehicle-error" role="alert">{{ vehicleFormError }}</p> }
+        <div class="nt-quick-vehicle-actions">
+            <button type="button" (click)="showVeiculoDialog = false" [disabled]="isSavingVehicle">Cancelar</button>
+            <button type="button" (click)="salvarVeiculo()" [disabled]="isSavingVehicle">{{ isSavingVehicle ? 'Salvando…' : 'Adicionar' }}</button>
+        </div>
     </div>
 </p-dialog>

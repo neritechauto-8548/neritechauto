@@ -7,4 +7,20 @@ export const routes: Routes = [
   { path: 'listar', component: Cliente, data: { title: 'Clientes' } },
   { path: 'cadastro', component: CadastroCliente, data: { title: 'Novo Cliente' } },
   { path: 'editar/:uuid', component: CadastroCliente, data: { title: 'Editar Cliente' } },
+  {
+    path: 'crm',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./crm/crm').then(m => m.Crm),
+        data: { title: 'CRM' },
+      },
+      {
+        path: 'pesquisa',
+        loadComponent: () => import('../configuracoes/questionamento/questionamento').then(m => m.Questionamento),
+        data: { title: 'Questionamento de pesquisa' },
+      },
+    ],
+  },
 ];

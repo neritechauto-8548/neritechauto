@@ -198,10 +198,12 @@ public class ClienteService {
             String cnpj,
             TipoCliente tipoCliente,
             StatusCliente status,
+            java.time.LocalDate dataInicio,
+            java.time.LocalDate dataFim,
             Pageable pageable) {
         
         org.springframework.data.jpa.domain.Specification<Cliente> spec = 
-            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status);
+            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, dataInicio, dataFim);
             
         return repository.findAll(spec, pageable);
     }

@@ -18,7 +18,7 @@
 - **OnMotor**: particularidades do mercado automotivo brasileiro, processos e integrações pertinentes. Usar as referências como orientação de produto, não como licença para copiar interfaces ou implementar funcionalidades fora do escopo oficial.
 - Usar Angular e PrimeNG existentes no repositório, seguindo tokens e família **Tabler Icons** definidos na documentação.
 - Evitar telas, formulários e componentes duplicados. **Uma tela-base não é necessariamente uma rota:** cada menu, processo, permissão, ação ou jornada mantém sua rota e regra oficial quando exigida.
-- Não incorporar Gestão de Pátio à Oficina; continua um sistema independente (Kanban).
+- Gestão de Pátio é uma tela interna do NERITECH AUTO. A rota e o contrato funcional dependem da especificação canônica; não criar redirecionamento externo nem tela provisória.
 - Não alterar a árvore oficial nem tratar consolidação de telas-base como mudança autorizada na arquitetura.
 - Não simular êxito de ações sem persistência. Modo de homologação sem backend deve estar marcado como demonstrativo e não contamina produção.
 - **Frontend e backend são uma entrega única por tela:** validar endpoints, DTOs, autenticação/autorização, permissões, multiempresa, validações, persistência, transações, tratamento de erro e contratos entre Angular e API. Fazer as correções necessárias no backend, não apenas na interface.

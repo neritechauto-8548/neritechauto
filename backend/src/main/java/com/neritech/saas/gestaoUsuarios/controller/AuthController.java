@@ -10,9 +10,6 @@ import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -36,10 +33,7 @@ public class AuthController {
     ) {
         if (request.getIpAddress() == null) request.setIpAddress(servletRequest.getRemoteAddr());
         if (request.getUserAgent() == null) request.setUserAgent(servletRequest.getHeader("User-Agent"));
-        String tenantHeader = servletRequest.getHeader("X-Tenant-Id");
-        if (tenantHeader != null && !tenantHeader.isEmpty()) {
-            try { TenantContext.setCurrentTenant(Long.parseLong(tenantHeader)); } catch (NumberFormatException ignored) {}
-        } else if (request.getEmail() != null) {
+        if (request.getEmail() != null) {
             usuarioRepository.findByEmailIgnoreCase(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
         }
         try {
@@ -51,11 +45,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Atualizar token", description = "Gera um novo access token a partir de um refresh token válido")
-    public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshTokenRequest request, HttpServletRequest servletRequest) {
-        String tenantHeader = servletRequest.getHeader("X-Tenant-Id");
-        if (tenantHeader != null && !tenantHeader.isEmpty()) {
-            try { TenantContext.setCurrentTenant(Long.parseLong(tenantHeader)); } catch (NumberFormatException ignored) {}
-        }
+    public ResponseEntity<LoginResponse> refresh(@RequestBody @Valid RefreshTokenRequest request) {
         try {
             return ResponseEntity.ok(authService.refreshToken(request));
         } finally {
@@ -65,11 +55,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "Logout", description = "Invalida a sessão atual")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader, HttpServletRequest servletRequest) {
-        String tenantHeader = servletRequest.getHeader("X-Tenant-Id");
-        if (tenantHeader != null && !tenantHeader.isEmpty()) {
-            try { TenantContext.setCurrentTenant(Long.parseLong(tenantHeader)); } catch (NumberFormatException ignored) {}
-        }
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
         try {
             authService.logout(authHeader);
             return ResponseEntity.noContent().build();
@@ -81,14 +67,22 @@ public class AuthController {
     @PostMapping("/recover-password")
     @Operation(summary = "Solicitar recuperação de senha", description = "Envia um link de recuperação por e-mail")
     public ResponseEntity<Void> recoverPassword(@RequestBody @Valid RecoverPasswordRequest request) {
-        authService.recoverPassword(request.getEmail());
-        return ResponseEntity.ok().build();
+        try {
+            authService.recoverPassword(request.getEmail());
+            return ResponseEntity.ok().build();
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @PostMapping("/reset-password")
     @Operation(summary = "Redefinir senha", description = "Atualiza a senha do usuário usando o token enviado por e-mail")
     public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
-        authService.resetPassword(request);
-        return ResponseEntity.ok().build();
+        try {
+            authService.resetPassword(request);
+            return ResponseEntity.ok().build();
+        } finally {
+            TenantContext.clear();
+        }
     }
 }

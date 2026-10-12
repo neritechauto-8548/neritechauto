@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DATABASE_URL}
@@ -20,7 +20,7 @@ spring:
         show_sql: true
         jdbc:
           time_zone: UTC
-  
+
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -29,6 +29,13 @@ spring:
     validate-on-migrate: false
     default-schema: public
     schemas: public
+
+  security:
+    jwt:
+      secret: ${JWT_SECRET:}
+      expiration: ${JWT_EXPIRATION:86400000}
+      refresh-token:
+        expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
   mail:
     host: ${SMTP_HOST}

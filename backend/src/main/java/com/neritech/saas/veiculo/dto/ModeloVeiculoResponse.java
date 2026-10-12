@@ -8,5 +8,6 @@ public record ModeloVeiculoResponse(
                 String marcaNome,
                 String nome,
                 CategoriaVeiculo categoria,
-                String logoUrl) {
+                String logoUrl,
+                String imagemUrl) {
 }

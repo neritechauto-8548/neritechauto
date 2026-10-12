@@ -1,17 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { DynamicDialogModule, DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
-import { MatIconModule } from '@angular/material/icon';
-
 import { LocalStorageService } from '@shared/services/storage.service';
 import { ConfirmationService } from '@shared/services/confirmation.service';
-import { PageHeader, ConfirmationDialogComponent } from '@shared/components';
+import { ConfirmationDialogComponent, DataViewState, NeriTechIcon } from '@shared/components';
 
 import { QuestionamentoItemDialog } from './questionamento-item-dialog';
 import { QuestionamentoModeloDialog } from './questionamento-modelo-dialog';
@@ -21,6 +16,7 @@ import { ItQuestionarioService, ItQuestionarioResponse, TipoItem } from './it-qu
 export type TipoPergunta = 'avaliacao' | 'simnao' | 'aberta';
 
 export interface PerguntaItem {
+  id?: number;
   texto: string;
   tipo: TipoPergunta;
 }
@@ -32,6 +28,7 @@ export interface ModeloQuestionamento {
   expanded?: boolean;
   ativo?: boolean;
   loading?: boolean;
+  erroPerguntas?: boolean;
 }
 
 @Component({
@@ -40,13 +37,11 @@ export interface ModeloQuestionamento {
   imports: [
     CommonModule,
     FormsModule,
-    ButtonModule,
-    InputTextModule,
     DynamicDialogModule,
-    MatIconModule,
     ToastModule,
-    TooltipModule,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    DataViewState,
+    NeriTechIcon,
   ],
   providers: [DialogService, MessageService, ConfirmationService],
   templateUrl: './questionamento.html',
@@ -62,11 +57,12 @@ export class Questionamento implements OnInit {
 
   modelos: ModeloQuestionamento[] = [];
   searchTerm = '';
-  loading = false;
+  loading = true;
+  loadError = '';
 
   get filteredModelos() {
-    if (!this.searchTerm) return this.modelos;
-    const term = this.searchTerm.toLowerCase();
+    const term = this.searchTerm.trim().toLocaleLowerCase('pt-BR');
+    if (!term) return this.modelos;
     return this.modelos.filter(m => m.titulo.toLowerCase().includes(term));
   }
 
@@ -106,6 +102,7 @@ export class Questionamento implements OnInit {
 
   load() {
     this.loading = true;
+    this.loadError = '';
     this.questionarioService.list({ page: 0, size: 1000, sort: 'dsQuestionario,asc' }).subscribe({
       next: (resp) => {
         this.modelos = (resp.content || []).map((q: QuestionarioResponse) => ({
@@ -122,12 +119,13 @@ export class Questionamento implements OnInit {
         this.modelos.forEach(modelo => {
           this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
             next: (items: ItQuestionarioResponse[]) => {
-              modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+              modelo.perguntas = items.map(it => ({ id: it.id, texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
               modelo.loading = false;
               this.modelos = [...this.modelos];
             },
             error: (err) => {
               console.error(`Erro ao carregar itens para o questionário ${modelo.id}:`, err);
+              modelo.erroPerguntas = true;
               modelo.loading = false;
               this.modelos = [...this.modelos];
             }
@@ -137,7 +135,9 @@ export class Questionamento implements OnInit {
       error: (err) => {
         console.error('Erro ao listar questionários', err);
         this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar questionários' });
+        this.loadError = err.status === 403
+          ? 'Seu perfil não tem permissão para consultar esta pesquisa.'
+          : 'Verifique a conexão e tente carregar os dados novamente.';
       }
     });
   }
@@ -146,13 +146,15 @@ export class Questionamento implements OnInit {
     modelo.expanded = !modelo.expanded;
     if (modelo.expanded && modelo.perguntas.length === 0 && !modelo.loading) {
       modelo.loading = true;
+      modelo.erroPerguntas = false;
       this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
         next: (items: ItQuestionarioResponse[]) => {
-          modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+          modelo.perguntas = items.map(it => ({ id: it.id, texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
           modelo.loading = false;
         },
         error: (err) => {
           console.error('Erro ao listar itens de questionário', err);
+          modelo.erroPerguntas = true;
           modelo.loading = false;
         }
       });
@@ -190,12 +192,17 @@ export class Questionamento implements OnInit {
 
   private refreshPerguntas(modelo: ModeloQuestionamento) {
     modelo.loading = true;
+    modelo.erroPerguntas = false;
     this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
       next: items => {
-        modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+        modelo.perguntas = items.map(it => ({ id: it.id, texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+        modelo.erroPerguntas = false;
         modelo.loading = false;
       },
-      error: () => modelo.loading = false
+      error: () => {
+        modelo.erroPerguntas = true;
+        modelo.loading = false;
+      }
     });
   }
 
@@ -210,23 +217,18 @@ export class Questionamento implements OnInit {
       data: pergunta,
     });
     ref?.onClose?.subscribe((result: PerguntaItem | undefined) => {
-      if (result && result.texto?.trim()) {
-        this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe(items => {
-          const target = items[index];
-          if (target) {
-            const payload = {
-              questionarioId: modelo.id,
-              dsItQuestionario: result.texto,
-              tpItQuestionario: this.mapPerguntaToTipoItem(result.tipo),
-            };
-            this.itQuestionarioService.update(target.id, payload).subscribe({
-              next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta atualizada com sucesso' });
-                this.refreshPerguntas(modelo);
-              },
-              error: (err) => console.error('Erro ao atualizar pergunta', err)
-            });
-          }
+      if (result && result.texto?.trim() && pergunta?.id != null) {
+        const payload = {
+          questionarioId: modelo.id,
+          dsItQuestionario: result.texto,
+          tpItQuestionario: this.mapPerguntaToTipoItem(result.tipo),
+        };
+        this.itQuestionarioService.update(pergunta.id, payload).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta atualizada com sucesso' });
+            this.refreshPerguntas(modelo);
+          },
+          error: (err) => console.error('Erro ao atualizar pergunta', err)
         });
       }
     });
@@ -241,18 +243,14 @@ export class Questionamento implements OnInit {
       type: 'danger',
       icon: 'delete'
     }).subscribe(confirmed => {
-      if (confirmed) {
-        this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe(items => {
-          const target = items[index];
-          if (target) {
-            this.itQuestionarioService.delete(target.id).subscribe({
-              next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta apagada com sucesso' });
-                this.refreshPerguntas(modelo);
-              },
-              error: (err) => console.error('Erro ao excluir pergunta', err)
-            });
-          }
+      const perguntaId = modelo.perguntas[index]?.id;
+      if (confirmed && perguntaId != null) {
+        this.itQuestionarioService.delete(perguntaId).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta apagada com sucesso' });
+            this.refreshPerguntas(modelo);
+          },
+          error: (err) => console.error('Erro ao excluir pergunta', err)
         });
       }
     });

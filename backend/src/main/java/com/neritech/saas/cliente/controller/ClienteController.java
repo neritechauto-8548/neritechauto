@@ -18,6 +18,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -84,9 +86,11 @@ public class ClienteController {
                         @Parameter(description = "CNPJ para filtro") @RequestParam(required = false) String cnpj,
                         @Parameter(description = "Tipo de cliente para filtro") @RequestParam(required = false) TipoCliente tipoCliente,
                         @Parameter(description = "Status do cliente para filtro") @RequestParam(required = false) StatusCliente status,
+                        @Parameter(description = "Data inicial de cadastro") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+                        @Parameter(description = "Data final de cadastro") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
                         @org.springframework.data.web.PageableDefault(size = 5, sort = "nomeCompleto", direction = org.springframework.data.domain.Sort.Direction.ASC) Pageable pageable) {
 
-                return service.search(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, pageable)
+                return service.search(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, dataInicio, dataFim, pageable)
                                 .map(ClienteMapper::toResponse);
         }
 

@@ -14,6 +14,8 @@
     "cliente": "Clientes",
     "cliente.listar": "Clientes",
     "cliente.crm": "CRM",
+    "cliente.crm.visao-geral": "Visão geral",
+    "cliente.crm.pesquisa": "Questionário de pesquisa",
     "cliente.crm.opcoes-envio": "Opções de Envio",
     "cliente.crm.questionario": "Questionário de Pesquisa",
     "veiculo": "Veículos",

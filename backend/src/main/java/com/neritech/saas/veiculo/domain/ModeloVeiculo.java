@@ -34,6 +34,9 @@ public class ModeloVeiculo extends TenantEntity {
     @Column(name = "logo_url", length = 500)
     private String logoUrl;
 
+    @Column(name = "imagem_url", length = 500)
+    private String imagemUrl;
+
     public ModeloVeiculo() {
     }
 
@@ -69,5 +72,13 @@ public class ModeloVeiculo extends TenantEntity {
 
     public void setLogoUrl(String logoUrl) {
         this.logoUrl = logoUrl;
+    }
+
+    public String getImagemUrl() {
+        return imagemUrl;
+    }
+
+    public void setImagemUrl(String imagemUrl) {
+        this.imagemUrl = imagemUrl;
     }
 }
