@@ -50,7 +50,7 @@ export class StartupService {
   }
 
   /** Menu visibility is UX only: backend permissions remain authoritative. */
-  private filterMenuByPermissions(menu: Menu[]): Menu[] {
+  private filterMenuByPermissions<T extends Menu | MenuChildrenItem>(menu: T[]): T[] {
     const hasAny = (value?: string | string[]) => {
       if (!value) return false;
       const names = Array.isArray(value) ? value : [value];
