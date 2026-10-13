@@ -44,9 +44,28 @@ export class StartupService {
 
   private setMenu(menu: Menu[], user: User) {
     const planLevel = user?.planoNivel || 1;
-    const filteredMenu = this.filterMenuByPlan(menu, planLevel);
+    const filteredMenu = this.filterMenuByPlan(this.filterMenuByPermissions(menu), planLevel);
     this.menuService.addNamespace(filteredMenu, 'menu');
     this.menuService.set(filteredMenu);
+  }
+
+  /** Menu visibility is UX only: backend permissions remain authoritative. */
+  private filterMenuByPermissions(menu: Menu[]): Menu[] {
+    const hasAny = (value?: string | string[]) => {
+      if (!value) return false;
+      const names = Array.isArray(value) ? value : [value];
+      return names.some(name => !!this.permissonsService.getPermission(name));
+    };
+
+    return menu.filter(item => {
+      if (item.permissions?.only && !hasAny(item.permissions.only)) return false;
+      if (item.permissions?.except && hasAny(item.permissions.except)) return false;
+      if (item.children?.length) {
+        item.children = this.filterMenuByPermissions(item.children);
+        if (item.type === 'sub' && item.children.length === 0) return false;
+      }
+      return true;
+    });
   }
 
   private filterMenuByPlan(menu: any[], planLevel: number): any[] {

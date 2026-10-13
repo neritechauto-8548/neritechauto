@@ -10,7 +10,7 @@ describe('Application Shell roles and navigation', () => {
   let roles: jasmine.SpyObj<NgxRolesService>;
 
   beforeEach(() => {
-    permissions = jasmine.createSpyObj<NgxPermissionsService>('NgxPermissionsService', ['loadPermissions']);
+    permissions = jasmine.createSpyObj<NgxPermissionsService>('NgxPermissionsService', ['loadPermissions', 'getPermission']);
     roles = jasmine.createSpyObj<NgxRolesService>('NgxRolesService', ['flushRoles', 'addRole']);
     TestBed.configureTestingModule({
       providers: [
@@ -38,6 +38,38 @@ describe('Application Shell roles and navigation', () => {
     expect(loaded).toContain('GERAL_CONFIG_SISTEMA');
     expect(loaded).toContain('OS_VISUALIZAR');
     expect(roles.addRole).toHaveBeenCalledWith('ADMIN', loaded);
+  });
+
+  it('hides restricted menu entries for a profile without grants', () => {
+    permissions.getPermission.and.returnValue(undefined);
+    const menu: any[] = [
+      { route: 'home', name: 'Início', type: 'link' },
+      { route: 'cliente', name: 'Clientes', type: 'sub', permissions: { only: 'GERAL_USUARIO' },
+        children: [{ route: 'listar', name: 'Clientes', type: 'link' }] },
+    ];
+    expect((startup as any).filterMenuByPermissions(menu).map((item: any) => item.name))
+      .toEqual(['Início']);
+  });
+
+  it('keeps allowed entries, excludes forbidden ones and removes empty groups', () => {
+    permissions.getPermission.and.callFake(name =>
+      name === 'CLIENTE_VISUALIZAR' ? ({ name } as any) : undefined
+    );
+    const menu: any[] = [
+      { route: 'cliente', name: 'Clientes', type: 'sub', children: [
+        { route: 'listar', name: 'Listar', type: 'link',
+          permissions: { only: ['CLIENTE_VISUALIZAR', 'CLIENTE_EDITAR'] } },
+        { route: 'excluir', name: 'Excluir', type: 'link', permissions: { only: 'CLIENTE_EXCLUIR' } },
+        { route: 'restrito', name: 'Restrito', type: 'link', permissions: { except: 'CLIENTE_VISUALIZAR' } },
+      ] },
+      { route: 'admin', name: 'Administração', type: 'sub', children: [
+        { route: 'config', name: 'Configurações', type: 'link',
+          permissions: { only: 'GERAL_CONFIG_SISTEMA' } },
+      ] },
+    ];
+    const filtered = (startup as any).filterMenuByPermissions(menu);
+    expect(filtered.map((item: any) => item.name)).toEqual(['Clientes']);
+    expect(filtered[0].children.map((item: any) => item.name)).toEqual(['Listar']);
   });
 
   it('hides plan-restricted destinations and empty navigation groups', () => {
