@@ -1,18 +1,20 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NeriTechIcon } from '@shared/components';
-import { ComunicacaoEnviada, ComunicacaoService } from './comunicacao.service';
+import { ComunicacaoEnviada, ComunicacaoService, FiltrosComunicacao } from './comunicacao.service';
 
 @Component({
   selector: 'app-crm-comunicacao',
   standalone: true,
-  imports: [CommonModule, RouterLink, NeriTechIcon],
+  imports: [CommonModule, FormsModule, RouterLink, NeriTechIcon],
   templateUrl: './comunicacao.html',
   styleUrls: ['../crm.scss'],
 })
 export class Comunicacao implements OnInit {
   private readonly service = inject(ComunicacaoService);
+  private readonly route = inject(ActivatedRoute);
   private requestVersion = 0;
   readonly pageSize = 15;
   page = 0;
@@ -20,8 +22,48 @@ export class Comunicacao implements OnInit {
   registros: ComunicacaoEnviada[] = [];
   loading = false;
   error = '';
+  filterError = '';
+  canal = '';
+  status = '';
+  dataInicio = '';
+  dataFim = '';
+  clienteId: number | undefined;
+  filters: FiltrosComunicacao = {};
 
-  ngOnInit(): void { this.carregar(); }
+  readonly canais = ['EMAIL', 'SMS', 'WHATSAPP', 'PUSH_NOTIFICATION', 'LIGACAO'];
+  readonly statuses = ['AGENDADA', 'ENVIADA', 'ENTREGUE', 'LIDA', 'CLICADA', 'FALHOU', 'CANCELADA'];
+
+  ngOnInit(): void {
+    const raw = this.route.snapshot.queryParamMap.get('clienteId');
+    const parsed = raw ? Number(raw) : NaN;
+    this.clienteId = Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+    this.aplicarFiltros();
+  }
+
+  aplicarFiltros(): void {
+    if (this.dataInicio && this.dataFim && this.dataInicio > this.dataFim) {
+      this.filterError = 'A data inicial não pode ser posterior à data final.';
+      return;
+    }
+    this.filterError = '';
+    this.page = 0;
+    this.filters = {
+      ...(this.clienteId ? { clienteId: this.clienteId } : {}),
+      ...(this.canal ? { canal: this.canal } : {}),
+      ...(this.status ? { status: this.status } : {}),
+      ...(this.dataInicio ? { dataInicio: this.dataInicio } : {}),
+      ...(this.dataFim ? { dataFim: this.dataFim } : {}),
+    };
+    this.carregar();
+  }
+
+  limparFiltros(): void {
+    this.canal = '';
+    this.status = '';
+    this.dataInicio = '';
+    this.dataFim = '';
+    this.aplicarFiltros();
+  }
 
   get paginas(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
 
@@ -29,7 +71,7 @@ export class Comunicacao implements OnInit {
     const version = ++this.requestVersion;
     this.loading = true;
     this.error = '';
-    this.service.listar(this.page, this.pageSize).subscribe({
+    this.service.listar(this.page, this.pageSize, this.filters).subscribe({
       next: response => {
         if (version !== this.requestVersion) return;
         this.registros = response.content || [];

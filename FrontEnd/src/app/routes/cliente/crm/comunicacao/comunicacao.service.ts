@@ -20,6 +20,14 @@ export interface ComunicacaoEnviada {
   erroEnvio?: string;
 }
 
+export interface FiltrosComunicacao {
+  clienteId?: number;
+  canal?: string;
+  status?: string;
+  dataInicio?: string;
+  dataFim?: string;
+}
+
 export interface PaginaComunicacoes {
   content: ComunicacaoEnviada[];
   totalElements: number;
@@ -33,16 +41,21 @@ export class ComunicacaoService {
   private readonly storage = inject(LocalStorageService);
   private readonly url = environment.baseUrl + '/v1/comunicacao/envios';
 
-  listar(page: number, size: number): Observable<PaginaComunicacoes> {
+  listar(page: number, size: number, filters: FiltrosComunicacao = {}): Observable<PaginaComunicacoes> {
     const empresaId = empresaIdAtual(this.storage);
     if (!empresaId) {
       return throwError(() => new Error('Não foi possível identificar sua empresa. Entre novamente.'));
     }
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('empresaId', String(empresaId))
       .set('page', String(page))
       .set('size', String(size))
       .set('sort', 'dataCadastro,desc');
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value) !== '') {
+        params = params.set(key, String(value));
+      }
+    });
     return this.http.get<PaginaComunicacoes>(this.url, { params });
   }
 }

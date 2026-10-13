@@ -13,6 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import com.neritech.saas.comunicacao.domain.enums.TipoComunicacao;
+import com.neritech.saas.comunicacao.domain.enums.StatusComunicacao;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/v1/comunicacao/envios")
@@ -27,8 +31,14 @@ public class ComunicacaoEnviadaController {
     @Operation(summary = "Listar comunicaÃ§Ãµes", description = "Retorna uma lista paginada de comunicaÃ§Ãµes enviadas")
     public ResponseEntity<Page<ComunicacaoEnviadaResponse>> findAll(
             @RequestParam Long empresaId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) TipoComunicacao canal,
+            @RequestParam(required = false) StatusComunicacao status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
             Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+        return ResponseEntity.ok(service.findAll(empresaId, pageable, clienteId,
+            canal, status, dataInicio, dataFim));
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")

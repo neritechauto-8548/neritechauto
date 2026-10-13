@@ -56,3 +56,7 @@
 @media (max-width: 1100px) { .crm-resources { grid-template-columns: 1fr; } .crm-resource { min-height: 94px; } .crm-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 650px) { .crm-page { gap: 16px; padding: 18px 14px 28px; } .crm-section-heading { align-items: flex-start; flex-direction: column; padding: 20px 16px 18px; } .crm-filters { grid-template-columns: 1fr; padding: 0 16px 20px; } .crm-results-heading, .crm-pagination { padding-inline: 16px; } .crm-table th, .crm-table td { padding-inline: 14px; } .crm-pending-label { display: none; } .crm-resource { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { .crm-resource-active { transition: none; } }
+
+/* Controles de filtro do histórico de comunicação, reutilizando o padrão CRM. */
+.crm-filters select { width:100%; height:42px; padding:0 12px; border:1px solid var(--nt-border, #cbd5e1); border-radius:8px; background:var(--nt-surface, #fff); color:var(--nt-text, #172033); font:400 13px/20px Inter,system-ui,sans-serif; }
+.crm-filters select:focus-visible { outline:3px solid #2563eb33; border-color:#2563eb; }

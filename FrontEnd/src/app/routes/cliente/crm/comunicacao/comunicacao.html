@@ -12,6 +12,38 @@
       <p>Dados consultados diretamente na API, respeitando autenticação e permissões.</p></div>
       <button type="button" class="crm-button-secondary" [disabled]="loading" (click)="carregar()">Atualizar</button>
     </div>
+    <form class="crm-filters" (ngSubmit)="aplicarFiltros()">
+      <label class="crm-field">
+        <span>Canal</span>
+        <select name="canal" [(ngModel)]="canal">
+          <option value="">Todos os canais</option>
+          @for (c of canais; track c) { <option [value]="c">{{ c }}</option> }
+        </select>
+      </label>
+      <label class="crm-field">
+        <span>Status</span>
+        <select name="status" [(ngModel)]="status">
+          <option value="">Todos os status</option>
+          @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </label>
+      <label class="crm-field">
+        <span>Data inicial</span>
+        <input type="date" name="dataInicio" [(ngModel)]="dataInicio" />
+      </label>
+      <label class="crm-field">
+        <span>Data final</span>
+        <input type="date" name="dataFim" [(ngModel)]="dataFim" />
+      </label>
+      <div class="crm-filter-actions">
+        <button type="submit" class="crm-button-primary" [disabled]="loading">Filtrar</button>
+        <button type="button" class="crm-button-secondary" (click)="limparFiltros()" [disabled]="loading">Limpar</button>
+      </div>
+    </form>
+    @if (clienteId) {
+      <p class="crm-message" role="status">Exibindo somente comunicações vinculadas ao cliente selecionado.</p>
+    }
+    @if (filterError) { <p class="crm-message crm-message-error" role="alert">{{ filterError }}</p> }
     @if (loading) {
       <div class="crm-state" role="status"><nt-icon name="loader" [size]="20" /> Carregando histórico…</div>
     } @else if (error) {

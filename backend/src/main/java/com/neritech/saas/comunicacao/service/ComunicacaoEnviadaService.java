@@ -13,6 +13,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import com.neritech.saas.comunicacao.domain.enums.DestinatarioTipo;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +32,38 @@ public class ComunicacaoEnviadaService {
 
     @Transactional(readOnly = true)
     public Page<ComunicacaoEnviadaResponse> findAll(Long empresaId, Pageable pageable) {
+        return findAll(empresaId, pageable, null, null, null, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ComunicacaoEnviadaResponse> findAll(
+            Long empresaId, Pageable pageable, Long clienteId, TipoComunicacao canal,
+            StatusComunicacao status, LocalDate dataInicio, LocalDate dataFim) {
         TenantAccess.require(empresaId);
-        return repository.findByEmpresaId(empresaId, pageable)
-                .map(mapper::toResponse);
+        if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
+            throw new BusinessException("A data inicial deve ser anterior ou igual à data final.");
+        }
+
+        Specification<ComunicacaoEnviada> filtros = (root, query, cb) -> {
+            var conditions = new ArrayList<Predicate>();
+            conditions.add(cb.equal(root.get("empresaId"), empresaId));
+            if (clienteId != null) {
+                conditions.add(cb.equal(root.get("destinatarioTipo"), DestinatarioTipo.CLIENTE));
+                conditions.add(cb.equal(root.get("destinatarioId"), clienteId));
+            }
+            if (canal != null) conditions.add(cb.equal(root.get("tipoComunicacao"), canal));
+            if (status != null) conditions.add(cb.equal(root.get("status"), status));
+            if (dataInicio != null) {
+                conditions.add(cb.greaterThanOrEqualTo(root.get("dataCadastro"),
+                    dataInicio.atStartOfDay()));
+            }
+            if (dataFim != null) {
+                conditions.add(cb.lessThan(root.get("dataCadastro"),
+                    dataFim.plusDays(1).atStartOfDay()));
+            }
+            return cb.and(conditions.toArray(new Predicate[0]));
+        };
+        return repository.findAll(filtros, pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
