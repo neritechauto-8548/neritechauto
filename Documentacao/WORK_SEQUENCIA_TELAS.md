@@ -72,7 +72,7 @@
 | 37 | Inteligência Artificial | Assistente |
 | 38 | Inteligência Artificial | Automações IA |
 
-**Gestão de Pátio ↗:** planejamento próprio de um sistema separado, fora das 38 telas-base.
+**Gestão de Pátio:** tela interna do NERITECH AUTO, acessada pelo menu principal na mesma aplicação e sessão. A implementação será detalhada e homologada conforme sua especificação canônica, sem constituir produto ou sistema separado.
 
 ## Documentação obrigatória antes da implementação (quando a tela estiver ausente ou incompleta no Notion)
 
