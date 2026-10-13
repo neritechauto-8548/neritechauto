@@ -46,7 +46,7 @@ class VeiculoServiceTenantTest {
         when(vehicles.findByIdAndEmpresaId(99L, 7L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.findById(99L)).isInstanceOf(EntityNotFoundException.class);
         assertThatThrownBy(() -> service.delete(99L)).isInstanceOf(EntityNotFoundException.class);
-        verify(vehicles, never()).delete(any());
+        verify(vehicles, never()).delete(any(com.neritech.saas.veiculo.domain.Veiculo.class));
     }
 
     @Test void cannotUpdateVehicleOfAnotherCompany() {
