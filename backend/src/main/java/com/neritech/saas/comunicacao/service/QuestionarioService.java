@@ -1,5 +1,6 @@
 package com.neritech.saas.comunicacao.service;
 
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.comunicacao.domain.Questionario;
 import com.neritech.saas.comunicacao.dto.QuestionarioRequest;
 import com.neritech.saas.comunicacao.dto.QuestionarioResponse;
@@ -25,6 +26,7 @@ public class QuestionarioService {
     private final QuestionarioMapper mapper;
 
     private void validate(QuestionarioRequest request, Long id) {
+        TenantAccess.require(request.empresaId());
         if (request.empresaId() == null) {
             throw new BusinessException("O ID da empresa é obrigatório.");
         }
@@ -61,17 +63,20 @@ public class QuestionarioService {
     public QuestionarioResponse findById(Long id) {
         Questionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
         return mapper.toResponse(entity);
     }
 
     @Transactional(readOnly = true)
     public Page<QuestionarioResponse> findAll(Long empresaId, Pageable pageable) {
+        TenantAccess.require(empresaId);
         return repository.findByEmpresaId(empresaId, pageable).map(mapper::toResponse);
     }
 
     public QuestionarioResponse update(Long id, QuestionarioRequest request) {
         Questionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
         validate(request, id);
         mapper.updateEntityFromRequest(request, entity);
         Questionario updated = repository.save(entity);
@@ -79,11 +84,11 @@ public class QuestionarioService {
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Questionário não encontrado com ID: " + id);
-        }
+        Questionario entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
         itQuestionarioRepository.deleteByQuestionarioId(id);
-        repository.deleteById(id);
+        repository.delete(entity);
     }
 }
 
