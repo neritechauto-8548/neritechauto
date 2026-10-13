@@ -64,7 +64,7 @@ export class StartupService {
     let permissions = user?.permissions || [];
     const hasAdmin = user?.funcoes?.some((role: string) => {
       const r = (role || '').toUpperCase();
-      return r === 'ADMIN' || r.includes('ADMIN') || r.includes('ADMINISTRADOR');
+      return r === 'ADMIN' || r === 'ADMINISTRADOR' || r === 'SUPER_ADMIN';
     });
     if (hasAdmin || environment.uxPreview) {
       permissions = Array.from(new Set([
