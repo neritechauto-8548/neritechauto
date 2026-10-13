@@ -36,7 +36,7 @@ on:
       - "backend/src/main/java/com/neritech/saas/security/**"
       - "backend/src/main/java/com/neritech/saas/gestaoUsuarios/**"
       - "backend/src/main/java/com/neritech/saas/comunicacao/**"
-      - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantInterceptor.java"
+      - "backend/src/main/java/com/neritech/saas/common/tenancy/**"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
       - "backend/src/main/resources/application.yml"
   pull_request:
@@ -47,6 +47,8 @@ on:
       - "FrontEnd/src/app/routes/sessions/recover/**"
       - "FrontEnd/src/app/theme/**"
       - "FrontEnd/src/app/core/bootstrap/**"
+      - "FrontEnd/src/app/core/authentication/**"
+      - "FrontEnd/src/app/core/interceptors/**"
       - "FrontEnd/src/app/core/services/notificacao.service.ts"
       - "FrontEnd/karma.conf.js"
       - "FrontEnd/src/app/shared/components/**"
@@ -63,8 +65,10 @@ on:
       - "FrontEnd/src/app/routes/veiculo/**"
       - "FrontEnd/src/app/routes/os/**"
       - "backend/src/main/java/com/neritech/saas/cliente/**"
+      - "backend/src/main/java/com/neritech/saas/security/**"
+      - "backend/src/main/java/com/neritech/saas/gestaoUsuarios/**"
       - "backend/src/main/java/com/neritech/saas/comunicacao/**"
-      - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantInterceptor.java"
+      - "backend/src/main/java/com/neritech/saas/common/tenancy/**"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
       - "backend/src/main/resources/application.yml"
   workflow_dispatch:
@@ -85,7 +89,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - name: Testes de regressão do Application Shell
-        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/sidemenu/preview-menu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts --include=src/app/core/authentication/auth-guard.spec.ts --include=src/app/core/authentication/auth.service.spec.ts --include=src/app/core/interceptors/token-interceptor.spec.ts --include=src/app/core/interceptors/tenant-interceptor.spec.ts --include=src/app/core/interceptors/error-interceptor.spec.ts
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/sidemenu/preview-menu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts --include=src/app/core/authentication/auth-guard.spec.ts --include=src/app/core/authentication/auth.service.spec.ts --include=src/app/core/interceptors/token-interceptor.spec.ts --include=src/app/core/interceptors/tenant-interceptor.spec.ts --include=src/app/core/interceptors/error-interceptor.spec.ts --include=src/app/core/bootstrap/startup-permissions.spec.ts --include=src/app/core/authentication/token.service.spec.ts
       - name: Publicar relatórios de testes Angular
         if: always()
         uses: actions/upload-artifact@v4
