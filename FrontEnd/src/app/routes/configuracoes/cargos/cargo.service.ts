@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, defer, throwError } from 'rxjs';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../../environments/environment';
 
@@ -23,8 +24,7 @@ export class CargoService {
   private readonly base = environment.baseUrl + '/v1/rh/cargos';
 
   private get tenantId(): string {
-    const v = this.storage.has('tenantId') ? (this.storage.get('tenantId') as any) : '1';
-    return String(v && typeof v !== 'object' ? v : '1');
+    return String(empresaIdAtual(this.storage) ?? '');
   }
 
   private getHeaders(): HttpHeaders {
@@ -44,6 +44,8 @@ export class CargoService {
       });
     }
 
-    return this.http.get<Page<CargoResponse>>(this.base, { params: httpParams, headers: this.getHeaders() });
+    return defer(() => empresaIdAtual(this.storage)
+      ? this.http.get<Page<CargoResponse>>(this.base, { params: httpParams, headers: this.getHeaders() })
+      : throwError(() => new Error('Não foi possível identificar sua empresa. Entre novamente.')));
   }
 }
