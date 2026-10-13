@@ -7,6 +7,8 @@ import com.neritech.saas.comunicacao.dto.QuestionarioResponse;
 import com.neritech.saas.comunicacao.mapper.QuestionarioMapper;
 import com.neritech.saas.comunicacao.repository.ItQuestionarioRepository;
 import com.neritech.saas.comunicacao.repository.QuestionarioRepository;
+import com.neritech.saas.comunicacao.repository.PesquisaRespostaRepository;
+import java.util.Objects;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,7 @@ public class QuestionarioService {
     private final QuestionarioRepository repository;
     private final ItQuestionarioRepository itQuestionarioRepository;
     private final QuestionarioMapper mapper;
+    private final PesquisaRespostaRepository respostas;
 
     private void validate(QuestionarioRequest request, Long id) {
         TenantAccess.require(request.empresaId());
@@ -77,6 +80,11 @@ public class QuestionarioService {
         Questionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
         TenantAccess.require(entity.getEmpresaId());
+        if (respostas.existsByQuestionarioIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                && (!Objects.equals(entity.getDsQuestionario(), request.dsQuestionario())
+                || !Objects.equals(entity.getUrlImagem(), request.urlImagem()))) {
+            throw new BusinessException("Este questionário já possui respostas: apenas ativar ou inativar é permitido.");
+        }
         validate(request, id);
         mapper.updateEntityFromRequest(request, entity);
         Questionario updated = repository.save(entity);
@@ -87,6 +95,9 @@ public class QuestionarioService {
         Questionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
         TenantAccess.require(entity.getEmpresaId());
+        if (respostas.existsByQuestionarioIdAndEmpresaId(id, TenantAccess.requireCurrent())) {
+            throw new BusinessException("Um questionário com respostas não pode ser excluído.");
+        }
         itQuestionarioRepository.deleteByQuestionarioId(id);
         repository.delete(entity);
     }

@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 class QuestionarioServiceTenantTest {
     private final QuestionarioRepository repo = mock(QuestionarioRepository.class);
     private final QuestionarioService service = new QuestionarioService(
-            repo, mock(ItQuestionarioRepository.class), mock(QuestionarioMapper.class));
+            repo, mock(ItQuestionarioRepository.class), mock(QuestionarioMapper.class), mock(com.neritech.saas.comunicacao.repository.PesquisaRespostaRepository.class));
 
     @AfterEach void clearContext() { TenantContext.clear(); }
 

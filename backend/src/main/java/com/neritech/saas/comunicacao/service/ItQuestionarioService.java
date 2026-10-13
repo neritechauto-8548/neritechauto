@@ -8,6 +8,7 @@ import com.neritech.saas.comunicacao.dto.ItQuestionarioResponse;
 import com.neritech.saas.comunicacao.mapper.ItQuestionarioMapper;
 import com.neritech.saas.comunicacao.repository.ItQuestionarioRepository;
 import com.neritech.saas.comunicacao.repository.QuestionarioRepository;
+import com.neritech.saas.comunicacao.repository.PesquisaRespostaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ public class ItQuestionarioService {
     private final ItQuestionarioRepository repository;
     private final QuestionarioRepository questionarioRepository;
     private final ItQuestionarioMapper mapper;
+    private final PesquisaRespostaRepository respostas;
 
     private void validate(ItQuestionarioRequest request, Long id) {
         if (request.questionarioId() == null) {
@@ -57,11 +59,18 @@ public class ItQuestionarioService {
         }
     }
 
+    private void assertEditable(Long questionarioId) {
+        if (respostas.existsByQuestionarioIdAndEmpresaId(questionarioId, TenantAccess.requireCurrent())) {
+            throw new BusinessException("O questionário já recebeu respostas: suas perguntas estão protegidas.");
+        }
+    }
+
     public ItQuestionarioResponse create(ItQuestionarioRequest request) {
         validate(request, null);
         Questionario questionario = questionarioRepository.findById(request.questionarioId())
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + request.questionarioId()));
         TenantAccess.require(questionario.getEmpresaId());
+        assertEditable(request.questionarioId());
 
         ItQuestionario entity = mapper.toEntity(request);
         entity.setQuestionario(questionario);
@@ -97,12 +106,14 @@ public class ItQuestionarioService {
                 .orElseThrow(() -> new EntityNotFoundException("Pergunta não encontrada com ID: " + id));
 
         TenantAccess.require(entity.getQuestionario().getEmpresaId());
+        assertEditable(entity.getQuestionario().getId());
         validate(request, id);
 
         if (!entity.getQuestionario().getId().equals(request.questionarioId())) {
             Questionario questionario = questionarioRepository.findById(request.questionarioId())
                     .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + request.questionarioId()));
             TenantAccess.require(questionario.getEmpresaId());
+            assertEditable(request.questionarioId());
             entity.setQuestionario(questionario);
         }
 
@@ -115,6 +126,7 @@ public class ItQuestionarioService {
         ItQuestionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pergunta não encontrada com ID: " + id));
         TenantAccess.require(entity.getQuestionario().getEmpresaId());
+        assertEditable(entity.getQuestionario().getId());
         repository.delete(entity);
     }
 }

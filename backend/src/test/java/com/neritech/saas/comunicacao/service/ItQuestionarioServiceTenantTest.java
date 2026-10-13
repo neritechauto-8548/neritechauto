@@ -18,7 +18,8 @@ class ItQuestionarioServiceTenantTest {
     private final ItQuestionarioRepository repo = mock(ItQuestionarioRepository.class);
     private final QuestionarioRepository questionarios = mock(QuestionarioRepository.class);
     private final ItQuestionarioService service = new ItQuestionarioService(
-            repo, questionarios, mock(ItQuestionarioMapper.class));
+            repo, questionarios, mock(ItQuestionarioMapper.class),
+            mock(com.neritech.saas.comunicacao.repository.PesquisaRespostaRepository.class));
 
     @AfterEach void clearContext() { TenantContext.clear(); }
 
