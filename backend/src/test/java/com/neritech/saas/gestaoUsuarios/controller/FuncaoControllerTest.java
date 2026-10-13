@@ -5,6 +5,7 @@ import com.neritech.saas.TestDataBuilder;
 import com.neritech.saas.gestaoUsuarios.domain.Funcao;
 import com.neritech.saas.gestaoUsuarios.service.FuncaoService;
 import com.neritech.saas.security.JwtService;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ class FuncaoControllerTest {
 
     @MockBean
     private FuncaoService funcaoService;
+
+    @MockBean
+    private SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @MockBean
     private JwtService jwtService;
