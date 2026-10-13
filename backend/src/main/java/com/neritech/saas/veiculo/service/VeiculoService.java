@@ -2,7 +2,7 @@ package com.neritech.saas.veiculo.service;
 
 import com.neritech.saas.cliente.domain.Cliente;
 import com.neritech.saas.cliente.repository.ClienteRepository;
-import com.neritech.saas.common.tenancy.TenantContext;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.veiculo.domain.MarcaVeiculo;
 import com.neritech.saas.veiculo.repository.MarcaVeiculoRepository;
 import com.neritech.saas.veiculo.domain.AnoModelo;
@@ -58,8 +58,9 @@ public class VeiculoService {
     }
 
     public VeiculoResponse create(VeiculoRequest request) {
-        // Validações de existência
-        Cliente cliente = clienteRepository.findById(request.clienteId())
+        Long tenantId = TenantAccess.requireCurrent();
+        // O cliente vinculado tem de pertencer à empresa da sessão.
+        Cliente cliente = clienteRepository.findByIdScoped(request.clienteId())
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
 
         MarcaVeiculo marca = null;
@@ -90,12 +91,12 @@ public class VeiculoService {
         }
 
         // Validação de unicidade da placa no tenant
-        Long tenantId = TenantContext.getCurrentTenant();
-        if (tenantId != null && repository.findByEmpresaIdAndPlaca(tenantId, request.placa()).isPresent()) {
+        if (repository.findByEmpresaIdAndPlaca(tenantId, request.placa()).isPresent()) {
             throw new IllegalArgumentException("Já existe um veículo com esta placa para esta empresa");
         }
 
         Veiculo entity = mapper.toEntity(request);
+        entity.setEmpresaId(tenantId);
         entity.setCliente(cliente);
         entity.setMarca(marca);
         entity.setModelo(modelo);
@@ -106,10 +107,11 @@ public class VeiculoService {
     }
 
     public VeiculoResponse update(Long id, VeiculoRequest request) {
-        Veiculo entity = repository.findById(id)
+        Long tenantId = TenantAccess.requireCurrent();
+        Veiculo entity = repository.findByIdAndEmpresaId(id, tenantId)
                 .orElseThrow(() -> new EntityNotFoundException("Veículo não encontrado"));
 
-        Cliente cliente = clienteRepository.findById(request.clienteId())
+        Cliente cliente = clienteRepository.findByIdScoped(request.clienteId())
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado"));
 
         MarcaVeiculo marca = null;
@@ -141,8 +143,7 @@ public class VeiculoService {
 
         // Validação de placa se mudou
         if (!entity.getPlaca().equals(request.placa())) {
-            Long tenantId = TenantContext.getCurrentTenant();
-            if (tenantId != null && repository.findByEmpresaIdAndPlaca(tenantId, request.placa()).isPresent()) {
+            if (repository.findByEmpresaIdAndPlaca(tenantId, request.placa()).isPresent()) {
                 throw new IllegalArgumentException("Já existe um veículo com esta placa para esta empresa");
             }
         }
@@ -159,19 +160,14 @@ public class VeiculoService {
 
     @Transactional(readOnly = true)
     public VeiculoResponse findById(Long id) {
-        return repository.findById(id)
+        return repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
                 .map(mapper::toResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Veículo não encontrado"));
     }
 
     @Transactional(readOnly = true)
     public List<VeiculoResponse> findAll() {
-        Long tenantId = TenantContext.getCurrentTenant();
-        if (tenantId == null) {
-            return repository.findAll().stream()
-                    .map(mapper::toResponse)
-                    .collect(Collectors.toList());
-        }
+        Long tenantId = TenantAccess.requireCurrent();
         return repository.findByEmpresaId(tenantId).stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
@@ -179,12 +175,7 @@ public class VeiculoService {
 
     @Transactional(readOnly = true)
     public List<VeiculoResponse> findByCliente(Long clienteId) {
-        Long tenantId = TenantContext.getCurrentTenant();
-        if (tenantId == null) {
-            return repository.findByClienteId(clienteId).stream()
-                    .map(mapper::toResponse)
-                    .collect(Collectors.toList());
-        }
+        Long tenantId = TenantAccess.requireCurrent();
         return repository.findByClienteIdAndEmpresaId(clienteId, tenantId).stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
@@ -192,6 +183,7 @@ public class VeiculoService {
 
     @Transactional(readOnly = true)
     public Optional<VeiculoResponse> findByPlaca(String placa) {
+        TenantAccess.requireCurrent();
         if (placa == null || placa.isBlank()) return Optional.empty();
         
         // Conforme pedido pelo usuário: Busca diretamente na API externa, ignorando o histórico interno do banco
@@ -241,9 +233,8 @@ public class VeiculoService {
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Veículo não encontrado");
-        }
-        repository.deleteById(id);
+        Veiculo entity = repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new EntityNotFoundException("Veículo não encontrado"));
+        repository.delete(entity);
     }
 }
