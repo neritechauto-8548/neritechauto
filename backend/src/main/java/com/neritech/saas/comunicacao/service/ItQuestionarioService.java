@@ -66,11 +66,16 @@ public class ItQuestionarioService {
     }
 
     public ItQuestionarioResponse create(ItQuestionarioRequest request) {
-        validate(request, null);
+        if (request.questionarioId() == null) {
+            throw new BusinessException("O ID do questionário é obrigatório.");
+        }
+        // Autorizar o questionário antes de consultar nomes de perguntas;
+        // validações de duplicidade não devem revelar conteúdo de outro tenant.
         Questionario questionario = questionarioRepository.findById(request.questionarioId())
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + request.questionarioId()));
         TenantAccess.require(questionario.getEmpresaId());
         assertEditable(request.questionarioId());
+        validate(request, null);
 
         ItQuestionario entity = mapper.toEntity(request);
         entity.setQuestionario(questionario);
@@ -107,15 +112,18 @@ public class ItQuestionarioService {
 
         TenantAccess.require(entity.getQuestionario().getEmpresaId());
         assertEditable(entity.getQuestionario().getId());
-        validate(request, id);
-
-        if (!entity.getQuestionario().getId().equals(request.questionarioId())) {
-            Questionario questionario = questionarioRepository.findById(request.questionarioId())
-                    .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + request.questionarioId()));
-            TenantAccess.require(questionario.getEmpresaId());
-            assertEditable(request.questionarioId());
-            entity.setQuestionario(questionario);
+        if (request.questionarioId() == null) {
+            throw new BusinessException("O ID do questionário é obrigatório.");
         }
+        Questionario destino = null;
+        if (!entity.getQuestionario().getId().equals(request.questionarioId())) {
+            destino = questionarioRepository.findById(request.questionarioId())
+                    .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + request.questionarioId()));
+            TenantAccess.require(destino.getEmpresaId());
+            assertEditable(request.questionarioId());
+        }
+        validate(request, id);
+        if (destino != null) entity.setQuestionario(destino);
 
         mapper.updateEntityFromRequest(request, entity);
         ItQuestionario updated = repository.save(entity);
