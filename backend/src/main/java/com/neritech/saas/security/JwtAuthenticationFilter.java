@@ -37,7 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            try {
+                filterChain.doFilter(request, response);
+            } finally {
+                // Fluxos públicos (inclusive login/refresh) também podem definir
+                // TenantContext no serviço; nunca reutilizar esse valor na thread.
+                TenantContext.clear();
+            }
             return;
         }
 
