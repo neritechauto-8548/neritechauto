@@ -21,7 +21,7 @@ CRM permanece sob **Clientes**, sem tela cadastral duplicada nem módulo novo. `
 - `GET` dessas APIs exige `ADMIN` ou `GERAL_USUARIO`; `POST/PUT/DELETE` exige `ADMIN` ou `GERAL_CONFIG_SISTEMA`. A matriz deve ser validada com perfis de negócio reais.
 - `FrontEnd/public/data/menu.json` tem agora CRM → Comunicação e Questionamento de pesquisa dentro de Clientes; a reestruturação do menu principal legado é uma pendência da Application Shell.
 - **Veículos:** a API `GET /v1/veiculos?clienteId=...` e a criação via `POST /v1/veiculos` existem; o formulário de cliente já consulta vínculos. Falta QA E2E com dados reais e papéis autorizados.
-- **Documentos:** o frontend referencia `/v1/clientes/{clienteId}/documentos`, `/upload` e `/download`, mas o backend de Clientes ainda não possui controller para esses contratos no snapshot analisado. Não tratar upload, visualização ou download como homologados.
+- **Documentos:** implementados `GET /v1/clientes/{clienteId}/documentos`, `GET /{id}`, `POST /upload`, `GET /{id}/download` e `DELETE /{id}` em `DocumentoClienteController`, com tabela `documentos_clientes` (migração V264), filtro explícito por empresa e cliente, tamanho máximo de 5 MB, formatos PDF/JPG/PNG e download como anexo. O formulário existente agora possui aba Documentos com upload, listagem paginada, download e exclusão. Requer homologação real com PostgreSQL/migrações e políticas de retenção e armazenamento. O frontend ainda contém métodos conceituais `POST/PUT` apenas de metadados que **não devem ser tratados como APIs confirmadas**.
 - Não confundir CI verde com homologação visual, configuração dos provedores de envio, testes de integração real ou conclusão de todas as funcionalidades CRM.
 
 ## Lista de clientes
