@@ -154,7 +154,7 @@ export class FuncionarioService {
 
   list(params?: Record<string, any>): Observable<Page<FuncionarioResponse>> {
     let p = new HttpParams().set('empresaId', this.tenantId);
-    if (params) Object.entries(params).forEach(([k, v]) => { if (v != null) p = p.set(k, String(v)); });
+    if (params) Object.entries(params).forEach(([k, v]) => { if (k !== 'empresaId' && v != null) p = p.set(k, String(v)); });
     return this.withEmpresa(() => this.http.get<Page<FuncionarioResponse>>(this.base, { params: p, headers: this.headers }));
   }
 
@@ -168,11 +168,11 @@ export class FuncionarioService {
   }
 
   create(dto: FuncionarioRequest): Observable<FuncionarioResponse> {
-    return this.withEmpresa(() => this.http.post<FuncionarioResponse>(this.base, dto, { headers: this.headers }));
+    return this.withEmpresa(() => this.http.post<FuncionarioResponse>(this.base, { ...dto, empresaId: Number(this.tenantId) }, { headers: this.headers }));
   }
 
   update(id: number, dto: FuncionarioRequest): Observable<FuncionarioResponse> {
-    return this.withEmpresa(() => this.http.put<FuncionarioResponse>(`${this.base}/${id}`, dto, { headers: this.headers }));
+    return this.withEmpresa(() => this.http.put<FuncionarioResponse>(`${this.base}/${id}`, { ...dto, empresaId: Number(this.tenantId) }, { headers: this.headers }));
   }
 
   delete(id: number): Observable<void> {
