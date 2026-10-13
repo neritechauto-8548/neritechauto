@@ -18,14 +18,17 @@ export class UsuariosComponent implements OnInit {
 
   usuarios: UsuarioResponse[] = [];
   loading  = false;
+  loadError = '';
+  savingId: number | null = null;
 
   ngOnInit() { this.carregar(); }
 
   carregar() {
     this.loading = true;
+    this.loadError = '';
     this.service.list().subscribe({
       next:  (data) => { this.usuarios = data; this.loading = false; },
-      error: ()     => { this.toast.error('Erro ao carregar usuários'); this.loading = false; },
+      error: ()     => { this.usuarios = []; this.loadError = 'Não foi possível carregar os usuários. Tente novamente.'; this.loading = false; },
     });
   }
 
@@ -33,10 +36,12 @@ export class UsuariosComponent implements OnInit {
   editarUsuario(id: number) { this.router.navigate(['/configuracoes/usuarios/editar', id]); }
 
   excluirUsuario(id: number) {
+    if (this.savingId !== null) return;
     if (!confirm('Deseja realmente inativar este usuário?')) return;
+    this.savingId = id;
     this.service.delete(id).subscribe({
-      next:  () => { this.toast.success('Usuário inativado'); this.carregar(); },
-      error: () => this.toast.error('Erro ao inativar usuário'),
+      next:  () => { this.savingId = null; this.toast.success('Usuário inativado'); this.carregar(); },
+      error: () => { this.savingId = null; this.toast.error('Erro ao inativar usuário'); },
     });
   }
 }
