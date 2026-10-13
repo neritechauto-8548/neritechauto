@@ -264,6 +264,10 @@ export class ClientesService {
   }
 
   buscarDocumento(clienteId: number | string, id: number | string): Observable<DocumentoClienteResponse> {
+    if (environment.uxPreview) {
+      const documento = this.previewDocumentos.find(d => d.clienteId === Number(clienteId) && d.id === Number(id));
+      return documento ? of(documento) : throwError(() => new Error('Documento demonstrativo não encontrado.'));
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
     return this.http.get<DocumentoClienteResponse>(url);
   }
@@ -272,6 +276,11 @@ export class ClientesService {
     clienteId: number | string,
     doc: DocumentoClienteRequest
   ): Observable<DocumentoClienteResponse> {
+    if (environment.uxPreview) {
+      const created: DocumentoClienteResponse = { ...doc, id: this.previewNextId++, clienteId: Number(clienteId) };
+      this.previewDocumentos = [...this.previewDocumentos, created];
+      return of(created);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos`;
     return this.http.post<DocumentoClienteResponse>(url, doc);
   }
@@ -281,6 +290,13 @@ export class ClientesService {
     id: number | string,
     doc: DocumentoClienteRequest
   ): Observable<DocumentoClienteResponse> {
+    if (environment.uxPreview) {
+      const original = this.previewDocumentos.find(d => d.clienteId === Number(clienteId) && d.id === Number(id));
+      if (!original) return throwError(() => new Error('Documento demonstrativo não encontrado.'));
+      const updated: DocumentoClienteResponse = { ...original, ...doc, id: original.id, clienteId: original.clienteId };
+      this.previewDocumentos = this.previewDocumentos.map(d => d === original ? updated : d);
+      return of(updated);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
     return this.http.put<DocumentoClienteResponse>(url, doc);
   }
@@ -291,6 +307,9 @@ export class ClientesService {
     tipoDocumento: string,
     descricao?: string
   ): Observable<DocumentoClienteResponse> {
+    if (environment.uxPreview) {
+      return throwError(() => new Error('Upload indisponível no modo demonstrativo.'));
+    }
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tipoDocumento', tipoDocumento);
@@ -302,11 +321,18 @@ export class ClientesService {
   }
 
   downloadDocumento(clienteId: number | string, id: number | string): Observable<Blob> {
+    if (environment.uxPreview) {
+      return throwError(() => new Error('Download indisponível no modo demonstrativo.'));
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}/download`;
     return this.http.get(url, { responseType: 'blob' });
   }
 
   excluirDocumento(clienteId: number | string, id: number | string): Observable<void> {
+    if (environment.uxPreview) {
+      this.previewDocumentos = this.previewDocumentos.filter(d => !(d.clienteId === Number(clienteId) && d.id === Number(id)));
+      return of(void 0);
+    }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos/${id}`;
     return this.http.delete<void>(url);
   }
