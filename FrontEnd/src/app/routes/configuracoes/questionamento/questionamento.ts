@@ -14,6 +14,7 @@ import { QuestionamentoItemDialog } from './questionamento-item-dialog';
 import { QuestionamentoModeloDialog } from './questionamento-modelo-dialog';
 import { QuestionarioService, QuestionarioResponse } from './questionario.service';
 import { ItQuestionarioService, ItQuestionarioResponse, TipoItem } from './it-questionario.service';
+import { PesquisaResultados } from './pesquisa-resultados';
 
 export type TipoPergunta = 'avaliacao' | 'simnao' | 'aberta';
 
@@ -28,6 +29,7 @@ export interface ModeloQuestionamento {
   titulo: string;
   perguntas: PerguntaItem[];
   expanded?: boolean;
+  resultadosAbertos?: boolean;
   ativo?: boolean;
   loading?: boolean;
   erroPerguntas?: boolean;
@@ -44,6 +46,7 @@ export interface ModeloQuestionamento {
     ConfirmationDialogComponent,
     DataViewState,
     NeriTechIcon,
+    PesquisaResultados,
   ],
   providers: [DialogService, MessageService, ConfirmationService],
   templateUrl: './questionamento.html',

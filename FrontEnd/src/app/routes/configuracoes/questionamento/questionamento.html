@@ -63,6 +63,9 @@
             </span>
 
             @if (canManageResearch) { <div class="research-card-actions" aria-label="Ações do questionário">
+              <button type="button" class="research-action" (click)="modelo.resultadosAbertos = !modelo.resultadosAbertos; modelo.expanded = true" [attr.aria-expanded]="!!modelo.resultadosAbertos">
+                {{ modelo.resultadosAbertos ? 'Ocultar respostas' : 'Ver respostas' }}
+              </button>
               <button type="button" class="research-action" (click)="incluirPergunta(modelo)" [attr.aria-label]="'Adicionar pergunta a ' + modelo.titulo">Adicionar pergunta</button>
               <button type="button" class="research-action" (click)="duplicarModelo(modelo)" [attr.aria-label]="'Duplicar ' + modelo.titulo">Duplicar</button>
               <button type="button" class="research-action" (click)="editarModelo(modelo)" [attr.aria-label]="'Editar ' + modelo.titulo">Editar</button>
@@ -103,6 +106,10 @@
                   }
                 </div>
               }
+            @if (canManageResearch && modelo.resultadosAbertos && !modelo.loading && !modelo.erroPerguntas) {
+              <app-pesquisa-resultados [questionarioId]="modelo.id"
+                [perguntas]="modelo.perguntas" [titulo]="modelo.titulo" />
+            }
             </section>
           }
         </article>
