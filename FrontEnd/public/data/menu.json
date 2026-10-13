@@ -21,7 +21,7 @@
         },
         {
           "route": "cliente/crm",
-          "name": "crm",
+          "name": "CRM",
           "type": "sub",
           "children": [
             {
@@ -387,13 +387,19 @@
           "type": "link",
           "route": "configuracoes/colaboradores",
           "name": "Funcionários",
-          "icon": "pi pi-users"
+          "icon": "pi pi-users",
+          "permissions": {
+            "only": "GERAL_CONFIG_SISTEMA"
+          }
         },
         {
           "type": "link",
           "route": "configuracoes/cargos",
           "name": "Cargos",
-          "icon": "pi pi-briefcase"
+          "icon": "pi pi-briefcase",
+          "permissions": {
+            "only": "GERAL_CONFIG_SISTEMA"
+          }
         },
         {
           "type": "link",
