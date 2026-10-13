@@ -99,7 +99,7 @@ describe('AuthService', () => {
   it('should refresh token when access_token is invalid and refresh_token is valid', fakeAsync(() => {
     tokenService.set(Object.assign({ expires_in: 5, refresh_token: 'foo' }, token));
     const match = (req: HttpRequest<any>) =>
-      req.url === '/auth/refresh' && req.body.refresh_token === 'foo';
+      req.url === '/auth/refresh' && req.body.refreshToken === 'foo';
 
     expect(authService.check()).toBeTrue();
     httpMock.expectOne('/usuarios/me').flush(user);
@@ -116,7 +116,7 @@ describe('AuthService', () => {
     spyOn(tokenService, 'set').and.callThrough();
     tokenService.set(Object.assign({ expires_in: 5, refresh_token: 'foo' }, token));
     const match = (req: HttpRequest<any>) =>
-      req.url === '/auth/refresh' && req.body.refresh_token === 'foo';
+      req.url === '/auth/refresh' && req.body.refreshToken === 'foo';
 
     tick(10000);
     expect(authService.check()).toBeFalse();
