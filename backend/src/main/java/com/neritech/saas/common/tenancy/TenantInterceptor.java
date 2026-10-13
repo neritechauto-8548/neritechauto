@@ -77,6 +77,13 @@ public class TenantInterceptor implements HandlerInterceptor {
         try {
             Long tenantId = Long.parseLong(tenantValue);
             log.debug("Resolved tenantId={} from {}", tenantId, tenantSource);
+            // Nunca confiar em um tenant informado pelo cliente quando o JWT
+            // ja estabeleceu a empresa autenticada para esta requisicao.
+            Long authenticatedTenant = TenantContext.getCurrentTenant();
+            if (authenticatedTenant != null && !authenticatedTenant.equals(tenantId)) {
+                response.sendError(HttpStatus.FORBIDDEN.value(), "Empresa informada difere da sessao autenticada");
+                return false;
+            }
             TenantContext.setCurrentTenant(tenantId);
 
             // Habilita o filtro Hibernate para isolar por id_empresa
