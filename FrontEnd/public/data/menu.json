@@ -2,8 +2,7 @@
   "menu": [
     {
       "type": "heading",
-      "name": "administração",
-      "minPlan": 3
+      "name": "administração"
     },
     {
       "route": "admin/dashboard",
@@ -18,6 +17,129 @@
       "type": "link",
       "icon": "pi pi-shield",
       "minPlan": 3
+    },
+    {
+      "route": "configuracoes",
+      "name": "configuracoes",
+      "type": "sub",
+      "icon": "pi pi-cog",
+      "minPlan": 1,
+      "children": [
+        {
+          "type": "heading",
+          "name": "config-geral"
+        },
+        {
+          "route": "empresa",
+          "name": "empresa",
+          "type": "link",
+          "icon": "pi pi-cog"
+        },
+        {
+          "route": "usuarios",
+          "name": "usuarios",
+          "type": "link",
+          "icon": "pi pi-users",
+          "permissions": {
+            "only": "GERAL_CONFIG_SISTEMA"
+          }
+        },
+        {
+          "route": "permissoes",
+          "name": "permissoes",
+          "type": "link",
+          "icon": "pi pi-lock",
+          "permissions": {
+            "only": "GERAL_CONFIG_SISTEMA"
+          }
+        },
+        {
+          "route": "assinatura",
+          "name": "assinatura",
+          "type": "link",
+          "icon": "pi pi-credit-card"
+        },
+        {
+          "type": "heading",
+          "name": "config-rh"
+        },
+        {
+          "route": "colaboradores",
+          "name": "colaboradores",
+          "type": "link",
+          "icon": "pi pi-users"
+        },
+        {
+          "route": "departamentos",
+          "name": "departamentos",
+          "type": "link",
+          "icon": "pi pi-sitemap"
+        },
+        {
+          "route": "setores",
+          "name": "setores",
+          "type": "link",
+          "icon": "pi pi-tags"
+        },
+        {
+          "type": "heading",
+          "name": "config-financeiro"
+        },
+        {
+          "route": "contas",
+          "name": "contas",
+          "type": "link",
+          "icon": "pi pi-money-bill"
+        },
+        {
+          "route": "formas-pagamento",
+          "name": "formas-pagamento",
+          "type": "link",
+          "icon": "pi pi-credit-card"
+        },
+        {
+          "type": "heading",
+          "name": "config-operacional"
+        },
+        {
+          "route": "checklist",
+          "name": "checklist",
+          "type": "link",
+          "icon": "pi pi-check-circle"
+        },
+        {
+          "route": "situacao",
+          "name": "situacao",
+          "type": "link",
+          "icon": "pi pi-flag"
+        },
+        {
+          "route": "localizacao",
+          "name": "localizacao",
+          "type": "link",
+          "icon": "pi pi-map-marker"
+        },
+        {
+          "route": "categoria",
+          "name": "categoria",
+          "type": "link",
+          "icon": "pi pi-tags"
+        },
+        {
+          "type": "heading",
+          "name": "config-comunicacao"
+        },
+        {
+          "route": "opcoes-envio",
+          "name": "opcoes-envio",
+          "type": "link",
+          "icon": "pi pi-send"
+        },
+        {
+          "type": "heading",
+          "name": "config-sistema"
+        }
+      ]
     },
     {
       "type": "heading",
@@ -413,130 +535,6 @@
           "name": "produtos-servicos.servicos",
           "type": "link",
           "icon": "pi pi-wrench"
-        }
-      ]
-    },
-    {
-      "type": "heading",
-      "name": "configuracoes-header"
-    },
-    {
-      "route": "configuracoes",
-      "name": "configuracoes",
-      "type": "sub",
-      "icon": "pi pi-cog",
-      "minPlan": 1,
-      "children": [
-        {
-          "type": "heading",
-          "name": "config-geral"
-        },
-        {
-          "route": "empresa",
-          "name": "empresa",
-          "type": "link",
-          "icon": "pi pi-cog"
-        },
-        {
-          "route": "assinatura",
-          "name": "assinatura",
-          "type": "link",
-          "icon": "pi pi-credit-card"
-        },
-        {
-          "route": "permissoes",
-          "name": "permissoes",
-          "type": "link",
-          "icon": "pi pi-lock",
-          "permissions": {
-            "only": "GERAL_CONFIG_SISTEMA"
-          }
-        },
-        {
-          "type": "heading",
-          "name": "config-rh"
-        },
-        {
-          "route": "colaboradores",
-          "name": "colaboradores",
-          "type": "link",
-          "icon": "pi pi-users"
-        },
-        {
-          "route": "departamentos",
-          "name": "departamentos",
-          "type": "link",
-          "icon": "pi pi-sitemap"
-        },
-        {
-          "route": "setores",
-          "name": "setores",
-          "type": "link",
-          "icon": "pi pi-tags"
-        },
-        {
-          "type": "heading",
-          "name": "config-financeiro"
-        },
-        {
-          "route": "contas",
-          "name": "contas",
-          "type": "link",
-          "icon": "pi pi-money-bill"
-        },
-        {
-          "route": "formas-pagamento",
-          "name": "formas-pagamento",
-          "type": "link",
-          "icon": "pi pi-credit-card"
-        },
-        {
-          "type": "heading",
-          "name": "config-operacional"
-        },
-        {
-          "route": "checklist",
-          "name": "checklist",
-          "type": "link",
-          "icon": "pi pi-check-circle"
-        },
-        {
-          "route": "situacao",
-          "name": "situacao",
-          "type": "link",
-          "icon": "pi pi-flag"
-        },
-        {
-          "route": "localizacao",
-          "name": "localizacao",
-          "type": "link",
-          "icon": "pi pi-map-marker"
-        },
-        {
-          "route": "categoria",
-          "name": "categoria",
-          "type": "link",
-          "icon": "pi pi-tags"
-        },
-        {
-          "type": "heading",
-          "name": "config-comunicacao"
-        },
-        {
-          "route": "opcoes-envio",
-          "name": "opcoes-envio",
-          "type": "link",
-          "icon": "pi pi-send"
-        },
-        {
-          "route": "questionario-envio",
-          "name": "questionario-envio",
-          "type": "link",
-          "icon": "pi pi-info-circle"
-        },
-        {
-          "type": "heading",
-          "name": "config-sistema"
         }
       ]
     }
