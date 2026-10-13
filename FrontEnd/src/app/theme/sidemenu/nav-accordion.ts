@@ -44,6 +44,12 @@ export class NavAccordion implements AfterContentInit {
 
   addItem(item: NavAccordionItem) {
     this.navItems.push(item);
+    // Async menus may register after the initial navigation event.
+    if (item.type === 'sub') {
+      queueMicrotask(() => {
+        if (!this.destroyRef.destroyed && this.navItems.includes(item)) this.checkOpenedItems();
+      });
+    }
   }
 
   removeItem(item: NavAccordionItem) {
