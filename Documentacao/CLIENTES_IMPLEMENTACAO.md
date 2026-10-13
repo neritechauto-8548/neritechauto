@@ -73,7 +73,7 @@ O modo é controlado por `environment.uxPreview` e deve estar habilitado somente
 ## Layout canônico
 - Todas as telas autenticadas utilizam o mesmo AdminLayout, sidebar, breadcrumb e barra superior da NERITECH AUTO.
 - Listagem: título e contexto à esquerda, ação principal à direita; pesquisa e filtros em toolbar compacta, com labels acessíveis.
-- Cadastro/edição: uma única implementação, com cabeçalho no mesmo padrão da listagem, abas Geral / Endereço / Contatos e ações Salvar, Cancelar e Excluir quando permitido.
+- Cadastro/edição: uma única implementação, com cabeçalho no mesmo padrão da listagem, abas Dados Gerais / Endereço / Contatos / Veículos / Documentos e ações Salvar, Cancelar e Excluir quando permitido. O histórico de Comunicação usa a rota canônica do CRM, filtrada pelo cliente.
 - UI-MASTER-001 define a linguagem visual; azul NERITECH (#2563EB) identifica foco e ações primárias, enquanto as cores de status são semânticas.
 - Estado de salvamento deve bloquear cliques duplicados até terminar a operação principal e os dados adicionais; falhas liberam o formulário para nova tentativa.
 - Erro de carregamento da lista aparece como mensagem recuperável com "Tentar novamente", sem apresentá-lo como lista vazia.
@@ -101,12 +101,17 @@ O modo é controlado por `environment.uxPreview` e deve estar habilitado somente
 - [ ] Testar erro de servidor, tentar novamente e ausência de sobreposição por respostas antigas de páginas.
 - [ ] Confirmar que modo de preview não faz gravações no backend.
 - [ ] Testar permissões e isolamento por tenant no ambiente integrado.
+- [ ] Conferir vínculos de veículos: criar, listar, editar, excluir e impedir associação com cliente de outra empresa.
+- [ ] Verificar a aba Documentos com PDF/JPG/PNG válidos e inválidos; limites de 5 MB, exclusão autorizada, download protegido e persistência após recarregar.
+- [ ] Validar o histórico do CRM com filtros reais de canal, status, período e cliente; resultados vazios, página seguinte, 403 e sessão expirada.
+- [ ] Confirmar status de comunicação: SMTP aceito = ENVIADA, não ENTREGUE; SMTP indisponível = FALHOU; WhatsApp sem provedor = operação rejeitada, sem falso positivo.
+- [ ] Verificar Questionamento com perfil somente consulta e perfil gestor; criar/editar/excluir modelo e pergunta, recusando acesso a outra empresa.
 - [ ] Conferir comportamento responsivo e teclado.
 - [ ] Validar endpoints e payloads contra os DTOs reais do backend.
 
 ## Limitações conhecidas a resolver antes da homologação de produção
 - O modo preview mantém as alterações em memória e reinicia os dados ao recarregar.
 - A verificação de duplicidade e a regra final de permissões precisam ser confirmadas na API real.
-- A carga/gestão de documentos ainda não está completa no formulário atual.
+- O formulário já contém aba Documentos com upload/listagem/download/exclusão integrados à API. Faltam validação com PostgreSQL/Flyway V264, regras de retenção e homologação E2E do armazenamento e da autorização.
 - Os filtros adicionais previstos na especificação (origem, unidade, cidade, veículo e pendência cadastral) não fazem parte da barra de filtros atualmente implementada.
 - Não declarar o módulo homologado antes do build e dos testes funcionais no ambiente integrado.
