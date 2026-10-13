@@ -40,6 +40,11 @@ export class AuthService {
   login(username: string, password: string, rememberMe = false) {
     return this.loginService.login(username, password, rememberMe).pipe(
       tap(token => {
+        // Uma autenticação nova não pode herdar usuário ou empresa da sessão anterior.
+        if (!isEmptyObject(this.user$.getValue())) {
+          this.user$.next({});
+        }
+        this.clearTenantState();
         this.setTenantFromToken(token.access_token);
         this.tokenService.set(token);
       }),
@@ -66,10 +71,7 @@ export class AuthService {
     return this.loginService.logout().pipe(
       tap(() => {
         this.tokenService.clear();
-        this.storage.remove('tenantId');
-        this.storage.remove('empresaId');
-        localStorage.removeItem('tenantId');
-        localStorage.removeItem('empresaId');
+        this.clearTenantState();
       }),
       map(() => !this.check())
     );
@@ -85,6 +87,7 @@ export class AuthService {
 
   private assignUser() {
     if (!this.check()) {
+      this.clearTenantState();
       return of({}).pipe(tap(user => this.user$.next(user)));
     }
 
@@ -132,6 +135,15 @@ export class AuthService {
     );
   }
 
+  private clearTenantState() {
+    this.storage.remove('tenantId');
+    this.storage.remove('empresaId');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('tenantId');
+      localStorage.removeItem('empresaId');
+    }
+  }
+
   private setTenantFromToken(accessToken: string) {
     try {
       if (!accessToken || !accessToken.includes('.')) {
@@ -141,7 +153,6 @@ export class AuthService {
       const payload = JSON.parse(atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/')));
       const tenantId = payload.empresaId || payload.tenantId;
       if (tenantId) {
-        console.log('🏢 Setting Tenant ID from token payload:', tenantId);
         const cleanId = String(tenantId);
         this.storage.set('tenantId', cleanId);
         this.storage.set('empresaId', cleanId);

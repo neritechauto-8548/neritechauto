@@ -36,7 +36,11 @@ describe('AuthService', () => {
     });
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.removeItem('tenantId');
+    localStorage.removeItem('empresaId');
+  });
 
   it('should be created', () => {
     expect(authService).toBeTruthy();
@@ -127,6 +131,42 @@ describe('AuthService', () => {
     expect(tokenService.set).toHaveBeenCalledWith(undefined);
     tokenService.ngOnDestroy();
   }));
+
+  it('recarrega o usuário ao trocar de login e não reutiliza a empresa anterior', () => {
+    const storage = TestBed.inject(LocalStorageService);
+    const jwt = (empresaId: number) =>
+      'header.' + btoa(JSON.stringify({ empresaId })) + '.signature';
+
+    authService.login(email, 'password').subscribe();
+    httpMock.expectOne('/auth/login').flush({ accessToken: jwt(1) });
+    httpMock.expectOne('/usuarios/me').flush({ id: 1, empresaId: 1 });
+    expect(storage.get('tenantId')).toBe('1');
+
+    authService.login('segundo@exemplo.com', 'password').subscribe();
+    httpMock.expectOne('/auth/login').flush({ accessToken: jwt(2) });
+    httpMock.expectOne('/usuarios/me').flush({ id: 2, empresaId: 2 });
+    let current: User = {};
+    authService.user().subscribe(value => current = value);
+    expect(current.id).toBe(2);
+    expect(storage.get('tenantId')).toBe('2');
+    expect(localStorage.getItem('tenantId')).toBe('2');
+    tokenService.ngOnDestroy();
+  });
+
+  it('limpa as referências da empresa quando a sessão perde o token', () => {
+    const storage = TestBed.inject(LocalStorageService);
+    tokenService.set(token);
+    httpMock.expectOne('/usuarios/me').flush(user);
+    storage.set('tenantId', '7');
+    storage.set('empresaId', '7');
+    localStorage.setItem('tenantId', '7');
+    localStorage.setItem('empresaId', '7');
+    tokenService.clear();
+    expect(storage.has('tenantId')).toBeFalse();
+    expect(storage.has('empresaId')).toBeFalse();
+    expect(localStorage.getItem('tenantId')).toBeNull();
+    expect(localStorage.getItem('empresaId')).toBeNull();
+  });
 
   it('it only call http request once when on change subscribe twice', () => {
     authService.change().subscribe();
