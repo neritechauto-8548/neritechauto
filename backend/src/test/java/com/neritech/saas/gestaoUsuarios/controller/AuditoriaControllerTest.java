@@ -3,6 +3,7 @@ package com.neritech.saas.gestaoUsuarios.controller;
 import com.neritech.saas.gestaoUsuarios.domain.LogAcesso;
 import com.neritech.saas.gestaoUsuarios.repository.LogAcessoRepository;
 import com.neritech.saas.security.JwtService;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ class AuditoriaControllerTest {
 
     @MockBean
     private LogAcessoRepository logAcessoRepository;
+
+    @MockBean
+    private SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @MockBean
     private JwtService jwtService;
