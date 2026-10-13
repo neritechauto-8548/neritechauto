@@ -58,6 +58,12 @@
           "icon": "pi pi-users"
         },
         {
+          "route": "cargos",
+          "name": "cargos",
+          "type": "link",
+          "icon": "pi pi-briefcase"
+        },
+        {
           "route": "departamentos",
           "name": "departamentos",
           "type": "link",
