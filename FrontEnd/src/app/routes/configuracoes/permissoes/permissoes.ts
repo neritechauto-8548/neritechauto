@@ -24,13 +24,21 @@ export class Permissoes implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
 
   funcoes:  FuncaoResponse[] = [];
+  loading = false;
+  loadError = '';
+  deletingId: number | null = null;
 
-  ngOnInit() {
+  ngOnInit() { this.carregar(); }
+
+  carregar() {
+    this.loading = true;
+    this.loadError = '';
     this.service.listFuncoes().subscribe({
       next: (funcoes) => {
         this.funcoes = funcoes;
+        this.loading = false;
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar funções' }),
+      error: () => { this.loading = false; this.funcoes = []; this.loadError = 'Não foi possível carregar as funções. Tente novamente.'; },
     });
   }
 
@@ -51,6 +59,7 @@ export class Permissoes implements OnInit {
   }
 
   excluirFuncao(id: number) {
+    if (this.deletingId !== null) return;
     this.confirmationService.confirm({
       title: 'Confirmar Exclusão',
       message: 'Tem certeza que deseja excluir esta função? Esta ação não poderá ser desfeita.',
@@ -60,12 +69,14 @@ export class Permissoes implements OnInit {
       icon: 'delete_forever'
     }).subscribe(confirmed => {
       if (confirmed) {
+        this.deletingId = id;
         this.service.deleteFuncao(id).subscribe({
           next: () => {
+            this.deletingId = null;
             this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Função excluída com sucesso' });
             this.funcoes = this.funcoes.filter(f => f.id !== id);
           },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir função' })
+          error: () => { this.deletingId = null; this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir função' }); }
         });
       }
     });
