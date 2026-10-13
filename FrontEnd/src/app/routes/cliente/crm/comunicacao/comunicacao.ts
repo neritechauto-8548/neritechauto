@@ -33,23 +33,27 @@ export class Comunicacao implements OnInit {
   readonly canais = ['EMAIL', 'SMS', 'WHATSAPP', 'PUSH_NOTIFICATION', 'LIGACAO'];
   readonly statuses = ['AGENDADA', 'ENVIADA', 'ENTREGUE', 'LIDA', 'CLICADA', 'FALHOU', 'CANCELADA'];
 
-  ngOnInit(): void {
+  private validarClienteDaRota(): boolean {
     const raw = this.route.snapshot.queryParamMap.get('clienteId');
-    const parsed = raw ? Number(raw) : NaN;
-    if (raw !== null && (!Number.isSafeInteger(parsed) || parsed <= 0)) {
+    if (raw !== null && (!/^\\d+$/.test(raw) || !Number.isSafeInteger(Number(raw)) || Number(raw) <= 0)) {
+      ++this.requestVersion;
+      this.registros = [];
+      this.total = 0;
+      this.loading = false;
       this.filterError = 'O identificador do cliente é inválido. Volte ao cadastro e acesse o histórico novamente.';
-      return;
+      return false;
     }
-    this.clienteId = raw !== null ? parsed : undefined;
+    this.clienteId = raw !== null ? Number(raw) : undefined;
+    this.filterError = '';
+    return true;
+  }
+
+  ngOnInit(): void {
     this.aplicarFiltros();
   }
 
   aplicarFiltros(): void {
-    const rawCliente = this.route.snapshot.queryParamMap.get('clienteId');
-    if (rawCliente !== null && (!Number.isSafeInteger(Number(rawCliente)) || Number(rawCliente) <= 0)) {
-      this.filterError = 'O identificador do cliente é inválido. Volte ao cadastro e acesse o histórico novamente.';
-      return;
-    }
+    if (!this.validarClienteDaRota()) return;
     if (this.dataInicio && this.dataFim && this.dataInicio > this.dataFim) {
       this.filterError = 'A data inicial não pode ser posterior à data final.';
       return;
@@ -77,16 +81,7 @@ export class Comunicacao implements OnInit {
   get paginas(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
 
   carregar(): void {
-    const rawCliente = this.route.snapshot.queryParamMap.get('clienteId');
-    if (rawCliente !== null && (!/^\d+$/.test(rawCliente) || !Number.isSafeInteger(Number(rawCliente)) || Number(rawCliente) <= 0)) {
-      ++this.requestVersion;
-      this.registros = [];
-      this.total = 0;
-      this.loading = false;
-      this.filterError = 'O identificador do cliente é inválido. Volte ao cadastro e acesse o histórico novamente.';
-      return;
-    }
-    this.clienteId = rawCliente !== null ? Number(rawCliente) : undefined;
+    if (!this.validarClienteDaRota()) return;
     this.filters = { ...this.filters, ...(this.clienteId ? { clienteId: this.clienteId } : {}) };
     if (!this.clienteId) delete this.filters.clienteId;
     const version = ++this.requestVersion;
