@@ -73,6 +73,8 @@ export class EmpresaConfig implements OnInit {
   private confirmationService = inject(ConfirmationService);
 
   loading   = false;
+  empresaCarregada = false;
+  erroCarregamento = '';
   empresaId = this.getTenantId();
   activeTab = 'dados';
 
@@ -193,6 +195,8 @@ export class EmpresaConfig implements OnInit {
       return;
     }
     this.loading = true;
+    this.empresaCarregada = false;
+    this.erroCarregamento = '';
     forkJoin({
       empresa:   this.service.getEmpresa(this.empresaId)         .pipe(catchError(() => of(null))),
       enderecos: this.service.getEnderecos(this.empresaId)        .pipe(catchError(() => of(null))),
@@ -204,6 +208,12 @@ export class EmpresaConfig implements OnInit {
       sms:       this.service.getConfigSms(this.empresaId)        .pipe(catchError(() => of(null))),
     }).pipe(finalize(() => this.loading = false))
       .subscribe(({ empresa, enderecos, configEmp, fiscal, oficina, email, whatsapp, sms }) => {
+        if (!empresa?.id || empresa.id !== this.empresaId) {
+          this.erroCarregamento = 'Não foi possível carregar os dados da empresa autenticada. Tente novamente.';
+          this.toast.add({ severity: 'error', summary: 'Erro ao carregar empresa', detail: this.erroCarregamento });
+          return;
+        }
+        this.empresaCarregada = true;
         if (empresa) {
           const clean = (empresa.cnpj || '').replace(/[^a-zA-Z0-9]/g, '');
           this.tipoPessoa = clean.length > 11 ? 'Jurídica' : 'Física';
@@ -626,6 +636,10 @@ export class EmpresaConfig implements OnInit {
 
   // ── Salvar ──────────────────────────────────────────────────────
   salvar(): void {
+    if (!this.empresaCarregada || this.erroCarregamento) {
+      this.toast.add({ severity: 'error', summary: 'Empresa não carregada', detail: 'Recarregue os dados da empresa antes de salvar alterações.' });
+      return;
+    }
     if (!this.empresaId) {
       this.toast.add({ severity: 'error', summary: 'Acesso indisponível', detail: 'Não foi possível identificar a empresa autenticada.' });
       return;
