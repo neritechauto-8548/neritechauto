@@ -3,6 +3,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { ClientePesquisa, PesquisaResposta, PesquisaResultadosService } from './pesquisa-resultados.service';
+import { StatusPesquisa } from './questionario.service';
 
 export interface PerguntaPesquisa { id?: number; texto: string; tipo: 'avaliacao' | 'simnao' | 'aberta'; }
 
@@ -17,6 +18,7 @@ export class PesquisaResultados implements OnInit {
   @Input({ required: true }) questionarioId!: number;
   @Input() perguntas: PerguntaPesquisa[] = [];
   @Input() titulo = '';
+  @Input() statusPesquisa: StatusPesquisa = 'DRAFT';
 
   private readonly api = inject(PesquisaResultadosService);
   private requestSeq = 0;
@@ -38,7 +40,8 @@ export class PesquisaResultados implements OnInit {
   private pendingIdempotencyKey: string | null = null;
 
   get paginas(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
-  get podeRegistrar(): boolean { return this.perguntas.length > 0 && this.perguntas.every(p => p.id != null); }
+  get podeRegistrar(): boolean { return this.statusPesquisa === 'PUBLISHED'
+    && this.perguntas.length > 0 && this.perguntas.every(p => p.id != null); }
   nomeCliente(c: ClientePesquisa): string {
     return c.nomeCompleto || c.razaoSocial || c.nomeFantasia || `Cliente #${c.id}`;
   }

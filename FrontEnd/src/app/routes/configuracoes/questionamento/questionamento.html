@@ -58,19 +58,30 @@
             <span class="research-question-count" [attr.aria-label]="'Número de questões: ' + modelo.perguntas.length">
               {{ modelo.loading ? '…' : (modelo.erroPerguntas ? '—' : modelo.perguntas.length) }}
             </span>
-            <span class="research-status" [class.is-inactive]="!modelo.ativo">
-              <i aria-hidden="true"></i>{{ modelo.ativo ? 'Ativo' : 'Inativo' }}
+            <span class="research-status" [class.is-inactive]="modelo.statusPesquisa !== 'PUBLISHED'">
+              <i aria-hidden="true"></i>{{ statusLabels[modelo.statusPesquisa] }}
             </span>
 
             @if (canManageResearch) { <div class="research-card-actions" aria-label="Ações do questionário">
               <button type="button" class="research-action" (click)="modelo.resultadosAbertos = !modelo.resultadosAbertos; modelo.expanded = true" [attr.aria-expanded]="!!modelo.resultadosAbertos">
                 {{ modelo.resultadosAbertos ? 'Ocultar respostas' : 'Ver respostas' }}
               </button>
-              <button type="button" class="research-action" (click)="incluirPergunta(modelo)" [attr.aria-label]="'Adicionar pergunta a ' + modelo.titulo">Adicionar pergunta</button>
+              @if (modelo.statusPesquisa === 'DRAFT') {
+                <button type="button" class="research-action" (click)="incluirPergunta(modelo)" [attr.aria-label]="'Adicionar pergunta a ' + modelo.titulo">Adicionar pergunta</button>
+              }
               <button type="button" class="research-action" (click)="duplicarModelo(modelo)" [attr.aria-label]="'Duplicar ' + modelo.titulo">Duplicar</button>
-              <button type="button" class="research-action" (click)="editarModelo(modelo)" [attr.aria-label]="'Editar ' + modelo.titulo">Editar</button>
-              <button type="button" class="research-action" (click)="toggleAtivo(modelo)" [attr.aria-label]="(modelo.ativo ? 'Inativar ' : 'Ativar ') + modelo.titulo">{{ modelo.ativo ? 'Inativar' : 'Ativar' }}</button>
-              <button type="button" class="research-action is-danger" (click)="removerModelo(modelo)" [attr.aria-label]="'Excluir ' + modelo.titulo">Excluir</button>
+              @if (modelo.statusPesquisa === 'DRAFT') {
+                <button type="button" class="research-action" (click)="editarModelo(modelo)" [attr.aria-label]="'Editar ' + modelo.titulo">Editar</button>
+                <button type="button" class="research-action" [disabled]="modelo.statusUpdating || modelo.loading"
+                  (click)="mudarEtapa(modelo, 'publicar')" [attr.aria-label]="'Publicar ' + modelo.titulo">Publicar</button>
+                <button type="button" class="research-action is-danger" (click)="removerModelo(modelo)" [attr.aria-label]="'Excluir ' + modelo.titulo">Excluir</button>
+              } @else if (modelo.statusPesquisa === 'PUBLISHED') {
+                <button type="button" class="research-action" [disabled]="modelo.statusUpdating" (click)="mudarEtapa(modelo, 'pausar')">Pausar</button>
+                <button type="button" class="research-action is-danger" [disabled]="modelo.statusUpdating" (click)="mudarEtapa(modelo, 'encerrar')">Encerrar</button>
+              } @else if (modelo.statusPesquisa === 'PAUSED') {
+                <button type="button" class="research-action" [disabled]="modelo.statusUpdating" (click)="mudarEtapa(modelo, 'retomar')">Retomar</button>
+                <button type="button" class="research-action is-danger" [disabled]="modelo.statusUpdating" (click)="mudarEtapa(modelo, 'encerrar')">Encerrar</button>
+              }
             </div> }
           </div>
 
@@ -91,24 +102,24 @@
                       <span>{{ pergunta.tipo === 'avaliacao' ? 'Avaliação de 1 a 10' : (pergunta.tipo === 'simnao' ? 'Sim ou Não' : 'Resposta aberta') }}</span>
                     </div>
                     @if (canManageResearch) {
-                      <div class="research-card-actions">
+                      @if (modelo.statusPesquisa === 'DRAFT') { <div class="research-card-actions">
                         <button type="button" class="research-action" (click)="editarPergunta(modelo, $index)" [attr.aria-label]="'Editar pergunta: ' + pergunta.texto">Editar</button>
                         <button type="button" class="research-action is-danger" (click)="removerPergunta(modelo, $index)" [attr.aria-label]="'Excluir pergunta: ' + pergunta.texto">Excluir</button>
-                      </div>
+                      </div> }
                     }
                   </div>
                 }
               } @else {
                 <div class="research-empty-inline">
                   <p>Este questionário ainda não tem perguntas.</p>
-                  @if (canManageResearch) {
+                  @if (canManageResearch && modelo.statusPesquisa === 'DRAFT') {
                     <button type="button" class="research-text-button" (click)="incluirPergunta(modelo)">Adicionar primeira pergunta</button>
                   }
                 </div>
               }
             @if (canManageResearch && modelo.resultadosAbertos && !modelo.loading && !modelo.erroPerguntas) {
               <app-pesquisa-resultados [questionarioId]="modelo.id"
-                [perguntas]="modelo.perguntas" [titulo]="modelo.titulo" />
+                [perguntas]="modelo.perguntas" [titulo]="modelo.titulo" [statusPesquisa]="modelo.statusPesquisa" />
             }
             </section>
           }

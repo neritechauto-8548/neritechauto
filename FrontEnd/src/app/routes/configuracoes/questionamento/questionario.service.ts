@@ -12,12 +12,15 @@ export interface QuestionarioRequest {
   urlImagem?: string;
   snAtivo?: boolean;
 }
+export type StatusPesquisa = 'DRAFT' | 'PUBLISHED' | 'PAUSED' | 'CLOSED';
+
 export interface QuestionarioResponse {
   id: number;
   empresaId: number;
   dsQuestionario: string;
   urlImagem?: string;
   snAtivo?: boolean;
+  statusPesquisa: StatusPesquisa;
   dataCadastro?: string;
   dataAtualizacao?: string;
 }
@@ -55,6 +58,10 @@ export class QuestionarioService {
     const tenantId = this.empresaId();
     if (!tenantId) return this.missingTenant();
     return this.http.put<QuestionarioResponse>(`${this.base}/${id}`, { ...dto, empresaId: tenantId });
+  }
+  mudarStatus(id: number, action: 'publicar' | 'pausar' | 'retomar' | 'encerrar'): Observable<QuestionarioResponse> {
+    if (!this.empresaId()) return this.missingTenant();
+    return this.http.post<QuestionarioResponse>(`${this.base}/${id}/${action}`, {});
   }
   delete(id: number): Observable<void> {
     if (!this.empresaId()) return this.missingTenant();

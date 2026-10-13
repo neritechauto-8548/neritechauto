@@ -111,6 +111,7 @@ public class QuestionarioService {
     }
 
     private Questionario authorized(Long id) {
+        TenantAccess.requireCurrent();
         Questionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
         TenantAccess.require(entity.getEmpresaId());

@@ -71,7 +71,8 @@
 .research-status i { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
 .research-status.is-inactive { border-color: #e2e8f0; background: #f8fafc; color: #475569; }
 .research-status.is-inactive i { background: #94a3b8; }
-.research-card-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
+.research-card-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.research-card-actions button:disabled { cursor: not-allowed; opacity: .52; }
 .research-action, .research-text-button { min-height: 34px; padding: 0 9px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #475569; font: 550 11px/16px Inter, system-ui, sans-serif; cursor: pointer; }
 .research-action:hover { border-color: var(--nt-border, #e2e8f0); background: var(--nt-surface-subtle, #f8fafc); color: #1e293b; }
 .research-action.is-danger { color: #b42318; }

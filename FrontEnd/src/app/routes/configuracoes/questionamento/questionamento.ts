@@ -12,7 +12,7 @@ import { ConfirmationDialogComponent, DataViewState, NeriTechIcon } from '@share
 
 import { QuestionamentoItemDialog } from './questionamento-item-dialog';
 import { QuestionamentoModeloDialog } from './questionamento-modelo-dialog';
-import { QuestionarioService, QuestionarioResponse } from './questionario.service';
+import { QuestionarioService, QuestionarioResponse, StatusPesquisa } from './questionario.service';
 import { ItQuestionarioService, ItQuestionarioResponse, TipoItem } from './it-questionario.service';
 import { PesquisaResultados } from './pesquisa-resultados';
 
@@ -31,6 +31,8 @@ export interface ModeloQuestionamento {
   expanded?: boolean;
   resultadosAbertos?: boolean;
   ativo?: boolean;
+  statusPesquisa: StatusPesquisa;
+  statusUpdating?: boolean;
   loading?: boolean;
   erroPerguntas?: boolean;
 }
@@ -121,6 +123,7 @@ export class Questionamento implements OnInit {
           perguntas: [],
           expanded: false,
           ativo: !!q.snAtivo,
+          statusPesquisa: q.statusPesquisa || 'DRAFT',
           loading: true,
         }));
         this.loading = false;
@@ -339,20 +342,36 @@ export class Questionamento implements OnInit {
     });
   }
 
-  toggleAtivo(modelo: ModeloQuestionamento): void {
-    if (!this.canManageResearch) {
-      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
-        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
-      return;
-    }
-    const payload = { empresaId: Number(this.tenantId), dsQuestionario: modelo.titulo, snAtivo: !modelo.ativo };
-    this.questionarioService.update(modelo.id, payload).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: !modelo.ativo ? 'Questionário ativado' : 'Questionário desativado' });
-        modelo.ativo = !modelo.ativo;
-      },
-      error: (err) => console.error('Erro ao atualizar status do questionário', err)
-    });
+  readonly statusLabels: Record<StatusPesquisa, string> = {
+    DRAFT: 'Rascunho', PUBLISHED: 'Publicado', PAUSED: 'Pausado', CLOSED: 'Encerrado',
+  };
+
+  mudarEtapa(modelo: ModeloQuestionamento, action: 'publicar' | 'pausar' | 'retomar' | 'encerrar'): void {
+    if (!this.canManageResearch || modelo.statusUpdating) return;
+    const executar = () => {
+      modelo.statusUpdating = true;
+      this.questionarioService.mudarStatus(modelo.id, action).subscribe({
+        next: atualizado => {
+          modelo.statusPesquisa = atualizado.statusPesquisa;
+          modelo.ativo = !!atualizado.snAtivo;
+          modelo.statusUpdating = false;
+          this.messageService.add({ severity: 'success', summary: 'Pesquisa atualizada',
+            detail: 'Novo status: ' + this.statusLabels[atualizado.statusPesquisa] + '.' });
+        },
+        error: err => {
+          modelo.statusUpdating = false;
+          this.messageService.add({ severity: 'error', summary: 'Transição não realizada',
+            detail: err.status === 403 ? 'Perfil não autorizado.'
+              : 'Verifique o estado da pesquisa e se existem perguntas cadastradas.' });
+        },
+      });
+    };
+    if (action !== 'encerrar') { executar(); return; }
+    this.confirmationService.confirm({
+      title: 'Encerrar pesquisa',
+      message: 'A pesquisa será encerrada definitivamente. As respostas ficam preservadas e uma pesquisa encerrada não pode ser reaberta.',
+      confirmText: 'Encerrar pesquisa', cancelText: 'Cancelar', type: 'danger', icon: 'warning'
+    }).subscribe(confirmed => { if (confirmed) executar(); });
   }
 
   removerModelo(modelo: ModeloQuestionamento): void {
