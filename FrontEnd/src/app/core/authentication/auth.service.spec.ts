@@ -61,7 +61,7 @@ describe('AuthService', () => {
     expect(authService.check()).toBeFalse();
 
     authService.logout().subscribe();
-    httpMock.expectOne('/auth/logout');
+    httpMock.expectOne('/auth/logout').flush({});
 
     expect(authService.check()).toBeFalse();
     expect(loginService.logout).toHaveBeenCalled();
