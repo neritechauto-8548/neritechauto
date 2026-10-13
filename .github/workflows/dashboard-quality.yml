@@ -71,6 +71,7 @@ on:
       - "backend/src/main/java/com/neritech/saas/common/tenancy/**"
       - "backend/src/main/java/com/neritech/saas/common/tenancy/TenantFilterConfiguration.java"
       - "backend/src/main/resources/application.yml"
+      - ".github/workflows/dashboard-quality.yml"
   workflow_dispatch:
 
 jobs:
@@ -89,7 +90,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - name: Testes de regressão do Application Shell
-        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/sidemenu/preview-menu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts --include=src/app/core/authentication/auth-guard.spec.ts --include=src/app/core/authentication/permission-guard.spec.ts --include=src/app/shared/components/data-view-state/data-view-state.spec.ts --include=src/app/core/authentication/auth.service.spec.ts --include=src/app/core/interceptors/token-interceptor.spec.ts --include=src/app/core/interceptors/tenant-interceptor.spec.ts --include=src/app/core/interceptors/error-interceptor.spec.ts --include=src/app/core/bootstrap/startup-permissions.spec.ts --include=src/app/core/authentication/token.service.spec.ts
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/sidemenu/preview-menu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts --include=src/app/core/authentication/auth-guard.spec.ts --include=src/app/core/authentication/permission-guard.spec.ts --include=src/app/core/authentication/token.service.spec.ts --include=src/app/core/bootstrap/startup-permissions.spec.ts --include=src/app/shared/components/data-view-state/data-view-state.spec.ts --include=src/app/core/authentication/auth.service.spec.ts --include=src/app/core/interceptors/token-interceptor.spec.ts --include=src/app/core/interceptors/tenant-interceptor.spec.ts --include=src/app/core/interceptors/error-interceptor.spec.ts --include=src/app/core/bootstrap/startup-permissions.spec.ts --include=src/app/core/authentication/token.service.spec.ts
       - name: Publicar relatórios de testes Angular
         if: always()
         uses: actions/upload-artifact@v4
