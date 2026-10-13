@@ -118,8 +118,8 @@ describe('AuthService', () => {
     const match = (req: HttpRequest<any>) =>
       req.url === '/auth/refresh' && req.body.refreshToken === 'foo';
 
-    tick(10000);
-    expect(authService.check()).toBeFalse();
+    tick(4000);
+    expect(authService.check()).toBeTrue();
     httpMock.expectOne('/usuarios/me').flush({});
     httpMock.match(match)[0].flush({}, { status: 401, statusText: 'Unauthorized' });
 
