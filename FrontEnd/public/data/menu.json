@@ -44,7 +44,8 @@
       ],
       "permissions": {
         "only": "GERAL_USUARIO"
-      }
+      },
+      "minPlan": 1
     },
     {
       "type": "sub",
@@ -114,7 +115,8 @@
             }
           ]
         }
-      ]
+      ],
+      "minPlan": 1
     },
     {
       "type": "sub",
@@ -146,7 +148,8 @@
           "name": "Inventário",
           "icon": "pi pi-list"
         }
-      ]
+      ],
+      "minPlan": 1
     },
     {
       "type": "sub",
@@ -187,7 +190,8 @@
       ],
       "permissions": {
         "only": "FIN_VIS_CAIXA"
-      }
+      },
+      "minPlan": 1
     },
     {
       "route": "",
@@ -474,7 +478,8 @@
             }
           ]
         }
-      ]
+      ],
+      "minPlan": 1
     }
   ]
 }
