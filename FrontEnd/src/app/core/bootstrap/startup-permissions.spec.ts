@@ -50,4 +50,13 @@ describe('Application Shell roles and navigation', () => {
     const filtered = (startup as any).filterMenuByPlan(items, 1);
     expect(filtered.map((item: any) => item.name)).toEqual(['Início']);
   });
+  it('does not elevate roles whose name merely contains ADMIN', () => {
+    (startup as any).setPermissions({
+      funcoes: ['ADMINISTRATIVO'], permissions: ['OS_VISUALIZAR'],
+    });
+    expect(permissions.loadPermissions).toHaveBeenCalledWith(['OS_VISUALIZAR']);
+    expect(roles.addRole).toHaveBeenCalledWith('ADMINISTRATIVO', ['OS_VISUALIZAR']);
+  });
+
+
 });
