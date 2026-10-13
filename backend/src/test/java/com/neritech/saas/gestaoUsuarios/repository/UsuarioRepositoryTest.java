@@ -50,7 +50,10 @@ class UsuarioRepositoryTest extends BaseRepositoryTest {
     void naoDeveEncontrarUsuarioDeOutraEmpresa() {
         // Arrange
         Usuario usuario = TestDataBuilder.umUsuario().comEmpresaId(2L).build();
-        usuarioRepository.save(usuario);
+        // A inserção pertence à empresa 2; depois testar a leitura no contexto da empresa 1.
+        com.neritech.saas.common.tenancy.TenantContext.setCurrentTenant(2L);
+        usuarioRepository.saveAndFlush(usuario);
+        com.neritech.saas.common.tenancy.TenantContext.setCurrentTenant(1L);
 
         // Act
         Optional<Usuario> found = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(usuario.getEmail(), 1L);
