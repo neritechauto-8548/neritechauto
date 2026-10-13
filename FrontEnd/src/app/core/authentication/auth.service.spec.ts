@@ -4,6 +4,7 @@ import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { AuthService, LoginService, TokenService, User } from '@core/authentication';
 import { LocalStorageService, MemoryStorageService } from '@shared/services/storage.service';
 import { Observable, skip } from 'rxjs';
+import { SettingsService } from '../bootstrap/settings.service';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -19,6 +20,7 @@ describe('AuthService', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: LocalStorageService, useClass: MemoryStorageService },
+        { provide: SettingsService, useValue: jasmine.createSpyObj('SettingsService', ['setOptions', 'setTheme', 'setDirection']) },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
       ],
