@@ -38,6 +38,7 @@ describe('NotificationButton global shell', () => {
   });
 
   it('never queries the API in UX preview', () => {
+    Object.defineProperty(widget, 'uxPreview', { value: true });
     widget.ngOnInit();
     user$.next({ id: 2 });
     expect(service.findMine).not.toHaveBeenCalled();
