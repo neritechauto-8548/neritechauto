@@ -84,6 +84,12 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value("integration@test.com"));
+
+        // Usuário autenticado na empresa 1 não pode trocar de empresa pelo cabeçalho.
+        mockMvc.perform(get("/usuarios/" + usuario.getId())
+                .header("X-Tenant-Id", "2")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden());
     }
 
     @Test
