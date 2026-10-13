@@ -136,11 +136,11 @@ export class EmpresaConfig implements OnInit {
   };
 
   // ── Options ─────────────────────────────────────────────────────
-  tiposEndereco        = ['MATRIZ','FILIAL','DEPOSITO','ADMINISTRATIVO'];
+  tiposEndereco        = ['MATRIZ','DEPOSITO','ADMINISTRATIVO'];
   estadosBr            = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
   regimesTributarios   = ['SIMPLES_NACIONAL','LUCRO_PRESUMIDO','LUCRO_REAL'];
   portesEmpresa        = ['MEI','ME','EPP','MEDIO','GRANDE'];
-  tiposEstabelecimento = ['MATRIZ','FILIAL'];
+  tiposEstabelecimento = ['MATRIZ'];
   situacoesCadastrais  = ['ATIVA','SUSPENSA','INAPTA','BAIXADA','NULA'];
   anexosSimples        = ['I','II','III','IV','V'];
   ambientesNfe         = ['HOMOLOGACAO','PRODUCAO'];
@@ -157,13 +157,16 @@ export class EmpresaConfig implements OnInit {
 
   // ── Lifecycle ───────────────────────────────────────────────────
   ngOnInit(): void {
-    const stored = this.storage.get('tenantId');
-    this.empresaId = stored ? Number(stored) : 1;
+    this.empresaId = this.getTenantId();
     this.configFiscal.empresaId = this.configOficina.empresaId =
       this.configEmail.empresaId = this.configWhatsapp.empresaId =
       this.configSms.empresaId   = this.configEmpresa.empresaId =
       this.endereco.empresaId    = this.empresaId;
-    this.loadData();
+    if (this.empresaId > 0) {
+      this.loadData();
+    } else {
+      this.toast.add({ severity: 'error', summary: 'Empresa não identificada', detail: 'Entre novamente para carregar as configurações da empresa.' });
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────
@@ -179,12 +182,16 @@ export class EmpresaConfig implements OnInit {
       let id = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
       if (id && typeof id === 'object') id = id.id || id.tenantId || id.empresaId || null;
       const n = Number(id);
-      return isNaN(n) || n === 0 ? 1 : n;
-    } catch { return 1; }
+      return Number.isSafeInteger(n) && n > 0 ? n : 0;
+    } catch { return 0; }
   }
 
   // ── Data ────────────────────────────────────────────────────────
   loadData(): void {
+    if (!this.empresaId) {
+      this.toast.add({ severity: 'error', summary: 'Acesso indisponível', detail: 'Não foi possível identificar a empresa autenticada.' });
+      return;
+    }
     this.loading = true;
     forkJoin({
       empresa:   this.service.getEmpresa(this.empresaId)         .pipe(catchError(() => of(null))),
@@ -619,6 +626,10 @@ export class EmpresaConfig implements OnInit {
 
   // ── Salvar ──────────────────────────────────────────────────────
   salvar(): void {
+    if (!this.empresaId) {
+      this.toast.add({ severity: 'error', summary: 'Acesso indisponível', detail: 'Não foi possível identificar a empresa autenticada.' });
+      return;
+    }
     // Executa todas as validações de frontend antes de chamar a API
     if (!this.validarFormulario()) return;
 
