@@ -4,6 +4,7 @@ import com.neritech.saas.TestDataBuilder;
 import com.neritech.saas.gestaoUsuarios.domain.Permissao;
 import com.neritech.saas.gestaoUsuarios.service.PermissaoService;
 import com.neritech.saas.security.JwtService;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class PermissaoControllerTest {
 
     @MockBean
     private PermissaoService permissaoService;
+
+    @MockBean
+    private SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @MockBean
     private JwtService jwtService;
