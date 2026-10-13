@@ -1,4 +1,4 @@
-import { AfterContentInit, Directive, inject } from '@angular/core';
+import { AfterContentInit, DestroyRef, Directive, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { MenuService } from '@core';
@@ -12,6 +12,8 @@ import { NavAccordionItem } from './nav-accordion-item';
 export class NavAccordion implements AfterContentInit {
   private readonly router = inject(Router);
   private readonly menu = inject(MenuService);
+  private readonly destroyRef = inject(DestroyRef);
+  private pendingCheck: ReturnType<typeof setTimeout> | undefined;
 
   private navItems: NavAccordionItem[] = [];
 
@@ -22,13 +24,22 @@ export class NavAccordion implements AfterContentInit {
 
     // Fix opening status for async menu data
     this.menu.change().pipe(takeUntilDestroyed()).subscribe(() => {
-      setTimeout(() => this.checkOpenedItems());
+      if (this.pendingCheck !== undefined) clearTimeout(this.pendingCheck);
+      this.pendingCheck = setTimeout(() => {
+        this.pendingCheck = undefined;
+        if (!this.destroyRef.destroyed) this.checkOpenedItems();
+      });
+    });
+    this.destroyRef.onDestroy(() => {
+      if (this.pendingCheck !== undefined) clearTimeout(this.pendingCheck);
     });
   }
 
   ngAfterContentInit(): void {
     // Deep routes can be active before async menus finish rendering.
-    queueMicrotask(() => this.checkOpenedItems());
+    queueMicrotask(() => {
+      if (!this.destroyRef.destroyed) this.checkOpenedItems();
+    });
   }
 
   addItem(item: NavAccordionItem) {
