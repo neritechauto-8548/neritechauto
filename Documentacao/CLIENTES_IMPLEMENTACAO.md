@@ -12,7 +12,17 @@ A rota base `/cliente` redireciona para `/cliente/listar`. Não criar rota/tela 
 
 ## CRM na etapa 06
 
-CRM permanece sob **Clientes**, sem tela cadastral duplicada nem módulo novo. `/cliente/crm` e `/cliente/crm/pesquisa` estão registradas em `cliente.routes.ts`. A especificação de Comunicação [CLI-005](https://app.notion.com/p/3eb01fd65a9c81689815eef6a0e269b2) prevê `/cliente/crm/comunicacao`, **ainda sem rota Angular registrada**. A pesquisa [CLI-006](https://app.notion.com/p/3eb01fd65a9c819f88f7e4449a92cdfe) mantém `/cliente/crm/pesquisa` no frontend, sem inferir homologação do fluxo de pesquisa. Páginas legadas que dizem `/clientes/...` ou `CLI-004` não são canônicas. Detalhamento de campos e ações deve ser atualizado nas páginas existentes do Notion.
+CRM permanece sob **Clientes**, sem tela cadastral duplicada nem módulo novo. `/cliente/crm`, `/cliente/crm/comunicacao` e `/cliente/crm/pesquisa` estão registradas em `cliente.routes.ts`. A Comunicação [CLI-005](https://app.notion.com/p/3eb01fd65a9c81689815eef6a0e269b2) possui histórico paginado **somente leitura** por `GET /v1/comunicacao/envios`; a pesquisa [CLI-006](https://app.notion.com/p/3eb01fd65a9c819f88f7e4449a92cdfe) reutiliza a tela de questionários e perguntas existente. Integrações de envio, retry, respostas, indicadores e homologação com provedores externos continuam pendentes. Páginas legadas `/clientes/...` ou `CLI-004` não são canônicas.
+
+## Situação técnica da Prioridade 3 (implementação em curso)
+
+- Comunicação e Pesquisa utilizam os controllers reais `/v1/comunicacao/envios`, `/v1/comunicacao/questionarios` e `/v1/comunicacao/it-questionario`.
+- A classe `TenantAccess` compara empresa solicitada e relacionamento do registro com o `TenantContext` autenticado; há testes automatizados para tentativas de acesso entre empresas.
+- `GET` dessas APIs exige `ADMIN` ou `GERAL_USUARIO`; `POST/PUT/DELETE` exige `ADMIN` ou `GERAL_CONFIG_SISTEMA`. A matriz deve ser validada com perfis de negócio reais.
+- `FrontEnd/public/data/menu.json` tem agora CRM → Comunicação e Questionamento de pesquisa dentro de Clientes; a reestruturação do menu principal legado é uma pendência da Application Shell.
+- **Veículos:** a API `GET /v1/veiculos?clienteId=...` e a criação via `POST /v1/veiculos` existem; o formulário de cliente já consulta vínculos. Falta QA E2E com dados reais e papéis autorizados.
+- **Documentos:** o frontend referencia `/v1/clientes/{clienteId}/documentos`, `/upload` e `/download`, mas o backend de Clientes ainda não possui controller para esses contratos no snapshot analisado. Não tratar upload, visualização ou download como homologados.
+- Não confundir CI verde com homologação visual, configuração dos provedores de envio, testes de integração real ou conclusão de todas as funcionalidades CRM.
 
 ## Lista de clientes
 - Pesquisa por nome, razão social, nome fantasia, CPF/CNPJ e e-mail quando permitido.
