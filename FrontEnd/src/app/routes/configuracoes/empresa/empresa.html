@@ -20,12 +20,20 @@
         label="Salvar alterações"
         icon="pi pi-check"
         [loading]="loading"
-        [disabled]="loading"
+        [disabled]="loading || !empresaCarregada || !!erroCarregamento"
         (onClick)="salvar()"
         id="btn-salvar-empresa"
       />
     </div>
   </div>
+
+  @if (erroCarregamento || (!loading && !empresaCarregada)) {
+    <div class="nt-empresa-load-error" role="alert">
+      <strong>Não foi possível carregar a empresa.</strong>
+      <p>{{ erroCarregamento || 'Confira a sessão e tente novamente.' }}</p>
+      <p-button label="Tentar novamente" severity="secondary" [disabled]="loading || !empresaId" (onClick)="loadData()" />
+    </div>
+  }
 
   <!-- ====== CONTENT ====== -->
   <div class="nt-content">
