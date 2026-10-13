@@ -1,4 +1,5 @@
 import { AfterContentInit, Directive, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { MenuService } from '@core';
 import { filter } from 'rxjs';
@@ -16,11 +17,11 @@ export class NavAccordion implements AfterContentInit {
 
   constructor() {
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(filter(event => event instanceof NavigationEnd), takeUntilDestroyed())
       .subscribe(() => this.checkOpenedItems());
 
     // Fix opening status for async menu data
-    this.menu.change().subscribe(() => {
+    this.menu.change().pipe(takeUntilDestroyed()).subscribe(() => {
       setTimeout(() => this.checkOpenedItems());
     });
   }
