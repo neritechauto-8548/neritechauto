@@ -15,6 +15,7 @@ import com.neritech.saas.gestaoUsuarios.repository.TentativaLoginRepository;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,11 @@ class AuthServiceTest {
         usuario.setEmpresaId(1L);
         loginRequest = TestDataBuilder.umLoginRequest().build();
         TenantContext.setCurrentTenant(1L);
+    }
+
+    @AfterEach
+    void clearTenantAfterTest() {
+        TenantContext.clear();
     }
 
     @Nested
