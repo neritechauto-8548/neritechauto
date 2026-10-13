@@ -37,7 +37,7 @@ import { CargoResponse, CargoService } from './cargo.service';
                 <td class="p-4">{{ cargo.salarioBaseMaximo == null ? '—' : (cargo.salarioBaseMaximo | currency:'BRL') }}</td>
                 <td class="p-4">{{ cargo.temComissao ? 'Sim' : 'Não' }}</td>
               </tr>
-              <tr *ngIf="cargosFiltrados.length === 0"><td colspan="5" class="p-8 text-center text-slate-500">Nenhum cargo cadastrado.</td></tr>
+              <tr *ngIf="cargosFiltrados.length === 0"><td colspan="5" class="p-8 text-center text-slate-500">{{ busca ? 'Nenhum cargo corresponde à busca nesta página.' : 'Nenhum cargo cadastrado nesta página.' }}</td></tr>
             </tbody>
           </table>
         </div>
@@ -57,6 +57,7 @@ export class CargosComponent implements OnInit {
   busca = '';
   pagina = 0;
   totalPaginas = 1;
+  private requestVersion = 0;
 
   get cargosFiltrados(): CargoResponse[] {
     const busca = this.busca.trim().toLocaleLowerCase('pt-BR');
@@ -67,21 +68,25 @@ export class CargosComponent implements OnInit {
     const destino = this.pagina + diferenca;
     if (destino < 0 || destino >= this.totalPaginas || this.loading) return;
     this.pagina = destino;
+    this.busca = '';
     this.carregar();
   }
 
   ngOnInit(): void { this.carregar(); }
 
   carregar(): void {
+    const version = ++this.requestVersion;
     this.loading = true;
     this.error = '';
     this.service.list({ page: this.pagina, size: 20 }).subscribe({
       next: page => {
+        if (version !== this.requestVersion) return;
         this.cargos = page.content ?? [];
         this.totalPaginas = Math.max(1, page.totalPages ?? 1);
         this.loading = false;
       },
       error: () => {
+        if (version !== this.requestVersion) return;
         this.cargos = [];
         this.loading = false;
         this.error = 'Não foi possível carregar os cargos desta empresa.';
