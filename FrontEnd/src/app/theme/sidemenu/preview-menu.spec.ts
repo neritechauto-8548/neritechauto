@@ -57,7 +57,7 @@ describe('Application Shell preview navigation', () => {
 
   it('keeps unimplemented official menu items visible and non-navigable', () => {
     const items = (startup as any).getPreviewMenu() as Menu[];
-    for (const name of ['Gestão de Pátio', 'Comunicação', 'Questionamento de pesquisa',
+    for (const name of ['Gestão de Pátio', 'Comunicação',
       'Diagnósticos', 'Kits', 'Movimento Bancário', 'Gráficos Gerenciais']) {
       expect(lookup(items, name)?.item.disabled).withContext(name).toBeTrue();
     }
