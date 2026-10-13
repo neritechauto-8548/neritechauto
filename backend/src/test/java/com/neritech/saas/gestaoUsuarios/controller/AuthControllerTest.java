@@ -8,6 +8,7 @@ import com.neritech.saas.gestaoUsuarios.dto.RefreshTokenRequest;
 import com.neritech.saas.gestaoUsuarios.service.AuthService;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.security.JwtService;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class AuthControllerTest {
 
     @MockBean
     private UsuarioRepository usuarioRepository;
+
+    @MockBean
+    private SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @MockBean
     private JwtService jwtService; // Necessário pois pode ser injetado em algum lugar
