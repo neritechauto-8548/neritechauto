@@ -53,7 +53,7 @@ import { CargoRequest, CargoResponse, CargoService } from './cargo.service';
                 <td class="p-4">{{ cargo.salarioBaseMinimo == null ? '—' : (cargo.salarioBaseMinimo | currency:'BRL') }}</td>
                 <td class="p-4">{{ cargo.salarioBaseMaximo == null ? '—' : (cargo.salarioBaseMaximo | currency:'BRL') }}</td>
                 <td class="p-4">{{ cargo.temComissao ? 'Sim' : 'Não' }}</td>
-                <td class="p-4"><button type="button" class="underline mr-3" (click)="abrirEdicao(cargo)">Editar</button><button type="button" [disabled]="salvando" class="underline text-red-700" (click)="excluir(cargo)">Excluir</button></td>
+                <td class="p-4"><button type="button" class="underline mr-3" [disabled]="salvando" (click)="abrirEdicao(cargo)">Editar</button><button type="button" [disabled]="salvando" class="underline text-red-700" (click)="excluir(cargo)">Excluir</button></td>
               </tr>
               <tr *ngIf="cargosFiltrados.length === 0"><td colspan="6" class="p-8 text-center text-slate-500">{{ busca ? 'Nenhum cargo corresponde à busca nesta página.' : 'Nenhum cargo cadastrado nesta página.' }}</td></tr>
             </tbody>
@@ -84,6 +84,8 @@ export class CargosComponent implements OnInit {
   form: CargoRequest = { nome: '', temComissao: false };
 
   abrirNovo(): void {
+    if (this.salvando) return;
+    this.actionMessage = '';
     this.cargoId = null;
     this.form = { nome: '', temComissao: false };
     this.formError = '';
@@ -91,6 +93,8 @@ export class CargosComponent implements OnInit {
   }
 
   abrirEdicao(cargo: CargoResponse): void {
+    if (this.salvando) return;
+    this.actionMessage = '';
     this.cargoId = cargo.id;
     this.form = { nome: cargo.nome, codigoCbo: cargo.codigoCbo,
       salarioBaseMinimo: cargo.salarioBaseMinimo, salarioBaseMaximo: cargo.salarioBaseMaximo,
@@ -111,6 +115,7 @@ export class CargosComponent implements OnInit {
       return;
     }
     this.salvando = true;
+    this.actionMessage = '';
     this.formError = '';
     const request = { ...this.form, nome };
     const chamada = this.cargoId ? this.service.atualizar(this.cargoId, request) : this.service.criar(request);
@@ -131,6 +136,7 @@ export class CargosComponent implements OnInit {
   excluir(cargo: CargoResponse): void {
     if (this.salvando || !confirm(`Excluir o cargo "${cargo.nome}"?`)) return;
     this.salvando = true;
+    this.actionMessage = '';
     this.service.excluir(cargo.id).subscribe({
       next: () => { this.salvando = false; this.actionMessage = 'Cargo excluído.'; this.carregar(); },
       error: () => { this.salvando = false; this.actionMessage = 'Não foi possível excluir o cargo. Verifique vínculos e permissões.'; }
