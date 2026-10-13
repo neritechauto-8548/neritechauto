@@ -7,6 +7,10 @@
 - Busca mobile e desktop com atalhos e responsividade. A autenticação funciona por padrão também em desenvolvimento; a prévia UX é ativada explicitamente com `?uxPreview=1` apenas no build de desenvolvimento. O build de produção mantém a prévia desativada.
 - Serviços, formulários, filtros, tabelas e telas de domínio preservam a arquitetura congelada no Notion.
 
+## Correspondência com as etapas 01–06
+
+Etapas 01 e 02 usam as rotas públicas `/auth/login`, `/auth/recover` e `/auth/reset-password` no `AuthLayout`; a Etapa 03 usa `/home` no `AdminLayout`. Etapas 04–06 seguem as rotas Clientes e CRM registradas em `cliente.routes.ts`. A Etapa 00 define componentes e comportamento compartilhados, sem ScreenId próprio. O detalhamento funcional reside nas páginas oficiais do [Notion Telas & UX](https://app.notion.com/p/98501fd65a9c8379a9a281145568f52a); este arquivo mantém somente o contrato técnico do shell.
+
 ## Rotas de produto
 
 O arquivo `app.routes.ts` registra apenas o Application Shell, autenticação, perfil/conta, estados de erro e os módulos existentes da NERITECH AUTO. Rotas de vitrine de componentes herdadas do template (`design`, `material`, `media`, `forms`, `tables`, `permissions`, `utilities`) **não integram a navegação do produto**. O código de demonstração pode permanecer no repositório enquanto for útil para desenvolvimento, mas não deve gerar telas extras acessíveis na aplicação.

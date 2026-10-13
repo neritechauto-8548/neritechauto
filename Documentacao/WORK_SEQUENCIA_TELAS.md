@@ -74,6 +74,25 @@
 
 **Gestão de Pátio:** tela interna do NERITECH AUTO, acessada pelo menu principal na mesma aplicação e sessão. A implementação será detalhada e homologada conforme sua especificação canônica, sem constituir produto ou sistema separado.
 
+
+## Referências canônicas e verificação de rotas — etapas 00–06
+
+Esta é apenas a **sequência de implementação**, não um segundo catálogo de especificações. Não copiar para este arquivo campos, contratos ou regras de cada tela: corrigir a página proprietária já existente no Notion. ScreenIds e rotas a seguir foram confrontados com `app.routes.ts` e `cliente.routes.ts` na `feature/develop`.
+
+| Etapa Work | Fonte canônica existente | Rota/estado no frontend |
+| --- | --- | --- |
+| 00 — Application Shell | [04.01 UI-MASTER-001](https://app.notion.com/p/97401fd65a9c822a9a4b017c39a08518) e [APP_SHELL_00.md](./APP_SHELL_00.md) (mapeamento técnico, não segunda fonte visual) | infraestrutura global; não tem rota de tela |
+| 01 — Login | [05.01 Identidade, Autenticação e Sessões](https://app.notion.com/p/6b001fd65a9c8368bb1c01e95d984771) | `/auth/login` registrado |
+| 02 — Recuperar / redefinir senha | [05.01 Identidade, Autenticação e Sessões](https://app.notion.com/p/6b001fd65a9c8368bb1c01e95d984771) | `/auth/recover` e `/auth/reset-password` registrados; são fluxos distintos |
+| 03 — Home | [TELA-AUTO-HOME-001](https://app.notion.com/p/3eb01fd65a9c81f9bf76d9c525335911) | `/home` registrado; quatro visões internas, sem Ações Rápidas |
+| 04 — Clientes / Lista | [TELA-AUTO-CLI-001](https://app.notion.com/p/3eb01fd65a9c81a29bc1c15c22c883cd) | `/cliente/listar` registrado |
+| 05 — Clientes / Cadastro e Editar/Visualizar | [CLI-002](https://app.notion.com/p/3eb01fd65a9c81eb843bd7cf83b85896) e [CLI-003](https://app.notion.com/p/3eb01fd65a9c8190a460cfbf2af802fb) | `/cliente/cadastro` e `/cliente/editar/:uuid` registrados; mesmo componente; sem CLI-004/Detalhes independente |
+| 06 — CRM | [Clientes — módulo](https://app.notion.com/p/3eb01fd65a9c81028be6c47baa4f2b69), [CLI-005 Comunicação](https://app.notion.com/p/3eb01fd65a9c81689815eef6a0e269b2) e [CLI-006 Questionamento](https://app.notion.com/p/3eb01fd65a9c819f88f7e4449a92cdfe) | `/cliente/crm` e `/cliente/crm/pesquisa` registrados; `/cliente/crm/comunicacao` **planejado, não implementado** |
+
+**Gestão de Pátio:** [uma única tela interna](https://app.notion.com/p/3ee01fd65a9c8134adf5c8eac59daead) com seis áreas funcionais internas; não é item 00–06, sistema separado, link externo nem seis ScreenIds distintos. A rota dedicada **não consta** em `app.routes.ts` no snapshot validado; não inventar uma URL. Não criar entidade de filial nem menu separado de filiais.
+
+**Status de implementação não é homologação:** rota registrada não prova que a API, a integração, a UX ou as permissões funcionam. A especificação oficial fica no Notion; o Markdown descreve sequência, execução e evidências técnicas.
+
 ## Documentação obrigatória antes da implementação (quando a tela estiver ausente ou incompleta no Notion)
 
 **Nem todas as telas previstas têm especificação concluída no Notion ou implementação pronta no repositório. Isso não impede o Work de avançar: antes de escrever código, ele deve criar ou completar a especificação canônica daquela tela.**

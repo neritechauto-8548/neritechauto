@@ -1,3 +1,5 @@
+> **REGISTRO HISTÓRICO — NÃO USAR COMO STATUS ATUAL OU ROTEIRO OFICIAL.** Percentuais, contagens de testes, commits, branches, módulos e nomes de telas abaixo refletem o checkpoint antigo, não foram revalidados no HEAD. A arquitetura vigente está em [03.01.03 Módulos](https://app.notion.com/p/80101fd65a9c833580f1012ec0a45407); a ordem 00–06 em [WORK_SEQUENCIA_TELAS.md](./WORK_SEQUENCIA_TELAS.md); o status real de testes em [PRIORIDADE_1_EVIDENCIAS.md](./PRIORIDADE_1_EVIDENCIAS.md). Gestão de Pátio é uma única tela interna. Não recriar Operacional, Filiais ou aplicativos separados com base neste plano legado.
+
 # NeriTech Auto — Plano Frontend Luna
 
 ## Estado geral

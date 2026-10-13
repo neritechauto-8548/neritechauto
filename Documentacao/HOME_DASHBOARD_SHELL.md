@@ -9,11 +9,11 @@
 
 ## Homologação visual sem backend
 
-- `FrontEnd/src/environments/environment.ts` mantém `uxPreview: true` para desenvolvimento.
+- `FrontEnd/src/environments/environment.ts` habilita `uxPreview` somente quando solicitado explicitamente por `?uxPreview=1` no ambiente de desenvolvimento; por padrão permanece desativado.
 - `FrontEnd/src/environments/environment.prod.ts` mantém `uxPreview: false` para produção.
 - `StartupService` fornece o menu canônico de preview quando `uxPreview` está ativo, sem depender da API de menu.
 - `DashboardService` fornece dados demonstrativos no mesmo modo. A tela identifica explicitamente esses dados como demonstrativos.
-- O preview permite validar navegação, hierarquia visual, responsividade e estados de frontend; não comprova contratos de backend, tenancy, permissões ou cálculos reais.
+- O preview permite validar navegação, hierarquia visual, responsividade e estados de frontend; não comprova contratos de backend, tenancy, permissões ou cálculos reais. Gestão de Pátio pertence ao menu como **uma tela interna** e continua indisponível na prévia até haver uma rota Angular real. Sem iframe ou link para sistema externo.
 - Dados demonstrativos nunca devem ser usados como fonte de produção.
 
 ## Shell e navegação

@@ -10,6 +10,10 @@ Implementar cadastro e consulta de clientes na arquitetura oficial, reutilizando
 
 A rota base `/cliente` redireciona para `/cliente/listar`. Não criar rota/tela paralela de detalhes.
 
+## CRM na etapa 06
+
+CRM permanece sob **Clientes**, sem tela cadastral duplicada nem módulo novo. `/cliente/crm` e `/cliente/crm/pesquisa` estão registradas em `cliente.routes.ts`. A especificação de Comunicação [CLI-005](https://app.notion.com/p/3eb01fd65a9c81689815eef6a0e269b2) prevê `/cliente/crm/comunicacao`, **ainda sem rota Angular registrada**. A pesquisa [CLI-006](https://app.notion.com/p/3eb01fd65a9c819f88f7e4449a92cdfe) mantém `/cliente/crm/pesquisa` no frontend, sem inferir homologação do fluxo de pesquisa. Páginas legadas que dizem `/clientes/...` ou `CLI-004` não são canônicas. Detalhamento de campos e ações deve ser atualizado nas páginas existentes do Notion.
+
 ## Lista de clientes
 - Pesquisa por nome, razão social, nome fantasia, CPF/CNPJ e e-mail quando permitido.
 - Filtros existentes na UI: tipo de cliente e status.

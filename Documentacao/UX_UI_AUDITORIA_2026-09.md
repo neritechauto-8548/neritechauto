@@ -1,3 +1,5 @@
+> **ARQUIVO HISTÓRICO — NÃO É A FONTE DE VERDADE ATUAL.** Este relatório preserva o diagnóstico de setembro de 2026. Referências abaixo a `DESIGN.md`, `Operacional`, menus antigos, branches e percentuais pertencem ao contexto histórico e **não autorizam** implementação. Para arquitetura/menu use [03.01.03 Módulos](https://app.notion.com/p/80101fd65a9c833580f1012ec0a45407); para UX, [UI-MASTER-001](https://app.notion.com/p/97401fd65a9c822a9a4b017c39a08518); para telas, [03.01.04 Telas & UX](https://app.notion.com/p/98501fd65a9c8379a9a281145568f52a). Gestão de Pátio é tela interna única e não existe módulo Operacional no catálogo vigente. Etapas 00–06 seguem [WORK_SEQUENCIA_TELAS.md](./WORK_SEQUENCIA_TELAS.md).
+
 # NeriTech Auto — Auditoria UX/UI e Inventário de Navegação
 
 Data: 2026-09-06  
