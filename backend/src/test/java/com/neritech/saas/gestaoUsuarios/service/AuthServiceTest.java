@@ -64,6 +64,8 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         usuario = TestDataBuilder.umUsuario().build();
+        usuario.setId(42L);
+        usuario.setEmpresaId(1L);
         loginRequest = TestDataBuilder.umLoginRequest().build();
         TenantContext.setCurrentTenant(1L);
     }
@@ -154,7 +156,7 @@ class AuthServiceTest {
             when(jwtService.extractUsername(request.getRefreshToken())).thenReturn(email);
             when(usuarioRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.of(usuario));
             when(jwtService.isTokenValid(eq(request.getRefreshToken()), any(UserDetails.class))).thenReturn(true);
-            when(sessaoUsuarioRepository.findByRefreshToken(request.getRefreshToken())).thenReturn(Optional.of(SessaoUsuario.builder().usuario(usuario).refreshToken(request.getRefreshToken()).ativo(true).build()));
+            when(sessaoUsuarioRepository.findByRefreshToken(request.getRefreshToken())).thenReturn(Optional.of(SessaoUsuario.builder().usuario(usuario).empresaId(usuario.getEmpresaId()).refreshToken(request.getRefreshToken()).ativo(true).build()));
             when(jwtService.generateToken(anyMap(), any(UserDetails.class))).thenReturn("new.access.token");
 
             // Act
