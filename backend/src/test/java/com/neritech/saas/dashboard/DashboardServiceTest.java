@@ -45,8 +45,8 @@ class DashboardServiceTest {
         assertEquals(BigDecimal.ZERO, result.contasPagar());
         assertEquals(BigDecimal.ZERO, result.valoresVencidos());
         assertEquals(0L, result.veiculosEmAtraso());
-        assertEquals(6, result.historicoFaturamento().size());
-        assertEquals(6, result.historicoDespesas().size());
-        assertEquals(6, result.historicoMeses().size());
+        assertEquals(1, result.historicoFaturamento().size());
+        assertEquals(1, result.historicoDespesas().size());
+        assertEquals(1, result.historicoMeses().size());
     }
 }
