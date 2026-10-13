@@ -89,7 +89,7 @@ Esta é apenas a **sequência de implementação**, não um segundo catálogo de
 | 05 — Clientes / Cadastro e Editar/Visualizar | [CLI-002](https://app.notion.com/p/3eb01fd65a9c81eb843bd7cf83b85896) e [CLI-003](https://app.notion.com/p/3eb01fd65a9c8190a460cfbf2af802fb) | `/cliente/cadastro` e `/cliente/editar/:uuid` registrados; mesmo componente; sem CLI-004/Detalhes independente |
 | 06 — CRM | [Clientes — módulo](https://app.notion.com/p/3eb01fd65a9c81028be6c47baa4f2b69), [CLI-005 Comunicação](https://app.notion.com/p/3eb01fd65a9c81689815eef6a0e269b2) e [CLI-006 Questionamento](https://app.notion.com/p/3eb01fd65a9c819f88f7e4449a92cdfe) | `/cliente/crm` e `/cliente/crm/pesquisa` registrados; `/cliente/crm/comunicacao` **planejado, não implementado** |
 
-**Gestão de Pátio:** [uma única tela interna](https://app.notion.com/p/3ee01fd65a9c8134adf5c8eac59daead) com seis áreas funcionais internas; não é item 00–06, sistema separado, link externo nem seis ScreenIds distintos. A rota dedicada **não consta** em `app.routes.ts` no snapshot validado; não inventar uma URL. Não criar entidade de filial nem menu separado de filiais.
+**Gestão de Pátio:** [uma única tela interna](https://app.notion.com/p/3ee01fd65a9c8134adf5c8eac59daead) com seis áreas funcionais internas; não é item 00–06, sistema separado, link externo nem seis ScreenIds distintos. A rota dedicada **não consta** em `app.routes.ts` no snapshot validado; não inventar uma URL. Preservar o isolamento multiempresa e a navegação oficial.
 
 **Status de implementação não é homologação:** rota registrada não prova que a API, a integração, a UX ou as permissões funcionam. A especificação oficial fica no Notion; o Markdown descreve sequência, execução e evidências técnicas.
 
