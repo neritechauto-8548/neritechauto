@@ -23,29 +23,24 @@ export class CargoService {
   private readonly storage = inject(LocalStorageService);
   private readonly base = environment.baseUrl + '/v1/rh/cargos';
 
-  private get tenantId(): string {
-    return String(empresaIdAtual(this.storage) ?? '');
-  }
-
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'X-Tenant-Id': this.tenantId,
-      'Accept': 'application/json'
-    });
-  }
-
-  list(params?: any): Observable<Page<CargoResponse>> {
-    let httpParams = new HttpParams().set('empresaId', this.tenantId);
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== undefined && params[key] !== null) {
-          httpParams = httpParams.set(key, String(params[key]));
-        }
+  list(params?: Record<string, string | number | boolean | undefined>): Observable<Page<CargoResponse>> {
+    return defer(() => {
+      const empresaId = empresaIdAtual(this.storage);
+      if (!empresaId) {
+        return throwError(() => new Error('Não foi possível identificar sua empresa. Entre novamente.'));
+      }
+      let httpParams = new HttpParams().set('empresaId', String(empresaId));
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (key !== 'empresaId' && value !== undefined && value !== null) {
+            httpParams = httpParams.set(key, String(value));
+          }
+        });
+      }
+      return this.http.get<Page<CargoResponse>>(this.base, {
+        params: httpParams,
+        headers: new HttpHeaders({ 'X-Tenant-Id': String(empresaId), 'Accept': 'application/json' })
       });
-    }
-
-    return defer(() => empresaIdAtual(this.storage)
-      ? this.http.get<Page<CargoResponse>>(this.base, { params: httpParams, headers: this.getHeaders() })
-      : throwError(() => new Error('Não foi possível identificar sua empresa. Entre novamente.')));
+    });
   }
 }
