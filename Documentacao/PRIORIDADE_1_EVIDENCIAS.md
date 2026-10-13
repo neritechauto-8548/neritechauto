@@ -6,11 +6,11 @@
 
 ## Pipeline — evidência já aprovada
 
-- Último commit de código verificado: `2552b4a9fcf73b50bac427aeeef842f5db307769`.
-- GitHub Actions: https://github.com/neritechauto-8548/neritechauto/actions/runs/38399116288
+- Último commit de código verificado: `3b9fe9dbb83d848cc0d340352249aabda9290869`.
+- GitHub Actions: https://github.com/neritechauto-8548/neritechauto/actions/runs/38400973870
 - **Maven: BUILD SUCCESS; 68 testes, zero falhas, zero erros, zero ignorados.**
-- **Angular: build aprovado; 60 testes de regressão aprovados (TOTAL: 60 SUCCESS).**
-- **Total: 128 de 128 testes executados com sucesso.**
+- **Angular: build aprovado; 62 testes de regressão aprovados (TOTAL: 62 SUCCESS).**
+- **Total: 130 de 130 testes executados com sucesso.**
 - Marco de referência anterior: `f9715e3d787228c905fd79f18e030eee8cb1399d`, https://github.com/neritechauto-8548/neritechauto/actions/runs/38395977726.
 - Commits posteriores de documentação não alteram a evidência de compilação do código verificado, mas qualquer nova alteração de código exige CI atualizado.
 
@@ -23,6 +23,8 @@
 5. `CustomUserDetailsService` e `StartupService`: somente `ADMIN`, `ADMINISTRADOR` e `SUPER_ADMIN` ativam privilégios administrativos implícitos; nomes contendo o texto `ADMIN` não bastam.
 6. Testes de permissões, planos, estados globais, rotas e interceptors incluídos na cobertura do workflow.
 7. Integração `AuthenticationFlowIntegrationTest`: solicita acesso com JWT de uma empresa e cabeçalho de outra, exigindo HTTP 403.
+8. `AuthService` no frontend descarta dados do usuário/empresa anterior ao iniciar novo login e remove identificação da empresa quando a sessão deixa de ser válida.
+9. Workflow ampliado para alterações em fontes gerais, configurações de build (`pom.xml`, `package.json`, `angular.json`, `yarn.lock`) e testes de autenticação após troca de usuário.
 
 ## Evidências automatizadas no repositório
 
@@ -34,6 +36,8 @@
 - `backend/src/test/java/com/neritech/saas/gestaoUsuarios/integration/AuthenticationFlowIntegrationTest.java`
 - `backend/src/test/java/com/neritech/saas/gestaoUsuarios/integration/MultitenancyIntegrationTest.java`
 - `FrontEnd/src/app/core/bootstrap/startup-permissions.spec.ts`
+- `FrontEnd/src/app/core/authentication/permission-guard.spec.ts`
+- `FrontEnd/src/app/shared/components/data-view-state/data-view-state.spec.ts`
 - `FrontEnd/src/app/core/authentication/auth.service.spec.ts`
 - `FrontEnd/src/app/core/authentication/auth-guard.spec.ts`
 - `FrontEnd/src/app/core/interceptors/tenant-interceptor.spec.ts`
@@ -43,7 +47,7 @@
 
 ## Pendências antes do aceite final de 100%
 
-- [x] Pipeline Maven + Angular aprovado no último commit de código validado, incluindo os novos testes (68 Maven + 60 Angular).
+- [x] Pipeline Maven + Angular aprovado no último commit de código validado, incluindo os novos testes (68 Maven + 62 Angular).
 - [x] Testes automatizados de login, refresh, logout, revogação e expiração aprovados. Os fluxos end-to-end em ambiente implantado seguem pendentes.
 - [x] Isolamento entre empresas comprovado por testes negativos de HTTP, sessão e persistência no pipeline.
 - [ ] Matriz completa de perfis/permissões com usuários reais em ambiente de homologação validada; a cobertura automatizada básica passou.
@@ -51,4 +55,4 @@
 - [ ] Ambiente de homologação (fora dos mocks) validado com credenciais de teste e dados de múltiplas empresas, incluindo UX desktop, tablet e celular.
 - [ ] Evidências, resultados e responsável pelo aceite final registrados.
 
-**Status deste documento:** validação automatizada da Prioridade 1 aprovada (128/128). Homologação de ambiente real e aceite humano permanecem pendentes; este documento não certifica produção.
+**Status deste documento:** validação automatizada da Prioridade 1 aprovada (130/130), com CI verde no commit `3b9fe9d`. Homologação de ambiente real e aceite humano permanecem pendentes; este documento não certifica produção.
