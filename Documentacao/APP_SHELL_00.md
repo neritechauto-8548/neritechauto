@@ -22,6 +22,7 @@ Não recriar a sidebar antiga `SidebarMenuComponent`: usar exclusivamente `theme
 ## Gate de homologação
 
 - `yarn build` deve passar no pipeline Angular;
+- O tema normativo atual é **claro**, conforme UI-MASTER-001; tema escuro ou chave de alternância não é requisito da Etapa 00 sem aprovação de tokens e regra de produto.
 - `mvn -B clean test -DskipTests=false` deve passar com banco PostgreSQL de testes;
 - CI verde **não substitui QA visual** de 320, 375, 768, 1024 e 1440 px nem navegação por teclado;
 - confirmar perfil, permissões, navegação e comportamento sem backend apenas em UX Preview;
@@ -33,7 +34,7 @@ A pesquisa do shell navega apenas pelos itens visíveis no menu disponível à s
 
 A sidebar abre automaticamente o ancestral da rota ativa, inclusive quando o segmento de um grupo é vazio. Os submenus indicam `aria-expanded`, descendentes recolhidos ficam `inert` para Tab e os links/botões têm nome acessível mesmo com ícones isolados.
 
-**Critérios de aceite pendentes de QA manual:** teclado e leitor de tela; rotas profundas; acesso sem backend em UX Preview; 320/375/768/1024/1440 px; alternância de tema; contraste e zoom. Build e testes unitários, mesmo verdes, não autorizam declarar a Etapa 00 homologada sem essas verificações no navegador.
+**Critérios de aceite pendentes de QA manual:** teclado e leitor de tela; rotas profundas; acesso sem backend em UX Preview; 320/375/768/1024/1440 px; tema claro canônico, contraste e zoom. A alternância para tema escuro não integra o aceite vigente. Build e testes unitários, mesmo verdes, não autorizam declarar a Etapa 00 homologada sem essas verificações no navegador.
 
 ## Notificações globais: contrato funcional e isolamento
 

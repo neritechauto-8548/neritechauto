@@ -37,7 +37,7 @@
 | 02 | Acesso | Recuperação e redefinição de senha (fluxos e rotas distintos, base visual compartilhada) |
 | 03 | Início | Dashboard único: Padrão, Gerencial, Financeiro e Orçamento (quatro visões internas) |
 | 04 | Clientes | Listagem de clientes — `/cliente/listar` |
-| 05 | Clientes | Cadastro / visualizar / editar no mesmo componente — `/cliente/cadastro` e `/cliente/editar/:uuid` |
+| 05 | Clientes | Cadastro / visualizar / editar no mesmo componente — `/cliente/cadastro` e `/cliente/editar/:uuid` (nome de rota `:uuid` legado; backend recebe `Long id`) |
 | 06 | Clientes / CRM | Base de CRM, Comunicação e Questionamento de pesquisa; preservar submenus, rotas e funcionalidades próprias |
 | 07 | Administração | Empresa |
 | 08 | Administração | Usuários / Funcionários / Cargos / Permissões, com visões e autorização próprias |
@@ -85,7 +85,7 @@ Esta é apenas a **sequência de implementação**, não um segundo catálogo de
 | 01 — Login | [05.01 Identidade, Autenticação e Sessões](https://app.notion.com/p/6b001fd65a9c8368bb1c01e95d984771) | `/auth/login` registrado |
 | 02 — Recuperar / redefinir senha | [05.01 Identidade, Autenticação e Sessões](https://app.notion.com/p/6b001fd65a9c8368bb1c01e95d984771) | `/auth/recover` e `/auth/reset-password` registrados; são fluxos distintos |
 | 03 — Home | [TELA-AUTO-HOME-001](https://app.notion.com/p/3eb01fd65a9c81f9bf76d9c525335911) | `/home` registrado; quatro visões internas, sem Ações Rápidas |
-| 04 — Clientes / Lista | [TELA-AUTO-CLI-001](https://app.notion.com/p/3eb01fd65a9c81a29bc1c15c22c883cd) | `/cliente/listar` registrado |
+| 04 — Clientes / Lista | [TELA-AUTO-CLI-001](https://app.notion.com/p/3eb01fd65a9c81a29bc1c15c22c883cd) | `/cliente/listar` registrado; API aceita `busca`, `tipoCliente`, `status`, `page`, `size` e `sort` (não `search`/`pageSize`) |
 | 05 — Clientes / Cadastro e Editar/Visualizar | [CLI-002](https://app.notion.com/p/3eb01fd65a9c81eb843bd7cf83b85896) e [CLI-003](https://app.notion.com/p/3eb01fd65a9c8190a460cfbf2af802fb) | `/cliente/cadastro` e `/cliente/editar/:uuid` registrados; mesmo componente; sem CLI-004/Detalhes independente |
 | 06 — CRM | [Clientes — módulo](https://app.notion.com/p/3eb01fd65a9c81028be6c47baa4f2b69), [CLI-005 Comunicação](https://app.notion.com/p/3eb01fd65a9c81689815eef6a0e269b2) e [CLI-006 Questionamento](https://app.notion.com/p/3eb01fd65a9c819f88f7e4449a92cdfe) | `/cliente/crm` e `/cliente/crm/pesquisa` registrados; `/cliente/crm/comunicacao` **planejado, não implementado** |
 

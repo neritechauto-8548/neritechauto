@@ -38,7 +38,7 @@ CRM permanece sob **Clientes**, sem tela cadastral duplicada nem módulo novo. `
 - O contrato HTTP atual do backend recebe `tipoContato` e `contato`; o modelo de UI pode normalizar o valor em `valor`.
 
 ## Contrato de API confirmado no repositório
-- `GET /v1/clientes` — lista paginada, com parâmetros de busca e filtros.
+- `GET /v1/clientes` — lista paginada do `ClienteController`, com parâmetros realmente aceitos: `busca`, `nomeCompleto` (legado), `razaoSocial`, `cpf`, `cnpj`, `tipoCliente`, `status`, `dataInicio`, `dataFim`; paginação Spring `page` (zero-based), `size` e `sort`. Retorna `Page<ClienteResponse>`. Não trocar esses nomes por `search`, `pageSize`, `order`, `type` ou filtros propostos sem contrato implementado.
 - `GET /v1/clientes/{id}` — consulta.
 - `POST /v1/clientes` — criação.
 - `PUT /v1/clientes/{id}` — atualização.
@@ -46,6 +46,8 @@ CRM permanece sob **Clientes**, sem tela cadastral duplicada nem módulo novo. `
 - `GET/POST /v1/clientes/{clienteId}/contatos`, `GET/PUT/DELETE /v1/clientes/{clienteId}/contatos/{id}`.
 - `GET/POST /v1/clientes/{clienteId}/enderecos`, `GET/PUT/DELETE /v1/clientes/{clienteId}/enderecos/{id}`.
 - Headers de autenticação e tenant são tratados pelos interceptors existentes; não duplicar a responsabilidade na tela.
+- **Identificador:** o caminho Angular usa o nome legado `:uuid`, mas `ClienteController` recebe `@PathVariable Long id`. Validar/converter esse segmento, sem assumir UUID no banco.
+- Filtros avançados de origem, cidade, unidade, veículo, pendência cadastral e busca por placa são **evoluções propostas** até haver suporte efetivo no backend. Não simular filtragem server-side inexistente.
 
 ## Modo de homologação UX
 O modo é controlado por `environment.uxPreview` e deve estar habilitado somente no ambiente de desenvolvimento/homologação. A lista e o formulário exibem aviso explícito de dados demonstrativos.
