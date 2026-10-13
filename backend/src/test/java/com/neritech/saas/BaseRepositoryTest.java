@@ -1,5 +1,8 @@
 package com.neritech.saas;
 
+import com.neritech.saas.common.tenancy.TenantContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -11,6 +14,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class BaseRepositoryTest {
+
+    @BeforeEach
+    @AfterEach
+    void clearTenantBetweenRepositoryTests() {
+        TenantContext.clear();
+    }
 
     // Singleton por classe-base: mantém o banco vivo enquanto o Spring reutiliza o contexto
     // entre classes de teste, evitando conexões para containers já encerrados.
