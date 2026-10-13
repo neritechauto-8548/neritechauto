@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,13 +20,12 @@ public class EmailSenderService {
     private String fromEmail;
 
     /**
-     * Envia e-mail de forma assíncrona.
+     * Submete e-mail ao SMTP de forma síncrona. A aceitação pelo SMTP permite
+     * classificar ENVIADA, mas não comprova entrega/leitura ao destinatário.
      */
-    @Async
     public void sendEmail(String to, String subject, String body) {
         if (fromEmail == null || fromEmail.isBlank()) {
-            log.warn("SMTP não configurado. O e-mail para {} não será enviado. Assunto: {}", to, subject);
-            return;
+            throw new IllegalStateException("SMTP não configurado para envio de e-mails.");
         }
 
         try {
@@ -42,7 +40,7 @@ public class EmailSenderService {
             mailSender.send(message);
             log.info("E-mail enviado com sucesso para: {}", to);
         } catch (MessagingException e) {
-            log.error("Falha ao enviar e-mail para {}: {}", to, e.getMessage());
+            throw new IllegalStateException("Não foi possível preparar o envio SMTP.", e);
         }
     }
 }
