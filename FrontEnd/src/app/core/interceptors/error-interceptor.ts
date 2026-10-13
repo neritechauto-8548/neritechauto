@@ -5,6 +5,7 @@ import { TokenService } from '@core/authentication';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { MessageService } from 'primeng/api';
 import { catchError, throwError } from 'rxjs';
+import { BASE_URL, hasHttpScheme } from './base-url-interceptor';
 
 export enum STATUS {
   UNAUTHORIZED = 401,
@@ -26,6 +27,11 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
   const messages = inject(MessageService);
   const tokens = inject(TokenService);
   const storage = inject(LocalStorageService);
+  const baseUrl = inject(BASE_URL, { optional: true });
+  // Uma API externa não pode invalidar a sessão da NERITECH AUTO.
+  const internalRequest = !hasHttpScheme(req.url) ||
+    !!(baseUrl && hasHttpScheme(baseUrl) &&
+      (req.url === baseUrl || req.url.startsWith(`${baseUrl.replace(/\/$/, '')}/`)));
   const skipToast = req.headers.has('X-Skip-Toast');
   const isLogin = /\/auth\/login(?:\?|$)/.test(req.url);
   const isPublicAuth = /\/auth\/(?:login|recover-password|reset-password)(?:\?|$)/.test(req.url);
@@ -34,7 +40,7 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
   return next(outgoing).pipe(catchError((error: HttpErrorResponse) => {
     if (!(error instanceof HttpErrorResponse)) return throwError(() => error);
 
-    if (error.status === STATUS.UNAUTHORIZED && !isPublicAuth) {
+    if (error.status === STATUS.UNAUTHORIZED && !isPublicAuth && internalRequest) {
       tokens.clear();
       storage.remove('tenantId');
       storage.remove('empresaId');

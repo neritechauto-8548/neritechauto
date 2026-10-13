@@ -6,6 +6,7 @@ import { TokenService } from '@core/authentication';
 import { LocalStorageService, MemoryStorageService } from '@shared/services/storage.service';
 import { MessageService } from 'primeng/api';
 import { errorInterceptor } from './error-interceptor';
+import { BASE_URL } from './base-url-interceptor';
 
 describe('ErrorInterceptor', () => {
   let http: HttpClient;
@@ -19,6 +20,7 @@ describe('ErrorInterceptor', () => {
       provideHttpClient(withInterceptors([errorInterceptor])),
       provideHttpClientTesting(),
       provideRouter([]),
+      { provide: BASE_URL, useValue: 'https://api.neritechauto.com.br/api' },
       { provide: LocalStorageService, useClass: MemoryStorageService },
       MessageService,
     ] });
@@ -50,6 +52,22 @@ describe('ErrorInterceptor', () => {
     fail('/api/usuarios/me', 401);
     expect(tokens.valid()).toBeFalse();
     expect(navigate).toHaveBeenCalledWith(router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: router.url } }));
+  });
+
+  it('preserva a sessão diante de erro 401 vindo de serviço externo', () => {
+    tokens.set({ access_token: 'token', token_type: 'Bearer' });
+    const navigate = spyOn(router, 'navigateByUrl');
+    fail('https://terceiros.example.com/dados', 401);
+    expect(tokens.valid()).toBeTrue();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('encerra a sessão quando uma API própria absoluta responde 401', () => {
+    tokens.set({ access_token: 'token', token_type: 'Bearer' });
+    const navigate = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    fail('https://api.neritechauto.com.br/api/usuarios/me', 401);
+    expect(tokens.valid()).toBeFalse();
+    expect(navigate).toHaveBeenCalled();
   });
 
   it('shows resource errors without navigating away from the current page', () => {

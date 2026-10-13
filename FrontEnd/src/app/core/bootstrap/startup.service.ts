@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthService, User } from '@core/authentication';
 import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
-import { switchMap, tap } from 'rxjs';
+import { catchError, of, switchMap, tap } from 'rxjs';
 import { Menu, MenuChildrenItem, MenuService } from './menu.service';
 import { environment } from '@env/environment';
 
@@ -27,6 +27,9 @@ export class StartupService {
             return [user];
           }
           return this.authService.menu().pipe(
+            // Se o menu falhar, não exibir itens da sessão anterior nem encerrar
+            // o observador de autenticação: uma nova sessão pode tentar carregar novamente.
+            catchError(() => of([] as Menu[])),
             tap((menu: Menu[]) => this.setMenu(menu, user))
           );
         })

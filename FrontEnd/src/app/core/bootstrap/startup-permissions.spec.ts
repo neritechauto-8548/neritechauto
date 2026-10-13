@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { of, Subject, throwError } from 'rxjs';
 import { AuthService } from '@core/authentication';
 import { MenuService } from '@core/bootstrap/menu.service';
 import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
@@ -22,6 +23,27 @@ describe('Application Shell roles and navigation', () => {
       ],
     });
     startup = TestBed.inject(StartupService);
+  });
+
+  it('limpa o menu após falha e volta a carregar em outra sessão', async () => {
+    const auth = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
+    const menu = TestBed.inject(MenuService) as jasmine.SpyObj<MenuService>;
+    const sessions = new Subject<any>();
+    auth.change.and.returnValue(sessions.asObservable());
+    auth.menu.and.returnValues(
+      throwError(() => new Error('menu unavailable')),
+      of([{ route: 'home', name: 'Início', type: 'link', icon: 'home' }])
+    );
+
+    const started = startup.load();
+    sessions.next({ planoNivel: 1, permissions: [], funcoes: [] });
+    await started;
+    expect(menu.set).toHaveBeenCalledWith([]);
+    sessions.next({ planoNivel: 1, permissions: [], funcoes: [] });
+    expect(menu.set).toHaveBeenCalledWith(
+      jasmine.arrayContaining([jasmine.objectContaining({ route: 'home' })])
+    );
+    sessions.complete();
   });
 
   it('does not elevate permissions for a non-administrator', () => {
