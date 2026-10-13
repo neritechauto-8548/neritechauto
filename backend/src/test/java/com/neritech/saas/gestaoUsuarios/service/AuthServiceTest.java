@@ -147,6 +147,50 @@ class AuthServiceTest {
     class RefreshTokenTests {
 
         @Test
+        @DisplayName("Deve rejeitar sessão pertencente a empresa diferente")
+        void deveRejeitarRefreshDeOutraEmpresa() {
+            RefreshTokenRequest request = TestDataBuilder.umRefreshTokenRequest().build();
+            when(jwtService.extractUsername(request.getRefreshToken())).thenReturn(usuario.getEmail());
+            when(usuarioRepository.findByEmailIgnoreCase(usuario.getEmail())).thenReturn(Optional.of(usuario));
+
+            SessaoUsuario outraEmpresa = SessaoUsuario.builder()
+                    .usuario(usuario)
+                    .empresaId(2L)
+                    .refreshToken(request.getRefreshToken())
+                    .ativo(true)
+                    .build();
+            when(sessaoUsuarioRepository.findByRefreshToken(request.getRefreshToken()))
+                    .thenReturn(Optional.of(outraEmpresa));
+
+            assertThatThrownBy(() -> authService.refreshToken(request))
+                    .isInstanceOf(BadCredentialsException.class)
+                    .hasMessageContaining("Sessão inválida");
+            verify(jwtService, never()).generateToken(anyMap(), any(UserDetails.class));
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar sessão revogada")
+        void deveRejeitarRefreshDeSessaoInativa() {
+            RefreshTokenRequest request = TestDataBuilder.umRefreshTokenRequest().build();
+            when(jwtService.extractUsername(request.getRefreshToken())).thenReturn(usuario.getEmail());
+            when(usuarioRepository.findByEmailIgnoreCase(usuario.getEmail())).thenReturn(Optional.of(usuario));
+            SessaoUsuario revogada = SessaoUsuario.builder()
+                    .usuario(usuario)
+                    .empresaId(usuario.getEmpresaId())
+                    .refreshToken(request.getRefreshToken())
+                    .ativo(false)
+                    .build();
+            when(sessaoUsuarioRepository.findByRefreshToken(request.getRefreshToken()))
+                    .thenReturn(Optional.of(revogada));
+
+            assertThatThrownBy(() -> authService.refreshToken(request))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Sessão inativa");
+            verify(jwtService, never()).generateToken(anyMap(), any(UserDetails.class));
+        }
+
+
+        @Test
         @DisplayName("Deve renovar token com sucesso")
         void deveRenovarTokenComSucesso() {
             // Arrange
