@@ -38,9 +38,9 @@ public class CustomUserDetailsService implements UserDetailsService {
                 
                 // Se for um perfil de administrador, também concede ROLE_ADMIN
                 if (nomeFuncao != null && (
-                    "ADMIN".equalsIgnoreCase(nomeFuncao) || 
-                    nomeFuncao.toUpperCase().contains("ADMIN") || 
-                    nomeFuncao.toUpperCase().contains("ADMINISTRADOR")
+                    "ADMIN".equalsIgnoreCase(nomeFuncao) ||
+                    "ADMINISTRADOR".equalsIgnoreCase(nomeFuncao) ||
+                    "SUPER_ADMIN".equalsIgnoreCase(nomeFuncao)
                 )) {
                     authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
                 }
