@@ -199,6 +199,19 @@ export class CadastroCliente implements OnInit {
     return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_EXCLUIR');
   }
 
+  get canReadCommunication(): boolean {
+    return !this.isUxPreview &&
+      (!!this.permissionsService.getPermission('GERAL_USUARIO')
+        || !!this.permissionsService.getPermission('ADMIN'));
+  }
+
+  abrirComunicacoesCliente(): void {
+    if (!this.savedClienteId || !this.canReadCommunication) return;
+    const clienteId = Number(this.savedClienteId);
+    if (!Number.isSafeInteger(clienteId) || clienteId <= 0) return;
+    this.router.navigate(['/cliente/crm/comunicacao'], { queryParams: { clienteId } });
+  }
+
   isEditMode = false;
   submitted = false; // Flag para controle de validação visual
   isSaving = false; // Bloqueia submissões simultâneas e sinaliza o estado da operação

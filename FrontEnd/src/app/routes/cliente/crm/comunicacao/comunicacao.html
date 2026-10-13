@@ -12,7 +12,7 @@
       <p>Dados consultados diretamente na API, respeitando autenticação e permissões.</p></div>
       <button type="button" class="crm-button-secondary" [disabled]="loading" (click)="carregar()">Atualizar</button>
     </div>
-    <form class="crm-filters" (ngSubmit)="aplicarFiltros()">
+    <form class="crm-filters crm-comunicacao-filters" (ngSubmit)="aplicarFiltros()">
       <label class="crm-field">
         <span>Canal</span>
         <select name="canal" [(ngModel)]="canal">
