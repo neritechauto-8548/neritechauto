@@ -1203,8 +1203,17 @@ export class CadastroCliente implements OnInit {
   salvarVeiculo() {
       if (this.isSavingVehicle) return;
       this.vehicleFormError = '';
-      if (!this.savedClienteId) {
-          this.vehicleFormError = 'Salve o cliente primeiro antes de adicionar veículos.';
+      if (this.isUxPreview) {
+          this.vehicleFormError = 'O cadastro de veículos não está disponível no modo demonstrativo.';
+          return;
+      }
+      if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+          this.vehicleFormError = 'Seu perfil não tem permissão para cadastrar veículos.';
+          return;
+      }
+      const clienteId = Number(this.savedClienteId);
+      if (!Number.isSafeInteger(clienteId) || clienteId <= 0) {
+          this.vehicleFormError = 'Salve um cliente válido antes de adicionar veículos.';
           return;
       }
       const placa = (this.veiculoModel.placa || '').trim().toUpperCase();
@@ -1219,7 +1228,7 @@ export class CadastroCliente implements OnInit {
       }
 
       const dto: VeiculoRequest = {
-          clienteId: Number(this.savedClienteId),
+          clienteId,
           placa,
           marcaId: this.veiculoModel.marcaId,
           modeloId: this.veiculoModel.modeloId,
