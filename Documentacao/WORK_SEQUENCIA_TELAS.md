@@ -39,7 +39,7 @@
 | 04 | Clientes | Listagem de clientes — `/cliente/listar` |
 | 05 | Clientes | Cadastro / visualizar / editar no mesmo componente — `/cliente/cadastro` e `/cliente/editar/:uuid` |
 | 06 | Clientes / CRM | Base de CRM, Comunicação e Questionamento de pesquisa; preservar submenus, rotas e funcionalidades próprias |
-| 07 | Administração | Empresa / Filiais |
+| 07 | Administração | Empresa |
 | 08 | Administração | Usuários / Funcionários / Cargos / Permissões, com visões e autorização próprias |
 | 09 | Administração | Fornecedores / Seguradoras / Transportadoras |
 | 10 | Administração | Áreas / Configurações |
