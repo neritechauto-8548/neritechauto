@@ -36,11 +36,20 @@ export class Comunicacao implements OnInit {
   ngOnInit(): void {
     const raw = this.route.snapshot.queryParamMap.get('clienteId');
     const parsed = raw ? Number(raw) : NaN;
-    this.clienteId = Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+    if (raw !== null && (!Number.isSafeInteger(parsed) || parsed <= 0)) {
+      this.filterError = 'O identificador do cliente é inválido. Volte ao cadastro e acesse o histórico novamente.';
+      return;
+    }
+    this.clienteId = raw !== null ? parsed : undefined;
     this.aplicarFiltros();
   }
 
   aplicarFiltros(): void {
+    const rawCliente = this.route.snapshot.queryParamMap.get('clienteId');
+    if (rawCliente !== null && (!Number.isSafeInteger(Number(rawCliente)) || Number(rawCliente) <= 0)) {
+      this.filterError = 'O identificador do cliente é inválido. Volte ao cadastro e acesse o histórico novamente.';
+      return;
+    }
     if (this.dataInicio && this.dataFim && this.dataInicio > this.dataFim) {
       this.filterError = 'A data inicial não pode ser posterior à data final.';
       return;
