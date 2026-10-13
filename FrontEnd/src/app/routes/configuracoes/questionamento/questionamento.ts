@@ -384,7 +384,7 @@ export class Questionamento implements OnInit {
     }
     this.confirmationService.confirm({
       title: 'Excluir Questionário',
-      message: `Tem certeza que deseja excluir o questionário <span class="font-semibold text-slate-900">${modelo.titulo}</span> e todos os seus itens?`,
+      message: 'Tem certeza que deseja excluir este questionário e todos os seus itens? Esta ação não pode ser desfeita.',
       confirmText: 'Excluir Todo Questionário',
       cancelText: 'Cancelar',
       type: 'danger',
