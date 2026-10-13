@@ -78,7 +78,7 @@ export class Comunicacao implements OnInit {
 
   carregar(): void {
     const rawCliente = this.route.snapshot.queryParamMap.get('clienteId');
-    if (rawCliente !== null && (!/^\\d+$/.test(rawCliente) || !Number.isSafeInteger(Number(rawCliente)) || Number(rawCliente) <= 0)) {
+    if (rawCliente !== null && (!/^\d+$/.test(rawCliente) || !Number.isSafeInteger(Number(rawCliente)) || Number(rawCliente) <= 0)) {
       ++this.requestVersion;
       this.registros = [];
       this.total = 0;
