@@ -3,6 +3,7 @@ package com.neritech.saas.comunicacao.service;
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.comunicacao.domain.ItQuestionario;
 import com.neritech.saas.comunicacao.domain.Questionario;
+import com.neritech.saas.comunicacao.domain.enums.StatusPesquisa;
 import com.neritech.saas.comunicacao.dto.ItQuestionarioRequest;
 import com.neritech.saas.comunicacao.dto.ItQuestionarioResponse;
 import com.neritech.saas.comunicacao.mapper.ItQuestionarioMapper;
@@ -60,6 +61,12 @@ public class ItQuestionarioService {
     }
 
     private void assertEditable(Long questionarioId) {
+        Questionario questionario = questionarioRepository.findById(questionarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado"));
+        TenantAccess.require(questionario.getEmpresaId());
+        if (questionario.getStatusPesquisa() != StatusPesquisa.DRAFT) {
+            throw new BusinessException("Perguntas de pesquisas publicadas, pausadas ou encerradas não podem ser alteradas.");
+        }
         if (respostas.existsByQuestionarioIdAndEmpresaId(questionarioId, TenantAccess.requireCurrent())) {
             throw new BusinessException("O questionário já recebeu respostas: suas perguntas estão protegidas.");
         }

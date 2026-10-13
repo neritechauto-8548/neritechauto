@@ -5,6 +5,7 @@ import com.neritech.saas.common.exception.BusinessException;
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.comunicacao.domain.*;
 import com.neritech.saas.comunicacao.domain.enums.TipoItemQuestionario;
+import com.neritech.saas.comunicacao.domain.enums.StatusPesquisa;
 import com.neritech.saas.comunicacao.dto.PesquisaRespostaRequest;
 import com.neritech.saas.comunicacao.repository.*;
 import java.util.List;
@@ -25,7 +26,7 @@ class PesquisaRespostaServiceTest {
     @AfterEach void clearTenant() { TenantContext.clear(); }
     private Questionario q(Long empresaId) {
         Questionario q = new Questionario();
-        q.setId(5L); q.setEmpresaId(empresaId); q.setSnAtivo(true);
+        q.setId(5L); q.setEmpresaId(empresaId); q.setSnAtivo(true); q.setStatusPesquisa(StatusPesquisa.PUBLISHED);
         return q;
     }
     private PesquisaRespostaRequest request(String valor) {

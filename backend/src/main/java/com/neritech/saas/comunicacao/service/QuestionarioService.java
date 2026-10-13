@@ -2,6 +2,7 @@ package com.neritech.saas.comunicacao.service;
 
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.comunicacao.domain.Questionario;
+import com.neritech.saas.comunicacao.domain.enums.StatusPesquisa;
 import com.neritech.saas.comunicacao.dto.QuestionarioRequest;
 import com.neritech.saas.comunicacao.dto.QuestionarioResponse;
 import com.neritech.saas.comunicacao.mapper.QuestionarioMapper;
@@ -58,6 +59,7 @@ public class QuestionarioService {
     public QuestionarioResponse create(QuestionarioRequest request) {
         validate(request, null);
         Questionario entity = mapper.toEntity(request);
+        entity.setStatusPesquisa(StatusPesquisa.DRAFT);
         Questionario saved = repository.save(entity);
         return mapper.toResponse(saved);
     }
@@ -80,6 +82,9 @@ public class QuestionarioService {
         Questionario entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
         TenantAccess.require(entity.getEmpresaId());
+        if (entity.getStatusPesquisa() != StatusPesquisa.DRAFT) {
+            throw new BusinessException("Questionários publicados ou encerrados não podem ser editados; crie uma nova versão.");
+        }
         if (respostas.existsByQuestionarioIdAndEmpresaId(id, TenantAccess.requireCurrent())
                 && (!Objects.equals(entity.getDsQuestionario(), request.dsQuestionario())
                 || !Objects.equals(entity.getUrlImagem(), request.urlImagem()))) {
@@ -98,8 +103,56 @@ public class QuestionarioService {
         if (respostas.existsByQuestionarioIdAndEmpresaId(id, TenantAccess.requireCurrent())) {
             throw new BusinessException("Um questionário com respostas não pode ser excluído.");
         }
+        if (entity.getStatusPesquisa() != StatusPesquisa.DRAFT) {
+            throw new BusinessException("Somente questionários em rascunho podem ser excluídos.");
+        }
         itQuestionarioRepository.deleteByQuestionarioId(id);
         repository.delete(entity);
+    }
+
+    private Questionario authorized(Long id) {
+        Questionario entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Questionário não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
+        return entity;
+    }
+
+    private QuestionarioResponse transition(Long id, StatusPesquisa expected, StatusPesquisa next) {
+        Questionario entity = authorized(id);
+        if (entity.getStatusPesquisa() != expected) {
+            throw new BusinessException("Transição inválida: a pesquisa está em " + entity.getStatusPesquisa()
+                    + ", mas a operação exige " + expected + ".");
+        }
+        if (next == StatusPesquisa.PUBLISHED && expected == StatusPesquisa.DRAFT
+                && itQuestionarioRepository.findByQuestionarioId(id).isEmpty()) {
+            throw new BusinessException("Cadastre pelo menos uma pergunta antes de publicar.");
+        }
+        entity.setStatusPesquisa(next);
+        entity.setSnAtivo(next == StatusPesquisa.PUBLISHED);
+        return mapper.toResponse(repository.save(entity));
+    }
+
+    public QuestionarioResponse publicar(Long id) {
+        return transition(id, StatusPesquisa.DRAFT, StatusPesquisa.PUBLISHED);
+    }
+
+    public QuestionarioResponse pausar(Long id) {
+        return transition(id, StatusPesquisa.PUBLISHED, StatusPesquisa.PAUSED);
+    }
+
+    public QuestionarioResponse retomar(Long id) {
+        return transition(id, StatusPesquisa.PAUSED, StatusPesquisa.PUBLISHED);
+    }
+
+    public QuestionarioResponse encerrar(Long id) {
+        Questionario entity = authorized(id);
+        if (entity.getStatusPesquisa() != StatusPesquisa.PUBLISHED
+                && entity.getStatusPesquisa() != StatusPesquisa.PAUSED) {
+            throw new BusinessException("Somente pesquisas publicadas ou pausadas podem ser encerradas.");
+        }
+        entity.setStatusPesquisa(StatusPesquisa.CLOSED);
+        entity.setSnAtivo(false);
+        return mapper.toResponse(repository.save(entity));
     }
 }
 

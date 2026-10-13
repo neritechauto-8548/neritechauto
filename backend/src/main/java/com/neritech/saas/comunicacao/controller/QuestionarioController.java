@@ -55,6 +55,30 @@ public class QuestionarioController {
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PostMapping("/{id}/publicar")
+    public ResponseEntity<QuestionarioResponse> publicar(@PathVariable Long id) {
+        return ResponseEntity.ok(service.publicar(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PostMapping("/{id}/pausar")
+    public ResponseEntity<QuestionarioResponse> pausar(@PathVariable Long id) {
+        return ResponseEntity.ok(service.pausar(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PostMapping("/{id}/retomar")
+    public ResponseEntity<QuestionarioResponse> retomar(@PathVariable Long id) {
+        return ResponseEntity.ok(service.retomar(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PostMapping("/{id}/encerrar")
+    public ResponseEntity<QuestionarioResponse> encerrar(@PathVariable Long id) {
+        return ResponseEntity.ok(service.encerrar(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir questionário")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

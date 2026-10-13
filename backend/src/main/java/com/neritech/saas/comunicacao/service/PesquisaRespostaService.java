@@ -5,6 +5,7 @@ import com.neritech.saas.common.exception.BusinessException;
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.comunicacao.domain.*;
 import com.neritech.saas.comunicacao.domain.enums.TipoItemQuestionario;
+import com.neritech.saas.comunicacao.domain.enums.StatusPesquisa;
 import com.neritech.saas.comunicacao.dto.PesquisaRespostaRequest;
 import com.neritech.saas.comunicacao.dto.PesquisaRespostaResponse;
 import com.neritech.saas.comunicacao.dto.PesquisaResumoResponse;
@@ -72,8 +73,9 @@ public class PesquisaRespostaService {
             }
             return PesquisaRespostaResponse.from(r);
         }
-        if (!Boolean.TRUE.equals(questionario.getSnAtivo())) {
-            throw new BusinessException("Questionário inativo não recebe respostas.");
+        if (questionario.getStatusPesquisa() != StatusPesquisa.PUBLISHED
+                || !Boolean.TRUE.equals(questionario.getSnAtivo())) {
+            throw new BusinessException("Somente pesquisas publicadas e ativas recebem respostas.");
         }
         var cliente = clientes.findByIdScoped(input.clienteId())
             .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado nesta empresa"));
