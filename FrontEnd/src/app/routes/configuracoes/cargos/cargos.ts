@@ -105,7 +105,7 @@ export class CargosComponent implements OnInit {
 
   salvar(): void {
     if (this.salvando) return;
-    const nome = this.form.nome.trim();
+    const nome = (this.form.nome || '').trim();
     if (nome.length < 2) { this.formError = 'Informe um nome com pelo menos 2 caracteres.'; return; }
     const minimo = this.form.salarioBaseMinimo;
     const maximo = this.form.salarioBaseMaximo;
@@ -117,7 +117,7 @@ export class CargosComponent implements OnInit {
     this.salvando = true;
     this.actionMessage = '';
     this.formError = '';
-    const request = { ...this.form, nome };
+    const request = { ...this.form, nome, codigoCbo: this.form.codigoCbo?.trim() || undefined };
     const chamada = this.cargoId ? this.service.atualizar(this.cargoId, request) : this.service.criar(request);
     chamada.subscribe({
       next: () => {
@@ -173,6 +173,7 @@ export class CargosComponent implements OnInit {
       error: () => {
         if (version !== this.requestVersion) return;
         this.cargos = [];
+        this.totalPaginas = 1;
         this.loading = false;
         this.error = 'Não foi possível carregar os cargos desta empresa.';
       }
