@@ -1,0 +1,41 @@
+<main class="crm-page" aria-labelledby="comunicacao-title">
+  <header class="crm-header">
+    <span class="crm-eyebrow">CLIENTES / CRM / COMUNICAÇÃO</span>
+    <h1 id="comunicacao-title">Histórico de comunicação</h1>
+    <p>Consulte mensagens efetivamente registradas para a sua empresa, com entrega e falhas. Esta tela não simula envios.</p>
+    <a class="crm-text-link" routerLink="/cliente/crm">Voltar ao CRM</a>
+  </header>
+
+  <section class="crm-clients" aria-labelledby="comunicacao-lista-title">
+    <div class="crm-section-heading">
+      <div><span class="crm-section-kicker">HISTÓRICO</span><h2 id="comunicacao-lista-title">Comunicações registradas</h2>
+      <p>Dados consultados diretamente na API, respeitando autenticação e permissões.</p></div>
+      <button type="button" class="crm-button-secondary" [disabled]="loading" (click)="carregar()">Atualizar</button>
+    </div>
+    @if (loading) {
+      <div class="crm-state" role="status"><nt-icon name="loader" [size]="20" /> Carregando histórico…</div>
+    } @else if (error) {
+      <div class="crm-state crm-state-error" role="alert"><nt-icon name="alert-circle" [size]="20" />
+        {{ error }} <button type="button" class="crm-text-link" (click)="carregar()">Tentar novamente</button></div>
+    } @else if (!registros.length) {
+      <div class="crm-state" role="status"><nt-icon name="info-circle" [size]="20" />
+        Nenhuma comunicação registrada nesta empresa.</div>
+    } @else {
+      <div class="crm-table-wrap"><table class="crm-table">
+        <thead><tr><th scope="col">Destinatário</th><th scope="col">Canal</th><th scope="col">Assunto</th><th scope="col">Data</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+        @for (item of registros; track item.id) {
+          <tr><td><strong>{{ item.destinatarioNome }}</strong><small>{{ item.destinatarioContato }}</small></td>
+          <td>{{ item.tipoComunicacao }}</td><td>{{ item.assunto || '—' }}</td>
+          <td>{{ (item.dataEnvio || item.dataCadastro) ? ((item.dataEnvio || item.dataCadastro) | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+          <td><span class="crm-status" [class.is-inactive]="item.status !== 'ENVIADA' && item.status !== 'ENTREGUE' && item.status !== 'LIDA'">{{ item.status }}</span></td></tr>
+        }
+        </tbody></table></div>
+      <nav class="crm-pagination" aria-label="Páginas de comunicações">
+        <span>Página {{ page + 1 }} de {{ paginas }} · {{ total }} registros</span>
+        <div><button type="button" [disabled]="page === 0" (click)="irParaPagina(page - 1)">Anterior</button>
+          <button type="button" [disabled]="page + 1 >= paginas" (click)="irParaPagina(page + 1)">Próxima</button></div>
+      </nav>
+    }
+  </section>
+</main>

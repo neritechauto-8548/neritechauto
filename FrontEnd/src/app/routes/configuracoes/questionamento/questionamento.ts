@@ -5,6 +5,7 @@ import { DynamicDialogModule, DialogService, DynamicDialogRef } from 'primeng/dy
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { ConfirmationDialogComponent, DataViewState, NeriTechIcon } from '@shared/components';
 
@@ -78,10 +79,9 @@ export class Questionamento implements OnInit {
     return this.modelos.reduce((acc, m) => acc + (m.perguntas?.length || 0), 0);
   }
 
-  get tenantId(): string | number {
-    let tid = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tid || typeof tid === 'object') tid = '1';
-    return tid;
+  get tenantId(): number {
+    // A API recusará o cadastro sem uma empresa autenticada; não utilizar ID fixo.
+    return empresaIdAtual(this.storage) ?? 0;
   }
 
   ngOnInit() {

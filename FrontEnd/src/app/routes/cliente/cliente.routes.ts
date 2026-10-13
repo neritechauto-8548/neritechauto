@@ -17,6 +17,11 @@ export const routes: Routes = [
         data: { title: 'CRM' },
       },
       {
+        path: 'comunicacao',
+        loadComponent: () => import('./crm/comunicacao/comunicacao').then(m => m.Comunicacao),
+        data: { title: 'Comunicação' },
+      },
+      {
         path: 'pesquisa',
         loadComponent: () => import('../configuracoes/questionamento/questionamento').then(m => m.Questionamento),
         data: { title: 'Questionamento de pesquisa' },
