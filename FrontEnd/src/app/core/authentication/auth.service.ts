@@ -68,11 +68,15 @@ export class AuthService {
   }
 
   logout() {
+    // Mesmo que a API de revogação falhe, nunca manter credenciais locais acessíveis.
+    // O erro remoto continua propagado para que a UI informe que a revogação não foi confirmada.
+    const clearLocalSession = () => {
+      this.tokenService.clear();
+      this.user$.next({});
+      this.clearTenantState();
+    };
     return this.loginService.logout().pipe(
-      tap(() => {
-        this.tokenService.clear();
-        this.clearTenantState();
-      }),
+      tap({ next: clearLocalSession, error: clearLocalSession }),
       map(() => !this.check())
     );
   }
@@ -97,7 +101,8 @@ export class AuthService {
 
     return this.loginService.user().pipe(
       take(1),
-      timeout(1000),
+      // Conexões móveis e redes lentas podem levar mais de 1 segundo para carregar o perfil.
+      timeout(10000),
       catchError(() => {
         // Silenciosamente falha e retorna objeto vazio — o guard tratará o acesso
         return of({} as User);

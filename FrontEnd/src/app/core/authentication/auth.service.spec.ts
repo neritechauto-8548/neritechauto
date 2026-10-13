@@ -85,6 +85,43 @@ describe('AuthService', () => {
     expect(authService.check()).toBeFalse();
   });
 
+  it('limpa sessão local se a revogação no servidor falhar', () => {
+    const storage = TestBed.inject(LocalStorageService);
+    tokenService.set(token);
+    httpMock.expectOne('/usuarios/me').flush({ id: 1, empresaId: 1 });
+    storage.set('tenantId', '1');
+    storage.set('empresaId', '1');
+    localStorage.setItem('tenantId', '1');
+    localStorage.setItem('empresaId', '1');
+
+    let logoutFailed = false;
+    authService.logout().subscribe({ error: () => logoutFailed = true });
+    httpMock.expectOne('/auth/logout').flush({}, { status: 503, statusText: 'Service Unavailable' });
+
+    expect(logoutFailed).toBeTrue();
+    expect(authService.check()).toBeFalse();
+    expect(storage.has('tenantId')).toBeFalse();
+    expect(storage.has('empresaId')).toBeFalse();
+    expect(localStorage.getItem('tenantId')).toBeNull();
+    expect(localStorage.getItem('empresaId')).toBeNull();
+    let currentUser: User = { id: 99 };
+    authService.user().subscribe(value => currentUser = value);
+    expect(currentUser.id).toBeUndefined();
+  });
+
+  it('aguarda o perfil além de um segundo sem descartar a sessão válida', fakeAsync(() => {
+    tokenService.set(token);
+    const profile = httpMock.expectOne('/usuarios/me');
+    tick(1500);
+    expect(authService.check()).toBeTrue();
+    let received: User = {};
+    authService.user().subscribe(value => received = value);
+    profile.flush({ id: 33, empresaId: 7 });
+    expect(received.id).toBe(33);
+    expect(TestBed.inject(LocalStorageService).get('tenantId')).toBe('7');
+    tokenService.ngOnDestroy();
+  }));
+
   it('should refresh token when access_token is valid', fakeAsync(() => {
     tokenService.set(Object.assign({ expires_in: 5 }, token));
     expect(authService.check()).toBeTrue();
