@@ -251,13 +251,16 @@ export class ClientesService {
 
   // ========== DOCUMENTOS ==========
 
-  listarDocumentos(clienteId: number | string): Observable<Page<DocumentoClienteResponse>> {
+  listarDocumentos(clienteId: number | string, page = 0, size = 10): Observable<Page<DocumentoClienteResponse>> {
     if (environment.uxPreview) {
-      const content = this.previewDocumentos.filter(d => d.clienteId === Number(clienteId));
-      return of({ content, totalElements: content.length, totalPages: content.length ? 1 : 0, number: 0, size: Math.max(content.length, 10) });
+      const all = this.previewDocumentos.filter(d => d.clienteId === Number(clienteId));
+      return of({ content: all.slice(page * size, (page + 1) * size),
+        totalElements: all.length, totalPages: Math.ceil(all.length / size), number: page, size });
     }
     const url = `${this.base}/v1/clientes/${clienteId}/documentos`;
-    return this.http.get<any>(url).pipe(map((resp: any) => resp?.data ?? resp));
+    const params = new HttpParams().set('page', String(page))
+      .set('size', String(size)).set('sort', 'dataCadastro,desc');
+    return this.http.get<any>(url, { params }).pipe(map((resp: any) => resp?.data ?? resp));
   }
 
   buscarDocumento(clienteId: number | string, id: number | string): Observable<DocumentoClienteResponse> {

@@ -391,7 +391,7 @@
                   }
                 </ul>
                 <nav class="nt-client-documents-pages" aria-label="Páginas de documentos">
-                  <span>Página {{ documentosPage + 1 }} de {{ (documentosTotal / documentosPageSize | number:'1.0-0') || '1' }}</span>
+                  <span>Página {{ documentosPage + 1 }} de {{ documentosPages }}</span>
                   <button type="button" (click)="irParaPaginaDocumentos(documentosPage - 1)" [disabled]="documentosPage === 0">Anterior</button>
                   <button type="button" (click)="irParaPaginaDocumentos(documentosPage + 1)"
                     [disabled]="(documentosPage + 1) * documentosPageSize >= documentosTotal">Próxima</button>

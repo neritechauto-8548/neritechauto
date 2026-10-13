@@ -162,6 +162,9 @@ export class CadastroCliente implements OnInit {
   documentosPage = 0;
   documentosTotal = 0;
   readonly documentosPageSize = 10;
+  get documentosPages(): number {
+    return Math.max(1, Math.ceil(this.documentosTotal / this.documentosPageSize));
+  }
   isSavingDocuments = false;
   get canManageDocuments(): boolean {
     return !this.isUxPreview && !!this.permissionsService.getPermission('CLIENTE_EDITAR');
