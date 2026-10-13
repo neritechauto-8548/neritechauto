@@ -77,6 +77,18 @@ export class Comunicacao implements OnInit {
   get paginas(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
 
   carregar(): void {
+    const rawCliente = this.route.snapshot.queryParamMap.get('clienteId');
+    if (rawCliente !== null && (!/^\\d+$/.test(rawCliente) || !Number.isSafeInteger(Number(rawCliente)) || Number(rawCliente) <= 0)) {
+      ++this.requestVersion;
+      this.registros = [];
+      this.total = 0;
+      this.loading = false;
+      this.filterError = 'O identificador do cliente é inválido. Volte ao cadastro e acesse o histórico novamente.';
+      return;
+    }
+    this.clienteId = rawCliente !== null ? Number(rawCliente) : undefined;
+    this.filters = { ...this.filters, ...(this.clienteId ? { clienteId: this.clienteId } : {}) };
+    if (!this.clienteId) delete this.filters.clienteId;
     const version = ++this.requestVersion;
     this.loading = true;
     this.error = '';
