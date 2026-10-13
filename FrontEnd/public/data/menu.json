@@ -60,6 +60,11 @@
               "type": "link"
             },
             {
+              "route": "comunicacao",
+              "name": "comunicacao",
+              "type": "link"
+            },
+            {
               "route": "pesquisa",
               "name": "pesquisa",
               "type": "link"
