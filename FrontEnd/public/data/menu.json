@@ -26,10 +26,6 @@
       "minPlan": 1,
       "children": [
         {
-          "type": "heading",
-          "name": "config-geral"
-        },
-        {
           "route": "empresa",
           "name": "empresa",
           "type": "link",
@@ -58,10 +54,6 @@
           "name": "assinatura",
           "type": "link",
           "icon": "pi pi-credit-card"
-        },
-        {
-          "type": "heading",
-          "name": "config-rh"
         },
         {
           "route": "colaboradores",
