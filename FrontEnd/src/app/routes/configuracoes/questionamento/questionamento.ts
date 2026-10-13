@@ -301,12 +301,14 @@ export class Questionamento implements OnInit {
     ref?.onClose?.subscribe((result: { titulo: string } | undefined) => {
       const titulo = result?.titulo?.trim();
       if (titulo) {
-        this.questionarioService.create({ empresaId: Number(this.tenantId), dsQuestionario: titulo, snAtivo: true }).subscribe({
+        this.questionarioService.duplicar(modelo.id, titulo).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Questionário duplicado com sucesso' });
+            this.messageService.add({ severity: 'success', summary: 'Pesquisa duplicada',
+              detail: 'Novo rascunho criado com todas as perguntas; nenhuma resposta foi copiada.' });
             this.load();
           },
-          error: (err) => console.error('Erro ao duplicar questionário', err)
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro ao duplicar',
+            detail: 'Verifique o título (deve ser exclusivo na empresa) e tente novamente.' })
         });
       }
     });

@@ -2,6 +2,10 @@ package com.neritech.saas.comunicacao.service;
 
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.comunicacao.domain.Questionario;
+import com.neritech.saas.comunicacao.domain.ItQuestionario;
+import com.neritech.saas.comunicacao.dto.QuestionarioDuplicacaoRequest;
+import java.util.ArrayList;
+import java.util.List;
 import com.neritech.saas.comunicacao.domain.enums.StatusPesquisa;
 import com.neritech.saas.comunicacao.dto.QuestionarioRequest;
 import com.neritech.saas.comunicacao.dto.QuestionarioResponse;
@@ -131,6 +135,35 @@ public class QuestionarioService {
         entity.setStatusPesquisa(next);
         entity.setSnAtivo(next == StatusPesquisa.PUBLISHED);
         return mapper.toResponse(repository.save(entity));
+    }
+
+    /**
+     * Duplica título, imagem e perguntas em um novo rascunho sem respostas,
+     * preservando integralmente a pesquisa original e seu histórico.
+     */
+    public QuestionarioResponse duplicar(Long origemId, QuestionarioDuplicacaoRequest input) {
+        Questionario original = authorized(origemId);
+        Long empresaId = TenantAccess.requireCurrent();
+        validate(new QuestionarioRequest(empresaId, input.titulo(), original.getUrlImagem(), true), null);
+
+        Questionario novo = new Questionario();
+        novo.setEmpresaId(empresaId);
+        novo.setDsQuestionario(input.titulo().trim());
+        novo.setUrlImagem(original.getUrlImagem());
+        novo.setSnAtivo(true);
+        novo.setStatusPesquisa(StatusPesquisa.DRAFT);
+        Questionario salvo = repository.save(novo);
+
+        List<ItQuestionario> copias = new ArrayList<>();
+        for (ItQuestionario origem : itQuestionarioRepository.findByQuestionarioId(origemId)) {
+            ItQuestionario item = new ItQuestionario();
+            item.setQuestionario(salvo);
+            item.setDsItQuestionario(origem.getDsItQuestionario());
+            item.setTpItQuestionario(origem.getTpItQuestionario());
+            copias.add(item);
+        }
+        if (!copias.isEmpty()) itQuestionarioRepository.saveAll(copias);
+        return mapper.toResponse(salvo);
     }
 
     public QuestionarioResponse publicar(Long id) {

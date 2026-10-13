@@ -59,6 +59,10 @@ export class QuestionarioService {
     if (!tenantId) return this.missingTenant();
     return this.http.put<QuestionarioResponse>(`${this.base}/${id}`, { ...dto, empresaId: tenantId });
   }
+  duplicar(id: number, titulo: string): Observable<QuestionarioResponse> {
+    if (!this.empresaId()) return this.missingTenant();
+    return this.http.post<QuestionarioResponse>(`${this.base}/${id}/duplicar`, { titulo });
+  }
   mudarStatus(id: number, action: 'publicar' | 'pausar' | 'retomar' | 'encerrar'): Observable<QuestionarioResponse> {
     if (!this.empresaId()) return this.missingTenant();
     return this.http.post<QuestionarioResponse>(`${this.base}/${id}/${action}`, {});

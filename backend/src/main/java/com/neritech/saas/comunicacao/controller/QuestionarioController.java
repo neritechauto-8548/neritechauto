@@ -1,6 +1,7 @@
 package com.neritech.saas.comunicacao.controller;
 
 import com.neritech.saas.comunicacao.dto.QuestionarioRequest;
+import com.neritech.saas.comunicacao.dto.QuestionarioDuplicacaoRequest;
 import com.neritech.saas.comunicacao.dto.QuestionarioResponse;
 import com.neritech.saas.comunicacao.service.QuestionarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,6 +53,13 @@ public class QuestionarioController {
             @PathVariable Long id,
             @RequestBody @Valid QuestionarioRequest request) {
         return ResponseEntity.ok(service.update(id, request));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PostMapping("/{id}/duplicar")
+    public ResponseEntity<QuestionarioResponse> duplicar(@PathVariable Long id,
+            @Valid @RequestBody QuestionarioDuplicacaoRequest input) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.duplicar(id, input));
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
