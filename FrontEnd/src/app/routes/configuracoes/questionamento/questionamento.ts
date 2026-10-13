@@ -57,7 +57,8 @@ export class Questionamento implements OnInit {
   private readonly permissionsService = inject(NgxPermissionsService);
 
   get canManageResearch(): boolean {
-    return !!this.permissionsService.getPermission('GERAL_CONFIG_SISTEMA');
+    return !!this.permissionsService.getPermission('GERAL_CONFIG_SISTEMA')
+      || !!this.permissionsService.getPermission('ADMIN');
   }
   private readonly questionarioService = inject(QuestionarioService);
   private readonly itQuestionarioService = inject(ItQuestionarioService);
