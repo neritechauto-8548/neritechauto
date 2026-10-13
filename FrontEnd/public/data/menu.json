@@ -1,10 +1,6 @@
 {
   "menu": [
     {
-      "type": "heading",
-      "name": "administração"
-    },
-    {
       "route": "admin/dashboard",
       "name": "dashboard_admin",
       "type": "link",
@@ -74,10 +70,6 @@
           "icon": "pi pi-tags"
         },
         {
-          "type": "heading",
-          "name": "config-financeiro"
-        },
-        {
           "route": "contas",
           "name": "contas",
           "type": "link",
@@ -88,10 +80,6 @@
           "name": "formas-pagamento",
           "type": "link",
           "icon": "pi pi-credit-card"
-        },
-        {
-          "type": "heading",
-          "name": "config-operacional"
         },
         {
           "route": "checklist",
@@ -118,24 +106,12 @@
           "icon": "pi pi-tags"
         },
         {
-          "type": "heading",
-          "name": "config-comunicacao"
-        },
-        {
           "route": "opcoes-envio",
           "name": "opcoes-envio",
           "type": "link",
           "icon": "pi pi-send"
-        },
-        {
-          "type": "heading",
-          "name": "config-sistema"
         }
       ]
-    },
-    {
-      "type": "heading",
-      "name": "geral"
     },
     {
       "route": "dashboard",
@@ -143,10 +119,6 @@
       "type": "link",
       "icon": "pi pi-home",
       "minPlan": 1
-    },
-    {
-      "type": "heading",
-      "name": "operacional"
     },
     {
       "route": "cliente",
@@ -267,11 +239,6 @@
           "icon": "pi pi-calendar-plus"
         }
       ]
-    },
-    {
-      "type": "heading",
-      "name": "gestao-e-fiscal",
-      "minPlan": 1
     },
     {
       "route": "financeiro",
@@ -422,10 +389,6 @@
           "icon": "pi pi-cog"
         }
       ]
-    },
-    {
-      "type": "heading",
-      "name": "estoque-e-analise"
     },
     {
       "route": "relatorios",
