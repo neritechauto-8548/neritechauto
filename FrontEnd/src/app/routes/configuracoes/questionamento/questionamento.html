@@ -8,9 +8,11 @@
       <h1 id="research-title">Questionário de pesquisa</h1>
       <p>Crie questionários e organize as perguntas para colher a opinião dos seus clientes.</p>
     </div>
-    <button type="button" class="research-primary" (click)="incluirModelo()">
-      <nt-icon name="plus" [size]="17" /> Novo questionário
-    </button>
+    @if (canManageResearch) {
+      <button type="button" class="research-primary" (click)="incluirModelo()">
+        <nt-icon name="plus" [size]="17" /> Novo questionário
+      </button>
+    }
   </header>
 
   <section class="research-toolbar" aria-label="Pesquisar questionários">
@@ -60,13 +62,13 @@
               <i aria-hidden="true"></i>{{ modelo.ativo ? 'Ativo' : 'Inativo' }}
             </span>
 
-            <div class="research-card-actions" aria-label="Ações do questionário">
+            @if (canManageResearch) { <div class="research-card-actions" aria-label="Ações do questionário">
               <button type="button" class="research-action" (click)="incluirPergunta(modelo)" [attr.aria-label]="'Adicionar pergunta a ' + modelo.titulo">Adicionar pergunta</button>
               <button type="button" class="research-action" (click)="duplicarModelo(modelo)" [attr.aria-label]="'Duplicar ' + modelo.titulo">Duplicar</button>
               <button type="button" class="research-action" (click)="editarModelo(modelo)" [attr.aria-label]="'Editar ' + modelo.titulo">Editar</button>
               <button type="button" class="research-action" (click)="toggleAtivo(modelo)" [attr.aria-label]="(modelo.ativo ? 'Inativar ' : 'Ativar ') + modelo.titulo">{{ modelo.ativo ? 'Inativar' : 'Ativar' }}</button>
               <button type="button" class="research-action is-danger" (click)="removerModelo(modelo)" [attr.aria-label]="'Excluir ' + modelo.titulo">Excluir</button>
-            </div>
+            </div> }
           </div>
 
           @if (modelo.expanded) {
@@ -85,16 +87,20 @@
                       <strong>{{ pergunta.texto }}</strong>
                       <span>{{ pergunta.tipo === 'avaliacao' ? 'Avaliação de 1 a 10' : (pergunta.tipo === 'simnao' ? 'Sim ou Não' : 'Resposta aberta') }}</span>
                     </div>
-                    <div class="research-card-actions">
-                      <button type="button" class="research-action" (click)="editarPergunta(modelo, $index)" [attr.aria-label]="'Editar pergunta: ' + pergunta.texto">Editar</button>
-                      <button type="button" class="research-action is-danger" (click)="removerPergunta(modelo, $index)" [attr.aria-label]="'Excluir pergunta: ' + pergunta.texto">Excluir</button>
-                    </div>
+                    @if (canManageResearch) {
+                      <div class="research-card-actions">
+                        <button type="button" class="research-action" (click)="editarPergunta(modelo, $index)" [attr.aria-label]="'Editar pergunta: ' + pergunta.texto">Editar</button>
+                        <button type="button" class="research-action is-danger" (click)="removerPergunta(modelo, $index)" [attr.aria-label]="'Excluir pergunta: ' + pergunta.texto">Excluir</button>
+                      </div>
+                    }
                   </div>
                 }
               } @else {
                 <div class="research-empty-inline">
                   <p>Este questionário ainda não tem perguntas.</p>
-                  <button type="button" class="research-text-button" (click)="incluirPergunta(modelo)">Adicionar primeira pergunta</button>
+                  @if (canManageResearch) {
+                    <button type="button" class="research-text-button" (click)="incluirPergunta(modelo)">Adicionar primeira pergunta</button>
+                  }
                 </div>
               }
             </section>
@@ -109,7 +115,7 @@
       <p>{{ searchTerm.trim() ? 'Tente outro termo ou limpe a busca.' : 'Crie um modelo para organizar as perguntas da sua pesquisa.' }}</p>
       @if (searchTerm.trim()) {
         <button type="button" class="research-secondary" (click)="searchTerm = ''">Limpar busca</button>
-      } @else {
+      } @else if (canManageResearch) {
         <button type="button" class="research-primary" (click)="incluirModelo()"><nt-icon name="plus" [size]="16" /> Criar questionário</button>
       }
     </section>

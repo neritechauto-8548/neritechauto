@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DynamicDialogModule, DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { NgxPermissionsService } from 'ngx-permissions';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { ConfirmationService } from '@shared/services/confirmation.service';
@@ -53,6 +54,11 @@ export class Questionamento implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly storage = inject(LocalStorageService);
+  private readonly permissionsService = inject(NgxPermissionsService);
+
+  get canManageResearch(): boolean {
+    return !!this.permissionsService.getPermission('GERAL_CONFIG_SISTEMA');
+  }
   private readonly questionarioService = inject(QuestionarioService);
   private readonly itQuestionarioService = inject(ItQuestionarioService);
 
@@ -162,6 +168,11 @@ export class Questionamento implements OnInit {
   }
 
   incluirPergunta(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoItemDialog, {
       header: 'Adicionar Pergunta',
       width: '450px',
@@ -207,6 +218,11 @@ export class Questionamento implements OnInit {
   }
 
   editarPergunta(modelo: ModeloQuestionamento, index: number): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const pergunta = modelo.perguntas[index];
     const ref = this.dialogService.open(QuestionamentoItemDialog, {
       header: 'Editar Pergunta',
@@ -235,6 +251,11 @@ export class Questionamento implements OnInit {
   }
 
   removerPergunta(modelo: ModeloQuestionamento, index: number): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     this.confirmationService.confirm({
       title: 'Excluir Pergunta',
       message: 'Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.',
@@ -257,6 +278,11 @@ export class Questionamento implements OnInit {
   }
 
   duplicarModelo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoModeloDialog, {
       header: 'Duplicar Questionário',
       width: '450px',
@@ -280,6 +306,11 @@ export class Questionamento implements OnInit {
   }
 
   editarModelo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoModeloDialog, {
       header: 'Editar Questionário',
       width: '450px',
@@ -305,6 +336,11 @@ export class Questionamento implements OnInit {
   }
 
   toggleAtivo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const payload = { empresaId: Number(this.tenantId), dsQuestionario: modelo.titulo, snAtivo: !modelo.ativo };
     this.questionarioService.update(modelo.id, payload).subscribe({
       next: () => {
@@ -316,6 +352,11 @@ export class Questionamento implements OnInit {
   }
 
   removerModelo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     this.confirmationService.confirm({
       title: 'Excluir Questionário',
       message: `Tem certeza que deseja excluir o questionário <span class="font-semibold text-slate-900">${modelo.titulo}</span> e todos os seus itens?`,
@@ -337,6 +378,11 @@ export class Questionamento implements OnInit {
   }
 
   incluirModelo(): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoModeloDialog, {
       header: 'Novo Questionário',
       width: '450px',
