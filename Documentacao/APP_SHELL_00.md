@@ -19,6 +19,18 @@ Rotas desconhecidas apresentam a página 404. Respostas 404 de uma API não subs
 
 Não recriar a sidebar antiga `SidebarMenuComponent`: usar exclusivamente `theme/sidebar/sidebar.ts` e respeitar o menu oficial do Notion. Não criar atalho de rota inexistente para simular módulo ainda não implementado.
 
+## Paridade documental e lacunas técnicas de navegação
+
+A referência de arquitetura/menu é [03.01.03 Módulos](https://app.notion.com/p/80101fd65a9c833580f1012ec0a45407), o contrato de UI é [UI-MASTER-001](https://app.notion.com/p/97401fd65a9c822a9a4b017c39a08518), e as especificações de telas ficam em [03.01.04 Telas & UX](https://app.notion.com/p/98501fd65a9c8379a9a281145568f52a). O presente Markdown **não substitui** essas fontes nem autoriza reconfigurar o menu.
+
+**Situação documental das etapas 00–06:** referências, ScreenIds, rotas e distinção entre requisitos aprovados e contratos ainda propostos estão reconciliados. **Isso não significa paridade de implementação**. Na `feature/develop` verificada:
+- O menu **de produção** vem de `FrontEnd/public/data/menu.json`, que ainda contém um agrupamento `operacional`, ícones `pi pi-*` (PrimeIcons) e divisão diferente da arquitetura oficial. O agrupamento `operacional` é legado, **não um módulo autorizado**. Atualizar o menu exigirá trabalho no código e testes com perfis/permissões; não marcar o shell como homologado com base na documentação.
+- Gestão de Pátio está especificada no Notion como **uma única tela interna**, com seis áreas funcionais, mas **não possui rota própria** em `FrontEnd/src/app/app.routes.ts` nem entrada no menu de produção atual. Não apontar para aplicativo externo ou renderizar tela falsa.
+- Em Clientes, `/cliente/listar`, `/cliente/cadastro`, `/cliente/editar/:uuid`, `/cliente/crm` e `/cliente/crm/pesquisa` estão registrados. A Comunicação `/cliente/crm/comunicacao` ainda não está registrada: é requisito de implementação, não tela existente.
+- Login, recuperação, redefinição de senha e Home têm rotas Angular registradas. Isso **não equivale** a testes E2E ou aceite visual em ambiente implantado.
+
+**Gate:** a Prioridade 2 documental pode ser considerada encerrada **no escopo 00–06 e na decisão Gestão de Pátio**, sem nova documentação. As diferenças do menu real e das rotas ausentes continuam pendências de implementação/homologação, não justificativa para criar fontes documentais paralelas.
+
 ## Gate de homologação
 
 - `yarn build` deve passar no pipeline Angular;
