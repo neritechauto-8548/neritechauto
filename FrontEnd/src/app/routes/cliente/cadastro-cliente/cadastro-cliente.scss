@@ -98,3 +98,20 @@
  .nt-client-form-notice{align-items:flex-start;flex-direction:column}
 }
 @media(prefers-reduced-motion:reduce){.nt-client-form-spinner{animation:none}.nt-client-form-actions button{transition:none}}
+
+.nt-client-documents { border: 1px solid var(--nt-border, #e2e8f0); background: var(--nt-surface, #fff); border-radius: 12px; padding: 22px; display: grid; gap: 18px; }
+.nt-client-documents-header h2 { margin: 0 0 5px; font-size: 19px; font-weight: 650; }
+.nt-client-documents-header p { margin: 0; font-size: 13px; color: #64748b; }
+.nt-client-document-list { list-style: none; padding: 0; margin: 0; }
+.nt-client-document-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid #e2e8f0; }
+.nt-client-document-list li strong, .nt-client-document-list li small { display: block; overflow-wrap: anywhere; }
+.nt-client-document-list li small { color: #64748b; font-size: 12px; margin-top: 3px; }
+.nt-client-document-actions, .nt-client-documents-pages { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.nt-client-document-actions button, .nt-client-documents-pages button, .nt-client-document-draft button { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 7px; font-weight: 600; font-size: 12px; background: #fff; cursor: pointer; }
+.nt-client-document-actions button:focus-visible, .nt-client-documents-pages button:focus-visible { outline: 3px solid #2563eb55; }
+.nt-client-document-actions button:disabled, .nt-client-documents-pages button:disabled { opacity: .5; cursor: not-allowed; }
+.nt-client-document-upload { display: grid; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+.nt-client-document-draft { display: grid; gap: 10px; grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) minmax(180px, 1.2fr) auto; align-items: end; }
+.nt-client-document-draft label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: #475569; min-width: 0; }
+.nt-client-document-draft select, .nt-client-document-draft input { min-width: 0; width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; font-size: 12px; }
+@media (max-width: 820px) { .nt-client-document-draft { grid-template-columns: 1fr; } .nt-client-document-list li { align-items: flex-start; flex-direction: column; } }

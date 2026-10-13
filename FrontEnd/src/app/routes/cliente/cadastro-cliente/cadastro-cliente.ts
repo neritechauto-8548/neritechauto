@@ -17,7 +17,7 @@ import { TagModule } from 'primeng/tag';
 import { InputMaskModule } from 'primeng/inputmask';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ClientesService, ClienteRequestDTO, ClienteResponseDTO } from '../cliente/cliente.service';
-import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels, getStatusClienteOptions, StatusClienteLabels,
+import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, DocumentoClienteResponse, getTipoContatoOptions, TipoContatoLabels, getStatusClienteOptions, StatusClienteLabels,
   Sexo, EstadoCivil, OrigemCliente, getSexoOptions, getEstadoCivilOptions, getOrigemClienteOptions
 } from '../models/cliente.models';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
@@ -94,7 +94,8 @@ export class CadastroCliente implements OnInit {
       { label: 'Dados Gerais' },
       { label: 'Endereço' },
       { label: 'Contatos' },
-      { label: 'Veículos' }
+      { label: 'Veículos' },
+      { label: 'Documentos' }
   ];
   savedClienteId: string | number | null = null;
 
@@ -153,6 +154,18 @@ export class CadastroCliente implements OnInit {
   // Opções de Contato
   tipoContatoOptions = getTipoContatoOptions();
   TipoContatoLabels = TipoContatoLabels; // Para usar no template
+
+  // DOCUMENTOS
+  documentosList: DocumentoClienteResponse[] = [];
+  documentosLoading = false;
+  documentosError = false;
+  documentosPage = 0;
+  documentosTotal = 0;
+  readonly documentosPageSize = 10;
+  isSavingDocuments = false;
+  get canManageDocuments(): boolean {
+    return !this.isUxPreview && !!this.permissionsService.getPermission('CLIENTE_EDITAR');
+  }
 
   // VEÍCULOS
   veiculosList: VeiculoResponse[] = [];
@@ -297,7 +310,69 @@ export class CadastroCliente implements OnInit {
   }
 
   loadDocumentos(id: string | number) {
-    // Implementar se necessário, similar aos outros
+    this.documentosLoading = true;
+    this.documentosError = false;
+    this.clientesService.listarDocumentos(id, this.documentosPage, this.documentosPageSize).subscribe({
+      next: res => {
+        this.documentosList = res.content || [];
+        this.documentosTotal = res.totalElements || 0;
+        this.documentosLoading = false;
+      },
+      error: () => {
+        this.documentosList = [];
+        this.documentosError = true;
+        this.documentosLoading = false;
+      }
+    });
+  }
+
+  irParaPaginaDocumentos(page: number) {
+    if (!this.savedClienteId || page < 0 || page * this.documentosPageSize >= this.documentosTotal) return;
+    this.documentosPage = page;
+    this.loadDocumentos(this.savedClienteId);
+  }
+
+  baixarDocumento(doc: DocumentoClienteResponse) {
+    if (!this.savedClienteId || this.isUxPreview) return;
+    this.clientesService.downloadDocumento(this.savedClienteId, doc.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.arquivoNome || 'documento';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      },
+      error: () => this.messageService.add({
+        severity: 'error', summary: 'Download não realizado',
+        detail: 'Não foi possível baixar este documento.'
+      })
+    });
+  }
+
+  excluirDocumentoCliente(doc: DocumentoClienteResponse) {
+    if (!this.savedClienteId || !this.canManageDocuments) return;
+    this.confirmationService.confirm({
+      title: 'Excluir documento',
+      message: 'Excluir este documento de forma permanente?',
+      confirmText: 'Excluir documento',
+      cancelText: 'Cancelar',
+      type: 'danger',
+      icon: 'warning'
+    }).subscribe(confirmed => {
+      if (!confirmed || !this.savedClienteId) return;
+      this.clientesService.excluirDocumento(this.savedClienteId, doc.id).subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Documento removido.' });
+          this.documentosPage = 0;
+          this.loadDocumentos(this.savedClienteId!);
+        },
+        error: () => this.messageService.add({
+          severity: 'error', summary: 'Exclusão não realizada',
+          detail: 'Não foi possível excluir este documento.'
+        })
+      });
+    });
   }
 
   ufs: string[] = [];
@@ -972,8 +1047,18 @@ export class CadastroCliente implements OnInit {
       return;
     }
     const clienteId = this.savedClienteId;
+    if (this.isSavingDocuments || !this.canManageDocuments) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão',
+        detail: 'Você não pode enviar documentos para este cliente.' });
+      return;
+    }
     const docs = (this.model.documentosExtras || []).filter(d => !!d.arquivoFile);
-
+    if (docs.some(d => !d.arquivoFile || d.arquivoFile.size > 5 * 1024 * 1024
+       || !['application/pdf', 'image/jpeg', 'image/png'].includes(d.arquivoFile.type))) {
+      this.messageService.add({ severity: 'warn', summary: 'Arquivo inválido',
+        detail: 'Envie PDF, JPG ou PNG com até 5 MB.' });
+      return;
+    }
     if (!docs.length) {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Adicione ao menos um documento com arquivo para salvar.' });
       return;
@@ -986,13 +1071,21 @@ export class CadastroCliente implements OnInit {
       d.descricao || undefined
     ));
 
+    this.isSavingDocuments = true;
     forkJoin(uploads).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Documentos enviados com sucesso!' });
+        this.isSavingDocuments = false;
+        this.model.documentosExtras = [];
+        this.documentosPage = 0;
+        this.loadDocumentos(clienteId);
+        this.messageService.add({ severity: 'success', summary: 'Sucesso',
+          detail: 'Documentos salvos com segurança.' });
       },
-      error: err => {
-        console.error('Erro ao enviar documentos', err);
-        // Interceptor trata o erro de rede
+      error: () => {
+        this.isSavingDocuments = false;
+        this.loadDocumentos(clienteId);
+        this.messageService.add({ severity: 'error', summary: 'Envio incompleto',
+          detail: 'Verifique os arquivos cadastrados antes de tentar novamente; alguns podem ter sido salvos.' });
       }
     });
   }
