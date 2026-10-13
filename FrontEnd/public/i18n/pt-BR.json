@@ -21,7 +21,6 @@
     "veiculo": "Veículos",
     "ordem-de-servico": "Ordem de Serviço",
     "orcamento": "Orçamentos",
-
     "financeiro": "Financeiro",
     "financeiro.caixa": "Caixa",
     "financeiro.caixas fechado": "Caixas Fechados",
@@ -30,10 +29,8 @@
     "financeiro.transferência entre contas": "Transferência entre Contas",
     "financeiro.notas de compra": "Notas de Compra",
     "financeiro.comissões": "Comissões",
-
     "fornecedor": "Fornecedor",
     "fornecedor.pedidos": "Pedidos do Fornecedor",
-
     "fiscal": "Fiscal",
     "fiscal.nfe": "NF-e",
     "fiscal.nfe.lista": "Lista NF-e",
@@ -47,16 +44,13 @@
     "fiscal.nfse": "NFS-e",
     "fiscal.nfse.lista": "Lista NFS-e",
     "fiscal.configuracao-nota": "Configuração de Nota Fiscal",
-
     "pdv": "PDV",
     "pdv.listar-vendas": "Listar Vendas",
     "pdv.venda-balcao": "Venda Balcão",
-
     "agenda-alerta": "Agenda e Alertas",
     "agenda-alerta.agendamentos-alertas": "Agendamentos e Alertas",
     "agenda-alerta.aniversario": "Aniversários",
     "agenda-alerta.calendario": "Calendário",
-
     "relatorios": "Relatórios",
     "relatorios.relatorio-vendas": "Relatório de Vendas",
     "relatorios.relatorio-contas": "Relatório de Contas",
@@ -70,13 +64,11 @@
     "relatorios.relatorio-aniversariantes": "Relatório de Aniversariantes",
     "relatorios.relatorio-produtos": "Relatório de Produtos",
     "relatorios.relatorio-clientes": "Relatório de Clientes",
-
     "produtos-servicos": "Produtos e Serviços",
     "produtos-servicos.estoque": "Produtos",
     "produtos-servicos.cadastro-produto": "Cadastro de Produto",
     "produtos-servicos.incluir-xml": "Incluir XML",
     "produtos-servicos.servicos": "Serviços",
-
     "configuracoes": "Configurações",
     "configuracoes.colaboradores": "Colaboradores",
     "configuracoes.permissoes": "Permissões",
@@ -93,11 +85,9 @@
     "configuracoes.departamentos": "Departamentos",
     "configuracoes.checklist": "Checklist",
     "configuracoes.questionamento": "Questionário",
-    "configuracoes.veiculo-modelo": "Modelos de Veículo",
     "configuracoes.opcoes-envio": "Opções de Envio",
     "configuracoes.questionario-envio": "Questionários",
     "configuracoes.administrador": "Administrador",
-
     "menu.configuracoes": "Configurações",
     "menu.configuracoes.colaboradores": "Colaboradores",
     "menu.configuracoes.permissoes": "Permissões",
@@ -128,21 +118,17 @@
     "configuracoes.cargos": "Cargos",
     "config-sistema": "SISTEMA"
   },
-
   "pt_br": "Português (Brasil)",
   "en_us": "Inglês",
   "zh_cn": "Chinês simplificado",
   "zh_tw": "Chinês tradicional",
   "system": "Sistema",
-
   "dashboard": "Painel",
-
   "material": "Material",
   "material.navigation": "Navegação",
   "material.navigation.menu": "Menu",
   "material.navigation.sidenav": "Barra lateral",
   "material.navigation.toolbar": "Barra de ferramentas",
-
   "material.layout": "Layout",
   "material.layout.card": "Card",
   "material.layout.divider": "Divisor",
@@ -152,7 +138,6 @@
   "material.layout.stepper": "Stepper",
   "material.layout.tab": "Abas",
   "material.layout.tree": "Árvore",
-
   "material.buttons-indicators": "Botões e indicadores",
   "material.buttons-indicators.button": "Botões",
   "material.buttons-indicators.button-toggle": "Alternância de botão",
@@ -162,28 +147,23 @@
   "material.buttons-indicators.progress-spinner": "Spinner de progresso",
   "material.buttons-indicators.progress-bar": "Barra de progresso",
   "material.buttons-indicators.ripple": "Efeito ripple",
-
   "material.popups-modals": "Popups e modais",
   "material.popups-modals.bottom-sheet": "Bottom Sheet",
   "material.popups-modals.dialog": "Diálogo",
   "material.popups-modals.snackbar": "Snackbar",
   "material.popups-modals.tooltip": "Tooltip",
-
   "material.data-table": "Tabela de dados",
   "material.data-table.paginator": "Paginador",
   "material.data-table.sort": "Ordenação",
   "material.data-table.table": "Tabela",
-
   "forms": "Formulários",
   "forms.form-elements": "Elementos de formulário",
   "forms.dynamic-form": "Formulário dinâmico",
   "forms.select": "Seleção",
   "forms.datetime": "Data e hora",
-
   "utilities": "Utilidades",
   "utilities.css-grid": "CSS Grid",
   "utilities.css-helpers": "CSS Helpers",
-
   "menu-level": "Níveis de menu",
   "menu-level.level-1-1": "Nível 1.1",
   "menu-level.level-1-2": "Nível 1.2",
@@ -191,4 +171,4 @@
   "menu-level.level-1-1.level-2-2": "Nível 2.2",
   "menu-level.level-1-1.level-2-1.level-3-1": "Nível 3.1",
   "menu-level.level-1-1.level-2-1.level-3-1.level-4-1": "Nível 4.1"
-  }
+}
