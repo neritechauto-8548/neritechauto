@@ -10,6 +10,7 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
     java.util.Optional<OrdemServico> findByIdAndEmpresaId(Long id, Long empresaId);
     Page<OrdemServico> findByEmpresaId(Long empresaId, Pageable pageable);
     Page<OrdemServico> findByEmpresaIdAndStatusId(Long empresaId, Long statusId, Pageable pageable);
+    Page<OrdemServico> findByEmpresaIdAndClienteId(Long empresaId, Long clienteId, Pageable pageable);
 
     @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.tipoOS IN :tipos AND (" +
             "LOWER(o.numeroOS) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
