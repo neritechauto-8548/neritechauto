@@ -9,6 +9,7 @@ import {
   ConfiguracaoSms,
   ConfiguracaoWhatsapp,
   Empresa,
+  EmpresaHistoricoPage,
   EnderecoEmpresa
 } from '../models/empresa.models';
 
@@ -58,6 +59,12 @@ export class EmpresaService {
 
   removeLogo(id: number): Observable<void> {
     return this.http.delete<void>(`/api/v1/empresas/${id}/logo`);
+  }
+
+  getHistorico(id: number, page = 0, size = 20): Observable<EmpresaHistoricoPage> {
+    return this.http.get<EmpresaHistoricoPage>(`/api/v1/empresas/${id}/historico`, {
+      params: { page, size }, headers: { 'X-Skip-Toast': 'true' }
+    });
   }
 
   // --- Endereço Empresa ---
