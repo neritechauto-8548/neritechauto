@@ -17,6 +17,7 @@
 - Testar mudança de forma focada; em homologação/fechamento de lote executar builds, testes integrados e QA aplicáveis. Não alegar execução sem evidência; segurança multiempresa é requisito de aceite.
 
 ## Economia de tokens e entregas
+- **Comando mínimo:** `Faça <ScreenId>` significa localizar a tela em `Documentacao/notion/README.md`, ler só seu bloco A, confrontar código real, completar apenas lacunas e testar a mudança. Para AUTH-001/002/003, usar `Documentacao/notion/global/autenticacao.md`. Ordem oficial de comandos: `Documentacao/CODEX_ROTEIRO_64_TELAS.md`; não carregar o roteiro inteiro se o ID já estiver explícito.
 - Uma tela ou correção coerente por tarefa. Buscar por arquivo/símbolo e ler apenas trechos necessários; não imprimir árvore completa, logs extensos nem repetir buscas.
 - Não pesquisar web/Notion novamente se contrato local suficiente e atual; buscar dependências apenas por necessidade concreta.
 - Durante a edição, testes focados; validação integral ao encerrar o lote, sem ignorar risco relevante.
