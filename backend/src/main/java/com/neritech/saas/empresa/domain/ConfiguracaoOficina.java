@@ -70,6 +70,9 @@ public class ConfiguracaoOficina extends BaseEntity {
     @Column(name = "timezone", length = 50)
     private String timezone = "America/Sao_Paulo";
 
+    @Column(name = "cor_tema", length = 16, nullable = false)
+    private String corTema = "light";
+
     @Column(name = "possui_intervalo")
     private Boolean possuiIntervalo = false;
 
@@ -260,6 +263,14 @@ public class ConfiguracaoOficina extends BaseEntity {
 
     public void setTimezone(String timezone) {
         this.timezone = timezone;
+    }
+
+    public String getCorTema() {
+        return corTema;
+    }
+
+    public void setCorTema(String corTema) {
+        this.corTema = corTema;
     }
 
     public Boolean getPossuiIntervalo() {
