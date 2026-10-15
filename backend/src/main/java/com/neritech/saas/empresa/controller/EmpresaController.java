@@ -79,6 +79,10 @@ public class EmpresaController {
     @Operation(summary = "Atualizar empresa", description = "Atualiza os dados de uma empresa existente")
     public ResponseEntity<EmpresaResponse> update(@PathVariable Long id, @Valid @RequestBody EmpresaRequest request) {
         Empresa current = service.findById(TenantAccess.require(id));
+        if (request.getVersao() != null && !java.util.Objects.equals(request.getVersao(), current.getVersao())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.CONFLICT, "Os dados da empresa foram alterados em outra sessão. Recarregue antes de salvar.");
+        }
         EmpresaMapper.updateEntity(current, request);
         Empresa saved = service.update(id, current);
         return ResponseEntity.ok(EmpresaMapper.toResponse(saved));
