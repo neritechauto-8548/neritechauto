@@ -310,38 +310,67 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
+        String newPassword = request.getNovaSenha();
+        if (newPassword == null || newPassword.isBlank() ||
+                newPassword.length() < 12 || newPassword.length() > 128 ||
+                isPredictablePassword(newPassword)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Use uma frase-senha segura de 12 a 128 caracteres.");
+        }
+        if (request.getToken() == null || request.getToken().isBlank() ||
+                request.getToken().length() > 256) {
+            throw new IllegalArgumentException("Link de recuperação inválido");
+        }
+
+        // FOR UPDATE serializes concurrent attempts with the same one-time hash.
         TokenRecuperacaoSenha tokenEntity = tokenRepository.findWithLockByToken(hashToken(request.getToken()))
                 .orElseThrow(() -> new IllegalArgumentException("Link de recuperação inválido"));
 
-        if (tokenEntity.getUsado()) {
+        if (Boolean.TRUE.equals(tokenEntity.getUsado())) {
             throw new IllegalStateException("Este link de recuperação já foi utilizado");
         }
-
-        if (tokenEntity.getDataExpiracao().isBefore(LocalDateTime.now())) {
+        if (!tokenEntity.getDataExpiracao().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("O link de recuperação expirou. Solicite um novo");
         }
 
         Usuario usuario = tokenEntity.getUsuario();
-        
-        // Definir o contexto do tenant para permitir atualização da senha
+        if (usuario == null || usuario.getEmpresaId() == null) {
+            throw new IllegalStateException("Link de recuperação inválido");
+        }
         TenantContext.setCurrentTenant(usuario.getEmpresaId());
+        if (passwordEncoder.matches(newPassword, usuario.getSenha())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "A nova senha deve ser diferente da senha atual.");
+        }
 
-        // Atualizar senha do usuário
-        usuario.setSenha(passwordEncoder.encode(request.getNovaSenha()));
+        usuario.setSenha(passwordEncoder.encode(newPassword));
         usuario.setDeveTrocarSenha(false);
         usuarioRepository.saveAndFlush(usuario);
 
-        // Marcar token como usado
+        // Atomic with password change: consume this token and any outstanding links.
         tokenEntity.setUsado(true);
         tokenRepository.saveAndFlush(tokenEntity);
+        for (TokenRecuperacaoSenha pending : tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())) {
+            pending.setUsado(true);
+            tokenRepository.save(pending);
+        }
 
-        // Senha nova invalida todas as sessões ativas, inclusive refresh tokens.
+        // Access validation and refresh both consult the active session record.
         for (SessaoUsuario sessao : sessaoUsuarioRepository.findByUsuarioIdAndAtivoTrue(usuario.getId())) {
             sessao.setAtivo(false);
             sessaoUsuarioRepository.save(sessao);
         }
+        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS,
+                "Senha redefinida e sessões anteriores revogadas", null, null);
+    }
 
-        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS, "Senha redefinida com sucesso via link de e-mail", null, null);
+    private boolean isPredictablePassword(String candidate) {
+        String compact = candidate.toLowerCase(Locale.ROOT).replace(" ", "");
+        if (Set.of("123456789012", "1234567890123456", "password1234",
+                "password123456", "qwerty123456", "senha12345678").contains(compact)) {
+            return true;
+        }
+        return candidate.codePoints().distinct().count() == 1;
     }
 
     private String hashToken(String token) {
