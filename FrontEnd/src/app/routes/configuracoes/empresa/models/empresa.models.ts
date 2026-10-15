@@ -237,3 +237,20 @@ export interface ConfiguracaoSms {
   ambiente?: 'HOMOLOGACAO' | 'PRODUCAO';
   observacoes?: string;
 }
+
+/** Uma alteração auditada e visível somente para a empresa da sessão. */
+export interface EmpresaAlteracao {
+  secao: string;
+  campo: string;
+  anterior: string;
+  novo: string;
+  autor: number;
+  data: string;
+  versao: number;
+}
+
+export interface EmpresaHistoricoPage {
+  content: EmpresaAlteracao[];
+  totalElements: number;
+  totalPages: number;
+}
