@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '@core/authentication';
 import { LocalStorageService, MemoryStorageService } from '@shared/services/storage.service';
@@ -10,7 +10,7 @@ import { Login } from './login';
 describe('AUTH-001 Login — estados e navegação', () => {
   let auth: jasmine.SpyObj<AuthService>;
   let router: Router;
-  let fixture: ReturnType<typeof TestBed.createComponent<Login>>;
+  let fixture: ComponentFixture<Login>;
 
   function credentials(rememberMe = false) {
     fixture.componentInstance.loginForm.patchValue({
@@ -43,6 +43,7 @@ describe('AUTH-001 Login — estados e navegação', () => {
   it('exige e-mail válido e senha e não memoriza email por padrão', () => {
     expect(fixture.componentInstance.rememberMe.value).toBeFalse();
     fixture.componentInstance.login();
+    fixture.detectChanges();
     expect(auth.login).not.toHaveBeenCalled();
     expect(fixture.nativeElement.querySelector('#email-error')).not.toBeNull();
   });
