@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neritech.saas.AbstractIntegrationTest;
 import com.neritech.saas.TestDataBuilder;
 import com.neritech.saas.gestaoUsuarios.domain.Funcao;
+import com.neritech.saas.gestaoUsuarios.domain.Permissao;
+import com.neritech.saas.gestaoUsuarios.repository.PermissaoRepository;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
@@ -34,9 +36,11 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired FuncaoRepository funcoes;
     @Autowired UsuarioRepository usuarios;
+    @Autowired PermissaoRepository permissoes;
     @Autowired PasswordEncoder encoder;
 
     private final List<Long> fixtureUsers = new ArrayList<>();
+    private final List<Long> fixturePermissions = new ArrayList<>();
 
     @Test
     void jwtARejeitaFuncaoAdminDeBEFazRollbackSemBloquearFuncaoLocal() throws Exception {
@@ -106,6 +110,91 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
                 Integer.class, adminB.getId(), alvoA.getId(), novoId)).isZero();
     }
 
+
+    @Test
+    void configuradorNaoConcedeAdminNemAlteraUsuariosAdministradores() throws Exception {
+        long a = empresa("C");
+        Funcao admin = funcao(a, "ADMIN");
+        Funcao leitor = funcao(a, "LEITOR");
+        Permissao configuracao = permissoes.save(TestDataBuilder.umaPermissao()
+                .comChave("GERAL_CONFIG_SISTEMA").comValor("GERAL_CONFIG_SISTEMA").build());
+        fixturePermissions.add(configuracao.getId());
+        Funcao gestor = funcao(a, "CONFIGURADOR");
+        gestor.getPermissoes().add(configuracao);
+        funcoes.saveAndFlush(gestor);
+
+        String tokenConfig = login(a, "cfg" + a + "@t.co", gestor);
+        String tokenAdmin = login(a, "adm" + a + "@t.co", admin);
+        Usuario leitorAlvo = usuario(a, "leitor" + a + "@t.co", leitor);
+        Usuario adminAlvo = usuario(a, "adminAlvo" + a + "@t.co", admin);
+        String proibidoEmail = "proibido" + a + "@t.co";
+
+        for (String alias : List.of("ADMIN", "ADMINISTRADOR", "SUPER_ADMIN")) {
+            Funcao elevada = "ADMIN".equals(alias) ? admin : funcao(a, alias);
+            mvc.perform(post("/usuarios").header("Authorization", "Bearer " + tokenConfig)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(payload("Fraude", proibidoEmail, "senha123", Set.of(elevada.getId()))))
+                    .andExpect(status().isForbidden());
+            assertThat(jdbc.queryForObject("select count(*) from usuarios where email=?",
+                    Integer.class, proibidoEmail)).isZero();
+        }
+
+        mvc.perform(put("/usuarios/{id}", leitorAlvo.getId())
+                .header("Authorization", "Bearer " + tokenConfig)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload("Promovido", leitorAlvo.getEmail(), null, Set.of(admin.getId()))))
+                .andExpect(status().isForbidden());
+        assertThat(jdbc.queryForObject("select nome_completo from usuarios where id=?",
+                String.class, leitorAlvo.getId())).isEqualTo("João da Silva");
+        assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where usuario_id=? and funcao_id=?",
+                Integer.class, leitorAlvo.getId(), leitor.getId())).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where usuario_id=? and funcao_id=?",
+                Integer.class, leitorAlvo.getId(), admin.getId())).isZero();
+
+        // Even with a harmless replacement role, a configurator cannot alter
+        // an existing administrator or deactivate that administrator.
+        mvc.perform(put("/usuarios/{id}", adminAlvo.getId())
+                .header("Authorization", "Bearer " + tokenConfig)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload("Rebaixado", adminAlvo.getEmail(), null, Set.of(leitor.getId()))))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete("/usuarios/{id}", adminAlvo.getId())
+                .header("Authorization", "Bearer " + tokenConfig))
+                .andExpect(status().isForbidden());
+        assertThat(jdbc.queryForObject("select ativo from usuarios where id=?",
+                Boolean.class, adminAlvo.getId())).isTrue();
+        assertThat(jdbc.queryForObject("select nome_completo from usuarios where id=?",
+                String.class, adminAlvo.getId())).isEqualTo("João da Silva");
+        assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where usuario_id=? and funcao_id=?",
+                Integer.class, adminAlvo.getId(), admin.getId())).isEqualTo(1);
+
+        // A delegated configurator retains normal user management.
+        mvc.perform(put("/usuarios/{id}", leitorAlvo.getId())
+                .header("Authorization", "Bearer " + tokenConfig)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload("Editado", leitorAlvo.getEmail(), null, Set.of(leitor.getId()))))
+                .andExpect(status().isOk());
+        String permitidoEmail = "permitido" + a + "@t.co";
+        mvc.perform(post("/usuarios").header("Authorization", "Bearer " + tokenConfig)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload("Regular", permitidoEmail, "senha123", Set.of(leitor.getId()))))
+                .andExpect(status().isOk());
+        Long permitidoId = jdbc.queryForObject("select id from usuarios where email=?", Long.class, permitidoEmail);
+        fixtureUsers.add(permitidoId);
+        assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where usuario_id=? and funcao_id=?",
+                Integer.class, permitidoId, leitor.getId())).isEqualTo(1);
+
+        // Only a real authenticated admin can confer ADMIN.
+        mvc.perform(post("/usuarios").header("Authorization", "Bearer " + tokenAdmin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload("Admin autorizado", proibidoEmail, "senha123", Set.of(admin.getId()))))
+                .andExpect(status().isOk());
+        Long autorizadoId = jdbc.queryForObject("select id from usuarios where email=?", Long.class, proibidoEmail);
+        fixtureUsers.add(autorizadoId);
+        assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where usuario_id=? and funcao_id=?",
+                Integer.class, autorizadoId, admin.getId())).isEqualTo(1);
+    }
+
     @AfterEach
     void removeOnlyOwnFixtures() {
         if (fixtureUsers.isEmpty()) return;
@@ -118,6 +207,12 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
         jdbc.update("delete from perfis_usuario where usuario_id in (" + placeholders + ")", ids);
         jdbc.update("delete from usuarios_funcoes where usuario_id in (" + placeholders + ")", ids);
         jdbc.update("delete from usuarios where id in (" + placeholders + ")", ids);
+        if (!fixturePermissions.isEmpty()) {
+            String perms = String.join(",", Collections.nCopies(fixturePermissions.size(), "?"));
+            Object[] permIds = fixturePermissions.toArray();
+            jdbc.update("delete from funcoes_permissoes where permissao_id in (" + perms + ")", permIds);
+            jdbc.update("delete from permissoes where id in (" + perms + ")", permIds);
+        }
     }
 
     private long empresa(String prefix) {

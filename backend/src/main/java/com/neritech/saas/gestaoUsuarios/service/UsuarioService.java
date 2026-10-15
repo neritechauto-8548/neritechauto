@@ -16,6 +16,7 @@ import com.neritech.saas.empresa.repository.EmpresaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -93,6 +94,12 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
 
+        // A permissão de configurar usuários não autoriza editar administradores,
+        // nem mesmo removendo-lhes a função ADMIN. Conferir ANTES de alterar dados.
+        if (containsAdminRole(usuario.getFuncoes()) && !callerIsAdmin()) {
+            throw new AccessDeniedException("Somente administradores podem alterar contas administrativas");
+        }
+
         usuario.setNomeCompleto(request.getNomeCompleto());
         usuario.setEmail(request.getEmail());
         usuario.setAtivo(request.isAtivo());
@@ -132,6 +139,11 @@ public class UsuarioService {
                 throw new ResourceNotFoundException("Função não encontrada");
             }
         }
+        // Atribuir ROLE_ADMIN (direta ou por alias) exige um ADMIN autenticado,
+        // mesmo quando o solicitante possui GERAL_CONFIG_SISTEMA.
+        if (containsAdminRole(funcoesGerenciadas) && !callerIsAdmin()) {
+            throw new AccessDeniedException("Somente administradores podem conceder funções administrativas");
+        }
         if (usuario.getFuncoes() == null) {
             usuario.setFuncoes(new java.util.HashSet<>());
         }
@@ -139,11 +151,28 @@ public class UsuarioService {
         usuario.getFuncoes().addAll(funcoesGerenciadas);
     }
 
+    private boolean containsAdminRole(java.util.Collection<Funcao> funcoes) {
+        return funcoes != null && funcoes.stream().anyMatch(funcao -> {
+            if (funcao == null || funcao.getNome() == null) return false;
+            String nome = funcao.getNome().trim().toUpperCase(java.util.Locale.ROOT);
+            return "ADMIN".equals(nome) || "ADMINISTRADOR".equals(nome) || "SUPER_ADMIN".equals(nome);
+        });
+    }
+
+    private boolean callerIsAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() && auth.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    }
+
     @Transactional
     public void delete(Long id) {
         Long empresaId = com.neritech.saas.common.tenancy.TenantContext.getCurrentTenant();
         Usuario usuario = usuarioRepository.findByIdAndEmpresaId(id, empresaId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou acesso negado"));
+        if (containsAdminRole(usuario.getFuncoes()) && !callerIsAdmin()) {
+            throw new AccessDeniedException("Somente administradores podem inativar contas administrativas");
+        }
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
     }
