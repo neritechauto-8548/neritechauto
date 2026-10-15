@@ -131,7 +131,7 @@ class AuthSessionTokenLengthIntegrationTest extends AbstractIntegrationTest {
         String expiredRaw = "E".repeat(43);
         String expiredHash = java.util.HexFormat.of().formatHex(java.security.MessageDigest
                 .getInstance("SHA-256").digest(expiredRaw.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        jdbc.update("insert into tokens_recuperacao_senha(token,usuario_id,data_expiracao,usado) values(?,?,now()-interval '1 minute',false)",
+        jdbc.update("insert into tokens_recuperacao_senha(token,usuario_id,data_criacao,data_expiracao,usado) values(?,?,now(),now()-interval '1 minute',false)",
                 expiredHash, accountA.getId());
         mvc.perform(post("/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("token", expiredRaw, "novaSenha", "Nova frase-senha válida 2026 ✓"))))
@@ -140,7 +140,7 @@ class AuthSessionTokenLengthIntegrationTest extends AbstractIntegrationTest {
         String raw = "R".repeat(43);
         String hash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
                 .digest(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        jdbc.update("insert into tokens_recuperacao_senha(token,usuario_id,data_expiracao,usado) values(?,?,now()+interval '30 minutes',false)",
+        jdbc.update("insert into tokens_recuperacao_senha(token,usuario_id,data_criacao,data_expiracao,usado) values(?,?,now(),now()+interval '30 minutes',false)",
                 hash, accountA.getId());
         String newPassword = "Minha nova frase-senha segura ✓ 2026";
         String payload = json.writeValueAsString(Map.of("token", raw, "novaSenha", newPassword));
