@@ -37,7 +37,7 @@ Este é o **roteiro executável completo**. Cada ação possui um **prompt indep
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-01 — Segurança P0 e multiempresa.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/APP_SHELL_00.md e Documentacao/CODEX_STATUS_EXECUCAO.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; consulte Documentacao/CODEX_STATUS_EXECUCAO.md para pendências já conhecidas e Documentacao/APP_SHELL_00.md apenas em mudanças de shell, complementando com D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Analise apenas as pendências P0 ainda comprovadas na branch e no Documentacao/CODEX_STATUS_EXECUCAO.md. Preserve o teste de isolamento da OS já aprovado. Corrija fallback empresa 1, empresaId arbitrário, consultas/mutações cruzadas, JWT/roles e upload sem persistência nas rotas vulneráveis identificadas. Uma falha comprovada por execução; se forem independentes, entregue somente a mais crítica.
 VALIDAR: Teste leitura, alteração, exclusão e FKs entre empresas A/B; 403/404 corretos, rollback e regressão focada.
 ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validações e estados loading/vazio/erro/403/409, permissões no servidor, tenant e auditoria. UI-MASTER, Tabler, responsividade e WCAG 2.2 AA. Reutilizar > estender > criar. Testes focados agora; não confundir build com homologação. Sem commit/push/PR. Resumo em até 6 linhas: arquivos, testes, pendências.
@@ -47,7 +47,7 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-02 — Contrato HTTP de Orçamentos.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/APP_SHELL_00.md e Documentacao/CODEX_STATUS_EXECUCAO.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; consulte Documentacao/CODEX_STATUS_EXECUCAO.md para pendências já conhecidas e Documentacao/APP_SHELL_00.md apenas em mudanças de shell, complementando com D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Verifique caminho real do OrcamentoController, serviços Angular, proxy, baseUrl e autenticação. Corrija somente divergências comprovadas de prefixo /v1/orcamentos e serialização DTO; preserve endpoints e clientes legados funcionais. Não reescreva módulo ou crie API paralela.
 VALIDAR: Teste listar, criar/editar e tratar 401/403/422/409; sem regressão em OS.
 ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validações e estados loading/vazio/erro/403/409, permissões no servidor, tenant e auditoria. UI-MASTER, Tabler, responsividade e WCAG 2.2 AA. Reutilizar > estender > criar. Testes focados agora; não confundir build com homologação. Sem commit/push/PR. Resumo em até 6 linhas: arquivos, testes, pendências.
@@ -57,7 +57,7 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-03 — Shell, menu e rotas.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/APP_SHELL_00.md e Documentacao/CODEX_STATUS_EXECUCAO.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; consulte Documentacao/CODEX_STATUS_EXECUCAO.md para pendências já conhecidas e Documentacao/APP_SHELL_00.md apenas em mudanças de shell, complementando com D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Conclua aplicação global reutilizando sidebar atual (264 px aberta/72 px recolhida), header, branding, breadcrumb, pesquisa, estados e links do menu oficial 03.01.03. Harmonize menu.json, StartupService, app.routes e data.requiredPermissions/permissionGuard; preserve Pátio como tela interna e remova Filiais/CLI-004. Não crie outra sidebar.
 VALIDAR: Teste permissões em perfis, refresh/deep-link, rotas desconhecidas, teclado e 320/768/1440 px.
 ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validações e estados loading/vazio/erro/403/409, permissões no servidor, tenant e auditoria. UI-MASTER, Tabler, responsividade e WCAG 2.2 AA. Reutilizar > estender > criar. Testes focados agora; não confundir build com homologação. Sem commit/push/PR. Resumo em até 6 linhas: arquivos, testes, pendências.
@@ -67,7 +67,7 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-04 — Design system e estados globais.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/APP_SHELL_00.md e Documentacao/CODEX_STATUS_EXECUCAO.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; consulte Documentacao/CODEX_STATUS_EXECUCAO.md para pendências já conhecidas e Documentacao/APP_SHELL_00.md apenas em mudanças de shell, complementando com D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Padronize componentes compartilhados da UI-MASTER-001 realmente existentes: PageHeader, filtros, tabela, formulário, loading/skeleton, vazio, 403/404, offline, toast, confirmação, drawer e paginação. Adapte PrimeNG, Tabler e tokens sem instalar biblioteca nova nem refazer todas as telas; harmonize erros de API reais.
 VALIDAR: Teste estados com backend real/indisponível, teclado, foco, zoom 200%, WCAG 2.2 AA e responsividade.
 ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validações e estados loading/vazio/erro/403/409, permissões no servidor, tenant e auditoria. UI-MASTER, Tabler, responsividade e WCAG 2.2 AA. Reutilizar > estender > criar. Testes focados agora; não confundir build com homologação. Sem commit/push/PR. Resumo em até 6 linhas: arquivos, testes, pendências.
@@ -789,7 +789,7 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-01 — Administração + Auth.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Valide jornada criar empresa/usuário/funcionário, atribuir cargos/permissões, autenticar e revogar acesso. Teste perfis, alteração de usuário próprio, acesso por URL e dados de duas empresas. Corrija somente falhas observadas, sem redesenho geral.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -799,7 +799,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-02 — Clientes → Oficina → Pátio.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Teste integração persistida cliente + veículo → agenda → orçamento com itens → aprovação → OS → diagnóstico/inspeção → pátio/cronômetro → entrega. Verifique versões e permissões, falhas de rede e reentrada. Corrija somente contratos quebrados.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -809,7 +809,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-03 — Estoque → Compras → PDV → Financeiro.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Teste entradas de compras, reservas, saídas, venda de balcão, título a receber/pagar, baixa, estorno e comissão, sem lançamentos duplicados. Verifique idempotência, concorrência, saldo e empresas A/B.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -819,7 +819,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-04 — Fiscal e integrações externas.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Teste validações fiscais, modelo correto, XML e certificados usando ambiente homologado e provedor autorizado quando disponível. Sem credenciais, valide apenas o fluxo local e estado BLOQUEADO EXTERNO; não simule emissão ou obrigação cumprida.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -829,7 +829,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-05 — Dashboard, gráficos e relatórios.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Reconcile KPIs com consultas dos owners e prévia com CSV/PDF; verifique fórmulas, períodos, locale, filtros, somas e capabilities. Corrija números inconsistentes e relatórios com exportação divergente.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -839,7 +839,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-06 — Segurança e isolamento final.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Faça matriz real de 2 empresas/3 perfis em GET/POST/PUT/DELETE e referências cruzadas de recursos; valide autenticação, revogação, RBAC, arquivos e logs. Use testes de integração direcionados e registre evidências de 403/404.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -849,7 +849,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-07 — Frontend e acessibilidade.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Valide todas as rotas e telas realmente implementadas em desktop/tablet/mobile, zoom 200%, Tab/Enter/Escape, contraste, foco, validações, toasts, loading, vazio, offline e erro. Corrija por módulo, sem declarar QA visual que não executou.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -859,7 +859,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-08 — CI, builds, banco e estabilidade.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Execute Node 22/Yarn build/testes relevantes, Java 21/Maven, Flyway em banco limpo e migrado, testes integrados e pipeline. Corrija causas reais de falha; não desative testes ou validações para ficar verde. Evidencie comandos e resultados.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
@@ -869,7 +869,7 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-09 — Preparação de lançamento.
-Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/README.md (consultar somente os contratos das jornadas testadas) (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
+Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
 FAZER: Audite variáveis/segredos, logs, métricas, rate limit, LGPD, backup/restore, migrations, rollback, deploy e plano de contingência. Gere checklist com GO/NO-GO e dependências externas. Não faça deploy, migração em produção nem cobrança real sem autorização.
 VALIDAR: Apresente evidências de execução, resultados e bloqueios; corrija apenas falhas comprovadas.
 Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/push/PR. Informe arquivos, testes e pendências em até 6 linhas.
