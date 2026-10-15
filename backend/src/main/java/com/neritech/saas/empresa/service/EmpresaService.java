@@ -265,9 +265,20 @@ public class EmpresaService {
 
     @Transactional
     public Empresa updateLogoPath(Long id, String logoPath) {
+        TenantAccess.require(id);
         Empresa current = findById(id);
+        String previous = current.getLogoPath();
+        if (Objects.equals(previous, logoPath)) return current;
+        String before = previous == null || previous.isBlank()
+                ? "Sem logomarca" : "Versão " + current.getVersao();
         current.setLogoPath(logoPath);
-        return empresaRepository.save(current);
+        Empresa saved = empresaRepository.saveAndFlush(current);
+        String after = logoPath == null || logoPath.isBlank()
+                ? "Sem logomarca" : "Versão " + saved.getVersao();
+        // Nunca colocar o caminho físico do arquivo no histórico.
+        auditoria.registrar(id, "empresa", id, saved.getVersao(),
+                Map.of("marca", before), Map.of("marca", after));
+        return saved;
     }
 
     /**
