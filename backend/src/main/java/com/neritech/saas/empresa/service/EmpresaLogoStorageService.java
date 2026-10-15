@@ -8,6 +8,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.util.Iterator;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -41,7 +47,8 @@ public class EmpresaLogoStorageService {
             String extension = detectExtension(bytes);
             String declaredType = file.getContentType() == null ? "" :
                     file.getContentType().toLowerCase(Locale.ROOT);
-            if (extension == null || !declaredType.equals(contentType(extension))) {
+            if (extension == null || !declaredType.equals(contentType(extension))
+                    || !validImage(extension, bytes)) {
                 throw invalidLogo();
             }
             Path target = baseDir.resolve("logo_" + empresaId + "_" + UUID.randomUUID() + "." + extension);
@@ -81,6 +88,39 @@ public class EmpresaLogoStorageService {
         if (b.length >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F' &&
                 b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') return "webp";
         return null;
+    }
+
+    /** Check decodability/dimensions, not just filename or magic bytes. */
+    private static boolean validImage(String extension, byte[] bytes) {
+        if ("webp".equals(extension)) {
+            // WebP RIFF size and mandatory VP8/VP8L/VP8X chunk.
+            if (bytes.length < 24) return false;
+            long declaredLength = ((long) (bytes[4] & 255))
+                    | ((long) (bytes[5] & 255) << 8)
+                    | ((long) (bytes[6] & 255) << 16)
+                    | ((long) (bytes[7] & 255) << 24);
+            String chunk = new String(bytes, 12, 4, java.nio.charset.StandardCharsets.US_ASCII);
+            return declaredLength == bytes.length - 8L
+                    && (chunk.equals("VP8 ") || chunk.equals("VP8L") || chunk.equals("VP8X"));
+        }
+        try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            if (input == null) return false;
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) return false;
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+                if (width < 1 || height < 1 || width > 4096 || height > 4096) return false;
+                BufferedImage image = reader.read(0);
+                return image != null;
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException | RuntimeException invalid) {
+            return false;
+        }
     }
 
     private static String contentType(String extension) {
