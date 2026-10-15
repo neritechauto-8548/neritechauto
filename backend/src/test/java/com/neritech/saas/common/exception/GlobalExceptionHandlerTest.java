@@ -23,7 +23,8 @@ class GlobalExceptionHandlerTest {
             handler.handleIntegrity(new DataIntegrityViolationException(raw));
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        ApiErrorResponse body = assertNotNull(response.getBody());
+        ApiErrorResponse body = response.getBody();
+        assertNotNull(body);
         assertEquals("BUSINESS_RULE", body.type());
         assertTrue(body.message().contains("email"));
         assertFalse(body.toString().contains(SENSITIVE));
@@ -35,7 +36,8 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ApiErrorResponse> response =
             handler.handleBadPayload(new HttpMessageNotReadableException("invalid JSON: " + SENSITIVE));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("VALIDATION", assertNotNull(response.getBody()).type());
+        assertNotNull(response.getBody());
+        assertEquals("VALIDATION", response.getBody().type());
         assertFalse(response.getBody().toString().contains(SENSITIVE));
     }
 
@@ -44,7 +46,8 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<ApiErrorResponse> response =
             handler.handleGeneric(new Exception("JDBC password: " + SENSITIVE));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("INTERNAL_ERROR", assertNotNull(response.getBody()).type());
+        assertNotNull(response.getBody());
+        assertEquals("INTERNAL_ERROR", response.getBody().type());
         assertFalse(response.getBody().toString().contains(SENSITIVE));
     }
 
@@ -56,7 +59,9 @@ class GlobalExceptionHandlerTest {
             handler.handleRollback(new RollbackException("rollback " + SENSITIVE));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, transaction.getStatusCode());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, rollback.getStatusCode());
-        assertFalse(assertNotNull(transaction.getBody()).toString().contains(SENSITIVE));
-        assertFalse(assertNotNull(rollback.getBody()).toString().contains(SENSITIVE));
+        assertNotNull(transaction.getBody());
+        assertFalse(transaction.getBody().toString().contains(SENSITIVE));
+        assertNotNull(rollback.getBody());
+        assertFalse(rollback.getBody().toString().contains(SENSITIVE));
     }
 }
