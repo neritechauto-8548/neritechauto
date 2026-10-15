@@ -1,6 +1,8 @@
 package com.neritech.saas.gestaoUsuarios.service;
 
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
+import com.neritech.saas.common.tenancy.TenantAccess;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
@@ -118,14 +120,23 @@ public class UsuarioService {
     }
 
     private void syncFuncoes(Usuario usuario, java.util.Set<Long> funcoesIds) {
+        Long empresaId = TenantAccess.requireCurrent();
+        // Validate all FKs before mutating the entity. findAllById is global and
+        // cannot be trusted to isolate functions by the authenticated tenant.
+        List<Funcao> funcoesGerenciadas = java.util.Collections.emptyList();
+        if (funcoesIds != null && !funcoesIds.isEmpty()) {
+            funcoesGerenciadas = funcaoRepository.findAllById(funcoesIds);
+            if (funcoesGerenciadas.size() != funcoesIds.size()
+                    || funcoesGerenciadas.stream()
+                        .anyMatch(funcao -> !empresaId.equals(funcao.getEmpresaId()))) {
+                throw new ResourceNotFoundException("Função não encontrada");
+            }
+        }
         if (usuario.getFuncoes() == null) {
             usuario.setFuncoes(new java.util.HashSet<>());
         }
         usuario.getFuncoes().clear();
-        if (funcoesIds != null && !funcoesIds.isEmpty()) {
-            List<Funcao> funcoesGerenciadas = funcaoRepository.findAllById(funcoesIds);
-            usuario.getFuncoes().addAll(funcoesGerenciadas);
-        }
+        usuario.getFuncoes().addAll(funcoesGerenciadas);
     }
 
     @Transactional
