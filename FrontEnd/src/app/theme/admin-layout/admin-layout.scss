@@ -4,6 +4,8 @@
 .matero-container-wrap,
 .matero-container {
   --mat-sidenav-content-background-color: transparent;
+  --sidenav-width: var(--nt-sidebar-width, 264px);
+  --sidenav-collapsed-width: 72px;
 
   height: 100%;
 }
