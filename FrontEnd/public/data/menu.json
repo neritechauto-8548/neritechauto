@@ -284,7 +284,8 @@
           "type": "link",
           "disabled": true
         }
-      ]
+      ],
+      "minPlan": 3
     },
     {
       "name": "Inteligência Artificial",
@@ -323,7 +324,8 @@
           "name": "Comercial",
           "route": "relatorios/relatorio-vendas",
           "type": "link",
-          "disabled": false
+          "disabled": false,
+          "minPlan": 3
         },
         {
           "name": "Clientes",
@@ -341,7 +343,8 @@
           "name": "Estoque",
           "route": "relatorios/relatorio-estoque",
           "type": "link",
-          "disabled": false
+          "disabled": false,
+          "minPlan": 3
         },
         {
           "name": "Compras",
@@ -365,7 +368,8 @@
           "name": "Produtividade",
           "route": "relatorios/relatorio-produtividade",
           "type": "link",
-          "disabled": true
+          "disabled": true,
+          "minPlan": 3
         },
         {
           "name": "Fiscal",
