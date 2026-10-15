@@ -6,8 +6,8 @@ import { ErrorCode } from '@shared/components/error-code/error-code';
   template: `
     <error-code
       code="403"
-      title="Permission denied!"
-      message="You do not have permission to access the requested data."
+      title="Acesso negado"
+      message="Seu perfil não possui permissão para acessar esta página."
     />
   `,
   imports: [ErrorCode],
