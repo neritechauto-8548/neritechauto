@@ -48,7 +48,6 @@ export class OrdemServicoService {
         params: httpParams,
       });
     });
-    });
   }
 
   getById(id: number | string): Observable<OrdemServicoResponse> {
