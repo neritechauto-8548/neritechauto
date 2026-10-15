@@ -53,3 +53,39 @@ test('foreground/background pairs clear WCAG normal-text 4.5:1', () => {
       label + ': contrast ratio ' + contrast(foreground, background).toFixed(2));
   }
 });
+
+const dark = (() => {
+  const match = css.match(/\\.dark\\s*\\{([\\s\\S]*?)\\n\\}/);
+  assert.ok(match, 'Missing dark theme tokens');
+  return match[1];
+})();
+const darkToken = name => {
+  const expression = new RegExp('--' + name + ':\\\\s*(#[0-9a-fA-F]{6})\\\\s*;');
+  const match = dark.match(expression);
+  assert.ok(match, 'Missing dark token: ' + name);
+  return match[1].toUpperCase();
+};
+
+test('shared state text and keyboard action contrast meet WCAG 2.2 AA in both themes', () => {
+  for (const [label, foreground, background] of [
+    ['light action', token('nt-state-action-fg'), token('nt-state-action-bg')],
+    ['light action hover', token('nt-state-action-fg'), token('nt-state-action-hover')],
+    ['dark title', darkToken('nt-text'), darkToken('nt-surface')],
+    ['dark secondary', darkToken('nt-text-secondary'), darkToken('nt-surface')],
+    ['dark action', darkToken('nt-state-action-fg'), darkToken('nt-state-action-bg')],
+    ['dark action hover', darkToken('nt-state-action-fg'), darkToken('nt-state-action-hover')],
+    ['dark warning icon', darkToken('nt-warning'), darkToken('nt-warning-surface')],
+  ]) {
+    const ratio = contrast(foreground, background);
+    assert.ok(ratio >= 4.5, label + ' ratio ' + ratio.toFixed(2) + ':1');
+  }
+});
+
+test('shared data view uses semantic colors, 44px click target and visible keyboard focus', () => {
+  const cssState = readFileSync(resolve(__dirname, '../src/app/shared/components/data-view-state/data-view-state.scss'), 'utf8');
+  assert.match(cssState, /color:\\s*var\\(--nt-text[,)]/);
+  assert.match(cssState, /color:\\s*var\\(--nt-text-secondary[,)]/);
+  assert.match(cssState, /min-height:\\s*44px/);
+  assert.match(cssState, /:focus-visible\\s*\\{[\\s\\S]*?outline:\\s*3px/);
+  assert.match(cssState, /overflow-wrap:\\s*anywhere/);
+});

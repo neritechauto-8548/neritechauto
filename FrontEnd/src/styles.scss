@@ -116,6 +116,9 @@ mat-icon {
   --nt-primary: var(--nt-primary-600);
   --nt-primary-hover: var(--nt-primary-700);
   --nt-focus: #3154FF;
+  --nt-state-action-fg: #2442DC;
+  --nt-state-action-bg: #EEF1FF;
+  --nt-state-action-hover: #DFE5FF;
   --nt-selected-row: #EEF1FF;
   --nt-success: #15803D;
   --nt-success-surface: #F0FDF4;
@@ -148,6 +151,13 @@ body {
   --nt-text: #f8fafc;
   --nt-text-secondary: #cbd5e1;
   --nt-text-muted: #94a3b8;
+  --nt-focus: #A5B4FC;
+  --nt-selected-row: #1C2750;
+  --nt-warning: #FBBF24;
+  --nt-warning-surface: #33270B;
+  --nt-state-action-fg: #B4C2FF;
+  --nt-state-action-bg: #1C2750;
+  --nt-state-action-hover: #263364;
 }
 
 /*
