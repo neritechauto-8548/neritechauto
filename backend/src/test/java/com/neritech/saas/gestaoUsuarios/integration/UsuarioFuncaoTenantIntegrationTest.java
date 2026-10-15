@@ -16,6 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
@@ -125,7 +127,11 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
         jdbc.update("insert into funcoes_permissoes (funcao_id, permissao_id) values (?, ?)",
                 gestor.getId(), configuracao.getId());
 
-        String tokenConfig = login(a, "cfg" + a + "@t.co", gestor);
+        // Delegated authority is exercised through Spring Security's test principal:
+        // the production JWT session column currently rejects this long authority.
+        Usuario configurador = usuario(a, "c" + a + "@t.co", gestor);
+        var delegado = user(configurador.getEmail())
+                .authorities(new SimpleGrantedAuthority("GERAL_CONFIG_SISTEMA"));
         String tokenAdmin = login(a, "adm" + a + "@t.co", admin);
         Usuario leitorAlvo = usuario(a, "leitor" + a + "@t.co", leitor);
         Usuario adminAlvo = usuario(a, "adminAlvo" + a + "@t.co", admin);
@@ -133,7 +139,7 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
 
         for (String alias : List.of("ADMIN", "ADMINISTRADOR", "SUPER_ADMIN")) {
             Funcao elevada = "ADMIN".equals(alias) ? admin : funcao(a, alias);
-            mvc.perform(post("/usuarios").header("Authorization", "Bearer " + tokenConfig)
+            mvc.perform(post("/usuarios").header("X-Tenant-Id", Long.toString(a)).with(delegado)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload("Fraude", proibidoEmail, "senha123", Set.of(elevada.getId()))))
                     .andExpect(status().isForbidden());
@@ -142,7 +148,7 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
         }
 
         mvc.perform(put("/usuarios/{id}", leitorAlvo.getId())
-                .header("Authorization", "Bearer " + tokenConfig)
+                .header("X-Tenant-Id", Long.toString(a)).with(delegado)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload("Promovido", leitorAlvo.getEmail(), null, Set.of(admin.getId()))))
                 .andExpect(status().isForbidden());
@@ -156,12 +162,12 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
         // Even with a harmless replacement role, a configurator cannot alter
         // an existing administrator or deactivate that administrator.
         mvc.perform(put("/usuarios/{id}", adminAlvo.getId())
-                .header("Authorization", "Bearer " + tokenConfig)
+                .header("X-Tenant-Id", Long.toString(a)).with(delegado)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload("Rebaixado", adminAlvo.getEmail(), null, Set.of(leitor.getId()))))
                 .andExpect(status().isForbidden());
         mvc.perform(delete("/usuarios/{id}", adminAlvo.getId())
-                .header("Authorization", "Bearer " + tokenConfig))
+                .header("X-Tenant-Id", Long.toString(a)).with(delegado))
                 .andExpect(status().isForbidden());
         assertThat(jdbc.queryForObject("select ativo from usuarios where id=?",
                 Boolean.class, adminAlvo.getId())).isTrue();
@@ -172,12 +178,12 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
 
         // A delegated configurator retains normal user management.
         mvc.perform(put("/usuarios/{id}", leitorAlvo.getId())
-                .header("Authorization", "Bearer " + tokenConfig)
+                .header("X-Tenant-Id", Long.toString(a)).with(delegado)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload("Editado", leitorAlvo.getEmail(), null, Set.of(leitor.getId()))))
                 .andExpect(status().isOk());
         String permitidoEmail = "permitido" + a + "@t.co";
-        mvc.perform(post("/usuarios").header("Authorization", "Bearer " + tokenConfig)
+        mvc.perform(post("/usuarios").header("X-Tenant-Id", Long.toString(a)).with(delegado)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload("Regular", permitidoEmail, "senha123", Set.of(leitor.getId()))))
                 .andExpect(status().isOk());
