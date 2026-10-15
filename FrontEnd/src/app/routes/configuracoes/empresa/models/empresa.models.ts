@@ -13,6 +13,7 @@ export interface Empresa {
   observacoes?: string;
   ativo?: boolean;
   logoPath?: string;
+  versao?: number;
 }
 
 // --- Endereço da Empresa ---
