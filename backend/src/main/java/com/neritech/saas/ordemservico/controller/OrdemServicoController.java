@@ -100,7 +100,7 @@ public class OrdemServicoController {
     }
 
     @PostMapping("/{id}/enviar-email")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EDITAR') or hasAuthority('GERAL_USUARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EDITAR')")
     @Operation(summary = "Enviar orçamento/OS por e-mail")
     public ResponseEntity<Void> enviarEmail(
             @PathVariable Long id,

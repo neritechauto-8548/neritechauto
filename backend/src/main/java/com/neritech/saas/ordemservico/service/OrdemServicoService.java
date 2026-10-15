@@ -7,6 +7,8 @@ import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.ordemservico.dto.*;
 import com.neritech.saas.ordemservico.mapper.*;
 import com.neritech.saas.ordemservico.repository.*;
+import com.neritech.saas.common.tenancy.TenantAccess;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,15 +42,18 @@ public class OrdemServicoService {
     private final com.neritech.saas.comunicacao.service.EmailSenderService emailSenderService;
 
     public OrdemServicoResponse create(OrdemServicoRequest request) {
+        Long empresaId = TenantAccess.require(request.empresaId());
+        validateRelations(request, empresaId);
         if (repository.existsByEmpresaIdAndNumeroOS(request.empresaId(), request.numeroOS())) {
             throw new IllegalArgumentException("Número de OS já existe para esta empresa");
         }
 
         OrdemServico entity = mapper.toEntity(request);
+        entity.setEmpresaId(empresaId);
 
         if (request.statusId() != null) {
-            entity.setStatus(statusOSRepository.findById(request.statusId())
-                    .orElseThrow(() -> new EntityNotFoundException("Status não encontrado")));
+            entity.setStatus(statusOSRepository.findByIdAndEmpresaId(request.statusId(), empresaId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Status não encontrado")));
         }
 
         OrdemServico saved = repository.save(entity);
@@ -59,7 +64,7 @@ public class OrdemServicoService {
         // 1. Criar OS
         OrdemServicoResponse osResponse = create(request.ordemServico());
         
-        OrdemServico entity = repository.findById(osResponse.id())
+        OrdemServico entity = repository.findByIdAndEmpresaId(osResponse.id(), TenantAccess.requireCurrent())
                 .orElseThrow(() -> new EntityNotFoundException("Ordem de Serviço não encontrada"));
 
         // 2. Adicionar itens
@@ -79,13 +84,13 @@ public class OrdemServicoService {
 
     @Transactional(readOnly = true)
     public OrdemServicoResponse findById(Long id) {
-        OrdemServico entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Ordem de Serviço não encontrada"));
+        OrdemServico entity = findOwned(id);
         return enrichResponse(mapper.toResponse(entity));
     }
 
     @Transactional(readOnly = true)
     public Page<OrdemServicoResponse> findByEmpresaId(Long empresaId, String tipoStr, String search, Pageable pageable) {
+        TenantAccess.require(empresaId);
         java.util.List<com.neritech.saas.ordemservico.domain.enums.TipoOS> tipos;
         if ("ORCAMENTO".equalsIgnoreCase(tipoStr)) {
             tipos = java.util.List.of(com.neritech.saas.ordemservico.domain.enums.TipoOS.ORCAMENTO);
@@ -109,32 +114,34 @@ public class OrdemServicoService {
 
     @Transactional(readOnly = true)
     public Page<OrdemServicoResponse> findByEmpresaIdAndStatusId(Long empresaId, Long statusId, Pageable pageable) {
+        TenantAccess.require(empresaId);
         return repository.findByEmpresaIdAndStatusId(empresaId, statusId, pageable)
                 .map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<OrdemServicoResponse> findByClienteId(Long clienteId, Pageable pageable) {
-        return repository.findByClienteId(clienteId, pageable)
+        return repository.findByClienteIdAndEmpresaId(clienteId, TenantAccess.requireCurrent(), pageable)
                 .map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public java.util.Optional<OrdemServicoResponse> findByCpfAndNumeroOS(String cpf, String numeroOS) {
-        return repository.findByCpfAndNumeroOS(cpf, numeroOS)
+        return repository.findByCpfAndNumeroOS(cpf, numeroOS, TenantAccess.requireCurrent())
                 .map(entity -> enrichResponse(mapper.toResponse(entity)));
     }
 
     public OrdemServicoResponse update(Long id, OrdemServicoRequest request) {
-        OrdemServico entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Ordem de Serviço não encontrada"));
+        OrdemServico entity = findOwned(id);
+        Long empresaId = TenantAccess.require(request.empresaId());
+        validateRelations(request, empresaId);
 
         Long oldStatusId = entity.getStatus() != null ? entity.getStatus().getId() : null;
         mapper.updateEntityFromRequest(request, entity);
 
         if (request.statusId() != null) {
-            com.neritech.saas.ordemservico.domain.StatusOS newStatus = statusOSRepository.findById(request.statusId())
-                    .orElseThrow(() -> new EntityNotFoundException("Status não encontrado"));
+            com.neritech.saas.ordemservico.domain.StatusOS newStatus = statusOSRepository.findByIdAndEmpresaId(request.statusId(), empresaId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Status não encontrado"));
             
             // Verifica se está finalizando agora
             if (newStatus.getFinalizaOS() && (oldStatusId == null || !oldStatusId.equals(newStatus.getId()))) {
@@ -255,13 +262,12 @@ public class OrdemServicoService {
     }
 
     public void enviarOrcamentoEmail(Long id, String emailDestino) {
-        OrdemServico os = repository.findById(id)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Ordem de Serviço não encontrada"));
+        OrdemServico os = findOwned(id);
 
         // Buscar dados do cliente
         com.neritech.saas.cliente.domain.Cliente cliente = null;
         if (os.getClienteId() != null) {
-            cliente = clienteRepository.findById(os.getClienteId()).orElse(null);
+            cliente = clienteRepository.findByIdScoped(os.getClienteId()).orElse(null);
         }
 
         // Se não foi passado um e-mail, tenta usar o do cliente
@@ -384,10 +390,25 @@ public class OrdemServicoService {
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Ordem de Serviço não encontrada");
+        repository.delete(findOwned(id));
+    }
+
+    private OrdemServico findOwned(Long id) {
+        return repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço não encontrada"));
+    }
+
+    private void validateRelations(OrdemServicoRequest request, Long empresaId) {
+        if (request.clienteId() != null && clienteRepository.findByIdScoped(request.clienteId()).isEmpty()) {
+            throw new ResourceNotFoundException("Cliente não encontrado");
         }
-        repository.deleteById(id);
+        if (request.veiculoId() != null) {
+            var veiculo = veiculoRepository.findByIdAndEmpresaId(request.veiculoId(), empresaId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Veículo não encontrado"));
+            if (request.clienteId() == null || !request.clienteId().equals(veiculo.getCliente().getId())) {
+                throw new ResourceNotFoundException("Veículo não encontrado");
+            }
+        }
     }
 
     /**

@@ -5,6 +5,8 @@ import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.ordemservico.dto.FotoOSResponse;
 import com.neritech.saas.ordemservico.repository.FotoOSRepository;
 import com.neritech.saas.ordemservico.repository.OrdemServicoRepository;
+import com.neritech.saas.common.tenancy.TenantAccess;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +29,7 @@ public class FotoOSService {
     }
 
     public FotoOSResponse upload(Long osId, MultipartFile file, String descricao, String baseUrl) {
-        OrdemServico os = osRepository.findById(osId).orElseThrow();
+        OrdemServico os = requireOS(osId);
         OSFotoStorageService.StorageInfo info = storage.store(osId, file);
         FotoOS entity = new FotoOS();
         entity.setEmpresaId(os.getEmpresaId());
@@ -45,22 +47,33 @@ public class FotoOSService {
 
     @Transactional(readOnly = true)
     public List<FotoOSResponse> list(Long osId) {
+        requireOS(osId);
         return repository.findByOrdemServicoIdOrderByIdAsc(osId).stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     public Resource download(Long id) {
-        FotoOS foto = repository.findById(id).orElseThrow();
+        FotoOS foto = requireFoto(id);
         return storage.load(foto.getArquivoPath());
     }
 
     @Transactional(readOnly = true)
     public String getContentType(Long id) {
-        FotoOS foto = repository.findById(id).orElseThrow();
+        FotoOS foto = requireFoto(id);
         return foto.getContentType() != null ? foto.getContentType() : "application/octet-stream";
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+        repository.delete(requireFoto(id));
+    }
+
+    private OrdemServico requireOS(Long id) {
+        return osRepository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço não encontrada"));
+    }
+
+    private FotoOS requireFoto(Long id) {
+        return repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Foto não encontrada"));
     }
 
     private FotoOSResponse toResponse(FotoOS f) {

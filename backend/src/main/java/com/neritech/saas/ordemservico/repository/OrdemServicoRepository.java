@@ -13,8 +13,8 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
 
     @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.tipoOS IN :tipos AND (" +
             "LOWER(o.numeroOS) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "o.clienteId IN (SELECT c.id FROM Cliente c WHERE LOWER(c.nomeCompleto) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
-            "o.veiculoId IN (SELECT v.id FROM Veiculo v WHERE LOWER(v.placa) LIKE LOWER(CONCAT('%', :search, '%')))" +
+            "o.clienteId IN (SELECT c.id FROM Cliente c WHERE c.empresaId = :empresaId AND LOWER(c.nomeCompleto) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
+            "o.veiculoId IN (SELECT v.id FROM Veiculo v WHERE v.empresaId = :empresaId AND LOWER(v.placa) LIKE LOWER(CONCAT('%', :search, '%')))" +
             ")")
     Page<OrdemServico> search(@org.springframework.data.repository.query.Param("empresaId") Long empresaId,
                               @org.springframework.data.repository.query.Param("tipos") java.util.List<TipoOS> tipos,
@@ -27,11 +27,13 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
                                                  Pageable pageable);
 
     Page<OrdemServico> findByClienteId(Long clienteId, Pageable pageable);
+    Page<OrdemServico> findByClienteIdAndEmpresaId(Long clienteId, Long empresaId, Pageable pageable);
     Page<OrdemServico> findByVeiculoId(Long veiculoId, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.numeroOS = :numeroOS AND o.clienteId IN (SELECT c.id FROM Cliente c WHERE c.cpf = :cpf)")
+    @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.numeroOS = :numeroOS AND o.clienteId IN (SELECT c.id FROM Cliente c WHERE c.empresaId = :empresaId AND c.cpf = :cpf)")
     java.util.Optional<OrdemServico> findByCpfAndNumeroOS(@org.springframework.data.repository.query.Param("cpf") String cpf,
-                                                           @org.springframework.data.repository.query.Param("numeroOS") String numeroOS);
+                                                           @org.springframework.data.repository.query.Param("numeroOS") String numeroOS,
+                                                           @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
 
     boolean existsByEmpresaIdAndNumeroOS(Long empresaId, String numeroOS);
     long countByEmpresaId(Long empresaId);

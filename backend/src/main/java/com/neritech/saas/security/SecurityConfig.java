@@ -40,6 +40,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/public/ordem-servico/**", "/api/public/ordem-servico/**").authenticated()
                 .requestMatchers(
                     "/auth/login",
                     "/auth/refresh",
@@ -56,7 +57,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     HttpMethod.GET,
-                    "/v1/ordens-servico/fotos/*/download",
                     "/v1/empresas/*/logo",
                     "/v1/rh/funcionarios/*/foto",
                     "/v1/produtos/*/foto"
