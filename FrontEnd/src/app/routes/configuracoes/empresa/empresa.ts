@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -65,7 +65,7 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
   ],
   providers: [MessageService]
 })
-export class EmpresaConfig implements OnInit {
+export class EmpresaConfig implements OnInit, OnDestroy {
   private service             = inject(EmpresaService);
   private toast               = inject(MessageService);
   private storage             = inject(LocalStorageService);
@@ -126,6 +126,8 @@ export class EmpresaConfig implements OnInit {
   emailTeste    = '';
   testingEmail  = false;
   uploadingLogo = false;
+  logoPreviewUrl = '';
+  private logoObjectUrl: string | null = null;
 
   configWhatsapp: ConfiguracaoWhatsapp = {
     empresaId: this.empresaId, numeroWhatsapp: '',
@@ -218,6 +220,7 @@ export class EmpresaConfig implements OnInit {
           const clean = (empresa.cnpj || '').replace(/[^a-zA-Z0-9]/g, '');
           this.tipoPessoa = clean.length > 11 ? 'Jurídica' : 'Física';
           this.empresa = empresa;
+          this.carregarLogo();
         }
         if (this.pick(enderecos))   this.endereco      = { ...this.endereco,      ...this.pick<EnderecoEmpresa>(enderecos) };
         if (this.pick(configEmp))   this.configEmpresa = { ...this.configEmpresa,  ...this.pick<ConfiguracaoEmpresa>(configEmp) };
@@ -734,10 +737,30 @@ export class EmpresaConfig implements OnInit {
   }
 
   getLogoUrl(): string {
-    if (this.empresa.logoPath) {
-      return `/api/v1/empresas/${this.empresaId}/logo?tenantId=${this.empresaId}&t=${new Date().getTime()}`;
-    }
-    return '';
+    return this.logoPreviewUrl;
+  }
+
+  private carregarLogo(): void {
+    if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
+    this.logoObjectUrl = null;
+    this.logoPreviewUrl = '';
+    if (!this.empresa.logoPath || !this.empresaId) return;
+    this.service.getLogo(this.empresaId).subscribe({
+      next: blob => {
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(blob.type)) return;
+        if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
+        this.logoObjectUrl = URL.createObjectURL(blob);
+        this.logoPreviewUrl = this.logoObjectUrl;
+      },
+      error: () => {
+        // Cadastro permanece utilizável se a imagem estiver indisponível.
+        this.logoPreviewUrl = '';
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
   }
 
   onLogoSelected(event: any): void {
@@ -763,6 +786,7 @@ export class EmpresaConfig implements OnInit {
       .subscribe({
         next: (res) => {
           this.empresa.logoPath = res.logoPath;
+          this.carregarLogo();
           this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Logomarca atualizada com sucesso!' });
         },
         error: (err) => {
@@ -779,17 +803,22 @@ export class EmpresaConfig implements OnInit {
       cancelText: 'Não, manter',
       type: 'danger', icon: 'danger'
     }).subscribe(ok => {
-      if (ok) {
-        this.empresa.logoPath = '';
-        this.service.updateEmpresa(this.empresaId, this.empresa).subscribe({
+      if (!ok || this.uploadingLogo) return;
+      this.uploadingLogo = true;
+      this.service.removeLogo(this.empresaId)
+        .pipe(finalize(() => this.uploadingLogo = false))
+        .subscribe({
           next: () => {
+            this.empresa.logoPath = '';
+            if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
+            this.logoObjectUrl = null;
+            this.logoPreviewUrl = '';
             this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Logomarca removida com sucesso!' });
           },
-          error: () => {
-            this.toast.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao remover logomarca.' });
-          }
+          error: () => this.toast.add({
+            severity: 'error', summary: 'Erro', detail: 'Não foi possível remover a logomarca.'
+          })
         });
-      }
     });
   }
 }
