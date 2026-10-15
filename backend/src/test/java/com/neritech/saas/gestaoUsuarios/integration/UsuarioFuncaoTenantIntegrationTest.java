@@ -8,6 +8,7 @@ import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -17,6 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -31,6 +35,8 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
     @Autowired FuncaoRepository funcoes;
     @Autowired UsuarioRepository usuarios;
     @Autowired PasswordEncoder encoder;
+
+    private final List<Long> fixtureUsers = new ArrayList<>();
 
     @Test
     void jwtARejeitaFuncaoAdminDeBEFazRollbackSemBloquearFuncaoLocal() throws Exception {
@@ -92,11 +98,26 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
                 .content(payload("Novo local", novoEmail, "senha123", Set.of(leitorA.getId()))))
                 .andExpect(status().isOk());
         Long novoId = jdbc.queryForObject("select id from usuarios where email=?", Long.class, novoEmail);
+        fixtureUsers.add(novoId);
         assertThat(jdbc.queryForObject("select empresa_id from usuarios where id=?", Long.class, novoId)).isEqualTo(a);
         assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where usuario_id=? and funcao_id=?",
                 Integer.class, novoId, leitorA.getId())).isEqualTo(1);
         assertThat(jdbc.queryForObject("select count(*) from usuarios_funcoes where funcao_id=? and usuario_id in (?, ?)",
                 Integer.class, adminB.getId(), alvoA.getId(), novoId)).isZero();
+    }
+
+    @AfterEach
+    void removeOnlyOwnFixtures() {
+        if (fixtureUsers.isEmpty()) return;
+        // Shared Testcontainers database: do not leave session/access-log FKs
+        // that prevent AuthenticationFlowIntegrationTest from cleaning users.
+        String placeholders = String.join(",", Collections.nCopies(fixtureUsers.size(), "?"));
+        Object[] ids = fixtureUsers.toArray();
+        jdbc.update("delete from logs_acesso where usuario_id in (" + placeholders + ")", ids);
+        jdbc.update("delete from sessoes_usuario where usuario_id in (" + placeholders + ")", ids);
+        jdbc.update("delete from perfis_usuario where usuario_id in (" + placeholders + ")", ids);
+        jdbc.update("delete from usuarios_funcoes where usuario_id in (" + placeholders + ")", ids);
+        jdbc.update("delete from usuarios where id in (" + placeholders + ")", ids);
     }
 
     private long empresa(String prefix) {
@@ -111,9 +132,11 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Usuario usuario(long empresaId, String email, Funcao role) {
-        return usuarios.save(TestDataBuilder.umUsuario().comEmpresaId(empresaId)
+        Usuario novo = usuarios.save(TestDataBuilder.umUsuario().comEmpresaId(empresaId)
                 .comEmail(email).comSenha(encoder.encode("senha123"))
                 .comFuncao(role).build());
+        fixtureUsers.add(novo.getId());
+        return novo;
     }
 
     private String login(long empresaId, String email, Funcao role) throws Exception {
