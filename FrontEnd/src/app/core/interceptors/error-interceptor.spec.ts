@@ -102,6 +102,29 @@ describe('ErrorInterceptor', () => {
     }));
   });
 
+  it('retains the real Spring validation error map for inline form feedback', () => {
+    const add = spyOn(messages, 'add');
+    let response: any;
+    let acceptedAsSuccess = false;
+    http.post('/api/clientes', { nome: '' }).subscribe({
+      next: () => acceptedAsSuccess = true,
+      error: value => response = value,
+    });
+    requests.expectOne('/api/clientes').flush({
+      type: 'VALIDATION',
+      message: 'Erro de validação nos campos',
+      errors: { nome: 'Campo obrigatório', cpfCnpj: 'Documento inválido' },
+      timestamp: '2026-10-15T14:00:00',
+    }, { status: 422, statusText: 'Unprocessable Entity' });
+    expect(acceptedAsSuccess).toBeFalse();
+    expect(response.status).toBe(422);
+    expect(response.error.errors.nome).toBe('Campo obrigatório');
+    expect(response.error.errors.cpfCnpj).toBe('Documento inválido');
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Verifique os campos',
+    }));
+  });
+
   it('differentiates 409 conflict without exposing backend diagnostics', () => {
     const add = spyOn(messages, 'add');
     fail('/api/clientes/123', 409, { message: 'duplicate key internal database failure' });
