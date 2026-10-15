@@ -248,7 +248,7 @@ public class FuncionarioService {
     public FuncionarioResponse findByUsuarioId(Long empresaId, Long usuarioId) {
         return repository.findByEmpresaIdAndUsuarioId(TenantAccess.require(empresaId), usuarioId)
                 .map(mapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Funcionário não vinculado a este usuário"));
+                .orElseThrow(() -> new ResourceNotFoundException("Funcionário não vinculado a este usuário"));
     }
 
     public void validateFotoUpload(Long id) {
