@@ -45,7 +45,7 @@ import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
             </div>
             <h3 class="text-base font-semibold text-slate-900">{{ config?.title }}</h3>
           </div>
-          <p class="text-sm text-slate-600 leading-relaxed" {{ config?.message }}></p>
+          <p class="text-sm text-slate-600 leading-relaxed">{{ config?.message }}</p>
         </div>
 
         <!-- Actions -->
