@@ -20,6 +20,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${spring.mail.host:}")
+    private String smtpHost;
+
     @Value("${frontend.url:http://localhost:4200}")
     private String frontendUrl;
 
@@ -43,7 +46,7 @@ public class EmailService {
         }
     }
 
-    @Async
+    /** Synchronous delivery for recovery so outages cannot be silently swallowed. */
     public void sendPasswordResetLink(String to, String name, String token) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -57,10 +60,16 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("Password reset email sent successfully to: {}", to);
+            log.info("Password reset email accepted by SMTP transport");
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {}", to, e);
+            // Never include the raw reset link/token in HTTP responses or logs.
+            throw new org.springframework.mail.MailSendException("Password reset delivery unavailable", e);
         }
+    }
+
+    public boolean isPasswordResetConfigured() {
+        return smtpHost != null && !smtpHost.isBlank()
+                && fromEmail != null && !fromEmail.isBlank();
     }
 
     private String buildTrialEmailTemplate(String name, String email, String password) {

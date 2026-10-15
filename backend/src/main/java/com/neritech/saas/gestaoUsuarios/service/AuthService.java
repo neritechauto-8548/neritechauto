@@ -16,6 +16,10 @@ import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.domain.TokenRecuperacaoSenha;
 import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
 import com.neritech.saas.common.mail.EmailService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import java.util.Locale;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -47,6 +51,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -56,6 +61,7 @@ public class AuthService {
     private final LogAcessoRepository logAcessoRepository;
     private final TentativaLoginRepository tentativaLoginRepository;
     private final LoginFailureRecorder loginFailureRecorder;
+    private final RecoveryRequestThrottle recoveryRequestThrottle;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TokenRecuperacaoSenhaRepository tokenRepository;
@@ -248,35 +254,58 @@ public class AuthService {
     }
 
     @Transactional
-    public void recoverPassword(String email) {
-        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
-        
-        // Se o usuário não existir, por segurança, não revelamos isso
-        if (usuario != null) {
-            // Definir o contexto do tenant para permitir gravação de logs e tokens
-            TenantContext.setCurrentTenant(usuario.getEmpresaId());
-
-            // Limite por conta; a resposta HTTP permanece genérica para evitar enumeração.
-            if (tokenRepository.countByUsuarioIdAndDataCriacaoAfter(usuario.getId(), LocalDateTime.now().minusMinutes(15)) >= 3) {
-                return;
-            }
-            byte[] random = new byte[32];
-            SECURE_RANDOM.nextBytes(random);
-            String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
-            
-            TokenRecuperacaoSenha tokenEntity = TokenRecuperacaoSenha.builder()
-                    .token(hashToken(token))
-                    .usuario(usuario)
-                    .dataExpiracao(LocalDateTime.now().plusMinutes(30))
-                    .build();
-            
-            tokenRepository.saveAndFlush(tokenEntity);
-            
-            // Enviar e-mail assíncrono
-            emailService.sendPasswordResetLink(usuario.getEmail(), usuario.getNomeCompleto(), token);
-            
-            logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RECOVERY_REQUEST, "Solicitação de recuperação de senha iniciada", null, null);
+    public void recoverPassword(String email, String sourceIp) {
+        // Fail uniformly for all addresses if SMTP is not configured.
+        // A missing provider must never look like a successfully sent message.
+        if (!emailService.isPasswordResetConfigured()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Recuperação de acesso temporariamente indisponível");
         }
+
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        // Persist requests for known AND unknown addresses outside this transaction.
+        // 429 is scoped to the request IP, never to the existence of an e-mail.
+        if (!recoveryRequestThrottle.checkAndRecord(normalizedEmail, sourceIp)) {
+            return;
+        }
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
+        if (usuario == null) {
+            return; // indistinguishable response; do not reveal registered accounts
+        }
+
+        TenantContext.setCurrentTenant(usuario.getEmpresaId());
+        // Keep the legacy per-user safety gate as additional defense.
+        if (tokenRepository.countByUsuarioIdAndDataCriacaoAfter(
+                usuario.getId(), LocalDateTime.now().minusMinutes(15)) >= 3) {
+            return;
+        }
+
+        // Only one outstanding recovery URL per user. Never persist the raw token.
+        for (TokenRecuperacaoSenha previous : tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())) {
+            previous.setUsado(true);
+            tokenRepository.save(previous);
+        }
+
+        byte[] random = new byte[32];
+        SECURE_RANDOM.nextBytes(random);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
+        tokenRepository.saveAndFlush(TokenRecuperacaoSenha.builder()
+                .token(hashToken(token))
+                .usuario(usuario)
+                .dataExpiracao(LocalDateTime.now().plusMinutes(30))
+                .build());
+
+        // SMTP send is synchronous so operational failures are observable.
+        // A transient address-specific SMTP failure cannot be exposed as HTTP 503
+        // without leaking whether the account exists; log it privately.
+        try {
+            emailService.sendPasswordResetLink(usuario.getEmail(), usuario.getNomeCompleto(), token);
+        } catch (org.springframework.mail.MailException ex) {
+            log.warn("Falha na entrega de recuperação de acesso: {}", ex.getClass().getSimpleName());
+        }
+        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RECOVERY_REQUEST,
+                "Solicitação de recuperação de acesso", sourceIp, null);
     }
 
     @Transactional

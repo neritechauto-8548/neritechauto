@@ -15,4 +15,6 @@ public interface TokenRecuperacaoSenhaRepository extends JpaRepository<TokenRecu
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TokenRecuperacaoSenha> findWithLockByToken(String token);
     long countByUsuarioIdAndDataCriacaoAfter(Long usuarioId, LocalDateTime dataCriacao);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    java.util.List<TokenRecuperacaoSenha> findByUsuarioIdAndUsadoFalse(Long usuarioId);
 }

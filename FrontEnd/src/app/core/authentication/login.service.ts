@@ -49,7 +49,7 @@ export class LoginService {
   }
 
   recoverPassword(email: string) {
-    return this.http.post<any>('/auth/recover-password', { email }, this.authFeedback);
+    return this.http.post<void>('/auth/recover-password', { email: email.trim() }, this.authFeedback);
   }
 
   resetPassword(params: any) {

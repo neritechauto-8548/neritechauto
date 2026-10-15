@@ -67,9 +67,11 @@ public class AuthController {
 
     @PostMapping("/recover-password")
     @Operation(summary = "Solicitar recuperação de senha", description = "Envia um link de recuperação por e-mail")
-    public ResponseEntity<Void> recoverPassword(@RequestBody @Valid RecoverPasswordRequest request) {
+    public ResponseEntity<Void> recoverPassword(
+            @RequestBody @Valid RecoverPasswordRequest request,
+            HttpServletRequest servletRequest) {
         try {
-            authService.recoverPassword(request.getEmail());
+            authService.recoverPassword(request.getEmail(), servletRequest.getRemoteAddr());
             return ResponseEntity.ok().build();
         } finally {
             TenantContext.clear();
