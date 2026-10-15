@@ -51,6 +51,8 @@ jobs:
         run: node --test scripts/navigation-contract.test.cjs scripts/ui-tokens.test.cjs
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - name: QA navegador BASE-04 (320/768/1440, foco e reflow 200%)
+        run: node --test scripts/base04-browser-smoke.cjs
       - name: Testes de regressão do Application Shell
         run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/theme/header/header.spec.ts --include=src/app/theme/sidemenu/sidemenu.spec.ts --include=src/app/theme/sidemenu/preview-menu.spec.ts --include=src/app/theme/widgets/notification-button.spec.ts --include=src/app/core/authentication/auth-guard.spec.ts --include=src/app/core/authentication/permission-guard.spec.ts --include=src/app/core/authentication/token.service.spec.ts --include=src/app/core/bootstrap/startup-permissions.spec.ts --include=src/app/shared/components/data-view-state/data-view-state.spec.ts --include=src/app/shared/components/error-code/error-code.spec.ts --include=src/app/shared/components/page-header/page-header.spec.ts --include=src/app/shared/components/confirmation-dialog/confirmation-dialog.component.spec.ts --include=src/app/core/authentication/auth.service.spec.ts --include=src/app/core/interceptors/token-interceptor.spec.ts --include=src/app/core/interceptors/tenant-interceptor.spec.ts --include=src/app/core/interceptors/error-interceptor.spec.ts --include=src/app/core/interceptors/api-interceptor.spec.ts --include=src/app/routes/orcamento/orcamento.service.spec.ts
       - name: Publicar relatórios de testes Angular
