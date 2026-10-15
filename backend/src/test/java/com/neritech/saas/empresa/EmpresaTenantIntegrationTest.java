@@ -47,13 +47,13 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
 
         mvc.perform(get("/v1/empresas").header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].id").value(empresaA));
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(empresaA));
         String cnpjB = jdbc.queryForObject("select cnpj from empresa where id=?", String.class, empresaB);
         mvc.perform(get("/v1/empresas").param("cnpj", cnpjB)
                 .header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(0));
+                .andExpect(jsonPath("$.data.totalElements").value(0));
 
         String payload = json.writeValueAsString(Map.of(
                 "nomeFantasia", "ALTERACAO-CRUZADA",
