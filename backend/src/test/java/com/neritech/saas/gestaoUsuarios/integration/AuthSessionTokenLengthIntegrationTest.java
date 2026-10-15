@@ -59,7 +59,7 @@ class AuthSessionTokenLengthIntegrationTest extends AbstractIntegrationTest {
             jdbc.update("insert into funcoes_permissoes (funcao_id, permissao_id) values (?, ?)",
                     adminA.getId(), permissao.getId());
         }
-        String emailA = "a" + a + "_" + "x".repeat(145) + "@t.co";
+        String emailA = "a" + a + "_" + "x".repeat(45) + "@" + "d".repeat(55) + "." + "e".repeat(50) + ".com";
         String emailB = "b" + b + "@t.co";
         Usuario userA = usuario(a, emailA, adminA);
         Usuario userB = usuario(b, emailB, adminB);
