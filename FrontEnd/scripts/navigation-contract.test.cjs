@@ -62,11 +62,12 @@ test('guards cobrem orçamento, calendário, caixa e rotas administrativas', () 
   const agenda = read('src/app/routes/agendamento/agendamento.routes.ts');
   const admin = read('src/app/routes/configuracoes/configuracoes.routes.ts');
   assert.match(app, /canActivateChild: \[authGuard, subscriptionGuard, permissionGuard\]/);
-  assert.match(app, /requiredPermissions: 'GERAL_ORCAMENTO'/);
+  assert.match(app, /path: 'orcamento',\s*canActivate: \[permissionGuard\],\s*data: \{ requiredPermissions: 'GERAL_ORCAMENTO' \}/);
   assert.match(app, /\{ path: '\*\*', redirectTo: '404' \}/);
   assert.match(finance, /requiredPermissions: 'FIN_VIS_CAIXA'/);
   assert.match(agenda, /requiredPermissions: 'GERAL_AGENDAMENTO_VISUALIZAR'/);
   assert.equal((admin.match(/requiredPermissions: 'GERAL_CONFIG_SISTEMA'/g) || []).length, 10);
+  assert.equal((admin.match(/canActivate: \[permissionGuard\]/g) || []).length, 10);
 });
 
 test('larguras globais do shell usam 264/72 px', () => {
