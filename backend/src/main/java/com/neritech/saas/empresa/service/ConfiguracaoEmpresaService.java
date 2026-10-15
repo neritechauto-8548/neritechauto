@@ -1,6 +1,7 @@
 package com.neritech.saas.empresa.service;
 
 import com.neritech.saas.empresa.domain.ConfiguracaoEmpresa;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.empresa.dto.ConfiguracaoEmpresaRequest;
 import com.neritech.saas.empresa.dto.ConfiguracaoEmpresaResponse;
 import com.neritech.saas.empresa.mapper.ConfiguracaoEmpresaMapper;
@@ -30,6 +31,7 @@ public class ConfiguracaoEmpresaService {
     }
 
     public ConfiguracaoEmpresaResponse create(ConfiguracaoEmpresaRequest request) {
+        TenantAccess.require(request.empresaId());
         // Validate empresa exists
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(
@@ -51,11 +53,13 @@ public class ConfiguracaoEmpresaService {
     public ConfiguracaoEmpresaResponse findById(Long id) {
         ConfiguracaoEmpresa configuracao = configuracaoEmpresaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o nÃ£o encontrada com id: " + id));
+        TenantAccess.require(configuracao.getEmpresa().getId());
         return configuracaoEmpresaMapper.toResponse(configuracao);
     }
 
     @Transactional(readOnly = true)
     public ConfiguracaoEmpresaResponse findByEmpresaId(Long empresaId) {
+        TenantAccess.require(empresaId);
         return configuracaoEmpresaRepository.findByEmpresaId(empresaId)
                 .map(configuracaoEmpresaMapper::toResponse)
                 .orElseGet(() -> new ConfiguracaoEmpresaResponse(
@@ -64,14 +68,19 @@ public class ConfiguracaoEmpresaService {
 
     @Transactional(readOnly = true)
     public Page<ConfiguracaoEmpresaResponse> findAll(Pageable pageable) {
-        return configuracaoEmpresaRepository.findAll(pageable)
+        Long empresaId = TenantAccess.requireCurrent();
+        var own = configuracaoEmpresaRepository.findByEmpresaId(empresaId)
                 .map(configuracaoEmpresaMapper::toResponse);
+        var content = pageable.getOffset() == 0 ? own.stream().toList() : java.util.List.<ConfiguracaoEmpresaResponse>of();
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, own.isPresent() ? 1 : 0);
     }
 
     public ConfiguracaoEmpresaResponse update(Long id, ConfiguracaoEmpresaRequest request) {
+        TenantAccess.require(request.empresaId());
         ConfiguracaoEmpresa configuracao = configuracaoEmpresaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o nÃ£o encontrada com id: " + id));
 
+        TenantAccess.require(configuracao.getEmpresa().getId());
         // Validate empresa exists if changing
         if (!configuracao.getEmpresa().getId().equals(request.empresaId())) {
             Empresa empresa = empresaRepository.findById(request.empresaId())
@@ -92,9 +101,9 @@ public class ConfiguracaoEmpresaService {
     }
 
     public void delete(Long id) {
-        if (!configuracaoEmpresaRepository.existsById(id)) {
-            throw new EntityNotFoundException("ConfiguraÃ§Ã£o nÃ£o encontrada com id: " + id);
-        }
-        configuracaoEmpresaRepository.deleteById(id);
+        ConfiguracaoEmpresa config = configuracaoEmpresaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Configuração da empresa não encontrada"));
+        TenantAccess.require(config.getEmpresa().getId());
+        configuracaoEmpresaRepository.delete(config);
     }
 }
