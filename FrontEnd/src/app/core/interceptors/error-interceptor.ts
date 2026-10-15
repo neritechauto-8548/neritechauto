@@ -69,10 +69,17 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
       detail = 'O recurso solicitado não foi encontrado.';
     } else if (error.status >= 500) {
       detail = 'O servidor não conseguiu concluir a operação. Tente novamente mais tarde.';
-    } else if (error.status === STATUS.UNPROCESSABLE_ENTITY || error.status === STATUS.BAD_REQUEST || error.status === STATUS.CONFLICT) {
-      const body = error.error;
-      detail = typeof body?.message === 'string' && body.message.trim()
-        ? body.message : 'Confira os dados informados e tente novamente.';
+    } else if (error.status === STATUS.UNPROCESSABLE_ENTITY) {
+      // O corpo original permanece no HttpErrorResponse para que os formulários
+      // associem erros 422 aos campos; o toast nunca revela detalhes internos.
+      summary = 'Verifique os campos';
+      detail = 'Existem dados inválidos. Corrija os campos indicados e tente novamente.';
+    } else if (error.status === STATUS.CONFLICT) {
+      summary = 'Alteração em conflito';
+      detail = 'O registro pode ter sido alterado por outra pessoa. Atualize os dados antes de tentar novamente.';
+    } else if (error.status === STATUS.BAD_REQUEST) {
+      summary = 'Solicitação inválida';
+      detail = 'Confira os dados da solicitação e tente novamente.';
     } else {
       detail = 'Tente novamente. Se o problema persistir, contate o suporte.';
     }
