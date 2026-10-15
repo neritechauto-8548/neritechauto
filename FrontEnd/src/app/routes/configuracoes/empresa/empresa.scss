@@ -306,3 +306,57 @@
   margin-top: 8px;
   line-height: 1.5;
 }
+
+
+/* ADM-001 — painel de preferências e histórico, reutilizando tokens semânticos. */
+.nt-preferences, .nt-history {
+  padding: 20px;
+  border: 1px solid var(--nt-border, #e2e8f0);
+  background: var(--nt-surface, #fff);
+  color: var(--nt-text, #0f172a);
+  border-radius: var(--nt-radius-md, 8px);
+  min-width: 0;
+}
+.nt-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  h2 { margin: 0; font-size: 17px; font-weight: 650; }
+  label { font-weight: 600; }
+  select { min-height: 44px; padding: 8px 12px; border: 1px solid var(--nt-border, #cbd5e1); border-radius: 8px;
+    color: inherit; background: var(--nt-surface, #fff); }
+  p { color: var(--nt-text-secondary, #475569); margin: 0; }
+}
+.nt-history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  h2 { margin: 0; font-size: 18px; font-weight: 650; }
+  p { margin: 0; }
+  &__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  &__header p { color: var(--nt-text-secondary, #475569); margin-top: 6px; }
+  &__controls { display: flex; flex-direction: column; gap: 5px; font-weight: 500; }
+  &__controls select, &__button {
+    min-height: 44px; padding: 7px 12px; border: 1px solid var(--nt-border, #cbd5e1);
+    border-radius: 8px; background: var(--nt-surface, #fff); color: inherit;
+  }
+  &__button:disabled { opacity: .5; cursor: not-allowed; }
+  &__button:focus-visible, select:focus-visible, &__table-wrap:focus-visible {
+    outline: 3px solid var(--nt-focus, #2563eb); outline-offset: 2px;
+  }
+  &__table-wrap { width: 100%; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 670px; }
+  caption { text-align: left; font-weight: 600; padding: 0 0 10px; }
+  th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--nt-border, #e2e8f0); overflow-wrap: anywhere; }
+  th { font-weight: 600; }
+  &__pagination { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  &__pagination span { margin-right: auto; color: var(--nt-text-secondary, #475569); }
+}
+@media (max-width: 768px) {
+  .nt-navbar { flex-wrap: wrap; padding: 0 12px; }
+  .nt-navbar ::ng-deep .p-tablist { overflow-x: auto; max-width: calc(100vw - 24px); }
+  .nt-empresa .nt-row { grid-template-columns: repeat(6, 1fr); }
+  .nt-empresa .nt-row > [class*="nt-c"] { grid-column: span 6; }
+  .nt-history, .nt-preferences { padding: 14px; }
+}
