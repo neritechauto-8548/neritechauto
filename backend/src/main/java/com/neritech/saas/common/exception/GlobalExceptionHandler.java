@@ -67,7 +67,12 @@ public class GlobalExceptionHandler {
         return buildErrorResponse("VALIDATION", "Payload inválido ou malformado", null, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({DataIntegrityViolationException.class, SQLIntegrityConstraintViolationException.class, ConstraintViolationException.class})
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        return buildErrorResponse("VALIDATION", "Erro de validação nos dados enviados", null, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler({DataIntegrityViolationException.class, SQLIntegrityConstraintViolationException.class})
     public ResponseEntity<ApiErrorResponse> handleIntegrity(Exception ex) {
         String raw = extractMessage(ex);
         String userMessage = explainIntegrityMessage(raw);
@@ -153,8 +158,7 @@ public class GlobalExceptionHandler {
     }
 
     private boolean isIntegrityViolation(Throwable t) {
-        return t instanceof ConstraintViolationException || 
-               t instanceof SQLIntegrityConstraintViolationException || 
+        return t instanceof SQLIntegrityConstraintViolationException || 
                t instanceof DataIntegrityViolationException;
     }
 

@@ -32,6 +32,16 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void beanValidationReturns422InsteadOfConflictAndHidesSensitiveInput() {
+        jakarta.validation.ConstraintViolationException invalid =
+            new jakarta.validation.ConstraintViolationException("invalid field " + SENSITIVE, java.util.Collections.emptySet());
+        ResponseEntity<ApiErrorResponse> response = handler.handleConstraintViolation(invalid);
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        assertEquals("VALIDATION", response.getBody().type());
+        assertFalse(response.getBody().toString().contains(SENSITIVE));
+    }
+
+    @Test
     void invalidPayloadNeverLeaksParserDetails() {
         ResponseEntity<ApiErrorResponse> response =
             handler.handleBadPayload(new HttpMessageNotReadableException("invalid JSON: " + SENSITIVE));
