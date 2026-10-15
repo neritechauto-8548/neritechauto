@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { EMPTY, catchError, filter, map, switchMap, take, timeout, throwError } from 'rxjs';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -33,6 +34,7 @@ export class Login {
 
   isSubmitting = false;
   showPassword = false;
+  loginError = '';
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -41,7 +43,7 @@ export class Login {
   loginForm = this.fb.nonNullable.group({
     username: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
-    rememberMe: [true],
+    rememberMe: [false],
   });
 
   get username() {
@@ -58,19 +60,16 @@ export class Login {
 
   constructor() {
     const remembered = this.storage.get('loginDefaults') as { username?: string };
-    if (remembered?.username) this.loginForm.patchValue({ username: remembered.username });
+    if (remembered?.username) this.loginForm.patchValue({ username: remembered.username, rememberMe: true });
   }
 
   login() {
     if (this.isSubmitting) return;
-
-    if (this.username.hasError('remote')) {
-      this.username.setErrors(null);
-      this.username.updateValueAndValidity({ emitEvent: false });
-    }
-    if (this.password.hasError('remote')) {
-      this.password.setErrors(null);
-      this.password.updateValueAndValidity({ emitEvent: false });
+    this.loginError = '';
+    const email = this.username.value.trim();
+    this.username.setValue(email, { emitEvent: false });
+    for (const control of [this.username, this.password]) {
+      if (control.hasError('remote')) control.updateValueAndValidity({ emitEvent: false });
     }
 
     if (this.loginForm.invalid) {
@@ -79,69 +78,65 @@ export class Login {
     }
 
     this.isSubmitting = true;
-
-    this.auth
-      .login(this.username.value, this.password.value, this.rememberMe.value)
-      .pipe(
-        finalize(() => this.isSubmitting = false)
-      )
-      .subscribe({
-        next: () => {
-          if (this.rememberMe.value) {
-            this.storage.set('loginDefaults', { username: this.username.value });
-          } else {
-            this.storage.remove('loginDefaults');
-          }
-
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Login realizado com sucesso!',
-          });
-
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-          const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//') && !returnUrl.startsWith('/auth/')
-            ? returnUrl : '/home';
-          this.router.navigateByUrl(destination);
-        },
-        error: (errorRes: HttpErrorResponse) => {
-          if (errorRes.status === 401) {
-            const form = this.loginForm;
-            const message = 'E-mail ou senha inválidos.';
-            form.get('username')?.setErrors({ remote: message });
-            form.get('password')?.setErrors({ remote: message });
-          } else if (errorRes.status === 422) {
-            const form = this.loginForm;
-            const errors = errorRes.error?.errors;
-            if (Array.isArray(errors)) {
-              errors.forEach((err: string) => {
-                const parts = String(err).split(':');
-                const field = parts[0]?.trim();
-                const message = parts.slice(1).join(':').trim() || err;
-                const controlKey = field === 'email' ? 'username' : field === 'senha' ? 'password' : undefined;
-                if (controlKey && form.get(controlKey)) {
-                  form.get(controlKey)?.setErrors({ remote: message });
-                } else {
-                  form.get('username')?.setErrors({ remote: message });
-                }
-              });
-            } else if (errors && typeof errors === 'object') {
-              Object.keys(errors).forEach(key => {
-                const controlKey = key === 'email' ? 'username' : key;
-                const msg = Array.isArray(errors[key]) ? errors[key][0] : errors[key];
-                form.get(controlKey)?.setErrors({ remote: msg });
-              });
+    this.auth.login(email, this.password.value, this.rememberMe.value).pipe(
+      switchMap(authenticated => {
+        if (!authenticated) {
+          return throwError(() => new HttpErrorResponse({
+            status: 502, statusText: 'Resposta de autenticação inválida',
+          }));
+        }
+        // The JWT alone is not authorization: require a real /usuarios/me
+        // response with an active tenant before entering an authenticated page.
+        return this.auth.user().pipe(
+          filter(profile => !!profile && !!profile.id && !!(profile as any).empresaId),
+          take(1),
+          timeout(10000),
+          map(() => true)
+        );
+      }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          const message = 'E-mail ou senha inválidos.';
+          this.username.setErrors({ remote: message });
+          this.password.setErrors({ remote: message });
+          this.loginError = message;
+        } else if (error.status === 429) {
+          this.loginError = 'Muitas tentativas de acesso. Aguarde 15 minutos antes de tentar novamente.';
+        } else if (error.status === 403) {
+          this.loginError = 'Acesso não permitido. Entre em contato com o administrador da oficina.';
+        } else if (error.status === 422) {
+          const errors = error.error?.errors;
+          if (errors && typeof errors === 'object' && !Array.isArray(errors)) {
+            for (const [field, detail] of Object.entries(errors)) {
+              const key = field === 'email' ? 'username' : field === 'senha' ? 'password' : field;
+              const control = this.loginForm.get(key);
+              if (control) control.setErrors({ remote: String(detail) });
             }
-          } else {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erro de Login',
-              detail: (errorRes.status === 0 || errorRes.status >= 500)
-                ? 'Não foi possível conectar ao servidor. Tente novamente em instantes.'
-                : 'Não foi possível entrar. Verifique seus dados e tente novamente.',
-            });
           }
-        },
-      });
+          this.loginError = 'Confira os dados informados e tente novamente.';
+        } else if (error.status === 0) {
+          this.loginError = 'Sem conexão com o servidor. Verifique sua rede e tente novamente.';
+        } else if (error.status === 409) {
+          this.loginError = 'Não foi possível iniciar a sessão. Atualize a página e tente novamente.';
+        } else {
+          this.loginError = 'Não foi possível validar sua sessão. Tente novamente em instantes.';
+        }
+        return EMPTY;
+      }),
+      finalize(() => this.isSubmitting = false)
+    ).subscribe(() => {
+      // Never retain the password after successful authentication.
+      this.password.setValue('', { emitEvent: false });
+      if (this.rememberMe.value) {
+        this.storage.set('loginDefaults', { username: email });
+      } else {
+        this.storage.remove('loginDefaults');
+      }
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+      const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//') &&
+        !returnUrl.startsWith('/auth/') && !returnUrl.includes('\\')
+          ? returnUrl : '/home';
+      this.router.navigateByUrl(destination);
+    });
   }
 }
