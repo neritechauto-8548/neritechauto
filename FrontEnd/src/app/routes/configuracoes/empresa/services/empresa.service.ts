@@ -170,6 +170,7 @@ export class EmpresaService {
       formatoData: data.formatoData,
       formatoHora: data.formatoHora,
       timezone: data.timezone,
+      corTema: data.corTema,
       possuiIntervalo: data.possuiIntervalo,
       inicioIntervalo: data.inicioIntervalo,
       fimIntervalo: data.fimIntervalo
