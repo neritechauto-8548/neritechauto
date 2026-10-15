@@ -39,6 +39,7 @@ public class EmpresaMapper {
     public static EmpresaResponse toResponse(Empresa e) {
         EmpresaResponse r = new EmpresaResponse();
         r.setId(e.getId());
+        r.setVersao(e.getVersao());
         r.setNomeFantasia(e.getNomeFantasia());
         r.setRazaoSocial(e.getRazaoSocial());
         r.setCnpj(e.getCnpj());
