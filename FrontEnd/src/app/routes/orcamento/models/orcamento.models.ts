@@ -2,11 +2,17 @@
 export enum TipoOrcamento {
   SIMPLES = 'SIMPLES',
   DETALHADO = 'DETALHADO',
-  COMPARATIVO = 'COMPARATIVO'
+  COMPARATIVO = 'COMPARATIVO',
+  /** @deprecated Use SIMPLES; serializa para o enum aceito pelo backend. */
+  DRAFT = 'SIMPLES',
+  /** @deprecated Use DETALHADO; mantém cadastro de OS legado funcional. */
+  FORMAL = 'DETALHADO'
 }
 
 export enum StatusOrcamento {
   RASCUNHO = 'RASCUNHO',
+  /** @deprecated Use RASCUNHO; mantém clientes legados sem enviar PENDENTE inválido. */
+  PENDENTE = 'RASCUNHO',
   ENVIADO = 'ENVIADO',
   APROVADO = 'APROVADO',
   REJEITADO = 'REJEITADO',
@@ -18,7 +24,9 @@ export enum MetodoEnvio {
   EMAIL = 'EMAIL',
   WHATSAPP = 'WHATSAPP',
   PRESENCIAL = 'PRESENCIAL',
-  POSTAL = 'POSTAL'
+  POSTAL = 'POSTAL',
+  /** @deprecated Use PRESENCIAL; IMPRESSO não é valor válido na API. */
+  IMPRESSO = 'PRESENCIAL'
 }
 
 export interface OrcamentoRequest {
