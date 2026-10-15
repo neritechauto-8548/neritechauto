@@ -73,6 +73,7 @@ export const routes: Routes = [
       },
       {
         path: 'orcamento',
+        canActivate: [permissionGuard],
         data: { requiredPermissions: 'GERAL_ORCAMENTO' },
         loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
       },
