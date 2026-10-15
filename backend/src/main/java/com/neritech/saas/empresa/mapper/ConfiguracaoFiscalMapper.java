@@ -36,5 +36,8 @@ public interface ConfiguracaoFiscalMapper {
     @Mapping(target = "tokenAcessoProvedorHomologacao", ignore = true)
     @Mapping(target = "tokenAcessoProvedorProducao", ignore = true)
     @Mapping(target = "logoNfsePath", ignore = true)
+    // The legacy company form sends a partial fiscal payload. Never erase
+    // previously configured tax document fields or protected credentials.
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(ConfiguracaoFiscalRequest request, @MappingTarget ConfiguracaoFiscal entity);
 }
