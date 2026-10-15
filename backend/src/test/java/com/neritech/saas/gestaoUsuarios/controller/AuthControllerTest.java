@@ -111,6 +111,51 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("AUTH-002 — endereço cadastrado ou desconhecido recebe resposta uniforme")
+    void recoverPasswordNaoEnumeraConta() throws Exception {
+        for (String email : new String[] { "usuario@exemplo.com", "naoexiste@exemplo.com" }) {
+            mockMvc.perform(post("/auth/recover-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"" + email + "\"}"))
+                    .andExpect(status().isOk());
+            org.mockito.Mockito.verify(authService).recoverPassword(
+                    org.mockito.ArgumentMatchers.eq(email),
+                    org.mockito.ArgumentMatchers.anyString());
+        }
+    }
+
+    @Test
+    @DisplayName("AUTH-002 — ausência de provedor retorna 503 e IP vem do servlet, não do JSON")
+    void recoverPasswordIndisponivelNaoAceitaIpForjado() throws Exception {
+        org.mockito.Mockito.doThrow(new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Recuperação indisponível"))
+                .when(authService).recoverPassword(
+                        org.mockito.ArgumentMatchers.anyString(),
+                        org.mockito.ArgumentMatchers.anyString());
+
+        mockMvc.perform(post("/auth/recover-password")
+                .with(request -> { request.setRemoteAddr("192.0.2.1"); return request; })
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"usuario@exemplo.com\",\"ipAddress\":\"198.51.100.25\"}"))
+                .andExpect(status().isServiceUnavailable());
+
+        org.mockito.Mockito.verify(authService).recoverPassword("usuario@exemplo.com", "192.0.2.1");
+    }
+
+    @Test
+    @DisplayName("AUTH-002 — e-mail obrigatório e formato inválido retornam 422")
+    void recoverPasswordValidaEmail() throws Exception {
+        for (String bad : new String[] { "invalido", "" }) {
+            mockMvc.perform(post("/auth/recover-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"" + bad + "\"}"))
+                    .andExpect(status().isUnprocessableEntity());
+        }
+        org.mockito.Mockito.verify(authService, org.mockito.Mockito.never()).recoverPassword(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
     @DisplayName("POST /auth/logout - Deve retornar 204")
     void deveRetornar204NoLogout() throws Exception {
         // Arrange
