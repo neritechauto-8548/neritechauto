@@ -311,3 +311,54 @@ mat-dialog-container,
 }
 
 
+
+
+/* BASE-04 — PrimeNG shared surfaces. Keep domain pages and table behavior intact. */
+:where(.p-datatable, .p-dialog, .p-drawer, .p-popover) {
+  color: var(--nt-text);
+  background: var(--nt-surface);
+}
+:where(.p-datatable) .p-datatable-thead > tr > th {
+  color: var(--nt-text-secondary);
+  background: var(--nt-surface-subtle);
+  border-color: var(--nt-divider);
+}
+:where(.p-datatable) .p-datatable-tbody > tr > td {
+  border-color: var(--nt-divider);
+}
+:where(.p-datatable) .p-datatable-tbody > tr.p-highlight {
+  background: var(--nt-selected-row);
+}
+:where(.p-inputtext, .p-select, .p-textarea, .p-datepicker-input, .p-autocomplete-input) {
+  color: var(--nt-text);
+  border-color: var(--nt-border);
+  border-radius: var(--nt-radius-md);
+}
+:where(.p-paginator) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--nt-surface);
+  border-color: var(--nt-divider);
+}
+:where(.p-paginator button, .p-dialog button, .p-drawer button, .p-button) {
+  min-height: 40px;
+}
+:where(button, a, input, select, textarea, [role='button'], [role='tab']):focus-visible {
+  outline: 3px solid var(--nt-focus);
+  outline-offset: 2px;
+}
+:where(.p-dialog, .p-drawer) {
+  max-width: calc(100vw - 24px);
+}
+@media (max-width: 375px) {
+  .p-paginator { justify-content: center; }
+  .p-dialog { max-width: calc(100vw - 16px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.p-dialog, .p-drawer, .p-paginator, .p-button) {
+    transition-duration: 0.01ms !important;
+  }
+}
