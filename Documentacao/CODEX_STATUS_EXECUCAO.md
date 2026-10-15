@@ -39,3 +39,11 @@
 - Novos testes Angular: sobreposição/inscrição tardia de confirmação, envelopes com/sem `code`, sucesso e objeto de domínio, `X-Skip-Toast` e mapa de validação Spring 422.
 - **Evidência verificada:** GitHub Actions `Dashboard Quality` run `38778209479` no commit `441c0e880ee42144a807b359c15e063c5bcd545d`: `node --test` aprovado, `yarn build` aprovado e **92 testes Angular ChromeHeadless aprovados, 0 falhas** (logs do job frontend `116571595158`). Na última consulta, job Maven ainda em execução. O workflow pode ser marcado cancelado se execuções mais novas competirem.
 - **Não homologada**: pendem navegador real com backend online/offline, 320/768/1440 px, zoom 200%, foco/teclado/leitor de tela, auditoria WCAG 2.2 AA e controle A/B de empresa/permissões; resultados de build/Karma não atestam esses cenários.
+
+### BASE-04 — Handler global e confirmação acessível (15/10/2026)
+
+- Corrigida uma divergência comprovada em `GlobalExceptionHandler`: payload HTTP 409 deixava expostos detalhes SQL e respostas 400/500 incluíam mensagens internas. Agora conflitos mantêm motivo seguro sem valores SQL, erros inesperados usam descrição pública genérica e rastros detalhados vão para log interno. `ConstraintViolationException` de Bean Validation retorna 422, não 409. Permanecem inalterados endpoints, auth, tenant, auditoria e migrações.
+- Testes Java focados: `GlobalExceptionHandlerTest` valida status 400/409/422/500 e ausência de valores sensíveis nas respostas, inclusive transação/rollback.
+- `ConfirmationDialogComponent` recebeu título via `header` nativo PrimeNG, fechamento explícito e por Escape/ícone cancelando a pendência via `onHide`. Testes Angular verificam cancelamento e impedem segundo resultado após confirmação. A tentativa inicial de usar `ariaLabelledBy` falhou no build Angular, foi removida e substituída pelo contrato compatível.
+- Testes de CI do commit funcional `060a0ed9b26545c0c3342411ec4e46edbb2dadeb` solicitados via workflow `Dashboard Quality`, run `38780182505`; **consultar conclusão final antes de afirmar aprovação**. O último CI integral anterior verde foi run `38778564408` no commit `28b0b03`.
+- QA ainda pendente: navegador contra backend real/indisponível, fluxos reais com contas A/B, perfis, foco e teclado efetivos, zoom 200%, WCAG 2.2 AA e largura 320/768/1440; build/tests não equivalem a homologação.
