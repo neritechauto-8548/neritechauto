@@ -42,6 +42,14 @@ describe('AUTH-003 — Redefinição de senha', () => {
     expect(loginService.resetPassword).not.toHaveBeenCalled();
   });
 
+  it('accepts URL fragments without leaving the reset secret in browser history', async () => {
+    const html = await visit('/auth/reset-password#token=' + token);
+    expect(component.linkError).toBeNull();
+    expect(html.querySelector('form')).not.toBeNull();
+    expect(location.hash).toBe('');
+    expect(location.search).toBe('');
+  });
+
   it('requires 12 characters and matching passwords before calling backend', async () => {
     const html = await visit();
     component.resetForm.setValue({ password: '123456', confirmPassword: '123456' });
