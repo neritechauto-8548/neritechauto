@@ -31,8 +31,9 @@ public class AuthController {
             @RequestBody @Valid LoginRequest request,
             HttpServletRequest servletRequest
     ) {
-        if (request.getIpAddress() == null) request.setIpAddress(servletRequest.getRemoteAddr());
-        if (request.getUserAgent() == null) request.setUserAgent(servletRequest.getHeader("User-Agent"));
+        // Client-supplied JSON metadata must not spoof the request identity.
+        request.setIpAddress(servletRequest.getRemoteAddr());
+        request.setUserAgent(servletRequest.getHeader("User-Agent"));
         if (request.getEmail() != null) {
             usuarioRepository.findByEmailIgnoreCase(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
         }

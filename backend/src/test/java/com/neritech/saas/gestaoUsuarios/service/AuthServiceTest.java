@@ -55,6 +55,8 @@ class AuthServiceTest {
     private LogAcessoRepository logAcessoRepository;
     @Mock
     private TentativaLoginRepository tentativaLoginRepository;
+    @Mock
+    private LoginFailureRecorder loginFailureRecorder;
 
     @InjectMocks
     private AuthService authService;
@@ -126,8 +128,7 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.login(loginRequest))
                     .isInstanceOf(BadCredentialsException.class);
             
-            verify(tentativaLoginRepository).saveAndFlush(any(TentativaLogin.class));
-            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+            verify(loginFailureRecorder).record(eq(loginRequest), eq(usuario.getEmpresaId()));
         }
 
         @Test
@@ -139,8 +140,8 @@ class AuthServiceTest {
                     .thenReturn(5L);
 
             assertThatThrownBy(() -> authService.login(loginRequest))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Muitas tentativas de login");
+                    .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                    .hasMessageContaining("429 TOO_MANY_REQUESTS");
 
             verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
             verify(usuarioRepository, never()).save(any(Usuario.class));

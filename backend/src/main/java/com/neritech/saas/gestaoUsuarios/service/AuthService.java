@@ -28,6 +28,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.Locale;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,6 +55,7 @@ public class AuthService {
     private final SessaoUsuarioRepository sessaoUsuarioRepository;
     private final LogAcessoRepository logAcessoRepository;
     private final TentativaLoginRepository tentativaLoginRepository;
+    private final LoginFailureRecorder loginFailureRecorder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TokenRecuperacaoSenhaRepository tokenRepository;
@@ -122,20 +127,17 @@ public class AuthService {
                     .build();
             return response;
 
-        } catch (BadCredentialsException e) {
+        } catch (AuthenticationException e) {
+            // Persist the failed attempt in an independent transaction: rolling back
+            // the login transaction must never reset the brute-force counter.
             try {
                 java.util.Optional<Usuario> userOpt = usuarioRepository.findByEmailIgnoreCase(request.getEmail());
-                if (userOpt.isPresent()) {
-                    TenantContext.setCurrentTenant(userOpt.get().getEmpresaId());
-                } else {
-                    TenantContext.clear(); // Clear potentially invalid tenant ID from header
-                }
-                logLoginAttempt(request, false);
-                logAccess(null, LogAcesso.TipoEvento.LOGIN_FAIL, "Falha de login: credenciais inválidas para " + request.getEmail(), request.getIpAddress(), request.getUserAgent());
+                Long tenant = userOpt.map(Usuario::getEmpresaId).orElse(null);
+                loginFailureRecorder.record(request, tenant);
             } finally {
                 TenantContext.clear();
             }
-            throw e;
+            throw new BadCredentialsException("Credenciais inválidas");
         } catch (Exception e) {
             try {
                 java.util.Optional<Usuario> userOpt = usuarioRepository.findByEmailIgnoreCase(request.getEmail());
@@ -340,9 +342,11 @@ public class AuthService {
 
     private void checkLoginAttempts(String email) {
         LocalDateTime limitTime = LocalDateTime.now().minusMinutes(15);
-        long attempts = tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(email, limitTime);
+        String key = email.trim().toLowerCase(Locale.ROOT);
+        long attempts = tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(key, limitTime);
         if (attempts >= 5) {
-            throw new RuntimeException("Muitas tentativas de login. Tente novamente mais tarde.");
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Muitas tentativas de login. Tente novamente mais tarde.");
         }
     }
 
