@@ -13,7 +13,10 @@ import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
     <p-dialog
       [(visible)]="visible"
       [modal]="true"
-      [closable]="false"
+      [closable]="true"
+      [closeOnEscape]="true"
+      [ariaLabelledBy]="'nt-confirmation-title'"
+      (onHide)="onDialogHide()"
       [draggable]="false"
       [resizable]="false"
       styleClass="!p-0 !border-0 !shadow-2xl !rounded-lg !max-w-sm"
@@ -43,7 +46,7 @@ import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
                 }"
               />
             </div>
-            <h3 class="text-base font-semibold text-slate-900">{{ config?.title }}</h3>
+            <h3 id="nt-confirmation-title" class="text-base font-semibold text-slate-900">{{ config?.title }}</h3>
           </div>
           <p class="text-sm text-slate-600 leading-relaxed">{{ config?.message }}</p>
         </div>
@@ -98,6 +101,12 @@ export class ConfirmationDialogComponent implements OnInit, OnDestroy {
   }
 
   onCancel() {
+    this.visible = false;
+    this.confirmationService.sendResult(false);
+  }
+
+  // Escape or the close button must never leave a decision unresolved.
+  onDialogHide() {
     this.visible = false;
     this.confirmationService.sendResult(false);
   }

@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException ex) {
@@ -61,17 +64,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleBadPayload(HttpMessageNotReadableException ex) {
-        String detail = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
-        return buildErrorResponse("VALIDATION", "Payload inválido ou malformado: " + detail, null, HttpStatus.BAD_REQUEST);
+        return buildErrorResponse("VALIDATION", "Payload inválido ou malformado", null, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({DataIntegrityViolationException.class, SQLIntegrityConstraintViolationException.class, ConstraintViolationException.class})
     public ResponseEntity<ApiErrorResponse> handleIntegrity(Exception ex) {
         String raw = extractMessage(ex);
         String userMessage = explainIntegrityMessage(raw);
-        Map<String, String> errors = new HashMap<>();
-        errors.put("detalhes", raw);
-        return buildErrorResponse("BUSINESS_RULE", userMessage, errors, HttpStatus.CONFLICT);
+        log.warn("Conflito de integridade na API", ex);
+            return buildErrorResponse("BUSINESS_RULE", userMessage, null, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(TransactionSystemException.class)
@@ -80,19 +81,19 @@ public class GlobalExceptionHandler {
         while (t.getCause() != null) t = t.getCause();
 
         if (t instanceof ConstraintViolationException) {
-            return buildErrorResponse("VALIDATION", "Erro de validação: " + t.getMessage(), null, HttpStatus.UNPROCESSABLE_ENTITY);
+            return buildErrorResponse("VALIDATION", "Erro de validação nos dados enviados", null, HttpStatus.UNPROCESSABLE_ENTITY);
         }
         if (isIntegrityViolation(t)) {
             String raw = extractMessage(ex);
             String userMessage = explainIntegrityMessage(raw);
-            Map<String, String> errors = new HashMap<>();
-            errors.put("detalhes", raw);
-            return buildErrorResponse("BUSINESS_RULE", userMessage, errors, HttpStatus.CONFLICT);
+            log.warn("Conflito de integridade na API", ex);
+            return buildErrorResponse("BUSINESS_RULE", userMessage, null, HttpStatus.CONFLICT);
         }
         if (t instanceof OptimisticLockException || t instanceof OptimisticLockingFailureException) {
              return buildErrorResponse("BUSINESS_RULE", "Conflito de concorrência: registro foi alterado por outro processo", null, HttpStatus.CONFLICT);
         }
-        return buildErrorResponse("INTERNAL_ERROR", "Falha na transação: " + (t.getMessage() != null ? t.getMessage() : ex.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Falha inesperada na transação", ex);
+        return buildErrorResponse("INTERNAL_ERROR", "Não foi possível concluir a operação.", null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(RollbackException.class)
@@ -101,16 +102,16 @@ public class GlobalExceptionHandler {
         while (t.getCause() != null) t = t.getCause();
 
         if (t instanceof ConstraintViolationException) {
-             return buildErrorResponse("VALIDATION", "Erro de validação: " + t.getMessage(), null, HttpStatus.UNPROCESSABLE_ENTITY);
+             return buildErrorResponse("VALIDATION", "Erro de validação nos dados enviados", null, HttpStatus.UNPROCESSABLE_ENTITY);
         }
         if (isIntegrityViolation(t)) {
              String raw = extractMessage(ex);
              String userMessage = explainIntegrityMessage(raw);
-             Map<String, String> errors = new HashMap<>();
-             errors.put("detalhes", raw);
-             return buildErrorResponse("BUSINESS_RULE", userMessage, errors, HttpStatus.CONFLICT);
+             log.warn("Conflito de integridade na API", ex);
+            return buildErrorResponse("BUSINESS_RULE", userMessage, null, HttpStatus.CONFLICT);
         }
-        return buildErrorResponse("INTERNAL_ERROR", "Transação reprovada (rollback): " + (t.getMessage() != null ? t.getMessage() : ex.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Rollback inesperado na transação", ex);
+        return buildErrorResponse("INTERNAL_ERROR", "Não foi possível concluir a operação.", null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(IllegalStateException.class)
@@ -142,8 +143,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
-        ex.printStackTrace(); // Log error
-        return buildErrorResponse("INTERNAL_ERROR", "Erro interno do servidor: " + ex.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Erro inesperado na API", ex);
+        return buildErrorResponse("INTERNAL_ERROR", "Erro interno do servidor. Tente novamente mais tarde.", null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<ApiErrorResponse> buildErrorResponse(String type, String message, Map<String, String> errors, HttpStatus status) {

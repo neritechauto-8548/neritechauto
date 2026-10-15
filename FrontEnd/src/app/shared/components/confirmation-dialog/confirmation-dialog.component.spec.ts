@@ -48,6 +48,24 @@ describe('ConfirmationDialogComponent', () => {
     expect(value).toBeFalse();
   });
 
+  it('cancels by Escape/close instead of leaving a pending confirmation', () => {
+    let result: boolean | undefined;
+    service.confirm({ title: 'Excluir?', message: 'Deseja excluir?' })
+      .subscribe(value => result = value);
+    component.onDialogHide();
+    expect(result).toBeFalse();
+    expect(component.visible).toBeFalse();
+  });
+
+  it('does not reverse a confirmed action after the close event', () => {
+    const results: boolean[] = [];
+    service.confirm({ title: 'Confirmar', message: 'Salvar?' })
+      .subscribe(value => results.push(value));
+    component.onConfirm();
+    component.onDialogHide();
+    expect(results).toEqual([true]);
+  });
+
   it('emits success only when the user confirms', () => {
     let result: boolean | undefined;
     service.confirm({ title: 'Confirmar', message: 'Deseja prosseguir?' })
