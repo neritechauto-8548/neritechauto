@@ -13,10 +13,17 @@ public interface ConfiguracaoFiscalMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "certificadoDigitalA1", ignore = true)
+    @Mapping(target = "senhaCertificado", ignore = true)
+    @Mapping(target = "tokenAcessoProvedorHomologacao", ignore = true)
+    @Mapping(target = "tokenAcessoProvedorProducao", ignore = true)
+    @Mapping(target = "logoNfsePath", ignore = true)
     ConfiguracaoFiscal toEntity(ConfiguracaoFiscalRequest request);
 
     @Mapping(source = "empresa.id", target = "empresaId")
     @Mapping(source = "empresa.nomeFantasia", target = "empresaNome")
+    @Mapping(target = "tokenAcessoProvedorHomologacao", ignore = true)
+    @Mapping(target = "tokenAcessoProvedorProducao", ignore = true)
     ConfiguracaoFiscalResponse toResponse(ConfiguracaoFiscal entity);
 
     @Mapping(target = "id", ignore = true)
@@ -24,5 +31,10 @@ public interface ConfiguracaoFiscalMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "certificadoDigitalA1", ignore = true)
+    @Mapping(target = "senhaCertificado", ignore = true)
+    @Mapping(target = "tokenAcessoProvedorHomologacao", ignore = true)
+    @Mapping(target = "tokenAcessoProvedorProducao", ignore = true)
+    @Mapping(target = "logoNfsePath", ignore = true)
     void updateEntityFromRequest(ConfiguracaoFiscalRequest request, @MappingTarget ConfiguracaoFiscal entity);
 }
