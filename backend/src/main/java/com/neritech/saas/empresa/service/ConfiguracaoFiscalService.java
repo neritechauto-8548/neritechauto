@@ -12,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -20,13 +22,15 @@ public class ConfiguracaoFiscalService {
     private final ConfiguracaoFiscalRepository repository;
     private final EmpresaRepository empresaRepository;
     private final ConfiguracaoFiscalMapper mapper;
+    private final EmpresaAlteracaoService auditoria;
 
     public ConfiguracaoFiscalService(ConfiguracaoFiscalRepository repository,
             EmpresaRepository empresaRepository,
-            ConfiguracaoFiscalMapper mapper) {
+            ConfiguracaoFiscalMapper mapper, EmpresaAlteracaoService auditoria) {
         this.repository = repository;
         this.empresaRepository = empresaRepository;
         this.mapper = mapper;
+        this.auditoria = auditoria;
     }
 
     public ConfiguracaoFiscalResponse create(ConfiguracaoFiscalRequest request) {
@@ -41,7 +45,10 @@ public class ConfiguracaoFiscalService {
 
         ConfiguracaoFiscal config = mapper.toEntity(request);
         config.setEmpresa(empresa);
-        return mapper.toResponse(repository.save(config));
+        ConfiguracaoFiscal saved = repository.saveAndFlush(config);
+        auditoria.registrar(request.empresaId(), "configuracoes_fiscais", saved.getId(),
+                saved.getVersao(), Map.of(), camposAuditaveis(saved));
+        return mapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -84,8 +91,12 @@ public class ConfiguracaoFiscalService {
             config.setEmpresa(empresa);
         }
 
+        Map<String, Object> antes = camposAuditaveis(config);
         mapper.updateEntityFromRequest(request, config);
-        return mapper.toResponse(repository.save(config));
+        ConfiguracaoFiscal saved = repository.saveAndFlush(config);
+        auditoria.registrar(request.empresaId(), "configuracoes_fiscais", saved.getId(),
+                saved.getVersao(), antes, camposAuditaveis(saved));
+        return mapper.toResponse(saved);
     }
 
     public void delete(Long id) {
@@ -94,6 +105,21 @@ public class ConfiguracaoFiscalService {
         TenantAccess.require(config.getEmpresa().getId());
         repository.delete(config);
     }
+    private static Map<String, Object> camposAuditaveis(ConfiguracaoFiscal config) {
+        Map<String, Object> campos = new LinkedHashMap<>();
+        campos.put("regimeTributario", config.getRegimeTributario());
+        campos.put("ambienteNfe", config.getAmbienteNfe());
+        campos.put("serieNfe", config.getSerieNfe());
+        campos.put("numeracaoNfe", config.getNumeracaoNfe());
+        campos.put("aliquotaIss", config.getAliquotaIss());
+        campos.put("aliquotaIcms", config.getAliquotaIcms());
+        campos.put("cfopVendaDentroEstado", config.getCfopVendaDentroEstado());
+        campos.put("cfopVendaForaEstado", config.getCfopVendaForaEstado());
+        campos.put("cfopServico", config.getCfopServico());
+        // Exclui certificados, tokens, credenciais e atributos sigilosos.
+        return campos;
+    }
+
     private static void rejectPlaintextSecrets(ConfiguracaoFiscalRequest request) {
         if (hasContent(request.certificadoDigitalA1()) || hasContent(request.senhaCertificado())
                 || hasContent(request.tokenAcessoProvedorHomologacao())
