@@ -24,6 +24,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AccordionModule } from 'primeng/accordion';
 import { FieldsetModule } from 'primeng/fieldset';
 import { EmpresaService } from './services/empresa.service';
+import { SettingsService } from '@core/bootstrap/settings.service';
 import {
   Empresa, EmpresaAlteracao, EnderecoEmpresa, ConfiguracaoEmpresa,
   ConfiguracaoFiscal, ConfiguracaoOficina,
@@ -69,6 +70,7 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
 })
 export class EmpresaConfig implements OnInit, OnDestroy {
   private service             = inject(EmpresaService);
+  private settings            = inject(SettingsService);
   private toast               = inject(MessageService);
   private storage             = inject(LocalStorageService);
   private utilService         = inject(UtilService);
@@ -114,7 +116,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
     margemLucroPadrao: 30, diasGarantiaPadrao: 90,
     tempoAgendamentoPadrao: 60, antecedenciaMinimaAgendamento: 24,
     tempoLembreteHoras: 24, timezone: 'America/Sao_Paulo',
-    moeda: 'BRL', formatoData: 'dd/MM/yyyy', formatoHora: 'HH:mm',
+    moeda: 'BRL', formatoData: 'dd/MM/yyyy', formatoHora: 'HH:mm', corTema: 'light',
     mostrarLogoCupom: false,
     mostrarAssinaturaOs: 'FUNCIONARIO',
     termoGarantiaPadrao: '',
@@ -233,7 +235,10 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         if (this.pick(enderecos))   this.endereco      = { ...this.endereco,      ...this.pick<EnderecoEmpresa>(enderecos) };
         if (this.pick(configEmp))   this.configEmpresa = { ...this.configEmpresa,  ...this.pick<ConfiguracaoEmpresa>(configEmp) };
         if (this.pick(fiscal))      this.configFiscal  = { ...this.configFiscal,   ...this.pick<ConfiguracaoFiscal>(fiscal) };
-        if (this.pick(oficina))     this.configOficina = { ...this.configOficina,  ...this.pick<ConfiguracaoOficina>(oficina) };
+        if (this.pick(oficina)) {
+          this.configOficina = { ...this.configOficina, ...this.pick<ConfiguracaoOficina>(oficina) };
+          if (this.configOficina.corTema) this.settings.setTheme(this.configOficina.corTema);
+        }
         if (this.pick<ConfiguracaoEmail>(email))       this.configEmail    = { ...this.configEmail,    ...this.pick<ConfiguracaoEmail>(email) };
         if (this.pick<ConfiguracaoWhatsapp>(whatsapp)) this.configWhatsapp = { ...this.configWhatsapp, ...this.pick<ConfiguracaoWhatsapp>(whatsapp) };
         if (this.pick<ConfiguracaoSms>(sms))           this.configSms      = { ...this.configSms,      ...this.pick<ConfiguracaoSms>(sms) };
@@ -717,7 +722,10 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         if (res.endereco)  this.endereco      = res.endereco;
         if (res.configEmp) this.configEmpresa = res.configEmp;
         if (res.fiscal)    this.configFiscal  = res.fiscal;
-        if (res.oficina)   this.configOficina = res.oficina;
+        if (res.oficina) {
+          this.configOficina = res.oficina;
+          if (res.oficina.corTema) this.settings.setTheme(res.oficina.corTema);
+        }
         if (res.email)     this.configEmail   = res.email;
       },
       error: (err: any) => {
