@@ -172,10 +172,10 @@ public class AuthService {
 
             // Validate token matches session
             SessaoUsuario sessao = sessaoUsuarioRepository.findByRefreshToken(refreshToken)
-                    .orElseThrow(() -> new RuntimeException("Sessão inválida ou expirada"));
+                    .orElseThrow(() -> new BadCredentialsException("Sessão inválida ou expirada"));
 
             if (!sessao.getAtivo()) {
-                throw new RuntimeException("Sessão inativa");
+                throw new BadCredentialsException("Sessão inativa");
             }
             if (!sessao.getUsuario().getId().equals(usuario.getId()) || !sessao.getEmpresaId().equals(usuario.getEmpresaId())) {
                 throw new BadCredentialsException("Sessão inválida");
