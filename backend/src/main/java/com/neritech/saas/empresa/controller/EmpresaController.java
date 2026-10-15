@@ -6,6 +6,8 @@ import com.neritech.saas.empresa.dto.EmpresaRequest;
 import com.neritech.saas.empresa.dto.EmpresaResponse;
 import com.neritech.saas.empresa.mapper.EmpresaMapper;
 import com.neritech.saas.empresa.service.EmpresaService;
+import com.neritech.saas.empresa.service.EmpresaAlteracaoService;
+import com.neritech.saas.empresa.dto.EmpresaAlteracaoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,10 +31,12 @@ public class EmpresaController {
 
     private final EmpresaService service;
     private final EmpresaLogoStorageService logoStorageService;
+    private final EmpresaAlteracaoService auditoria;
 
-    public EmpresaController(EmpresaService service, EmpresaLogoStorageService logoStorageService) {
+    public EmpresaController(EmpresaService service, EmpresaLogoStorageService logoStorageService, EmpresaAlteracaoService auditoria) {
         this.service = service;
         this.logoStorageService = logoStorageService;
+        this.auditoria = auditoria;
     }
 
     @GetMapping("/{id}")
@@ -61,6 +65,15 @@ public class EmpresaController {
         List<EmpresaResponse> content = matches && pageable.getOffset() == 0
                 ? List.of(EmpresaMapper.toResponse(own)) : List.of();
         return ResponseEntity.ok(new PageImpl<>(content, pageable, matches ? 1L : 0L));
+    }
+
+    @GetMapping("/{id}/historico")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
+    @Operation(summary = "Histórico versionado das alterações da empresa")
+    public ResponseEntity<Page<EmpresaAlteracaoResponse>> historico(
+            @PathVariable Long id, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(auditoria.historico(TenantAccess.require(id), page, size));
     }
 
     @PostMapping
