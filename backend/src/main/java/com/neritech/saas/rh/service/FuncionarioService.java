@@ -1,6 +1,10 @@
 package com.neritech.saas.rh.service;
 
 import com.neritech.saas.rh.domain.Funcionario;
+import com.neritech.saas.rh.domain.Cargo;
+import com.neritech.saas.empresa.domain.DepartamentoContabio;
+import com.neritech.saas.common.tenancy.TenantAccess;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.rh.dto.FuncionarioRequest;
 import com.neritech.saas.rh.dto.FuncionarioResponse;
 import com.neritech.saas.rh.mapper.FuncionarioMapper;
@@ -26,18 +30,18 @@ public class FuncionarioService {
     private final jakarta.persistence.EntityManager entityManager;
 
     public Page<FuncionarioResponse> findAll(Long empresaId, Pageable pageable) {
-        return repository.findByEmpresaId(empresaId, pageable)
+        return repository.findByEmpresaId(TenantAccess.require(empresaId), pageable)
                 .map(mapper::toResponse);
     }
 
     public FuncionarioResponse findById(Long id) {
-        return repository.findById(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Funcionário não encontrado"));
+        return mapper.toResponse(findOwned(id));
     }
 
     @Transactional
     public FuncionarioResponse create(FuncionarioRequest request) {
+        Long empresaId = TenantAccess.require(request.empresaId());
+        validateRelations(request, empresaId);
         if (repository.existsByEmpresaIdAndMatricula(request.empresaId(), request.matricula())) {
             throw new IllegalArgumentException("Matrícula já existe para esta empresa");
         }
@@ -50,14 +54,47 @@ public class FuncionarioService {
 
     @Transactional
     public FuncionarioResponse update(Long id, FuncionarioRequest request) {
-        Funcionario entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Funcionário não encontrado"));
-
+        Long empresaId = TenantAccess.require(request.empresaId());
+        Funcionario entity = findOwned(id);
+        validateRelations(request, empresaId);
         validarFuncionario(request, entity);
 
         mapper.updateEntity(request, entity);
         entity = repository.save(entity);
         return mapper.toResponse(entity);
+    }
+
+
+    // Funcionario nao herda TenantEntity: escopo aplicado na consulta SQL.
+    private Funcionario findOwned(Long id) {
+        return repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado"));
+    }
+
+    private void validateLinkedUser(Funcionario entity) {
+        if (entity.getUsuarioId() != null && usuarioRepository.findById(entity.getUsuarioId())
+                .filter(user -> entity.getEmpresaId().equals(user.getEmpresaId())).isEmpty()) {
+            throw new ResourceNotFoundException("Usuário não encontrado");
+        }
+    }
+
+    private void validateRelations(FuncionarioRequest request, Long empresaId) {
+        if (request.usuarioId() != null && usuarioRepository.findById(request.usuarioId())
+                .filter(usuario -> empresaId.equals(usuario.getEmpresaId())).isEmpty()) {
+            throw new ResourceNotFoundException("Usuário não encontrado");
+        }
+        if (request.cargoId() != null) {
+            Cargo cargo = entityManager.find(Cargo.class, request.cargoId());
+            if (cargo == null || !empresaId.equals(cargo.getEmpresaId())) {
+                throw new ResourceNotFoundException("Cargo não encontrado");
+            }
+        }
+        if (request.departamentoId() != null) {
+            DepartamentoContabio departamento = entityManager.find(DepartamentoContabio.class, request.departamentoId());
+            if (departamento == null || !empresaId.equals(departamento.getEmpresa().getId())) {
+                throw new ResourceNotFoundException("Departamento não encontrado");
+            }
+        }
     }
 
     private void validarFuncionario(FuncionarioRequest request, Funcionario entity) {
@@ -148,13 +185,11 @@ public class FuncionarioService {
 
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Funcionário não encontrado");
-        }
+        Funcionario entity = findOwned(id);
         if (hasReferences(id)) {
             throw new IllegalArgumentException("Não é possível excluir o colaborador pois ele possui registros vinculados no sistema.");
         }
-        repository.deleteById(id);
+        repository.delete(entity);
     }
 
     private boolean hasReferences(Long id) {
@@ -211,15 +246,20 @@ public class FuncionarioService {
     }
 
     public FuncionarioResponse findByUsuarioId(Long empresaId, Long usuarioId) {
-        return repository.findByEmpresaIdAndUsuarioId(empresaId, usuarioId)
+        return repository.findByEmpresaIdAndUsuarioId(TenantAccess.require(empresaId), usuarioId)
                 .map(mapper::toResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Funcionário não vinculado a este usuário"));
     }
 
+    public void validateFotoUpload(Long id) {
+        Funcionario entity = findOwned(id);
+        validateLinkedUser(entity);
+    }
+
     @Transactional
     public FuncionarioResponse updateFotoPath(Long id, String fotoPath) {
-        Funcionario entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Funcionário não encontrado"));
+        Funcionario entity = findOwned(id);
+        validateLinkedUser(entity);
         entity.setFotoFuncionarioUrl(fotoPath);
         entity = repository.save(entity);
 

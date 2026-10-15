@@ -1,6 +1,7 @@
 package com.neritech.saas.rh.controller;
 
 import com.neritech.saas.rh.dto.FuncionarioRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.neritech.saas.rh.dto.FuncionarioResponse;
 import com.neritech.saas.rh.service.FuncionarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.neritech.saas.rh.service.FuncionarioFotoStorageService;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/v1/rh/funcionarios")
 @RequiredArgsConstructor
 @Tag(name = "Funcionários", description = "Gestão de funcionários")
@@ -70,6 +72,7 @@ public class FuncionarioController {
     @PostMapping("/{id}/foto")
     @Operation(summary = "Upload da foto", description = "Realiza o upload da foto do funcionário")
     public ResponseEntity<FuncionarioResponse> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        service.validateFotoUpload(id); // validar tenant e usuario vinculado antes do arquivo
         String path = fotoStorageService.store(id, file);
         FuncionarioResponse saved = service.updateFotoPath(id, path);
         return ResponseEntity.ok(saved);

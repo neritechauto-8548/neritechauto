@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
+    Optional<Funcionario> findByIdAndEmpresaId(Long id, Long empresaId);
 
     Page<Funcionario> findByEmpresaId(Long empresaId, Pageable pageable);
 
