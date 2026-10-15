@@ -52,8 +52,8 @@ export class LoginService {
     return this.http.post<void>('/auth/recover-password', { email: email.trim() }, this.authFeedback);
   }
 
-  resetPassword(params: any) {
-    return this.http.post<any>('/auth/reset-password', params, this.authFeedback);
+  resetPassword(params: { token: string; novaSenha: string }) {
+    return this.http.post<void>('/auth/reset-password', params, this.authFeedback);
   }
 
   user() {
