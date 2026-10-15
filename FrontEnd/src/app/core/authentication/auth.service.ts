@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { environment } from '@env/environment';
 import { BehaviorSubject, catchError, iif, map, merge, of, share, switchMap, tap, take, timeout } from 'rxjs';
 import { base64, filterObject, isEmptyObject } from './helpers';
 import { User } from './interface';
@@ -86,7 +87,7 @@ export class AuthService {
   }
 
   menu() {
-    return iif(() => this.check(), this.loginService.menu(), of([]));
+    return iif(() => this.check() || environment.uxPreview, this.loginService.menu(), of([]));
   }
 
   private assignUser() {
