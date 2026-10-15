@@ -120,8 +120,10 @@ class UsuarioFuncaoTenantIntegrationTest extends AbstractIntegrationTest {
                 .comChave("GERAL_CONFIG_SISTEMA").comValor("GERAL_CONFIG_SISTEMA").build());
         fixturePermissions.add(configuracao.getId());
         Funcao gestor = funcao(a, "CONFIGURADOR");
-        gestor.getPermissoes().add(configuracao);
-        funcoes.saveAndFlush(gestor);
+        // A associação de teste é persistida sem atualizar a entidade tenant
+        // fora de uma requisição JWT (o teste não altera validações de produção).
+        jdbc.update("insert into funcoes_permissoes (funcao_id, permissao_id) values (?, ?)",
+                gestor.getId(), configuracao.getId());
 
         String tokenConfig = login(a, "cfg" + a + "@t.co", gestor);
         String tokenAdmin = login(a, "adm" + a + "@t.co", admin);
