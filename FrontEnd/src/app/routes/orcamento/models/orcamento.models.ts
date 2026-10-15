@@ -1,11 +1,12 @@
 
 export enum TipoOrcamento {
-  DRAFT = 'DRAFT',
-  FORMAL = 'FORMAL'
+  SIMPLES = 'SIMPLES',
+  DETALHADO = 'DETALHADO',
+  COMPARATIVO = 'COMPARATIVO'
 }
 
 export enum StatusOrcamento {
-  PENDENTE = 'PENDENTE',
+  RASCUNHO = 'RASCUNHO',
   ENVIADO = 'ENVIADO',
   APROVADO = 'APROVADO',
   REJEITADO = 'REJEITADO',
@@ -16,7 +17,8 @@ export enum StatusOrcamento {
 export enum MetodoEnvio {
   EMAIL = 'EMAIL',
   WHATSAPP = 'WHATSAPP',
-  IMPRESSO = 'IMPRESSO'
+  PRESENCIAL = 'PRESENCIAL',
+  POSTAL = 'POSTAL'
 }
 
 export interface OrcamentoRequest {
