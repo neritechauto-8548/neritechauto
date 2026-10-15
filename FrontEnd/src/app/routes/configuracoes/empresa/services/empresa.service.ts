@@ -50,6 +50,16 @@ export class EmpresaService {
     return this.http.post<Empresa>(`/api/v1/empresas/${id}/logo`, formData);
   }
 
+  getLogo(id: number): Observable<Blob> {
+    return this.http.get(`/api/v1/empresas/${id}/logo`, {
+      responseType: 'blob', headers: { 'X-Skip-Toast': 'true' }
+    });
+  }
+
+  removeLogo(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/v1/empresas/${id}/logo`);
+  }
+
   // --- Endereço Empresa ---
   getEnderecos(empresaId: number): Observable<EnderecoEmpresa[]> {
     return this.http.get<EnderecoEmpresa[]>(`/api/v1/enderecos-empresa/empresa/${empresaId}`, { headers: { 'X-Skip-Toast': 'true' } });
