@@ -158,6 +158,62 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isConflict());
     }
 
+    @Test
+    void mudancaFiscalGravaHistoricoVersionadoComAutorRealESemSegredos() throws Exception {
+        long empresaA = empresa("A");
+        long empresaB = empresa("B");
+        String emailA = "audit" + empresaA + "@t.co";
+        String tokenA = login(empresaA, emailA, "ADMIN");
+        String tokenB = login(empresaB, "audit" + empresaB + "@t.co", "ADMIN");
+
+        String criar = json.writeValueAsString(Map.of(
+                "empresaId", empresaA, "regimeTributario", "SIMPLES_NACIONAL",
+                "ambienteNfe", "HOMOLOGACAO"));
+        mvc.perform(post("/v1/configuracoes-fiscais")
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(criar))
+                .andExpect(status().isCreated());
+        long configId = jdbc.queryForObject(
+                "select id from configuracoes_fiscais where empresa_id=?", Long.class, empresaA);
+
+        String alterar = json.writeValueAsString(Map.of(
+                "empresaId", empresaA, "regimeTributario", "LUCRO_PRESUMIDO",
+                "ambienteNfe", "PRODUCAO"));
+        mvc.perform(put("/v1/configuracoes-fiscais/{id}", configId)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(alterar))
+                .andExpect(status().isOk());
+
+        long autor = usuarios.findByEmailIgnoreCaseAndEmpresaId(emailA, empresaA).orElseThrow().getId();
+        assertThat(jdbc.queryForObject("""
+                select count(*) from logs_alteracoes where empresa_id = ?
+                and tabela_afetada = 'configuracoes_fiscais' and contexto_operacao = 'ADM-001'
+                and usuario_responsavel = ? and campos_alterados like '%regimeTributario%'
+                """, Long.class, empresaA, autor)).isEqualTo(2L);
+        String auditPayload = jdbc.queryForObject("""
+                select string_agg(coalesce(valores_novos, ''), ' ')
+                from logs_alteracoes where empresa_id = ? and contexto_operacao = 'ADM-001'
+                """, String.class, empresaA);
+        assertThat(auditPayload).doesNotContain("senhaCertificado", "tokenAcessoProvedor", "certificadoDigitalA1");
+
+        mvc.perform(get("/v1/empresas/{id}/historico", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").isNumber())
+                .andExpect(jsonPath("$.data.content[0].autor").value(autor));
+        mvc.perform(get("/v1/empresas/{id}/historico", empresaA)
+                .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/v1/empresas/{id}/historico", empresaA)
+                .header("Authorization", "Bearer " + tokenA).param("size", "1000"))
+                .andExpect(status().isUnprocessableEntity());
+
+        mvc.perform(put("/v1/configuracoes-fiscais/{id}", configId)
+                .header("Authorization", "Bearer " + tokenB)
+                .contentType(MediaType.APPLICATION_JSON).content(alterar))
+                .andExpect(status().isForbidden());
+    }
+
     private long empresa(String suffix) {
         String document = suffix + "-" + Long.toString(System.nanoTime(), 36);
         return jdbc.queryForObject(
