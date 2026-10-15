@@ -695,6 +695,11 @@ export class EmpresaConfig implements OnInit, OnDestroy {
 
   // ── Salvar ──────────────────────────────────────────────────────
   salvar(): void {
+    if (this.loading) return;
+    if (this.activeTab === 'email' && !this.emailConfigWritable) {
+      this.toast.add({ severity: 'error', summary: 'E-mail indisponível', detail: 'Recarregue a configuração de e-mail antes de salvar.' });
+      return;
+    }
     if (!this.empresaCarregada || this.erroCarregamento) {
       this.toast.add({ severity: 'error', summary: 'Empresa não carregada', detail: 'Recarregue os dados da empresa antes de salvar alterações.' });
       return;
@@ -769,6 +774,10 @@ export class EmpresaConfig implements OnInit, OnDestroy {
   }
 
   testarEmail(): void {
+    if (!this.emailConfigWritable) {
+      this.toast.add({ severity: 'error', summary: 'E-mail indisponível', detail: 'Recarregue a configuração de e-mail antes de testar.' });
+      return;
+    }
     if (!this.emailTeste?.trim()) {
       this.toast.add({ severity: 'warn', summary: 'Atenção', detail: 'Informe o e-mail de destino para o teste.' });
       return;
