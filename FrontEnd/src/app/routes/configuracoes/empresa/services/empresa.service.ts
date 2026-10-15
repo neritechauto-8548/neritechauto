@@ -39,7 +39,7 @@ export class EmpresaService {
       dataAbertura: data.dataAbertura,
       observacoes: data.observacoes,
       ativo: data.ativo,
-      logoPath: data.logoPath
+      versao: data.versao
     };
     return this.http.put<Empresa>(`/api/v1/empresas/${id}`, payload);
   }
