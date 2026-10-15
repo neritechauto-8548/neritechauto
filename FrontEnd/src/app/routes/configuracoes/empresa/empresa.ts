@@ -681,6 +681,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
     forkJoin(reqs).pipe(finalize(() => this.loading = false)).subscribe({
       next: (res: any) => {
         this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Configurações salvas com sucesso!' });
+        if (res.empresa)   this.empresa       = { ...this.empresa, ...res.empresa };
         if (res.endereco)  this.endereco      = res.endereco;
         if (res.configEmp) this.configEmpresa = res.configEmp;
         if (res.fiscal)    this.configFiscal  = res.fiscal;
