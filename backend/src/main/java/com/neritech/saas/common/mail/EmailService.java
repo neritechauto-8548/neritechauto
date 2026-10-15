@@ -132,7 +132,8 @@ public class EmailService {
     }
 
     private String buildResetEmailTemplate(String name, String token) {
-        String resetUrl = frontendUrl + "/auth/reset-password?token=" + token;
+        // A URL fragment is not sent to the web server or Referer header.
+        String resetUrl = frontendUrl + "/auth/reset-password#token=" + token;
         
         return "<html>" +
                 "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +
