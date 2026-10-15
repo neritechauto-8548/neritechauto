@@ -124,6 +124,20 @@ test('BASE-04: responsive login, focus and simulated 200% zoom in real Chrome',
       await screenshot('login-' + width);
     }
     await setViewport(1440);
+    // The browser accessibility tree is inspectable without installing a screen
+    // reader. This verifies semantics, NOT NVDA/VoiceOver speech output.
+    const ax = await command('Accessibility.getFullAXTree');
+    const accessible = ax.nodes
+      .filter(node => node.role?.value && node.name?.value)
+      .map(node => ({ role: node.role.value, name: node.name.value }));
+    assert.ok(accessible.some(item => item.role === 'heading' && item.name.includes('Entrar no NERITECH')),
+      'Login heading absent from Chrome accessibility tree');
+    assert.ok(accessible.some(item => item.role === 'textbox' && item.name.includes('E-mail')),
+      'Email input must have an accessible name');
+    assert.ok(accessible.some(item => item.role === 'textbox' && item.name.includes('Senha')),
+      'Password input must have an accessible name');
+    assert.ok(accessible.some(item => item.role === 'button' && item.name === 'Entrar'),
+      'Submit button must have an accessible name');
     assert.equal(await evaluate("(() => { document.querySelector('#email').focus(); return document.activeElement.id; })()"), 'email');
     await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
     await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
