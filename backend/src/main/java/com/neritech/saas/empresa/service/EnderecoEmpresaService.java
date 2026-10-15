@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -23,13 +25,15 @@ public class EnderecoEmpresaService {
     private final EnderecoEmpresaRepository repository;
     private final EmpresaRepository empresaRepository;
     private final EnderecoEmpresaMapper mapper;
+    private final EmpresaAlteracaoService auditoria;
 
     public EnderecoEmpresaService(EnderecoEmpresaRepository repository,
             EmpresaRepository empresaRepository,
-            EnderecoEmpresaMapper mapper) {
+            EnderecoEmpresaMapper mapper, EmpresaAlteracaoService auditoria) {
         this.repository = repository;
         this.empresaRepository = empresaRepository;
         this.mapper = mapper;
+        this.auditoria = auditoria;
     }
 
     public EnderecoEmpresaResponse create(EnderecoEmpresaRequest request) {
@@ -41,7 +45,9 @@ public class EnderecoEmpresaService {
         EnderecoEmpresa endereco = mapper.toEntity(request);
         endereco.setEmpresa(empresa);
 
-        EnderecoEmpresa saved = repository.save(endereco);
+        EnderecoEmpresa saved = repository.saveAndFlush(endereco);
+        auditoria.registrar(request.empresaId(), "enderecos_empresa", saved.getId(),
+                saved.getVersao(), Map.of(), camposAuditaveis(saved));
         return mapper.toResponse(saved);
     }
 
@@ -83,9 +89,24 @@ public class EnderecoEmpresaService {
             endereco.setEmpresa(empresa);
         }
 
+        Map<String, Object> antes = camposAuditaveis(endereco);
         mapper.updateEntityFromRequest(request, endereco);
-        EnderecoEmpresa updated = repository.save(endereco);
+        EnderecoEmpresa updated = repository.saveAndFlush(endereco);
+        auditoria.registrar(request.empresaId(), "enderecos_empresa", updated.getId(),
+                updated.getVersao(), antes, camposAuditaveis(updated));
         return mapper.toResponse(updated);
+    }
+
+    private static Map<String, Object> camposAuditaveis(EnderecoEmpresa e) {
+        Map<String, Object> campos = new LinkedHashMap<>();
+        campos.put("cep", e.getCep());
+        campos.put("logradouro", e.getLogradouro());
+        campos.put("numero", e.getNumero());
+        campos.put("complemento", e.getComplemento());
+        campos.put("bairro", e.getBairro());
+        campos.put("cidade", e.getCidade());
+        campos.put("estado", e.getEstado());
+        return campos;
     }
 
     public void delete(Long id) {
