@@ -5,6 +5,19 @@ import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.gestaoUsuarios.domain.LogAcesso;
 import com.neritech.saas.gestaoUsuarios.domain.SessaoUsuario;
 import com.neritech.saas.gestaoUsuarios.domain.TentativaLogin;
+import com.neritech.saas.gestaoUsuarios.domain.TokenRecuperacaoSenha;
+import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
+import com.neritech.saas.gestaoUsuarios.repository.TokenRecuperacaoSenhaRepository;
+import com.neritech.saas.common.mail.EmailService;
+import org.springframework.mail.MailSendException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import org.mockito.ArgumentCaptor;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
+import java.util.List;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.dto.LoginRequest;
 import com.neritech.saas.gestaoUsuarios.dto.LoginResponse;
@@ -57,6 +70,14 @@ class AuthServiceTest {
     private TentativaLoginRepository tentativaLoginRepository;
     @Mock
     private LoginFailureRecorder loginFailureRecorder;
+    @Mock
+    private RecoveryRequestThrottle recoveryRequestThrottle;
+    @Mock
+    private TokenRecuperacaoSenhaRepository tokenRepository;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthService authService;
@@ -147,6 +168,112 @@ class AuthServiceTest {
             verify(usuarioRepository, never()).save(any(Usuario.class));
         }
 
+    }
+
+    @Nested
+    @DisplayName("AUTH-002 Recuperação de acesso")
+    class RecoveryTests {
+        private static final String EMAIL = "recuperacao@oficina.com";
+
+        @Test
+        void contaInexistenteRetornaGenericoSemCriarToken() {
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(true);
+            when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.empty());
+
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"));
+
+            verifyNoInteractions(tokenRepository);
+            verify(emailService, never()).sendPasswordResetLink(anyString(), anyString(), anyString());
+        }
+
+        @Test
+        void tokenOpacoSomenteHashTrintaMinutosERevogaAnterior() throws Exception {
+            usuario.setEmail(EMAIL);
+            TokenRecuperacaoSenha previous = TokenRecuperacaoSenha.builder()
+                    .token("old-hash").usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(15)).build();
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(true);
+            when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(usuario));
+            when(tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())).thenReturn(List.of(previous));
+
+            authService.recoverPassword(EMAIL, "127.0.0.1");
+
+            org.junit.jupiter.api.Assertions.assertTrue(previous.getUsado());
+            verify(tokenRepository).save(previous);
+            ArgumentCaptor<TokenRecuperacaoSenha> entity = ArgumentCaptor.forClass(TokenRecuperacaoSenha.class);
+            verify(tokenRepository).saveAndFlush(entity.capture());
+            TokenRecuperacaoSenha saved = entity.getValue();
+            ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
+            verify(emailService).sendPasswordResetLink(eq(EMAIL), eq(usuario.getNomeCompleto()), rawToken.capture());
+            String raw = rawToken.getValue();
+            String expectedHash = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8)));
+            org.junit.jupiter.api.Assertions.assertEquals(expectedHash, saved.getToken());
+            org.junit.jupiter.api.Assertions.assertNotEquals(raw, saved.getToken());
+            org.junit.jupiter.api.Assertions.assertTrue(saved.getDataExpiracao().isAfter(LocalDateTime.now().plusMinutes(29)));
+            org.junit.jupiter.api.Assertions.assertTrue(saved.getDataExpiracao().isBefore(LocalDateTime.now().plusMinutes(31)));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+        }
+
+        @Test
+        void limiteEmailInibeEnvioMasNaoEnumeraConta() {
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(false);
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"));
+            verifyNoInteractions(usuarioRepository, tokenRepository);
+        }
+
+        @Test
+        void smtpNaoConfiguradoRetorna503IndependentementeDaConta() {
+            when(emailService.isPasswordResetConfigured()).thenReturn(false);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(e -> org.junit.jupiter.api.Assertions.assertEquals(
+                            HttpStatus.SERVICE_UNAVAILABLE, ((ResponseStatusException) e).getStatusCode()));
+            verifyNoInteractions(usuarioRepository, recoveryRequestThrottle);
+        }
+
+        @Test
+        void falhaEntregaIndividualNaoRevelaExistenciaDaConta() {
+            usuario.setEmail(EMAIL);
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(true);
+            when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(usuario));
+            doThrow(new MailSendException("smtp indisponível")).when(emailService)
+                    .sendPasswordResetLink(eq(EMAIL), any(), anyString());
+
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+        }
+
+        @Test
+        void tokenExpiradoEJaConsumidoNaoRedefinemSenha() throws Exception {
+            String raw = "token-opaco-auth-002";
+            String hash = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8)));
+            TokenRecuperacaoSenha expired = TokenRecuperacaoSenha.builder().token(hash)
+                    .usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().minusMinutes(1)).build();
+            when(tokenRepository.findWithLockByToken(hash)).thenReturn(Optional.of(expired));
+            ResetPasswordRequest request = new ResetPasswordRequest();
+            request.setToken(raw);
+            request.setNovaSenha("Uma frase de senha longa e segura ✓");
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("expirou");
+
+            expired.setUsado(true);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("utilizado");
+            verifyNoInteractions(passwordEncoder);
+        }
     }
 
     @Nested
