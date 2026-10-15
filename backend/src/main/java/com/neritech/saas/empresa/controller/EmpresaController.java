@@ -106,7 +106,7 @@ public class EmpresaController {
     @GetMapping("/{id}/logo")
     @Operation(summary = "Obter logomarca da empresa", description = "Retorna a imagem da logomarca da empresa")
     public ResponseEntity<org.springframework.core.io.Resource> getLogo(@PathVariable Long id) {
-        Empresa e = service.findById(id);
+        Empresa e = service.findById(TenantAccess.require(id));
         if (e.getLogoPath() == null || e.getLogoPath().isBlank()) {
             return ResponseEntity.notFound().build();
         }
