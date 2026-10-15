@@ -149,6 +149,33 @@ test('BASE-04: responsive login, focus and simulated 200% zoom in real Chrome',
     assert.ok(zoom.right <= zoom.width+2 && zoom.overflow <= 2,
       'CSS 200% zoom reflow overflows: ' + JSON.stringify(zoom));
     await screenshot('login-css-zoom-200');
+
+    // AUTH-002: inspect the compiled recovery page, not a mock HTML specimen.
+    await command('Page.navigate', { url: baseUrl + '/auth/recover' });
+    await waitFor("!!document.querySelector('#recover-title') && !!document.querySelector('#recover-email')");
+    for (const width of [320, 768, 1440]) {
+      await setViewport(width);
+      const layout = await evaluate("(() => { const form = document.querySelector('.auth-form'); const rect = form.getBoundingClientRect(); const back = document.querySelector('a.back-link'); return { viewport: innerWidth, overflow: document.documentElement.scrollWidth - innerWidth, formRight: rect.right, formWidth: rect.width, backLink: back?.getAttribute('href') }; })()");
+      assert.ok(layout.formWidth > 0 && layout.formRight <= width + 2 && layout.overflow <= 2,
+        'AUTH-002 overflow at ' + width + ': ' + JSON.stringify(layout));
+      assert.equal(layout.backLink, '/auth/login');
+      await screenshot('recover-' + width);
+    }
+    const recoveryAX = await command('Accessibility.getFullAXTree');
+    const recoveryNames = recoveryAX.nodes.filter(n => n.role?.value && n.name?.value)
+      .map(n => ({role:n.role.value, name:n.name.value}));
+    assert.ok(recoveryNames.some(n => n.role === 'heading' && n.name.includes('Recuperar acesso')),
+      'AUTH-002 heading not available to assistive technologies');
+    assert.ok(recoveryNames.some(n => n.role === 'textbox' && n.name.includes('E-mail')),
+      'AUTH-002 input missing accessible E-mail label');
+    assert.ok(recoveryNames.some(n => n.role === 'link' && n.name.includes('Voltar para o login')),
+      'AUTH-002 return link missing accessible name');
+    await setViewport(768);
+    const recoverZoom = await evaluate("(() => { document.documentElement.style.zoom='200%'; const r=document.querySelector('.auth-form').getBoundingClientRect(); return { width: innerWidth, right:r.right, overflow:document.documentElement.scrollWidth-innerWidth }; })()");
+    assert.ok(recoverZoom.right <= recoverZoom.width+2 && recoverZoom.overflow <= 2,
+      'AUTH-002 CSS zoom reflow: ' + JSON.stringify(recoverZoom));
+    await screenshot('recover-css-zoom-200');
+
   } finally { await cleanup(); }
 });
 // CSS zoom approximates reflow only. OS/browser zoom, screen reader, authentication
