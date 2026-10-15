@@ -13,6 +13,7 @@
         <p-tab value="horarios">     <i class="pi pi-clock"></i>       Horários          </p-tab>
         <p-tab value="fiscal">       <i class="pi pi-file"></i>        Dados Fiscais     </p-tab>
         <p-tab value="email">        <i class="pi pi-envelope"></i>    E-mail            </p-tab>
+        <p-tab value="historico" (click)="carregarHistorico()">Histórico</p-tab>
       </p-tablist>
     </p-tabs>
     <div class="nt-navbar__action">
@@ -1016,6 +1017,59 @@
           </div>
         </div>
       </p-panel>
+    }
+
+    @if (activeTab === 'historico') {
+      <section class="nt-history" aria-labelledby="empresa-historico-title">
+        <div class="nt-history__header">
+          <div>
+            <h2 id="empresa-historico-title">Histórico de alterações</h2>
+            <p>Versões, autores e mudanças registradas na empresa autenticada.</p>
+          </div>
+          <div class="nt-history__controls">
+            <label for="historico-page-size">Registros por página</label>
+            <select id="historico-page-size" [(ngModel)]="historicoSize" (change)="carregarHistorico(0)">
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+              <option [ngValue]="100">100</option>
+            </select>
+          </div>
+        </div>
+        @if (historicoLoading) {
+          <p role="status" aria-live="polite">Carregando histórico...</p>
+        } @else if (historicoError) {
+          <div role="alert">
+            <p>{{ historicoError }}</p>
+            <button type="button" class="nt-history__button" (click)="carregarHistorico(historicoPage)">Tentar novamente</button>
+          </div>
+        } @else if (historico.length === 0) {
+          <p role="status">Ainda não existem alterações auditadas nesta empresa.</p>
+        } @else {
+          <div class="nt-history__table-wrap" tabindex="0" role="region" aria-label="Histórico com rolagem horizontal">
+            <table>
+              <caption>Histórico versionado de alterações da empresa</caption>
+              <thead><tr><th scope="col">Campo</th><th scope="col">Anterior</th><th scope="col">Novo</th><th scope="col">Autor</th><th scope="col">Data</th><th scope="col">Versão</th></tr></thead>
+              <tbody>
+                @for (item of historico; track $index) {
+                  <tr>
+                    <th scope="row">{{ item.campo }}</th>
+                    <td>{{ item.anterior }}</td>
+                    <td>{{ item.novo }}</td>
+                    <td>Usuário #{{ item.autor }}</td>
+                    <td>{{ item.data | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ item.versao }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <nav class="nt-history__pagination" aria-label="Paginação do histórico">
+            <span>Registros {{ historicoPage * historicoSize + 1 }}–{{ (historicoPage + 1) * historicoSize < historicoTotal ? (historicoPage + 1) * historicoSize : historicoTotal }} de {{ historicoTotal }}</span>
+            <button type="button" class="nt-history__button" [disabled]="historicoLoading || historicoPage === 0" (click)="carregarHistorico(historicoPage - 1)">Anterior</button>
+            <button type="button" class="nt-history__button" [disabled]="historicoLoading || (historicoPage + 1) * historicoSize >= historicoTotal" (click)="carregarHistorico(historicoPage + 1)">Próxima</button>
+          </nav>
+        }
+      </section>
     }
 
   </div><!-- /nt-content -->
