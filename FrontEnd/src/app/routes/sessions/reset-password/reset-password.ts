@@ -31,7 +31,10 @@ export class ResetPassword {
   showConfirmation = false;
   completed = false;
   errorMessage = '';
-  private readonly token = this.route.snapshot.queryParamMap.get('token') || '';
+  // Query-string links issued earlier remain valid; new links use #token
+  // so the credential is never sent to the frontend server as a request URL.
+  private readonly token = this.route.snapshot.queryParamMap.get('token')
+    || new URLSearchParams(this.route.snapshot.fragment || '').get('token') || '';
   linkError: string | null = this.token ? null : 'Link de recuperação inválido. Solicite um novo.';
   resetForm = this.fb.nonNullable.group({
     password: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(128)]],
