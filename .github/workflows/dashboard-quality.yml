@@ -10,6 +10,7 @@ on:
     branches: ["feature/develop"]
     paths:
       - "FrontEnd/src/**"
+      - "FrontEnd/scripts/**"
       - "FrontEnd/public/**"
       - "FrontEnd/angular.json"
       - "FrontEnd/karma.conf.js"
@@ -22,6 +23,7 @@ on:
     branches: ["main"]
     paths:
       - "FrontEnd/src/**"
+      - "FrontEnd/scripts/**"
       - "FrontEnd/public/**"
       - "FrontEnd/angular.json"
       - "FrontEnd/karma.conf.js"
@@ -45,6 +47,8 @@ jobs:
           node-version: 22
           cache: yarn
           cache-dependency-path: FrontEnd/yarn.lock
+      - name: Validar contrato de navegação BASE-03
+        run: node --test scripts/navigation-contract.test.cjs
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - name: Testes de regressão do Application Shell
