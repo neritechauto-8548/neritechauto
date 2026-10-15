@@ -95,6 +95,69 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
         assertThat(jdbc.queryForObject("select count(*) from empresa where id=?", Integer.class, empresaA)).isEqualTo(1);
     }
 
+    @Test
+    void configuracoesDaEmpresaNaoVazamEntreTenants() throws Exception {
+        long empresaA = empresa("A");
+        long empresaB = empresa("B");
+        String tokenA = login(empresaA, "a" + empresaA + "@t.co", "ADMIN");
+
+        for (String base : new String[] {
+                "/v1/enderecos-empresa", "/v1/configuracoes-empresa",
+                "/v1/configuracoes-fiscais", "/v1/configuracoes-oficina"
+        }) {
+            mvc.perform(get(base + "/empresa/{id}", empresaB)
+                    .header("Authorization", "Bearer " + tokenA))
+                    .andExpect(status().isForbidden());
+            mvc.perform(get(base).header("Authorization", "Bearer " + tokenA))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.totalElements").value(0));
+        }
+    }
+
+    @Test
+    void logoInvalidaNaoEPersistidaEExclusaoFisicaDaEmpresaEProibida() throws Exception {
+        long empresaA = empresa("A");
+        String tokenA = login(empresaA, "a" + empresaA + "@t.co", "ADMIN");
+
+        mvc.perform(multipart("/v1/empresas/{id}/logo", empresaA)
+                .file(new MockMultipartFile("file", "logo.svg", "image/svg+xml",
+                        "<svg onload='alert(1)'/>".getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(multipart("/v1/empresas/{id}/logo", empresaA)
+                .file(new MockMultipartFile("file", "imagem.png", "image/png", new byte[]{1, 2, 3}))
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isUnprocessableEntity());
+
+        mvc.perform(delete("/v1/empresas/{id}", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isForbidden());
+        assertThat(jdbc.queryForObject("select logo_path from empresa where id=?", String.class, empresaA)).isNull();
+        assertThat(jdbc.queryForObject("select count(*) from empresa where id=?", Integer.class, empresaA)).isEqualTo(1);
+    }
+
+    @Test
+    void rejeitaVersaoObsoletaEIgnoraLogoPathForjado() throws Exception {
+        long empresaA = empresa("A");
+        String tokenA = login(empresaA, "a" + empresaA + "@t.co", "ADMIN");
+        int versao = jdbc.queryForObject("select versao from empresa where id=?", Integer.class, empresaA);
+        String atualizacao = json.writeValueAsString(Map.of(
+                "nomeFantasia", "Oficina segura", "razaoSocial", "Empresa segura",
+                "cnpj", "52998224725", "versao", versao,
+                "logoPath", "/etc/passwd"));
+        mvc.perform(put("/v1/empresas/{id}", empresaA)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(atualizacao))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.logoPath").doesNotExist());
+        assertThat(jdbc.queryForObject("select logo_path from empresa where id=?", String.class, empresaA)).isNull();
+
+        mvc.perform(put("/v1/empresas/{id}", empresaA)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(atualizacao))
+                .andExpect(status().isConflict());
+    }
+
     private long empresa(String suffix) {
         String document = suffix + "-" + Long.toString(System.nanoTime(), 36);
         return jdbc.queryForObject(
