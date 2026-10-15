@@ -88,16 +88,10 @@ public class EmpresaController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @Operation(summary = "Atualizar empresa", description = "Atualiza os dados de uma empresa existente")
     public ResponseEntity<EmpresaResponse> update(@PathVariable Long id, @Valid @RequestBody EmpresaRequest request) {
-        Empresa current = service.findById(TenantAccess.require(id));
-        if (request.getVersao() != null && !java.util.Objects.equals(request.getVersao(), current.getVersao())) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    HttpStatus.CONFLICT, "Os dados da empresa foram alterados em outra sessão. Recarregue antes de salvar.");
-        }
-        EmpresaMapper.updateEntity(current, request);
-        Empresa saved = service.update(id, current);
+        Empresa saved = service.updateCadastro(TenantAccess.require(id), request);
         return ResponseEntity.ok(EmpresaMapper.toResponse(saved));
     }
 
@@ -111,7 +105,7 @@ public class EmpresaController {
     }
 
     @PostMapping("/{id}/logo")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @Operation(summary = "Upload da logomarca", description = "Realiza o upload da imagem da logomarca da empresa")
     public ResponseEntity<EmpresaResponse> uploadLogo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         TenantAccess.require(id); // Validar ANTES de persistir o arquivo.
@@ -121,7 +115,7 @@ public class EmpresaController {
     }
 
     @DeleteMapping("/{id}/logo")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeLogo(@PathVariable Long id) {
         TenantAccess.require(id);
