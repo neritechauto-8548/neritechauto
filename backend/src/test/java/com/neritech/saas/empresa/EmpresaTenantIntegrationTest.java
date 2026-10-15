@@ -34,9 +34,9 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
     void empresaANaoPodeConsultarEditarExcluirNemEnviarLogoParaEmpresaB() throws Exception {
         long empresaA = empresa("A");
         long empresaB = empresa("B");
-        String tokenA = login(empresaA, "admin-empresa-a-" + empresaA + "@test.invalid", "ADMIN");
-        String tokenB = login(empresaB, "admin-empresa-b-" + empresaB + "@test.invalid", "ADMIN");
-        String viewerA = login(empresaA, "viewer-empresa-a-" + empresaA + "@test.invalid", "EMPRESA_SEM_PERMISSAO");
+        String tokenA = login(empresaA, "a" + empresaA + "@t.co", "ADMIN");
+        String tokenB = login(empresaB, "b" + empresaB + "@t.co", "ADMIN");
+        String viewerA = login(empresaA, "v" + empresaA + "@t.co", "LEITOR");
 
         mvc.perform(get("/v1/empresas/{id}", empresaA).header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk());
