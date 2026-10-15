@@ -176,6 +176,33 @@ test('BASE-04: responsive login, focus and simulated 200% zoom in real Chrome',
       'AUTH-002 CSS zoom reflow: ' + JSON.stringify(recoverZoom));
     await screenshot('recover-css-zoom-200');
 
+    // AUTH-003: verify existing public reset route and URL token hygiene in Chrome.
+    await command('Page.navigate', { url: baseUrl + '/auth/reset-password?token=' + 'R'.repeat(43) });
+    await waitFor("!!document.querySelector('#reset-title') && !!document.querySelector('#new-password') && !!document.querySelector('#confirm-password')");
+    assert.equal(await evaluate("location.search"), '', 'Reset token must not remain in URL/history');
+    for (const width of [320, 768, 1440]) {
+      await setViewport(width);
+      const layout = await evaluate("(() => { const form = document.querySelector('.auth-form'); const rect = form.getBoundingClientRect(); return { width: innerWidth, overflow: document.documentElement.scrollWidth - innerWidth, right: rect.right, formWidth: rect.width }; })()");
+      assert.ok(layout.formWidth > 0 && layout.right <= width + 2 && layout.overflow <= 2,
+        'AUTH-003 form overflow at ' + width + ': ' + JSON.stringify(layout));
+      await screenshot('reset-' + width);
+    }
+    const resetAX = await command('Accessibility.getFullAXTree');
+    const resetNames = resetAX.nodes.filter(n => n.role?.value && n.name?.value)
+      .map(n => ({ role: n.role.value, name: n.name.value }));
+    assert.ok(resetNames.some(n => n.role === 'heading' && n.name.includes('Redefinir senha')),
+      'AUTH-003 heading absent from Chrome accessibility tree');
+    assert.ok(resetNames.some(n => n.role === 'textbox' && n.name.includes('Nova senha')),
+      'AUTH-003 password must have an accessible label');
+    assert.ok(resetNames.some(n => n.role === 'textbox' && n.name.includes('Confirmar nova senha')),
+      'AUTH-003 confirmation must have an accessible label');
+    await setViewport(768);
+    const resetZoom = await evaluate("(() => { document.documentElement.style.zoom='200%'; const r=document.querySelector('.auth-form').getBoundingClientRect(); return { width: innerWidth, right:r.right, overflow:document.documentElement.scrollWidth-innerWidth }; })()");
+    assert.ok(resetZoom.right <= resetZoom.width + 2 && resetZoom.overflow <= 2,
+      'AUTH-003 CSS 200% reflow: ' + JSON.stringify(resetZoom));
+    await screenshot('reset-css-zoom-200');
+
+
   } finally { await cleanup(); }
 });
 // CSS zoom approximates reflow only. OS/browser zoom, screen reader, authentication
