@@ -214,6 +214,73 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void preferenciasDeTemaFusoEMoedaSaoValidadasAuditadasEIsoladas() throws Exception {
+        long a = empresa("A");
+        long b = empresa("B");
+        String email = "tema" + a + "@t.co";
+        String token = login(a, email, "ADMIN");
+        String other = login(b, "tema" + b + "@t.co", "ADMIN");
+        String payload = json.writeValueAsString(Map.of(
+                "empresaId", a, "corTema", "dark", "timezone", "America/Recife", "moeda", "BRL"));
+        mvc.perform(post("/v1/configuracoes-oficina")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.corTema").value("dark"));
+        assertThat(jdbc.queryForObject(
+                "select cor_tema from configuracoes_oficina where empresa_id = ?",
+                String.class, a)).isEqualTo("dark");
+        assertThat(jdbc.queryForObject("""
+                select count(*) from logs_alteracoes
+                where empresa_id = ? and contexto_operacao = 'ADM-001'
+                and campos_alterados like '%corTema%'
+                """, Long.class, a)).isGreaterThan(0L);
+        mvc.perform(get("/v1/configuracoes-oficina/empresa/{id}", a)
+                .header("Authorization", "Bearer " + other))
+                .andExpect(status().isForbidden());
+
+        for (Map<String, Object> fields : java.util.List.<Map<String, Object>>of(
+                Map.of("empresaId", a, "corTema", "qualquer"),
+                Map.of("empresaId", a, "moeda", "USD"),
+                Map.of("empresaId", a, "timezone", "Fuso/Invalido")
+        )) {
+            mvc.perform(post("/v1/configuracoes-oficina")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(fields)))
+                    .andExpect(status().isUnprocessableEntity());
+        }
+        mvc.perform(post("/v1/configuracoes-oficina")
+                .header("Authorization", "Bearer " + other)
+                .contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void documentoInvalidoEPermissaoDeEdicaoSaoValidadosNoServidor() throws Exception {
+        long a = empresa("A");
+        String token = login(a, "cnpj" + a + "@t.co", "ADMIN");
+        String viewer = login(a, "view" + a + "@t.co", "LEITOR");
+        String invalido = json.writeValueAsString(Map.of(
+                "nomeFantasia", "Oficina", "razaoSocial", "Oficina Fiscal",
+                "cnpj", "00000000000000"));
+        mvc.perform(put("/v1/empresas/{id}", a)
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(invalido))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put("/v1/empresas/{id}", a)
+                .header("Authorization", "Bearer " + viewer)
+                .contentType(MediaType.APPLICATION_JSON).content(invalido))
+                .andExpect(status().isForbidden());
+        String endereco = json.writeValueAsString(Map.of(
+                "empresaId", a, "cep", "123", "logradouro", "Rua A", "numero", "1",
+                "bairro", "Centro", "cidade", "Recife", "estado", "PE"));
+        mvc.perform(post("/v1/enderecos-empresa")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(endereco))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
     private long empresa(String suffix) {
         String document = suffix + "-" + Long.toString(System.nanoTime(), 36);
         return jdbc.queryForObject(
