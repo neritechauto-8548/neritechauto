@@ -1,4 +1,5 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -24,7 +25,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { FieldsetModule } from 'primeng/fieldset';
 import { EmpresaService } from './services/empresa.service';
 import {
-  Empresa, EnderecoEmpresa, ConfiguracaoEmpresa,
+  Empresa, EmpresaAlteracao, EnderecoEmpresa, ConfiguracaoEmpresa,
   ConfiguracaoFiscal, ConfiguracaoOficina,
   ConfiguracaoEmail, ConfiguracaoWhatsapp, ConfiguracaoSms
 } from './models/empresa.models';
@@ -41,6 +42,7 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
   styleUrl: './empresa.scss',
   imports: [
     FormsModule,
+    DatePipe,
     ToastModule,
     InputMaskModule,
     InputTextModule,
@@ -77,6 +79,12 @@ export class EmpresaConfig implements OnInit, OnDestroy {
   erroCarregamento = '';
   empresaId = this.getTenantId();
   activeTab = 'dados';
+  historico: EmpresaAlteracao[] = [];
+  historicoLoading = false;
+  historicoError = '';
+  historicoPage = 0;
+  historicoSize = 20;
+  historicoTotal = 0;
 
   // ── Models ──────────────────────────────────────────────────────
   empresa: Empresa = { nomeFantasia: '', razaoSocial: '', cnpj: '' };
@@ -230,6 +238,29 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         if (this.pick<ConfiguracaoWhatsapp>(whatsapp)) this.configWhatsapp = { ...this.configWhatsapp, ...this.pick<ConfiguracaoWhatsapp>(whatsapp) };
         if (this.pick<ConfiguracaoSms>(sms))           this.configSms      = { ...this.configSms,      ...this.pick<ConfiguracaoSms>(sms) };
         this.endereco.empresaId = this.empresaId;
+      });
+  }
+
+  carregarHistorico(page = 0): void {
+    if (!this.empresaCarregada || this.historicoLoading || !this.empresaId) return;
+    this.historicoLoading = true;
+    this.historicoError = '';
+    this.service.getHistorico(this.empresaId, page, this.historicoSize)
+      .pipe(finalize(() => this.historicoLoading = false))
+      .subscribe({
+        next: result => {
+          this.historicoPage = page;
+          this.historico = result.content || [];
+          this.historicoTotal = result.totalElements ?? 0;
+        },
+        error: (err: any) => {
+          this.historico = [];
+          this.historicoError = err?.status === 403
+            ? 'Você não tem permissão para consultar o histórico desta empresa.'
+            : err?.status === 0
+              ? 'Sem conexão. Verifique sua rede e tente novamente.'
+              : 'Não foi possível consultar o histórico. Tente novamente.';
+        }
       });
   }
 
@@ -682,6 +713,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
       next: (res: any) => {
         this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Configurações salvas com sucesso!' });
         if (res.empresa)   this.empresa       = { ...this.empresa, ...res.empresa };
+        if (this.activeTab === 'historico') this.carregarHistorico();
         if (res.endereco)  this.endereco      = res.endereco;
         if (res.configEmp) this.configEmpresa = res.configEmp;
         if (res.fiscal)    this.configFiscal  = res.fiscal;
