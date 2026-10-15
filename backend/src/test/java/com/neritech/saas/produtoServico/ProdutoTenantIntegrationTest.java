@@ -40,7 +40,7 @@ class ProdutoTenantIntegrationTest extends AbstractIntegrationTest {
         String tokenA = login(empresaA, "a-produto-" + empresaA + "@t.co", "ADMIN");
         String tokenB = login(empresaB, "b-produto-" + empresaB + "@t.co", "ADMIN");
         String leitorA = login(empresaA, "l-produto-" + empresaA + "@t.co", "LEITOR");
-        jdbc.update("insert into estoques (empresa_id, produto_id, quantidade_atual, preco_custo_lote, data_cadastro) values (?, ?, 4, 5, now())",
+        jdbc.update("insert into estoques (empresa_id, produto_id, quantidade_atual, preco_custo_lote, data_cadastro, data_atualizacao, status, versao) values (?, ?, 4, 5, now(), now(), 'ATIVO', 0)",
                 empresaB, produtoB);
         long categoriaB = jdbc.queryForObject(
                 "insert into categorias_produtos (empresa_id, nome, ativo) values (?, ?, true) returning id",
