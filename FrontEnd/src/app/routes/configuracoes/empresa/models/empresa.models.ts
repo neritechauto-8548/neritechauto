@@ -151,6 +151,7 @@ export interface ConfiguracaoOficina {
   formatoData?: string;
   formatoHora?: string;
   timezone?: string;
+  corTema?: 'light' | 'dark' | 'auto';
   possuiIntervalo?: boolean;
   inicioIntervalo?: string;
   fimIntervalo?: string;
