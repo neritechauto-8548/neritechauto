@@ -1,6 +1,7 @@
 package com.neritech.saas.produtoServico.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,21 +56,22 @@ public class ProdutoService {
 
     @Transactional
     public ProdutoResponse create(ProdutoRequest request) {
+        TenantAccess.require(request.empresaId());
         if (repository.existsByEmpresaIdAndCodigoInterno(request.empresaId(), request.codigoInterno())) {
             throw new IllegalArgumentException("JÃ¡ existe um produto com este cÃ³digo interno nesta empresa");
         }
 
         CategoriaProduto categoria = null;
         if (request.categoriaId() != null) {
-            categoria = categoriaRepository.findById(request.categoriaId())
-                    .orElseThrow(() -> new EntityNotFoundException(
+            categoria = categoriaRepository.findByIdAndEmpresaId(request.categoriaId(), TenantAccess.requireCurrent())
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Categoria nÃ£o encontrada com ID: " + request.categoriaId()));
         }
 
         UnidadeMedida unidadeMedida = null;
         if (request.unidadeMedidaId() != null) {
-            unidadeMedida = unidadeMedidaRepository.findById(request.unidadeMedidaId())
-                    .orElseThrow(() -> new EntityNotFoundException(
+            unidadeMedida = unidadeMedidaRepository.findByIdAndEmpresaId(request.unidadeMedidaId(), TenantAccess.requireCurrent())
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Unidade de medida nÃ£o encontrada com ID: " + request.unidadeMedidaId()));
         }
 
@@ -101,27 +103,30 @@ public class ProdutoService {
 
     @Transactional(readOnly = true)
     public ProdutoResponse findById(Long id) {
-        return repository.findById(id)
+        return repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
                 .map(mapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Produto nÃ£o encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Produto nÃ£o encontrado com ID: " + id));
     }
 
     @Transactional(readOnly = true)
     public Page<ProdutoResponse> findAll(Long empresaId, Pageable pageable) {
+        TenantAccess.require(empresaId);
         return repository.findByEmpresaId(empresaId, pageable)
                 .map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<ProdutoResponse> search(Long empresaId, String query, Pageable pageable) {
+        TenantAccess.require(empresaId);
         return repository.search(empresaId, query, pageable)
                 .map(mapper::toResponse);
     }
 
     @Transactional
     public ProdutoResponse update(Long id, ProdutoRequest request) {
-        Produto entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + id));
+        TenantAccess.require(request.empresaId());
+        Produto entity = repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com ID: " + id));
 
         java.math.BigDecimal oldPrecoVenda = entity.getPrecoVenda();
         java.math.BigDecimal oldPrecoCusto = entity.getPrecoCusto();
@@ -139,15 +144,15 @@ public class ProdutoService {
 
         CategoriaProduto categoria = null;
         if (request.categoriaId() != null) {
-            categoria = categoriaRepository.findById(request.categoriaId())
-                    .orElseThrow(() -> new EntityNotFoundException(
+            categoria = categoriaRepository.findByIdAndEmpresaId(request.categoriaId(), TenantAccess.requireCurrent())
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Categoria não encontrada com ID: " + request.categoriaId()));
         }
 
         UnidadeMedida unidadeMedida = null;
         if (request.unidadeMedidaId() != null) {
-            unidadeMedida = unidadeMedidaRepository.findById(request.unidadeMedidaId())
-                    .orElseThrow(() -> new EntityNotFoundException(
+            unidadeMedida = unidadeMedidaRepository.findByIdAndEmpresaId(request.unidadeMedidaId(), TenantAccess.requireCurrent())
+                    .orElseThrow(() -> new ResourceNotFoundException(
                             "Unidade de medida não encontrada com ID: " + request.unidadeMedidaId()));
         }
 
@@ -236,8 +241,8 @@ public class ProdutoService {
 
     @Transactional
     public ProdutoResponse duplicar(Long id) {
-        Produto original = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + id));
+        Produto original = repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com ID: " + id));
 
         Produto copia = new Produto();
         copia.setEmpresaId(original.getEmpresaId());
@@ -452,21 +457,27 @@ public class ProdutoService {
 
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Produto nÃ£o encontrado com ID: " + id);
-        }
+        // Validate ownership before removing stock or inventory relationships.
+        Produto entity = repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto", "ID", id));
         
         // Remove dependências no estoque para evitar violação de FK
         estoqueRepository.deleteByProdutoId(id);
         itemInventarioRepository.deleteByProdutoId(id);
         
-        repository.deleteById(id);
+        repository.delete(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public void validateFotoUpload(Long id) {
+        repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto", "ID", id));
     }
 
     @Transactional
     public ProdutoResponse updateFotoPath(Long id, String fotoPath) {
-        Produto entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + id));
+        Produto entity = repository.findByIdAndEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com ID: " + id));
         entity.setFotoPrincipalUrl(fotoPath);
         Produto saved = repository.save(entity);
         return mapper.toResponse(saved);
