@@ -130,8 +130,7 @@ export class EmpresaService {
       serieNfe: data.serieNfe,
       numeracaoNfe: data.numeracaoNfe,
       ambienteNfe: data.ambienteNfe,
-      certificadoDigitalA1: data.certificadoDigitalA1,
-      senhaCertificado: data.senhaCertificado,
+      // Segredos fiscais exigem configuração segura fora do cadastro comum.
       validadeCertificado: data.validadeCertificado
     };
     return data.id
