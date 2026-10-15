@@ -113,6 +113,26 @@ describe('AUTH-003 — Redefinição de senha', () => {
     }
   });
 
+  it('handles invalid 401 credentials and forbidden 403 without reporting success', async () => {
+    const html = await visit();
+    const phrase = 'Frase longa suficiente ✓';
+    component.resetForm.setValue({ password: phrase, confirmPassword: phrase });
+    loginService.resetPassword.and.returnValue(throwError(() => new HttpErrorResponse({ status: 401 })));
+    component.resetPassword();
+    harness.detectChanges();
+    expect(component.linkError).toContain('inválido');
+    expect(html.querySelector('a[href="/auth/recover"]')).not.toBeNull();
+    expect(component.completed).toBeFalse();
+
+    component.linkError = null;
+    loginService.resetPassword.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
+    component.resetPassword();
+    harness.detectChanges();
+    expect(component.errorMessage).toContain('não permitida');
+    expect(component.completed).toBeFalse();
+    expect(html.querySelector('form')).not.toBeNull();
+  });
+
   it('preserves form for 422 and network errors without false success', async () => {
     const html = await visit();
     const phrase = 'Frase longa suficiente ✓';
