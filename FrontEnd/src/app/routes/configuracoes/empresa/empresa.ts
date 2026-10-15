@@ -34,7 +34,7 @@ import { LocalStorageService } from '@shared/services/storage.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
 import { ConfirmationService } from '@shared/services/confirmation.service';
-import { catchError, finalize, forkJoin, of } from 'rxjs';
+import { catchError, finalize, forkJoin, of, tap, throwError } from 'rxjs';
 
 @Component({
   selector: 'empresa-config',
@@ -78,6 +78,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
 
   loading   = false;
   empresaCarregada = false;
+  emailConfigWritable = false;
   erroCarregamento = '';
   empresaId = this.getTenantId();
   activeTab = 'dados';
@@ -208,14 +209,22 @@ export class EmpresaConfig implements OnInit, OnDestroy {
     }
     this.loading = true;
     this.empresaCarregada = false;
+    this.emailConfigWritable = false;
     this.erroCarregamento = '';
     forkJoin({
-      empresa:   this.service.getEmpresa(this.empresaId)         .pipe(catchError(() => of(null))),
-      enderecos: this.service.getEnderecos(this.empresaId)        .pipe(catchError(() => of(null))),
-      configEmp: this.service.getConfigEmpresa(this.empresaId)    .pipe(catchError(() => of(null))),
-      fiscal:    this.service.getConfigFiscal(this.empresaId)     .pipe(catchError(() => of(null))),
-      oficina:   this.service.getConfigOficina(this.empresaId)    .pipe(catchError(() => of(null))),
-      email:     this.service.getConfigEmail(this.empresaId)      .pipe(catchError(() => of(null))),
+      empresa:   this.service.getEmpresa(this.empresaId),
+      enderecos: this.service.getEnderecos(this.empresaId)        .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      configEmp: this.service.getConfigEmpresa(this.empresaId)    .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      fiscal:    this.service.getConfigFiscal(this.empresaId)     .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      oficina:   this.service.getConfigOficina(this.empresaId)    .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      email:     this.service.getConfigEmail(this.empresaId).pipe(
+        tap(() => this.emailConfigWritable = true),
+        catchError(error => {
+          // Ausência de configuração (404) permite criação; falhas de rede/permissão não.
+          this.emailConfigWritable = error.status === 404;
+          return of(null);
+        })
+      ),
       whatsapp:  this.service.getConfigWhatsapp(this.empresaId)   .pipe(catchError(() => of(null))),
       sms:       this.service.getConfigSms(this.empresaId)        .pipe(catchError(() => of(null))),
     }).pipe(finalize(() => this.loading = false))
@@ -243,6 +252,17 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         if (this.pick<ConfiguracaoWhatsapp>(whatsapp)) this.configWhatsapp = { ...this.configWhatsapp, ...this.pick<ConfiguracaoWhatsapp>(whatsapp) };
         if (this.pick<ConfiguracaoSms>(sms))           this.configSms      = { ...this.configSms,      ...this.pick<ConfiguracaoSms>(sms) };
         this.endereco.empresaId = this.empresaId;
+      },
+      error: (error: any) => {
+        this.empresaCarregada = false;
+        this.erroCarregamento = error?.status === 403
+          ? 'Sem permissão para carregar as configurações desta empresa.'
+          : error?.status === 401
+            ? 'Sessão expirada. Entre novamente para continuar.'
+            : error?.status === 0
+              ? 'Sem conexão com o servidor. Confira sua rede e tente novamente.'
+              : 'Não foi possível carregar todas as configurações da empresa. Nenhuma alteração foi enviada.';
+        this.toast.add({ severity: 'error', summary: 'Falha ao carregar empresa', detail: this.erroCarregamento });
       });
   }
 
@@ -709,7 +729,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
     };
     reqs['oficina'] = this.service.saveConfigOficina(oficinaPayload);
 
-    if (this.configEmail?.ativo) {
+    if (this.configEmail?.ativo && this.emailConfigWritable) {
       if (!this.configEmail.usuarioSmtp) this.configEmail.usuarioSmtp = this.configEmail.remetenteEmail;
       reqs['email'] = this.service.saveConfigEmail(this.configEmail);
     }
