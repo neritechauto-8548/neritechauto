@@ -3,10 +3,10 @@
     @for (item of navItems; track trackByNavItem($index, item); let isFirst = $first) {
       <li class="matero-breadcrumb-item">
         @if (isFirst) {
-          <a href="#" class="link">{{item}}</a>
+          <a routerLink="/home" class="link">{{ item === 'home' ? 'Início' : (item | translate) }}</a>
         }
         @if (!isFirst) {
-          <mat-icon class="chevron">chevron_right</mat-icon>
+          <mat-icon aria-hidden="true" class="chevron">chevron_right</mat-icon>
           <span>{{item | translate}}</span>
         }
       </li>
