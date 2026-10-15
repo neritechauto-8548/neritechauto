@@ -85,7 +85,7 @@ public class EmpresaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @PreAuthorize("denyAll()")
     @Operation(summary = "Deletar empresa", description = "Remove uma empresa pelo ID")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
@@ -103,6 +103,14 @@ public class EmpresaController {
         return ResponseEntity.ok(EmpresaMapper.toResponse(saved));
     }
 
+    @DeleteMapping("/{id}/logo")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeLogo(@PathVariable Long id) {
+        TenantAccess.require(id);
+        service.updateLogoPath(id, null);
+    }
+
     @GetMapping("/{id}/logo")
     @Operation(summary = "Obter logomarca da empresa", description = "Retorna a imagem da logomarca da empresa")
     public ResponseEntity<org.springframework.core.io.Resource> getLogo(@PathVariable Long id) {
@@ -110,15 +118,8 @@ public class EmpresaController {
         if (e.getLogoPath() == null || e.getLogoPath().isBlank()) {
             return ResponseEntity.notFound().build();
         }
+        String contentType = logoStorageService.mediaType(e.getLogoPath());
         org.springframework.core.io.Resource r = logoStorageService.load(e.getLogoPath());
-        String contentType = "image/png";
-        if (e.getLogoPath().toLowerCase().endsWith(".jpg") || e.getLogoPath().toLowerCase().endsWith(".jpeg")) {
-            contentType = "image/jpeg";
-        } else if (e.getLogoPath().toLowerCase().endsWith(".gif")) {
-            contentType = "image/gif";
-        } else if (e.getLogoPath().toLowerCase().endsWith(".svg")) {
-            contentType = "image/svg+xml";
-        }
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
                 .body(r);
