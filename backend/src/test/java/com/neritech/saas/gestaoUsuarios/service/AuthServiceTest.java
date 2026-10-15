@@ -277,6 +277,91 @@ class AuthServiceTest {
     }
 
     @Nested
+    @DisplayName("AUTH-003 Redefinição e revogação")
+    class ResetPasswordTests {
+        private ResetPasswordRequest request(String token, String password) {
+            ResetPasswordRequest request = new ResetPasswordRequest();
+            request.setToken(token);
+            request.setNovaSenha(password);
+            return request;
+        }
+
+        private String hash(String token) throws Exception {
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        }
+
+        @Test
+        void weakOrPredictablePasswordReturns422WithoutTouchingTheToken() {
+            for (String password : java.util.List.of("short", "123456789012", "AAAAAAAAAAAA", "password1234")) {
+                assertThatThrownBy(() -> authService.resetPassword(request("token", password)))
+                        .isInstanceOf(ResponseStatusException.class)
+                        .satisfies(ex -> org.junit.jupiter.api.Assertions.assertEquals(
+                                HttpStatus.UNPROCESSABLE_ENTITY, ((ResponseStatusException) ex).getStatusCode()));
+            }
+            verifyNoInteractions(tokenRepository, passwordEncoder);
+        }
+
+        @Test
+        void invalidTokenDoesNotUpdateCredentials() throws Exception {
+            when(tokenRepository.findWithLockByToken(hash("token-desconhecido"))).thenReturn(Optional.empty());
+            assertThatThrownBy(() -> authService.resetPassword(
+                    request("token-desconhecido", "Uma frase senha longa e segura ✓")))
+                    .isInstanceOf(IllegalArgumentException.class);
+            verifyNoInteractions(passwordEncoder, sessaoUsuarioRepository);
+        }
+
+        @Test
+        void repeatedParallelLikeRequestsCannotReuseConsumedToken() throws Exception {
+            String raw = "token-unico-que-deve-ser-inutilizado";
+            TokenRecuperacaoSenha reset = TokenRecuperacaoSenha.builder()
+                    .token(hash(raw)).usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(30)).build();
+            TokenRecuperacaoSenha another = TokenRecuperacaoSenha.builder()
+                    .token("outro-hash").usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(30)).build();
+            SessaoUsuario session = SessaoUsuario.builder()
+                    .usuario(usuario).empresaId(usuario.getEmpresaId())
+                    .tokenSessao("old-access").refreshToken("old-refresh").ativo(true).build();
+            when(tokenRepository.findWithLockByToken(hash(raw))).thenReturn(Optional.of(reset));
+            when(tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())).thenReturn(java.util.List.of(another));
+            when(sessaoUsuarioRepository.findByUsuarioIdAndAtivoTrue(usuario.getId()))
+                    .thenReturn(java.util.List.of(session));
+            when(passwordEncoder.encode(anyString())).thenReturn("bcrypt-encoded");
+            authService.resetPassword(request(raw, "Minha frase-senha segura 2026 ✓"));
+            org.junit.jupiter.api.Assertions.assertTrue(reset.getUsado());
+            org.junit.jupiter.api.Assertions.assertTrue(another.getUsado());
+            org.junit.jupiter.api.Assertions.assertFalse(session.getAtivo());
+            org.junit.jupiter.api.Assertions.assertEquals("bcrypt-encoded", usuario.getSenha());
+            verify(tokenRepository).saveAndFlush(reset);
+            verify(tokenRepository).save(another);
+            verify(sessaoUsuarioRepository).save(session);
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+
+            assertThatThrownBy(() -> authService.resetPassword(request(raw, "Nova frase ainda mais segura 2026 ✓")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("utilizado");
+            verify(passwordEncoder).encode(anyString());
+        }
+
+        @Test
+        void samePreviousPasswordIsRejected() throws Exception {
+            String raw = "token-senha-anterior";
+            TokenRecuperacaoSenha reset = TokenRecuperacaoSenha.builder().token(hash(raw))
+                    .usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(15)).build();
+            when(tokenRepository.findWithLockByToken(hash(raw))).thenReturn(Optional.of(reset));
+            when(passwordEncoder.matches(anyString(), eq(usuario.getSenha()))).thenReturn(true);
+            assertThatThrownBy(() -> authService.resetPassword(request(raw, "Senha anterior mais de 12 caracteres")))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(ex -> org.junit.jupiter.api.Assertions.assertEquals(
+                            HttpStatus.UNPROCESSABLE_ENTITY, ((ResponseStatusException) ex).getStatusCode()));
+            verify(usuarioRepository, never()).saveAndFlush(any(Usuario.class));
+            org.junit.jupiter.api.Assertions.assertFalse(reset.getUsado());
+        }
+    }
+
+    @Nested
     @DisplayName("Refresh Token")
     class RefreshTokenTests {
 
