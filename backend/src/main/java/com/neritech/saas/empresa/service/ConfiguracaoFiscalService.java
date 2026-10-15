@@ -31,6 +31,7 @@ public class ConfiguracaoFiscalService {
 
     public ConfiguracaoFiscalResponse create(ConfiguracaoFiscalRequest request) {
         TenantAccess.require(request.empresaId());
+        rejectPlaintextSecrets(request);
         var empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new EntityNotFoundException("Empresa nÃ£o encontrada"));
 
@@ -68,6 +69,7 @@ public class ConfiguracaoFiscalService {
 
     public ConfiguracaoFiscalResponse update(Long id, ConfiguracaoFiscalRequest request) {
         TenantAccess.require(request.empresaId());
+        rejectPlaintextSecrets(request);
         ConfiguracaoFiscal config = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o fiscal nÃ£o encontrada"));
 
@@ -92,4 +94,18 @@ public class ConfiguracaoFiscalService {
         TenantAccess.require(config.getEmpresa().getId());
         repository.delete(config);
     }
+    private static void rejectPlaintextSecrets(ConfiguracaoFiscalRequest request) {
+        if (hasContent(request.certificadoDigitalA1()) || hasContent(request.senhaCertificado())
+                || hasContent(request.tokenAcessoProvedorHomologacao())
+                || hasContent(request.tokenAcessoProvedorProducao())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Credenciais fiscais não podem ser gravadas no cadastro comum da empresa");
+        }
+    }
+
+    private static boolean hasContent(String value) {
+        return value != null && !value.isBlank();
+    }
+
 }
