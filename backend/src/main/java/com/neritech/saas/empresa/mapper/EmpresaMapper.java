@@ -51,7 +51,8 @@ public class EmpresaMapper {
         r.setDataAbertura(e.getDataAbertura());
         r.setObservacoes(e.getObservacoes());
         r.setAtivo(e.getAtivo());
-        r.setLogoPath(e.getLogoPath());
+        // O frontend precisa apenas saber se há logomarca; nunca expor o caminho local.
+        r.setLogoPath(e.getLogoPath() == null || e.getLogoPath().isBlank() ? null : "available");
         return r;
     }
 }
