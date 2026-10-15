@@ -115,11 +115,85 @@ class AuthSessionTokenLengthIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void resetConcorrenteRevogaTokensEPermiteNovoLoginSemImpactarOutraEmpresa() throws Exception {
+        long tenantA = empresa("RESET-A");
+        long tenantB = empresa("RESET-B");
+        Usuario accountA = usuario(tenantA, "reset" + tenantA + "@test.com", funcao(tenantA));
+        Usuario accountB = usuario(tenantB, "reset" + tenantB + "@test.com", funcao(tenantB));
+
+        JsonNode originalA = login(tenantA, accountA.getEmail());
+        JsonNode originalB = login(tenantB, accountB.getEmail());
+        String oldAccessA = originalA.get("accessToken").asText();
+        String oldRefreshA = originalA.get("refreshToken").asText();
+        String accessB = originalB.get("accessToken").asText();
+
+        String expiredRaw = "E".repeat(43);
+        String expiredHash = java.util.HexFormat.of().formatHex(java.security.MessageDigest
+                .getInstance("SHA-256").digest(expiredRaw.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        jdbc.update("insert into tokens_recuperacao_senha(token,usuario_id,data_expiracao,usado) values(?,?,now()-interval '1 minute',false)",
+                expiredHash, accountA.getId());
+        mvc.perform(post("/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("token", expiredRaw, "novaSenha", "Nova frase-senha válida 2026 ✓"))))
+                .andExpect(status().isBadRequest());
+
+        String raw = "R".repeat(43);
+        String hash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                .digest(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        jdbc.update("insert into tokens_recuperacao_senha(token,usuario_id,data_expiracao,usado) values(?,?,now()+interval '30 minutes',false)",
+                hash, accountA.getId());
+        String newPassword = "Minha nova frase-senha segura ✓ 2026";
+        String payload = json.writeValueAsString(Map.of("token", raw, "novaSenha", newPassword));
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        try {
+            java.util.concurrent.Callable<Integer> submit = () -> {
+                start.await();
+                return mvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                        .andReturn().getResponse().getStatus();
+            };
+            var first = pool.submit(submit);
+            var second = pool.submit(submit);
+            start.countDown();
+            List<Integer> results = List.of(first.get(30, java.util.concurrent.TimeUnit.SECONDS),
+                    second.get(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertThat(results).containsExactlyInAnyOrder(200, 400);
+        } finally {
+            pool.shutdownNow();
+        }
+
+        assertThat(jdbc.queryForObject("select count(*) from tokens_recuperacao_senha where usuario_id = ? and usado = true",
+                Long.class, accountA.getId())).isEqualTo(2L);
+        assertThat(encoder.matches(newPassword, usuarios.findById(accountA.getId()).orElseThrow().getSenha()))
+                .isTrue();
+        assertThat(sessoes.findByTokenSessao(oldAccessA).orElseThrow().getAtivo()).isFalse();
+
+        mvc.perform(get("/usuarios/{id}", accountA.getId())
+                .header("Authorization", "Bearer " + oldAccessA)).andExpect(status().isForbidden());
+        mvc.perform(post("/auth/refresh").contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("refreshToken", oldRefreshA))))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("email", accountA.getEmail(), "senha", "senha123"))))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("email", accountA.getEmail(), "senha", newPassword))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").exists());
+
+        mvc.perform(get("/usuarios/{id}", accountB.getId())
+                .header("Authorization", "Bearer " + accessB)).andExpect(status().isOk());
+    }
+
     @AfterEach
     void cleanupOnlyThisTest() {
         if (!userIds.isEmpty()) {
             String binds = String.join(",", Collections.nCopies(userIds.size(), "?"));
             Object[] ids = userIds.toArray();
+            jdbc.update("delete from tokens_recuperacao_senha where usuario_id in (" + binds + ")", ids);
             jdbc.update("delete from logs_acesso where usuario_id in (" + binds + ")", ids);
             jdbc.update("delete from sessoes_usuario where usuario_id in (" + binds + ")", ids);
             jdbc.update("delete from perfis_usuario where usuario_id in (" + binds + ")", ids);
