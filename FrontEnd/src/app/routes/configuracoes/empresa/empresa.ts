@@ -228,7 +228,8 @@ export class EmpresaConfig implements OnInit, OnDestroy {
       whatsapp:  this.service.getConfigWhatsapp(this.empresaId)   .pipe(catchError(() => of(null))),
       sms:       this.service.getConfigSms(this.empresaId)        .pipe(catchError(() => of(null))),
     }).pipe(finalize(() => this.loading = false))
-      .subscribe(({ empresa, enderecos, configEmp, fiscal, oficina, email, whatsapp, sms }) => {
+      .subscribe({
+        next: ({ empresa, enderecos, configEmp, fiscal, oficina, email, whatsapp, sms }) => {
         if (!empresa?.id || empresa.id !== this.empresaId) {
           this.erroCarregamento = 'Não foi possível carregar os dados da empresa autenticada. Tente novamente.';
           this.toast.add({ severity: 'error', summary: 'Erro ao carregar empresa', detail: this.erroCarregamento });
