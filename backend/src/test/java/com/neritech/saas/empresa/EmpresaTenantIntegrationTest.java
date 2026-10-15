@@ -129,6 +129,13 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
                 .header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isUnprocessableEntity());
 
+        // Assinatura PNG correta, mas imagem truncada: não é um arquivo decodificável.
+        mvc.perform(multipart("/v1/empresas/{id}/logo", empresaA)
+                .file(new MockMultipartFile("file", "falsa.png", "image/png",
+                        new byte[]{(byte) 0x89, 'P', 'N', 'G', 13, 10, 26, 10}))
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isUnprocessableEntity());
+
         mvc.perform(delete("/v1/empresas/{id}", empresaA)
                 .header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isForbidden());
