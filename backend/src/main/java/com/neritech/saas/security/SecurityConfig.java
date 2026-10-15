@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -63,6 +67,15 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+            // Contrato HTTP de Orçamentos: ausência de autenticação retorna 401.
+            // Não alterar o entry point dos outros módulos (regressão de OS).
+            .exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
+                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                new OrRequestMatcher(
+                    new AntPathRequestMatcher("/v1/orcamentos"),
+                    new AntPathRequestMatcher("/v1/orcamentos/**")
+                )
+            ))
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
