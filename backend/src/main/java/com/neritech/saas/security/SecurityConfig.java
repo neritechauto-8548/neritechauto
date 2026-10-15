@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -75,6 +76,10 @@ public class SecurityConfig {
                     new AntPathRequestMatcher("/v1/orcamentos"),
                     new AntPathRequestMatcher("/v1/orcamentos/**")
                 )
+            ).defaultAuthenticationEntryPointFor(
+                // A aplicação preserva 403 como contrato legado nos demais endpoints.
+                new HttpStatusEntryPoint(HttpStatus.FORBIDDEN),
+                AnyRequestMatcher.INSTANCE
             ))
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
