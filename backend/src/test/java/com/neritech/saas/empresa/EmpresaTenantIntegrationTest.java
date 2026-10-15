@@ -281,6 +281,49 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isUnprocessableEntity());
     }
 
+    @Test
+    void uploadERemocaoDeLogoRegistramVersoesSemExporCaminhoPrivado() throws Exception {
+        long empresaA = empresa("A");
+        String tokenA = login(empresaA, "marca" + empresaA + "@t.co", "ADMIN");
+        java.awt.image.BufferedImage imagem = new java.awt.image.BufferedImage(
+                2, 2, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(imagem, "png", buffer);
+
+        mvc.perform(multipart("/v1/empresas/{id}/logo", empresaA)
+                .file(new MockMultipartFile("file", "marca.png", "image/png", buffer.toByteArray()))
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.logoPath").value("available"));
+
+        mvc.perform(get("/v1/empresas/{id}", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.logoPath").value("available"));
+        mvc.perform(get("/v1/empresas/{id}/logo", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"));
+
+        mvc.perform(delete("/v1/empresas/{id}/logo", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/v1/empresas/{id}/logo", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isNotFound());
+
+        Long alteracoes = jdbc.queryForObject("""
+                select count(*) from logs_alteracoes where empresa_id = ?
+                and contexto_operacao = 'ADM-001' and campos_alterados like '%marca%'
+                """, Long.class, empresaA);
+        assertThat(alteracoes).isEqualTo(2L);
+        String historico = jdbc.queryForObject("""
+                select string_agg(valores_novos, ' ') from logs_alteracoes
+                where empresa_id = ? and contexto_operacao = 'ADM-001'
+                """, String.class, empresaA);
+        assertThat(historico).doesNotContain("/uploads/", "logo_");
+    }
+
     private long empresa(String suffix) {
         String document = suffix + "-" + Long.toString(System.nanoTime(), 36);
         return jdbc.queryForObject(
