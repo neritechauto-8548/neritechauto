@@ -37,6 +37,7 @@ describe('Application Shell preview navigation', () => {
     expect(lookup(items, 'Oficina')?.item.type).toBe('sub');
     const routes: Array<[string, string]> = [
       ['Início', '/home'],
+      ['Comunicação', '/cliente/crm/comunicacao'],
       ['Agenda', '/agendamento/calendario'],
       ['Orçamentos', '/orcamento'],
       ['Ordens de Serviço', '/os'],
@@ -57,7 +58,7 @@ describe('Application Shell preview navigation', () => {
 
   it('keeps unimplemented official menu items visible and non-navigable', () => {
     const items = (startup as any).getPreviewMenu() as Menu[];
-    for (const name of ['Gestão de Pátio', 'Comunicação',
+    for (const name of ['Gestão de Pátio',
       'Diagnósticos', 'Kits', 'Movimento Bancário', 'Gráficos Gerenciais']) {
       expect(lookup(items, name)?.item.disabled).withContext(name).toBeTrue();
     }
