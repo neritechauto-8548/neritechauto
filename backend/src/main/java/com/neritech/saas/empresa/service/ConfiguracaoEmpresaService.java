@@ -9,6 +9,8 @@ import com.neritech.saas.empresa.repository.ConfiguracaoEmpresaRepository;
 import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,15 @@ public class ConfiguracaoEmpresaService {
     private final ConfiguracaoEmpresaRepository configuracaoEmpresaRepository;
     private final EmpresaRepository empresaRepository;
     private final ConfiguracaoEmpresaMapper configuracaoEmpresaMapper;
+    private final EmpresaAlteracaoService auditoria;
 
     public ConfiguracaoEmpresaService(ConfiguracaoEmpresaRepository configuracaoEmpresaRepository,
             EmpresaRepository empresaRepository,
-            ConfiguracaoEmpresaMapper configuracaoEmpresaMapper) {
+            ConfiguracaoEmpresaMapper configuracaoEmpresaMapper, EmpresaAlteracaoService auditoria) {
         this.configuracaoEmpresaRepository = configuracaoEmpresaRepository;
         this.empresaRepository = empresaRepository;
         this.configuracaoEmpresaMapper = configuracaoEmpresaMapper;
+        this.auditoria = auditoria;
     }
 
     public ConfiguracaoEmpresaResponse create(ConfiguracaoEmpresaRequest request) {
@@ -45,7 +49,9 @@ public class ConfiguracaoEmpresaService {
         ConfiguracaoEmpresa configuracao = configuracaoEmpresaMapper.toEntity(request);
         configuracao.setEmpresa(empresa);
 
-        ConfiguracaoEmpresa saved = configuracaoEmpresaRepository.save(configuracao);
+        ConfiguracaoEmpresa saved = configuracaoEmpresaRepository.saveAndFlush(configuracao);
+        auditoria.registrar(request.empresaId(), "configuracoes_empresa", saved.getId(),
+                saved.getVersao(), Map.of(), camposAuditaveis(saved));
         return configuracaoEmpresaMapper.toResponse(saved);
     }
 
@@ -95,9 +101,23 @@ public class ConfiguracaoEmpresaService {
             configuracao.setEmpresa(empresa);
         }
 
+        Map<String, Object> antes = camposAuditaveis(configuracao);
         configuracaoEmpresaMapper.updateEntityFromRequest(request, configuracao);
-        ConfiguracaoEmpresa updated = configuracaoEmpresaRepository.save(configuracao);
+        ConfiguracaoEmpresa updated = configuracaoEmpresaRepository.saveAndFlush(configuracao);
+        auditoria.registrar(request.empresaId(), "configuracoes_empresa", updated.getId(),
+                updated.getVersao(), antes, camposAuditaveis(updated));
         return configuracaoEmpresaMapper.toResponse(updated);
+    }
+
+    private static Map<String, Object> camposAuditaveis(ConfiguracaoEmpresa config) {
+        Map<String, Object> campos = new LinkedHashMap<>();
+        campos.put("regimeTributario", config.getRegimeTributario());
+        campos.put("codigoCnaePrincipal", config.getCodigoCnaePrincipal());
+        campos.put("codigoCnaeSecundario", config.getCodigoCnaeSecundario());
+        campos.put("capitalSocial", config.getCapitalSocial());
+        campos.put("porteEmpresa", config.getPorteEmpresa());
+        campos.put("situacaoCadastral", config.getSituacaoCadastral());
+        return campos;
     }
 
     public void delete(Long id) {
