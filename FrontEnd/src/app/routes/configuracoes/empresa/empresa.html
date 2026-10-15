@@ -810,6 +810,16 @@
 
     <!-- ============================= TAB 8: CONFIGURAÇÕES ============================= -->
     @if (activeTab === 'configuracoes') {
+      <section class="nt-preferences" aria-labelledby="empresa-appearance-title">
+        <h2 id="empresa-appearance-title">Aparência</h2>
+        <label for="empresa-cor-tema">Tema da oficina</label>
+        <select id="empresa-cor-tema" [(ngModel)]="configOficina.corTema" [disabled]="loading || !empresaCarregada">
+          <option value="light">Claro</option>
+          <option value="dark">Escuro</option>
+          <option value="auto">Automático (sistema)</option>
+        </select>
+        <p>O tema é atualizado depois que o backend confirma o salvamento.</p>
+      </section>
 
       <!-- PAINEL 1: Documentos e Impressos -->
       <p-panel styleClass="nt-panel">
