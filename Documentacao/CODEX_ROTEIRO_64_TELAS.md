@@ -8,6 +8,17 @@ Este é o **roteiro executável completo**. Cada ação possui um **prompt indep
 
 **Observação técnica:** `.codex/config.toml` pode atuar no CLI/IDE e não necessariamente no Codex Web. Se houver controles no Web, use modelo econômico e esforço baixo para tarefas simples; aumente raciocínio em segurança, finanças, fiscal e migrações. Economizar tokens não elimina testes fundamentais.
 
+
+## Modelos por prompt — onde é possível escolher o modelo
+
+- **Luna, baixo:** alterações bem delimitadas, cadastros simples, listagens e relatórios diretos.
+- **Terra, médio:** CRUD com integração real Angular/Java, workflows usuais, gráficos e relatórios com lógica de negócio.
+- **Sol, médio/alto:** autenticação crítica, multiempresa/RBAC, operações financeiras/fiscais, concorrência, idempotência e homologação complexa.
+- **Se o modelo menor falhar com evidência:** tente uma correção localizada; se a limitação for raciocínio/arquitetura, passe só o erro e diff para o próximo nível. Não repetir a tarefa inteira sem necessidade.
+- **Crucial sobre Codex Web:** segundo os preços oficiais da OpenAI consultados em 15/10/2026, os **chats do Codex na nuvem usam GPT-5.6 Sol** e tendem a consumir mais cota que mensagens locais. A recomendação acima **não troca o modelo automaticamente** no Web. Se a sua interface não disponibilizar seletor para tarefas na nuvem, use Sol e mantenha tarefas pequenas. Em CLI/IDE local compatível, escolha Luna/Terra/Sol conforme indicado.
+- **Para máxima economia no uso diário:** este roteiro guarda prompts completos para tarefas novas/complexas. Se o contrato já está disponível no repo, o comando `Faça <ScreenId>` previsto em `AGENTS.md` evita reenviar o texto inteiro; compare qualidade e retrabalho, não apenas o tamanho do prompt.
+- **Mantenha Fast desligado** se seu critério é poupar créditos. Esforço alto somente quando o risco/erro justificar. Reutilizar contexto técnico útil dentro de uma tarefa; iniciar sessão de outro módulo sem carregar histórico imenso.
+
 ## Mapa de execução
 
 | Etapa | Entregas | Ordem de uso |
@@ -35,6 +46,8 @@ Este é o **roteiro executável completo**. Cada ação possui um **prompt indep
 
 ### BASE-01 — Segurança P0 e multiempresa
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-01 — Segurança P0 e multiempresa.
 Siga AGENTS.md; consulte Documentacao/CODEX_STATUS_EXECUCAO.md para pendências já conhecidas e Documentacao/APP_SHELL_00.md apenas em mudanças de shell, complementando com D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -44,6 +57,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### BASE-02 — Contrato HTTP de Orçamentos
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-02 — Contrato HTTP de Orçamentos.
@@ -55,6 +70,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### BASE-03 — Shell, menu e rotas
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-03 — Shell, menu e rotas.
 Siga AGENTS.md; consulte Documentacao/CODEX_STATUS_EXECUCAO.md para pendências já conhecidas e Documentacao/APP_SHELL_00.md apenas em mudanças de shell, complementando com D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -64,6 +81,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### BASE-04 — Design system e estados globais
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE BASE-04 — Design system e estados globais.
@@ -78,6 +97,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### AUTH-001 — Login
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE AUTH-001 — Login.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/global/autenticacao.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -88,6 +109,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### AUTH-002 — Recuperar senha
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE AUTH-002 — Recuperar senha.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/global/autenticacao.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -97,6 +120,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### AUTH-003 — Redefinir senha e sessão
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE AUTH-003 — Redefinir senha e sessão.
@@ -111,6 +136,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### ADM-001 — Empresa
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-001 — Empresa.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/administracao/ADM-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -120,6 +147,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### ADM-003 — Usuários
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-003 — Usuários.
@@ -131,6 +160,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### ADM-004 — Funcionários
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-004 — Funcionários.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/administracao/ADM-004.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -140,6 +171,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### ADM-005 — Cargos
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-005 — Cargos.
@@ -151,6 +184,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### ADM-006 — Permissões
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-006 — Permissões.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/administracao/ADM-006.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -160,6 +195,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### ADM-007 — Áreas
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-007 — Áreas.
@@ -171,6 +208,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### ADM-008 — Fornecedores
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-008 — Fornecedores.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/administracao/ADM-008.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -180,6 +219,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### ADM-009 — Seguradoras
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-009 — Seguradoras.
@@ -191,6 +232,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### ADM-010 — Transportadoras
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-010 — Transportadoras.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/administracao/ADM-010.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -200,6 +243,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### ADM-011 — Configurações
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE ADM-011 — Configurações.
@@ -214,6 +259,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### CLI-001 — Clientes — lista
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE CLI-001 — Clientes — lista.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/clientes-crm/CLI-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -223,6 +270,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### CLI-002 — Clientes — cadastro
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE CLI-002 — Clientes — cadastro.
@@ -234,6 +283,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### CLI-003 — Clientes — editar/visualizar
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE CLI-003 — Clientes — editar/visualizar.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/clientes-crm/CLI-003.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -244,6 +295,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### CLI-005 — CRM — Comunicação
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE CLI-005 — CRM — Comunicação.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/clientes-crm/CLI-005.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -253,6 +306,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### CLI-006 — CRM — Questionamento de pesquisa
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE CLI-006 — CRM — Questionamento de pesquisa.
@@ -267,6 +322,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### OFC-008 — Oficina — catálogo de serviços
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-008 — Oficina — catálogo de serviços.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/oficina/OFC-008.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -277,6 +334,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### OFC-009 — Oficina — veículos
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-009 — Oficina — veículos.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/oficina/OFC-009.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -286,6 +345,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### OFC-001 — Oficina — Agenda
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-001 — Oficina — Agenda.
@@ -300,6 +361,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### OFC-002 — Orçamentos — listagem
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-002 — Orçamentos — listagem.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/oficina/OFC-002.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -309,6 +372,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### OFC-003 — Orçamentos — criar/editar e aprovação
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-003 — Orçamentos — criar/editar e aprovação.
@@ -320,6 +385,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### OFC-004 — Ordens de Serviço — lista
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-004 — Ordens de Serviço — lista.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/oficina/OFC-004.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -329,6 +396,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### OFC-005 — Ordens de Serviço — execução
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-005 — Ordens de Serviço — execução.
@@ -343,6 +412,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### OFC-006 — Diagnósticos
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-006 — Diagnósticos.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/oficina/OFC-006.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -352,6 +423,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### OFC-007 — Inspeções
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-007 — Inspeções.
@@ -366,6 +439,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### EST-001 — Estoque — visão e saldos
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-001 — Estoque — visão e saldos.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/estoque-compras/EST-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -375,6 +450,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### EST-002 — Produtos — cadastro e lista
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-002 — Produtos — cadastro e lista.
@@ -386,6 +463,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### EST-003 — Kits
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-003 — Kits.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/estoque-compras/EST-003.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -395,6 +474,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### EST-004 — Compras — pedidos e recebimento
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-004 — Compras — pedidos e recebimento.
@@ -406,6 +487,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### EST-005 — Cotações
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-005 — Cotações.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/estoque-compras/EST-005.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -416,6 +499,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### EST-006 — Inventário — contagem
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-006 — Inventário — contagem.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/estoque-compras/EST-006.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -425,6 +510,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### EST-007 — Movimentações de estoque
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE EST-007 — Movimentações de estoque.
@@ -439,6 +526,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIN-001 — Contas financeiras
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-001 — Contas financeiras.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/financeiro/FIN-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -448,6 +537,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIN-002 — Contas a Receber
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-002 — Contas a Receber.
@@ -459,6 +550,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIN-003 — Contas a Pagar
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-003 — Contas a Pagar.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/financeiro/FIN-003.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -468,6 +561,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIN-004 — Lançamentos Bancários
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-004 — Lançamentos Bancários.
@@ -479,6 +574,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIN-005 — Movimento de Caixa
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-005 — Movimento de Caixa.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/financeiro/FIN-005.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -489,6 +586,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIN-006 — Movimento Bancário e Conciliação
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-006 — Movimento Bancário e Conciliação.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/financeiro/FIN-006.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -498,6 +597,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIN-007 — Comissões
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIN-007 — Comissões.
@@ -512,6 +613,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### PATIO-001 — Gestão de Pátio — tela interna
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE PATIO-001 — Gestão de Pátio — tela interna.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/gestao-patio/PATIO-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -521,6 +624,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### OFC-010 — Entregas de veículos
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-010 — Entregas de veículos.
@@ -532,6 +637,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### OFC-011 — Histórico da oficina
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-011 — Histórico da oficina.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/oficina/OFC-011.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -541,6 +648,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### OFC-012 — Vendas diretas — balcão
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE OFC-012 — Vendas diretas — balcão.
@@ -555,6 +664,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIS-001 — Documentos Fiscais
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-001 — Documentos Fiscais.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/fiscal/FIS-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -564,6 +675,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIS-002 — NF-e
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-002 — NF-e.
@@ -575,6 +688,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIS-003 — NFC-e / Cupom
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-003 — NFC-e / Cupom.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/fiscal/FIS-003.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -584,6 +699,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIS-004 — NFS-e
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-004 — NFS-e.
@@ -595,6 +712,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIS-005 — Manifestação do Destinatário
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-005 — Manifestação do Destinatário.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/fiscal/FIS-005.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -604,6 +723,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIS-006 — Inutilização de numeração
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-006 — Inutilização de numeração.
@@ -615,6 +736,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### FIS-007 — NCM / classificação fiscal
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-007 — NCM / classificação fiscal.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/fiscal/FIS-007.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -624,6 +747,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### FIS-008 — SINTEGRA
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE FIS-008 — SINTEGRA.
@@ -638,6 +763,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### HOME-001 — Início — quatro dashboards
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE HOME-001 — Início — quatro dashboards.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/inicio/HOME-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -647,6 +774,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### GRA-001 — Gráficos Gerenciais
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE GRA-001 — Gráficos Gerenciais.
@@ -661,6 +790,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### REL-001 — Relatórios Comerciais
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-001 — Relatórios Comerciais.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/relatorios/REL-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -670,6 +801,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### REL-002 — Relatórios de Clientes
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-002 — Relatórios de Clientes.
@@ -681,6 +814,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### REL-003 — Relatórios de Serviços
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-003 — Relatórios de Serviços.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/relatorios/REL-003.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -690,6 +825,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### REL-004 — Relatórios de Estoque
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-004 — Relatórios de Estoque.
@@ -701,6 +838,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### REL-005 — Relatórios de Compras
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Luna — raciocínio baixo.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-005 — Relatórios de Compras.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/relatorios/REL-005.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -710,6 +849,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### REL-006 — Relatórios Financeiros
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-006 — Relatórios Financeiros.
@@ -721,6 +862,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### REL-007 — Relatórios de Comissões
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-007 — Relatórios de Comissões.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/relatorios/REL-007.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -730,6 +873,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### REL-008 — Relatórios de Produtividade
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-008 — Relatórios de Produtividade.
@@ -741,6 +886,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### REL-009 — Relatórios Fiscais
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-009 — Relatórios Fiscais.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/relatorios/REL-009.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -750,6 +897,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### REL-010 — Relatórios Gerenciais
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE REL-010 — Relatórios Gerenciais.
@@ -764,6 +913,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### IA-001 — Assistente IA
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE IA-001 — Assistente IA.
 Siga AGENTS.md e leia apenas o bloco A do contrato Documentacao/notion/telas/ia/IA-001.md (e D01–D11/UI-MASTER somente onde pertinente). Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -773,6 +924,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 ```
 
 ### IA-002 — Automações IA
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE IA-002 — Automações IA.
@@ -787,6 +940,8 @@ ENTREGA: frontend e backend integrados quando aplicável, rotas reais, validaç�
 
 ### QA-01 — Administração + Auth
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-01 — Administração + Auth.
 Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -796,6 +951,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 ```
 
 ### QA-02 — Clientes → Oficina → Pátio
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-02 — Clientes → Oficina → Pátio.
@@ -807,6 +964,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ### QA-03 — Estoque → Compras → PDV → Financeiro
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-03 — Estoque → Compras → PDV → Financeiro.
 Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -816,6 +975,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 ```
 
 ### QA-04 — Fiscal e integrações externas
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-04 — Fiscal e integrações externas.
@@ -827,6 +988,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ### QA-05 — Dashboard, gráficos e relatórios
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-05 — Dashboard, gráficos e relatórios.
 Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -836,6 +999,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 ```
 
 ### QA-06 — Segurança e isolamento final
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-06 — Segurança e isolamento final.
@@ -847,6 +1012,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ### QA-07 — Frontend e acessibilidade
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Terra — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-07 — Frontend e acessibilidade.
 Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -857,6 +1024,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 
 ### QA-08 — CI, builds, banco e estabilidade
 
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio médio.**
+
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-08 — CI, builds, banco e estabilidade.
 Siga AGENTS.md; use Documentacao/notion/README.md apenas para localizar as telas da jornada, leia somente seus blocos A pertinentes e consulte D01–D11/UI-MASTER quando necessário. Procure no código real componentes, rotas, controllers, DTOs, entidades, migrações e testes antes de editar; não repita implementação já comprovada.
@@ -866,6 +1035,8 @@ Não maquie bloqueios: QA não executado = NÃO VERIFICADO. Não faça commit/pu
 ```
 
 ### QA-09 — Preparação de lançamento
+
+**Modelo sugerido (Codex local/CLI/IDE, se disponível): Sol — raciocínio alto.**
 
 ```text
 Você é o Codex implementando NERITECH AUTO. Repositório neritechauto-8548/neritechauto, branch feature/develop. Execute SOMENTE QA-09 — Preparação de lançamento.
