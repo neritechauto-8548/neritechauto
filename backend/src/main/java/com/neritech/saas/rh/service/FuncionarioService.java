@@ -187,7 +187,8 @@ public class FuncionarioService {
     public void delete(Long id) {
         Funcionario entity = findOwned(id);
         if (hasReferences(id)) {
-            throw new IllegalArgumentException("Não é possível excluir o colaborador pois ele possui registros vinculados no sistema.");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+                    "Não é possível excluir o colaborador pois ele possui registros vinculados no sistema.");
         }
         repository.delete(entity);
     }
@@ -195,35 +196,35 @@ public class FuncionarioService {
     private boolean hasReferences(Long id) {
         // Check comissoes_funcionarios
         Number countComissoes = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM comissoes_funcionarios WHERE funcionario_id = :id")
+                "SELECT COUNT(*) FROM comissoes WHERE funcionario_id = :id")
                 .setParameter("id", id)
                 .getSingleResult();
         if (countComissoes.longValue() > 0) return true;
 
         // Check reclamacoes_garantia
         Number countReclamacoes = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM reclamacoes_garantia WHERE tecnico_responsavel_id = :id")
+                "SELECT COUNT(*) FROM gar_reclamacoes_garantia WHERE tecnico_responsavel_id = :id")
                 .setParameter("id", id)
                 .getSingleResult();
         if (countReclamacoes.longValue() > 0) return true;
 
         // Check resolucoes_garantia
         Number countResolucoes = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM resolucoes_garantia WHERE funcionario_executor_id = :id")
+                "SELECT COUNT(*) FROM gar_resolucoes_garantia WHERE funcionario_executor_id = :id")
                 .setParameter("id", id)
                 .getSingleResult();
         if (countResolucoes.longValue() > 0) return true;
 
         // Check ferias_funcionarios (substituido_por)
         Number countFeriasSubst = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM ferias_funcionarios WHERE substituido_por = :id")
+                "SELECT COUNT(*) FROM ferias_funcionarios WHERE substituido_por = :id OR funcionario_id = :id")
                 .setParameter("id", id)
                 .getSingleResult();
         if (countFeriasSubst.longValue() > 0) return true;
 
         // Check avaliacoes_funcionarios (avaliador_id)
         Number countAvaliacoesAvaliador = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM avaliacoes_funcionarios WHERE avaliador_id = :id")
+                "SELECT COUNT(*) FROM avaliacoes_funcionarios WHERE avaliador_id = :id OR funcionario_id = :id")
                 .setParameter("id", id)
                 .getSingleResult();
         if (countAvaliacoesAvaliador.longValue() > 0) return true;

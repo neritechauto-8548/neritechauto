@@ -100,6 +100,13 @@ class FuncionarioTenantIntegrationTest extends AbstractIntegrationTest {
                 .content(payload(a, "EDITADO-A", null, null, null))).andExpect(status().isOk());
         assertThat(jdbc.queryForObject("select matricula from funcionarios where id=?", String.class, funcionarioA))
                 .isEqualTo("EDITADO-A");
+        // Uma dependência real deve preservar o funcionário e responder 409, não 500.
+        jdbc.update("insert into comissoes (empresa_id, funcionario_id, periodo_referencia, valor_base, percentual_comissao, valor_comissao, data_competencia, data_cadastro, versao) " +
+                "values (?, ?, '2026-10', 100, 10, 10, CURRENT_DATE, now(), 0)", a, funcionarioA);
+        mvc.perform(delete("/v1/rh/funcionarios/{id}", funcionarioA)
+                .header("Authorization", "Bearer " + tokenA)).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("select count(*) from funcionarios where id=?", Integer.class, funcionarioA)).isEqualTo(1);
+        jdbc.update("delete from comissoes where funcionario_id=? and empresa_id=?", funcionarioA, a);
         mvc.perform(delete("/v1/rh/funcionarios/{id}", funcionarioA)
                 .header("Authorization", "Bearer " + tokenA)).andExpect(status().isNoContent());
         assertThat(jdbc.queryForObject("select count(*) from funcionarios where id=?", Integer.class, funcionarioA)).isZero();
