@@ -43,10 +43,10 @@ class ProdutoTenantIntegrationTest extends AbstractIntegrationTest {
         jdbc.update("insert into estoques (empresa_id, produto_id, quantidade_atual, preco_custo_lote, data_cadastro, data_atualizacao, status, versao) values (?, ?, 4, 5, now(), now(), 'ATIVO', 0)",
                 empresaB, produtoB);
         long categoriaB = jdbc.queryForObject(
-                "insert into categorias_produtos (empresa_id, nome, ativo) values (?, ?, true) returning id",
+                "insert into categorias_produtos (empresa_id, nome, ativo, data_cadastro, data_atualizacao, versao) values (?, ?, true, now(), now(), 0) returning id",
                 Long.class, empresaB, "Categoria B " + produtoB);
         long unidadeB = jdbc.queryForObject(
-                "insert into unidades_medida (empresa_id, nome, sigla, ativo) values (?, ?, ?, true) returning id",
+                "insert into unidades_medida (empresa_id, nome, sigla, ativo, data_cadastro) values (?, ?, ?, true, now()) returning id",
                 Long.class, empresaB, "Unidade B", "BX" + produtoB);
 
         mvc.perform(get("/v1/produtos/{id}", produtoA)
