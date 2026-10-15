@@ -35,11 +35,13 @@ describe('Application Shell preview navigation', () => {
   it('routes existing modules to real Angular routes, preserving official navigation', () => {
     const items = (startup as any).getPreviewMenu() as Menu[];
     expect(lookup(items, 'Oficina')?.item.type).toBe('sub');
+    expect(lookup(items, 'Relatórios')?.item.type).toBe('sub');
+    expect(lookup(items, 'Administração')?.item.type).toBe('sub');
     const routes: Array<[string, string]> = [
       ['Início', '/home'],
       ['Comunicação', '/cliente/crm/comunicacao'],
       ['Agenda', '/agendamento/calendario'],
-      ['Orçamentos', '/orcamento'],
+      ['Orçamentos', '/orcamento/orcamento'],
       ['Ordens de Serviço', '/os'],
       ['Serviços', '/produtos-servicos/servicos'],
       ['Veículos', '/veiculo'],
