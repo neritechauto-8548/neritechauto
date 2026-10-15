@@ -1,6 +1,7 @@
 package com.neritech.saas.empresa.service;
 
 import com.neritech.saas.empresa.domain.ConfiguracaoFiscal;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.empresa.dto.ConfiguracaoFiscalRequest;
 import com.neritech.saas.empresa.dto.ConfiguracaoFiscalResponse;
 import com.neritech.saas.empresa.mapper.ConfiguracaoFiscalMapper;
@@ -29,6 +30,7 @@ public class ConfiguracaoFiscalService {
     }
 
     public ConfiguracaoFiscalResponse create(ConfiguracaoFiscalRequest request) {
+        TenantAccess.require(request.empresaId());
         var empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new EntityNotFoundException("Empresa nÃ£o encontrada"));
 
@@ -44,12 +46,13 @@ public class ConfiguracaoFiscalService {
     @Transactional(readOnly = true)
     public ConfiguracaoFiscalResponse findById(Long id) {
         return repository.findById(id)
-                .map(mapper::toResponse)
+                .map(config -> { TenantAccess.require(config.getEmpresa().getId()); return mapper.toResponse(config); })
                 .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o fiscal nÃ£o encontrada"));
     }
 
     @Transactional(readOnly = true)
     public ConfiguracaoFiscalResponse findByEmpresaId(Long empresaId) {
+        TenantAccess.require(empresaId);
         return repository.findByEmpresaId(empresaId)
                 .map(mapper::toResponse)
                 .orElseGet(() -> ConfiguracaoFiscalResponse.builder().empresaId(empresaId).build());
@@ -57,13 +60,18 @@ public class ConfiguracaoFiscalService {
 
     @Transactional(readOnly = true)
     public Page<ConfiguracaoFiscalResponse> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toResponse);
+        Long empresaId = TenantAccess.requireCurrent();
+        var own = repository.findByEmpresaId(empresaId).map(mapper::toResponse);
+        var content = pageable.getOffset() == 0 ? own.stream().toList() : java.util.List.<ConfiguracaoFiscalResponse>of();
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, own.isPresent() ? 1 : 0);
     }
 
     public ConfiguracaoFiscalResponse update(Long id, ConfiguracaoFiscalRequest request) {
+        TenantAccess.require(request.empresaId());
         ConfiguracaoFiscal config = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o fiscal nÃ£o encontrada"));
 
+        TenantAccess.require(config.getEmpresa().getId());
         if (!config.getEmpresa().getId().equals(request.empresaId())) {
             var empresa = empresaRepository.findById(request.empresaId())
                     .orElseThrow(() -> new EntityNotFoundException("Empresa nÃ£o encontrada"));
@@ -79,9 +87,9 @@ public class ConfiguracaoFiscalService {
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("ConfiguraÃ§Ã£o fiscal nÃ£o encontrada");
-        }
-        repository.deleteById(id);
+        ConfiguracaoFiscal config = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o fiscal nÃ£o encontrada"));
+        TenantAccess.require(config.getEmpresa().getId());
+        repository.delete(config);
     }
 }
