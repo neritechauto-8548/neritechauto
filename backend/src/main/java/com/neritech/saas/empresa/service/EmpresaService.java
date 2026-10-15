@@ -297,6 +297,13 @@ public class EmpresaService {
         if (empresa.getCnpj() == null || empresa.getCnpj().isBlank()) {
             throw new BusinessException("O CPF ou CNPJ é obrigatório.");
         }
+        String documentoNormalizado = empresa.getCnpj().replaceAll("[^a-zA-Z0-9]", "").toUpperCase(java.util.Locale.ROOT);
+        // O validador de DV pode aceitar sequências uniformes (ex.: 00000000000000).
+        // Bloqueie-as na entrada da Empresa sem alterar o contrato de outros módulos.
+        if (documentoNormalizado.length() == 14
+                && documentoNormalizado.chars().distinct().count() == 1) {
+            throw new BusinessException("CPF ou CNPJ inválido: sequência repetida.");
+        }
         if (!DocumentoValidator.isValidCpf(empresa.getCnpj()) && !DocumentoValidator.isValidCnpj(empresa.getCnpj())) {
             throw new BusinessException("CPF ou CNPJ inválido. Verifique os dígitos informados.");
         }
