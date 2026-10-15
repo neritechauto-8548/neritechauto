@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, subscriptionGuard } from '@core';
+import { authGuard, permissionGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
 import { Dashboard } from './routes/dashboard/dashboard';
@@ -15,7 +15,7 @@ export const routes: Routes = [
     path: '',
     component: AdminLayout,
     canActivate: [authGuard, subscriptionGuard],
-    canActivateChild: [authGuard, subscriptionGuard],
+    canActivateChild: [authGuard, subscriptionGuard, permissionGuard],
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: Dashboard, data: { title: 'Início' } },
@@ -73,6 +73,7 @@ export const routes: Routes = [
       },
       {
         path: 'orcamento',
+        data: { requiredPermissions: 'GERAL_ORCAMENTO' },
         loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
       },
       {
