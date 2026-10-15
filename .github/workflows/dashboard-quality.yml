@@ -48,7 +48,7 @@ jobs:
           cache: yarn
           cache-dependency-path: FrontEnd/yarn.lock
       - name: Validar contrato de navegação BASE-03
-        run: node --test scripts/navigation-contract.test.cjs
+        run: node --test scripts/navigation-contract.test.cjs scripts/ui-tokens.test.cjs
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - name: Testes de regressão do Application Shell
