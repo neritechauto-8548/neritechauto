@@ -8,7 +8,8 @@ import { OrcamentoRequest, OrcamentoResponse } from './models/orcamento.models';
 @Injectable({ providedIn: 'root' })
 export class OrcamentoService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.baseUrl}/api/v1/orcamentos`;
+  // O context-path /api já faz parte de environment.baseUrl.
+  private apiUrl = `${environment.baseUrl}/v1/orcamentos`;
 
   create(dto: OrcamentoRequest): Observable<OrcamentoResponse> {
     return this.http.post<OrcamentoResponse>(this.apiUrl, dto);
