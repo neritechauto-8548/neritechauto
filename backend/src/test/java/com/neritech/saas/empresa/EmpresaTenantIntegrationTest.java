@@ -45,6 +45,14 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
         mvc.perform(get("/v1/empresas/{id}", empresaB).header("Authorization", "Bearer " + tokenB))
                 .andExpect(status().isOk());
 
+        // Download da logo também exige isolamento, inclusive quando não existe arquivo.
+        mvc.perform(get("/v1/empresas/{id}/logo", empresaB)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/v1/empresas/{id}/logo", empresaA)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isNotFound());
+
         mvc.perform(get("/v1/empresas").header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(1))
