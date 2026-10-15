@@ -1,12 +1,8 @@
-<div class="matero-error-wrap">
-  <div class="matero-error-code">{{code}}</div>
-  @if (title) {
-    <div class="matero-error-title">{{title}}</div>
-  }
+<section class="matero-error-wrap" role="status" aria-labelledby="nt-error-title">
+  <div class="matero-error-code" aria-hidden="true">{{ code }}</div>
+  <h1 id="nt-error-title" class="matero-error-title">{{ title || 'Não foi possível abrir esta página' }}</h1>
   @if (message) {
-    <div class="matero-error-message">{{message}}</div>
+    <p class="matero-error-message">{{ message }}</p>
   }
-  <div>
-    <a mat-raised-button color="primary" routerLink="/">Back to Home</a>
-  </div>
-</div>
+  <a mat-raised-button color="primary" routerLink="/home">Voltar ao início</a>
+</section>
