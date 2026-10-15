@@ -1,6 +1,7 @@
 package com.neritech.saas.empresa.service;
 
 import com.neritech.saas.empresa.domain.EnderecoEmpresa;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.empresa.dto.EnderecoEmpresaRequest;
 import com.neritech.saas.empresa.dto.EnderecoEmpresaResponse;
 import com.neritech.saas.empresa.mapper.EnderecoEmpresaMapper;
@@ -32,6 +33,7 @@ public class EnderecoEmpresaService {
     }
 
     public EnderecoEmpresaResponse create(EnderecoEmpresaRequest request) {
+        TenantAccess.require(request.empresaId());
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(
                         () -> new EntityNotFoundException("Empresa nÃ£o encontrada com ID: " + request.empresaId()));
@@ -47,25 +49,33 @@ public class EnderecoEmpresaService {
     public EnderecoEmpresaResponse findById(Long id) {
         EnderecoEmpresa endereco = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("EndereÃ§o nÃ£o encontrado com ID: " + id));
+        TenantAccess.require(endereco.getEmpresa().getId());
         return mapper.toResponse(endereco);
     }
 
     @Transactional(readOnly = true)
     public Page<EnderecoEmpresaResponse> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toResponse);
+        Long empresaId = TenantAccess.requireCurrent();
+        var all = repository.findByEmpresaId(empresaId).stream().map(mapper::toResponse).toList();
+        long start = Math.min(pageable.getOffset(), all.size());
+        long end = Math.min(start + pageable.getPageSize(), all.size());
+        return new org.springframework.data.domain.PageImpl<>(all.subList((int) start, (int) end), pageable, all.size());
     }
 
     @Transactional(readOnly = true)
     public List<EnderecoEmpresaResponse> findByEmpresaId(Long empresaId) {
+        TenantAccess.require(empresaId);
         return repository.findByEmpresaId(empresaId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     public EnderecoEmpresaResponse update(Long id, EnderecoEmpresaRequest request) {
+        TenantAccess.require(request.empresaId());
         EnderecoEmpresa endereco = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("EndereÃ§o nÃ£o encontrado com ID: " + id));
 
+        TenantAccess.require(endereco.getEmpresa().getId());
         if (!endereco.getEmpresa().getId().equals(request.empresaId())) {
             Empresa empresa = empresaRepository.findById(request.empresaId())
                     .orElseThrow(
@@ -79,9 +89,9 @@ public class EnderecoEmpresaService {
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("EndereÃ§o nÃ£o encontrado com ID: " + id);
-        }
-        repository.deleteById(id);
+        EnderecoEmpresa endereco = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Endereço não encontrado"));
+        TenantAccess.require(endereco.getEmpresa().getId());
+        repository.delete(endereco);
     }
 }
