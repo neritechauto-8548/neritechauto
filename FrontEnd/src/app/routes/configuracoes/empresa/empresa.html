@@ -600,8 +600,7 @@
                 <input pInputText [(ngModel)]="configFiscal.usuarioAcessoProvedorHomologacao" class="w-full" />
               </div>
               <div class="nt-c3">
-                <label class="nt-lbl">Token / Senha</label>
-                <p-password [(ngModel)]="configFiscal.tokenAcessoProvedorHomologacao" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+                <p class="nt-panel-sub" role="note">Token do provedor: configuração protegida, indisponível neste cadastro.</p>
               </div>
             </div>
 
@@ -627,8 +626,7 @@
                 <input pInputText [(ngModel)]="configFiscal.usuarioAcessoProvedorProducao" class="w-full" />
               </div>
               <div class="nt-c3">
-                <label class="nt-lbl">Token / Senha</label>
-                <p-password [(ngModel)]="configFiscal.tokenAcessoProvedorProducao" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+                <p class="nt-panel-sub" role="note">Token do provedor: configuração protegida, indisponível neste cadastro.</p>
               </div>
             </div>
 
@@ -712,13 +710,8 @@
             </p-divider>
 
             <div class="nt-row">
-              <div class="nt-c7">
-                <label class="nt-lbl">Certificado (Base64 ou caminho)</label>
-                <input pInputText [(ngModel)]="configFiscal.certificadoDigitalA1" class="w-full" placeholder="Cole aqui o conteúdo do certificado A1 em Base64" />
-              </div>
-              <div class="nt-c3">
-                <label class="nt-lbl">Senha do Certificado</label>
-                <p-password [(ngModel)]="configFiscal.senhaCertificado" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+              <div class="nt-c10">
+                <p class="nt-panel-sub" role="note">Por segurança, certificado A1 e senha não são recebidos pelo cadastro comum. Utilize apenas a integração fiscal protegida quando disponível.</p>
               </div>
               <div class="nt-c2">
                 <label class="nt-lbl">Validade</label>
