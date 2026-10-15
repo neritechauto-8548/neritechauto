@@ -264,7 +264,8 @@ export class EmpresaConfig implements OnInit, OnDestroy {
               ? 'Sem conexão com o servidor. Confira sua rede e tente novamente.'
               : 'Não foi possível carregar todas as configurações da empresa. Nenhuma alteração foi enviada.';
         this.toast.add({ severity: 'error', summary: 'Falha ao carregar empresa', detail: this.erroCarregamento });
-      });
+      }
+    });
   }
 
   carregarHistorico(page = 0): void {
