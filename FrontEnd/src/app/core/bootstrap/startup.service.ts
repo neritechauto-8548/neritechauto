@@ -123,7 +123,7 @@ export class StartupService {
       ] },
       { route: '', name: 'Oficina', type: 'sub', icon: 'oficina', children: [
         ...['Agenda','Orçamentos','Ordens de Serviço','Diagnósticos','Inspeções','Serviços','Veículos','Entregas','Vendas','Histórico']
-          .map((name, i) => ({ route: ['agendamento/calendario','orcamento','os','diagnostico','inspecao','produtos-servicos/servicos','veiculo','entrega','pdv','historico'][i], name, type: 'link' as const })),
+          .map((name, i) => ({ route: ['agendamento/calendario','orcamento/orcamento','os','diagnostico','inspecao','produtos-servicos/servicos','veiculo','entrega','pdv','historico'][i], name, type: 'link' as const })),
       ] },
       { route: '', name: 'Estoque & Compras', type: 'sub', icon: 'estoque', children: [
         ...['Estoque','Produtos','Kits','Compras','Cotações','Inventário','Movimentações'].map((name, i) => ({ route: ['produtos-servicos/estoque','produtos','kits','compras','cotacoes','configuracoes/inventario','movimentacoes'][i], name, type: 'link' as const })),
@@ -139,17 +139,52 @@ export class StartupService {
         { route: 'automacoes', name: 'Automações IA', type: 'link' },
       ] },
       { route: 'graficos-gerenciais', name: 'Gráficos Gerenciais', type: 'link', icon: 'analytics' },
+      { route: '', name: 'Relatórios', type: 'sub', icon: 'analytics', children: [
+        ...['Comercial','Clientes','Serviços','Estoque','Compras','Financeiro','Comissões','Produtividade','Fiscal','Gerenciais']
+          .map((name, i) => ({ route: [
+            'relatorios/relatorio-vendas', 'relatorios/relatorio-clientes',
+            'relatorios/relatorio-servicos', 'relatorios/relatorio-estoque',
+            'relatorios/relatorio-compras', 'relatorios/relatorio-contas',
+            'relatorios/relatorio-comissoes', 'relatorios/relatorio-produtividade',
+            'relatorios/relatorio-fiscal', 'relatorios/relatorio-receitas-despesas'
+          ][i], name, type: 'link' as const })),
+      ] },
+      { route: '', name: 'Administração', type: 'sub', icon: 'admin', children: [
+        ...['Empresa','Usuários','Funcionários','Cargos','Permissões','Áreas','Fornecedores','Seguradoras','Transportadoras']
+          .map((name, i) => ({ route: [
+            'configuracoes/empresa','configuracoes/usuarios','configuracoes/colaboradores',
+            'configuracoes/cargos','configuracoes/permissoes','configuracoes/areas',
+            'fornecedor/lista','configuracoes/seguradoras','configuracoes/transportadoras'
+          ][i], name, type: 'link' as const })),
+        { route: '', name: 'Configurações', type: 'sub', children: [
+          ...['Departamentos','Setores','Assinatura','Contas bancárias','Formas de pagamento',
+            'Checklist','Localização','Categorias','Opções de envio']
+            .map((name, i) => ({ route: [
+              'configuracoes/departamentos','configuracoes/setores','configuracoes/assinatura',
+              'configuracoes/contas','configuracoes/formas-pagamento','configuracoes/checklist',
+              'configuracoes/localizacao','configuracoes/categoria','configuracoes/opcoes-envio'
+            ][i], name, type: 'link' as const })),
+        ] },
+      ] },
     ];
 
     // Apenas destinos confirmados no app.routes.ts e seus módulos lazy-loaded.
     // A árvore oficial continua visível; funcionalidades futuras não redirecionam
     // silenciosamente para /home e não simulam telas prontas.
     const registeredRoutes = new Set([
-      '/home', '/cliente/listar', '/cliente/crm', '/cliente/crm/comunicacao', '/cliente/crm/pesquisa', '/agendamento/calendario', '/orcamento', '/os',
+      '/home', '/cliente/listar', '/cliente/crm', '/cliente/crm/comunicacao', '/cliente/crm/pesquisa', '/agendamento/calendario', '/orcamento/orcamento', '/os',
       '/produtos-servicos/servicos', '/veiculo', '/pdv', '/produtos-servicos/estoque',
       '/configuracoes/inventario', '/financeiro/contas', '/financeiro/receber',
       '/financeiro/pagar', '/financeiro/caixa', '/financeiro/comissoes',
       '/fiscal/nfe', '/fiscal/nfce', '/fiscal/nfse', '/fiscal/nfe/inutilizar-numeracao',
+      '/fornecedor/compras', '/fornecedor/lista', '/relatorios/relatorio-vendas',
+      '/relatorios/relatorio-clientes', '/relatorios/relatorio-estoque',
+      '/relatorios/relatorio-contas', '/relatorios/relatorio-receitas-despesas',
+      '/configuracoes/empresa', '/configuracoes/usuarios', '/configuracoes/colaboradores',
+      '/configuracoes/cargos', '/configuracoes/permissoes', '/configuracoes/departamentos',
+      '/configuracoes/setores', '/configuracoes/assinatura', '/configuracoes/contas',
+      '/configuracoes/formas-pagamento', '/configuracoes/checklist',
+      '/configuracoes/localizacao', '/configuracoes/categoria', '/configuracoes/opcoes-envio',
     ]);
     const markUnavailable = (items: Array<Menu | MenuChildrenItem>, parents: string[] = []) => {
       for (const item of items) {
