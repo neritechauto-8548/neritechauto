@@ -729,6 +729,13 @@
 
     <!-- ============================= TAB 7: E-MAIL ============================= -->
     @if (activeTab === 'email') {
+      @if (!emailConfigWritable) {
+        <section role="alert" class="nt-empresa-load-error">
+          <strong>Configuração de e-mail indisponível</strong>
+          <p>Não foi possível consultar as credenciais do serviço. Nenhuma alteração de e-mail será enviada.</p>
+          <button type="button" class="nt-history__button" (click)="loadData()" [disabled]="loading">Tentar novamente</button>
+        </section>
+      } @else {
 
       <p-panel styleClass="nt-panel">
         <ng-template pTemplate="header">
@@ -804,6 +811,7 @@
           Ao clicar em <strong>Testar</strong>, se as credenciais estiverem corretas, você receberá um e-mail de confirmação.
         </ng-template>
       </p-message>
+      }
     }
 
 
