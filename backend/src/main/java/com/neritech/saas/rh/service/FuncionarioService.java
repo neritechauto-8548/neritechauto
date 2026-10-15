@@ -217,7 +217,7 @@ public class FuncionarioService {
 
         // Check ferias_funcionarios (substituido_por)
         Number countFeriasSubst = (Number) entityManager.createNativeQuery(
-                "SELECT COUNT(*) FROM ferias_funcionarios WHERE substituido_por = :id OR funcionario_id = :id")
+                "SELECT COUNT(*) FROM ferias_funcionarios WHERE funcionario_id = :id")
                 .setParameter("id", id)
                 .getSingleResult();
         if (countFeriasSubst.longValue() > 0) return true;
