@@ -73,12 +73,14 @@ export class ResetPassword {
             return;
           }
           const message = typeof error.error?.message === 'string' ? error.error.message : '';
-          if ((error.status === 400 && /link|token|expir|utiliz/i.test(message))
+          if (error.status === 401 || (error.status === 400 && /link|token|expir|utiliz/i.test(message))
               || error.status === 409 || error.status === 410) {
             this.linkError = /expir/i.test(message) ? 'Este link expirou. Solicite um novo.'
               : /utiliz/i.test(message) || error.status === 409
                 ? 'Este link já foi utilizado. Solicite um novo.'
                 : 'Link de recuperação inválido. Solicite um novo.';
+          } else if (error.status === 403) {
+            this.errorMessage = 'Redefinição não permitida. Solicite um novo link ou entre em contato com o suporte.';
           } else if (error.status === 422) {
             this.password.setErrors({ remote: 'Use uma senha segura de 12 a 128 caracteres, diferente da anterior.' });
             this.password.markAsTouched();
