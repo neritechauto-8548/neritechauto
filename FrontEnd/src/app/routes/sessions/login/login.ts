@@ -78,6 +78,7 @@ export class Login {
     }
 
     this.isSubmitting = true;
+    let sessionEstablished = false;
     this.auth.login(email, this.password.value, this.rememberMe.value).pipe(
       switchMap(authenticated => {
         if (!authenticated) {
@@ -85,6 +86,7 @@ export class Login {
             status: 502, statusText: 'Resposta de autenticação inválida',
           }));
         }
+        sessionEstablished = true;
         // The JWT alone is not authorization: require a real /usuarios/me
         // response with an active tenant before entering an authenticated page.
         return this.auth.user().pipe(
@@ -95,6 +97,10 @@ export class Login {
         );
       }),
       catchError((error: HttpErrorResponse) => {
+        // A JWT that cannot resolve a permitted tenant must never remain active.
+        if (sessionEstablished) {
+          this.auth.logout().subscribe({ error: () => {} });
+        }
         if (error.status === 401) {
           const message = 'E-mail ou senha inválidos.';
           this.username.setErrors({ remote: message });
