@@ -53,17 +53,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Extract email and tenant from token
             userEmail = jwtService.extractUsername(jwt);
             
-            // Extract Tenant ID from claims and set context
+            // O claim da empresa só pode entrar no contexto após validar JWT,
+            // sessão ativa e pertencimento real do usuário ao tenant.
             Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
-            if (empresaId != null) {
-                TenantContext.setCurrentTenant(empresaId);
-            }
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userEmail != null && empresaId != null && empresaId > 0
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtService.isTokenValid(jwt, userDetails)
-                        && sessaoUsuarioRepository.findByTokenSessao(jwt).map(sessao -> Boolean.TRUE.equals(sessao.getAtivo())).orElse(false)) {
+                boolean validTenantSession = jwtService.isTokenValid(jwt, userDetails)
+                        && sessaoUsuarioRepository.findByTokenSessao(jwt)
+                            .filter(sessao -> Boolean.TRUE.equals(sessao.getAtivo())
+                                    && empresaId.equals(sessao.getEmpresaId())
+                                    && sessao.getUsuario() != null
+                                    && empresaId.equals(sessao.getUsuario().getEmpresaId())
+                                    && userEmail.equalsIgnoreCase(sessao.getUsuario().getEmail()))
+                            .isPresent();
+                if (validTenantSession) {
+                    TenantContext.setCurrentTenant(empresaId);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
