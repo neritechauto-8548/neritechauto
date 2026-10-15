@@ -13,3 +13,12 @@
 - QA manual pendente: fluxos reais em navegador com dois usuários/empresas, permissões por cargo, upload/download de fotos, integração de itens, responsividade e compatibilidade PDF.
 - Bloqueios conhecidos: autenticação do `gh` indisponível neste ambiente; o artefato Jaspersoft OpenPDF retornou 403 e foi substituído no POM pela versão pública equivalente para permitir o build. Relatórios PDF precisam de QA de compatibilidade.
 - Próximo número do roteiro: Parte 01. Não iniciada nesta execução.
+
+## BASE-03 — Shell, menu e rotas (15/10/2026, execução incremental)
+
+- Branch: `feature/develop`. Código já confirmado: sidebar original, header, branding, breadcrumb, pesquisa, guards Angular e rotas lazy existentes; sem segunda sidebar ou tela fictícia de Pátio.
+- Corrigido: menu.json alinhado aos 11 grupos da fonte Notion 03.01.03, com 43 destinos existentes habilitados e 26 indisponíveis; sem Filiais/CLI-004, mantendo permissão e planos comerciais legados aplicáveis. Preview e produção compartilham o JSON; fallback local da prévia atualizado.
+- Contrato: largura 264px aberta/72px recolhida aplicada aos tokens reais; `permissionGuard` nos filhos do shell, orçamento, calendário, caixa e páginas administrativas sensíveis; backend continua autoridade para RBAC/tenant.
+- Evidência efetiva: verificações estáticas executadas pelo conector GitHub com 9 asserções aprovadas; teste Node versionado em `FrontEnd/scripts/navigation-contract.test.cjs`, mas ainda **não executado** em checkout local. Testes Angular/Maven, CI de código e QA manual **não executados nesta execução**.
+- Deploy: status de Vercel consultado em commit da execução mostrou falhas por `build-rate-limit`, sem comprovar falha ou êxito de compilação.
+- Pendências: conferir guard/perfis com usuários reais, refresh/deep-link, 403/404, foco/teclado/leitor de tela, resoluções 320/375/768/1024/1440 e build/testes completos. **BASE-03 não homologada**.
