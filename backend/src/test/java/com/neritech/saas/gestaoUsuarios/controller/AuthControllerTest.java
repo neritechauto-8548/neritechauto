@@ -156,6 +156,29 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("AUTH-003 — senha abaixo de 12 caracteres retorna 422 sem consumir o token")
+    void resetPasswordRejectsWeakInputsAtHttpBoundary() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"reset-token\",\"novaSenha\":\"123456\"}"))
+                .andExpect(status().isUnprocessableEntity());
+        org.mockito.Mockito.verify(authService, org.mockito.Mockito.never())
+                .resetPassword(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("AUTH-003 — a resposta 200 só acontece após confirmação do serviço")
+    void resetPasswordReturns200AfterServiceSucceeds() throws Exception {
+        mockMvc.perform(post("/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"reset-token\",\"novaSenha\":\"Minha frase-senha longa e segura ✓\"}"))
+                .andExpect(status().isOk());
+        org.mockito.Mockito.verify(authService).resetPassword(
+                org.mockito.ArgumentMatchers.argThat(request ->
+                        "reset-token".equals(request.getToken())));
+    }
+
+    @Test
     @DisplayName("POST /auth/logout - Deve retornar 204")
     void deveRetornar204NoLogout() throws Exception {
         // Arrange
