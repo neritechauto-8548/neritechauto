@@ -22,15 +22,17 @@ export class StartupService {
           }
         }),
         switchMap((user: User) => {
-          if (environment.uxPreview) {
-            this.setMenu(this.getPreviewMenu(), { planoNivel: 99 } as User);
-            return [user];
-          }
+          // O mesmo menu.json alimenta produção e UX Preview. A prévia carrega
+          // o recurso estático sem token; nunca solicita dados ao backend.
           return this.authService.menu().pipe(
-            // Se o menu falhar, não exibir itens da sessão anterior nem encerrar
-            // o observador de autenticação: uma nova sessão pode tentar carregar novamente.
             catchError(() => of([] as Menu[])),
-            tap((menu: Menu[]) => this.setMenu(menu, user))
+            tap((menu: Menu[]) => {
+              const resolved = Array.isArray(menu) ? menu : [];
+              this.setMenu(
+                environment.uxPreview && resolved.length === 0 ? this.getPreviewMenu() : resolved,
+                environment.uxPreview ? ({ planoNivel: 99 } as User) : user
+              );
+            })
           );
         })
       ).subscribe({
