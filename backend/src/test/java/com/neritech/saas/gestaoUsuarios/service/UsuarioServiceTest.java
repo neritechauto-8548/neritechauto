@@ -100,7 +100,7 @@ class UsuarioServiceTest {
             // Act & Assert
             assertThatThrownBy(() -> usuarioService.create(usuarioRequest))
                     .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
-                    .hasMessageContaining("Email já cadastrado");
+                    .hasMessageContaining("E-mail já cadastrado");
             
             verify(usuarioRepository, never()).save(any(Usuario.class));
         }
