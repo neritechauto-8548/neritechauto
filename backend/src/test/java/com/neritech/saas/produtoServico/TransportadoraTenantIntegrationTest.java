@@ -40,6 +40,18 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
         mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON).content(request("00000000000000", null, true)))
                 .andExpect(status().isUnprocessableEntity());
+        mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("tipoPessoa", "FISICA",
+                    "nomeFantasia", "Transportadora física", "cpf", "11111111111",
+                    "modalidade", "RODOVIARIO"))))
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("tipoPessoa", "JURIDICA",
+                    "nomeFantasia", "CEP inválido", "cnpj", "11222333000181",
+                    "cep", "abc", "modalidade", "RODOVIARIO"))))
+                .andExpect(status().isBadRequest());
         long supplierId = jdbc.queryForObject("""
             INSERT INTO fornecedores (empresa_id, tipo_pessoa, nome_fantasia, cnpj, ativo,
                                       transportadora, transportadora_ativa, data_cadastro)
@@ -97,6 +109,12 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.documentoRastreio").value("TRK-01"));
         mvc.perform(get("/v1/transportadoras/pedidos/{id}", purchase)
                 .header("Authorization", "Bearer " + tokenB)).andExpect(status().isForbidden());
+        mvc.perform(put("/v1/transportadoras/{id}", carrier)
+                .header("Authorization", "Bearer " + tokenA)
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request("11444777000161", carrier, true)))
+                .andExpect(status().isConflict());
         mvc.perform(delete("/v1/transportadoras/{id}", carrier)
                 .header("Authorization", "Bearer " + tokenViewer)).andExpect(status().isForbidden());
         mvc.perform(delete("/v1/transportadoras/{id}", carrier)
