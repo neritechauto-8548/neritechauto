@@ -158,14 +158,14 @@ public class TransportadoraService {
     @Transactional
     public TransportadoraPedidoResponse vincular(Long id, Long pedidoId, TransportadoraPedidoRequest request) {
         Fornecedor f = localizar(id);
-        if (!Boolean.TRUE.equals(f.getAtivo()) || !Boolean.TRUE.equals(f.getTransportadoraAtiva())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Transportadora inativa");
-        }
         PedidoFornecedor pedido = pedidos.findById(pedidoId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido inexistente"));
         TenantAccess.require(pedido.getEmpresaId());
         if (!Objects.equals(pedido.getEmpresaId(), f.getEmpresaId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido pertence a outra empresa");
+        }
+        if (!Boolean.TRUE.equals(f.getAtivo()) || !Boolean.TRUE.equals(f.getTransportadoraAtiva())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Transportadora inativa");
         }
         var atual = jdbc.queryForList("""
             SELECT transportadora_id FROM pedidos_fornecedor WHERE id = ? AND empresa_id = ?
