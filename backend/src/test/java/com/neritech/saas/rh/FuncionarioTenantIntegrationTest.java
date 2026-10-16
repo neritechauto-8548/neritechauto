@@ -38,7 +38,7 @@ class FuncionarioTenantIntegrationTest extends AbstractIntegrationTest {
                 "insert into cargos (empresa_id, nome, data_cadastro, versao) values (?, 'Cargo B', now(), 0) returning id",
                 Long.class, b);
         long departamentoB = jdbc.queryForObject(
-                "insert into departamentos_contabio (empresa_id, descricao, ativo, data_cadastro, versao) values (?, 'Depto B', true, now(), 0) returning id",
+                "insert into departamentos_contabio (empresa_id, descricao, ativo, ordem, data_cadastro, versao) values (?, 'Depto B', true, 0, now(), 0) returning id",
                 Long.class, b);
         String tokenA = login(a, "a" + a + "@t.co", "ADMIN");
         String tokenB = login(b, "b" + b + "@t.co", "ADMIN");
