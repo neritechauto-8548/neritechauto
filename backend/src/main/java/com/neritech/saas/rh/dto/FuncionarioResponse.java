@@ -71,5 +71,6 @@ public record FuncionarioResponse(
         String fotoFuncionarioUrl,
         String observacoes,
         LocalDateTime dataCadastro,
-        LocalDateTime dataAtualizacao) {
+        LocalDateTime dataAtualizacao,
+        Integer versao) {
 }

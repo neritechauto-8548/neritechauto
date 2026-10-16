@@ -13,6 +13,7 @@
         <p-tab value="horarios">     <i class="pi pi-clock"></i>       Horários          </p-tab>
         <p-tab value="fiscal">       <i class="pi pi-file"></i>        Dados Fiscais     </p-tab>
         <p-tab value="email">        <i class="pi pi-envelope"></i>    E-mail            </p-tab>
+        <p-tab value="historico" (click)="carregarHistorico()">Histórico</p-tab>
       </p-tablist>
     </p-tabs>
     <div class="nt-navbar__action">
@@ -600,8 +601,7 @@
                 <input pInputText [(ngModel)]="configFiscal.usuarioAcessoProvedorHomologacao" class="w-full" />
               </div>
               <div class="nt-c3">
-                <label class="nt-lbl">Token / Senha</label>
-                <p-password [(ngModel)]="configFiscal.tokenAcessoProvedorHomologacao" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+                <p class="nt-panel-sub" role="note">Token do provedor: configuração protegida, indisponível neste cadastro.</p>
               </div>
             </div>
 
@@ -627,8 +627,7 @@
                 <input pInputText [(ngModel)]="configFiscal.usuarioAcessoProvedorProducao" class="w-full" />
               </div>
               <div class="nt-c3">
-                <label class="nt-lbl">Token / Senha</label>
-                <p-password [(ngModel)]="configFiscal.tokenAcessoProvedorProducao" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+                <p class="nt-panel-sub" role="note">Token do provedor: configuração protegida, indisponível neste cadastro.</p>
               </div>
             </div>
 
@@ -712,13 +711,8 @@
             </p-divider>
 
             <div class="nt-row">
-              <div class="nt-c7">
-                <label class="nt-lbl">Certificado (Base64 ou caminho)</label>
-                <input pInputText [(ngModel)]="configFiscal.certificadoDigitalA1" class="w-full" placeholder="Cole aqui o conteúdo do certificado A1 em Base64" />
-              </div>
-              <div class="nt-c3">
-                <label class="nt-lbl">Senha do Certificado</label>
-                <p-password [(ngModel)]="configFiscal.senhaCertificado" [feedback]="false" [toggleMask]="true" class="w-full" styleClass="w-full" />
+              <div class="nt-c10">
+                <p class="nt-panel-sub" role="note">Por segurança, certificado A1 e senha não são recebidos pelo cadastro comum. Utilize apenas a integração fiscal protegida quando disponível.</p>
               </div>
               <div class="nt-c2">
                 <label class="nt-lbl">Validade</label>
@@ -735,6 +729,13 @@
 
     <!-- ============================= TAB 7: E-MAIL ============================= -->
     @if (activeTab === 'email') {
+      @if (!emailConfigWritable) {
+        <section role="alert" class="nt-empresa-load-error">
+          <strong>Configuração de e-mail indisponível</strong>
+          <p>Não foi possível consultar as credenciais do serviço. Nenhuma alteração de e-mail será enviada.</p>
+          <button type="button" class="nt-history__button" (click)="loadData()" [disabled]="loading">Tentar novamente</button>
+        </section>
+      } @else {
 
       <p-panel styleClass="nt-panel">
         <ng-template pTemplate="header">
@@ -810,12 +811,23 @@
           Ao clicar em <strong>Testar</strong>, se as credenciais estiverem corretas, você receberá um e-mail de confirmação.
         </ng-template>
       </p-message>
+      }
     }
 
 
 
     <!-- ============================= TAB 8: CONFIGURAÇÕES ============================= -->
     @if (activeTab === 'configuracoes') {
+      <section class="nt-preferences" aria-labelledby="empresa-appearance-title">
+        <h2 id="empresa-appearance-title">Aparência</h2>
+        <label for="empresa-cor-tema">Tema da oficina</label>
+        <select id="empresa-cor-tema" [(ngModel)]="configOficina.corTema" [disabled]="loading || !empresaCarregada">
+          <option value="light">Claro</option>
+          <option value="dark">Escuro</option>
+          <option value="auto">Automático (sistema)</option>
+        </select>
+        <p>O tema é atualizado depois que o backend confirma o salvamento.</p>
+      </section>
 
       <!-- PAINEL 1: Documentos e Impressos -->
       <p-panel styleClass="nt-panel">
@@ -1023,6 +1035,59 @@
           </div>
         </div>
       </p-panel>
+    }
+
+    @if (activeTab === 'historico') {
+      <section class="nt-history" aria-labelledby="empresa-historico-title">
+        <div class="nt-history__header">
+          <div>
+            <h2 id="empresa-historico-title">Histórico de alterações</h2>
+            <p>Versões, autores e mudanças registradas na empresa autenticada.</p>
+          </div>
+          <div class="nt-history__controls">
+            <label for="historico-page-size">Registros por página</label>
+            <select id="historico-page-size" [(ngModel)]="historicoSize" (change)="carregarHistorico(0)">
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="50">50</option>
+              <option [ngValue]="100">100</option>
+            </select>
+          </div>
+        </div>
+        @if (historicoLoading) {
+          <p role="status" aria-live="polite">Carregando histórico...</p>
+        } @else if (historicoError) {
+          <div role="alert">
+            <p>{{ historicoError }}</p>
+            <button type="button" class="nt-history__button" (click)="carregarHistorico(historicoPage)">Tentar novamente</button>
+          </div>
+        } @else if (historico.length === 0) {
+          <p role="status">Ainda não existem alterações auditadas nesta empresa.</p>
+        } @else {
+          <div class="nt-history__table-wrap" tabindex="0" role="region" aria-label="Histórico com rolagem horizontal">
+            <table>
+              <caption>Histórico versionado de alterações da empresa</caption>
+              <thead><tr><th scope="col">Campo</th><th scope="col">Anterior</th><th scope="col">Novo</th><th scope="col">Autor</th><th scope="col">Data</th><th scope="col">Versão</th></tr></thead>
+              <tbody>
+                @for (item of historico; track $index) {
+                  <tr>
+                    <th scope="row">{{ item.campo }}</th>
+                    <td>{{ item.anterior }}</td>
+                    <td>{{ item.novo }}</td>
+                    <td>Usuário #{{ item.autor }}</td>
+                    <td>{{ item.data | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ item.versao }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <nav class="nt-history__pagination" aria-label="Paginação do histórico">
+            <span>Registros {{ historicoPage * historicoSize + 1 }}–{{ (historicoPage + 1) * historicoSize < historicoTotal ? (historicoPage + 1) * historicoSize : historicoTotal }} de {{ historicoTotal }}</span>
+            <button type="button" class="nt-history__button" [disabled]="historicoLoading || historicoPage === 0" (click)="carregarHistorico(historicoPage - 1)">Anterior</button>
+            <button type="button" class="nt-history__button" [disabled]="historicoLoading || (historicoPage + 1) * historicoSize >= historicoTotal" (click)="carregarHistorico(historicoPage + 1)">Próxima</button>
+          </nav>
+        }
+      </section>
     }
 
   </div><!-- /nt-content -->

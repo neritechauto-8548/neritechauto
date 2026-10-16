@@ -37,6 +37,21 @@ describe('DataViewState', () => {
     }
   });
 
+  it('distinguishes HTTP 404, 409 and validation errors without a fake retry', () => {
+    const notFound = render('not-found', true).section;
+    expect(notFound.getAttribute('role')).toBe('alert');
+    expect(notFound.textContent).toContain('Registro não encontrado');
+    expect(notFound.querySelector('button')).toBeNull();
+
+    const conflict = render('conflict', true).section;
+    expect(conflict.textContent).toContain('Este registro foi alterado');
+    expect(conflict.querySelector('button')).not.toBeNull();
+
+    const invalid = render('invalid', true).section;
+    expect(invalid.textContent).toContain('Confira os campos informados');
+    expect(invalid.querySelector('button')).toBeNull();
+  });
+
   it('never provides retry for access denied', () => {
     const { section } = render('forbidden', true);
     expect(section.textContent).toContain('Acesso não autorizado');

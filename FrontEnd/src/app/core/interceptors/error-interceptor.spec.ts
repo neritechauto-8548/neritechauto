@@ -86,6 +86,65 @@ describe('ErrorInterceptor', () => {
     }));
   });
 
+  it('preserves 422 field payload and shows actionable validation feedback', () => {
+    const add = spyOn(messages, 'add');
+    let original: any;
+    http.post('/api/clientes', { nome: '' }).subscribe({ error: value => original = value });
+    requests.expectOne('/api/clientes').flush(
+      { message: 'internal sql details', errors: [{ field: 'nome', message: 'Obrigatório' }] },
+      { status: 422, statusText: 'Unprocessable Entity' }
+    );
+    expect(original.status).toBe(422);
+    expect(original.error.errors[0].field).toBe('nome');
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Verifique os campos',
+      detail: 'Existem dados inválidos. Corrija os campos indicados e tente novamente.',
+    }));
+  });
+
+  it('retains the real Spring validation error map for inline form feedback', () => {
+    const add = spyOn(messages, 'add');
+    let response: any;
+    let acceptedAsSuccess = false;
+    http.post('/api/clientes', { nome: '' }).subscribe({
+      next: () => acceptedAsSuccess = true,
+      error: value => response = value,
+    });
+    requests.expectOne('/api/clientes').flush({
+      type: 'VALIDATION',
+      message: 'Erro de validação nos campos',
+      errors: { nome: 'Campo obrigatório', cpfCnpj: 'Documento inválido' },
+      timestamp: '2026-10-15T14:00:00',
+    }, { status: 422, statusText: 'Unprocessable Entity' });
+    expect(acceptedAsSuccess).toBeFalse();
+    expect(response.status).toBe(422);
+    expect(response.error.errors.nome).toBe('Campo obrigatório');
+    expect(response.error.errors.cpfCnpj).toBe('Documento inválido');
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Verifique os campos',
+    }));
+  });
+
+  it('differentiates 409 conflict without exposing backend diagnostics', () => {
+    const add = spyOn(messages, 'add');
+    fail('/api/clientes/123', 409, { message: 'duplicate key internal database failure' });
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Alteração em conflito',
+      detail: 'O registro pode ter sido alterado por outra pessoa. Atualize os dados antes de tentar novamente.',
+    }));
+  });
+
+  it('announces offline state and does not navigate to an unrelated error route', () => {
+    const navigate = spyOn(router, 'navigateByUrl');
+    const add = spyOn(messages, 'add');
+    http.get('/api/clientes').subscribe({ error: () => {} });
+    requests.expectOne('/api/clientes').error(new ProgressEvent('error'));
+    expect(navigate).not.toHaveBeenCalled();
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      detail: 'Sem conexão com o servidor. Verifique sua rede e tente novamente.', sticky: true,
+    }));
+  });
+
   it('keeps the local toast option out of API headers', () => {
     const add = spyOn(messages, 'add');
     http.get('/api/empresas/1', { headers: { 'X-Skip-Toast': 'true' } }).subscribe({ error: () => {} });

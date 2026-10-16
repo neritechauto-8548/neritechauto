@@ -274,6 +274,7 @@ export class CadastroColaborador implements OnInit {
 
   // ---- Form model (UI state supports Date objects for p-datepicker) ----
   form: any = {
+    versao: undefined,
     nomeCompleto: '',
     cpf: '',
     rg: '',
@@ -376,6 +377,7 @@ export class CadastroColaborador implements OnInit {
     request.subscribe({
       next: (data) => {
         this.funcionarioId = data.id; // Garante que temos o ID real do funcionario para updates subsequentes
+        this.form.versao = data.versao;
         // carrega usuarioId do funcionario
         if (data.usuarioId) {
           this.usuarioId = data.usuarioId;
@@ -619,6 +621,7 @@ export class CadastroColaborador implements OnInit {
 
     this.loading = true;
     const payload: FuncionarioRequest = {
+      versao:                     this.form.versao,
       empresaId:                  this.tenantId,
       usuarioId:                  this.usuarioId,
       matricula:                  this.form.matricula!,

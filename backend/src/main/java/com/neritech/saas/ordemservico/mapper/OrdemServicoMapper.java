@@ -6,6 +6,7 @@ import com.neritech.saas.ordemservico.domain.OrdemServico;
 import com.neritech.saas.ordemservico.dto.OrdemServicoRequest;
 import com.neritech.saas.ordemservico.dto.OrdemServicoResponse;
 import com.neritech.saas.veiculo.repository.VeiculoRepository;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,6 +19,7 @@ public abstract class OrdemServicoMapper {
     protected VeiculoRepository veiculoRepository;
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "empresaId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
@@ -40,6 +42,7 @@ public abstract class OrdemServicoMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "empresaId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
@@ -53,7 +56,7 @@ public abstract class OrdemServicoMapper {
 
     protected String getClienteNome(Long clienteId) {
         if (clienteId == null) return null;
-        return clienteRepository.findById(clienteId)
+        return clienteRepository.findByIdScoped(clienteId)
                 .map(c -> {
                     if (c.getTipoCliente() == TipoCliente.PESSOA_JURIDICA) {
                         String fantasia = c.getNomeFantasia();
@@ -66,14 +69,14 @@ public abstract class OrdemServicoMapper {
 
     protected String getVeiculoPlaca(Long veiculoId) {
         if (veiculoId == null) return null;
-        return veiculoRepository.findById(veiculoId)
+        return veiculoRepository.findByIdAndEmpresaId(veiculoId, TenantAccess.requireCurrent())
                 .map(v -> v.getPlaca())
                 .orElse(null);
     }
 
     protected String getVeiculoNome(Long veiculoId) {
         if (veiculoId == null) return null;
-        return veiculoRepository.findById(veiculoId)
+        return veiculoRepository.findByIdAndEmpresaId(veiculoId, TenantAccess.requireCurrent())
                 .map(v -> v.getModelo() != null ? v.getModelo().getNome() : null)
                 .orElse(null);
     }

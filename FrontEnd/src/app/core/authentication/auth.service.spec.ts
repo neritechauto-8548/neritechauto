@@ -46,10 +46,17 @@ describe('AuthService', () => {
     expect(authService).toBeTruthy();
   });
 
-  it('should log in failed', () => {
-    authService.login(email, 'password', false).subscribe(isLogin => expect(isLogin).toBeFalse());
+  it('não aceita resposta 200 sem token como login válido', () => {
+    let receivedStatus = 0;
+    let accepted = false;
+    authService.login(email, 'password', false).subscribe({
+      next: () => accepted = true,
+      error: error => receivedStatus = error.status,
+    });
     httpMock.expectOne('/auth/login').flush({});
 
+    expect(accepted).toBeFalse();
+    expect(receivedStatus).toBe(502);
     expect(authService.check()).toBeFalse();
   });
 

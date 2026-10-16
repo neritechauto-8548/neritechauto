@@ -20,6 +20,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${spring.mail.host:}")
+    private String smtpHost;
+
     @Value("${frontend.url:http://localhost:4200}")
     private String frontendUrl;
 
@@ -43,7 +46,7 @@ public class EmailService {
         }
     }
 
-    @Async
+    /** Synchronous delivery for recovery so outages cannot be silently swallowed. */
     public void sendPasswordResetLink(String to, String name, String token) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -57,10 +60,34 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("Password reset email sent successfully to: {}", to);
+            log.info("Password reset email accepted by SMTP transport");
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {}", to, e);
+            // Never include the raw reset link/token in HTTP responses or logs.
+            throw new org.springframework.mail.MailSendException("Password reset delivery unavailable", e);
         }
+    }
+
+    /** Entrega síncrona: o cadastro do convite deve falhar se o provedor não aceitar a mensagem. */
+    public void sendUserInvitationLink(String to, String name, String token) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("Convite para acessar o NeriTech Auto");
+            String url = frontendUrl + "/auth/reset-password#token=" + token;
+            helper.setText("<p>Olá " + org.springframework.web.util.HtmlUtils.htmlEscape(name) + ",</p><p>Você foi convidado para acessar o NERITECH AUTO.</p>"
+                    + "<p><a href='" + url + "'>Definir senha e aceitar convite</a></p>"
+                    + "<p>Este convite é de uso único e expira em 48 horas.</p>", true);
+            mailSender.send(message);
+        } catch (Exception ex) {
+            throw new org.springframework.mail.MailSendException("Invitation delivery unavailable", ex);
+        }
+    }
+
+    public boolean isPasswordResetConfigured() {
+        return smtpHost != null && !smtpHost.isBlank()
+                && fromEmail != null && !fromEmail.isBlank();
     }
 
     private String buildTrialEmailTemplate(String name, String email, String password) {
@@ -123,7 +150,8 @@ public class EmailService {
     }
 
     private String buildResetEmailTemplate(String name, String token) {
-        String resetUrl = frontendUrl + "/auth/reset-password?token=" + token;
+        // A URL fragment is not sent to the web server or Referer header.
+        String resetUrl = frontendUrl + "/auth/reset-password#token=" + token;
         
         return "<html>" +
                 "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +

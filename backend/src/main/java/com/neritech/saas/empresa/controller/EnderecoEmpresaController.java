@@ -9,11 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/v1/enderecos-empresa")
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
 public class EnderecoEmpresaController {
 
     private final EnderecoEmpresaService service;
@@ -22,6 +24,7 @@ public class EnderecoEmpresaController {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @PostMapping
     public ResponseEntity<EnderecoEmpresaResponse> create(@Valid @RequestBody EnderecoEmpresaRequest request) {
         EnderecoEmpresaResponse response = service.create(request);
@@ -46,6 +49,7 @@ public class EnderecoEmpresaController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @PutMapping("/{id}")
     public ResponseEntity<EnderecoEmpresaResponse> update(@PathVariable Long id,
             @Valid @RequestBody EnderecoEmpresaRequest request) {
@@ -53,6 +57,7 @@ public class EnderecoEmpresaController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

@@ -1,6 +1,7 @@
 package com.neritech.saas.rh.controller;
 
 import com.neritech.saas.rh.dto.FuncionarioRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.neritech.saas.rh.dto.FuncionarioResponse;
 import com.neritech.saas.rh.service.FuncionarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.neritech.saas.rh.service.FuncionarioFotoStorageService;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
 @RequestMapping("/v1/rh/funcionarios")
 @RequiredArgsConstructor
 @Tag(name = "Funcionários", description = "Gestão de funcionários")
@@ -28,14 +30,25 @@ public class FuncionarioController {
     @Operation(summary = "Listar funcionÃ¡rios")
     public ResponseEntity<Page<FuncionarioResponse>> findAll(
             @RequestParam Long empresaId,
+            @RequestParam(required = false) String nomeCompleto,
+            @RequestParam(required = false) com.neritech.saas.rh.domain.enums.StatusFuncionario status,
+            @RequestParam(required = false) Long cargoId,
+            @RequestParam(required = false) Long departamentoId,
             Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+        return ResponseEntity.ok(service.findAll(empresaId, nomeCompleto, status, cargoId, departamentoId, pageable));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar funcionÃ¡rio por ID")
     public ResponseEntity<FuncionarioResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    @GetMapping("/{id}/historico")
+    public ResponseEntity<Page<com.neritech.saas.rh.dto.FuncionarioAlteracaoResponse>> history(
+            @PathVariable Long id, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(service.history(id, page, size));
     }
 
     @GetMapping("/usuario/{usuarioId}")
@@ -61,7 +74,7 @@ public class FuncionarioController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir funcionário")
+    @Operation(summary = "Inativar funcionário")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
@@ -70,6 +83,7 @@ public class FuncionarioController {
     @PostMapping("/{id}/foto")
     @Operation(summary = "Upload da foto", description = "Realiza o upload da foto do funcionário")
     public ResponseEntity<FuncionarioResponse> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        service.validateFotoUpload(id); // validar tenant e usuario vinculado antes do arquivo
         String path = fotoStorageService.store(id, file);
         FuncionarioResponse saved = service.updateFotoPath(id, path);
         return ResponseEntity.ok(saved);

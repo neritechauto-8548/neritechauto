@@ -16,13 +16,16 @@ import java.util.Set;
 public class UsuarioRequest {
 
     @NotBlank(message = "Nome é obrigatório")
+    @jakarta.validation.constraints.Size(max = 255)
     private String nomeCompleto;
 
     @NotBlank(message = "Email é obrigatório")
     @Email(message = "Email inválido")
+    @jakarta.validation.constraints.Size(max = 255)
     private String email;
 
-    private String senha; // Opcional na atualização
+    @jakarta.validation.constraints.Size(max = 128)
+    private String senha; // Opcional na atualização e no convite
 
     private boolean ativo;
     private boolean bloqueado;
@@ -34,4 +37,5 @@ public class UsuarioRequest {
     private String departamento;
     private String telefone;
     private java.util.Map<String, Object> preferencias;
+    private Integer versao;
 }

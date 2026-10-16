@@ -13,7 +13,10 @@ import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
     <p-dialog
       [(visible)]="visible"
       [modal]="true"
-      [closable]="false"
+      [closable]="true"
+      [closeOnEscape]="true"
+      [header]="config?.title || 'Confirmação'"
+      (onHide)="onDialogHide()"
       [draggable]="false"
       [resizable]="false"
       styleClass="!p-0 !border-0 !shadow-2xl !rounded-lg !max-w-sm"
@@ -43,25 +46,26 @@ import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
                 }"
               />
             </div>
-            <h3 class="text-base font-semibold text-slate-900">{{ config?.title }}</h3>
           </div>
-          <p class="text-sm text-slate-600 leading-relaxed" [innerHTML]="config?.message"></p>
+          <p class="text-sm text-slate-600 leading-relaxed">{{ config?.message }}</p>
         </div>
 
         <!-- Actions -->
         <div class="bg-slate-50 px-5 py-3 flex gap-2 justify-end border-t border-slate-100">
           <button
+            type="button"
             (click)="onCancel()"
-            class="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+            class="min-h-11 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors"
           >
             {{ config?.cancelText || 'Cancelar' }}
           </button>
           <button
+            type="button"
             (click)="onConfirm()"
-            class="px-3 py-1.5 text-sm font-medium text-white rounded-md transition-colors shadow-sm"
+            class="min-h-11 px-4 py-2 text-sm font-medium text-white rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors shadow-sm"
             [ngClass]="{
               'bg-rose-600 hover:bg-rose-700': config?.type === 'danger',
-              'bg-amber-600 hover:bg-amber-700': config?.type === 'warning',
+              'bg-amber-700 hover:bg-amber-800': config?.type === 'warning',
               'bg-blue-600 hover:bg-blue-700': config?.type === 'info' || !config?.type
             }"
           >
@@ -96,6 +100,12 @@ export class ConfirmationDialogComponent implements OnInit, OnDestroy {
   }
 
   onCancel() {
+    this.visible = false;
+    this.confirmationService.sendResult(false);
+  }
+
+  // Escape or the close button must never leave a decision unresolved.
+  onDialogHide() {
     this.visible = false;
     this.confirmationService.sendResult(false);
   }

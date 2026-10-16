@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
 
-export type DataViewStateKind = 'loading' | 'empty' | 'filtered-empty' | 'error' | 'offline' | 'forbidden';
+export type DataViewStateKind = 'loading' | 'empty' | 'filtered-empty' | 'error' | 'offline' | 'forbidden' | 'not-found' | 'conflict' | 'invalid';
 
 /** Reusable accessible data state, without mock success or implicit retry. */
 @Component({
@@ -14,12 +14,12 @@ export type DataViewStateKind = 'loading' | 'empty' | 'filtered-empty' | 'error'
       [attr.role]="critical ? 'alert' : 'status'"
       [attr.aria-live]="critical ? 'assertive' : 'polite'"
       [attr.aria-busy]="kind === 'loading' ? 'true' : null">
-      <div class="nt-data-state-icon">
+      <div class="nt-data-state-icon" aria-hidden="true">
         <nt-icon [name]="iconName" [size]="24" />
       </div>
       <h3 class="nt-data-state-title">{{ title || defaultTitle }}</h3>
       <p class="nt-data-state-description">{{ description || defaultDescription }}</p>
-      @if (retryAvailable && kind !== 'loading' && kind !== 'forbidden') {
+      @if (retryAvailable && kind !== 'loading' && kind !== 'forbidden' && kind !== 'invalid' && kind !== 'not-found') {
         <button type="button" class="nt-data-state-retry" (click)="retry.emit()">
           {{ retryLabel }}
         </button>
@@ -37,7 +37,7 @@ export class DataViewState {
   @Output() retry = new EventEmitter<void>();
 
   get critical(): boolean {
-    return this.kind === 'error' || this.kind === 'offline' || this.kind === 'forbidden';
+    return ['error', 'offline', 'forbidden', 'not-found', 'conflict', 'invalid'].includes(this.kind);
   }
 
   get iconName(): NeriTechIconName {
@@ -47,6 +47,9 @@ export class DataViewState {
       case 'filtered-empty': return 'search';
       case 'offline': return 'wifi-off';
       case 'forbidden': return 'lock';
+      case 'not-found': return 'file-search';
+      case 'conflict':
+      case 'invalid': return 'alert-circle';
       default: return 'alert-circle';
     }
   }
@@ -58,6 +61,9 @@ export class DataViewState {
       case 'filtered-empty': return 'Nenhum resultado para os filtros';
       case 'offline': return 'Sem conexão';
       case 'forbidden': return 'Acesso não autorizado';
+      case 'not-found': return 'Registro não encontrado';
+      case 'conflict': return 'Este registro foi alterado';
+      case 'invalid': return 'Confira os campos informados';
       default: return 'Não foi possível carregar os dados';
     }
   }
@@ -69,6 +75,9 @@ export class DataViewState {
       case 'filtered-empty': return 'Experimente ajustar a busca ou limpar os filtros.';
       case 'offline': return 'Verifique sua conexão e tente novamente.';
       case 'forbidden': return 'Seu perfil não tem permissão para visualizar estes dados.';
+      case 'not-found': return 'O registro pode ter sido removido ou o endereço está incorreto.';
+      case 'conflict': return 'Os dados foram modificados. Atualize as informações antes de tentar novamente.';
+      case 'invalid': return 'Corrija os campos indicados e tente salvar novamente.';
       default: return 'Ocorreu um problema. Você pode tentar novamente.';
     }
   }

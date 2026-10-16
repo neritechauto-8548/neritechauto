@@ -4,7 +4,7 @@
   <div class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
     <div class="flex items-center justify-between px-6 py-4">
       <div class="flex items-center gap-4">
-        <button (click)="voltar()" class="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors">
+        <button type="button" aria-label="Voltar para perfis" (click)="voltar()" class="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors">
           <mat-icon>arrow_back</mat-icon>
         </button>
         <div>
@@ -30,6 +30,7 @@
   </div>
 
   <div class="max-w-[98%] mx-auto px-6 py-8 space-y-8" [formGroup]="form">
+    <p *ngIf="loadError" role="alert" class="p-4 rounded-lg bg-red-50 text-red-700">{{ loadError }}</p>
     
     <!-- Info Section -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -42,9 +43,9 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
           <!-- Nome -->
           <div class="md:col-span-3 space-y-2">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Perfil</label>
+            <label for="nome-perfil" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Perfil</label>
             <div class="relative">
-              <input type="text" formControlName="nomePerfil" [readonly]="isAdmin"
+              <input id="nome-perfil" type="text" formControlName="nomePerfil" [readonly]="isAdmin" maxlength="50"
                 placeholder="Ex: Gerente..."
                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400" />
               <mat-icon *ngIf="isAdmin" class="absolute right-3 top-3 text-amber-500 !text-[20px]">lock</mat-icon>
@@ -53,8 +54,8 @@
 
           <!-- Descrição -->
           <div class="md:col-span-7 space-y-2">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição Detalhada</label>
-            <input type="text" formControlName="descricao" [readonly]="isAdmin"
+            <label for="descricao-perfil" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descrição Detalhada</label>
+            <input id="descricao-perfil" type="text" formControlName="descricao" [readonly]="isAdmin" maxlength="255"
               placeholder="Explique a finalidade deste perfil..."
               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400" />
           </div>
@@ -78,6 +79,11 @@
         </div>
       </div>
     </div>
+
+    <section *ngIf="historico.length" aria-labelledby="historico-perfil" class="bg-white rounded-xl border p-5">
+      <h3 id="historico-perfil" class="font-semibold">Alterações recentes</h3>
+      <ul class="text-sm text-slate-600"><li *ngFor="let item of historico">{{ item.data | date:'short' }} — {{ item.operacao }}</li></ul>
+    </section>
 
     <!-- Permissions Section -->
     <div class="space-y-4">

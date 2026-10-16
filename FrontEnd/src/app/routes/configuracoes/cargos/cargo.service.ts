@@ -9,20 +9,34 @@ import { Page } from '../categoria/categoria-produto.service';
 
 export interface CargoRequest {
   nome: string;
+  descricao?: string;
   codigoCbo?: string;
+  areaId?: number;
+  nivelHierarquico?: number;
+  responsabilidades?: string;
   salarioBaseMinimo?: number;
   salarioBaseMaximo?: number;
   temComissao: boolean;
+  ativo?: boolean;
+  versao?: number;
 }
 
 export interface CargoResponse {
   id: number;
   empresaId: number;
   nome: string;
+  descricao?: string;
   codigoCbo?: string;
+  areaId?: number;
+  nivelHierarquico?: number;
+  responsabilidades?: string;
   salarioBaseMinimo?: number;
   salarioBaseMaximo?: number;
   temComissao?: boolean;
+  ativo?: boolean;
+  numeroFuncionarios?: number;
+  dataAtualizacao?: string;
+  versao?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -54,6 +68,12 @@ export class CargoService {
   excluir(id: number): Observable<void> {
     return this.executar((_empresaId, headers) =>
       this.http.delete<void>(`${this.base}/${id}`, { headers }));
+  }
+
+  historico(id: number): Observable<{ content: Array<{ operacao: string; campos: string; valores: string; autor: number; data: string }> }> {
+    return this.executar((_empresaId, headers) => this.http.get<any>(`${this.base}/${id}/historico`, {
+      params: { page: '0', size: '20' }, headers
+    }));
   }
 
   list(params?: Record<string, string | number | boolean | undefined>): Observable<Page<CargoResponse>> {

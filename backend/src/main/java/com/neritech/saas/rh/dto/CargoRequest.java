@@ -8,6 +8,7 @@ public record CargoRequest(
         @NotBlank @Size(max = 100) String nome,
         String descricao,
         @Size(max = 10) String codigoCbo,
+        Long areaId,
         Integer nivelHierarquico,
         Long cargoSuperiorId,
         BigDecimal salarioBaseMinimo,
@@ -19,5 +20,6 @@ public record CargoRequest(
         BigDecimal percentualComissaoPadrao,
         BigDecimal metaVendasMensal,
         Integer cargaHorariaSemanal,
-        Boolean ativo) {
+        Boolean ativo,
+        Integer versao) {
 }

@@ -11,8 +11,22 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
+    Optional<Funcionario> findByIdAndEmpresaId(Long id, Long empresaId);
 
     Page<Funcionario> findByEmpresaId(Long empresaId, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("select f from Funcionario f left join f.cargo c left join f.departamento d " +
+            "where f.empresaId=:empresaId and (:q is null or lower(f.nomeCompleto) like lower(concat('%',:q,'%')) " +
+            "or lower(f.matricula) like lower(concat('%',:q,'%'))) " +
+            "and (:status is null or f.status=:status) and (:cargoId is null or f.cargoId=:cargoId) " +
+            "and (:departamentoId is null or f.departamentoId=:departamentoId)")
+    Page<Funcionario> search(
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("q") String q,
+            @org.springframework.data.repository.query.Param("status") StatusFuncionario status,
+            @org.springframework.data.repository.query.Param("cargoId") Long cargoId,
+            @org.springframework.data.repository.query.Param("departamentoId") Long departamentoId,
+            Pageable pageable);
 
     List<Funcionario> findByEmpresaIdAndStatus(Long empresaId, StatusFuncionario status);
 
@@ -33,5 +47,8 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
     List<Funcionario> findByDepartamentoId(Long departamentoId);
 
     Optional<Funcionario> findByEmpresaIdAndUsuarioId(Long empresaId, Long usuarioId);
+    boolean existsByEmpresaIdAndUsuarioIdAndIdNot(Long empresaId, Long usuarioId, Long id);
+    long countByEmpresaIdAndCargoId(Long empresaId, Long cargoId);
+    long countByEmpresaIdAndDepartamentoId(Long empresaId, Long departamentoId);
 }
 

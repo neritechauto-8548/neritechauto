@@ -13,6 +13,7 @@ export interface Empresa {
   observacoes?: string;
   ativo?: boolean;
   logoPath?: string;
+  versao?: number;
 }
 
 // --- Endereço da Empresa ---
@@ -150,6 +151,7 @@ export interface ConfiguracaoOficina {
   formatoData?: string;
   formatoHora?: string;
   timezone?: string;
+  corTema?: 'light' | 'dark' | 'auto';
   possuiIntervalo?: boolean;
   inicioIntervalo?: string;
   fimIntervalo?: string;
@@ -235,4 +237,21 @@ export interface ConfiguracaoSms {
   ativo?: boolean;
   ambiente?: 'HOMOLOGACAO' | 'PRODUCAO';
   observacoes?: string;
+}
+
+/** Uma alteração auditada e visível somente para a empresa da sessão. */
+export interface EmpresaAlteracao {
+  secao: string;
+  campo: string;
+  anterior: string;
+  novo: string;
+  autor: number;
+  data: string;
+  versao: number;
+}
+
+export interface EmpresaHistoricoPage {
+  content: EmpresaAlteracao[];
+  totalElements: number;
+  totalPages: number;
 }

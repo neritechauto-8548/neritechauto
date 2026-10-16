@@ -31,8 +31,9 @@ public class AuthController {
             @RequestBody @Valid LoginRequest request,
             HttpServletRequest servletRequest
     ) {
-        if (request.getIpAddress() == null) request.setIpAddress(servletRequest.getRemoteAddr());
-        if (request.getUserAgent() == null) request.setUserAgent(servletRequest.getHeader("User-Agent"));
+        // Client-supplied JSON metadata must not spoof the request identity.
+        request.setIpAddress(servletRequest.getRemoteAddr());
+        request.setUserAgent(servletRequest.getHeader("User-Agent"));
         if (request.getEmail() != null) {
             usuarioRepository.findByEmailIgnoreCase(request.getEmail()).ifPresent(u -> TenantContext.setCurrentTenant(u.getEmpresaId()));
         }
@@ -66,9 +67,11 @@ public class AuthController {
 
     @PostMapping("/recover-password")
     @Operation(summary = "Solicitar recuperação de senha", description = "Envia um link de recuperação por e-mail")
-    public ResponseEntity<Void> recoverPassword(@RequestBody @Valid RecoverPasswordRequest request) {
+    public ResponseEntity<Void> recoverPassword(
+            @RequestBody @Valid RecoverPasswordRequest request,
+            HttpServletRequest servletRequest) {
         try {
-            authService.recoverPassword(request.getEmail());
+            authService.recoverPassword(request.getEmail(), servletRequest.getRemoteAddr());
             return ResponseEntity.ok().build();
         } finally {
             TenantContext.clear();

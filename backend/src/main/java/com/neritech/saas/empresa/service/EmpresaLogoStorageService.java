@@ -2,46 +2,138 @@ package com.neritech.saas.empresa.service;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.util.Iterator;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Locale;
+import java.util.UUID;
 
+/** Storage is private; only the tenant-authorized controller may serve images. */
 @Service
 public class EmpresaLogoStorageService {
+    public static final int MAX_BYTES = 2 * 1024 * 1024;
     private final Path baseDir;
 
     public EmpresaLogoStorageService() {
         this.baseDir = Paths.get("uploads", "logos").toAbsolutePath().normalize();
-        try { Files.createDirectories(this.baseDir); } catch (IOException e) { throw new RuntimeException(e); }
+        try {
+            Files.createDirectories(this.baseDir);
+        } catch (IOException e) {
+            throw new IllegalStateException("Não foi possível preparar o armazenamento de logos", e);
+        }
     }
 
     public String store(Long empresaId, MultipartFile file) {
-        if (file == null || file.isEmpty()) throw new IllegalArgumentException("Arquivo vazio");
-        String extension = getFileExtension(file.getOriginalFilename());
-        String filename = "logo_" + empresaId + (extension.isEmpty() ? "" : "." + extension);
-        Path target = baseDir.resolve(filename);
-        try {
-            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao salvar logomarca", e);
+        if (file == null || file.isEmpty() || file.getSize() > MAX_BYTES) {
+            throw invalidLogo();
         }
-        return target.toAbsolutePath().toString();
+        try {
+            byte[] bytes = file.getBytes();
+            if (bytes.length == 0 || bytes.length > MAX_BYTES) throw invalidLogo();
+            String extension = detectExtension(bytes);
+            String declaredType = file.getContentType() == null ? "" :
+                    file.getContentType().toLowerCase(Locale.ROOT);
+            if (extension == null || !declaredType.equals(contentType(extension))
+                    || !validImage(extension, bytes)) {
+                throw invalidLogo();
+            }
+            Path target = baseDir.resolve("logo_" + empresaId + "_" + UUID.randomUUID() + "." + extension);
+            Files.write(target, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            return target.toString();
+        } catch (IOException e) {
+            throw new IllegalStateException("Não foi possível armazenar a logomarca", e);
+        }
     }
 
-    public Resource load(String absolutePath) {
-        Path p = Paths.get(absolutePath);
-        if (!Files.exists(p)) throw new IllegalArgumentException("Arquivo não encontrado");
-        return new FileSystemResource(p.toFile());
+    public Resource load(String path) {
+        Path target = Paths.get(path).toAbsolutePath().normalize();
+        if (!target.startsWith(baseDir) ||
+                !Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Logomarca não encontrada");
+        }
+        return new FileSystemResource(target);
     }
 
-    private String getFileExtension(String filename) {
-        if (filename == null) return "";
-        int lastIndex = filename.lastIndexOf('.');
-        return lastIndex == -1 ? "" : filename.substring(lastIndex + 1);
+    public String mediaType(String path) {
+        String name = Paths.get(path).getFileName().toString().toLowerCase(Locale.ROOT);
+        if (name.endsWith(".png")) return "image/png";
+        if (name.endsWith(".jpg")) return "image/jpeg";
+        if (name.endsWith(".webp")) return "image/webp";
+        // Reject legacy active content (SVG, HTML) and unsupported formats.
+        throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Formato de logomarca não suportado");
+    }
+
+    private static String detectExtension(byte[] b) {
+        if (b.length >= 8 && (b[0] & 0xff) == 0x89 && b[1] == 'P' &&
+                b[2] == 'N' && b[3] == 'G' && (b[4] & 0xff) == 13 &&
+                (b[5] & 0xff) == 10 && (b[6] & 0xff) == 26 && (b[7] & 0xff) == 10) {
+            return "png";
+        }
+        if (b.length >= 3 && (b[0] & 0xff) == 0xff &&
+                (b[1] & 0xff) == 0xd8 && (b[2] & 0xff) == 0xff) return "jpg";
+        if (b.length >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F' &&
+                b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') return "webp";
+        return null;
+    }
+
+    /** Check decodability/dimensions, not just filename or magic bytes. */
+    private static boolean validImage(String extension, byte[] bytes) {
+        if ("webp".equals(extension)) {
+            // WebP RIFF size and mandatory VP8/VP8L/VP8X chunk.
+            if (bytes.length < 24) return false;
+            long declaredLength = ((long) (bytes[4] & 255))
+                    | ((long) (bytes[5] & 255) << 8)
+                    | ((long) (bytes[6] & 255) << 16)
+                    | ((long) (bytes[7] & 255) << 24);
+            String chunk = new String(bytes, 12, 4, java.nio.charset.StandardCharsets.US_ASCII);
+            return declaredLength == bytes.length - 8L
+                    && (chunk.equals("VP8 ") || chunk.equals("VP8L") || chunk.equals("VP8X"));
+        }
+        try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            if (input == null) return false;
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) return false;
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+                if (width < 1 || height < 1 || width > 4096 || height > 4096) return false;
+                BufferedImage image = reader.read(0);
+                return image != null;
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException | RuntimeException invalid) {
+            return false;
+        }
+    }
+
+    private static String contentType(String extension) {
+        return switch (extension) {
+            case "png" -> "image/png";
+            case "jpg" -> "image/jpeg";
+            case "webp" -> "image/webp";
+            default -> "";
+        };
+    }
+
+    private static ResponseStatusException invalidLogo() {
+        return new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "Envie uma imagem PNG, JPG ou WebP válida de até 2 MB");
     }
 }

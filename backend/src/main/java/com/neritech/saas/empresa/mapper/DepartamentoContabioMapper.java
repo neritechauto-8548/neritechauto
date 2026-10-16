@@ -15,6 +15,9 @@ public interface DepartamentoContabioMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "numeroFuncionarios", ignore = true)
+    @Mapping(target = "numeroCargos", ignore = true)
+    @Mapping(target = "numeroServicos", ignore = true)
     DepartamentoContabio toEntity(DepartamentoContabioRequest request);
 
     @Mapping(source = "empresa.id", target = "empresaId")
@@ -26,5 +29,8 @@ public interface DepartamentoContabioMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "numeroFuncionarios", ignore = true)
+    @Mapping(target = "numeroCargos", ignore = true)
+    @Mapping(target = "numeroServicos", ignore = true)
     void updateEntityFromRequest(DepartamentoContabioRequest request, @MappingTarget DepartamentoContabio entity);
 }

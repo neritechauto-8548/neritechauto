@@ -38,6 +38,9 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
     private FuncaoRepository funcaoRepository;
 
     @Autowired
+    private com.neritech.saas.gestaoUsuarios.repository.TentativaLoginRepository tentativaLoginRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
@@ -90,6 +93,41 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
                 .header("X-Tenant-Id", "2")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Cinco senhas inválidas persistem e a sexta tentativa retorna 429")
+    void devePersistirTentativasFalhasEAplicarRateLimitReal() throws Exception {
+        String email = "ratelimit.auth001@exemplo.com";
+        var usuario = TestDataBuilder.umUsuario()
+                .comEmail(email)
+                .comSenha(passwordEncoder.encode("senha-correta"))
+                .comEmpresaId(1L)
+                .build();
+        usuarioRepository.saveAndFlush(usuario);
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            LoginRequest invalid = TestDataBuilder.umLoginRequest()
+                    .comEmail(attempt % 2 == 0 ? email.toUpperCase() : email)
+                    .comSenha("senha-errada")
+                    .build();
+            mockMvc.perform(post("/auth/login")
+                    .header("X-Tenant-Id", "1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalid)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        org.junit.jupiter.api.Assertions.assertEquals(5L,
+                tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(
+                        email, java.time.LocalDateTime.now().minusMinutes(15)));
+
+        mockMvc.perform(post("/auth/login")
+                .header("X-Tenant-Id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(TestDataBuilder.umLoginRequest()
+                        .comEmail(email).comSenha("senha-correta").build())))
+                .andExpect(status().isTooManyRequests());
     }
 
     @Test

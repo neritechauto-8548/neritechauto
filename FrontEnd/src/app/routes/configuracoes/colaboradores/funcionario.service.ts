@@ -69,6 +69,7 @@ export interface FuncionarioRequest {
   cnhValidade?: string;
   fotoFuncionarioUrl?: string;
   observacoes?: string;
+  versao?: number;
 }
 
 export interface FuncionarioResponse {
@@ -130,6 +131,7 @@ export interface FuncionarioResponse {
   cnhValidade?: string;
   fotoFuncionarioUrl?: string;
   observacoes?: string;
+  versao?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -177,6 +179,11 @@ export class FuncionarioService {
 
   delete(id: number): Observable<void> {
     return this.withEmpresa(() => this.http.delete<void>(`${this.base}/${id}`, { headers: this.headers }));
+  }
+
+  history(id: number): Observable<{ content: Array<{ operacao: string; campos: string; valores: string; autor: number; data: string }> }> {
+    return this.withEmpresa(() => this.http.get<{ content: Array<{ operacao: string; campos: string; valores: string; autor: number; data: string }> }>(
+      `${this.base}/${id}/historico`, { params: { page: '0', size: '20' }, headers: this.headers }));
   }
 
   uploadFoto(id: number, file: File): Observable<FuncionarioResponse> {

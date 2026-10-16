@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface UnidadeMedidaRepository extends JpaRepository<UnidadeMedida, Long> {
     Page<UnidadeMedida> findByEmpresaId(Long empresaId, Pageable pageable);
 
+    Optional<UnidadeMedida> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Optional<UnidadeMedida> findByEmpresaIdAndSigla(Long empresaId, String sigla);
 
     List<UnidadeMedida> findByEmpresaIdAndAtivoTrue(Long empresaId);

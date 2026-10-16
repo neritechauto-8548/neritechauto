@@ -1,6 +1,7 @@
 package com.neritech.saas.gestaoUsuarios.service;
 
 import com.neritech.saas.gestaoUsuarios.domain.Permissao;
+import com.neritech.saas.gestaoUsuarios.dto.PermissaoResponse;
 import com.neritech.saas.gestaoUsuarios.repository.PermissaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

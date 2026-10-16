@@ -32,6 +32,9 @@ public class EmpresaResponse {
     @Schema(description = "Caminho da logomarca", example = "uploads/logomarcas/logo.png")
     private String logoPath;
 
+    @Schema(description = "Versão para controle de concorrência")
+    private Integer versao;
+
     public Long getId() {
         return id;
     }
@@ -134,5 +137,12 @@ public class EmpresaResponse {
 
     public void setLogoPath(String logoPath) {
         this.logoPath = logoPath;
+    }
+    public Integer getVersao() {
+        return versao;
+    }
+
+    public void setVersao(Integer versao) {
+        this.versao = versao;
     }
 }

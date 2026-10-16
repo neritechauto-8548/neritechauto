@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UsuarioRequest, UsuarioResponse, Permissao } from './permissoes/usuario.models';
 
@@ -26,6 +26,12 @@ export class UsuarioService {
     return this.http.get<UsuarioResponse[]>(this.API_URL);
   }
 
+  search(query = '', ativo: boolean | null = null, page = 0, size = 20): Observable<{ content: UsuarioResponse[]; totalElements: number }> {
+    const params: Record<string, string> = { page: String(page), size: String(size), q: query };
+    if (ativo !== null) params['ativo'] = String(ativo);
+    return this.http.get<{ content: UsuarioResponse[]; totalElements: number }>(`${this.API_URL}/pagina`, { params });
+  }
+
   get(id: number): Observable<UsuarioResponse> {
     return this.http.get<UsuarioResponse>(`${this.API_URL}/${id}`);
   }
@@ -34,12 +40,21 @@ export class UsuarioService {
     return this.http.post<UsuarioResponse>(this.API_URL, user);
   }
 
+  invite(user: UsuarioRequest): Observable<UsuarioResponse> {
+    return this.http.post<UsuarioResponse>(`${this.API_URL}/convites`, user);
+  }
+
   update(id: number, user: UsuarioRequest): Observable<UsuarioResponse> {
     return this.http.put<UsuarioResponse>(`${this.API_URL}/${id}`, user);
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
+  }
+
+  history(id: number): Observable<{ content: Array<{ operacao: string; campos: string; valores: string; autor: number; data: string }> }> {
+    return this.http.get<{ content: Array<{ operacao: string; campos: string; valores: string; autor: number; data: string }> }>(
+      `${this.API_URL}/${id}/historico`, { params: { page: '0', size: '20' } });
   }
 
   listPermissoes(): Observable<Permissao[]> {

@@ -438,3 +438,28 @@
 @media(max-width:980px){.visual-journey{display:none}}
 @media(max-width:860px){.auth-panel{padding:40px 24px}.auth-content{max-width:500px}}
 @media(prefers-reduced-motion:reduce){.visual-illustration{filter:none}}
+
+/* AUTH-001: visible errors, keyboard affordances and 200% zoom reflow. */
+.auth-error {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--nt-danger, #B91C1C);
+  border-radius: var(--nt-radius-md, 8px);
+  background: var(--nt-danger-surface, #FEF2F2);
+  color: var(--nt-danger, #B91C1C);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.password-toggle { min-width: 44px; min-height: 44px; right: 3px; }
+.auth-primary:focus-visible,
+.password-toggle:focus-visible,
+.field-label-row a:focus-visible,
+.remember-field input:focus-visible {
+  outline: 3px solid var(--nt-focus, #3154FF);
+  outline-offset: 3px;
+}
+.field-label-row { flex-wrap: wrap; }
+@media (max-width: 375px) {
+  .auth-panel { padding-inline: 16px; }
+  .auth-content { min-width: 0; }
+}

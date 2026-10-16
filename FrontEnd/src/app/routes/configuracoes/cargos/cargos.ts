@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CargoRequest, CargoResponse, CargoService } from './cargo.service';
+import { DepartamentoService } from '../departamentos/departamento.service';
 
 @Component({
   selector: 'app-cargos',
@@ -14,20 +16,32 @@ import { CargoRequest, CargoResponse, CargoService } from './cargo.service';
         <p class="text-sm text-slate-500">Cargos dos funcionários, separados dos perfis de acesso ao sistema.</p>
       </header>
       <div class="flex flex-wrap items-center gap-3 mb-4">
-        <button type="button" class="px-4 py-2 rounded-lg bg-indigo-600 text-white" (click)="abrirNovo()">Novo cargo</button>
+        <button type="button" class="px-4 py-2 rounded-lg bg-indigo-600 text-white" (click)="abrirNovo()"><i class="ti ti-plus" aria-hidden="true"></i> Novo cargo</button>
         <label for="cargo-busca" class="text-sm font-medium">Buscar cargo</label>
-        <input id="cargo-busca" type="search" [(ngModel)]="busca" placeholder="Nome ou CBO" class="border rounded-lg px-3 py-2 text-sm" />
-        <span class="text-sm text-slate-500">{{ cargosFiltrados.length }} cargo(s) nesta página</span>
+        <input id="cargo-busca" type="search" [(ngModel)]="busca" (keyup.enter)="aplicarFiltros()" placeholder="Nome ou código" class="border rounded-lg px-3 py-2 text-sm" />
+        <select aria-label="Filtrar situação" [(ngModel)]="filtroAtivo" (change)="aplicarFiltros()" class="border rounded-lg px-3 py-2 text-sm"><option value="">Todos</option><option value="true">Ativos</option><option value="false">Inativos</option></select>
+        <button type="button" class="border rounded-lg px-3 py-2" (click)="aplicarFiltros()">Buscar</button>
+        <span class="text-sm text-slate-500">{{ cargos.length }} cargo(s) nesta página</span>
       </div>
       <form *ngIf="editando" (ngSubmit)="salvar()" class="bg-white rounded-xl border border-slate-200 p-5 mb-5 space-y-3" aria-label="Cadastro de cargo">
         <h2 class="font-semibold">{{ cargoId ? 'Editar cargo' : 'Novo cargo' }}</h2>
         <div class="flex flex-wrap gap-3">
           <label class="flex flex-col text-sm gap-1">Nome * <input name="nome" required maxlength="120" [(ngModel)]="form.nome" class="border rounded-lg px-3 py-2" /></label>
           <label class="flex flex-col text-sm gap-1">CBO <input name="codigoCbo" maxlength="12" [(ngModel)]="form.codigoCbo" class="border rounded-lg px-3 py-2" /></label>
+          <label class="flex flex-col text-sm gap-1">Área <select name="areaId" [(ngModel)]="form.areaId" class="border rounded-lg px-3 py-2"><option [ngValue]="undefined">Sem área</option><option *ngFor="let area of areas" [ngValue]="area.id">{{ area.descricao }}</option></select></label>
+          <label class="flex flex-col text-sm gap-1">Nível <input name="nivel" type="number" min="1" [(ngModel)]="form.nivelHierarquico" class="border rounded-lg px-3 py-2" /></label>
           <label class="flex flex-col text-sm gap-1">Salário mínimo <input name="salarioMinimo" type="number" min="0" step="0.01" [(ngModel)]="form.salarioBaseMinimo" class="border rounded-lg px-3 py-2" /></label>
           <label class="flex flex-col text-sm gap-1">Salário máximo <input name="salarioMaximo" type="number" min="0" step="0.01" [(ngModel)]="form.salarioBaseMaximo" class="border rounded-lg px-3 py-2" /></label>
           <label class="flex items-center gap-2 text-sm"><input name="temComissao" type="checkbox" [(ngModel)]="form.temComissao" /> Permite comissão</label>
+          <label class="flex items-center gap-2 text-sm"><input name="ativo" type="checkbox" [(ngModel)]="form.ativo" /> Ativo</label>
         </div>
+        <label class="flex flex-col text-sm gap-1">Descrição <textarea name="descricao" maxlength="2000" [(ngModel)]="form.descricao" class="border rounded-lg px-3 py-2"></textarea></label>
+        <label class="flex flex-col text-sm gap-1">Responsabilidades <textarea name="responsabilidades" maxlength="4000" [(ngModel)]="form.responsabilidades" class="border rounded-lg px-3 py-2"></textarea></label>
+        <p class="text-xs text-slate-500">Cargo organizacional não concede permissões. Perfis de acesso são administrados separadamente.</p>
+        <section *ngIf="cargoId && historico.length" aria-labelledby="historico-cargo" class="border-t pt-3">
+          <h3 id="historico-cargo" class="text-sm font-semibold">Alterações recentes</h3>
+          <ul class="text-xs text-slate-600"><li *ngFor="let item of historico">{{ item.data | date:'short' }} — {{ item.operacao }}</li></ul>
+        </section>
         <p *ngIf="formError" role="alert" class="text-red-700 text-sm">{{ formError }}</p>
         <div class="flex gap-2">
           <button type="submit" [disabled]="salvando" class="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:opacity-50">{{ salvando ? 'Salvando...' : 'Salvar cargo' }}</button>
@@ -44,18 +58,20 @@ import { CargoRequest, CargoResponse, CargoService } from './cargo.service';
         <div *ngIf="!loading && !error" class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-slate-50 text-left">
-              <tr><th scope="col" class="p-4">Cargo</th><th scope="col" class="p-4">CBO</th><th scope="col" class="p-4">Salário mínimo</th><th scope="col" class="p-4">Salário máximo</th><th scope="col" class="p-4">Comissão</th><th scope="col" class="p-4">Ações</th></tr>
+              <tr><th scope="col" class="p-4">Cargo</th><th scope="col" class="p-4">Código</th><th scope="col" class="p-4">Área</th><th scope="col" class="p-4">Funcionários</th><th scope="col" class="p-4">Perfis de acesso</th><th scope="col" class="p-4">Ativo</th><th scope="col" class="p-4">Alterado</th><th scope="col" class="p-4">Ações</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let cargo of cargosFiltrados" class="border-t border-slate-100">
                 <td class="p-4 font-medium">{{ cargo.nome }}</td>
                 <td class="p-4">{{ cargo.codigoCbo || '—' }}</td>
-                <td class="p-4">{{ cargo.salarioBaseMinimo == null ? '—' : (cargo.salarioBaseMinimo | currency:'BRL') }}</td>
-                <td class="p-4">{{ cargo.salarioBaseMaximo == null ? '—' : (cargo.salarioBaseMaximo | currency:'BRL') }}</td>
-                <td class="p-4">{{ cargo.temComissao ? 'Sim' : 'Não' }}</td>
-                <td class="p-4"><button type="button" class="underline mr-3" [disabled]="salvando" (click)="abrirEdicao(cargo)">Editar</button><button type="button" [disabled]="salvando" class="underline text-red-700" (click)="excluir(cargo)">Excluir</button></td>
+                <td class="p-4">{{ areaNome(cargo.areaId) }}</td>
+                <td class="p-4">{{ cargo.numeroFuncionarios || 0 }}</td>
+                <td class="p-4 text-slate-500">Gerenciados separadamente</td>
+                <td class="p-4">{{ cargo.ativo ? 'Sim' : 'Não' }}</td>
+                <td class="p-4">{{ cargo.dataAtualizacao ? (cargo.dataAtualizacao | date:'short') : '—' }}</td>
+                <td class="p-4"><button type="button" class="underline mr-3" [disabled]="salvando" (click)="abrirEdicao(cargo)">Editar</button><button type="button" *ngIf="cargo.ativo" [disabled]="salvando" class="underline text-red-700" (click)="excluir(cargo)">Inativar</button></td>
               </tr>
-              <tr *ngIf="cargosFiltrados.length === 0"><td colspan="6" class="p-8 text-center text-slate-500">{{ busca ? 'Nenhum cargo corresponde à busca nesta página.' : 'Nenhum cargo cadastrado nesta página.' }}</td></tr>
+              <tr *ngIf="cargos.length === 0"><td colspan="8" class="p-8 text-center text-slate-500">Nenhum cargo encontrado.</td></tr>
             </tbody>
           </table>
         </div>
@@ -69,10 +85,14 @@ import { CargoRequest, CargoResponse, CargoService } from './cargo.service';
 })
 export class CargosComponent implements OnInit {
   private readonly service = inject(CargoService);
+  private readonly departamentoService = inject(DepartamentoService);
   cargos: CargoResponse[] = [];
   loading = false;
   error = '';
   busca = '';
+  filtroAtivo = '';
+  areas: Array<{ id: number; descricao: string }> = [];
+  historico: Array<{ operacao: string; data: string }> = [];
   pagina = 0;
   totalPaginas = 1;
   private requestVersion = 0;
@@ -81,14 +101,15 @@ export class CargosComponent implements OnInit {
   salvando = false;
   formError = '';
   actionMessage = '';
-  form: CargoRequest = { nome: '', temComissao: false };
+  form: CargoRequest = { nome: '', temComissao: false, ativo: true };
 
   abrirNovo(): void {
     if (this.salvando) return;
     this.actionMessage = '';
     this.cargoId = null;
-    this.form = { nome: '', temComissao: false };
+    this.form = { nome: '', temComissao: false, ativo: true };
     this.formError = '';
+    this.historico = [];
     this.editando = true;
   }
 
@@ -96,10 +117,14 @@ export class CargosComponent implements OnInit {
     if (this.salvando) return;
     this.actionMessage = '';
     this.cargoId = cargo.id;
-    this.form = { nome: cargo.nome, codigoCbo: cargo.codigoCbo,
+    this.form = { nome: cargo.nome, descricao: cargo.descricao, codigoCbo: cargo.codigoCbo,
+      areaId: cargo.areaId, nivelHierarquico: cargo.nivelHierarquico,
+      responsabilidades: cargo.responsabilidades, ativo: cargo.ativo, versao: cargo.versao,
       salarioBaseMinimo: cargo.salarioBaseMinimo, salarioBaseMaximo: cargo.salarioBaseMaximo,
       temComissao: !!cargo.temComissao };
     this.formError = '';
+    this.historico = [];
+    this.service.historico(cargo.id).subscribe({ next: page => this.historico = page.content ?? [] });
     this.editando = true;
   }
 
@@ -126,28 +151,29 @@ export class CargosComponent implements OnInit {
         this.actionMessage = 'Cargo salvo com sucesso.';
         this.carregar();
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.salvando = false;
-        this.formError = 'Não foi possível salvar o cargo. Confira sua permissão e tente novamente.';
+        this.formError = error.status === 403 ? 'Você não tem permissão para administrar cargos.'
+          : error.status === 409 ? (error.error?.message || 'Conflito: recarregue ou revise nome e código.')
+          : 'Não foi possível salvar o cargo. Tente novamente.';
       }
     });
   }
 
   excluir(cargo: CargoResponse): void {
-    if (this.salvando || !confirm(`Excluir o cargo "${cargo.nome}"?`)) return;
+    if (this.salvando || !confirm(`Inativar o cargo "${cargo.nome}"? Os colaboradores vinculados serão preservados.`)) return;
     this.salvando = true;
     this.actionMessage = '';
     this.service.excluir(cargo.id).subscribe({
-      next: () => { this.salvando = false; this.actionMessage = 'Cargo excluído.'; this.carregar(); },
-      error: () => { this.salvando = false; this.actionMessage = 'Não foi possível excluir o cargo. Verifique vínculos e permissões.'; }
+      next: () => { this.salvando = false; this.actionMessage = 'Cargo inativado; vínculos preservados.'; this.carregar(); },
+      error: () => { this.salvando = false; this.actionMessage = 'Não foi possível inativar o cargo.'; }
     });
   }
 
 
-  get cargosFiltrados(): CargoResponse[] {
-    const busca = this.busca.trim().toLocaleLowerCase('pt-BR');
-    return busca ? this.cargos.filter(c => (c.nome + ' ' + (c.codigoCbo || '')).toLocaleLowerCase('pt-BR').includes(busca)) : this.cargos;
-  }
+  get cargosFiltrados(): CargoResponse[] { return this.cargos; }
+  aplicarFiltros(): void { this.pagina = 0; this.carregar(); }
+  areaNome(id?: number): string { return this.areas.find(a => a.id === id)?.descricao || '—'; }
 
   mudarPagina(diferenca: number): void {
     const destino = this.pagina + diferenca;
@@ -157,13 +183,17 @@ export class CargosComponent implements OnInit {
     this.carregar();
   }
 
-  ngOnInit(): void { this.carregar(); }
+  ngOnInit(): void {
+    this.departamentoService.list({ page: 0, size: 100 }).subscribe({ next: page => this.areas = page.content ?? [] });
+    this.carregar();
+  }
 
   carregar(): void {
     const version = ++this.requestVersion;
     this.loading = true;
     this.error = '';
-    this.service.list({ page: this.pagina, size: 20 }).subscribe({
+    this.service.list({ page: this.pagina, size: 20, q: this.busca.trim() || undefined,
+      ativo: this.filtroAtivo === '' ? undefined : this.filtroAtivo === 'true' }).subscribe({
       next: page => {
         if (version !== this.requestVersion) return;
         this.cargos = page.content ?? [];

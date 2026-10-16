@@ -5,6 +5,19 @@ import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.gestaoUsuarios.domain.LogAcesso;
 import com.neritech.saas.gestaoUsuarios.domain.SessaoUsuario;
 import com.neritech.saas.gestaoUsuarios.domain.TentativaLogin;
+import com.neritech.saas.gestaoUsuarios.domain.TokenRecuperacaoSenha;
+import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
+import com.neritech.saas.gestaoUsuarios.repository.TokenRecuperacaoSenhaRepository;
+import com.neritech.saas.common.mail.EmailService;
+import org.springframework.mail.MailSendException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import org.mockito.ArgumentCaptor;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
+import java.util.List;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.dto.LoginRequest;
 import com.neritech.saas.gestaoUsuarios.dto.LoginResponse;
@@ -55,6 +68,16 @@ class AuthServiceTest {
     private LogAcessoRepository logAcessoRepository;
     @Mock
     private TentativaLoginRepository tentativaLoginRepository;
+    @Mock
+    private LoginFailureRecorder loginFailureRecorder;
+    @Mock
+    private RecoveryRequestThrottle recoveryRequestThrottle;
+    @Mock
+    private TokenRecuperacaoSenhaRepository tokenRepository;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthService authService;
@@ -126,8 +149,7 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.login(loginRequest))
                     .isInstanceOf(BadCredentialsException.class);
             
-            verify(tentativaLoginRepository).saveAndFlush(any(TentativaLogin.class));
-            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+            verify(loginFailureRecorder).record(eq(loginRequest), eq(usuario.getEmpresaId()));
         }
 
         @Test
@@ -139,13 +161,204 @@ class AuthServiceTest {
                     .thenReturn(5L);
 
             assertThatThrownBy(() -> authService.login(loginRequest))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Muitas tentativas de login");
+                    .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                    .hasMessageContaining("429 TOO_MANY_REQUESTS");
 
             verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
             verify(usuarioRepository, never()).save(any(Usuario.class));
         }
 
+    }
+
+    @Nested
+    @DisplayName("AUTH-002 Recuperação de acesso")
+    class RecoveryTests {
+        private static final String EMAIL = "recuperacao@oficina.com";
+
+        @Test
+        void contaInexistenteRetornaGenericoSemCriarToken() {
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(true);
+            when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.empty());
+
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"));
+
+            verifyNoInteractions(tokenRepository);
+            verify(emailService, never()).sendPasswordResetLink(anyString(), anyString(), anyString());
+        }
+
+        @Test
+        void tokenOpacoSomenteHashTrintaMinutosERevogaAnterior() throws Exception {
+            usuario.setEmail(EMAIL);
+            TokenRecuperacaoSenha previous = TokenRecuperacaoSenha.builder()
+                    .token("old-hash").usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(15)).build();
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(true);
+            when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(usuario));
+            when(tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())).thenReturn(List.of(previous));
+
+            authService.recoverPassword(EMAIL, "127.0.0.1");
+
+            org.junit.jupiter.api.Assertions.assertTrue(previous.getUsado());
+            verify(tokenRepository).save(previous);
+            ArgumentCaptor<TokenRecuperacaoSenha> entity = ArgumentCaptor.forClass(TokenRecuperacaoSenha.class);
+            verify(tokenRepository).saveAndFlush(entity.capture());
+            TokenRecuperacaoSenha saved = entity.getValue();
+            ArgumentCaptor<String> rawToken = ArgumentCaptor.forClass(String.class);
+            verify(emailService).sendPasswordResetLink(eq(EMAIL), eq(usuario.getNomeCompleto()), rawToken.capture());
+            String raw = rawToken.getValue();
+            String expectedHash = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8)));
+            org.junit.jupiter.api.Assertions.assertEquals(expectedHash, saved.getToken());
+            org.junit.jupiter.api.Assertions.assertNotEquals(raw, saved.getToken());
+            org.junit.jupiter.api.Assertions.assertTrue(saved.getDataExpiracao().isAfter(LocalDateTime.now().plusMinutes(29)));
+            org.junit.jupiter.api.Assertions.assertTrue(saved.getDataExpiracao().isBefore(LocalDateTime.now().plusMinutes(31)));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+        }
+
+        @Test
+        void limiteEmailInibeEnvioMasNaoEnumeraConta() {
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(false);
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"));
+            verifyNoInteractions(usuarioRepository, tokenRepository);
+        }
+
+        @Test
+        void smtpNaoConfiguradoRetorna503IndependentementeDaConta() {
+            when(emailService.isPasswordResetConfigured()).thenReturn(false);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(e -> org.junit.jupiter.api.Assertions.assertEquals(
+                            HttpStatus.SERVICE_UNAVAILABLE, ((ResponseStatusException) e).getStatusCode()));
+            verifyNoInteractions(usuarioRepository, recoveryRequestThrottle);
+        }
+
+        @Test
+        void falhaEntregaIndividualNaoRevelaExistenciaDaConta() {
+            usuario.setEmail(EMAIL);
+            when(emailService.isPasswordResetConfigured()).thenReturn(true);
+            when(recoveryRequestThrottle.checkAndRecord(EMAIL, "127.0.0.1")).thenReturn(true);
+            when(usuarioRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(usuario));
+            doThrow(new MailSendException("smtp indisponível")).when(emailService)
+                    .sendPasswordResetLink(eq(EMAIL), any(), anyString());
+
+            org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->
+                    authService.recoverPassword(EMAIL, "127.0.0.1"));
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+        }
+
+        @Test
+        void tokenExpiradoEJaConsumidoNaoRedefinemSenha() throws Exception {
+            String raw = "token-opaco-auth-002";
+            String hash = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8)));
+            TokenRecuperacaoSenha expired = TokenRecuperacaoSenha.builder().token(hash)
+                    .usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().minusMinutes(1)).build();
+            when(tokenRepository.findWithLockByToken(hash)).thenReturn(Optional.of(expired));
+            ResetPasswordRequest request = new ResetPasswordRequest();
+            request.setToken(raw);
+            request.setNovaSenha("Uma frase de senha longa e segura ✓");
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("expirou");
+
+            expired.setUsado(true);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("utilizado");
+            verifyNoInteractions(passwordEncoder);
+        }
+    }
+
+    @Nested
+    @DisplayName("AUTH-003 Redefinição e revogação")
+    class ResetPasswordTests {
+        private ResetPasswordRequest request(String token, String password) {
+            ResetPasswordRequest request = new ResetPasswordRequest();
+            request.setToken(token);
+            request.setNovaSenha(password);
+            return request;
+        }
+
+        private String hash(String token) throws Exception {
+            return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        }
+
+        @Test
+        void weakOrPredictablePasswordReturns422WithoutTouchingTheToken() {
+            for (String password : java.util.List.of("short", "123456789012", "AAAAAAAAAAAA", "password1234")) {
+                assertThatThrownBy(() -> authService.resetPassword(request("token", password)))
+                        .isInstanceOf(ResponseStatusException.class)
+                        .satisfies(ex -> org.junit.jupiter.api.Assertions.assertEquals(
+                                HttpStatus.UNPROCESSABLE_ENTITY, ((ResponseStatusException) ex).getStatusCode()));
+            }
+            verifyNoInteractions(tokenRepository, passwordEncoder);
+        }
+
+        @Test
+        void invalidTokenDoesNotUpdateCredentials() throws Exception {
+            when(tokenRepository.findWithLockByToken(hash("token-desconhecido"))).thenReturn(Optional.empty());
+            assertThatThrownBy(() -> authService.resetPassword(
+                    request("token-desconhecido", "Uma frase senha longa e segura ✓")))
+                    .isInstanceOf(IllegalArgumentException.class);
+            verifyNoInteractions(passwordEncoder, sessaoUsuarioRepository);
+        }
+
+        @Test
+        void repeatedParallelLikeRequestsCannotReuseConsumedToken() throws Exception {
+            String raw = "token-unico-que-deve-ser-inutilizado";
+            TokenRecuperacaoSenha reset = TokenRecuperacaoSenha.builder()
+                    .token(hash(raw)).usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(30)).build();
+            TokenRecuperacaoSenha another = TokenRecuperacaoSenha.builder()
+                    .token("outro-hash").usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(30)).build();
+            SessaoUsuario session = SessaoUsuario.builder()
+                    .usuario(usuario).empresaId(usuario.getEmpresaId())
+                    .tokenSessao("old-access").refreshToken("old-refresh").ativo(true).build();
+            when(tokenRepository.findWithLockByToken(hash(raw))).thenReturn(Optional.of(reset));
+            when(tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())).thenReturn(java.util.List.of(another));
+            when(sessaoUsuarioRepository.findByUsuarioIdAndAtivoTrue(usuario.getId()))
+                    .thenReturn(java.util.List.of(session));
+            when(passwordEncoder.encode(anyString())).thenReturn("bcrypt-encoded");
+            authService.resetPassword(request(raw, "Minha frase-senha segura 2026 ✓"));
+            org.junit.jupiter.api.Assertions.assertTrue(reset.getUsado());
+            org.junit.jupiter.api.Assertions.assertTrue(another.getUsado());
+            org.junit.jupiter.api.Assertions.assertFalse(session.getAtivo());
+            org.junit.jupiter.api.Assertions.assertEquals("bcrypt-encoded", usuario.getSenha());
+            verify(tokenRepository).saveAndFlush(reset);
+            verify(tokenRepository).save(another);
+            verify(sessaoUsuarioRepository).save(session);
+            verify(logAcessoRepository).saveAndFlush(any(LogAcesso.class));
+
+            assertThatThrownBy(() -> authService.resetPassword(request(raw, "Nova frase ainda mais segura 2026 ✓")))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("utilizado");
+            verify(passwordEncoder).encode(anyString());
+        }
+
+        @Test
+        void samePreviousPasswordIsRejected() throws Exception {
+            String raw = "token-senha-anterior";
+            TokenRecuperacaoSenha reset = TokenRecuperacaoSenha.builder().token(hash(raw))
+                    .usuario(usuario).usado(false)
+                    .dataExpiracao(LocalDateTime.now().plusMinutes(15)).build();
+            when(tokenRepository.findWithLockByToken(hash(raw))).thenReturn(Optional.of(reset));
+            when(passwordEncoder.matches(anyString(), eq(usuario.getSenha()))).thenReturn(true);
+            assertThatThrownBy(() -> authService.resetPassword(request(raw, "Senha anterior mais de 12 caracteres")))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(ex -> org.junit.jupiter.api.Assertions.assertEquals(
+                            HttpStatus.UNPROCESSABLE_ENTITY, ((ResponseStatusException) ex).getStatusCode()));
+            verify(usuarioRepository, never()).saveAndFlush(any(Usuario.class));
+            org.junit.jupiter.api.Assertions.assertFalse(reset.getUsado());
+        }
     }
 
     @Nested

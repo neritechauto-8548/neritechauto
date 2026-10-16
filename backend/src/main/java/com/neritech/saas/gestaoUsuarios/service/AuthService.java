@@ -16,6 +16,10 @@ import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.domain.TokenRecuperacaoSenha;
 import com.neritech.saas.gestaoUsuarios.dto.ResetPasswordRequest;
 import com.neritech.saas.common.mail.EmailService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import java.util.Locale;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -28,6 +32,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.Locale;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,6 +51,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -51,6 +60,8 @@ public class AuthService {
     private final SessaoUsuarioRepository sessaoUsuarioRepository;
     private final LogAcessoRepository logAcessoRepository;
     private final TentativaLoginRepository tentativaLoginRepository;
+    private final LoginFailureRecorder loginFailureRecorder;
+    private final RecoveryRequestThrottle recoveryRequestThrottle;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TokenRecuperacaoSenhaRepository tokenRepository;
@@ -122,20 +133,17 @@ public class AuthService {
                     .build();
             return response;
 
-        } catch (BadCredentialsException e) {
+        } catch (AuthenticationException e) {
+            // Persist the failed attempt in an independent transaction: rolling back
+            // the login transaction must never reset the brute-force counter.
             try {
                 java.util.Optional<Usuario> userOpt = usuarioRepository.findByEmailIgnoreCase(request.getEmail());
-                if (userOpt.isPresent()) {
-                    TenantContext.setCurrentTenant(userOpt.get().getEmpresaId());
-                } else {
-                    TenantContext.clear(); // Clear potentially invalid tenant ID from header
-                }
-                logLoginAttempt(request, false);
-                logAccess(null, LogAcesso.TipoEvento.LOGIN_FAIL, "Falha de login: credenciais inválidas para " + request.getEmail(), request.getIpAddress(), request.getUserAgent());
+                Long tenant = userOpt.map(Usuario::getEmpresaId).orElse(null);
+                loginFailureRecorder.record(request, tenant);
             } finally {
                 TenantContext.clear();
             }
-            throw e;
+            throw new BadCredentialsException("Credenciais inválidas");
         } catch (Exception e) {
             try {
                 java.util.Optional<Usuario> userOpt = usuarioRepository.findByEmailIgnoreCase(request.getEmail());
@@ -164,10 +172,10 @@ public class AuthService {
 
             // Validate token matches session
             SessaoUsuario sessao = sessaoUsuarioRepository.findByRefreshToken(refreshToken)
-                    .orElseThrow(() -> new RuntimeException("Sessão inválida ou expirada"));
+                    .orElseThrow(() -> new BadCredentialsException("Sessão inválida ou expirada"));
 
             if (!sessao.getAtivo()) {
-                throw new RuntimeException("Sessão inativa");
+                throw new BadCredentialsException("Sessão inativa");
             }
             if (!sessao.getUsuario().getId().equals(usuario.getId()) || !sessao.getEmpresaId().equals(usuario.getEmpresaId())) {
                 throw new BadCredentialsException("Sessão inválida");
@@ -246,71 +254,123 @@ public class AuthService {
     }
 
     @Transactional
-    public void recoverPassword(String email) {
-        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email).orElse(null);
-        
-        // Se o usuário não existir, por segurança, não revelamos isso
-        if (usuario != null) {
-            // Definir o contexto do tenant para permitir gravação de logs e tokens
-            TenantContext.setCurrentTenant(usuario.getEmpresaId());
-
-            // Limite por conta; a resposta HTTP permanece genérica para evitar enumeração.
-            if (tokenRepository.countByUsuarioIdAndDataCriacaoAfter(usuario.getId(), LocalDateTime.now().minusMinutes(15)) >= 3) {
-                return;
-            }
-            byte[] random = new byte[32];
-            SECURE_RANDOM.nextBytes(random);
-            String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
-            
-            TokenRecuperacaoSenha tokenEntity = TokenRecuperacaoSenha.builder()
-                    .token(hashToken(token))
-                    .usuario(usuario)
-                    .dataExpiracao(LocalDateTime.now().plusMinutes(30))
-                    .build();
-            
-            tokenRepository.saveAndFlush(tokenEntity);
-            
-            // Enviar e-mail assíncrono
-            emailService.sendPasswordResetLink(usuario.getEmail(), usuario.getNomeCompleto(), token);
-            
-            logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RECOVERY_REQUEST, "Solicitação de recuperação de senha iniciada", null, null);
+    public void recoverPassword(String email, String sourceIp) {
+        // Fail uniformly for all addresses if SMTP is not configured.
+        // A missing provider must never look like a successfully sent message.
+        if (!emailService.isPasswordResetConfigured()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Recuperação de acesso temporariamente indisponível");
         }
+
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        // Persist requests for known AND unknown addresses outside this transaction.
+        // 429 is scoped to the request IP, never to the existence of an e-mail.
+        if (!recoveryRequestThrottle.checkAndRecord(normalizedEmail, sourceIp)) {
+            return;
+        }
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
+        if (usuario == null) {
+            return; // indistinguishable response; do not reveal registered accounts
+        }
+
+        TenantContext.setCurrentTenant(usuario.getEmpresaId());
+        // Keep the legacy per-user safety gate as additional defense.
+        if (tokenRepository.countByUsuarioIdAndDataCriacaoAfter(
+                usuario.getId(), LocalDateTime.now().minusMinutes(15)) >= 3) {
+            return;
+        }
+
+        // Only one outstanding recovery URL per user. Never persist the raw token.
+        for (TokenRecuperacaoSenha previous : tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())) {
+            previous.setUsado(true);
+            tokenRepository.save(previous);
+        }
+
+        byte[] random = new byte[32];
+        SECURE_RANDOM.nextBytes(random);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
+        tokenRepository.saveAndFlush(TokenRecuperacaoSenha.builder()
+                .token(hashToken(token))
+                .usuario(usuario)
+                .dataExpiracao(LocalDateTime.now().plusMinutes(30))
+                .build());
+
+        // SMTP send is synchronous so operational failures are observable.
+        // A transient address-specific SMTP failure cannot be exposed as HTTP 503
+        // without leaking whether the account exists; log it privately.
+        try {
+            emailService.sendPasswordResetLink(usuario.getEmail(), usuario.getNomeCompleto(), token);
+        } catch (org.springframework.mail.MailException ex) {
+            log.warn("Falha na entrega de recuperação de acesso: {}", ex.getClass().getSimpleName());
+        }
+        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RECOVERY_REQUEST,
+                "Solicitação de recuperação de acesso", sourceIp, null);
     }
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
+        String newPassword = request.getNovaSenha();
+        if (newPassword == null || newPassword.isBlank() ||
+                newPassword.length() < 12 || newPassword.length() > 128 ||
+                isPredictablePassword(newPassword)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Use uma frase-senha segura de 12 a 128 caracteres.");
+        }
+        if (request.getToken() == null || request.getToken().isBlank() ||
+                request.getToken().length() > 256) {
+            throw new IllegalArgumentException("Link de recuperação inválido");
+        }
+
+        // FOR UPDATE serializes concurrent attempts with the same one-time hash.
         TokenRecuperacaoSenha tokenEntity = tokenRepository.findWithLockByToken(hashToken(request.getToken()))
                 .orElseThrow(() -> new IllegalArgumentException("Link de recuperação inválido"));
 
-        if (tokenEntity.getUsado()) {
+        if (Boolean.TRUE.equals(tokenEntity.getUsado())) {
             throw new IllegalStateException("Este link de recuperação já foi utilizado");
         }
-
-        if (tokenEntity.getDataExpiracao().isBefore(LocalDateTime.now())) {
+        if (!tokenEntity.getDataExpiracao().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("O link de recuperação expirou. Solicite um novo");
         }
 
         Usuario usuario = tokenEntity.getUsuario();
-        
-        // Definir o contexto do tenant para permitir atualização da senha
+        if (usuario == null || usuario.getEmpresaId() == null) {
+            throw new IllegalStateException("Link de recuperação inválido");
+        }
         TenantContext.setCurrentTenant(usuario.getEmpresaId());
+        if (passwordEncoder.matches(newPassword, usuario.getSenha())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "A nova senha deve ser diferente da senha atual.");
+        }
 
-        // Atualizar senha do usuário
-        usuario.setSenha(passwordEncoder.encode(request.getNovaSenha()));
+        usuario.setSenha(passwordEncoder.encode(newPassword));
         usuario.setDeveTrocarSenha(false);
         usuarioRepository.saveAndFlush(usuario);
 
-        // Marcar token como usado
+        // Atomic with password change: consume this token and any outstanding links.
         tokenEntity.setUsado(true);
         tokenRepository.saveAndFlush(tokenEntity);
+        for (TokenRecuperacaoSenha pending : tokenRepository.findByUsuarioIdAndUsadoFalse(usuario.getId())) {
+            pending.setUsado(true);
+            tokenRepository.save(pending);
+        }
 
-        // Senha nova invalida todas as sessões ativas, inclusive refresh tokens.
+        // Access validation and refresh both consult the active session record.
         for (SessaoUsuario sessao : sessaoUsuarioRepository.findByUsuarioIdAndAtivoTrue(usuario.getId())) {
             sessao.setAtivo(false);
             sessaoUsuarioRepository.save(sessao);
         }
+        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS,
+                "Senha redefinida e sessões anteriores revogadas", null, null);
+    }
 
-        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS, "Senha redefinida com sucesso via link de e-mail", null, null);
+    private boolean isPredictablePassword(String candidate) {
+        String compact = candidate.toLowerCase(Locale.ROOT).replace(" ", "");
+        if (Set.of("123456789012", "1234567890123456", "password1234",
+                "password123456", "qwerty123456", "senha12345678").contains(compact)) {
+            return true;
+        }
+        return candidate.codePoints().distinct().count() == 1;
     }
 
     private String hashToken(String token) {
@@ -340,9 +400,11 @@ public class AuthService {
 
     private void checkLoginAttempts(String email) {
         LocalDateTime limitTime = LocalDateTime.now().minusMinutes(15);
-        long attempts = tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(email, limitTime);
+        String key = email.trim().toLowerCase(Locale.ROOT);
+        long attempts = tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(key, limitTime);
         if (attempts >= 5) {
-            throw new RuntimeException("Muitas tentativas de login. Tente novamente mais tarde.");
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Muitas tentativas de login. Tente novamente mais tarde.");
         }
     }
 

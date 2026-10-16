@@ -71,17 +71,20 @@
         </div>
         <h2>Verifique seu e-mail</h2>
         <p>
-          Se <strong>{{ email.value }}</strong> estiver cadastrado, enviaremos um link para redefinir sua senha.
-          Por segurança, não informamos se um endereço está ou não cadastrado.
+          Se o e-mail estiver cadastrado e o serviço de envio estiver disponível, você receberá as instruções
+          para redefinir sua senha. O link expira em 30 minutos. Por segurança, não confirmamos se a conta existe.
         </p>
-        <button type="button" class="auth-primary" routerLink="/auth/login">Voltar para o login</button>
+        <a class="auth-primary auth-primary-link" routerLink="/auth/login">Voltar para o login</a>
       </div>
+
+      <p *ngIf="errorMessage && !emailSent" class="recover-request-error" role="alert" aria-live="assertive">{{ errorMessage }}</p>
 
       <form
         *ngIf="!emailSent"
         [formGroup]="recoverForm"
         (ngSubmit)="recover()"
         class="auth-form"
+        [attr.aria-busy]="isSubmitting"
         novalidate
       >
         <div class="field">
@@ -93,7 +96,7 @@
             autocomplete="email"
             placeholder="voce@empresa.com"
             [attr.aria-invalid]="email.invalid && email.touched"
-            aria-describedby="recover-email-help recover-email-error"
+            [attr.aria-describedby]="email.invalid && email.touched ? 'recover-email-help recover-email-error' : 'recover-email-help'"
           />
           <p id="recover-email-help" class="field-help">Use o e-mail associado ao seu acesso.</p>
           <p *ngIf="email.invalid && email.touched" id="recover-email-error" class="field-error">
@@ -106,7 +109,7 @@
           <span *ngIf="!isSubmitting">Enviar link de recuperação</span>
           <span *ngIf="isSubmitting" class="loading-content">
             <span class="spinner" aria-hidden="true"></span>
-            Enviando...
+            Processando...
           </span>
         </button>
       </form>

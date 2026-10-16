@@ -56,6 +56,9 @@ public class EmpresaRequest {
     @Size(max = 255)
     private String logoPath;
 
+    @Schema(description = "Versão para controle de concorrência")
+    private Integer versao;
+
     public String getNomeFantasia() {
         return nomeFantasia;
     }
@@ -150,5 +153,12 @@ public class EmpresaRequest {
 
     public void setLogoPath(String logoPath) {
         this.logoPath = logoPath;
+    }
+    public Integer getVersao() {
+        return versao;
+    }
+
+    public void setVersao(Integer versao) {
+        this.versao = versao;
     }
 }

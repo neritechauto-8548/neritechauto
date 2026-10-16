@@ -11,6 +11,8 @@ import com.neritech.saas.produtoServico.domain.CategoriaProduto;
 public interface CategoriaProdutoRepository extends JpaRepository<CategoriaProduto, Long> {
     Page<CategoriaProduto> findByEmpresaId(Long empresaId, Pageable pageable);
 
+    java.util.Optional<CategoriaProduto> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Page<CategoriaProduto> findByEmpresaIdAndAtivoTrue(Long empresaId, Pageable pageable);
 
     java.util.List<CategoriaProduto> findByEmpresaId(Long empresaId);

@@ -18,6 +18,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
+import com.neritech.saas.gestaoUsuarios.dto.FuncaoResponse;
+import org.springframework.data.domain.PageImpl;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -57,7 +60,9 @@ class FuncaoControllerTest {
     @DisplayName("GET /funcoes - Deve listar funções")
     void deveListarFuncoes() throws Exception {
         // Arrange
-        when(funcaoService.findAll()).thenReturn(List.of(funcao));
+        var response = new FuncaoResponse(funcao.getId(), funcao.getEmpresaId(), funcao.getNome(), funcao.getDescricao(),
+                funcao.getSistema(), funcao.getAtivo(), 0, Set.of(), funcao.getDataAtualizacao(), funcao.getVersao());
+        when(funcaoService.search(any(), any(), any())).thenReturn(new PageImpl<>(List.of(response)));
 
         // Act & Assert
         mockMvc.perform(get("/v1/funcoes")
@@ -70,14 +75,16 @@ class FuncaoControllerTest {
     @DisplayName("POST /funcoes - Deve criar função")
     void deveCriarFuncao() throws Exception {
         // Arrange
-        when(funcaoService.save(any(Funcao.class))).thenReturn(funcao);
+        var response = new FuncaoResponse(funcao.getId(), funcao.getEmpresaId(), funcao.getNome(), funcao.getDescricao(),
+                funcao.getSistema(), funcao.getAtivo(), 0, Set.of(), funcao.getDataAtualizacao(), funcao.getVersao());
+        when(funcaoService.create(any())).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(post("/v1/funcoes")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(funcao)))
-                .andExpect(status().isOk())
+                .content("{\"nome\":\"ADMINISTRATIVO\",\"permissaoIds\":[]}"))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.nome").value("ADMIN"));
     }
 }

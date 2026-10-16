@@ -39,6 +39,18 @@ class UsuarioServiceTest {
     private com.neritech.saas.empresa.service.StripeService stripeService;
     @Mock
     private com.neritech.saas.empresa.repository.EmpresaRepository empresaRepository;
+    @Mock
+    private com.neritech.saas.gestaoUsuarios.repository.PermissaoRepository permissaoRepository;
+    @Mock
+    private com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository sessaoUsuarioRepository;
+    @Mock
+    private com.neritech.saas.gestaoUsuarios.repository.TokenRecuperacaoSenhaRepository tokenRepository;
+    @Mock
+    private com.neritech.saas.common.mail.EmailService emailService;
+    @Mock
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @Mock
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @InjectMocks
     private UsuarioService usuarioService;
@@ -51,6 +63,11 @@ class UsuarioServiceTest {
         usuario = TestDataBuilder.umUsuario().comId(1L).build();
         usuarioRequest = TestDataBuilder.umUsuarioRequest().build();
         TenantContext.setCurrentTenant(1L);
+        var authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                usuario.getEmail(), "n/a", java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN")));
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
+        lenient().when(usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(usuario.getEmail(), 1L))
+                .thenReturn(Optional.of(usuario));
     }
 
     @Nested
@@ -61,7 +78,7 @@ class UsuarioServiceTest {
         @DisplayName("Deve criar usuário com sucesso")
         void deveCriarUsuarioComSucesso() {
             // Arrange
-            when(usuarioRepository.existsByEmailIgnoreCase(anyString())).thenReturn(false);
+            when(usuarioRepository.existsByEmailIgnoreCaseAndEmpresaId(anyString(), eq(1L))).thenReturn(false);
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
             
@@ -78,11 +95,11 @@ class UsuarioServiceTest {
         @DisplayName("Deve lançar exceção quando email já existe")
         void deveLancarExcecaoQuandoEmailExiste() {
             // Arrange
-            when(usuarioRepository.existsByEmailIgnoreCase(anyString())).thenReturn(true);
+            when(usuarioRepository.existsByEmailIgnoreCaseAndEmpresaId(anyString(), eq(1L))).thenReturn(true);
 
             // Act & Assert
             assertThatThrownBy(() -> usuarioService.create(usuarioRequest))
-                    .isInstanceOf(RuntimeException.class)
+                    .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
                     .hasMessageContaining("Email já cadastrado");
             
             verify(usuarioRepository, never()).save(any(Usuario.class));

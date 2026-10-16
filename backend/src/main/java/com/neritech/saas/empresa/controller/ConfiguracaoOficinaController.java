@@ -9,9 +9,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/v1/configuracoes-oficina")
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
 public class ConfiguracaoOficinaController {
 
     private final ConfiguracaoOficinaService service;
@@ -20,6 +22,7 @@ public class ConfiguracaoOficinaController {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @PostMapping
     public ResponseEntity<ConfiguracaoOficinaResponse> create(@Valid @RequestBody ConfiguracaoOficinaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
@@ -40,12 +43,14 @@ public class ConfiguracaoOficinaController {
         return ResponseEntity.ok(service.findAll(pageable));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @PutMapping("/{id}")
     public ResponseEntity<ConfiguracaoOficinaResponse> update(@PathVariable Long id,
             @Valid @RequestBody ConfiguracaoOficinaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

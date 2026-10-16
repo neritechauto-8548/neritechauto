@@ -14,6 +14,7 @@ public interface CargoMapper {
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "criadoPor", ignore = true)
     @Mapping(target = "atualizadoPor", ignore = true)
+    @Mapping(target = "numeroFuncionarios", ignore = true)
     Cargo toEntity(CargoRequest request);
 
     CargoResponse toResponse(Cargo entity);
@@ -25,5 +26,6 @@ public interface CargoMapper {
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "criadoPor", ignore = true)
     @Mapping(target = "atualizadoPor", ignore = true)
+    @Mapping(target = "numeroFuncionarios", ignore = true)
     void updateEntity(CargoRequest request, @MappingTarget Cargo entity);
 }

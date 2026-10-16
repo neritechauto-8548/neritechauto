@@ -35,10 +35,13 @@ describe('Application Shell preview navigation', () => {
   it('routes existing modules to real Angular routes, preserving official navigation', () => {
     const items = (startup as any).getPreviewMenu() as Menu[];
     expect(lookup(items, 'Oficina')?.item.type).toBe('sub');
+    expect(lookup(items, 'Relatórios')?.item.type).toBe('sub');
+    expect(lookup(items, 'Administração')?.item.type).toBe('sub');
     const routes: Array<[string, string]> = [
       ['Início', '/home'],
+      ['Comunicação', '/cliente/crm/comunicacao'],
       ['Agenda', '/agendamento/calendario'],
-      ['Orçamentos', '/orcamento'],
+      ['Orçamentos', '/orcamento/orcamento'],
       ['Ordens de Serviço', '/os'],
       ['Serviços', '/produtos-servicos/servicos'],
       ['Veículos', '/veiculo'],
@@ -57,7 +60,7 @@ describe('Application Shell preview navigation', () => {
 
   it('keeps unimplemented official menu items visible and non-navigable', () => {
     const items = (startup as any).getPreviewMenu() as Menu[];
-    for (const name of ['Gestão de Pátio', 'Comunicação',
+    for (const name of ['Gestão de Pátio',
       'Diagnósticos', 'Kits', 'Movimento Bancário', 'Gráficos Gerenciais']) {
       expect(lookup(items, name)?.item.disabled).withContext(name).toBeTrue();
     }
