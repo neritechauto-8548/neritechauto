@@ -59,5 +59,25 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             @org.springframework.data.repository.query.Param("ativo") Boolean ativo,
             @org.springframework.data.repository.query.Param("cidade") String cidade,
             Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT f FROM Fornecedor f WHERE f.empresaId = :tenant
+        AND f.transportadora = true
+        AND (:ativo IS NULL OR f.ativo = :ativo)
+        AND (:regiao IS NULL OR :regiao = '' OR
+             LOWER(f.cidade) LIKE LOWER(CONCAT('%', :regiao, '%')) OR
+             LOWER(f.estado) = LOWER(:regiao))
+        AND (:busca IS NULL OR :busca = '' OR
+             LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+             LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+             LOWER(f.cpf) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+             LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :busca, '%')))
+        """)
+    Page<Fornecedor> listarTransportadoras(
+        @org.springframework.data.repository.query.Param("tenant") Long tenant,
+        @org.springframework.data.repository.query.Param("ativo") Boolean ativo,
+        @org.springframework.data.repository.query.Param("regiao") String regiao,
+        @org.springframework.data.repository.query.Param("busca") String busca,
+        Pageable page);
 }
 
