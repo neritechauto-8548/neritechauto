@@ -227,4 +227,61 @@
 
       </div>
   </div>
+  @if (editingId && !loading && !loadError) {
+    <section class="mx-4 my-5 bg-white border border-slate-200 rounded-xl p-5" aria-labelledby="fornecedor-historico-titulo">
+      <div class="flex flex-wrap gap-3 items-end justify-between mb-4">
+        <div>
+          <h2 id="fornecedor-historico-titulo" class="text-base font-semibold">Histórico do fornecedor</h2>
+          <p class="text-sm text-slate-500">Alterações versionadas com data e responsável.</p>
+        </div>
+        <label class="text-xs flex flex-col gap-1">Registros por página
+          <select [(ngModel)]="historicoRows" (change)="carregarHistorico(0)" class="border rounded-lg px-3 py-2 min-h-11">
+            <option [ngValue]="20">20</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option>
+          </select>
+        </label>
+      </div>
+      @if (historicoLoading) {
+        <p role="status" aria-live="polite">Carregando histórico...</p>
+      } @else if (historicoErro) {
+        <div role="alert">
+          <p>{{ historicoErro }}</p>
+          <button type="button" class="underline" (click)="carregarHistorico(historicoPage)">Tentar novamente</button>
+        </div>
+      } @else if (!historico.length) {
+        <p role="status" class="text-sm text-slate-500">Nenhuma alteração registrada.</p>
+      } @else {
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Histórico de fornecedor com rolagem">
+          <table class="w-full text-sm min-w-[640px]">
+            <caption class="sr-only">Histórico versionado de alterações deste fornecedor</caption>
+            <thead>
+              <tr class="border-b border-slate-200 text-left">
+                <th scope="col" class="p-3">Campo</th><th scope="col" class="p-3">Anterior</th>
+                <th scope="col" class="p-3">Novo</th><th scope="col" class="p-3">Responsável</th>
+                <th scope="col" class="p-3">Data</th><th scope="col" class="p-3">Versão</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (evento of historico; track $index) {
+                <tr class="border-b border-slate-100">
+                  <th scope="row" class="p-3 text-left">{{ evento.campo }}</th>
+                  <td class="p-3">{{ evento.anterior }}</td><td class="p-3">{{ evento.novo }}</td>
+                  <td class="p-3">Usuário #{{ evento.autor }}</td>
+                  <td class="p-3">{{ evento.data | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="p-3">{{ evento.versao }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="Páginas do histórico" class="mt-4 flex flex-wrap items-center gap-3">
+          <span class="text-xs text-slate-500 mr-auto">{{ historicoTotal }} alterações</span>
+          <button type="button" class="border rounded-lg px-3 py-2 min-h-11" [disabled]="historicoPage === 0 || historicoLoading"
+            (click)="carregarHistorico(historicoPage - 1)">Anterior</button>
+          <button type="button" class="border rounded-lg px-3 py-2 min-h-11"
+            [disabled]="(historicoPage + 1) * historicoRows >= historicoTotal || historicoLoading"
+            (click)="carregarHistorico(historicoPage + 1)">Próxima</button>
+        </nav>
+      }
+    </section>
+  }
 </ng-container>
