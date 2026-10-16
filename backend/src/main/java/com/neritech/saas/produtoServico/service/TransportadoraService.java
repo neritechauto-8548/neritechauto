@@ -77,7 +77,11 @@ public class TransportadoraService {
             }
             antes = campos(f);
             // Não sobrescrever contatos e endereço já compartilhados com Compras.
+            if (!Boolean.TRUE.equals(f.getAtivo()) || !Boolean.TRUE.equals(f.getTransportadoraAtiva())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Fornecedor mestre inativo");
+            }
             f.setTransportadora(true);
+            f.setTransportadoraAtiva(request.ativo() == null || request.ativo());
             f.setModalidadeTransporte(request.modalidade());
         } else {
             verificarDuplicidade(tenant, cpf, cnpj, null);
@@ -87,6 +91,8 @@ public class TransportadoraService {
             f.setCpf(cpf);
             f.setCnpj(cnpj);
             f.setTransportadora(true);
+            f.setTransportadoraAtiva(request.ativo() == null || request.ativo());
+            f.setAtivo(true);
             antes = Map.of();
             aplicar(f, request);
         }
@@ -109,7 +115,7 @@ public class TransportadoraService {
         verificarDuplicidade(f.getEmpresaId(), cpf, cnpj, id);
         Map<String, Object> antes = campos(f);
         aplicar(f, request);
-        if (request.ativo() != null) f.setAtivo(request.ativo());
+        if (request.ativo() != null) f.setTransportadoraAtiva(request.ativo());
         salvar(f);
         auditar(f, antes);
         return response(f);
@@ -118,9 +124,9 @@ public class TransportadoraService {
     @Transactional
     public void inativar(Long id) {
         Fornecedor f = localizar(id);
-        if (!Boolean.TRUE.equals(f.getAtivo())) return;
+        if (!Boolean.TRUE.equals(f.getTransportadoraAtiva())) return;
         Map<String, Object> antes = campos(f);
-        f.setAtivo(false); // Conserva vínculo logístico e notas antigas.
+        f.setTransportadoraAtiva(false); // Não inativar o fornecedor comum nem afetar Compras.
         salvar(f);
         auditar(f, antes);
     }
@@ -287,7 +293,7 @@ public class TransportadoraService {
                 f.getNomeFantasia(), f.getRazaoSocial(), f.getCpf(), f.getCnpj(),
                 f.getNomeContato(), f.getTelefonePrincipal(), f.getEmailPrincipal(),
                 f.getEnderecoCompleto(), f.getCep(), f.getCidade(), f.getEstado(),
-                f.getModalidadeTransporte(), f.getAtivo(), f.getObservacoes(), f.getVersao(),
+                f.getModalidadeTransporte(), Boolean.TRUE.equals(f.getAtivo()) && Boolean.TRUE.equals(f.getTransportadoraAtiva()), f.getObservacoes(), f.getVersao(),
                 ((Number) summary.get("total")).longValue(), ultima);
     }
 
@@ -316,7 +322,7 @@ public class TransportadoraService {
         values.put("cidade", f.getCidade());
         values.put("estado", f.getEstado());
         values.put("modalidade", f.getModalidadeTransporte());
-        values.put("ativo", f.getAtivo());
+        values.put("ativo", f.getTransportadoraAtiva());
         values.put("transportadora", f.getTransportadora());
         values.put("observacoes", f.getObservacoes());
         return values;
