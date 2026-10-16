@@ -4,9 +4,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../environments/environment';
 import { FornecedorService } from './fornecedor.service';
+import { PedidoFornecedorService } from './pedido-fornecedor.service';
 
 describe('ADM-008 — FornecedorService: isolamento e versão', () => {
   let service: FornecedorService;
+  let pedidos: PedidoFornecedorService;
   let http: HttpTestingController;
   const stored: any = { value: 23 };
 
@@ -23,6 +25,7 @@ describe('ADM-008 — FornecedorService: isolamento e versão', () => {
       ]
     });
     service = TestBed.inject(FornecedorService);
+    pedidos = TestBed.inject(PedidoFornecedorService);
     http = TestBed.inject(HttpTestingController);
   });
 
@@ -64,4 +67,23 @@ describe('ADM-008 — FornecedorService: isolamento e versão', () => {
     expect(error).toContain('Empresa autenticada');
     http.expectNone(`${environment.baseUrl}/v1/fornecedores`);
   });
+  it('never creates purchase orders for a missing tenant', () => {
+    stored.value = null;
+    let message = '';
+    pedidos.create({ empresaId: 1, fornecedorId: 10, responsavel: 'Buyer' } as any)
+      .subscribe({ error: e => message = e.message });
+    expect(message).toContain('Empresa autenticada');
+    http.expectNone(`${environment.baseUrl}/v1/pedidos-fornecedor`);
+  });
+
+  it('replaces purchase request tenant with the authenticated company', () => {
+    stored.value = { tenantId: 41 };
+    pedidos.create({ empresaId: 1, fornecedorId: 10, responsavel: 'Buyer' } as any)
+      .subscribe();
+    const req = http.expectOne(`${environment.baseUrl}/v1/pedidos-fornecedor`);
+    expect(req.request.body.empresaId).toBe(41);
+    expect(req.request.headers.get('X-Tenant-Id')).toBe('41');
+    req.flush({ id: 55, empresaId: 41, fornecedorId: 10 });
+  });
+
 });
