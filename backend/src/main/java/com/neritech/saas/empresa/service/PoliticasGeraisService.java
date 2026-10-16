@@ -38,7 +38,7 @@ public class PoliticasGeraisService {
                            String valorSalvo, String origem, boolean ativo,
                            Integer versao, LocalDateTime alteradoEm, Long responsavel) {}
     public record Alterar(String chave, String valor) {}
-    public record Estado(boolean ativo) {}
+    public record Estado(Boolean ativo) {}
     private final JdbcTemplate jdbc;
     private final UsuarioRepository usuarios;
     private final ObjectMapper json;
