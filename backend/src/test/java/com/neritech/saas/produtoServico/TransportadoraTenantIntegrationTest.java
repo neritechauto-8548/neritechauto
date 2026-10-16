@@ -113,7 +113,7 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
                 .header("Authorization", "Bearer " + tokenA)
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(request("11444777000161", carrier, true)))
+                .content(request("33200000000194", carrier, true)))
                 .andExpect(status().isConflict());
         mvc.perform(delete("/v1/transportadoras/{id}", carrier)
                 .header("Authorization", "Bearer " + tokenViewer)).andExpect(status().isForbidden());
@@ -140,6 +140,20 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
                 .header("Authorization", "Bearer " + tokenA)
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
+        // Reativação por edição versionada recupera o papel logístico, sem trocar o fornecedor.
+        Integer versaoAtual = jdbc.queryForObject(
+                "SELECT versao FROM fornecedores WHERE id=?", Integer.class, carrier);
+        mvc.perform(put("/v1/transportadoras/{id}", carrier)
+                .header("Authorization", "Bearer " + tokenA)
+                .header("If-Match", Integer.toString(versaoAtual))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request("11222333000181", carrier, true)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.ativo").value(true));
+        mvc.perform(put("/v1/transportadoras/{id}/pedidos/{pedido}", carrier, novoPedido)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
         mvc.perform(get("/v1/transportadoras/{id}/historico", carrier)
                 .header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk())
