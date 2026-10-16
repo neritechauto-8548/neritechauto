@@ -31,6 +31,16 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'seguradoras',
+    canActivate: [permissionGuard],
+    loadComponent: () => import('./seguradoras/seguradoras').then(m => m.SeguradorasComponent),
+    data: {
+      title: 'Seguradoras',
+      requiredPermissions: ['GERAL_CONFIG_SISTEMA', 'OS_EDITAR'],
+      permissionMode: 'any'
+    }
+  },
+  {
     path: 'assinatura',
     loadComponent: () => import('./assinatura/assinatura').then(m => m.AssinaturaComponent),
     data: { title: 'Assinatura' }
