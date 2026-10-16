@@ -77,7 +77,7 @@ public class TransportadoraService {
             }
             antes = campos(f);
             // Não sobrescrever contatos e endereço já compartilhados com Compras.
-            if (!Boolean.TRUE.equals(f.getAtivo()) || !Boolean.TRUE.equals(f.getTransportadoraAtiva())) {
+            if (!Boolean.TRUE.equals(f.getAtivo())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Fornecedor mestre inativo");
             }
             f.setTransportadora(true);
@@ -158,7 +158,7 @@ public class TransportadoraService {
     @Transactional
     public TransportadoraPedidoResponse vincular(Long id, Long pedidoId, TransportadoraPedidoRequest request) {
         Fornecedor f = localizar(id);
-        if (!Boolean.TRUE.equals(f.getAtivo())) {
+        if (!Boolean.TRUE.equals(f.getAtivo()) || !Boolean.TRUE.equals(f.getTransportadoraAtiva())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Transportadora inativa");
         }
         PedidoFornecedor pedido = pedidos.findById(pedidoId).orElseThrow(
