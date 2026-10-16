@@ -2,6 +2,7 @@
 -- Nunca duplicar pessoa/empresa. Dados de rastreio pertencem ao pedido, não ao cadastro.
 ALTER TABLE fornecedores ADD COLUMN IF NOT EXISTS transportadora BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE fornecedores ADD COLUMN IF NOT EXISTS modalidade_transporte VARCHAR(20);
+ALTER TABLE fornecedores ADD COLUMN IF NOT EXISTS transportadora_ativa BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE fornecedores ADD CONSTRAINT ck_fornecedores_modalidade_transporte
     CHECK (modalidade_transporte IS NULL OR modalidade_transporte IN ('RODOVIARIO','OUTROS'));
 
