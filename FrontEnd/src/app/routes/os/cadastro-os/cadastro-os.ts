@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
+import { Seguradora, SeguradoraService, VinculoOS } from '../../configuracoes/seguradoras/seguradora.service';
 
 // Services
 import { OrdemServicoService } from '../ordem-servico.service';
@@ -78,6 +79,7 @@ import { ConfirmationService } from 'primeng/api';
 })
 export class CadastroOS implements OnInit {
   private osService = inject(OrdemServicoService);
+  private seguradoraService = inject(SeguradoraService);
   private itemService = inject(ItemOSService);
   private clienteService = inject(ClientesService);
   private veiculoService = inject(VeiculoService);
@@ -97,6 +99,12 @@ export class CadastroOS implements OnInit {
   loading = false;
   osId?: number;
   osData?: OrdemServicoResponse;
+  seguradorasOpcoes: Seguradora[] = [];
+  seguradoraId: number | null = null;
+  seguradoraTipo: 'CONVENIO' | 'REEMBOLSO' = 'CONVENIO';
+  seguradoraVinculo: VinculoOS | null = null;
+  seguradoraBusy = false;
+  seguradoraError = '';
   activeIndex = 0; // Tab index
   lockTipoOS = false;
 
@@ -196,6 +204,7 @@ export class CadastroOS implements OnInit {
     if (id) {
         this.osId = Number(id);
         this.loadOS(this.osId);
+        if (!this.isOrcamento) this.carregarSeguradorasDaOS();
     } else {
         this.gerarNumeroOS();
         // Se vier tipo na URL (ex: ?tipo=ORCAMENTO), pré-seleciona
@@ -337,6 +346,80 @@ export class CadastroOS implements OnInit {
         }));
       }
     );
+  }
+
+  carregarSeguradorasDaOS(): void {
+    if (!this.osId) return;
+    this.seguradoraBusy = true;
+    this.seguradoraError = '';
+    this.seguradoraService.listar(0, 100, '', true).subscribe({
+      next: result => {
+        this.seguradorasOpcoes = result.content || [];
+        this.consultarSeguradoraDaOS();
+      },
+      error: err => {
+        this.seguradoraBusy = false;
+        this.seguradoraError = err?.status === 403
+          ? 'Sem permissão para consultar seguradoras.'
+          : 'Não foi possível carregar seguradoras. Verifique a conexão.';
+      }
+    });
+  }
+
+  consultarSeguradoraDaOS(): void {
+    if (!this.osId) return;
+    this.seguradoraService.vinculoOS(this.osId)
+      .pipe(finalize(() => this.seguradoraBusy = false))
+      .subscribe({
+        next: vinculo => {
+          this.seguradoraVinculo = vinculo;
+          if (vinculo) {
+            this.seguradoraId = vinculo.seguradoraId;
+            this.seguradoraTipo = vinculo.tipoVinculo;
+          }
+        },
+        error: err => {
+          this.seguradoraError = err?.status === 403
+            ? 'Você não tem permissão para visualizar o vínculo da OS.'
+            : 'Não foi possível consultar o vínculo da OS.';
+        }
+      });
+  }
+
+  vincularSeguradora(): void {
+    if (!this.osId || !this.seguradoraId || this.seguradoraBusy || this.seguradoraVinculo) return;
+    this.seguradoraBusy = true; this.seguradoraError = '';
+    this.seguradoraService.vincular(this.seguradoraId, this.osId, this.seguradoraTipo)
+      .pipe(finalize(() => this.seguradoraBusy = false)).subscribe({
+        next: vinculo => {
+          this.seguradoraVinculo = vinculo;
+          this.messageService.add({ severity: 'success', summary: 'Convênio salvo',
+            detail: 'Vínculo com a OS confirmado no servidor.' });
+        },
+        error: err => {
+          this.seguradoraError = err?.status === 409
+            ? 'OS já vinculada ou seguradora inativa (409).'
+            : err?.status === 403 ? 'Acesso negado (403).'
+            : 'Falha ao vincular seguradora.';
+        }
+      });
+  }
+
+  removerSeguradora(): void {
+    if (!this.osId || !this.seguradoraVinculo || this.seguradoraBusy) return;
+    this.seguradoraBusy = true; this.seguradoraError = '';
+    this.seguradoraService.desvincular(this.seguradoraVinculo.seguradoraId, this.osId)
+      .pipe(finalize(() => this.seguradoraBusy = false)).subscribe({
+        next: () => {
+          this.seguradoraVinculo = null; this.seguradoraId = null;
+          this.messageService.add({ severity: 'success', summary: 'Vínculo removido',
+            detail: 'OS preservada; associação desfeita.' });
+        },
+        error: err => {
+          this.seguradoraError = err?.status === 403
+            ? 'Acesso negado (403).' : 'Não foi possível remover o vínculo.';
+        }
+      });
   }
 
   // === SALVAR CABEÇALHO ===
