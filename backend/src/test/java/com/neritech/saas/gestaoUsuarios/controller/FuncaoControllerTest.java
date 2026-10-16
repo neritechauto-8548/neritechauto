@@ -68,7 +68,7 @@ class FuncaoControllerTest {
         mockMvc.perform(get("/v1/funcoes")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].nome").value("ADMIN"));
+                .andExpect(jsonPath("$.data.content[0].nome").value("ADMIN"));
     }
 
     @Test
