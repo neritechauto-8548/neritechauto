@@ -13,6 +13,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { MatIconModule } from '@angular/material/icon';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { HistoricoFornecedor } from '../models/fornecedor.models';
 
 @Component({
   selector: 'cadastro-fornecedor',
@@ -109,6 +110,12 @@ export class CadastroFornecedor implements OnInit {
   loadError = '';
   saveError = '';
   versao?: number;
+  historico: HistoricoFornecedor[] = [];
+  historicoLoading = false;
+  historicoErro = '';
+  historicoPage = 0;
+  historicoRows = 20;
+  historicoTotal = 0;
 
   get isFisica() {
     return this.model.tipoPessoa === 'FISICA';
@@ -244,7 +251,12 @@ export class CadastroFornecedor implements OnInit {
             this.editingId = id;
             this.loading = true;
             this.service.get(id).subscribe({
-              next: (f: any) => { this.carregarFornecedor(f); this.loading = false; this.versao = f.versao; },
+              next: (f: any) => {
+                this.carregarFornecedor(f);
+                this.loading = false;
+                this.versao = f.versao;
+                this.carregarHistorico();
+              },
               error: (err: any) => {
                 this.loading = false;
                 this.loadError = err?.status === 403
@@ -262,6 +274,7 @@ export class CadastroFornecedor implements OnInit {
     if (this.saving || this.loading || this.loadError) return;
     this.saveError = '';
     const dto = this.toRequest(this.model);
+    if (this.editingId && this.versao !== undefined) dto.versao = this.versao;
 
     // Validação frontend para forçar os campos com asterisco
     if (!dto.razaoSocial || !dto.classificacao || !dto.tipoPessoa) {
@@ -323,6 +336,7 @@ export class CadastroFornecedor implements OnInit {
       next: (res: any) => {
         this.saving = false;
         this.versao = res?.versao ?? this.versao;
+        if (this.editingId) this.carregarHistorico();
         if (this.modalMode) {
           this.saved.emit(dto);
         } else {
@@ -338,6 +352,26 @@ export class CadastroFornecedor implements OnInit {
           : error?.status === 0 ? 'Sem conexão. Verifique sua rede e tente novamente.'
           : 'Não foi possível salvar o fornecedor.';
         this.messageService.add({severity: 'error', summary: 'Erro', detail: this.saveError});
+      }
+    });
+  }
+
+  carregarHistorico(page = 0) {
+    if (!this.editingId || this.historicoLoading) return;
+    this.historicoLoading = true;
+    this.historicoErro = '';
+    this.service.historico(this.editingId, page, this.historicoRows).subscribe({
+      next: (res) => {
+        this.historicoLoading = false;
+        this.historicoPage = page;
+        this.historico = res.content || [];
+        this.historicoTotal = res.totalElements || 0;
+      },
+      error: (error: any) => {
+        this.historicoLoading = false;
+        this.historicoErro = error?.status === 403 ? 'Histórico restrito por permissão.'
+          : error?.status === 0 ? 'Histórico indisponível sem conexão.'
+          : 'Não foi possível carregar o histórico.';
       }
     });
   }
