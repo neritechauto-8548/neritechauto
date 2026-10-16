@@ -11,6 +11,7 @@ import com.neritech.saas.util.DocumentoValidator;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,12 @@ public class FornecedorService {
         entity.setCpf(documento(request.cpf()));
         entity.setCnpj(documento(request.cnpj()));
         if (entity.getAtivo() == null) entity.setAtivo(true);
-        Fornecedor saved = repository.saveAndFlush(entity);
+        Fornecedor saved;
+        try {
+            saved = repository.saveAndFlush(entity);
+        } catch (DataIntegrityViolationException duplicate) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Documento duplicado ou vínculo em conflito", duplicate);
+        }
         auditoria.registrar(saved, Map.of());
         return mapper.toResponse(saved);
     }
@@ -87,7 +93,12 @@ public class FornecedorService {
         mapper.updateEntityFromRequest(request, entity);
         entity.setCpf(documento(request.cpf()));
         entity.setCnpj(documento(request.cnpj()));
-        Fornecedor saved = repository.saveAndFlush(entity);
+        Fornecedor saved;
+        try {
+            saved = repository.saveAndFlush(entity);
+        } catch (DataIntegrityViolationException duplicate) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Documento duplicado ou vínculo em conflito", duplicate);
+        }
         auditoria.registrar(saved, anterior);
         return mapper.toResponse(saved);
     }
@@ -98,7 +109,12 @@ public class FornecedorService {
         Fornecedor entity = findEntity(id);
         Map<String, Object> anterior = FornecedorHistoricoService.campos(entity);
         entity.setAtivo(false);
-        Fornecedor saved = repository.saveAndFlush(entity);
+        Fornecedor saved;
+        try {
+            saved = repository.saveAndFlush(entity);
+        } catch (DataIntegrityViolationException duplicate) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Documento duplicado ou vínculo em conflito", duplicate);
+        }
         auditoria.registrar(saved, anterior);
     }
 
