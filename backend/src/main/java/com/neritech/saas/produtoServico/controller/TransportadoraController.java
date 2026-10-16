@@ -4,6 +4,7 @@ import com.neritech.saas.produtoServico.dto.*;
 import com.neritech.saas.produtoServico.service.TransportadoraService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
