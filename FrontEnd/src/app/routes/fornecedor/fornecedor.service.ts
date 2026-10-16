@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../environments/environment';
-import { Page, FornecedorRequest, FornecedorResponse } from './models/fornecedor.models';
+import { Page, FornecedorRequest, FornecedorResponse, HistoricoFornecedor } from './models/fornecedor.models';
 
 @Injectable({ providedIn: 'root' })
 export class FornecedorService {
@@ -62,7 +62,16 @@ export class FornecedorService {
 
   update(id: number | string, dto: Omit<FornecedorRequest, 'empresaId'>): Observable<FornecedorResponse> {
     return this.safe(tenant => this.http.put<FornecedorResponse>(`${this.base}/${id}`,
-      { ...dto, empresaId: tenant }, { headers: this.headers(tenant) }));
+      { ...dto, empresaId: tenant }, {
+        headers: dto.versao != null
+          ? this.headers(tenant).set('If-Match', String(dto.versao)) : this.headers(tenant)
+      }));
+  }
+
+  historico(id: number | string, page = 0, size = 20): Observable<Page<HistoricoFornecedor>> {
+    return this.safe(tenant => this.http.get<Page<HistoricoFornecedor>>(`${this.base}/${id}/historico`, {
+      headers: this.headers(tenant), params: { page, size }
+    }));
   }
 
   /** Rota legada DELETE inativa sem remover pedidos, cotações e documentos. */
