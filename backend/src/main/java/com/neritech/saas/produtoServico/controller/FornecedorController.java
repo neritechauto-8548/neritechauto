@@ -54,12 +54,23 @@ public class FornecedorController {
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR')")
+    @GetMapping("/{id}/historico")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR')")
+    @Operation(summary = "Histórico versionado do fornecedor")
+    public ResponseEntity<Page<com.neritech.saas.produtoServico.service.FornecedorHistoricoService.Alteracao>>
+            historico(@PathVariable Long id,
+                     @RequestParam(defaultValue = "0") int page,
+                     @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(service.historico(id, page, size));
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar fornecedor")
     public ResponseEntity<FornecedorResponse> update(
             @PathVariable Long id,
+            @RequestHeader(value = "If-Match", required = false) Integer expectedVersion,
             @Valid @RequestBody FornecedorRequest request) {
-        return ResponseEntity.ok(service.update(id, request));
+        return ResponseEntity.ok(service.update(id, request, expectedVersion));
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR')")
