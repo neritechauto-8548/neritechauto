@@ -1,0 +1,28 @@
+// ADM-011: foco perceptível independente dos estilos globais e alvos de 44 px.
+:host {
+  display: block;
+  min-width: 0;
+}
+
+:host :is(button, a, input, select):focus-visible {
+  outline: 3px solid var(--nt-focus, #3154ff);
+  outline-offset: 3px;
+}
+
+:host :is(button, a) {
+  min-height: 44px;
+}
+
+:host a {
+  display: inline-flex;
+  align-items: center;
+}
+
+:host :is(th, td, p, li) {
+  overflow-wrap: anywhere;
+}
+
+:host h2[tabindex='-1']:focus {
+  outline: 3px solid var(--nt-focus, #3154ff);
+  outline-offset: 3px;
+}

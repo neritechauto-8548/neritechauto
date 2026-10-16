@@ -83,7 +83,7 @@
   @if (editing && current) {
     <section class="bg-white border rounded-xl p-4 sm:p-6 space-y-4" aria-labelledby="editar-politica">
       <div class="flex justify-between flex-wrap gap-3">
-        <h2 id="editar-politica" class="font-semibold text-lg">{{ current.titulo }}</h2>
+        <h2 #editorHeading id="editar-politica" tabindex="-1" class="font-semibold text-lg">{{ current.titulo }}</h2>
         <button type="button" class="underline p-2" [disabled]="saving" (click)="cancelar()">Fechar</button>
       </div>
       @if (formError) { <p role="alert" class="border border-rose-200 rounded-lg p-3 text-rose-700">{{ formError }}</p> }

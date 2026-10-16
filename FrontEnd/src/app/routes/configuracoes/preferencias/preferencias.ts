@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -9,10 +9,13 @@ import { HistoricoPolitica, Integracao, Politica, PreferenciasService } from './
   selector: 'nt-preferencias-gerais',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './preferencias.html'
+  templateUrl: './preferencias.html',
+  styleUrl: './preferencias.scss'
 })
 export class PreferenciasGeraisComponent implements OnInit {
   private readonly api = inject(PreferenciasService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  @ViewChild('editorHeading') private editorHeading?: ElementRef<HTMLElement>;
   items: Politica[] = [];
   total = 0;
   page = 0;
@@ -60,7 +63,10 @@ export class PreferenciasGeraisComponent implements OnInit {
       this.status === 'todas' ? undefined : this.status === 'ativas',
       this.page, this.size).pipe(finalize(() => this.loading = false)).subscribe({
       next: data => { this.items = data.content || []; this.total = data.totalElements || 0; },
-      error: err => { this.items = []; this.total = 0; this.error = this.describe(err); }
+      error: err => {
+        this.items = []; this.total = 0; this.error = this.describe(err);
+        this.editing = false; this.current = null;
+      }
     });
   }
   filtrar(): void { this.page = 0; this.load(); }
@@ -79,6 +85,9 @@ export class PreferenciasGeraisComponent implements OnInit {
     this.editing = true; this.formError = ''; this.notice = '';
     this.history = []; this.historyPage = 0; this.historyTotal = 0;
     this.carregarHistorico();
+    // A edição é uma região dinâmica abaixo da tabela: levar foco para seu título.
+    this.changeDetector.detectChanges();
+    this.editorHeading?.nativeElement.focus();
   }
   cancelar(): void { if (!this.saving) this.editing = false; }
   salvar(): void {

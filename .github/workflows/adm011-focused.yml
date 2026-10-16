@@ -38,7 +38,7 @@ jobs:
       - name: Build Angular
         run: yarn build
       - name: Testes Angular ADM-011
-        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/configuracoes/preferencias/preferencias.service.spec.ts
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/configuracoes/preferencias/preferencias.service.spec.ts --include=src/app/routes/configuracoes/preferencias/preferencias.ux.spec.ts
 
   java:
     runs-on: ubuntu-latest
