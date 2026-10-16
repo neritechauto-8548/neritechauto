@@ -52,7 +52,7 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
                 .content(json.writeValueAsString(Map.of("tipoPessoa", "JURIDICA",
                     "nomeFantasia", "CEP inválido", "cnpj", "11222333000181",
                     "cep", "abc", "modalidade", "RODOVIARIO"))))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableEntity());
         long supplierId = jdbc.queryForObject("""
             INSERT INTO fornecedores (empresa_id, tipo_pessoa, nome_fantasia, cnpj, ativo,
                                       transportadora, transportadora_ativa, data_cadastro)
