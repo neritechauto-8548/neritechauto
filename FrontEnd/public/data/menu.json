@@ -455,7 +455,7 @@
           "name": "Transportadoras",
           "route": "configuracoes/transportadoras",
           "type": "link",
-          "disabled": true
+          "disabled": false
         },
         {
           "name": "Configurações",
