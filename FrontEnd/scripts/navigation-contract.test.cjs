@@ -66,8 +66,8 @@ test('guards cobrem orçamento, calendário, caixa e rotas administrativas', () 
   assert.match(app, /\{ path: '\*\*', redirectTo: '404' \}/);
   assert.match(finance, /requiredPermissions: 'FIN_VIS_CAIXA'/);
   assert.match(agenda, /requiredPermissions: 'GERAL_AGENDAMENTO_VISUALIZAR'/);
-  assert.equal((admin.match(/requiredPermissions: 'GERAL_CONFIG_SISTEMA'/g) || []).length, 10);
-  assert.equal((admin.match(/canActivate: \[permissionGuard\]/g) || []).length, 12);
+  assert.equal((admin.match(/requiredPermissions: 'GERAL_CONFIG_SISTEMA'/g) || []).length, 8);
+  assert.equal((admin.match(/canActivate: \[permissionGuard\]/g) || []).length, 14);
 });
 
 test('larguras globais do shell usam 264/72 px', () => {
