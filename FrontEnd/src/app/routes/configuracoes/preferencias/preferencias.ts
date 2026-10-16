@@ -68,9 +68,10 @@ export class PreferenciasGeraisComponent implements OnInit {
   salvar(): void {
     if (!this.current || this.saving || !this.value) return;
     const item = this.current;
+    const novoValor = String(this.value);
     const request = item.versao == null
-      ? this.api.criar(item.chave, this.value)
-      : this.api.editar(item.chave, this.value, item.versao);
+      ? this.api.criar(item.chave, novoValor)
+      : this.api.editar(item.chave, novoValor, item.versao);
     this.saving = true; this.formError = ''; this.notice = '';
     request.pipe(finalize(() => this.saving = false)).subscribe({
       next: data => {
@@ -122,7 +123,7 @@ export class PreferenciasGeraisComponent implements OnInit {
     }
   }
   get alterou(): boolean {
-    return !!this.current && this.value !== (this.current.valorSalvo ?? this.current.valorAplicado);
+    return !!this.current && String(this.value) !== (this.current.valorSalvo ?? this.current.valorAplicado);
   }
   get valorValido(): boolean {
     if (!this.current) return false;
