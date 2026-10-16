@@ -46,11 +46,10 @@ public class FornecedorController {
     public ResponseEntity<Page<FornecedorResponse>> findAll(
             @RequestParam Long empresaId,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean ativo,
+            @RequestParam(required = false) String cidade,
             Pageable pageable) {
-        if (search != null && !search.trim().isEmpty()) {
-            return ResponseEntity.ok(service.search(empresaId, search, pageable));
-        }
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+        return ResponseEntity.ok(service.filter(empresaId, search, ativo, cidade, pageable));
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR')")
