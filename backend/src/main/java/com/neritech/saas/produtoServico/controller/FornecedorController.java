@@ -52,7 +52,6 @@ public class FornecedorController {
         return ResponseEntity.ok(service.filter(empresaId, search, ativo, cidade, pageable));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR') or hasAuthority('FORN_EDIT_PEDIDOS')")
     @GetMapping("/{id}/historico")
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR') or hasAuthority('FORN_LISTAR_PEDIDOS')")
     @Operation(summary = "Histórico versionado do fornecedor")
@@ -63,6 +62,7 @@ public class FornecedorController {
         return ResponseEntity.ok(service.historico(id, page, size));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR') or hasAuthority('FORN_EDIT_PEDIDOS')")
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar fornecedor")
     public ResponseEntity<FornecedorResponse> update(
