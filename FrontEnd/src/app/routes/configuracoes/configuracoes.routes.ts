@@ -21,6 +21,12 @@ export const routes: Routes = [
     data: { title: 'Editar Usuário', requiredPermissions: 'GERAL_CONFIG_SISTEMA' }
   },
   {
+    path: 'preferencias',
+    canActivate: [permissionGuard],
+    loadComponent: () => import('./preferencias/preferencias').then(m => m.PreferenciasGeraisComponent),
+    data: { title: 'Configurações gerais', requiredPermissions: 'GERAL_CONFIG_SISTEMA' }
+  },
+  {
     path: 'empresa',
     canActivate: [permissionGuard],
     loadComponent: () => import('./empresa/empresa').then(m => m.EmpresaConfig),
