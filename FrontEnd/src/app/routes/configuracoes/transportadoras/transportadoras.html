@@ -1,0 +1,277 @@
+<main class="mx-auto w-full max-w-7xl p-4 sm:p-6 space-y-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Transportadoras</h1>
+      <p class="text-sm text-slate-600">Parceiros logísticos de compras e entregas — cadastros compartilhados com Fornecedores.</p>
+    </div>
+    <button type="button" (click)="nova()" class="inline-flex gap-2 items-center rounded-lg bg-blue-700 px-4 py-3 text-white font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      <nt-icon name="plus" [size]="18" /> Nova transportadora
+    </button>
+  </header>
+
+  @if (notice) {
+    <p class="rounded-lg border border-emerald-200 p-3 text-emerald-800" role="status" aria-live="polite">{{ notice }}</p>
+  }
+
+  <section class="rounded-xl bg-white border border-slate-200 p-4 space-y-4" aria-labelledby="transportadoras-lista">
+    <h2 id="transportadoras-lista" class="sr-only">Lista de transportadoras</h2>
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="flex-1 min-w-48 text-sm font-medium">Nome ou documento
+        <input type="search" [(ngModel)]="busca" (keyup.enter)="filtrar()" maxlength="255"
+          class="mt-1 block w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+      </label>
+      <label class="text-sm font-medium">Região (cidade ou UF)
+        <input [(ngModel)]="regiao" (keyup.enter)="filtrar()" maxlength="100" placeholder="Recife ou PE"
+          class="mt-1 block w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+      </label>
+      <label class="text-sm font-medium">Situação
+        <select [(ngModel)]="status" (change)="filtrar()"
+          class="mt-1 block border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+          <option value="todas">Todas</option><option value="ativas">Ativas</option><option value="inativas">Inativas</option>
+        </select>
+      </label>
+      <label class="text-sm font-medium">Por página
+        <select [ngModel]="size" (ngModelChange)="porPagina($event)"
+          class="mt-1 block border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+          <option [ngValue]="20">20</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option>
+        </select>
+      </label>
+      <button type="button" (click)="filtrar()" [disabled]="loading"
+        class="border border-slate-300 rounded-lg px-4 py-2 min-h-11">Filtrar</button>
+    </div>
+
+    @if (loading) { <p role="status" aria-live="polite">Carregando transportadoras...</p> }
+    @if (error) {
+      <div role="alert" class="border border-rose-200 rounded-lg p-4 text-rose-700">
+        <p>{{ error }}</p><button type="button" (click)="listar()" class="underline mt-2">Tentar novamente</button>
+      </div>
+    }
+    @if (!loading && !error) {
+      @if (!rows.length) {
+        <p class="py-10 text-center text-slate-600" role="status">Nenhuma transportadora encontrada para esses filtros.</p>
+      } @else {
+        <div class="overflow-x-auto focus-visible:outline focus-visible:outline-2" tabindex="0" role="region"
+          aria-label="Tabela de transportadoras com rolagem horizontal">
+          <table class="w-full min-w-[850px] text-sm text-left">
+            <caption class="sr-only">Transportadoras do tenant autenticado</caption>
+            <thead><tr class="border-b border-slate-200">
+              <th scope="col" class="p-3">Transportadora</th><th scope="col" class="p-3">Documento</th>
+              <th scope="col" class="p-3">Modalidade</th><th scope="col" class="p-3">Contato</th>
+              <th scope="col" class="p-3">Região</th><th scope="col" class="p-3">Última compra</th>
+              <th scope="col" class="p-3">Situação</th><th scope="col" class="p-3">Ação</th>
+            </tr></thead>
+            <tbody>
+              @for (item of rows; track item.id) {
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                  <th scope="row" class="p-3 font-medium">{{ item.nomeFantasia }}</th>
+                  <td class="p-3">{{ item.cnpj || item.cpf || '—' }}</td>
+                  <td class="p-3">{{ item.modalidade === 'RODOVIARIO' ? 'Rodoviário' : 'Outros' }}</td>
+                  <td class="p-3">{{ item.contato || '—' }} {{ item.telefone || '' }}</td>
+                  <td class="p-3">{{ item.cidade || '—' }}{{ item.estado ? ' / ' + item.estado : '' }}</td>
+                  <td class="p-3">{{ item.ultimaCompra ? (item.ultimaCompra | date:'dd/MM/yyyy') : '—' }}</td>
+                  <td class="p-3">{{ item.ativo ? 'Ativa' : 'Inativa' }}</td>
+                  <td class="p-3"><button type="button" class="text-blue-700 underline font-medium"
+                    (click)="editar(item)" [attr.aria-label]="'Editar transportadora ' + item.nomeFantasia">Detalhes</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="Paginação de transportadoras" class="flex flex-wrap gap-3 items-center">
+          <span class="text-sm text-slate-600 mr-auto">{{ total }} registros — página {{ page + 1 }}</span>
+          <button type="button" [disabled]="page === 0 || loading" (click)="pagina(-1)"
+            class="border rounded-lg px-4 py-2 min-h-11 disabled:opacity-40">Anterior</button>
+          <button type="button" [disabled]="loading || (page + 1) * size >= total" (click)="pagina(1)"
+            class="border rounded-lg px-4 py-2 min-h-11 disabled:opacity-40">Próxima</button>
+        </nav>
+      }
+    }
+  </section>
+
+  @if (editing) {
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 space-y-5"
+      aria-labelledby="transportadora-edicao">
+      <div class="flex flex-wrap justify-between items-center gap-3">
+        <h2 id="transportadora-edicao" class="text-xl font-semibold">
+          {{ selected ? 'Editar transportadora' : 'Cadastrar transportadora' }}
+        </h2>
+        <button type="button" (click)="fechar()" [disabled]="saving" class="underline px-3 py-2">Fechar</button>
+      </div>
+      @if (formError) { <p role="alert" class="border border-rose-200 p-3 rounded-lg text-rose-700">{{ formError }}</p> }
+      <form #formulario="ngForm" (ngSubmit)="salvar()" class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @if (!selected) {
+            <label class="text-sm font-medium sm:col-span-2">
+              ID de fornecedor existente (opcional — reutiliza o cadastro fiscal)
+              <input type="number" min="1" name="fornecedorId" [(ngModel)]="form.fornecedorId"
+                class="block mt-1 w-full max-w-xs border rounded-lg px-3 py-2 min-h-11" />
+              <span class="block text-xs text-slate-600 mt-1">
+                Se o CPF/CNPJ já está em Fornecedores, informe o ID e o documento idêntico.
+                Dados comuns de endereço e contato permanecem no cadastro principal.
+              </span>
+            </label>
+          }
+          <label class="text-sm font-medium">Tipo de pessoa *
+            <select name="tipoPessoa" [(ngModel)]="form.tipoPessoa" [disabled]="!!selected"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option value="JURIDICA">Jurídica</option><option value="FISICA">Física</option>
+            </select>
+          </label>
+          <label class="text-sm font-medium">Nome *
+            <input name="nomeFantasia" [(ngModel)]="form.nomeFantasia" required maxlength="255"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Razão social
+            <input name="razaoSocial" [(ngModel)]="form.razaoSocial" maxlength="255"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          @if (form.tipoPessoa === 'JURIDICA') {
+            <label class="text-sm font-medium">CNPJ *
+              <input name="cnpj" [(ngModel)]="form.cnpj" required maxlength="18"
+                class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+            </label>
+          } @else {
+            <label class="text-sm font-medium">CPF *
+              <input name="cpf" [(ngModel)]="form.cpf" required maxlength="14"
+                class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+            </label>
+          }
+          <label class="text-sm font-medium">Contato
+            <input name="contato" [(ngModel)]="form.contato" maxlength="255"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Telefone
+            <input type="tel" name="telefone" [(ngModel)]="form.telefone" maxlength="20"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">E-mail
+            <input type="email" name="email" [(ngModel)]="form.email" maxlength="255"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Modalidade *
+            <select name="modalidade" [(ngModel)]="form.modalidade"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option value="RODOVIARIO">Rodoviário</option><option value="OUTROS">Outros</option>
+            </select>
+          </label>
+          <label class="text-sm font-medium sm:col-span-2">Endereço
+            <input name="endereco" [(ngModel)]="form.endereco" maxlength="1000"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">CEP
+            <input name="cep" [(ngModel)]="form.cep" maxlength="9" placeholder="00000-000"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Cidade
+            <input name="cidade" [(ngModel)]="form.cidade" maxlength="100"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">UF
+            <input name="estado" [(ngModel)]="form.estado" maxlength="2" placeholder="PE"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Situação logística
+            <select name="ativo" [(ngModel)]="form.ativo"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option [ngValue]="true">Ativa</option><option [ngValue]="false">Inativa</option>
+            </select>
+          </label>
+          <label class="text-sm font-medium sm:col-span-2">Observações logísticas
+            <textarea name="observacoes" [(ngModel)]="form.observacoes" maxlength="4000" rows="3"
+              class="block mt-1 w-full border border-slate-300 rounded-lg px-3 py-2"></textarea>
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-3 items-center">
+          <button type="submit" [disabled]="saving || formulario.invalid"
+            class="rounded-lg bg-blue-700 px-5 py-3 text-white font-semibold disabled:opacity-50">
+            {{ saving ? 'Salvando...' : 'Salvar transportadora' }}
+          </button>
+          @if (selected?.ativo && !confirmInactivate) {
+            <button type="button" (click)="confirmInactivate = true"
+              class="rounded-lg border border-rose-300 px-4 py-3 text-rose-700">Inativar</button>
+          }
+          @if (confirmInactivate) {
+            <p class="text-sm text-rose-700">Inativar apenas a função logística? Fornecedor e notas serão preservados.</p>
+            <button type="button" (click)="inativar()" [disabled]="saving"
+              class="rounded-lg bg-rose-700 px-4 py-3 text-white">Confirmar inativação</button>
+            <button type="button" (click)="confirmInactivate = false" class="underline p-2">Cancelar</button>
+          }
+        </div>
+      </form>
+
+      @if (selected) {
+        <section class="border-t pt-5 space-y-3" aria-labelledby="transportadora-pedido-titulo">
+          <h3 id="transportadora-pedido-titulo" class="text-lg font-semibold">Referência em pedido de compra</h3>
+          <p class="text-sm text-slate-600">Associação logística interna com um pedido existente. Não emite frete, CT-e ou NF-e.</p>
+          <div class="flex flex-wrap items-end gap-3">
+            <label class="text-sm font-medium">ID do pedido
+              <input type="number" min="1" [(ngModel)]="pedidoId"
+                class="block mt-1 w-36 border rounded-lg px-3 py-2 min-h-11" />
+            </label>
+            <label class="text-sm font-medium">Documento de rastreio (opcional)
+              <input [(ngModel)]="documentoRastreio" maxlength="120"
+                class="block mt-1 w-56 border rounded-lg px-3 py-2 min-h-11" />
+            </label>
+            <button type="button" (click)="consultarPedido()" [disabled]="compraBusy || !pedidoId"
+              class="border rounded-lg px-4 py-2 min-h-11">Consultar</button>
+            <button type="button" (click)="vincularPedido()"
+              [disabled]="compraBusy || !pedidoId || !selected.ativo || !!(vinculo?.transportadoraId && vinculo?.transportadoraId !== selected.id)"
+              class="bg-blue-700 text-white rounded-lg px-4 py-2 min-h-11 disabled:opacity-50">Associar</button>
+          </div>
+          @if (compraBusy) { <p role="status">Consultando pedido...</p> }
+          @if (compraError) { <p role="alert" class="text-rose-700">{{ compraError }}</p> }
+          @if (vinculo) {
+            <p role="status">Pedido #{{ vinculo.pedidoId }} — NF informada: {{ vinculo.numeroNf || 'Não informada' }}
+              — transportadora: {{ vinculo.nomeTransportadora || 'Sem vínculo' }}.</p>
+            @if (vinculo.transportadoraId === selected.id) {
+              <button type="button" (click)="removerPedido()" [disabled]="compraBusy"
+                class="underline text-rose-700">Remover referência logística</button>
+            }
+          }
+        </section>
+
+        <section class="border-t pt-5 space-y-3" aria-labelledby="transportadora-historico">
+          <h3 id="transportadora-historico" class="text-lg font-semibold">Histórico versionado</h3>
+          @if (historicoLoading) { <p role="status">Carregando histórico...</p> }
+          @if (historicoError) {
+            <div role="alert"><p>{{ historicoError }}</p>
+              <button type="button" (click)="carregarHistorico(historicoPage)" class="underline">Tentar novamente</button>
+            </div>
+          }
+          @if (!historicoLoading && !historicoError && !historico.length) {
+            <p class="text-sm text-slate-600">Nenhuma alteração registrada.</p>
+          }
+          @if (historico.length) {
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Histórico com rolagem">
+              <table class="min-w-[640px] w-full text-sm text-left">
+                <thead><tr class="border-b">
+                  <th scope="col" class="p-2">Campo</th><th scope="col" class="p-2">Anterior</th>
+                  <th scope="col" class="p-2">Novo</th><th scope="col" class="p-2">Autor</th>
+                  <th scope="col" class="p-2">Data</th><th scope="col" class="p-2">Versão</th>
+                </tr></thead>
+                <tbody>
+                  @for (entry of historico; track $index) {
+                    <tr class="border-b"><th scope="row" class="p-2">{{ entry.campo }}</th>
+                      <td class="p-2">{{ entry.anterior }}</td><td class="p-2">{{ entry.novo }}</td>
+                      <td class="p-2">#{{ entry.autor }}</td>
+                      <td class="p-2">{{ entry.data | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td class="p-2">{{ entry.versao }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <nav aria-label="Paginação do histórico" class="flex flex-wrap gap-3 items-center">
+              <span class="text-sm text-slate-600 mr-auto">{{ historicoTotal }} alterações</span>
+              <button type="button" (click)="carregarHistorico(historicoPage - 1)"
+                [disabled]="historicoPage === 0 || historicoLoading" class="border rounded-lg px-4 py-2">Anterior</button>
+              <button type="button" (click)="carregarHistorico(historicoPage + 1)"
+                [disabled]="historicoLoading || (historicoPage + 1) * 20 >= historicoTotal"
+                class="border rounded-lg px-4 py-2">Próxima</button>
+            </nav>
+          }
+        </section>
+      }
+    </section>
+  }
+</main>
