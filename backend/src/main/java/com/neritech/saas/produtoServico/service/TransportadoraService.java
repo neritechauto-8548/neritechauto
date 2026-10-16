@@ -352,8 +352,10 @@ public class TransportadoraService {
     }
 
     private void auditarLogistica(Fornecedor f, Long pedidoId, String acao, String rastreio) {
-        registrar(f, autor(f.getEmpresaId()), acao, "pedido",
-                null, "Pedido #" + pedidoId + (rastreio == null ? "" : " • Rastreio " + rastreio));
+        // V149 aceita apenas INSERT/UPDATE/DELETE/SELECT (VARCHAR(10)).
+        registrar(f, autor(f.getEmpresaId()), "UPDATE", "pedido",
+                null, acao + " Pedido #" + pedidoId
+                        + (rastreio == null ? "" : " • Rastreio " + rastreio));
     }
 
     private void registrar(Fornecedor f, Long autor, String acao, String campo, Object antes, Object depois) {
