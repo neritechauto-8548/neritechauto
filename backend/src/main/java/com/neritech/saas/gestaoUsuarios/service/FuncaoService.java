@@ -97,7 +97,7 @@ public class FuncaoService {
         if (!java.util.List.of(20, 50, 100).contains(pageable.getPageSize())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Paginação inválida");
         }
-        String q = query == null || query.isBlank() ? null : query.trim();
+        String q = query == null || query.isBlank() ? "" : query.trim();
         return funcaoRepository.search(empresaId, q, ativo, pageable).map(this::response);
     }
 
