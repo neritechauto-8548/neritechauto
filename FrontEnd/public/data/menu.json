@@ -449,7 +449,7 @@
           "name": "Seguradoras",
           "route": "configuracoes/seguradoras",
           "type": "link",
-          "disabled": true
+          "disabled": false
         },
         {
           "name": "Transportadoras",
