@@ -41,5 +41,23 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             "LOWER(f.cpf) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Fornecedor> search(Long empresaId, String search, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT f FROM Fornecedor f
+         WHERE f.empresaId = :empresaId
+           AND (:search IS NULL OR :search = '' OR
+                LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(f.cpf) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :search, '%')))
+           AND (:ativo IS NULL OR f.ativo = :ativo)
+           AND (:cidade IS NULL OR :cidade = '' OR
+                LOWER(f.cidade) LIKE LOWER(CONCAT('%', :cidade, '%')))
+        """)
+    Page<Fornecedor> filter(@org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("ativo") Boolean ativo,
+            @org.springframework.data.repository.query.Param("cidade") String cidade,
+            Pageable pageable);
 }
 
