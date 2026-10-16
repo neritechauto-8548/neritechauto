@@ -52,7 +52,7 @@ public class PoliticasGeraisController {
     public PoliticasGeraisService.Politica situacao(@PathVariable String chave,
             @RequestHeader(value = "If-Match", required = false) Integer versao,
             @RequestBody PoliticasGeraisService.Estado body) {
-        if (body == null) {
+        if (body == null || body.ativo() == null) {
             throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return service.situacao(chave, body.ativo(), versao);
