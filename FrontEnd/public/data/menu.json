@@ -463,6 +463,13 @@
           "type": "sub",
           "children": [
             {
+              "name": "Preferências gerais",
+              "route": "configuracoes/preferencias",
+              "type": "link",
+              "permissions": { "only": "GERAL_CONFIG_SISTEMA" },
+              "disabled": false
+            },
+            {
               "name": "Departamentos",
               "route": "configuracoes/departamentos",
               "type": "link",
