@@ -10,6 +10,24 @@ import com.neritech.saas.produtoServico.domain.Fornecedor;
 @Repository
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
     Page<Fornecedor> findByEmpresaId(Long empresaId, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("""
+      SELECT (COUNT(f) > 0) FROM Fornecedor f
+      WHERE f.empresaId = :tenant AND f.cpf = :cpf
+        AND (:excluding IS NULL OR f.id <> :excluding)
+      """)
+    boolean existsOtherCpf(@org.springframework.data.repository.query.Param("tenant") Long tenant,
+            @org.springframework.data.repository.query.Param("cpf") String cpf,
+            @org.springframework.data.repository.query.Param("excluding") Long excluding);
+
+    @org.springframework.data.jpa.repository.Query("""
+      SELECT (COUNT(f) > 0) FROM Fornecedor f
+      WHERE f.empresaId = :tenant AND f.cnpj = :cnpj
+        AND (:excluding IS NULL OR f.id <> :excluding)
+      """)
+    boolean existsOtherCnpj(@org.springframework.data.repository.query.Param("tenant") Long tenant,
+            @org.springframework.data.repository.query.Param("cnpj") String cnpj,
+            @org.springframework.data.repository.query.Param("excluding") Long excluding);
+
 
     boolean existsByEmpresaIdAndCpf(Long empresaId, String cpf);
 
