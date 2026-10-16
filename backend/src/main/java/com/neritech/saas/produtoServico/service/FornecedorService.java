@@ -17,15 +17,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class FornecedorService {
     private final FornecedorRepository repository;
     private final FornecedorMapper mapper;
+    private final FornecedorHistoricoService auditoria;
 
-    public FornecedorService(FornecedorRepository repository, FornecedorMapper mapper) {
+    public FornecedorService(FornecedorRepository repository, FornecedorMapper mapper,
+                             FornecedorHistoricoService auditoria) {
         this.repository = repository;
         this.mapper = mapper;
+        this.auditoria = auditoria;
     }
 
     @Transactional
@@ -37,7 +42,9 @@ public class FornecedorService {
         entity.setCpf(documento(request.cpf()));
         entity.setCnpj(documento(request.cnpj()));
         if (entity.getAtivo() == null) entity.setAtivo(true);
-        return mapper.toResponse(repository.saveAndFlush(entity));
+        Fornecedor saved = repository.saveAndFlush(entity);
+        auditoria.registrar(saved, Map.of());
+        return mapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -59,21 +66,40 @@ public class FornecedorService {
 
     @Transactional
     public FornecedorResponse update(Long id, FornecedorRequest request) {
+        return update(id, request, null);
+    }
+
+    @Transactional
+    public FornecedorResponse update(Long id, FornecedorRequest request, Integer expectedVersion) {
         Long tenant = TenantAccess.require(request.empresaId());
         Fornecedor entity = findEntity(id);
+        if (expectedVersion != null && !Objects.equals(expectedVersion, entity.getVersao())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fornecedor alterado por outra sessão; recarregue antes de salvar");
+        }
         validar(request, tenant, id);
+        Map<String, Object> anterior = FornecedorHistoricoService.campos(entity);
         mapper.updateEntityFromRequest(request, entity);
         entity.setCpf(documento(request.cpf()));
         entity.setCnpj(documento(request.cnpj()));
-        return mapper.toResponse(repository.saveAndFlush(entity));
+        Fornecedor saved = repository.saveAndFlush(entity);
+        auditoria.registrar(saved, anterior);
+        return mapper.toResponse(saved);
     }
 
     /** O DELETE legado apenas inativa: vínculos fiscais, pedidos e cotações são preservados. */
     @Transactional
     public void delete(Long id) {
         Fornecedor entity = findEntity(id);
+        Map<String, Object> anterior = FornecedorHistoricoService.campos(entity);
         entity.setAtivo(false);
-        repository.saveAndFlush(entity);
+        Fornecedor saved = repository.saveAndFlush(entity);
+        auditoria.registrar(saved, anterior);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FornecedorHistoricoService.Alteracao> historico(Long id, int page, int size) {
+        Fornecedor entity = findEntity(id);
+        return auditoria.historico(entity.getEmpresaId(), entity.getId(), page, size);
     }
 
     /** Compartilhado com pedidos e cotações; nunca basta validar somente o ID. */
