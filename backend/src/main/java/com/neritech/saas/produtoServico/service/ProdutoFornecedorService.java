@@ -37,8 +37,7 @@ public class ProdutoFornecedorService {
 
     @Transactional
     public ProdutoFornecedorResponse create(ProdutoFornecedorRequest request) {
-        Long tenant = TenantAccess.requireCurrent();
-        TenantAccess.require(entity.getFornecedor().getEmpresaId());
+        TenantAccess.requireCurrent();
         Produto produto = produtoRepository.findById(request.produtoId())
                 .orElseThrow(
                         () -> new EntityNotFoundException("Produto nÃ£o encontrado com ID: " + request.produtoId()));
@@ -97,7 +96,8 @@ public class ProdutoFornecedorService {
     public ProdutoFornecedorResponse update(Long id, ProdutoFornecedorRequest request) {
         ProdutoFornecedor entity = repository.findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("RelaÃ§Ã£o Produto-Fornecedor nÃ£o encontrada com ID: " + id));
+                        () -> new EntityNotFoundException("Relação Produto-Fornecedor não encontrada com ID: " + id));
+        TenantAccess.require(entity.getFornecedor().getEmpresaId());
 
         Produto produto = produtoRepository.findById(request.produtoId())
                 .orElseThrow(
