@@ -1,20 +1,25 @@
 package com.neritech.saas.produtoServico.service;
 
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.produtoServico.domain.Fornecedor;
+import com.neritech.saas.produtoServico.domain.enums.TipoPessoa;
 import com.neritech.saas.produtoServico.dto.FornecedorRequest;
 import com.neritech.saas.produtoServico.dto.FornecedorResponse;
 import com.neritech.saas.produtoServico.mapper.FornecedorMapper;
 import com.neritech.saas.produtoServico.repository.FornecedorRepository;
+import com.neritech.saas.util.DocumentoValidator;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import java.math.BigDecimal;
+import java.util.Locale;
 
 @Service
 public class FornecedorService {
-
     private final FornecedorRepository repository;
     private final FornecedorMapper mapper;
 
@@ -25,67 +30,103 @@ public class FornecedorService {
 
     @Transactional
     public FornecedorResponse create(FornecedorRequest request) {
-        if (request.cpf() != null && repository.existsByEmpresaIdAndCpf(request.empresaId(), request.cpf())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CPF nesta empresa");
-        }
-        if (request.cnpj() != null && repository.existsByEmpresaIdAndCnpj(request.empresaId(), request.cnpj())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CNPJ nesta empresa");
-        }
-
+        Long tenant = TenantAccess.require(request.empresaId());
+        validar(request, tenant, null);
         Fornecedor entity = mapper.toEntity(request);
-        entity.setEmpresaId(request.empresaId());
-
-        Fornecedor saved = repository.save(entity);
-        return mapper.toResponse(saved);
+        entity.setEmpresaId(tenant);
+        entity.setCpf(documento(request.cpf()));
+        entity.setCnpj(documento(request.cnpj()));
+        if (entity.getAtivo() == null) entity.setAtivo(true);
+        return mapper.toResponse(repository.saveAndFlush(entity));
     }
 
     @Transactional(readOnly = true)
     public FornecedorResponse findById(Long id) {
-        return repository.findById(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + id));
+        return mapper.toResponse(findEntity(id));
     }
 
     @Transactional(readOnly = true)
     public Page<FornecedorResponse> findAll(Long empresaId, Pageable pageable) {
-        return repository.findByEmpresaId(empresaId, pageable)
-                .map(mapper::toResponse);
+        TenantAccess.require(empresaId);
+        return repository.findByEmpresaId(empresaId, pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<FornecedorResponse> search(Long empresaId, String query, Pageable pageable) {
-        return repository.search(empresaId, query, pageable)
-                .map(mapper::toResponse);
+        TenantAccess.require(empresaId);
+        return repository.search(empresaId, query, pageable).map(mapper::toResponse);
     }
 
     @Transactional
     public FornecedorResponse update(Long id, FornecedorRequest request) {
-        Fornecedor entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + id));
-
-        if (!entity.getEmpresaId().equals(request.empresaId())) {
-            throw new IllegalArgumentException("NÃ£o Ã© permitido alterar a empresa do fornecedor");
-        }
-
-        if (request.cpf() != null && !request.cpf().equals(entity.getCpf()) &&
-                repository.existsByEmpresaIdAndCpf(request.empresaId(), request.cpf())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CPF nesta empresa");
-        }
-        if (request.cnpj() != null && !request.cnpj().equals(entity.getCnpj()) &&
-                repository.existsByEmpresaIdAndCnpj(request.empresaId(), request.cnpj())) {
-            throw new IllegalArgumentException("JÃ¡ existe um fornecedor com este CNPJ nesta empresa");
-        }
-
+        Long tenant = TenantAccess.require(request.empresaId());
+        Fornecedor entity = findEntity(id);
+        validar(request, tenant, id);
         mapper.updateEntityFromRequest(request, entity);
-        Fornecedor saved = repository.save(entity);
-        return mapper.toResponse(saved);
+        entity.setCpf(documento(request.cpf()));
+        entity.setCnpj(documento(request.cnpj()));
+        return mapper.toResponse(repository.saveAndFlush(entity));
     }
 
+    /** O DELETE legado apenas inativa: vínculos fiscais, pedidos e cotações são preservados. */
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + id);
+        Fornecedor entity = findEntity(id);
+        entity.setAtivo(false);
+        repository.saveAndFlush(entity);
+    }
+
+    /** Compartilhado com pedidos e cotações; nunca basta validar somente o ID. */
+    @Transactional(readOnly = true)
+    public Fornecedor requireActive(Long id, Long empresaId) {
+        TenantAccess.require(empresaId);
+        Fornecedor entity = findEntity(id);
+        if (!Boolean.TRUE.equals(entity.getAtivo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fornecedor inativo; escolha um fornecedor ativo");
         }
-        repository.deleteById(id);
+        return entity;
+    }
+
+    private Fornecedor findEntity(Long id) {
+        Fornecedor entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Fornecedor não encontrado"));
+        TenantAccess.require(entity.getEmpresaId());
+        return entity;
+    }
+
+    private static String documento(String value) {
+        if (value == null || value.isBlank()) return null;
+        return value.replaceAll("[^a-zA-Z0-9]", "").toUpperCase(Locale.ROOT);
+    }
+
+    private void validar(FornecedorRequest r, Long tenant, Long editingId) {
+        if (r.tipoPessoa() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Informe o tipo de pessoa");
+        }
+        String cpf = documento(r.cpf());
+        String cnpj = documento(r.cnpj());
+        if (r.tipoPessoa() == TipoPessoa.FISICA) {
+            if (cpf == null || !DocumentoValidator.isValidCpf(cpf) || cnpj != null) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CPF inválido ou CNPJ indevido para pessoa física");
+            }
+        } else if (r.tipoPessoa() == TipoPessoa.JURIDICA) {
+            if (cnpj == null || cnpj.length() != 14 || cnpj.chars().distinct().count() == 1
+                    || !DocumentoValidator.isValidCnpj(cnpj) || cpf != null) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CNPJ inválido ou CPF indevido para pessoa jurídica");
+            }
+        }
+        if (r.cep() != null && !r.cep().isBlank() && !r.cep().matches("\\d{5}-?\\d{3}")) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CEP inválido");
+        }
+        if (r.prazoPagamentoDias() != null && r.prazoPagamentoDias() < 0
+                || r.limiteCredito() != null && r.limiteCredito().compareTo(BigDecimal.ZERO) < 0
+                || r.descontoPadrao() != null && (r.descontoPadrao().compareTo(BigDecimal.ZERO) < 0
+                    || r.descontoPadrao().compareTo(new BigDecimal("100")) > 0)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Condições de compra inválidas");
+        }
+        if (cpf != null && repository.existsOtherCpf(tenant, cpf, editingId)
+                || cnpj != null && repository.existsOtherCnpj(tenant, cnpj, editingId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "CPF/CNPJ já cadastrado nesta empresa");
+        }
     }
 }
