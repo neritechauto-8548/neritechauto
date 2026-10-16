@@ -25,7 +25,7 @@ public class FornecedorController {
         this.service = service;
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_INC_FORN') or hasAuthority('FORNECEDOR_CRIAR')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_INC_FORN') or hasAuthority('FORNECEDOR_CRIAR') or hasAuthority('FORN_INC_PEDIDOS')")
     @PostMapping
     @Operation(summary = "Criar novo fornecedor")
     public ResponseEntity<FornecedorResponse> create(@Valid @RequestBody FornecedorRequest request) {
@@ -33,14 +33,14 @@ public class FornecedorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR') or hasAuthority('PS_INC_FORN')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR') or hasAuthority('FORN_LISTAR_PEDIDOS') or hasAuthority('PS_INC_FORN')")
     @GetMapping("/{id}")
     @Operation(summary = "Buscar fornecedor por ID")
     public ResponseEntity<FornecedorResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR') or hasAuthority('PS_INC_FORN')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR') or hasAuthority('FORN_LISTAR_PEDIDOS') or hasAuthority('PS_INC_FORN')")
     @GetMapping
     @Operation(summary = "Listar fornecedores por empresa (paginado)")
     public ResponseEntity<Page<FornecedorResponse>> findAll(
@@ -52,9 +52,9 @@ public class FornecedorController {
         return ResponseEntity.ok(service.filter(empresaId, search, ativo, cidade, pageable));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR') or hasAuthority('FORN_EDIT_PEDIDOS')")
     @GetMapping("/{id}/historico")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_LISTAR_FORN') or hasAuthority('FORNECEDOR_VISUALIZAR') or hasAuthority('FORN_LISTAR_PEDIDOS')")
     @Operation(summary = "Histórico versionado do fornecedor")
     public ResponseEntity<Page<com.neritech.saas.produtoServico.service.FornecedorHistoricoService.Alteracao>>
             historico(@PathVariable Long id,
@@ -72,7 +72,7 @@ public class FornecedorController {
         return ResponseEntity.ok(service.update(id, request, expectedVersion));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('PS_EDIT_FORN') or hasAuthority('FORNECEDOR_EDITAR') or hasAuthority('FORN_EDIT_PEDIDOS')")
     @DeleteMapping("/{id}")
     @Operation(summary = "Inativar fornecedor")
     @ResponseStatus(HttpStatus.NO_CONTENT)
