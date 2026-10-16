@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../environments/environment';
 import { Page } from './models/fornecedor.models';
@@ -12,71 +12,58 @@ export class PedidoFornecedorService {
   private readonly storage = inject(LocalStorageService);
   private readonly base = `${environment.baseUrl}/v1/pedidos-fornecedor`;
 
-  private getRobustTenantId(): string {
-    let tenantId = this.storage.has('tenantId') ? this.storage.get('tenantId') : '1';
-    if (tenantId && typeof tenantId === 'object') {
-      tenantId = (tenantId as any).id || (tenantId as any).tenantId || (tenantId as any).empresaId || '1';
+  private scoped<T>(request: (tenant: number, headers: HttpHeaders) => Observable<T>): Observable<T> {
+    let raw: any = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
+    if (raw && typeof raw === 'object') raw = raw.id ?? raw.tenantId ?? raw.empresaId;
+    const tenant = Number(raw);
+    if (raw == null || raw === '' || !Number.isSafeInteger(tenant) || tenant <= 0) {
+      return throwError(() => new Error('Empresa autenticada não identificada.'));
     }
-    const val = String(tenantId);
-    return (val.includes('[object') || val === 'undefined' || val === 'null') ? '1' : val;
+    return request(tenant, new HttpHeaders({ 'X-Tenant-Id': String(tenant), Accept: 'application/json' }));
   }
 
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'X-Tenant-Id': this.getRobustTenantId(),
-      'Accept': 'application/json',
-    });
-  }
-
-  private getEmpresaIdParam(params?: Record<string, any>): HttpParams {
-    let httpParams = new HttpParams();
-    httpParams = httpParams.set('empresaId', this.getRobustTenantId());
-    Object.entries(params || {}).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && `${v}` !== '') {
-        httpParams = httpParams.set(k, String(v));
+  private query(tenant: number, params?: Record<string, any>): HttpParams {
+    let query = new HttpParams().set('empresaId', tenant);
+    for (const [key, value] of Object.entries(params || {})) {
+      if (key !== 'empresaId' && value !== undefined && value !== null && String(value) !== '') {
+        query = query.set(key, String(value));
       }
-    });
-    return httpParams;
+    }
+    return query;
   }
 
   list(params?: Record<string, any>): Observable<Page<PedidoFornecedorResponse>> {
-    return this.http.get<Page<PedidoFornecedorResponse>>(this.base, {
-      params: this.getEmpresaIdParam(params),
-      headers: this.getHeaders(),
-    });
+    return this.scoped((tenant, headers) =>
+      this.http.get<Page<PedidoFornecedorResponse>>(this.base, {
+        headers, params: this.query(tenant, params)
+      }));
   }
 
   get(id: number | string): Observable<PedidoFornecedorResponse> {
-    return this.http.get<PedidoFornecedorResponse>(`${this.base}/${id}`, {
-      headers: this.getHeaders(),
-    });
+    return this.scoped((tenant, headers) =>
+      this.http.get<PedidoFornecedorResponse>(`${this.base}/${id}`, { headers }));
   }
 
   create(dto: PedidoFornecedorRequest): Observable<PedidoFornecedorResponse> {
-    return this.http.post<PedidoFornecedorResponse>(this.base, dto, {
-      headers: this.getHeaders(),
-    });
+    return this.scoped((tenant, headers) =>
+      this.http.post<PedidoFornecedorResponse>(this.base, { ...dto, empresaId: tenant }, { headers }));
   }
 
   update(id: number | string, dto: PedidoFornecedorRequest): Observable<PedidoFornecedorResponse> {
-    return this.http.put<PedidoFornecedorResponse>(`${this.base}/${id}`, dto, {
-      headers: this.getHeaders(),
-      params: this.getEmpresaIdParam(),
-    });
+    return this.scoped((tenant, headers) =>
+      this.http.put<PedidoFornecedorResponse>(`${this.base}/${id}`,
+        { ...dto, empresaId: tenant }, { headers }));
   }
 
   updateStatus(id: number | string, status: string): Observable<PedidoFornecedorResponse> {
-    return this.http.patch<PedidoFornecedorResponse>(`${this.base}/${id}/status`, null, {
-      headers: this.getHeaders(),
-      params: this.getEmpresaIdParam({ status }),
-    });
+    return this.scoped((tenant, headers) =>
+      this.http.patch<PedidoFornecedorResponse>(`${this.base}/${id}/status`, null, {
+        headers, params: this.query(tenant, { status })
+      }));
   }
 
-
   delete(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`, {
-      headers: this.getHeaders(),
-      params: this.getEmpresaIdParam(),
-    });
+    return this.scoped((tenant, headers) =>
+      this.http.delete<void>(`${this.base}/${id}`, { headers }));
   }
 }
