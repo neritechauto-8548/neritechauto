@@ -45,6 +45,6 @@ jobs:
           java-version: 21
           cache: maven
       - name: Testes de integração ADM-008
-        run: mvn -B test -Dtest=FornecedorTenantIntegrationTest -DfailIfNoTests=false
+        run: mvn -B test -Dtest=FornecedorTenantIntegrationTest,ProdutoFornecedorTenantTest -DfailIfNoTests=false
         env:
           SPRING_PROFILES_ACTIVE: test
