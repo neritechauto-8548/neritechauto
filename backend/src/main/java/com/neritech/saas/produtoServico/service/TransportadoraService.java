@@ -113,6 +113,21 @@ public class TransportadoraService {
         String cpf = documento(request.cpf()), cnpj = documento(request.cnpj());
         validarDocumento(request.tipoPessoa(), cpf, cnpj);
         verificarDuplicidade(f.getEmpresaId(), cpf, cnpj, id);
+        if (Boolean.TRUE.equals(request.ativo()) && !Boolean.TRUE.equals(f.getAtivo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Fornecedor mestre inativo: reative-o em Fornecedores primeiro");
+        }
+        if (!Objects.equals(documento(f.getCpf()), cpf)
+                || !Objects.equals(documento(f.getCnpj()), cnpj)) {
+            Long usado = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM pedidos_fornecedor
+                WHERE empresa_id = ? AND (fornecedor_id = ? OR transportadora_id = ?)
+                """, Long.class, f.getEmpresaId(), id, id);
+            if (usado != null && usado > 0) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Documento não pode mudar enquanto há compras vinculadas");
+            }
+        }
         Map<String, Object> antes = campos(f);
         aplicar(f, request);
         if (request.ativo() != null) f.setTransportadoraAtiva(request.ativo());
