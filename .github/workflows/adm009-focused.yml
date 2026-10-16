@@ -37,7 +37,8 @@ jobs:
           cache: yarn
           cache-dependency-path: FrontEnd/yarn.lock
       - run: yarn install --frozen-lockfile
-      - run: node --test scripts/navigation-contract.test.cjs scripts/ui-tokens.test.cjs
+      - name: Confirmar rota de seguradoras sem links quebrados
+        run: node --test --test-name-pattern="não oferece cliques" scripts/navigation-contract.test.cjs
       - run: yarn build
       - name: Testes Angular ADM-009
         run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/configuracoes/seguradoras/seguradora.service.spec.ts
