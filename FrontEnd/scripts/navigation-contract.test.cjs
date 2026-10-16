@@ -28,7 +28,7 @@ const existing = new Set([
   '/financeiro/contas', '/financeiro/receber', '/financeiro/pagar', '/financeiro/caixa',
   '/financeiro/comissoes', '/fiscal/nfe', '/fiscal/nfce', '/fiscal/nfse',
   '/fiscal/nfe/inutilizar-numeracao', '/fornecedor/lista',
-  '/configuracoes/empresa', '/configuracoes/seguradoras', '/configuracoes/usuarios', '/configuracoes/colaboradores',
+  '/configuracoes/empresa', '/configuracoes/seguradoras', '/configuracoes/transportadoras', '/configuracoes/usuarios', '/configuracoes/colaboradores',
   '/configuracoes/cargos', '/configuracoes/permissoes', '/configuracoes/departamentos',
   '/configuracoes/setores', '/configuracoes/assinatura', '/configuracoes/formas-pagamento',
   '/configuracoes/checklist', '/configuracoes/contas', '/configuracoes/localizacao',
