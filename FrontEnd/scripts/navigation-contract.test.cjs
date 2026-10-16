@@ -28,7 +28,7 @@ const existing = new Set([
   '/financeiro/contas', '/financeiro/receber', '/financeiro/pagar', '/financeiro/caixa',
   '/financeiro/comissoes', '/fiscal/nfe', '/fiscal/nfce', '/fiscal/nfse',
   '/fiscal/nfe/inutilizar-numeracao', '/fornecedor/lista',
-  '/configuracoes/empresa', '/configuracoes/usuarios', '/configuracoes/colaboradores',
+  '/configuracoes/empresa', '/configuracoes/seguradoras', '/configuracoes/usuarios', '/configuracoes/colaboradores',
   '/configuracoes/cargos', '/configuracoes/permissoes', '/configuracoes/departamentos',
   '/configuracoes/setores', '/configuracoes/assinatura', '/configuracoes/formas-pagamento',
   '/configuracoes/checklist', '/configuracoes/contas', '/configuracoes/localizacao',
@@ -67,7 +67,7 @@ test('guards cobrem orçamento, calendário, caixa e rotas administrativas', () 
   assert.match(finance, /requiredPermissions: 'FIN_VIS_CAIXA'/);
   assert.match(agenda, /requiredPermissions: 'GERAL_AGENDAMENTO_VISUALIZAR'/);
   assert.equal((admin.match(/requiredPermissions: 'GERAL_CONFIG_SISTEMA'/g) || []).length, 10);
-  assert.equal((admin.match(/canActivate: \[permissionGuard\]/g) || []).length, 10);
+  assert.equal((admin.match(/canActivate: \[permissionGuard\]/g) || []).length, 11);
 });
 
 test('larguras globais do shell usam 264/72 px', () => {
