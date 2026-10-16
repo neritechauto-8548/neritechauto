@@ -26,6 +26,17 @@ describe('ADM-011 — políticas gerais', () => {
     req.flush({ content: [{}], totalElements: 1, number: 0, size: 20, totalPages: 1 });
   });
 
+  it('consulta somente estados das integrações, sem segredos nem empresaId', () => {
+    api.listarIntegracoes().subscribe(items => {
+      expect(items[0].estado).toBe('NAO_CONFIGURADA');
+      expect(JSON.stringify(items)).not.toContain('apiKey');
+    });
+    const req = http.expectOne(`${root}/integracoes`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.has('empresaId')).toBeFalse();
+    req.flush([{ canal: 'SMS', estado: 'NAO_CONFIGURADA' }]);
+  });
+
   it('persiste políticas no servidor sem sessão local ou mock', () => {
     api.criar('locale', 'pt-BR').subscribe(x => expect(x.valorAplicado).toBe('pt-BR'));
     const req = http.expectOne(root);

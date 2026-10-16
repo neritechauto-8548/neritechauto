@@ -3,7 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { HistoricoPolitica, Politica, PreferenciasService } from './preferencias.service';
+import { HistoricoPolitica, Integracao, Politica, PreferenciasService } from './preferencias.service';
 
 @Component({
   selector: 'nt-preferencias-gerais',
@@ -33,8 +33,24 @@ export class PreferenciasGeraisComponent implements OnInit {
   historyPage = 0;
   historyLoading = false;
   historyError = '';
+  integracoes: Integracao[] = [];
+  integracoesLoading = false;
+  integracoesError = '';
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void { this.load(); this.carregarIntegracoes(); }
+
+  carregarIntegracoes(): void {
+    this.integracoesLoading = true;
+    this.integracoesError = '';
+    this.api.listarIntegracoes().pipe(finalize(() => this.integracoesLoading = false))
+      .subscribe({
+        next: data => { this.integracoes = data || []; },
+        error: err => {
+          this.integracoes = [];
+          this.integracoesError = this.describe(err);
+        }
+      });
+  }
 
   load(): void {
     if (this.loading) return;

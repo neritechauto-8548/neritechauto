@@ -17,6 +17,10 @@ export interface Politica {
   alteradoEm: string | null;
   responsavel: number | null;
 }
+export interface Integracao {
+  canal: string;
+  estado: 'NAO_CONFIGURADA' | 'CADASTRADA' | 'TESTADA';
+}
 export interface HistoricoPolitica {
   campo: string; anterior: string; novo: string;
   autor: number; data: string; versao: number;
@@ -36,6 +40,9 @@ export class PreferenciasService {
     if (secao) params = params.set('secao', secao);
     if (ativo !== undefined) params = params.set('ativo', String(ativo));
     return this.http.get<Page<Politica>>(this.base, { params });
+  }
+  listarIntegracoes(): Observable<Integracao[]> {
+    return this.http.get<Integracao[]>(`${this.base}/integracoes`);
   }
   criar(chave: Chave, valor: string): Observable<Politica> {
     return this.http.post<Politica>(this.base, { chave, valor });

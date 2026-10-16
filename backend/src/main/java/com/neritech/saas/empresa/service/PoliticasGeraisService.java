@@ -39,6 +39,8 @@ public class PoliticasGeraisService {
                            Integer versao, LocalDateTime alteradoEm, Long responsavel) {}
     public record Alterar(String chave, String valor) {}
     public record Estado(Boolean ativo) {}
+    // Apenas estado operacional resumido. Nunca devolve credenciais de outros owners.
+    public record Integracao(String canal, String estado) {}
     private final JdbcTemplate jdbc;
     private final UsuarioRepository usuarios;
     private final ObjectMapper json;
@@ -73,6 +75,53 @@ public class PoliticasGeraisService {
         int first = Math.min((int) Math.min(Integer.MAX_VALUE, pageable.getOffset()), lista.size());
         int last = Math.min(first + pageable.getPageSize(), lista.size());
         return new PageImpl<>(lista.subList(first, last), pageable, lista.size());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Integracao> integracoes() {
+        Long tenant = TenantAccess.requireCurrent();
+        return List.of(
+            new Integracao("E-mail", estadoEmail(tenant)),
+            new Integracao("SMS", estadoSms(tenant)),
+            new Integracao("WhatsApp", estadoWhatsapp(tenant))
+        );
+    }
+
+    private String estadoEmail(Long tenant) {
+        return jdbc.queryForObject("""
+            SELECT CASE
+                WHEN EXISTS (SELECT 1 FROM com_configuracoes_email
+                    WHERE empresa_id = ? AND ativo IS TRUE AND testado IS TRUE
+                    AND (NULLIF(BTRIM(api_key), '') IS NOT NULL OR NULLIF(BTRIM(senha_smtp), '') IS NOT NULL))
+                    THEN 'TESTADA'
+                WHEN EXISTS (SELECT 1 FROM com_configuracoes_email
+                    WHERE empresa_id = ? AND ativo IS TRUE
+                    AND (NULLIF(BTRIM(api_key), '') IS NOT NULL OR NULLIF(BTRIM(senha_smtp), '') IS NOT NULL))
+                    THEN 'CADASTRADA'
+                ELSE 'NAO_CONFIGURADA'
+            END
+            """, String.class, tenant, tenant);
+    }
+
+    private String estadoSms(Long tenant) {
+        return jdbc.queryForObject("""
+            SELECT CASE WHEN EXISTS (SELECT 1 FROM com_configuracoes_sms
+                WHERE empresa_id = ? AND ativo IS TRUE
+                AND (NULLIF(BTRIM(api_key), '') IS NOT NULL
+                  OR (NULLIF(BTRIM(usuario_api), '') IS NOT NULL
+                     AND NULLIF(BTRIM(senha_api), '') IS NOT NULL)))
+                THEN 'CADASTRADA' ELSE 'NAO_CONFIGURADA' END
+            """, String.class, tenant);
+    }
+
+    private String estadoWhatsapp(Long tenant) {
+        return jdbc.queryForObject("""
+            SELECT CASE WHEN EXISTS (SELECT 1 FROM com_configuracoes_whatsapp
+                WHERE empresa_id = ? AND integracao_ativa IS TRUE
+                AND (NULLIF(BTRIM(token_acesso), '') IS NOT NULL
+                     OR NULLIF(BTRIM(webhook_token), '') IS NOT NULL))
+                THEN 'CADASTRADA' ELSE 'NAO_CONFIGURADA' END
+            """, String.class, tenant);
     }
 
     @Transactional(readOnly = true)
@@ -113,6 +162,8 @@ public class PoliticasGeraisService {
         if (anterior.versao() == null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Crie a política antes de editá-la");
         }
+        if (!Objects.equals(anterior.versao(), versao)) throw conflito();
+        if (Objects.equals(anterior.valorSalvo(), valor)) return anterior;
         Long autor = usuario(tenant);
         int rows = jdbc.update("""
             UPDATE politicas_gerais_empresa
@@ -133,7 +184,8 @@ public class PoliticasGeraisService {
         validarChave(chave);
         requireVersion(versao);
         Politica anterior = obter(chave);
-        if (anterior.versao() == null) throw conflito();
+        if (anterior.versao() == null || !Objects.equals(anterior.versao(), versao)) throw conflito();
+        if (anterior.ativo() == ativo) return anterior;
         Long autor = usuario(tenant);
         int rows = jdbc.update("""
             UPDATE politicas_gerais_empresa

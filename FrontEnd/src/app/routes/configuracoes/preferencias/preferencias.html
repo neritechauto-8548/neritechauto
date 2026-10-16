@@ -175,8 +175,27 @@
 
   <section class="rounded-xl border border-slate-200 bg-white p-4 space-y-2" aria-labelledby="provedores">
     <h2 id="provedores" class="font-semibold text-lg">Integrações e funcionalidades</h2>
-    <p class="text-sm">Provedores gerenciados em ADM-011: <strong>Não configurada</strong>.</p>
-    <p class="text-sm text-slate-600">Credenciais e tokens não são cadastrados nem exibidos nesta tela. Nenhuma feature flag de funcionalidade incompleta pode ser ativada aqui.</p>
+    <p class="text-sm text-slate-600">Situação das integrações de comunicação da empresa autenticada. O cadastro e a validação permanecem nas áreas responsáveis.</p>
+    @if (integracoesLoading) { <p role="status" aria-live="polite">Consultando integrações...</p> }
+    @if (integracoesError) {
+      <div role="alert" class="text-rose-700">
+        {{ integracoesError }}
+        <button type="button" class="underline min-h-11" (click)="carregarIntegracoes()">Tentar novamente</button>
+      </div>
+    }
+    @if (!integracoesLoading && !integracoesError) {
+      @if (!integracoes.length) { <p role="status">Nenhum provedor disponível para consulta.</p> }
+      <ul class="divide-y divide-slate-100">
+        @for (integracao of integracoes; track integracao.canal) {
+          <li class="flex flex-wrap justify-between gap-2 py-3 text-sm">
+            <span class="font-medium">{{ integracao.canal }}</span>
+            <span>{{ integracao.estado === 'NAO_CONFIGURADA' ? 'Não configurada' :
+              integracao.estado === 'TESTADA' ? 'Cadastrada e testada' : 'Cadastrada, validação pendente' }}</span>
+          </li>
+        }
+      </ul>
+    }
+    <p class="text-sm text-slate-600">Credenciais e tokens não são cadastrados nem exibidos nesta tela. Cadastro ou teste não garantem disponibilidade operacional. Nenhuma feature flag de funcionalidade incompleta pode ser ativada aqui.</p>
     <p class="text-xs text-slate-600">Retenção é apenas uma política declarada; não executa exclusão automática de dados. Configurações de outras áreas não são alteradas.</p>
   </section>
 </main>

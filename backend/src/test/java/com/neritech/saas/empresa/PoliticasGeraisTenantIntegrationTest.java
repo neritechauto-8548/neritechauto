@@ -48,6 +48,16 @@ class PoliticasGeraisTenantIntegrationTest extends AbstractIntegrationTest {
         mvc.perform(get("/v1/politicas-gerais/locale").header("Authorization", "Bearer " + adminB))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.valorAplicado").value("pt-BR"));
+        // Reenvio sem mudança não altera versão e não cria mutação sem trilha.
+        mvc.perform(put("/v1/politicas-gerais/locale").header("Authorization", "Bearer " + adminA)
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("chave", "locale", "valor", "en-US"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.versao").value(0));
+        assertThat(jdbc.queryForObject("""
+            SELECT COUNT(*) FROM logs_alteracoes WHERE empresa_id=? AND contexto_operacao='ADM-011'
+            """, Long.class, a)).isEqualTo(1L);
         // Nova autenticação, sem cache do cliente, lê do banco, não de sessionStorage.
         String novaSessaoA = login(a, "polA2" + a + "@t.invalid", "ADMIN");
         mvc.perform(get("/v1/politicas-gerais/locale").header("Authorization", "Bearer " + novaSessaoA))
@@ -124,6 +134,33 @@ class PoliticasGeraisTenantIntegrationTest extends AbstractIntegrationTest {
         mvc.perform(get("/v1/politicas-gerais/avisosAtivos").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.valorAplicado").value("true"));
+    }
+
+    @Test
+    void integracoesRetornamApenasEstadoEIsolamEmpresas() throws Exception {
+        long a = empresa("INT-A"), b = empresa("INT-B");
+        String adminA = login(a, "intA" + a + "@t.invalid", "ADMIN");
+        String adminB = login(b, "intB" + b + "@t.invalid", "ADMIN");
+        mvc.perform(get("/v1/politicas-gerais/integracoes")
+                .header("Authorization", "Bearer " + adminA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].estado").value("NAO_CONFIGURADA"));
+        jdbc.update("""
+            INSERT INTO com_configuracoes_email
+              (empresa_id, provedor_servico, api_key, ativo, testado, data_cadastro, versao)
+            VALUES (?, 'SENDGRID', ?, true, false, CURRENT_TIMESTAMP, 0)
+            """, a, "credencial-nao-retornavel");
+        var response = mvc.perform(get("/v1/politicas-gerais/integracoes")
+                .header("Authorization", "Bearer " + adminA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].estado").value("CADASTRADA"))
+                .andReturn();
+        assertThat(response.getResponse().getContentAsString())
+                .doesNotContain("credencial-nao-retornavel");
+        mvc.perform(get("/v1/politicas-gerais/integracoes")
+                .header("Authorization", "Bearer " + adminB))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].estado").value("NAO_CONFIGURADA"));
     }
 
     private long empresa(String suffix) {
