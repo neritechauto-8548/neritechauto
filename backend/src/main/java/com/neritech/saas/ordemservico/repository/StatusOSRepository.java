@@ -13,7 +13,7 @@ public interface StatusOSRepository extends JpaRepository<StatusOS, Long> {
     Page<StatusOS> findByEmpresaIdAndAtivo(Long empresaId, Boolean ativo, Pageable pageable);
 
     Optional<StatusOS> findByEmpresaIdAndCodigo(Long empresaId, String codigo);
-    Optional<StatusOS> findByIdAndEmpresaId(Long id, Long empresaId);
+
 
     boolean existsByEmpresaIdAndCodigo(Long empresaId, String codigo);
 }
