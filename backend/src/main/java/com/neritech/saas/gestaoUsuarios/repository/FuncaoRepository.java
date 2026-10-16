@@ -20,7 +20,7 @@ public interface FuncaoRepository extends JpaRepository<Funcao, Long> {
     boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
 
     @org.springframework.data.jpa.repository.Query("select f from Funcao f where f.empresaId=:empresaId " +
-            "and (:q is null or lower(f.nome) like lower(concat('%',:q,'%')) or lower(f.descricao) like lower(concat('%',:q,'%'))) " +
+            "and (:q = '' or lower(f.nome) like lower(concat('%',:q,'%')) or lower(f.descricao) like lower(concat('%',:q,'%'))) " +
             "and (:ativo is null or f.ativo=:ativo)")
     Page<Funcao> search(@org.springframework.data.repository.query.Param("empresaId") Long empresaId,
             @org.springframework.data.repository.query.Param("q") String q,
