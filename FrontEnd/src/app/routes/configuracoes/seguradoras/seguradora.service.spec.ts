@@ -46,6 +46,14 @@ describe('ADM-009 — SeguradoraService', () => {
     expect(code).toBe(409);
   });
 
+  it('preserves 403 as forbidden without returning false success', () => {
+    let forbidden = 0;
+    service.obter(1000).subscribe({ error: err => forbidden = err.status });
+    const req = http.expectOne(`${base}/1000`);
+    req.flush({ message: 'Acesso negado' }, { status: 403, statusText: 'Forbidden' });
+    expect(forbidden).toBe(403);
+  });
+
   it('links only existing OS endpoint without fictional insurer APIs', () => {
     service.vincular(15, 90, 'CONVENIO').subscribe(v => expect(v.ordemServicoId).toBe(90));
     const req = http.expectOne(`${base}/15/os/90?tipo=CONVENIO`);
