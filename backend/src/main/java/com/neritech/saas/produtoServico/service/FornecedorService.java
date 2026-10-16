@@ -64,6 +64,12 @@ public class FornecedorService {
         return repository.search(empresaId, query, pageable).map(mapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public Page<FornecedorResponse> filter(Long empresaId, String termo, Boolean ativo, String cidade, Pageable pageable) {
+        TenantAccess.require(empresaId);
+        return repository.filter(empresaId, termo, ativo, cidade, pageable).map(mapper::toResponse);
+    }
+
     @Transactional
     public FornecedorResponse update(Long id, FornecedorRequest request) {
         return update(id, request, null);
