@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@org.springframework.test.context.jdbc.Sql(scripts = "/sql/adm009_010_test_schema.sql")
 @AutoConfigureMockMvc
 class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;
