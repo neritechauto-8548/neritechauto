@@ -108,6 +108,9 @@ public class Fornecedor extends TenantEntity {
     @Column(name = "transportadora", nullable = false)
     private Boolean transportadora = false;
 
+    @Column(name = "transportadora_ativa", nullable = false)
+    private Boolean transportadoraAtiva = false;
+
     @Column(name = "modalidade_transporte", length = 20)
     private String modalidadeTransporte;
 
@@ -350,6 +353,8 @@ public class Fornecedor extends TenantEntity {
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
     }
+    public Boolean getTransportadoraAtiva() { return transportadoraAtiva; }
+    public void setTransportadoraAtiva(Boolean ativo) { this.transportadoraAtiva = ativo; }
     public Boolean getTransportadora() { return transportadora; }
     public void setTransportadora(Boolean transportadora) { this.transportadora = transportadora; }
     public String getModalidadeTransporte() { return modalidadeTransporte; }
