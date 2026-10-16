@@ -125,9 +125,19 @@ public class FornecedorService {
         return value.replaceAll("[^a-zA-Z0-9]", "").toUpperCase(Locale.ROOT);
     }
 
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
     private void validar(FornecedorRequest r, Long tenant, Long editingId) {
         if (r.tipoPessoa() == null) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Informe o tipo de pessoa");
+        }
+        // Dados bancários pertencem ao Financeiro e jamais ao cadastro geral.
+        if (hasText(r.bancoNome()) || hasText(r.bancoAgencia())
+                || hasText(r.bancoConta()) || hasText(r.bancoPix())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Dados bancários devem ser configurados no módulo Financeiro");
         }
         String cpf = documento(r.cpf());
         String cnpj = documento(r.cnpj());
