@@ -126,10 +126,20 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
                 String.class, purchase)).isEqualTo("NF-PRESERVADA");
         assertThat(jdbc.queryForObject("SELECT transportadora_id FROM pedidos_fornecedor WHERE id=?",
                 Long.class, purchase)).isEqualTo(carrier);
-        mvc.perform(put("/v1/transportadoras/{id}/pedidos/{pedido}", carrier, otherPurchase)
+        // Um novo pedido da empresa A rejeita transportadora inativa.
+        long novoPedido = jdbc.queryForObject("""
+            INSERT INTO pedidos_fornecedor (empresa_id, fornecedor_id, numero_pedido, responsavel,
+                status, data_cadastro) VALUES (?, ?, 752, 'Comprador', 'PENDENTE', now()) RETURNING id
+            """, Long.class, a, sourceSupplier);
+        mvc.perform(put("/v1/transportadoras/{id}/pedidos/{pedido}", carrier, novoPedido)
                 .header("Authorization", "Bearer " + tokenA)
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isConflict());
+        // IDs de outra empresa são proibidos mesmo após inativação (tenant precede status).
+        mvc.perform(put("/v1/transportadoras/{id}/pedidos/{pedido}", carrier, otherPurchase)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
         mvc.perform(get("/v1/transportadoras/{id}/historico", carrier)
                 .header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk())
