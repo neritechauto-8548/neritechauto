@@ -12,8 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
 @RequestMapping("/v1/rh/cargos")
 @RequiredArgsConstructor
 @Tag(name = "Cargos", description = "GestÃ£o de cargos")
@@ -22,14 +24,23 @@ public class CargoController {
 
     @GetMapping
     @Operation(summary = "Listar cargos")
-    public ResponseEntity<Page<CargoResponse>> findAll(@RequestParam Long empresaId, Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+    public ResponseEntity<Page<CargoResponse>> findAll(@RequestParam Long empresaId,
+            @RequestParam(required = false) String q, @RequestParam(required = false) Boolean ativo,
+            @RequestParam(required = false) Long areaId, Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(empresaId, q, ativo, areaId, pageable));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar cargo por ID")
     public ResponseEntity<CargoResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    @GetMapping("/{id}/historico")
+    public ResponseEntity<Page<com.neritech.saas.rh.dto.CargoAlteracaoResponse>> history(
+            @PathVariable Long id, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(service.history(id, page, size));
     }
 
     @PostMapping
@@ -45,7 +56,7 @@ public class CargoController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir cargo")
+    @Operation(summary = "Inativar cargo")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

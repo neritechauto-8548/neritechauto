@@ -1,6 +1,7 @@
 package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @Override
     protected void doFilterInternal(
@@ -35,7 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            try {
+                filterChain.doFilter(request, response);
+            } finally {
+                // Fluxos públicos (inclusive login/refresh) também podem definir
+                // TenantContext no serviço; nunca reutilizar esse valor na thread.
+                TenantContext.clear();
+            }
             return;
         }
 
@@ -45,16 +53,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Extract email and tenant from token
             userEmail = jwtService.extractUsername(jwt);
             
-            // Extract Tenant ID from claims and set context
+            // O claim da empresa só pode entrar no contexto após validar JWT,
+            // sessão ativa e pertencimento real do usuário ao tenant.
             Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
-            if (empresaId != null) {
-                TenantContext.setCurrentTenant(empresaId);
-            }
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userEmail != null && empresaId != null && empresaId > 0
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                boolean validTenantSession = jwtService.isTokenValid(jwt, userDetails)
+                        && sessaoUsuarioRepository.findByTokenSessao(jwt)
+                            .filter(sessao -> Boolean.TRUE.equals(sessao.getAtivo())
+                                    && empresaId.equals(sessao.getEmpresaId())
+                                    && sessao.getUsuario() != null
+                                    && empresaId.equals(sessao.getUsuario().getEmpresaId())
+                                    && userEmail.equalsIgnoreCase(sessao.getUsuario().getEmail()))
+                            .isPresent();
+                if (validTenantSession) {
+                    TenantContext.setCurrentTenant(empresaId);
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,

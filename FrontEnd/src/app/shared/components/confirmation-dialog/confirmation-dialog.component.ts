@@ -1,19 +1,22 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { ConfirmationService, ConfirmationConfig } from '../../services/confirmation.service';
 import { Subscription } from 'rxjs';
+import { NeriTechIcon, NeriTechIconName } from '../neritech-icon/neritech-icon';
 
 @Component({
   selector: 'app-confirmation-dialog',
   standalone: true,
-  imports: [CommonModule, DialogModule, MatIconModule],
+  imports: [CommonModule, DialogModule, NeriTechIcon],
   template: `
     <p-dialog
       [(visible)]="visible"
       [modal]="true"
-      [closable]="false"
+      [closable]="true"
+      [closeOnEscape]="true"
+      [header]="config?.title || 'Confirmação'"
+      (onHide)="onDialogHide()"
       [draggable]="false"
       [resizable]="false"
       styleClass="!p-0 !border-0 !shadow-2xl !rounded-lg !max-w-sm"
@@ -32,36 +35,37 @@ import { Subscription } from 'rxjs';
                 'bg-blue-100': config?.type === 'info' || !config?.type
               }"
             >
-              <mat-icon
+              <nt-icon
+                [name]="getIconName()"
+                [size]="18"
                 class="!text-[18px] !w-[18px] !h-[18px]"
                 [ngClass]="{
                   'text-rose-600': config?.type === 'danger',
                   'text-amber-600': config?.type === 'warning',
                   'text-blue-600': config?.type === 'info' || !config?.type
                 }"
-              >
-                {{ config?.icon || getDefaultIcon() }}
-              </mat-icon>
+              />
             </div>
-            <h3 class="text-base font-semibold text-slate-900">{{ config?.title }}</h3>
           </div>
-          <p class="text-sm text-slate-600 leading-relaxed" [innerHTML]="config?.message"></p>
+          <p class="text-sm text-slate-600 leading-relaxed">{{ config?.message }}</p>
         </div>
 
         <!-- Actions -->
         <div class="bg-slate-50 px-5 py-3 flex gap-2 justify-end border-t border-slate-100">
           <button
+            type="button"
             (click)="onCancel()"
-            class="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+            class="min-h-11 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors"
           >
             {{ config?.cancelText || 'Cancelar' }}
           </button>
           <button
+            type="button"
             (click)="onConfirm()"
-            class="px-3 py-1.5 text-sm font-medium text-white rounded-md transition-colors shadow-sm"
+            class="min-h-11 px-4 py-2 text-sm font-medium text-white rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors shadow-sm"
             [ngClass]="{
               'bg-rose-600 hover:bg-rose-700': config?.type === 'danger',
-              'bg-amber-600 hover:bg-amber-700': config?.type === 'warning',
+              'bg-amber-700 hover:bg-amber-800': config?.type === 'warning',
               'bg-blue-600 hover:bg-blue-700': config?.type === 'info' || !config?.type
             }"
           >
@@ -100,12 +104,14 @@ export class ConfirmationDialogComponent implements OnInit, OnDestroy {
     this.confirmationService.sendResult(false);
   }
 
-  getDefaultIcon(): string {
-    switch (this.config?.type) {
-      case 'danger': return 'warning';
-      case 'warning': return 'error_outline';
-      case 'info': return 'info';
-      default: return 'help_outline';
-    }
+  // Escape or the close button must never leave a decision unresolved.
+  onDialogHide() {
+    this.visible = false;
+    this.confirmationService.sendResult(false);
+  }
+
+  getIconName(): NeriTechIconName {
+    if (this.config?.icon === 'delete' || this.config?.icon === 'warning') return 'alert-circle';
+    return this.config?.type === 'danger' || this.config?.type === 'warning' ? 'alert-circle' : 'info-circle';
   }
 }

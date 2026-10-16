@@ -1,0 +1,44 @@
+/* Conta: conteúdo fluido, mesma densidade e hierarquia visual do Home. */
+:host{display:block;min-width:0}
+.nt-account-shell{width:100%;min-width:0;max-width:1240px;margin:0 auto;padding:12px 0 36px}
+.nt-account-heading{margin-bottom:24px}
+.nt-account-heading h1{margin:0;color:#0f172a;font-size:26px;line-height:34px;font-weight:700;letter-spacing:-.025em}
+.nt-account-heading p{margin:5px 0 0;color:#64748b;font-size:13px;line-height:20px}
+.nt-account-grid,.nt-account-main,.nt-account-aside{min-width:0}
+.nt-account-grid>div,.nt-account-main>div{min-width:0}
+.nt-account-shell .nt-account-main>div{box-shadow:none!important}
+.nt-account-shell input:not([type="file"]){min-width:0;max-width:100%;font-size:14px}
+.nt-account-shell input:focus-visible,.nt-account-photo-button:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.nt-account-photo-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;min-width:0}
+.nt-account-avatar{display:block;flex:0 0 72px;width:72px;height:72px;object-fit:cover;object-position:center;border-radius:50%;border:2px solid white;background:#eff6ff;box-shadow:0 0 0 1px #cbd5e1}
+.nt-account-photo-content{min-width:0;flex:1 1 220px}
+.nt-account-photo-button{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;color:#1d4ed8;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.nt-account-photo-button:hover:not(:disabled){border-color:#93c5fd;background:#dbeafe}
+.nt-account-photo-button:disabled{opacity:.6;cursor:not-allowed}
+.nt-account-photo-hint{margin:8px 0 0;max-width:420px;color:#64748b;font-size:12px;line-height:19px}
+.nt-account-appearance{position:relative;top:auto;box-shadow:none!important}
+.nt-account-shell .p-password,.nt-account-shell .p-password input{width:100%;max-width:100%}
+.nt-account-shell .mat-mdc-radio-button{margin:2px 0}
+@media(min-width:1280px){
+ .nt-account-aside{align-self:start}
+ .nt-account-appearance{position:sticky;top:80px}
+}
+@media(max-width:1279px){
+ .nt-account-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:767px){
+ .nt-account-shell{padding:4px 0 24px}
+ .nt-account-heading{margin-bottom:18px}
+ .nt-account-heading h1{font-size:23px;line-height:30px}
+ .nt-account-grid{gap:16px}
+ .nt-account-shell .nt-account-main>div,.nt-account-appearance{padding:18px!important}
+ .nt-account-photo-row{gap:14px}
+ .nt-account-avatar{width:64px;height:64px;flex-basis:64px}
+ .nt-account-shell form>.grid{gap:16px}
+}
+@media(max-width:399px){
+ .nt-account-shell .nt-account-main>div,.nt-account-appearance{padding:14px!important}
+ .nt-account-photo-content{flex-basis:100%}
+ .nt-account-shell button.p-button{width:100%;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){.nt-account-photo-button{transition:none}}

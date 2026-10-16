@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -23,8 +24,9 @@ import { TooltipModule } from 'primeng/tooltip';
 import { AccordionModule } from 'primeng/accordion';
 import { FieldsetModule } from 'primeng/fieldset';
 import { EmpresaService } from './services/empresa.service';
+import { SettingsService } from '@core/bootstrap/settings.service';
 import {
-  Empresa, EnderecoEmpresa, ConfiguracaoEmpresa,
+  Empresa, EmpresaAlteracao, EnderecoEmpresa, ConfiguracaoEmpresa,
   ConfiguracaoFiscal, ConfiguracaoOficina,
   ConfiguracaoEmail, ConfiguracaoWhatsapp, ConfiguracaoSms
 } from './models/empresa.models';
@@ -32,7 +34,7 @@ import { LocalStorageService } from '@shared/services/storage.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
 import { ConfirmationService } from '@shared/services/confirmation.service';
-import { catchError, finalize, forkJoin, of } from 'rxjs';
+import { catchError, finalize, forkJoin, of, tap, throwError } from 'rxjs';
 
 @Component({
   selector: 'empresa-config',
@@ -41,6 +43,7 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
   styleUrl: './empresa.scss',
   imports: [
     FormsModule,
+    DatePipe,
     ToastModule,
     InputMaskModule,
     InputTextModule,
@@ -65,16 +68,26 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
   ],
   providers: [MessageService]
 })
-export class EmpresaConfig implements OnInit {
+export class EmpresaConfig implements OnInit, OnDestroy {
   private service             = inject(EmpresaService);
+  private settings            = inject(SettingsService);
   private toast               = inject(MessageService);
   private storage             = inject(LocalStorageService);
   private utilService         = inject(UtilService);
   private confirmationService = inject(ConfirmationService);
 
   loading   = false;
+  empresaCarregada = false;
+  emailConfigWritable = false;
+  erroCarregamento = '';
   empresaId = this.getTenantId();
   activeTab = 'dados';
+  historico: EmpresaAlteracao[] = [];
+  historicoLoading = false;
+  historicoError = '';
+  historicoPage = 0;
+  historicoSize = 20;
+  historicoTotal = 0;
 
   // ── Models ──────────────────────────────────────────────────────
   empresa: Empresa = { nomeFantasia: '', razaoSocial: '', cnpj: '' };
@@ -104,7 +117,7 @@ export class EmpresaConfig implements OnInit {
     margemLucroPadrao: 30, diasGarantiaPadrao: 90,
     tempoAgendamentoPadrao: 60, antecedenciaMinimaAgendamento: 24,
     tempoLembreteHoras: 24, timezone: 'America/Sao_Paulo',
-    moeda: 'BRL', formatoData: 'dd/MM/yyyy', formatoHora: 'HH:mm',
+    moeda: 'BRL', formatoData: 'dd/MM/yyyy', formatoHora: 'HH:mm', corTema: 'light',
     mostrarLogoCupom: false,
     mostrarAssinaturaOs: 'FUNCIONARIO',
     termoGarantiaPadrao: '',
@@ -124,6 +137,8 @@ export class EmpresaConfig implements OnInit {
   emailTeste    = '';
   testingEmail  = false;
   uploadingLogo = false;
+  logoPreviewUrl = '';
+  private logoObjectUrl: string | null = null;
 
   configWhatsapp: ConfiguracaoWhatsapp = {
     empresaId: this.empresaId, numeroWhatsapp: '',
@@ -136,11 +151,11 @@ export class EmpresaConfig implements OnInit {
   };
 
   // ── Options ─────────────────────────────────────────────────────
-  tiposEndereco        = ['MATRIZ','FILIAL','DEPOSITO','ADMINISTRATIVO'];
+  tiposEndereco        = ['MATRIZ','DEPOSITO','ADMINISTRATIVO'];
   estadosBr            = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
   regimesTributarios   = ['SIMPLES_NACIONAL','LUCRO_PRESUMIDO','LUCRO_REAL'];
   portesEmpresa        = ['MEI','ME','EPP','MEDIO','GRANDE'];
-  tiposEstabelecimento = ['MATRIZ','FILIAL'];
+  tiposEstabelecimento = ['MATRIZ'];
   situacoesCadastrais  = ['ATIVA','SUSPENSA','INAPTA','BAIXADA','NULA'];
   anexosSimples        = ['I','II','III','IV','V'];
   ambientesNfe         = ['HOMOLOGACAO','PRODUCAO'];
@@ -157,13 +172,16 @@ export class EmpresaConfig implements OnInit {
 
   // ── Lifecycle ───────────────────────────────────────────────────
   ngOnInit(): void {
-    const stored = this.storage.get('tenantId');
-    this.empresaId = stored ? Number(stored) : 1;
+    this.empresaId = this.getTenantId();
     this.configFiscal.empresaId = this.configOficina.empresaId =
       this.configEmail.empresaId = this.configWhatsapp.empresaId =
       this.configSms.empresaId   = this.configEmpresa.empresaId =
       this.endereco.empresaId    = this.empresaId;
-    this.loadData();
+    if (this.empresaId > 0) {
+      this.loadData();
+    } else {
+      this.toast.add({ severity: 'error', summary: 'Empresa não identificada', detail: 'Entre novamente para carregar as configurações da empresa.' });
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────
@@ -179,37 +197,97 @@ export class EmpresaConfig implements OnInit {
       let id = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
       if (id && typeof id === 'object') id = id.id || id.tenantId || id.empresaId || null;
       const n = Number(id);
-      return isNaN(n) || n === 0 ? 1 : n;
-    } catch { return 1; }
+      return Number.isSafeInteger(n) && n > 0 ? n : 0;
+    } catch { return 0; }
   }
 
   // ── Data ────────────────────────────────────────────────────────
   loadData(): void {
+    if (!this.empresaId) {
+      this.toast.add({ severity: 'error', summary: 'Acesso indisponível', detail: 'Não foi possível identificar a empresa autenticada.' });
+      return;
+    }
     this.loading = true;
+    this.empresaCarregada = false;
+    this.emailConfigWritable = false;
+    this.erroCarregamento = '';
     forkJoin({
-      empresa:   this.service.getEmpresa(this.empresaId)         .pipe(catchError(() => of(null))),
-      enderecos: this.service.getEnderecos(this.empresaId)        .pipe(catchError(() => of(null))),
-      configEmp: this.service.getConfigEmpresa(this.empresaId)    .pipe(catchError(() => of(null))),
-      fiscal:    this.service.getConfigFiscal(this.empresaId)     .pipe(catchError(() => of(null))),
-      oficina:   this.service.getConfigOficina(this.empresaId)    .pipe(catchError(() => of(null))),
-      email:     this.service.getConfigEmail(this.empresaId)      .pipe(catchError(() => of(null))),
+      empresa:   this.service.getEmpresa(this.empresaId),
+      enderecos: this.service.getEnderecos(this.empresaId)        .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      configEmp: this.service.getConfigEmpresa(this.empresaId)    .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      fiscal:    this.service.getConfigFiscal(this.empresaId)     .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      oficina:   this.service.getConfigOficina(this.empresaId)    .pipe(catchError(error => error.status === 404 ? of(null) : throwError(() => error))),
+      email:     this.service.getConfigEmail(this.empresaId).pipe(
+        tap(() => this.emailConfigWritable = true),
+        catchError(error => {
+          // Ausência de configuração (404) permite criação; falhas de rede/permissão não.
+          this.emailConfigWritable = error.status === 404;
+          return of(null);
+        })
+      ),
       whatsapp:  this.service.getConfigWhatsapp(this.empresaId)   .pipe(catchError(() => of(null))),
       sms:       this.service.getConfigSms(this.empresaId)        .pipe(catchError(() => of(null))),
     }).pipe(finalize(() => this.loading = false))
-      .subscribe(({ empresa, enderecos, configEmp, fiscal, oficina, email, whatsapp, sms }) => {
+      .subscribe({
+        next: ({ empresa, enderecos, configEmp, fiscal, oficina, email, whatsapp, sms }) => {
+        if (!empresa?.id || empresa.id !== this.empresaId) {
+          this.erroCarregamento = 'Não foi possível carregar os dados da empresa autenticada. Tente novamente.';
+          this.toast.add({ severity: 'error', summary: 'Erro ao carregar empresa', detail: this.erroCarregamento });
+          return;
+        }
+        this.empresaCarregada = true;
         if (empresa) {
           const clean = (empresa.cnpj || '').replace(/[^a-zA-Z0-9]/g, '');
           this.tipoPessoa = clean.length > 11 ? 'Jurídica' : 'Física';
           this.empresa = empresa;
+          this.carregarLogo();
         }
         if (this.pick(enderecos))   this.endereco      = { ...this.endereco,      ...this.pick<EnderecoEmpresa>(enderecos) };
         if (this.pick(configEmp))   this.configEmpresa = { ...this.configEmpresa,  ...this.pick<ConfiguracaoEmpresa>(configEmp) };
         if (this.pick(fiscal))      this.configFiscal  = { ...this.configFiscal,   ...this.pick<ConfiguracaoFiscal>(fiscal) };
-        if (this.pick(oficina))     this.configOficina = { ...this.configOficina,  ...this.pick<ConfiguracaoOficina>(oficina) };
+        if (this.pick(oficina)) {
+          this.configOficina = { ...this.configOficina, ...this.pick<ConfiguracaoOficina>(oficina) };
+          if (this.configOficina.corTema) this.settings.setTheme(this.configOficina.corTema);
+        }
         if (this.pick<ConfiguracaoEmail>(email))       this.configEmail    = { ...this.configEmail,    ...this.pick<ConfiguracaoEmail>(email) };
         if (this.pick<ConfiguracaoWhatsapp>(whatsapp)) this.configWhatsapp = { ...this.configWhatsapp, ...this.pick<ConfiguracaoWhatsapp>(whatsapp) };
         if (this.pick<ConfiguracaoSms>(sms))           this.configSms      = { ...this.configSms,      ...this.pick<ConfiguracaoSms>(sms) };
         this.endereco.empresaId = this.empresaId;
+      },
+      error: (error: any) => {
+        this.empresaCarregada = false;
+        this.erroCarregamento = error?.status === 403
+          ? 'Sem permissão para carregar as configurações desta empresa.'
+          : error?.status === 401
+            ? 'Sessão expirada. Entre novamente para continuar.'
+            : error?.status === 0
+              ? 'Sem conexão com o servidor. Confira sua rede e tente novamente.'
+              : 'Não foi possível carregar todas as configurações da empresa. Nenhuma alteração foi enviada.';
+        this.toast.add({ severity: 'error', summary: 'Falha ao carregar empresa', detail: this.erroCarregamento });
+      }
+    });
+  }
+
+  carregarHistorico(page = 0): void {
+    if (!this.empresaCarregada || this.historicoLoading || !this.empresaId) return;
+    this.historicoLoading = true;
+    this.historicoError = '';
+    this.service.getHistorico(this.empresaId, page, this.historicoSize)
+      .pipe(finalize(() => this.historicoLoading = false))
+      .subscribe({
+        next: result => {
+          this.historicoPage = page;
+          this.historico = result.content || [];
+          this.historicoTotal = result.totalElements ?? 0;
+        },
+        error: (err: any) => {
+          this.historico = [];
+          this.historicoError = err?.status === 403
+            ? 'Você não tem permissão para consultar o histórico desta empresa.'
+            : err?.status === 0
+              ? 'Sem conexão. Verifique sua rede e tente novamente.'
+              : 'Não foi possível consultar o histórico. Tente novamente.';
+        }
       });
   }
 
@@ -619,6 +697,19 @@ export class EmpresaConfig implements OnInit {
 
   // ── Salvar ──────────────────────────────────────────────────────
   salvar(): void {
+    if (this.loading) return;
+    if (this.activeTab === 'email' && !this.emailConfigWritable) {
+      this.toast.add({ severity: 'error', summary: 'E-mail indisponível', detail: 'Recarregue a configuração de e-mail antes de salvar.' });
+      return;
+    }
+    if (!this.empresaCarregada || this.erroCarregamento) {
+      this.toast.add({ severity: 'error', summary: 'Empresa não carregada', detail: 'Recarregue os dados da empresa antes de salvar alterações.' });
+      return;
+    }
+    if (!this.empresaId) {
+      this.toast.add({ severity: 'error', summary: 'Acesso indisponível', detail: 'Não foi possível identificar a empresa autenticada.' });
+      return;
+    }
     // Executa todas as validações de frontend antes de chamar a API
     if (!this.validarFormulario()) return;
 
@@ -645,7 +736,7 @@ export class EmpresaConfig implements OnInit {
     };
     reqs['oficina'] = this.service.saveConfigOficina(oficinaPayload);
 
-    if (this.configEmail?.ativo) {
+    if (this.configEmail?.ativo && this.emailConfigWritable) {
       if (!this.configEmail.usuarioSmtp) this.configEmail.usuarioSmtp = this.configEmail.remetenteEmail;
       reqs['email'] = this.service.saveConfigEmail(this.configEmail);
     }
@@ -653,10 +744,15 @@ export class EmpresaConfig implements OnInit {
     forkJoin(reqs).pipe(finalize(() => this.loading = false)).subscribe({
       next: (res: any) => {
         this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Configurações salvas com sucesso!' });
+        if (res.empresa)   this.empresa       = { ...this.empresa, ...res.empresa };
+        if (this.activeTab === 'historico') this.carregarHistorico();
         if (res.endereco)  this.endereco      = res.endereco;
         if (res.configEmp) this.configEmpresa = res.configEmp;
         if (res.fiscal)    this.configFiscal  = res.fiscal;
-        if (res.oficina)   this.configOficina = res.oficina;
+        if (res.oficina) {
+          this.configOficina = res.oficina;
+          if (res.oficina.corTema) this.settings.setTheme(res.oficina.corTema);
+        }
         if (res.email)     this.configEmail   = res.email;
       },
       error: (err: any) => {
@@ -680,6 +776,10 @@ export class EmpresaConfig implements OnInit {
   }
 
   testarEmail(): void {
+    if (!this.emailConfigWritable) {
+      this.toast.add({ severity: 'error', summary: 'E-mail indisponível', detail: 'Recarregue a configuração de e-mail antes de testar.' });
+      return;
+    }
     if (!this.emailTeste?.trim()) {
       this.toast.add({ severity: 'warn', summary: 'Atenção', detail: 'Informe o e-mail de destino para o teste.' });
       return;
@@ -709,10 +809,30 @@ export class EmpresaConfig implements OnInit {
   }
 
   getLogoUrl(): string {
-    if (this.empresa.logoPath) {
-      return `/api/v1/empresas/${this.empresaId}/logo?tenantId=${this.empresaId}&t=${new Date().getTime()}`;
-    }
-    return '';
+    return this.logoPreviewUrl;
+  }
+
+  private carregarLogo(): void {
+    if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
+    this.logoObjectUrl = null;
+    this.logoPreviewUrl = '';
+    if (!this.empresa.logoPath || !this.empresaId) return;
+    this.service.getLogo(this.empresaId).subscribe({
+      next: blob => {
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(blob.type)) return;
+        if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
+        this.logoObjectUrl = URL.createObjectURL(blob);
+        this.logoPreviewUrl = this.logoObjectUrl;
+      },
+      error: () => {
+        // Cadastro permanece utilizável se a imagem estiver indisponível.
+        this.logoPreviewUrl = '';
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
   }
 
   onLogoSelected(event: any): void {
@@ -738,6 +858,7 @@ export class EmpresaConfig implements OnInit {
       .subscribe({
         next: (res) => {
           this.empresa.logoPath = res.logoPath;
+          this.carregarLogo();
           this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Logomarca atualizada com sucesso!' });
         },
         error: (err) => {
@@ -754,17 +875,22 @@ export class EmpresaConfig implements OnInit {
       cancelText: 'Não, manter',
       type: 'danger', icon: 'danger'
     }).subscribe(ok => {
-      if (ok) {
-        this.empresa.logoPath = '';
-        this.service.updateEmpresa(this.empresaId, this.empresa).subscribe({
+      if (!ok || this.uploadingLogo) return;
+      this.uploadingLogo = true;
+      this.service.removeLogo(this.empresaId)
+        .pipe(finalize(() => this.uploadingLogo = false))
+        .subscribe({
           next: () => {
+            this.empresa.logoPath = '';
+            if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
+            this.logoObjectUrl = null;
+            this.logoPreviewUrl = '';
             this.toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Logomarca removida com sucesso!' });
           },
-          error: () => {
-            this.toast.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao remover logomarca.' });
-          }
+          error: () => this.toast.add({
+            severity: 'error', summary: 'Erro', detail: 'Não foi possível remover a logomarca.'
+          })
         });
-      }
     });
   }
 }

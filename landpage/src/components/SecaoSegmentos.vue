@@ -2,9 +2,9 @@
   <section id="segmentos" class="segments">
     <div class="container">
       <div class="seg-header aos-init">
-        <span class="section-label">Gestão completa</span>
-        <h2 class="seg-title">Gestão completa da sua oficina, do pátio ao financeiro</h2>
-        <p class="seg-subtitle">Não importa se você tem 1 baia ou 50 — a NeriTech Auto se adapta ao seu fluxo e escala com o crescimento do seu negócio.</p>
+        <span class="section-label">Para cada tipo de oficina</span>
+        <h2 class="seg-title">Escolha o perfil. A plataforma se adapta.</h2>
+        <p class="seg-subtitle">Mecânica, centro automotivo ou funilaria — o mesmo sistema cobre workflow, estoque, financeiro e comunicação com o cliente.</p>
       </div>
 
       <!-- Tabs -->
@@ -16,7 +16,7 @@
           :class="{ active: activeTab === i }"
           @click="activeTab = i"
         >
-          <span class="seg-tab-icon">{{ seg.icon }}</span>
+          <span class="seg-tab-icon"><StripeIcon :name="seg.icon" :size="18" /></span>
           <span class="seg-tab-label">{{ seg.title }}</span>
         </button>
       </div>
@@ -74,68 +74,69 @@
 
 <script setup>
 import { ref } from 'vue';
+import StripeIcon from './StripeIcon.vue';
 
 const activeTab = ref(0);
 
 const segments = [
   {
     id: 'oficinas',
-    icon: '🔧',
-    title: 'Oficinas Mecânicas',
+    icon: 'wrench',
+    title: 'Oficinas mecânicas',
     route: 'oficina',
-    description: 'Gerencie ordens de serviço, controle a produtividade dos mecânicos e acompanhe o fluxo de pátio em tempo real. Da entrada do veículo à entrega, tudo digitalizado.',
+    description: 'Gerencie o fluxo do veículo da entrada à entrega: OS, checklist com fotos, aprovação de orçamento e histórico por placa — em tempo real.',
     benefits: [
-      'OS digital com checklist fotográfico',
-      'Controle de produtividade por técnico',
-      'Aprovação de orçamento via WhatsApp',
-      'Histórico completo por placa',
+      'Workflow do pátio com status por baia',
+      'Checklist digital com fotos e vídeos',
+      'Orçamento aprovado via WhatsApp ou link',
+      'Histórico completo por placa e cliente',
     ],
-    screenTitle: 'Dashboard — Oficina Central',
-    menuItems: ['Dashboard', 'Ordens de Serviço', 'Clientes', 'Financeiro', 'Estoque'],
+    screenTitle: 'Workflow — Oficina',
+    menuItems: ['Pátio', 'Ordens', 'Clientes', 'Financeiro', 'Estoque'],
     stats: [
-      { value: 'Ativo', label: 'Controle de OS' },
-      { value: 'WhatsApp', label: 'Envio de Alertas' },
-      { value: 'Histórico', label: 'Busca por Placa' },
+      { value: 'Kanban', label: 'Fluxo de OS' },
+      { value: 'WhatsApp', label: 'Aprovações' },
+      { value: 'Placa', label: 'Histórico' },
     ]
   },
   {
     id: 'centros',
-    icon: '🏢',
-    title: 'Centros Automotivos',
+    icon: 'building',
+    title: 'Centros automotivos',
     route: 'centro-automotivo',
-    description: 'Para operações maiores que precisam de controle rigoroso de estoque, múltiplas baias e acompanhamento de contas a pagar/receber. Visão unificada do seu negócio.',
+    description: 'Operações maiores: múltiplas baias, estoque rigoroso, contas a pagar/receber e emissão fiscal — visão unificada do negócio.',
     benefits: [
-      'Backup automático e seguro na nuvem',
-      'Gestão avançada de estoque de autopeças',
-      'Fluxo de caixa operacional integrado',
-      'Emissão de NF-e e NFS-e integrada',
+      'Estoque com baixa automática na OS',
+      'Fluxo de caixa e DRE operacional',
+      'NF-e e NFS-e integradas',
+      'Relatórios gerenciais em tempo real',
     ],
     screenTitle: 'Dashboard — Centro Automotivo',
     menuItems: ['Dashboard', 'Veículos', 'Estoque', 'NF-e', 'Relatórios'],
     stats: [
-      { value: 'Multi-Baia', label: 'Distribuição OS' },
-      { value: 'Estoque ABC', label: 'Reposição Peças' },
-      { value: 'Fiscal', label: 'Faturamento NF-e' },
+      { value: 'Multi-baia', label: 'Produção' },
+      { value: 'Estoque', label: 'Reposição' },
+      { value: 'Fiscal', label: 'NF-e / NFS-e' },
     ]
   },
   {
     id: 'funilaria',
-    icon: '🎨',
-    title: 'Funilaria e Pintura',
+    icon: 'paint',
+    title: 'Funilaria e pintura',
     route: 'funilaria',
-    description: 'Controle todo o fluxo de reparo e pintura com registro fotográfico detalhado das avarias. Do orçamento à entrega, com rastreabilidade total.',
+    description: 'Controle o reparo com registro fotográfico de avarias, orçamento por etapa e rastreabilidade da entrada à entrega.',
     benefits: [
-      'Registro de avarias com fotos antes/depois',
-      'Orçamentos detalhados por etapa',
-      'Comunicação direta com clientes e terceiros',
-      'Controle de materiais e tintas',
+      'Fotos antes/depois na OS',
+      'Orçamento detalhado por etapa',
+      'Comunicação clara com o cliente',
+      'Controle de materiais e insumos',
     ],
-    screenTitle: 'Dashboard — Funilaria Express',
-    menuItems: ['Dashboard', 'Reparos', 'Fotos', 'Seguros', 'Materiais'],
+    screenTitle: 'Dashboard — Funilaria',
+    menuItems: ['Dashboard', 'Reparos', 'Fotos', 'Clientes', 'Materiais'],
     stats: [
-      { value: 'Checklist', label: 'Vistoria Fotos' },
-      { value: 'Avarias', label: 'Mapeamento Lataria' },
-      { value: 'Garantia', label: 'Registro Placa' },
+      { value: 'Checklist', label: 'Vistoria' },
+      { value: 'Avarias', label: 'Mapeamento' },
+      { value: 'Garantia', label: 'Registro' },
     ]
   },
 ];
@@ -170,13 +171,15 @@ const segments = [
 }
 
 .seg-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
+  font-size: clamp(2.125rem, 4vw, 3.125rem);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
   margin-bottom: 1rem;
 }
 
 .seg-subtitle {
-  font-size: 1.125rem;
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
   color: var(--text-muted);
   line-height: 1.65;
 }
@@ -219,7 +222,9 @@ const segments = [
 }
 
 .seg-tab-icon {
-  font-size: 1.125rem;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
 }
 
 /* ── Panel ── */
@@ -232,8 +237,10 @@ const segments = [
 
 .seg-panel-text h3 {
   font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
   margin-bottom: 1rem;
 }
 
@@ -367,7 +374,7 @@ const segments = [
 
 .smb-header {
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--midnight-navy);
   margin-bottom: 16px;
 }
@@ -392,9 +399,10 @@ const segments = [
 .smb-stat-value {
   font-family: var(--font-heading);
   font-size: 1.375rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   letter-spacing: -0.03em;
+  font-feature-settings: "tnum" 1;
 }
 
 .smb-stat-label {

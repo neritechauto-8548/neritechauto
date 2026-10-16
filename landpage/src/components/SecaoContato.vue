@@ -117,14 +117,16 @@ const openChat = (e) => {
 
 /* ── Info ── */
 .contact-title {
-  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-  font-weight: 800;
-  margin-bottom: 0.75rem;
-  line-height: 1.2;
+  font-size: clamp(2.125rem, 4vw, 3rem);
+  font-weight: 300;
+  color: var(--midnight-navy);
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  margin-bottom: 0.875rem;
 }
 
 .contact-subtitle {
-  font-size: 1.0625rem;
+  font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
   color: var(--text-muted);
   line-height: 1.65;
   margin-bottom: 2rem;

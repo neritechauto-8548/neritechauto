@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 import { ProfileLayout } from './layout/layout';
 import { ProfileOverview } from './overview/overview';
-import { ProfileSettings } from './settings/settings';
 
 export const routes: Routes = [
   {
@@ -11,7 +10,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: ProfileOverview },
-      { path: 'settings', component: ProfileSettings },
+      { path: 'settings', redirectTo: 'overview', pathMatch: 'full' },
     ],
   },
 ];

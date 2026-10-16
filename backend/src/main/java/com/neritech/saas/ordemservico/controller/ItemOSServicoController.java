@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -23,24 +24,28 @@ public class ItemOSServicoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EDITAR')")
     @Operation(summary = "Criar novo item de serviÃ§o")
     public ResponseEntity<ItemOSServicoResponse> create(@Valid @RequestBody ItemOSServicoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Buscar item por ID")
     public ResponseEntity<ItemOSServicoResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping("/ordem-servico/{ordemServicoId}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Listar itens por ordem de serviÃ§o")
     public ResponseEntity<List<ItemOSServicoResponse>> findByOrdemServicoId(@PathVariable Long ordemServicoId) {
         return ResponseEntity.ok(service.findByOrdemServicoId(ordemServicoId));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EDITAR')")
     @Operation(summary = "Atualizar item de serviÃ§o")
     public ResponseEntity<ItemOSServicoResponse> update(@PathVariable Long id,
             @Valid @RequestBody ItemOSServicoRequest request) {
@@ -48,6 +53,7 @@ public class ItemOSServicoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('OS_EXCLUIR')")
     @Operation(summary = "Deletar item de serviÃ§o")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

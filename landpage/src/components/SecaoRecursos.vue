@@ -117,10 +117,11 @@
 
 .comm-title {
   font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
   margin-bottom: 1rem;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
 
 .comm-subtitle {

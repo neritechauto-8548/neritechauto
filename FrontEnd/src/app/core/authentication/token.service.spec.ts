@@ -42,11 +42,16 @@ describe('TokenService', () => {
 
   it('should has exp when token has expires_in', () => {
     const expiresIn = 3600;
+    const antes = currentTimestamp();
     tokenService.set({ access_token: 'token', token_type: 'bearer', expires_in: expiresIn });
+    const depois = currentTimestamp();
 
     tokenService
       .change()
-      .pipe(tap(token => expect(token!.exp).toEqual(currentTimestamp() + expiresIn)))
+      .pipe(tap(token => {
+        expect(token!.exp).toBeGreaterThanOrEqual(antes + expiresIn);
+        expect(token!.exp).toBeLessThanOrEqual(depois + expiresIn);
+      }))
       .subscribe();
   });
 });

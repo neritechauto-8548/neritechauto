@@ -102,10 +102,11 @@ const logos = [
 .tm-value {
   font-family: var(--font-heading);
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   letter-spacing: -0.03em;
   line-height: 1;
+  font-feature-settings: "tnum" 1;
 }
 
 .tm-label {

@@ -14,14 +14,30 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class DepartamentoItemDialog implements OnInit {
   descricao = '';
+  codigo = '';
+  detalhes = '';
+  tipoOperacao = '';
+  ativo = true;
+  ordem = 0;
+  tempoPadraoMinutos?: number;
+  supervisorId?: number;
+  responsaveis: Array<{ id: number; nomeCompleto: string }> = [];
   isEdit = false;
 
   constructor(private ref: DynamicDialogRef, public config: DynamicDialogConfig) {}
 
   ngOnInit() {
+    this.responsaveis = this.config?.data?.responsaveis || [];
     if (this.config?.data && this.config.data.descricao) {
       this.isEdit = true;
       this.descricao = this.config.data.descricao;
+      this.codigo = this.config.data.codigo || '';
+      this.detalhes = this.config.data.detalhes || '';
+      this.tipoOperacao = this.config.data.tipoOperacao || '';
+      this.ativo = this.config.data.ativo ?? true;
+      this.ordem = this.config.data.ordem ?? 0;
+      this.tempoPadraoMinutos = this.config.data.tempoPadraoMinutos;
+      this.supervisorId = this.config.data.supervisorId;
     }
   }
 
@@ -31,7 +47,8 @@ export class DepartamentoItemDialog implements OnInit {
 
   salvar(): void {
     const desc = this.descricao ? this.descricao.trim() : '';
-    if (!desc) {
+    const codigo = this.codigo?.trim().toUpperCase();
+    if (!desc || !codigo) {
       // should be disabled in UI, but keep safe
       return;
     }
@@ -40,6 +57,9 @@ export class DepartamentoItemDialog implements OnInit {
       this.ref.close({ error: 'A descrição do departamento deve ter pelo menos 2 caracteres.' });
       return;
     }
-    this.ref.close({ descricao: desc });
+    this.ref.close({ descricao: desc, codigo, detalhes: this.detalhes?.trim() || undefined,
+      tipoOperacao: this.tipoOperacao?.trim() || undefined, supervisorId: this.supervisorId,
+      ativo: this.ativo, ordem: this.ordem || 0,
+      tempoPadraoMinutos: this.tempoPadraoMinutos || undefined });
   }
 }

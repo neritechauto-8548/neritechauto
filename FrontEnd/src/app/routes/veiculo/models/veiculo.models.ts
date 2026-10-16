@@ -110,6 +110,7 @@ export interface VeiculoResponse extends VeiculoRequest {
   clienteNome?: string;
   marcaNome?: string;
   modeloNome?: string;
+  modeloImagemUrl?: string;
   anoFabricacao?: number;
   anoModelo?: number;
   combustivelNome?: string;
@@ -145,6 +146,8 @@ export interface ModeloVeiculoRequest {
   marcaId: number;
   nome: string;
   categoria: CategoriaVeiculo;
+  logoUrl?: string;
+  imagemUrl?: string;
   segmento: SegmentoVeiculo;
   tipoTracao: TipoTracao;
   numeroPortas?: number;

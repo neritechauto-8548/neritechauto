@@ -23,7 +23,7 @@ export const interceptors = [
   settingsInterceptor,
   tenantInterceptor,
   tokenInterceptor,
+  errorInterceptor, // catches HTTP and synthetic ApiResponse errors from the inner interceptor
   apiInterceptor,
-  errorInterceptor,
   loggingInterceptor,
 ];

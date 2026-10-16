@@ -1,22 +1,27 @@
-// Estilo do PageHeader: fundo branco, texto preto e linhas/sombras laterais e inferior
+/* Shared page heading; breadcrumb remains optional and navigable. */
 .matero-page-header {
   display: block;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  color: #111827; // texto preto (gray-900)
-  background-color: #ffffff; // fundo branco
-  border-radius: 0; // sem borda arredondada
-  // sombras: esquerda, direita e abaixo
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);  // sombra abaixo
+  min-width: 0;
+  padding: 0 0 16px;
+  margin-bottom: 20px;
+  color: var(--nt-text, #182033);
+  background: transparent;
+  box-shadow: none;
 
   .matero-breadcrumb {
-    margin-top: 0.5rem;
-    margin-bottom: 0;
+    margin: 8px 0 0;
   }
 }
-
 .matero-page-title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 400;
+  font: 700 clamp(1.5rem, 2vw, 1.75rem) / 1.3 Inter, system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+.matero-page-subtitle {
+  margin: 6px 0 0;
+  color: var(--nt-text-secondary, #4F5870);
+  font: 400 14px / 20px Inter, system-ui, sans-serif;
+}
+@media (max-width: 599px) {
+  .matero-page-header { margin-bottom: 16px; }
 }

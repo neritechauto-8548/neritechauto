@@ -9,6 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface SessaoUsuarioRepository extends JpaRepository<SessaoUsuario, Long> {
+    // O filtro JWT roda fora de transação: carregar o usuário junto da sessão
+    // para validar o vínculo de empresa sem LazyInitializationException.
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "usuario")
     Optional<SessaoUsuario> findByTokenSessao(String tokenSessao);
     Optional<SessaoUsuario> findByRefreshToken(String refreshToken);
     List<SessaoUsuario> findByUsuarioIdAndAtivoTrue(Long usuarioId);

@@ -1,6 +1,7 @@
 package com.neritech.saas.comunicacao.dto;
 
 import java.time.LocalDateTime;
+import com.neritech.saas.comunicacao.domain.enums.StatusPesquisa;
 
 public record QuestionarioResponse(
         Long id,
@@ -8,6 +9,7 @@ public record QuestionarioResponse(
         String dsQuestionario,
         String urlImagem,
         Boolean snAtivo,
+        StatusPesquisa statusPesquisa,
         LocalDateTime dataCadastro,
         LocalDateTime dataAtualizacao
 ) {}

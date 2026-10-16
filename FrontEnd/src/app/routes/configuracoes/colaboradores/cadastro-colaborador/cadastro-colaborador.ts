@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TooltipModule } from 'primeng/tooltip';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
@@ -273,6 +274,7 @@ export class CadastroColaborador implements OnInit {
 
   // ---- Form model (UI state supports Date objects for p-datepicker) ----
   form: any = {
+    versao: undefined,
     nomeCompleto: '',
     cpf: '',
     rg: '',
@@ -375,6 +377,7 @@ export class CadastroColaborador implements OnInit {
     request.subscribe({
       next: (data) => {
         this.funcionarioId = data.id; // Garante que temos o ID real do funcionario para updates subsequentes
+        this.form.versao = data.versao;
         // carrega usuarioId do funcionario
         if (data.usuarioId) {
           this.usuarioId = data.usuarioId;
@@ -460,11 +463,14 @@ export class CadastroColaborador implements OnInit {
   }
 
   private get tenantId(): number {
-    const v = this.storage.has('tenantId') ? this.storage.get('tenantId') : '7';
-    return Number(v) || 7;
+    return empresaIdAtual(this.storage) ?? 0;
   }
 
   salvar() {
+    if (!this.tenantId) {
+      this.messageService.add({ severity: 'error', summary: 'Empresa não identificada', detail: 'Entre novamente antes de salvar o funcionário.' });
+      return;
+    }
     // Limpa a máscara do CPF antes de validar (p-inputmask pode retornar string com '_' ou parcialmente preenchida)
     const cpfSomenteDigitos = (this.form.cpf || '').replace(/\D/g, '');
 
@@ -615,6 +621,7 @@ export class CadastroColaborador implements OnInit {
 
     this.loading = true;
     const payload: FuncionarioRequest = {
+      versao:                     this.form.versao,
       empresaId:                  this.tenantId,
       usuarioId:                  this.usuarioId,
       matricula:                  this.form.matricula!,

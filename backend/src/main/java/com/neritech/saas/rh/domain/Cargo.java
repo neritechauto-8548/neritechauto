@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 @Table(name = "cargos")
 public class Cargo extends BaseEntity {
 
+    @Transient
+    private Long numeroFuncionarios = 0L;
+
     @Column(name = "empresa_id", nullable = false)
     private Long empresaId;
 
@@ -19,6 +22,9 @@ public class Cargo extends BaseEntity {
 
     @Column(name = "codigo_cbo", length = 10)
     private String codigoCbo;
+
+    @Column(name = "area_id")
+    private Long areaId;
 
     @Column(name = "nivel_hierarquico")
     private Integer nivelHierarquico = 1;
@@ -91,6 +97,11 @@ public class Cargo extends BaseEntity {
     public void setCodigoCbo(String codigoCbo) {
         this.codigoCbo = codigoCbo;
     }
+
+    public Long getAreaId() { return areaId; }
+    public void setAreaId(Long areaId) { this.areaId = areaId; }
+    public Long getNumeroFuncionarios() { return numeroFuncionarios; }
+    public void setNumeroFuncionarios(Long numeroFuncionarios) { this.numeroFuncionarios = numeroFuncionarios; }
 
     public Integer getNivelHierarquico() {
         return nivelHierarquico;

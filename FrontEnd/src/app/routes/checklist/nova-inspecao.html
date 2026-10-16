@@ -1,0 +1,40 @@
+<main class="new-inspection" aria-labelledby="new-inspection-title">
+  <page-header canonical hideBreadcrumb title="Nova inspeção" titleId="new-inspection-title" eyebrow="Checklists" description="Prepare vínculo, template e atribuição antes de iniciar a execução.">
+    <a pageHeaderActions class="nt-button nt-button--secondary" routerLink="/checklists-operacionais"><nt-icon name="arrow-left" [size]="16" />Voltar à central</a>
+  </page-header>
+
+  <div class="editor-layout">
+    <form class="editor" (ngSubmit)="revisar()">
+      <section class="form-section" aria-labelledby="inspection-context-title">
+        <header><span class="section-icon"><nt-icon name="link" [size]="20" /></span><div><h2 id="inspection-context-title">Origem e vínculo</h2><p>A inspeção nasce vinculada a um contexto autorizado e não cria outro registro implicitamente.</p></div></header>
+        <div class="form-grid">
+          <label class="field field--4"><span>Origem <b>*</b></span><select [(ngModel)]="origem" name="origem"><option value="CHECK_IN">Check-in</option><option value="OS">Ordem de serviço</option><option value="ORCAMENTO">Orçamento</option><option value="VEICULO">Veículo</option></select></label>
+          <label class="field field--8"><span>Registro de origem <b>*</b></span><input [(ngModel)]="vinculo" name="vinculo" placeholder="Buscar número, placa ou veículo" />@if(tentouSalvar&&!vinculo.trim()){<small class="error">Selecione um vínculo autorizado.</small>}</label>
+          <label class="field field--8"><span>Template <b>*</b></span><input [(ngModel)]="template" name="template" placeholder="Buscar template publicado" />@if(tentouSalvar&&!template.trim()){<small class="error">Selecione um template.</small>}</label>
+          <label class="field field--4"><span>Versão capturada</span><input [(ngModel)]="versaoTemplate" name="versao" placeholder="Definida pelo servidor" readonly /></label>
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="inspection-assignment-title">
+        <header><span class="section-icon"><nt-icon name="users" [size]="20" /></span><div><h2 id="inspection-assignment-title">Atribuição e prazo</h2><p>Defina responsáveis vigentes; execução e revisão permanecem capacidades separadas.</p></div></header>
+        <div class="form-grid">
+          <label class="field field--6"><span>Inspetor <b>*</b></span><input [(ngModel)]="inspetor" name="inspetor" placeholder="Buscar técnico autorizado" />@if(tentouSalvar&&!inspetor.trim()){<small class="error">Selecione o inspetor.</small>}</label>
+          <label class="field field--6"><span>Revisor</span><input [(ngModel)]="revisor" name="revisor" placeholder="Buscar revisor autorizado" /></label>
+          <label class="field field--4"><span>Prazo</span><input [(ngModel)]="prazo" name="prazo" type="datetime-local" /></label>
+          <label class="field field--4"><span>Prioridade</span><select [(ngModel)]="prioridade" name="prioridade"><option value="NORMAL">Normal</option><option value="PRIORITARIA">Prioritária</option><option value="URGENTE">Urgente</option></select></label>
+          <label class="field field--4"><span>Visibilidade inicial</span><select [(ngModel)]="visibilidade" name="visibilidade"><option value="INTERNA">Somente equipe</option><option value="CLIENTE_APOS_REVISAO">Cliente após revisão</option></select></label>
+          <label class="field field--12"><span>Orientações para inspeção</span><textarea [(ngModel)]="observacoes" name="observacoes" rows="5" maxlength="1000" placeholder="Contexto necessário ao inspetor; não antecipe resultado nem causa raiz"></textarea><small>{{observacoes.length}}/1000 caracteres</small></label>
+        </div>
+      </section>
+
+      <div class="command-note" role="status"><nt-icon name="info-circle" [size]="20" /><div><strong>Execução não iniciada</strong><p>Criar a inspeção apenas congela o template e registra a atribuição. Respostas, achados e evidências começam em ação separada.</p></div></div>
+      <footer><a class="nt-button nt-button--secondary" routerLink="/checklists-operacionais">Cancelar</a><button type="submit" class="nt-button nt-button--secondary">Revisar campos</button><button type="button" class="nt-button nt-button--primary" disabled>Criar inspeção</button></footer>
+    </form>
+
+    <aside class="summary" aria-label="Resumo da nova inspeção">
+      <span>Resumo</span><h2>{{ texto(template) }}</h2><p>{{ texto(vinculo) }}</p>
+      <dl><div><dt>Origem</dt><dd>{{ origem }}</dd></div><div><dt>Inspetor</dt><dd>{{ texto(inspetor) }}</dd></div><div><dt>Revisor</dt><dd>{{ texto(revisor) }}</dd></div><div><dt>Prioridade</dt><dd>{{ prioridade }}</dd></div><div><dt>Visibilidade</dt><dd>{{ visibilidade === 'INTERNA' ? 'Somente equipe' : 'Cliente após revisão' }}</dd></div></dl>
+      <div class="summary-rule"><nt-icon name="shield-check" [size]="18" /><span>Template e versão serão congelados pelo backend no momento da criação.</span></div>
+    </aside>
+  </div>
+</main>

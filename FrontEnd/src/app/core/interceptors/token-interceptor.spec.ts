@@ -83,32 +83,26 @@ describe('TokenInterceptor', () => {
     expect(headers.has('Authorization')).toBeFalse();
   });
 
-  it('should clear token when response status is unauthorized', () => {
+  it('does not change authentication state on a response error', () => {
     init('', 'token');
     spyOn(tokenService, 'clear');
 
     mockRequest('/user', {}, { status: STATUS.UNAUTHORIZED, statusText: 'Unauthorized' });
 
-    expect(tokenService.clear).toHaveBeenCalled();
+    expect(tokenService.clear).not.toHaveBeenCalled();
   });
 
-  it('should navigate /auth/login when api url is /auth/logout and token is valid', () => {
+  it('does not redirect while the login request is in flight', () => {
     init('', 'token');
     const navigateByUrl = spyOn(router, 'navigateByUrl');
-    navigateByUrl.and.returnValue(Promise.resolve(true));
 
-    mockRequest('/auth/logout');
+    expect(mockRequest('/auth/login').request.headers.has('Authorization')).toBeFalse();
 
-    expect(navigateByUrl).toHaveBeenCalledWith('/auth/login');
+    expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
-  it('should navigate /auth/login when api url is /auth/logout and token is invalid', () => {
+  it('does not attach an empty Authorization header', () => {
     init('', '');
-    const navigateByUrl = spyOn(router, 'navigateByUrl');
-    navigateByUrl.and.returnValue(Promise.resolve(true));
-
-    mockRequest('/auth/logout');
-
-    expect(navigateByUrl).toHaveBeenCalledWith('/auth/login');
+    expect(mockRequest('/auth/login').request.headers.has('Authorization')).toBeFalse();
   });
 });

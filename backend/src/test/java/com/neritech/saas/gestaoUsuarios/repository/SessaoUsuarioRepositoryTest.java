@@ -31,6 +31,7 @@ class SessaoUsuarioRepositoryTest extends BaseRepositoryTest {
         SessaoUsuario sessao = new SessaoUsuario();
         sessao.setUsuario(usuario);
         sessao.setRefreshToken("refresh.token");
+        sessao.setTokenSessao("access.token");
         sessao.setIpAddress("127.0.0.1");
         sessao.setUserAgent("TestAgent");
         sessao.setDataExpiracao(LocalDateTime.now().plusHours(1));

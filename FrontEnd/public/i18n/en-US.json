@@ -1,5 +1,10 @@
 {
   "menu": {
+    "cliente": "Clients",
+    "cliente.listar": "Clients",
+    "cliente.crm": "CRM",
+    "cliente.crm.visao-geral": "Overview",
+    "cliente.crm.pesquisa": "Research questionnaires",
     "dashboard": "Dashboard",
     "design": "Design",
     "design.colors": "Color System",

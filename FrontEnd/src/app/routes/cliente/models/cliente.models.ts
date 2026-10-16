@@ -95,6 +95,7 @@ export interface ClienteRequest {
 export interface ClienteResponse extends ClienteRequest {
   id: number;
   empresaId: number;
+  dataCadastro?: string;
 }
 
 // ========== INTERFACES - ENDEREÇO ==========

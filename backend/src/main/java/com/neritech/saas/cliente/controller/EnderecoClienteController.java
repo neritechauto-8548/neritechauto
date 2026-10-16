@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.neritech.saas.cliente.domain.EnderecoCliente;
 import com.neritech.saas.cliente.dto.EnderecoClienteRequest;
@@ -26,6 +27,7 @@ public class EnderecoClienteController {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('GERAL_USUARIO','CLIENTE_CRIAR','CLIENTE_EDITAR')")
     @GetMapping
     @Operation(summary = "Listar endereÃ§os do cliente")
     public Page<EnderecoClienteResponse> list(@PathVariable Long clienteId, Pageable pageable) {
@@ -33,6 +35,7 @@ public class EnderecoClienteController {
                 .map(EnderecoClienteMapper::toResponse);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('GERAL_USUARIO','CLIENTE_CRIAR','CLIENTE_EDITAR')")
     @GetMapping("/{id}")
     @Operation(summary = "Buscar endereÃ§o por ID")
     public ResponseEntity<EnderecoClienteResponse> getById(@PathVariable Long clienteId, @PathVariable Long id) {
@@ -43,6 +46,7 @@ public class EnderecoClienteController {
         return ResponseEntity.ok(EnderecoClienteMapper.toResponse(e));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('CLIENTE_CRIAR','CLIENTE_EDITAR')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Criar endereÃ§o para cliente")
@@ -52,6 +56,7 @@ public class EnderecoClienteController {
         return EnderecoClienteMapper.toResponse(saved);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_EDITAR')")
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar endereÃ§o do cliente")
     public ResponseEntity<EnderecoClienteResponse> update(@PathVariable Long clienteId,
@@ -61,6 +66,7 @@ public class EnderecoClienteController {
         return ResponseEntity.ok(EnderecoClienteMapper.toResponse(saved));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_EDITAR')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Excluir endereÃ§o do cliente")

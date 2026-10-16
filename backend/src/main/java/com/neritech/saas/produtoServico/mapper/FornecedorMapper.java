@@ -16,9 +16,17 @@ public interface FornecedorMapper {
     @Mapping(target = "criadoPor", ignore = true)
     @Mapping(target = "atualizadoPor", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "bancoNome", ignore = true)
+    @Mapping(target = "bancoAgencia", ignore = true)
+    @Mapping(target = "bancoConta", ignore = true)
+    @Mapping(target = "bancoPix", ignore = true)
     Fornecedor toEntity(FornecedorRequest request);
 
     @Mapping(source = "empresaId", target = "empresaId")
+    @Mapping(target = "bancoNome", ignore = true)
+    @Mapping(target = "bancoAgencia", ignore = true)
+    @Mapping(target = "bancoConta", ignore = true)
+    @Mapping(target = "bancoPix", ignore = true)
     FornecedorResponse toResponse(Fornecedor entity);
 
     @Mapping(target = "id", ignore = true)
@@ -28,5 +36,9 @@ public interface FornecedorMapper {
     @Mapping(target = "criadoPor", ignore = true)
     @Mapping(target = "atualizadoPor", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "bancoNome", ignore = true)
+    @Mapping(target = "bancoAgencia", ignore = true)
+    @Mapping(target = "bancoConta", ignore = true)
+    @Mapping(target = "bancoPix", ignore = true)
     void updateEntityFromRequest(FornecedorRequest request, @MappingTarget Fornecedor entity);
 }

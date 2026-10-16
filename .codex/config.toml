@@ -1,0 +1,6 @@
+# Codex CLI/IDE em projeto confiável. Codex Web pode utilizar ajustes do próprio ambiente.
+# Selecionar um modelo disponível na interface; não fixar ID que possa estar indisponível.
+model_reasoning_effort = "low"
+model_verbosity = "low"
+model_reasoning_summary = "none"
+project_doc_max_bytes = 4096

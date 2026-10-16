@@ -7,6 +7,8 @@ import com.neritech.saas.ordemservico.mapper.ItemOSProdutoMapper;
 import com.neritech.saas.ordemservico.repository.ItemOSProdutoRepository;
 import com.neritech.saas.ordemservico.repository.OrdemServicoRepository;
 import com.neritech.saas.produtoServico.repository.FornecedorRepository;
+import com.neritech.saas.common.tenancy.TenantAccess;
+import com.neritech.saas.common.exception.ResourceNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -33,12 +35,13 @@ public class ItemOSProdutoService {
 
     public ItemOSProdutoResponse create(ItemOSProdutoRequest request) {
         ItemOSProduto entity = mapper.toEntity(request);
-        entity.setOrdemServico(ordemServicoRepository.findById(request.ordemServicoId())
-                .orElseThrow(() -> new EntityNotFoundException("Ordem de ServiÃ§o nÃ£o encontrada")));
+        entity.setOrdemServico(ordemServicoRepository.findByIdAndEmpresaId(request.ordemServicoId(), TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço não encontrada")));
 
         if (request.fornecedorId() != null) {
             entity.setFornecedor(fornecedorRepository.findById(request.fornecedorId())
-                    .orElseThrow(() -> new EntityNotFoundException("Fornecedor nÃ£o encontrado")));
+                    .filter(f -> TenantAccess.requireCurrent().equals(f.getEmpresaId()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Fornecedor não encontrado")));
         }
 
         ItemOSProduto saved = repository.save(entity);
@@ -47,30 +50,35 @@ public class ItemOSProdutoService {
 
     @Transactional(readOnly = true)
     public ItemOSProdutoResponse findById(Long id) {
-        ItemOSProduto entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item nÃ£o encontrado"));
+        ItemOSProduto entity = findOwned(id);
         return mapper.toResponse(entity);
     }
 
     @Transactional(readOnly = true)
     public List<ItemOSProdutoResponse> findByOrdemServicoId(Long ordemServicoId) {
+        ordemServicoRepository.findByIdAndEmpresaId(ordemServicoId, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço não encontrada"));
         return repository.findByOrdemServicoId(ordemServicoId).stream()
                 .map(mapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public ItemOSProdutoResponse update(Long id, ItemOSProdutoRequest request) {
-        ItemOSProduto entity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item nÃ£o encontrado"));
+        ItemOSProduto entity = findOwned(id);
+        if (!entity.getOrdemServico().getId().equals(request.ordemServicoId())) {
+            throw new ResourceNotFoundException("Ordem de Serviço não encontrada");
+        }
         mapper.updateEntityFromRequest(request, entity);
         ItemOSProduto updated = repository.save(entity);
         return mapper.toResponse(updated);
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Item nÃ£o encontrado");
-        }
-        repository.deleteById(id);
+        repository.delete(findOwned(id));
+    }
+
+    private ItemOSProduto findOwned(Long id) {
+        return repository.findByIdAndOrdemServicoEmpresaId(id, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Item não encontrado"));
     }
 }

@@ -3,6 +3,7 @@ package com.neritech.saas.produtoServico.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ public class ProdutoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_INC_PROD')")
     @Operation(summary = "Criar novo produto")
     public ResponseEntity<ProdutoResponse> create(@Valid @RequestBody ProdutoRequest request) {
         ProdutoResponse response = service.create(request);
@@ -36,12 +38,14 @@ public class ProdutoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_PROD')")
     @Operation(summary = "Buscar produto por ID")
     public ResponseEntity<ProdutoResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_PROD')")
     @Operation(summary = "Listar produtos por empresa (paginado)")
     public ResponseEntity<Page<ProdutoResponse>> findAll(
             @RequestParam Long empresaId,
@@ -54,6 +58,7 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_EDIT_PROD')")
     @Operation(summary = "Atualizar produto")
     public ResponseEntity<ProdutoResponse> update(
             @PathVariable Long id,
@@ -62,6 +67,7 @@ public class ProdutoController {
     }
 
     @PostMapping("/{id}/duplicar")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_INC_PROD')")
     @Operation(summary = "Duplicar produto")
     public ResponseEntity<ProdutoResponse> duplicar(@PathVariable Long id) {
         ProdutoResponse response = service.duplicar(id);
@@ -69,6 +75,7 @@ public class ProdutoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_EXC_PROD')")
     @Operation(summary = "Excluir produto")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
@@ -76,14 +83,17 @@ public class ProdutoController {
     }
 
     @PostMapping("/{id}/foto")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_EDIT_PROD')")
     @Operation(summary = "Upload da foto", description = "Realiza o upload da foto do produto")
     public ResponseEntity<ProdutoResponse> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        service.validateFotoUpload(id); // Check tenant BEFORE writing any bytes.
         String path = fotoStorageService.store(id, file);
         ProdutoResponse saved = service.updateFotoPath(id, path);
         return ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}/foto")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_EDIT_PROD')")
     @Operation(summary = "Remover foto do produto", description = "Remove a imagem atual do produto")
     public ResponseEntity<Void> removerFoto(@PathVariable Long id) {
         service.updateFotoPath(id, null);
@@ -91,6 +101,7 @@ public class ProdutoController {
     }
 
     @GetMapping("/{id}/foto")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_PROD')")
     @Operation(summary = "Obter foto do produto", description = "Retorna a imagem do produto")
     public ResponseEntity<org.springframework.core.io.Resource> getFoto(@PathVariable Long id) {
         ProdutoResponse p = service.findById(id);

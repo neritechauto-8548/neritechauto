@@ -85,9 +85,10 @@ const items = [
 .financial-float span {
   display: block;
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: #059669;
   font-family: var(--font-heading);
+  font-feature-settings: "tnum" 1;
 }
 
 .financial-float small {

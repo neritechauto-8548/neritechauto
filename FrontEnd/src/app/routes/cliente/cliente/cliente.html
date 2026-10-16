@@ -1,150 +1,185 @@
-<div class="flex flex-col h-full gap-6">
+<main class="nt-clients-page">
+  <header class="nt-clients-heading">
+    <div class="nt-clients-heading-copy">
+      <span class="nt-clients-eyebrow">Relacionamento</span>
+      <h1>Clientes</h1>
+      <p>Encontre, cadastre e acompanhe os clientes da sua oficina.</p>
+      @if (isUxPreview) {
+        <span class="nt-clients-preview" role="status"><span aria-hidden="true"></span> Modo de homologação · dados demonstrativos</span>
+      }
+    </div>
+    <div class="nt-clients-heading-actions">
+      <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Novo cliente
+      </button>
+    </div>
+  </header>
 
-  <!-- Actions Bar -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-       <!-- Search -->
-       <div class="relative w-full sm:max-w-md group">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none"></i>
-            <input
-                pInputText
-                [(ngModel)]="searchTerm"
-                (keyup.enter)="onSearch()"
-                placeholder="Buscar por nome, CPF ou CNPJ..."
-                class="w-full !pl-10 !pr-12 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-            />
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">⌘K</div>
-       </div>
+  <section class="nt-clients-toolbar" aria-label="Pesquisa e filtros de clientes">
+    <div class="nt-clients-search">
+      <label for="nt-client-search">Buscar cliente</label>
+      <div class="nt-clients-search-control">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
+        <input id="nt-client-search" pInputText [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
+          placeholder="Nome, CPF/CNPJ ou e-mail" class="nt-clients-input" />
+      </div>
+    </div>
+    <div class="nt-clients-filter">
+      <label for="nt-client-type">Tipo</label>
+      <p-select inputId="nt-client-type" [options]="tipoOptions" [(ngModel)]="selectedTipo"
+        optionLabel="label" optionValue="value" [showClear]="false" (onChange)="onFilterChange()"
+        styleClass="nt-clients-select" />
+    </div>
+    <div class="nt-clients-filter">
+      <label for="nt-client-status">Status</label>
+      <p-select inputId="nt-client-status" [options]="statusOptions" [(ngModel)]="selectedStatus"
+        optionLabel="label" optionValue="value" [showClear]="false" (onChange)="onFilterChange()"
+        styleClass="nt-clients-select" />
+    </div>
+    <div class="nt-clients-filter nt-clients-sort">
+      <label for="nt-client-sort">Ordenar por</label>
+      <p-select inputId="nt-client-sort" [options]="sortOptions" [(ngModel)]="sort"
+        optionLabel="label" optionValue="value" (onChange)="onSortChange()" styleClass="nt-clients-select" />
+    </div>
+    <button type="button" class="nt-clients-search-button" (click)="onSearch()">Buscar</button>
+    @if (hasFilters) {
+      <button type="button" class="nt-clients-clear" (click)="limparFiltros()">Limpar filtros</button>
+    }
+  </section>
 
-       <!-- New Client Button -->
-       <button (click)="cadastrarCliente()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <i class="pi pi-plus text-[14px]"></i>
-          <span>Novo Cliente</span>
-       </button>
-   </div>
+  @if (loadError) {
+    <section class="nt-clients-error" role="alert">
+      <div><strong>Não foi possível carregar os clientes.</strong><p>{{ loadErrorMessage }}</p></div>
+      <button type="button" class="nt-clients-search-button" (click)="onSearch()">Tentar novamente</button>
+    </section>
+  }
 
-  <!-- Data Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-      <div class="overflow-x-auto flex-1">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
+  <section class="min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <div class="flex h-full min-h-0 flex-col">
+      <div class="min-h-0 flex-1 overflow-auto">
+        <table class="nt-clients-table w-full min-w-[1120px] border-collapse text-left"><caption class="sr-only">Lista de clientes cadastrados</caption>
+          <thead class="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+            <tr>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Cliente</th>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Documento</th>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Tipo</th>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Contato</th>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Veículos</th>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Data de inclusão</th>
+              <th class="px-5 py-3 text-xs font-semibold text-slate-500">Status</th>
+              <th class="w-12 px-3 py-3"></th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            @if (isLoading) {
+              @for (i of [1,2,3,4,5,6,7,8]; track i) {
                 <tr>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[40%] align-middle">Cliente</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Documento</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Contato</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
+                  <td class="px-5 py-4"><div class="flex items-center gap-3"><p-skeleton shape="circle" size="2.25rem"></p-skeleton><div class="space-y-2"><p-skeleton width="150px"></p-skeleton><p-skeleton width="80px"></p-skeleton></div></div></td>
+                  <td class="px-5 py-4"><p-skeleton width="120px"></p-skeleton></td>
+                  <td class="px-5 py-4"><p-skeleton width="130px"></p-skeleton></td>
+                  <td class="px-5 py-4"><p-skeleton width="60px"></p-skeleton></td>
+                  <td class="px-3 py-4"><p-skeleton shape="circle" size="1.75rem"></p-skeleton></td>
                 </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @if (isLoading) {
-                    @for (i of [1, 2, 3, 4, 5]; track i) {
-                        <tr>
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <p-skeleton shape="circle" size="2.25rem"></p-skeleton>
-                                    <div class="flex flex-col gap-1.5">
-                                        <p-skeleton width="150px" height="1rem"></p-skeleton>
-                                        <p-skeleton width="80px" height="0.75rem"></p-skeleton>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="120px" height="1.25rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="100px" height="1rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle text-right pr-4">
-                                <p-skeleton shape="circle" size="1.75rem" styleClass="inline-block"></p-skeleton>
-                            </td>
-                        </tr>
-                    }
-                } @else {
-                    @for (row of pagedData; track row.uuid) {
-                        <tr class="group hover:bg-gray-50 transition-colors duration-200">
-                            <!-- Cliente -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                        {{ row.nome.charAt(0).toUpperCase() }}
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="navigateToEdit(row)">{{ row.nome }}</span>
-                                        <span class="text-[11px] text-slate-500">{{ getTipoClienteLabel(row.tipo) }}</span>
-                                    </div>
-                                </div>
-                            </td>
+              }
+            } @else {
+              @for (row of pagedData; track row.uuid) {
+                <tr class="group transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                  <td class="px-5 py-3.5">
+                    <button type="button" class="flex items-center gap-3 text-left" (click)="navigateToEdit(row)">
+                      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        {{ row.nome.charAt(0).toUpperCase() }}
+                      </span>
+                      <span class="min-w-0">
+                        <span class="block truncate text-sm font-medium text-slate-900 group-hover:text-slate-950 dark:text-white">{{ row.nome }}</span>
+                        <span class="mt-0.5 block text-xs text-slate-500">{{ getTipoClienteLabel(row.tipo) }}</span>
+                      </span>
+                    </button>
+                  </td>
+                  <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ formatCpfCnpj(row.cpfCnpj) || '—' }}</td>
+                  <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ getTipoClienteLabel(row.tipo) }}</td>
+                  <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">
+                    @if (row.contato) {
+                      <span class="inline-flex items-center gap-2"><svg class="nt-contact-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.7L7 10a16 16 0 0 0 7 7l1.6-2a2 2 0 0 1 1.7-.6l3 .5a2 2 0 0 1 1.7 2z"></path></svg>{{ row.contato }}</span>
+                    } @else { <span class="text-slate-400">—</span> }
+                  </td>
+                  <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300" [attr.aria-label]="row.quantidadeVeiculos === null ? 'Quantidade de veículos indisponível' : row.quantidadeVeiculos + ' veículos'">{{ row.quantidadeVeiculos ?? '—' }}</td>
+                  <td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ formatDataCadastro(row.dataCadastro) }}</td>
+                  <td class="px-5 py-3.5">
+                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                      [class.bg-emerald-50]="row.status === StatusCliente.ATIVO"
+                      [class.text-emerald-700]="row.status === StatusCliente.ATIVO"
+                      [class.bg-slate-100]="row.status === StatusCliente.INATIVO"
+                      [class.text-slate-600]="row.status === StatusCliente.INATIVO"
+                      [class.bg-red-50]="row.status === StatusCliente.BLOQUEADO"
+                      [class.text-red-700]="row.status === StatusCliente.BLOQUEADO">
+                      {{ getStatusLabel(row.status) }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-3.5 text-right">
+                    <button type="button" class="nt-row-action" [attr.aria-label]="'Ações de ' + row.nome"
+                      (click)="toggleMenu(row, $event, menu)">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"></circle><circle cx="12" cy="12" r="1.2"></circle><circle cx="12" cy="19" r="1.2"></circle></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
 
-                            <!-- Documento -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                                    {{ formatCpfCnpj(row.cpfCnpj) }}
-                                </span>
-                            </td>
-
-                            <!-- Contato -->
-                            <td class="py-2.5 px-6 align-middle">
-                                @if (row.contato) {
-                                    <div class="flex items-center gap-2 text-sm text-slate-600">
-                                        <i class="pi pi-phone text-xs text-slate-400"></i>
-                                        {{ row.contato }}
-                                    </div>
-                                } @else {
-                                    <span class="text-xs text-slate-400 italic">Sem contato</span>
-                                }
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="py-2.5 px-6 align-middle text-right">
-                                <button pButton icon="pi pi-ellipsis-v" class="p-button-text p-button-rounded p-button-secondary w-8 h-8 flex items-center justify-center" (click)="toggleMenu(row, $event, menu)"></button>
-                            </td>
-                        </tr>
-                    }
-
-                    @if (clients.length === 0) {
-                        <tr>
-                            <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                                <div class="flex flex-col items-center gap-3 text-slate-400">
-                                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                                     <i class="pi pi-search text-xl text-slate-400"></i>
-                                  </div>
-                                  <p class="text-sm font-medium text-slate-500">Nenhum cliente encontrado</p>
-                                  <button (click)="cadastrarCliente()" class="text-xs text-blue-600 font-bold hover:underline">
-                                      Cadastrar novo cliente
-                                  </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
+              @if (clients.length === 0 && !loadError) {
+                <tr>
+                  <td colspan="8" class="px-6 py-16 text-center">
+                    <div class="mx-auto flex max-w-sm flex-col items-center">
+                      <div class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-700 dark:bg-slate-800">
+                        <svg class="nt-empty-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"></path></svg>
+                      </div>
+                      <p class="mt-4 text-sm font-semibold text-slate-900 dark:text-white">Nenhum cliente encontrado</p>
+                      <p class="mt-1 text-sm text-slate-500">
+                        @if (hasFilters) { Ajuste os filtros ou limpe a busca. } @else { Comece cadastrando o primeiro cliente. }
+                      </p>
+                      @if (hasFilters) {
+                        <button type="button" class="mt-4 text-sm font-medium text-slate-900 hover:underline dark:text-white" (click)="limparFiltros()">Limpar filtros</button>
+                      } @else {
+                        <button type="button" class="mt-4 text-sm font-medium text-slate-900 hover:underline dark:text-white" (click)="cadastrarCliente()">Cadastrar cliente</button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10">
-        <div class="text-xs text-slate-500">
-            Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
+      <footer class="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/60 px-5 py-3 dark:border-slate-800 dark:bg-slate-950/40 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap items-center gap-3">
+        <label for="nt-client-page-size" class="text-xs text-slate-500">Linhas por página</label>
+        <select id="nt-client-page-size" class="nt-page-size" [(ngModel)]="rows" (ngModelChange)="onPageSizeChange()" aria-label="Registros por página">
+          @for (size of pageSizes; track size) { <option [ngValue]="size">{{ size }}</option> }
+        </select>
+        <span class="text-xs text-slate-500">
+          Mostrando <strong class="font-medium text-slate-700 dark:text-slate-300">{{ rangeStart }}</strong>–<strong class="font-medium text-slate-700 dark:text-slate-300">{{ rangeEnd }}</strong> de <strong class="font-medium text-slate-700 dark:text-slate-300">{{ totalRecords }}</strong>
+        </span>
         </div>
-        <div class="flex gap-2">
-            <button
-                [disabled]="first === 0 || isLoading"
-                (click)="goPrev()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                <i class="pi pi-chevron-left text-xs"></i> Anterior
-            </button>
-            <button
-                [disabled]="first + rows >= totalRecords || isLoading"
-                (click)="goNext()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                Próximo <i class="pi pi-chevron-right text-xs"></i>
-            </button>
+        <div class="flex items-center gap-2">
+          <button type="button" [disabled]="first === 0 || isLoading" (click)="goPrev()"
+            class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            Anterior
+          </button>
+          <span class="min-w-16 text-center text-xs text-slate-500">Página {{ currentPage }}</span>
+          <button type="button" [disabled]="first + rows >= totalRecords || isLoading" (click)="goNext()"
+            class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            Próxima
+          </button>
         </div>
-      </div>
-  </div>
+      </footer>
+    </div>
+  </section>
+</main>
 
-</div>
-
-<!-- Popup menu -->
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
+<p-dialog [(visible)]="isQuickFormOpen" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: 'min(960px, 96vw)' }" [breakpoints]="{'720px': '96vw'}"
+  styleClass="nt-client-quick-dialog" header="Cadastro rápido de cliente">
+  <cadastro-cliente [modalMode]="true" (saved)="onQuickClientSaved()" (canceled)="onQuickClientCanceled()" />
+</p-dialog>

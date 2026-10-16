@@ -27,6 +27,12 @@ public class StandardResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        // ResourceHttpMessageConverter also handles empty 404 responses from file endpoints.
+        // Wrapping a null Resource response as ApiResponse causes ClassCastException (500).
+        if (org.springframework.http.converter.ResourceHttpMessageConverter.class.isAssignableFrom(converterType)) {
+            return false;
+        }
+
         // Don't wrap if it's already ApiResponse or void
         String typeName = returnType.getParameterType().getName();
         return !typeName.equals("com.neritech.saas.common.dto.ApiResponse") 

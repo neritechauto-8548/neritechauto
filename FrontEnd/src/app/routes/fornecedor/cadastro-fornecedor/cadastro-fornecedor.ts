@@ -13,6 +13,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { MatIconModule } from '@angular/material/icon';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { HistoricoFornecedor } from '../models/fornecedor.models';
 
 @Component({
   selector: 'cadastro-fornecedor',
@@ -104,6 +105,17 @@ export class CadastroFornecedor implements OnInit {
   };
 
   editingId?: number;
+  saving = false;
+  loading = false;
+  loadError = '';
+  saveError = '';
+  versao?: number;
+  historico: HistoricoFornecedor[] = [];
+  historicoLoading = false;
+  historicoErro = '';
+  historicoPage = 0;
+  historicoRows = 20;
+  historicoTotal = 0;
 
   get isFisica() {
     return this.model.tipoPessoa === 'FISICA';
@@ -237,9 +249,20 @@ export class CadastroFornecedor implements OnInit {
           const id = Number(idParam);
           if (!Number.isNaN(id)) {
             this.editingId = id;
+            this.loading = true;
             this.service.get(id).subscribe({
-              next: (f: any) => this.carregarFornecedor(f),
-              error: () => {},
+              next: (f: any) => {
+                this.carregarFornecedor(f);
+                this.loading = false;
+                this.versao = f.versao;
+                this.carregarHistorico();
+              },
+              error: (err: any) => {
+                this.loading = false;
+                this.loadError = err?.status === 403
+                  ? 'Sem permissão para consultar este fornecedor.'
+                  : err?.status === 0 ? 'Sem conexão. Confira a rede.' : 'Não foi possível carregar o fornecedor.';
+              },
             });
           }
         }
@@ -248,7 +271,10 @@ export class CadastroFornecedor implements OnInit {
   }
 
   salvar() {
+    if (this.saving || this.loading || this.loadError) return;
+    this.saveError = '';
     const dto = this.toRequest(this.model);
+    if (this.editingId && this.versao !== undefined) dto.versao = this.versao;
 
     // Validação frontend para forçar os campos com asterisco
     if (!dto.razaoSocial || !dto.classificacao || !dto.tipoPessoa) {
@@ -305,8 +331,12 @@ export class CadastroFornecedor implements OnInit {
     const obs = this.editingId != null
       ? this.service.update(this.editingId, dto)
       : this.service.create(dto);
+    this.saving = true;
     obs.subscribe({
-      next: () => {
+      next: (res: any) => {
+        this.saving = false;
+        this.versao = res?.versao ?? this.versao;
+        if (this.editingId) this.carregarHistorico();
         if (this.modalMode) {
           this.saved.emit(dto);
         } else {
@@ -314,20 +344,46 @@ export class CadastroFornecedor implements OnInit {
           setTimeout(() => this.router.navigate(['/fornecedor/lista']), 500);
         }
       },
-      error: () => {
-        this.messageService.add({severity: 'error', summary: 'Erro', detail: 'Ocorreu um problema ao salvar os dados.'});
+      error: (error: any) => {
+        this.saving = false;
+        this.saveError = error?.status === 409 ? 'Documento duplicado ou dados atualizados por outra sessão. Recarregue antes de salvar.'
+          : error?.status === 403 ? 'Você não tem permissão para alterar este fornecedor.'
+          : error?.status === 422 || error?.status === 400 ? 'Dados inválidos. Confira documento, endereço e condições comerciais.'
+          : error?.status === 0 ? 'Sem conexão. Verifique sua rede e tente novamente.'
+          : 'Não foi possível salvar o fornecedor.';
+        this.messageService.add({severity: 'error', summary: 'Erro', detail: this.saveError});
+      }
+    });
+  }
+
+  carregarHistorico(page = 0) {
+    if (!this.editingId || this.historicoLoading) return;
+    this.historicoLoading = true;
+    this.historicoErro = '';
+    this.service.historico(this.editingId, page, this.historicoRows).subscribe({
+      next: (res) => {
+        this.historicoLoading = false;
+        this.historicoPage = page;
+        this.historico = res.content || [];
+        this.historicoTotal = res.totalElements || 0;
+      },
+      error: (error: any) => {
+        this.historicoLoading = false;
+        this.historicoErro = error?.status === 403 ? 'Histórico restrito por permissão.'
+          : error?.status === 0 ? 'Histórico indisponível sem conexão.'
+          : 'Não foi possível carregar o histórico.';
       }
     });
   }
 
   excluir() {
-    if (!this.editingId) return;
+    if (!this.editingId || this.saving || this.loading || this.loadError) return;
 
     this.confirmationService.confirm({
-      message: 'Tem certeza que deseja excluir permanentemente este fornecedor?',
-      header: 'Confirmar Exclusão',
+      message: 'Inativar este fornecedor? Pedidos, cotações e notas existentes serão preservados.',
+      header: 'Confirmar Inativação',
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Excluir',
+      acceptLabel: 'Inativar',
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
@@ -336,7 +392,7 @@ export class CadastroFornecedor implements OnInit {
             if (this.modalMode) {
               this.canceled.emit();
             } else {
-              this.messageService.add({severity: 'success', summary: 'Sucesso', detail: 'Fornecedor excluído'});
+              this.messageService.add({severity: 'success', summary: 'Sucesso', detail: 'Fornecedor inativado'});
               setTimeout(() => this.router.navigate(['/fornecedor/lista']), 500);
             }
           },
@@ -359,6 +415,7 @@ export class CadastroFornecedor implements OnInit {
   private carregarFornecedor(f: any) {
     this.model = {
       tipoPessoa: f?.tipoPessoa || 'FISICA',
+      ativo: f?.ativo !== false,
       classificacao: f?.classificacao || 'A',
 
       nomeFantasia: f?.nomeFantasia || '',
@@ -401,7 +458,6 @@ export class CadastroFornecedor implements OnInit {
     // A API valida obrigatoriamente nomeFantasia + empresaId
     // Vamos garantir consistência minima
     return {
-      empresaId: 1, // Fixando context de tenant por enquanto.
       tipoPessoa: m.tipoPessoa,
       classificacao: m.classificacao,
 
@@ -432,13 +488,9 @@ export class CadastroFornecedor implements OnInit {
       descontoPadrao: m.descontoPadrao || null,
       condicoesEspeciais: m.condicoesEspeciais || undefined,
 
-      bancoNome: m.bancoNome || undefined,
-      bancoAgencia: m.bancoAgencia || undefined,
-      bancoConta: m.bancoConta || undefined,
-      bancoPix: m.bancoPix || undefined,
 
       observacoes: m.observacoes || undefined,
-      ativo: true,
+      ativo: m.ativo !== false,
     };
   }
 }

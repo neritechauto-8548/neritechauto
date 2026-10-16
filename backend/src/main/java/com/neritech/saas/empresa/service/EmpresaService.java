@@ -3,6 +3,11 @@ package com.neritech.saas.empresa.service;
 import com.neritech.saas.common.exception.BusinessException;
 import com.neritech.saas.common.exception.ResourceNotFoundException;
 import com.neritech.saas.empresa.domain.Empresa;
+import com.neritech.saas.empresa.dto.EmpresaRequest;
+import com.neritech.saas.empresa.mapper.EmpresaMapper;
+import com.neritech.saas.common.tenancy.TenantAccess;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import com.neritech.saas.empresa.repository.EmpresaRepository;
 import com.neritech.saas.util.DocumentoValidator;
 import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
@@ -21,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,17 +40,20 @@ public class EmpresaService {
     private final PlanoAssinaturaRepository planoAssinaturaRepository;
     private final UnidadeMedidaRepository unidadeMedidaRepository;
     private final CategoriaProdutoRepository categoriaProdutoRepository;
+    private final EmpresaAlteracaoService auditoria;
 
     public EmpresaService(EmpresaRepository empresaRepository,
                           AssinaturaEmpresaRepository assinaturaEmpresaRepository,
                           PlanoAssinaturaRepository planoAssinaturaRepository,
                           UnidadeMedidaRepository unidadeMedidaRepository,
-                          CategoriaProdutoRepository categoriaProdutoRepository) {
+                          CategoriaProdutoRepository categoriaProdutoRepository,
+                          EmpresaAlteracaoService auditoria) {
         this.empresaRepository = empresaRepository;
         this.assinaturaEmpresaRepository = assinaturaEmpresaRepository;
         this.planoAssinaturaRepository = planoAssinaturaRepository;
         this.unidadeMedidaRepository = unidadeMedidaRepository;
         this.categoriaProdutoRepository = categoriaProdutoRepository;
+        this.auditoria = auditoria;
     }
 
     @Transactional(readOnly = true)
@@ -213,6 +224,37 @@ public class EmpresaService {
         }
     }
 
+    /** Modifica somente a empresa da sessão, com controle de versão e auditoria atômica. */
+    @Transactional
+    public Empresa updateCadastro(Long id, EmpresaRequest request) {
+        TenantAccess.require(id);
+        Empresa current = findById(id);
+        if (request.getVersao() != null && !Objects.equals(request.getVersao(), current.getVersao())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Os dados foram alterados. Recarregue antes de salvar.");
+        }
+        Map<String, Object> antes = camposAuditaveis(current);
+        EmpresaMapper.updateEntity(current, request);
+        validarEmpresa(current, current);
+        Empresa saved = empresaRepository.saveAndFlush(current);
+        auditoria.registrar(id, "empresa", id, saved.getVersao(), antes, camposAuditaveis(saved));
+        return saved;
+    }
+
+    private static Map<String, Object> camposAuditaveis(Empresa e) {
+        Map<String, Object> campos = new LinkedHashMap<>();
+        campos.put("nomeFantasia", e.getNomeFantasia());
+        campos.put("razaoSocial", e.getRazaoSocial());
+        campos.put("cnpj", e.getCnpj());
+        campos.put("inscricaoEstadual", e.getInscricaoEstadual());
+        campos.put("inscricaoMunicipal", e.getInscricaoMunicipal());
+        campos.put("email", e.getEmail());
+        campos.put("telefone", e.getTelefone());
+        campos.put("site", e.getSite());
+        campos.put("ativo", e.getAtivo());
+        return campos;
+    }
+
     @Transactional
     public Empresa update(Long id, Empresa empresa) {
         Empresa current = findById(id);
@@ -223,9 +265,20 @@ public class EmpresaService {
 
     @Transactional
     public Empresa updateLogoPath(Long id, String logoPath) {
+        TenantAccess.require(id);
         Empresa current = findById(id);
+        String previous = current.getLogoPath();
+        if (Objects.equals(previous, logoPath)) return current;
+        String before = previous == null || previous.isBlank()
+                ? "Sem logomarca" : "Versão " + current.getVersao();
         current.setLogoPath(logoPath);
-        return empresaRepository.save(current);
+        Empresa saved = empresaRepository.saveAndFlush(current);
+        String after = logoPath == null || logoPath.isBlank()
+                ? "Sem logomarca" : "Versão " + saved.getVersao();
+        // Nunca colocar o caminho físico do arquivo no histórico.
+        auditoria.registrar(id, "empresa", id, saved.getVersao(),
+                Map.of("marca", before), Map.of("marca", after));
+        return saved;
     }
 
     /**
@@ -254,6 +307,13 @@ public class EmpresaService {
         // ── RN-EMPRESA-03: CPF/CNPJ obrigatório e válido ─────────────────────
         if (empresa.getCnpj() == null || empresa.getCnpj().isBlank()) {
             throw new BusinessException("O CPF ou CNPJ é obrigatório.");
+        }
+        String documentoNormalizado = empresa.getCnpj().replaceAll("[^a-zA-Z0-9]", "").toUpperCase(java.util.Locale.ROOT);
+        // O validador de DV pode aceitar sequências uniformes (ex.: 00000000000000).
+        // Bloqueie-as na entrada da Empresa sem alterar o contrato de outros módulos.
+        if (documentoNormalizado.length() == 14
+                && documentoNormalizado.chars().distinct().count() == 1) {
+            throw new BusinessException("CPF ou CNPJ inválido: sequência repetida.");
         }
         if (!DocumentoValidator.isValidCpf(empresa.getCnpj()) && !DocumentoValidator.isValidCnpj(empresa.getCnpj())) {
             throw new BusinessException("CPF ou CNPJ inválido. Verifique os dígitos informados.");

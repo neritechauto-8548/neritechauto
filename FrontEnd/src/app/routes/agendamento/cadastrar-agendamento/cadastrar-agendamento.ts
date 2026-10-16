@@ -116,6 +116,11 @@ export class CadastrarAgendamento implements OnInit {
     this.hojeLimit = `${y}-${m}-${d}`;
 
     // Pegar ID da URL se for edição
+    const clienteIdParam = this.route.snapshot.queryParamMap.get('clienteId');
+    if (clienteIdParam) {
+      this.agendamento.clienteId = Number(clienteIdParam);
+    }
+
     this.route.paramMap.subscribe(params => {
       const idStr = params.get('id');
       if (idStr) {
@@ -149,6 +154,9 @@ export class CadastrarAgendamento implements OnInit {
              const listV = resV.content || resV;
              this.veiculos = listV;
              this.loading = false;
+             if (this.agendamento.clienteId) {
+               this.onClienteSelecionado();
+             }
              if (callback) callback();
           },
           error: () => this.loading = false

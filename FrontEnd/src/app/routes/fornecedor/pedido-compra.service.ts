@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { forkJoin, Observable, switchMap } from 'rxjs';
+import { forkJoin, Observable, switchMap, throwError } from 'rxjs';
+import { FornecedorService } from './fornecedor.service';
 import { ProdutoService } from '../produtos-servicos/produto.service';
 import { FinanceiroService } from '../financeiro/financeiro.service';
 import { ItemCompra, PedidoCompraRequest } from './models/compra.models';
@@ -11,6 +12,7 @@ import { StatusTitulo, TipoTitulo } from '../financeiro/models/financeiro.models
 export class PedidoCompraService {
   private produtoService = inject(ProdutoService);
   private financeiroService = inject(FinanceiroService);
+  private fornecedorService = inject(FornecedorService);
 
   finalizarCompra(pedido: PedidoCompraRequest): Observable<any> {
     const totalCompra = pedido.itens.reduce((acc, i) => acc + i.valorTotal, 0);
@@ -43,8 +45,15 @@ export class PedidoCompraService {
 
     const criarDespesa$ = this.financeiroService.createPagar(despesa);
 
-    return forkJoin(updateEstoque$).pipe(
-        switchMap(() => criarDespesa$)
+    // Confirme que o cadastro mestre está ativo ANTES de qualquer mutação local.
+    // O servidor de cada operação continua responsável pelo RBAC e isolamento.
+    return this.fornecedorService.get(pedido.fornecedorId).pipe(
+      switchMap(fornecedor => {
+        if (fornecedor.ativo === false) {
+          return throwError(() => new Error('Fornecedor inativo não pode gerar nova compra.'));
+        }
+        return forkJoin(updateEstoque$).pipe(switchMap(() => criarDespesa$));
+      })
     );
   }
 }

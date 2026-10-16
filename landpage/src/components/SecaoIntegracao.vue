@@ -98,9 +98,11 @@ const hubLines = [
 /* ── Text ── */
 .int-title {
   font-size: clamp(1.75rem, 3.5vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
+  color: var(--midnight-navy);
+  letter-spacing: -0.035em;
   margin-bottom: 1rem;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .int-desc {
@@ -188,7 +190,7 @@ const hubLines = [
   background: var(--primary-indigo);
   border-radius: 10px;
   font-family: var(--font-heading);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 1.25rem;
   color: white;
   display: flex;

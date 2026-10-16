@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, subscriptionGuard } from '@core';
+import { authGuard, permissionGuard, subscriptionGuard } from '@core';
 import { AdminLayout } from '@theme/admin-layout/admin-layout';
 import { AuthLayout } from '@theme/auth-layout/auth-layout';
 import { Dashboard } from './routes/dashboard/dashboard';
@@ -15,40 +15,17 @@ export const routes: Routes = [
     path: '',
     component: AdminLayout,
     canActivate: [authGuard, subscriptionGuard],
-    canActivateChild: [authGuard, subscriptionGuard],
+    canActivateChild: [authGuard, subscriptionGuard, permissionGuard],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: Dashboard, data: { title: 'Dashboard' } },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: Dashboard, data: { title: 'Início' } },
+      { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' },
       { path: '403', component: Error403 },
       { path: '404', component: Error404 },
       { path: '500', component: Error500 },
       {
-        path: 'design',
-        loadChildren: () => import('./routes/design/design.routes').then(m => m.routes),
-      },
-      {
-        path: 'material',
-        loadChildren: () => import('./routes/material/material.routes').then(m => m.routes),
-      },
-      {
-        path: 'media',
-        loadChildren: () => import('./routes/media/media.routes').then(m => m.routes),
-      },
-      {
-        path: 'forms',
-        loadChildren: () => import('./routes/forms/forms.routes').then(m => m.routes),
-      },
-      {
-        path: 'tables',
-        loadChildren: () => import('./routes/tables/tables.routes').then(m => m.routes),
-      },
-      {
         path: 'profile',
         loadChildren: () => import('./routes/profile/profile.routes').then(m => m.routes),
-      },
-      {
-        path: 'permissions',
-        loadChildren: () => import('./routes/permissions/permissions.routes').then(m => m.routes),
       },
       {
         path: 'cliente',
@@ -75,10 +52,6 @@ export const routes: Routes = [
         loadChildren: () => import('./routes/pdv/pdv.routes').then(m => m.routes),
       },
       {
-        path: 'utilities',
-        loadChildren: () => import('./routes/utilities/utilities.routes').then(m => m.routes),
-      },
-      {
         path: 'relatorios',
         loadChildren: () => import('./routes/relatorios/relatorios.routes').then(m => m.routes),
       },
@@ -100,6 +73,8 @@ export const routes: Routes = [
       },
       {
         path: 'orcamento',
+        canActivate: [permissionGuard],
+        data: { requiredPermissions: 'GERAL_ORCAMENTO' },
         loadChildren: () => import('./routes/orcamento/orcamento.routes').then(m => m.routes),
       },
       {
@@ -117,5 +92,5 @@ export const routes: Routes = [
       { path: 'reset-password', component: ResetPassword },
     ],
   },
-  { path: '**', redirectTo: 'dashboard' },
+  { path: '**', redirectTo: '404' },
 ];

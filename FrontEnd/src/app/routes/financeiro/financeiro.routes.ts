@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '@core';
 
 export const routes: Routes = [
   {
@@ -15,6 +16,8 @@ export const routes: Routes = [
   },
   {
     path: 'caixa',
+    canActivate: [permissionGuard],
+    data: { requiredPermissions: 'FIN_VIS_CAIXA' },
     loadComponent: () => import('./caixa/caixa').then(m => m.CaixaComponent),
   },
   {

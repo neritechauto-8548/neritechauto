@@ -29,7 +29,7 @@ public class OrcamentoService {
 
     public OrcamentoResponse create(OrcamentoRequest request) {
         if (request.numeroOrcamento() != null && repository.existsByNumeroOrcamento(request.numeroOrcamento())) {
-            throw new IllegalArgumentException("NÃºmero de orÃ§amento jÃ¡ existe");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "NÃºmero de orÃ§amento jÃ¡ existe");
         }
 
         Orcamento entity = mapper.toEntity(request);

@@ -56,11 +56,20 @@ export class NotificacaoService {
       .pipe(map(resp => resp?.data ?? resp));
   }
 
-  // Marcar como lida (Atualizar o objeto completo como o controller sugere no PUT /{id})
-  // Ou se houver um patch específico, mas o controller tem update(id, request)
-  marcarComoLida(id: number, notificacao: any): Observable<NotificacaoSistemaResponse> {
-    const payload = { ...notificacao, lida: true, dataLeitura: new Date().toISOString() };
-    return this.http.put<NotificacaoSistemaResponse>(`${this.base}/${id}`, payload);
+  /** Only the authenticated user's notifications; no user-controlled recipient ID. */
+  findMine(page = 0, size = 10): Observable<Page<NotificacaoSistemaResponse>> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .set('sort', 'dataCadastro,desc');
+    return this.http.get<any>(`${this.base}/me`, { params })
+      .pipe(map(resp => resp?.data ?? resp));
+  }
+
+  /** Server confirms the persisted read state; no full-record PUT. */
+  marcarComoLida(id: number): Observable<NotificacaoSistemaResponse> {
+    return this.http.patch<any>(`${this.base}/${id}/ler`, {})
+      .pipe(map(resp => resp?.data ?? resp));
   }
 
   // Excluir notificação

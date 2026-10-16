@@ -3,23 +3,25 @@ package com.neritech.saas.gestaoUsuarios.controller;
 import com.neritech.saas.gestaoUsuarios.domain.LogAcesso;
 import com.neritech.saas.gestaoUsuarios.repository.LogAcessoRepository;
 import com.neritech.saas.security.JwtService;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = "neritech.tenancy.web.enabled=false")
 @WebMvcTest(AuditoriaController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class AuditoriaControllerTest {
@@ -29,6 +31,9 @@ class AuditoriaControllerTest {
 
     @MockBean
     private LogAcessoRepository logAcessoRepository;
+
+    @MockBean
+    private SessaoUsuarioRepository sessaoUsuarioRepository;
 
     @MockBean
     private JwtService jwtService;
@@ -42,13 +47,13 @@ class AuditoriaControllerTest {
         log.setTipoEvento(LogAcesso.TipoEvento.LOGIN_SUCCESS);
         log.setDataEvento(LocalDateTime.now());
         
-        when(logAcessoRepository.findByEmpresaIdOrderByDataEventoDesc(anyLong()))
+        when(logAcessoRepository.findByUsuarioIdOrderByDataEventoDesc(1L))
                 .thenReturn(List.of(log));
 
         // Act & Assert
-        mockMvc.perform(get("/api/auditoria/logs")
+        mockMvc.perform(get("/v1/auditoria/logs-acesso").param("usuarioId", "1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].tipoEvento").value("LOGIN_SUCCESS"));
+                .andExpect(jsonPath("$.data[0].tipoEvento").value("LOGIN_SUCCESS"));
     }
 }

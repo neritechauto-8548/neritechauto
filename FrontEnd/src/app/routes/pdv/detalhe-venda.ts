@@ -1,0 +1,2 @@
+import { ChangeDetectionStrategy,Component,inject } from '@angular/core'; import { ActivatedRoute,RouterLink } from '@angular/router'; import { DataViewState,NeriTechIcon,PageHeader } from '@shared';
+@Component({standalone:true,selector:'app-detalhe-venda',changeDetection:ChangeDetectionStrategy.OnPush,imports:[RouterLink,PageHeader,NeriTechIcon,DataViewState],templateUrl:'./detalhe-venda.html',styleUrl:'./detalhe-venda.scss'}) export class DetalheVenda { private readonly rota=inject(ActivatedRoute); readonly id=this.rota.snapshot.paramMap.get('id')||'—'; }

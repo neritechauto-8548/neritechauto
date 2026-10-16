@@ -30,6 +30,7 @@ public interface VeiculoMapper {
     @Mapping(target = "marcaNome", source = "marca.nome")
     @Mapping(target = "modeloId", source = "modelo.id")
     @Mapping(target = "modeloNome", source = "modelo.nome")
+    @Mapping(target = "modeloImagemUrl", source = "modelo.imagemUrl")
     @Mapping(target = "anoModeloId", source = "anoModelo.id")
     @Mapping(target = "anoFabricacao", source = "anoModelo.anoFabricacao")
     @Mapping(target = "anoModelo", source = "anoModelo.anoModelo")

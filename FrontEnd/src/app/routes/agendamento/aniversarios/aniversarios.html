@@ -1,0 +1,36 @@
+<main class="aniversarios" aria-labelledby="aniversarios-titulo">
+  <page-header canonical hideBreadcrumb title="Aniversários" titleId="aniversarios-titulo" eyebrow="Agendamentos" description="Planeje comunicações de aniversário respeitando consentimento, preferências e escopo autorizado.">
+    <div pageHeaderActions class="acoes-cabecalho">
+      <a class="nt-button nt-button--secondary" routerLink="/clientes"><nt-icon name="users" [size]="16" />Clientes</a>
+      <a class="nt-button nt-button--secondary" routerLink="/relatorios/relatorio-aniversariantes"><nt-icon name="report-analytics" [size]="16" />Relatório</a>
+    </div>
+  </page-header>
+
+  <section class="orientacao" aria-label="Uso responsável de dados pessoais">
+    <nt-icon name="shield-check" [size]="19" />
+    <div><strong>Comunicação exige consentimento verificável</strong><p>Use somente canais autorizados pelo cliente. A data de nascimento não é exposta nem usada para disparo enquanto a integração oficial não estiver disponível.</p></div>
+  </section>
+
+  <section class="filtros" aria-labelledby="filtros-titulo">
+    <div class="titulo-secao"><div><h2 id="filtros-titulo">Localizar aniversariantes</h2><p>Defina período, unidade e condição de contato antes de consultar a lista.</p></div><button class="nt-button nt-button--ghost" type="button"><nt-icon name="filter-x" [size]="16" />Limpar filtros</button></div>
+    <div class="campos-filtro">
+      <label>Período<input type="month" aria-label="Período de aniversários" /></label>
+      <label>Unidade<select aria-label="Unidade"><option>Unidade autorizada</option></select></label>
+      <label>Canal preferido<select aria-label="Canal preferido"><option>Todos os canais autorizados</option><option>WhatsApp</option><option>E-mail</option><option>Telefone</option></select></label>
+      <label>Situação de consentimento<select aria-label="Situação de consentimento"><option>Somente com consentimento</option><option>Todos para revisão</option></select></label>
+    </div>
+  </section>
+
+  <section class="resultado" aria-labelledby="resultado-titulo">
+    <div class="titulo-secao"><div><h2 id="resultado-titulo">Lista de contato</h2><p>Nome, canal e preferências só serão carregados para usuários autorizados no escopo da consulta.</p></div><span class="resultado__contador">— resultados</span></div>
+    <div class="tabela" role="region" aria-label="Tabela de aniversariantes" tabindex="0">
+      <div class="tabela__cabecalho" aria-hidden="true"><span>Cliente</span><span>Unidade</span><span>Canal autorizado</span><span>Preferência</span><span>Próxima ação</span></div>
+      <nt-data-view-state kind="info" icon="database" title="Consulta de aniversariantes aguardando integração segura" description="O read model precisa filtrar escopo de unidade, consentimento, opt-out, canal e retenção antes de revelar dados pessoais. Nenhum contato é inventado ou comunicado pelo navegador." />
+    </div>
+  </section>
+
+  <section class="preparo" aria-labelledby="preparo-titulo">
+    <div><h2 id="preparo-titulo">Preparar comunicação</h2><p>Revise o conteúdo e o canal no serviço oficial. O navegador não dispara mensagens em massa.</p></div>
+    <div class="preparo__campos"><label>Canal<select disabled><option>Aguardando lista autorizada</option></select></label><label>Mensagem de referência<textarea rows="2" disabled placeholder="Aguardando integração de canal e consentimento"></textarea></label><button class="nt-button nt-button--primary" type="button" disabled><nt-icon name="send" [size]="16" />Preparar envio</button></div>
+  </section>
+</main>

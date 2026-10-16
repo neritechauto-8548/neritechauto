@@ -2,10 +2,10 @@
   <section id="demonstracao" class="prints section-surface section-surface--white section-spacer">
     <div class="container">
       <header class="section-header aos-init">
-        <span class="section-label">Demonstração</span>
-        <h2 class="section-title">Veja o sistema por dentro</h2>
+        <span class="section-label">Produto</span>
+        <h2 class="section-title">Veja o sistema no fluxo real da oficina</h2>
         <p class="section-subtitle">
-          Interface clara, organizada e pensada para o dia a dia da sua oficina — do dashboard ao portal do cliente.
+          Do pátio ao financeiro: interface clara para abrir OS, aprovar orçamentos, controlar estoque e acompanhar o caixa.
         </p>
       </header>
 
@@ -85,18 +85,18 @@ const osPreview = [
 const tabs = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
-    title: 'Visão geral da operação',
-    desc: 'Acompanhe OS abertas, faturamento do mês e alertas de estoque em um painel único e objetivo.',
-    url: 'app.neritechauto.com.br/dashboard',
+    label: 'Pátio',
+    title: 'Workflow do pátio em tempo real',
+    desc: 'Veja quem está na baia, quem aguarda peça e quem está pronto para entregar — sem planilha e sem gritaria no chão.',
+    url: 'app.neritechauto.com.br/patio',
     image: imgFinancial,
-    features: ['Indicadores em tempo real', 'Pátio e produção', 'Alertas inteligentes'],
+    features: ['Status por veículo e baia', 'Produção da equipe', 'Alertas de atraso'],
   },
   {
     id: 'os',
-    label: 'Ordens de Serviço',
-    title: 'Controle completo de OS',
-    desc: 'Do orçamento à entrega: status, peças, mão de obra e histórico por veículo em um só lugar.',
+    label: 'Ordens',
+    title: 'OS, checklist e aprovação juntos',
+    desc: 'Orçamento com fotos, aprovação digital e histórico por placa. Do diagnóstico à entrega, tudo na mesma OS.',
     url: 'app.neritechauto.com.br/ordens',
     image: null,
     features: ['Kanban de produção', 'Checklist com fotos', 'Histórico por placa'],
@@ -104,20 +104,20 @@ const tabs = [
   {
     id: 'financeiro',
     label: 'Financeiro',
-    title: 'Fluxo de caixa sem planilhas',
-    desc: 'Contas a pagar e receber integradas às ordens de serviço. Saiba exatamente quanto sua oficina fatura.',
+    title: 'Caixa e NF-e sem planilha',
+    desc: 'Contas a pagar e receber ligadas à OS. Emita NF-e e NFS-e e acompanhe o resultado da oficina.',
     url: 'app.neritechauto.com.br/financeiro',
     image: imgFinancial,
-    features: ['Contas a pagar e receber', 'Conciliação simplificada', 'Relatórios gerenciais'],
+    features: ['Contas a pagar e receber', 'NF-e / NFS-e', 'Relatórios gerenciais'],
   },
   {
     id: 'portal',
-    label: 'Portal do Cliente',
-    title: 'Experiência premium para o cliente',
-    desc: 'Seu cliente acompanha o serviço, visualiza fotos e aprova orçamentos pelo celular.',
+    label: 'Cliente',
+    title: 'Portal e comunicação com o cliente',
+    desc: 'Cliente acompanha o serviço, vê fotos e aprova orçamento no celular — menos ligação, mais confiança.',
     url: 'portal.neritechauto.com.br',
     image: imgMobile,
-    features: ['Acompanhamento em tempo real', 'Aprovação de orçamento', 'Histórico de serviços'],
+    features: ['Acompanhamento ao vivo', 'Aprovação de orçamento', 'Histórico de serviços'],
   },
 ];
 </script>
@@ -165,7 +165,7 @@ const tabs = [
 
 .prints-copy h3 {
   font-size: clamp(1.375rem, 2.5vw, 1.875rem);
-  font-weight: 800;
+  font-weight: 500;
   margin-bottom: 1rem;
 }
 

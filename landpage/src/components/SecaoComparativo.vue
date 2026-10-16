@@ -197,9 +197,10 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 
 .title {
   font-size: clamp(1.875rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
   color: var(--midnight-navy);
   letter-spacing: -0.035em;
+  line-height: 1.1;
   margin-bottom: 1rem;
   font-family: var(--font-heading);
 }
@@ -209,7 +210,8 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
   font-size: 1.0625rem;
   max-width: 600px;
   margin: 0 auto;
-  line-height: 1.65;
+  line-height: 1.6;
+  letter-spacing: -0.015em;
 }
 
 /* Tabs Estilo Stripe */
@@ -272,7 +274,7 @@ const recursosAtivos = computed(() => recursos[abaAtiva.value] || []);
 
 .category-indicator {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--midnight-navy);
   letter-spacing: -0.02em;
   font-family: var(--font-heading);

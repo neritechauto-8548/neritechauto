@@ -1,0 +1,99 @@
+<section class="nt-survey-results" [attr.aria-label]="'Respostas de ' + titulo">
+  <div class="nt-survey-results-head">
+    <div><h3>Respostas coletadas</h3><p>Consulta autenticada; não representa quantidade de convites ou taxa de resposta.</p></div>
+    <div class="nt-survey-results-actions">
+      @if (!loading && !error) { <strong aria-live="polite">{{ total }} {{ total === 1 ? 'resposta' : 'respostas' }}</strong> }
+      <button type="button" [disabled]="loading" (click)="carregar()">Atualizar</button>
+      @if (podeRegistrar) {
+        <button type="button" (click)="abrirFormulario()">{{ formularioAberto ? 'Fechar registro' : 'Registrar resposta' }}</button>
+      }
+    </div>
+  </div>
+
+  @if (formularioAberto) {
+    <form class="nt-survey-response-form" (ngSubmit)="registrar()">
+      <h4>Registrar feedback de um cliente</h4>
+      <p>Registro interno realizado por usuário autorizado. Nenhum envio externo será disparado.</p>
+      <div class="nt-survey-customer-search">
+        <label for="nt-survey-client-search">Buscar cliente por nome ou documento</label>
+        <div>
+          <input type="search" id="nt-survey-client-search" name="buscaCliente" [(ngModel)]="buscaCliente"
+            autocomplete="off" placeholder="Digite pelo menos 2 caracteres" />
+          <button type="button" (click)="buscarClientes()" [disabled]="buscandoClientes">
+            {{ buscandoClientes ? 'Buscando…' : 'Buscar' }}
+          </button>
+        </div>
+        @if (clientes.length) {
+          <label for="nt-survey-client-selection">Cliente encontrado</label>
+          <select id="nt-survey-client-selection" name="clienteId" [(ngModel)]="clienteId">
+            <option [ngValue]="null">Selecione o cliente</option>
+            @for (c of clientes; track c.id) {
+              <option [ngValue]="c.id">{{ nomeCliente(c) }}</option>
+            }
+          </select>
+        } @else if (buscaCliente.trim().length >= 2 && !buscandoClientes && !formularioErro) {
+          <p>Nenhum cliente selecionado. Use Buscar para localizar um cadastro existente.</p>
+        }
+      </div>
+      @for (pergunta of perguntas; track pergunta.id) {
+        @if (pergunta.id != null) {
+          <div class="nt-survey-answer-field">
+            <label [for]="'nt-survey-question-' + pergunta.id">{{ pergunta.texto }}</label>
+            @if (pergunta.tipo === 'simnao') {
+              <select [id]="'nt-survey-question-' + pergunta.id" [name]="'question-' + pergunta.id"
+                [(ngModel)]="respostas[pergunta.id]" required>
+                <option value="">Selecione</option>
+                <option value="SIM">Sim</option>
+                <option value="NAO">Não</option>
+              </select>
+            } @else if (pergunta.tipo === 'avaliacao') {
+              <select [id]="'nt-survey-question-' + pergunta.id" [name]="'question-' + pergunta.id"
+                [(ngModel)]="respostas[pergunta.id]" required>
+                <option value="">Selecione de 1 a 10</option>
+                @for (score of [1,2,3,4,5,6,7,8,9,10]; track score) {
+                  <option [value]="score">{{ score }}</option>
+                }
+              </select>
+            } @else {
+              <textarea [id]="'nt-survey-question-' + pergunta.id" [name]="'question-' + pergunta.id"
+                maxlength="1000" rows="3" required [(ngModel)]="respostas[pergunta.id]"></textarea>
+            }
+          </div>
+        }
+      }
+      @if (formularioErro) { <p role="alert" class="nt-survey-error">{{ formularioErro }}</p> }
+      <div class="nt-survey-results-actions">
+        <button type="button" (click)="abrirFormulario()" [disabled]="enviando">Cancelar</button>
+        <button type="submit" [disabled]="enviando || !podeRegistrar" class="nt-survey-save">
+          {{ enviando ? 'Salvando…' : 'Registrar feedback' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (loading) {
+    <p role="status">Carregando respostas e indicadores…</p>
+  } @else if (error) {
+    <div role="alert" class="nt-survey-error">{{ error }} <button type="button" (click)="carregar()">Tentar novamente</button></div>
+  } @else if (!registros.length) {
+    <p role="status">Nenhuma resposta registrada neste questionário.</p>
+  } @else {
+    <div class="nt-survey-response-list">
+      @for (r of registros; track r.id) {
+        <article>
+          <header><strong>Cliente #{{ r.clienteId }}</strong><span>{{ r.dataCadastro ? (r.dataCadastro | date:'dd/MM/yyyy HH:mm') : 'Data não informada' }}</span></header>
+          <dl>
+            @for (answer of r.respostas; track answer.perguntaId) {
+              <div><dt>{{ answer.perguntaTexto }}</dt><dd>{{ answer.valor }}</dd></div>
+            }
+          </dl>
+        </article>
+      }
+    </div>
+    <nav aria-label="Paginação das respostas" class="nt-survey-results-pages">
+      <span>Página {{ page + 1 }} de {{ paginas }}</span>
+      <button type="button" (click)="navegar(page - 1)" [disabled]="page === 0">Anterior</button>
+      <button type="button" (click)="navegar(page + 1)" [disabled]="page + 1 >= paginas">Próxima</button>
+    </nav>
+  }
+</section>

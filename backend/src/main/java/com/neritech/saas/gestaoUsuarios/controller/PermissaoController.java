@@ -1,6 +1,6 @@
 package com.neritech.saas.gestaoUsuarios.controller;
 
-import com.neritech.saas.gestaoUsuarios.domain.Permissao;
+import com.neritech.saas.gestaoUsuarios.dto.PermissaoResponse;
 import com.neritech.saas.gestaoUsuarios.service.PermissaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,9 +20,12 @@ public class PermissaoController {
     private final PermissaoService permissaoService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PERMISSAO.READ')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar permissões", description = "Retorna todas as permissões disponíveis")
-    public ResponseEntity<List<Permissao>> findAll() {
-        return ResponseEntity.ok(permissaoService.findAll());
+    public ResponseEntity<List<PermissaoResponse>> findAll() {
+        return ResponseEntity.ok(permissaoService.findAll().stream()
+                .map(p -> new PermissaoResponse(p.getId(), p.getChave(), p.getDescricao(), p.getValor()))
+                .sorted(java.util.Comparator.comparing(PermissaoResponse::chave).thenComparing(PermissaoResponse::valor))
+                .toList());
     }
 }

@@ -1,6 +1,7 @@
 package com.neritech.saas.produtoServico.service;
 
 import com.neritech.saas.produtoServico.domain.PedidoFornecedor;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.produtoServico.domain.ItemPedidoFornecedor;
 import com.neritech.saas.produtoServico.dto.PedidoFornecedorRequest;
 import com.neritech.saas.produtoServico.dto.PedidoFornecedorResponse;
@@ -26,23 +27,28 @@ public class PedidoFornecedorService {
     private final ItemPedidoFornecedorRepository itemRepository;
     private final MovimentacaoEstoqueService movimentacaoEstoqueService;
     private final ProdutoRepository produtoRepository;
+    private final FornecedorService fornecedorService;
 
     public PedidoFornecedorService(PedidoFornecedorRepository repository, 
                                    PedidoFornecedorMapper mapper, 
                                    com.neritech.saas.estoque.repository.EstoqueRepository estoqueRepository,
                                    ItemPedidoFornecedorRepository itemRepository,
                                    MovimentacaoEstoqueService movimentacaoEstoqueService,
-                                   ProdutoRepository produtoRepository) {
+                                   ProdutoRepository produtoRepository,
+                                   FornecedorService fornecedorService) {
         this.repository = repository;
         this.mapper = mapper;
         this.estoqueRepository = estoqueRepository;
         this.itemRepository = itemRepository;
         this.movimentacaoEstoqueService = movimentacaoEstoqueService;
         this.produtoRepository = produtoRepository;
+        this.fornecedorService = fornecedorService;
     }
 
     @Transactional
     public PedidoFornecedorResponse create(PedidoFornecedorRequest request) {
+        TenantAccess.require(request.empresaId());
+        fornecedorService.requireActive(request.fornecedorId(), request.empresaId());
         PedidoFornecedor entity = mapper.toEntity(request);
         entity.setEmpresaId(request.empresaId());
         entity.setFornecedorId(request.fornecedorId());
@@ -66,12 +72,13 @@ public class PedidoFornecedorService {
     @Transactional(readOnly = true)
     public PedidoFornecedorResponse findById(Long id) {
         return repository.findById(id)
-                .map(mapper::toResponse)
+                .map(p -> { TenantAccess.require(p.getEmpresaId()); return mapper.toResponse(p); })
                 .orElseThrow(() -> new EntityNotFoundException("Pedido de fornecedor não encontrado com ID: " + id));
     }
 
     @Transactional(readOnly = true)
     public Page<PedidoFornecedorResponse> findAll(Long empresaId, String termo, Pageable pageable) {
+        TenantAccess.require(empresaId);
         if (termo != null && !termo.isBlank()) {
             return repository.findByEmpresaIdAndTermo(empresaId, termo, pageable).map(mapper::toResponse);
         }
@@ -80,8 +87,11 @@ public class PedidoFornecedorService {
 
     @Transactional
     public PedidoFornecedorResponse update(Long id, PedidoFornecedorRequest request) {
+        TenantAccess.require(request.empresaId());
         PedidoFornecedor entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido de fornecedor não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
+        fornecedorService.requireActive(request.fornecedorId(), entity.getEmpresaId());
         if (entity.getStatus() == com.neritech.saas.produtoServico.domain.enums.StatusPedidoFornecedor.RECEBIDO) {
             throw new IllegalStateException("Não é possível alterar um pedido que já foi recebido.");
         }
@@ -112,6 +122,7 @@ public class PedidoFornecedorService {
     public PedidoFornecedorResponse updateStatus(Long id, com.neritech.saas.produtoServico.domain.enums.StatusPedidoFornecedor newStatus) {
         PedidoFornecedor entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido de fornecedor não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
         
         if (entity.getStatus() != com.neritech.saas.produtoServico.domain.enums.StatusPedidoFornecedor.RECEBIDO &&
             newStatus == com.neritech.saas.produtoServico.domain.enums.StatusPedidoFornecedor.RECEBIDO) {
@@ -168,6 +179,7 @@ public class PedidoFornecedorService {
     public void delete(Long id) {
         PedidoFornecedor entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido de fornecedor não encontrado com ID: " + id));
+        TenantAccess.require(entity.getEmpresaId());
         if (entity.getStatus() == com.neritech.saas.produtoServico.domain.enums.StatusPedidoFornecedor.RECEBIDO) {
             throw new IllegalStateException("Não é possível excluir um pedido que já foi recebido.");
         }

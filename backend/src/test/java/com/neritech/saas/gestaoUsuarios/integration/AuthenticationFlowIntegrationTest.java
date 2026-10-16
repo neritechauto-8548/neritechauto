@@ -6,6 +6,7 @@ import com.neritech.saas.TestDataBuilder;
 import com.neritech.saas.gestaoUsuarios.dto.LoginRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
+import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,12 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
+    private FuncaoRepository funcaoRepository;
+
+    @Autowired
+    private com.neritech.saas.gestaoUsuarios.repository.TentativaLoginRepository tentativaLoginRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
@@ -45,10 +52,15 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Fluxo Completo: Registro -> Login -> Acesso Protegido")
     void fluxoCompletoAutenticacao() throws Exception {
         // 1. Criar usuário (via repository pois endpoint pode estar protegido ou não existir registro público)
+        // O recurso /usuarios/{id} exige role ADMIN ou permissão GERAL_USUARIO.
+        // O teste precisa autenticar um usuário com essa permissão de verdade.
+        var funcaoAdmin = funcaoRepository.save(
+                TestDataBuilder.umaFuncao().comNome("ADMIN").comEmpresaId(1L).build());
         var usuario = TestDataBuilder.umUsuario()
                 .comEmail("integration@test.com")
                 .comSenha(passwordEncoder.encode("senha123"))
                 .comEmpresaId(1L)
+                .comFuncao(funcaoAdmin)
                 .build();
         usuarioRepository.save(usuario);
 
@@ -58,7 +70,7 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
                 .comSenha("senha123")
                 .build();
 
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .header("X-Tenant-Id", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -70,17 +82,58 @@ class AuthenticationFlowIntegrationTest extends AbstractIntegrationTest {
         String accessToken = objectMapper.readTree(responseBody).get("accessToken").asText();
 
         // 3. Acessar endpoint protegido
-        mockMvc.perform(get("/api/usuarios/" + usuario.getId())
+        mockMvc.perform(get("/usuarios/" + usuario.getId())
                 .header("X-Tenant-Id", "1")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("integration@test.com"));
+                .andExpect(jsonPath("$.data.email").value("integration@test.com"));
+
+        // Usuário autenticado na empresa 1 não pode trocar de empresa pelo cabeçalho.
+        mockMvc.perform(get("/usuarios/" + usuario.getId())
+                .header("X-Tenant-Id", "2")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Cinco senhas inválidas persistem e a sexta tentativa retorna 429")
+    void devePersistirTentativasFalhasEAplicarRateLimitReal() throws Exception {
+        String email = "ratelimit.auth001@exemplo.com";
+        var usuario = TestDataBuilder.umUsuario()
+                .comEmail(email)
+                .comSenha(passwordEncoder.encode("senha-correta"))
+                .comEmpresaId(1L)
+                .build();
+        usuarioRepository.saveAndFlush(usuario);
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            LoginRequest invalid = TestDataBuilder.umLoginRequest()
+                    .comEmail(attempt % 2 == 0 ? email.toUpperCase() : email)
+                    .comSenha("senha-errada")
+                    .build();
+            mockMvc.perform(post("/auth/login")
+                    .header("X-Tenant-Id", "1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalid)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        org.junit.jupiter.api.Assertions.assertEquals(5L,
+                tentativaLoginRepository.countByEmailAndSucessoFalseAndDataTentativaAfter(
+                        email, java.time.LocalDateTime.now().minusMinutes(15)));
+
+        mockMvc.perform(post("/auth/login")
+                .header("X-Tenant-Id", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(TestDataBuilder.umLoginRequest()
+                        .comEmail(email).comSenha("senha-correta").build())))
+                .andExpect(status().isTooManyRequests());
     }
 
     @Test
     @DisplayName("Deve falhar acesso sem token")
     void deveFalharAcessoSemToken() throws Exception {
-        mockMvc.perform(get("/api/usuarios/1")
+        mockMvc.perform(get("/usuarios/1")
                 .header("X-Tenant-Id", "1"))
                 .andExpect(status().isForbidden()); // ou Unauthorized dependendo da config
     }

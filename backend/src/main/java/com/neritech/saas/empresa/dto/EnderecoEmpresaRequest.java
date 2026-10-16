@@ -11,7 +11,7 @@ public record EnderecoEmpresaRequest(
 
         TipoEndereco tipoEndereco,
 
-        @NotBlank(message = "O CEP Ã© obrigatÃ³rio") @Size(max = 9) String cep,
+        @NotBlank(message = "O CEP é obrigatório") @Pattern(regexp = "\\d{5}-?\\d{3}", message = "CEP deve conter oito dígitos") String cep,
 
         @NotBlank(message = "O logradouro Ã© obrigatÃ³rio") @Size(max = 255) String logradouro,
 

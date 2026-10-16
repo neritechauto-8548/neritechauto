@@ -227,7 +227,10 @@
 
 .showcase-title {
   font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 800;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--midnight-navy);
   margin-bottom: 1rem;
 }
 
@@ -258,9 +261,9 @@
   padding: 4px 12px;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   margin-bottom: 1rem;
 }
 
@@ -272,9 +275,11 @@
   margin-bottom: 1rem;
   color: var(--midnight-navy);
   line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -0.03em;
 }
 
-.showcase-text h3 strong { color: var(--primary-indigo); font-weight: 800; }
+.showcase-text h3 strong { color: var(--primary-indigo); font-weight: 600; }
 
 .showcase-text p {
   font-size: 1.0625rem;

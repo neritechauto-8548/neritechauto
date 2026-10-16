@@ -22,12 +22,14 @@ class TentativaLoginRepositoryTest extends BaseRepositoryTest {
         // Arrange
         TentativaLogin t1 = new TentativaLogin();
         t1.setEmail("test@email.com");
+        t1.setIpAddress("127.0.0.1");
         t1.setEmpresaId(1L);
         t1.setSucesso(false);
         t1.setDataTentativa(LocalDateTime.now());
         
         TentativaLogin t2 = new TentativaLogin();
         t2.setEmail("test@email.com");
+        t2.setIpAddress("127.0.0.1");
         t2.setEmpresaId(1L);
         t2.setSucesso(true);
         t2.setDataTentativa(LocalDateTime.now());

@@ -55,4 +55,20 @@ class CustomUserDetailsServiceTest {
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername("notfound@email.com"))
                 .isInstanceOf(UsernameNotFoundException.class);
     }
+    @Test
+    @DisplayName("Cargo administrativo não recebe privilégios de administrador")
+    void naoDevePromoverCargoAdministrativo() {
+        Usuario usuario = TestDataBuilder.umUsuario()
+                .comFuncao(TestDataBuilder.umaFuncao().comNome("ADMINISTRATIVO").build())
+                .build();
+        when(usuarioRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.of(usuario));
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(usuario.getEmail());
+
+        assertThat(userDetails.getAuthorities()).extracting("authority")
+                .contains("ROLE_ADMINISTRATIVO")
+                .doesNotContain("ROLE_ADMIN");
+    }
+
+
 }

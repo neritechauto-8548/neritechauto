@@ -7,6 +7,7 @@ import com.neritech.saas.rh.domain.enums.Sexo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Schema(name = "ClienteResponse", description = "Dados retornados do cliente")
 public class ClienteResponse {
@@ -42,6 +43,8 @@ public class ClienteResponse {
     private StatusCliente status;
     @Schema(description = "Observações gerais")
     private String observacoesGerais;
+    @Schema(description = "Data de inclusão do cliente")
+    private LocalDateTime dataCadastro;
 
     // Getters e Setters
     public Long getId() {
@@ -170,5 +173,13 @@ public class ClienteResponse {
 
     public void setObservacoesGerais(String observacoesGerais) {
         this.observacoesGerais = observacoesGerais;
+    }
+
+    public LocalDateTime getDataCadastro() {
+        return dataCadastro;
+    }
+
+    public void setDataCadastro(LocalDateTime dataCadastro) {
+        this.dataCadastro = dataCadastro;
     }
 }

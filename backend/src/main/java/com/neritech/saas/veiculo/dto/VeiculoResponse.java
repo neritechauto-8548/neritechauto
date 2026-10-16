@@ -12,6 +12,7 @@ public record VeiculoResponse(
                 String marcaNome,
                 Long modeloId,
                 String modeloNome,
+                String modeloImagemUrl,
                 Long anoModeloId,
                 Integer anoFabricacao,
                 Integer anoModelo,

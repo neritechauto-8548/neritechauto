@@ -24,5 +24,6 @@ public interface ConfiguracaoOficinaMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(ConfiguracaoOficinaRequest request, @MappingTarget ConfiguracaoOficina entity);
 }

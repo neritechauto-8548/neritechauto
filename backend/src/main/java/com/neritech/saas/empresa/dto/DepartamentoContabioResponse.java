@@ -7,7 +7,18 @@ public record DepartamentoContabioResponse(
         Long empresaId,
         String empresaNome,
         String descricao,
+        String codigo,
+        String detalhes,
+        String tipoOperacao,
+        Long supervisorId,
+        Boolean ativo,
+        Integer ordem,
+        Integer tempoPadraoMinutos,
+        Long numeroFuncionarios,
+        Long numeroCargos,
+        Long numeroServicos,
         LocalDateTime dataCadastro,
-        LocalDateTime dataAtualizacao
+        LocalDateTime dataAtualizacao,
+        Integer versao
 ) {}
 

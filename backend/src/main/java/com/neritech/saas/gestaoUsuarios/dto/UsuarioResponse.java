@@ -21,6 +21,8 @@ public class UsuarioResponse {
     private boolean ativo;
     private boolean bloqueado;
     private LocalDateTime ultimoAcesso;
+    private LocalDateTime conviteTokenExpira;
+    private Integer versao;
     
     private Set<String> funcoes;
     private Set<Long> funcoesIds;

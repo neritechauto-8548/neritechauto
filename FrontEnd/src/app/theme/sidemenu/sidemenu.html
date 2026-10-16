@@ -14,6 +14,8 @@
     navAccordion
     class="matero-sidemenu level-{{ level }}"
     [class.submenu]="level > 0"
+    [attr.inert]="level > 0 && !expanded ? '' : null"
+    [attr.aria-hidden]="level > 0 && !expanded ? 'true' : null"
   >
     @for (menuItem of menuList; track menuItem) {
       <li
@@ -24,109 +26,155 @@
         routerLinkActive="active"
         [route]="menuItem.route"
         [type]="menuItem.type"
+        [activeWhen]="activeRoutes(menuItem, parentRoute)"
       >
-          @if (menuItem.type === 'heading') {
-            <div class="menu-heading-label">
-                {{ menuItem.name | translate }}
-            </div>
-          }
-          @if (menuItem.type === 'link') {
-            <a
-              class="menu-heading"
-              [routerLink]="buildRoute(parentRoute.concat([menuItem.route]))"
-              matRipple
-              [matRippleDisabled]="!ripple"
-              [matTooltip]="menuItem.name | translate"
-              matTooltipPosition="right"
-              [matTooltipDisabled]="!isCollapsed"
-            >
-              <ng-container
-                [ngTemplateOutlet]="linkTypeTpl"
-                [ngTemplateOutletContext]="{ item: menuItem, level: level }"
-              />
-            </a>
-          }
-          @if (menuItem.type === 'extLink') {
-            <a
-              class="menu-heading"
-              [href]="menuItem.route"
-              matRipple
-              [matRippleDisabled]="!ripple"
-              [matTooltip]="menuItem.name | translate"
-              matTooltipPosition="right"
-              [matTooltipDisabled]="!isCollapsed"
-            >
-              <ng-container
-                [ngTemplateOutlet]="linkTypeTpl"
-                [ngTemplateOutletContext]="{ item: menuItem, level: level }"
-              />
-            </a>
-          }
-          @if (menuItem.type === 'extTabLink') {
-            <a
-              class="menu-heading"
-              [href]="menuItem.route"
-              target="_blank"
-              matRipple
-              [matRippleDisabled]="!ripple"
-              [matTooltip]="menuItem.name | translate"
-              matTooltipPosition="right"
-              [matTooltipDisabled]="!isCollapsed"
-            >
-              <ng-container
-                [ngTemplateOutlet]="linkTypeTpl"
-                [ngTemplateOutletContext]="{ item: menuItem, level: level }"
-              />
-            </a>
-          }
-          @if (menuItem.type === 'sub') {
-            <button
-              navAccordionToggle
-              class="menu-heading menu-toggle"
-              matRipple
-              [matRippleDisabled]="!ripple"
-              [matTooltip]="menuItem.name | translate"
-              matTooltipPosition="right"
-              [matTooltipDisabled]="!isCollapsed"
-            >
-              <ng-container
-                [ngTemplateOutlet]="linkTypeTpl"
-                [ngTemplateOutletContext]="{ item: menuItem, level: level }"
-              />
-            </button>
+        @if (menuItem.type === 'heading') {
+          <div class="menu-heading-label">{{ menuLabel(menuItem.name) }}</div>
+        }
 
+        @if (menuItem.type === 'link' && !menuItem.disabled) {
+          <a
+            class="menu-heading"
+            [routerLink]="buildRoute(parentRoute.concat([menuItem.route]))"
+            [attr.aria-label]="menuLabel(menuItem.name)"
+            matRipple
+            [matRippleDisabled]="!ripple"
+            [matTooltip]="menuLabel(menuItem.name)"
+            matTooltipPosition="right"
+            [matTooltipDisabled]="!isCollapsed"
+          >
             <ng-container
-              [ngTemplateOutlet]="menuListTpl"
-              [ngTemplateOutletContext]="{
-                menuList: menuItem.children,
-                parentRoute: parentRoute.concat([menuItem.route]),
-                level: level + 1,
-                expanded: navItem.expanded,
-              }"
+              [ngTemplateOutlet]="linkTypeTpl"
+              [ngTemplateOutletContext]="{ item: menuItem, level: level }"
             />
-          }
-        </li>
+          </a>
+        }
+
+        @if (menuItem.type === 'extLink' && !menuItem.disabled && isSafeExternalUrl(menuItem.route)) {
+          <a
+            class="menu-heading"
+            [href]="menuItem.route"
+            [attr.aria-label]="menuLabel(menuItem.name)"
+            matRipple
+            [matRippleDisabled]="!ripple"
+            [matTooltip]="menuLabel(menuItem.name)"
+            matTooltipPosition="right"
+            [matTooltipDisabled]="!isCollapsed"
+          >
+            <ng-container
+              [ngTemplateOutlet]="linkTypeTpl"
+              [ngTemplateOutletContext]="{ item: menuItem, level: level }"
+            />
+          </a>
+        }
+
+        @if (menuItem.type === 'extTabLink' && !menuItem.disabled && isSafeExternalUrl(menuItem.route)) {
+          <a
+            class="menu-heading"
+            [href]="menuItem.route"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="menuLabel(menuItem.name)"
+            matRipple
+            [matRippleDisabled]="!ripple"
+            [matTooltip]="menuLabel(menuItem.name)"
+            matTooltipPosition="right"
+            [matTooltipDisabled]="!isCollapsed"
+          >
+            <ng-container
+              [ngTemplateOutlet]="linkTypeTpl"
+              [ngTemplateOutletContext]="{ item: menuItem, level: level }"
+            />
+          </a>
+        }
+
+        @if (
+          (menuItem.type === 'link' && menuItem.disabled) ||
+          ((menuItem.type === 'extLink' || menuItem.type === 'extTabLink') &&
+            (menuItem.disabled || !isSafeExternalUrl(menuItem.route)))
+        ) {
+          <span
+            class="menu-heading nt-menu-disabled"
+            role="link"
+            aria-disabled="true"
+            [attr.aria-label]="menuLabel(menuItem.name) + ', indisponível'"
+            [title]="menuItem.type === 'link' ? 'Tela ainda não disponível na prévia UX' : 'Integração externa não configurada'"
+          >
+            <ng-container
+              [ngTemplateOutlet]="linkTypeTpl"
+              [ngTemplateOutletContext]="{ item: menuItem, level: level }"
+            />
+            <span class="nt-visually-hidden">Indisponível</span>
+          </span>
+        }
+
+        @if (menuItem.type === 'sub') {
+          <button
+            type="button"
+            navAccordionToggle
+            class="menu-heading menu-toggle"
+            [attr.aria-label]="menuLabel(menuItem.name)"
+            [attr.aria-expanded]="navItem.expanded"
+            matRipple
+            [matRippleDisabled]="!ripple"
+            [matTooltip]="menuLabel(menuItem.name)"
+            matTooltipPosition="right"
+            [matTooltipDisabled]="!isCollapsed"
+          >
+            <ng-container
+              [ngTemplateOutlet]="linkTypeTpl"
+              [ngTemplateOutletContext]="{ item: menuItem, level: level }"
+            />
+          </button>
+
+          <ng-container
+            [ngTemplateOutlet]="menuListTpl"
+            [ngTemplateOutletContext]="{
+              menuList: menuItem.children,
+              parentRoute: parentRoute.concat([menuItem.route]),
+              level: level + 1,
+              expanded: navItem.expanded
+            }"
+          />
+        }
+      </li>
     }
   </ul>
 </ng-template>
 
 <ng-template #linkTypeTpl let-item="item" let-level="level">
   @if (item.icon) {
-    <i [class]="item.icon + ' menu-icon'" [class.submenu-icon]="level > 0"></i>
-  } @else {
-    <span class="menu-icon" [class.submenu-icon]="level > 0">
-      {{ item.name | translate | slice: 0 : 1 }}
-    </span>
+    <svg
+      class="menu-icon"
+      [class.submenu-icon]="level > 0"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      @for (path of iconPaths(item); track path) {
+        <path [attr.d]="path"></path>
+      }
+    </svg>
   }
-  <span class="menu-name">{{ item.name | translate }}</span>
+
+  <span class="menu-name">{{ menuLabel(item.name) }}</span>
+
   @if (item.label) {
     <span class="menu-label bg-{{ item.label.color }}">{{ item.label.value }}</span>
   }
+
   @if (item.badge) {
     <span class="menu-badge bg-{{ item.badge.color }}">{{ item.badge.value }}</span>
   }
-  @if (item.type !== 'link') {
-    <i class="menu-caret pi" [ngClass]="item.type === 'sub' ? 'pi-chevron-down' : 'pi-external-link'"></i>
+
+  @if (item.type === 'sub') {
+    <svg class="menu-caret" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 9l6 6 6-6"></path>
+    </svg>
+  }
+
+  @if ((item.type === 'extLink' || item.type === 'extTabLink') && !item.disabled && isSafeExternalUrl(item.route)) {
+    <svg class="menu-caret" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 17 17 7M9 7h8v8"></path>
+    </svg>
   }
 </ng-template>
-

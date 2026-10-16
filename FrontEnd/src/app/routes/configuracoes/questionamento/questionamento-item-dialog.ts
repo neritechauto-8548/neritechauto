@@ -5,15 +5,15 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { MatIconModule } from '@angular/material/icon';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { TipoPergunta, PerguntaItem } from './questionamento';
+import { NeriTechIcon } from '@shared/components';
 
 @Component({
   selector: 'app-questionamento-item-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, Select, MatIconModule, ToastModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, Select, ToastModule, NeriTechIcon],
   templateUrl: './questionamento-item-dialog.html',
 })
 export class QuestionamentoItemDialog implements OnInit {
