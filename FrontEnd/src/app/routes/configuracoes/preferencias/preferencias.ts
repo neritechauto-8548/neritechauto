@@ -85,8 +85,10 @@ export class PreferenciasGeraisComponent implements OnInit {
   alternarStatus(): void {
     if (!this.current || this.saving || this.current.versao == null) return;
     const item = this.current;
+    const versao = item.versao;
+    if (versao == null) return;
     this.saving = true; this.formError = '';
-    this.api.status(item.chave, !item.ativo, item.versao)
+    this.api.status(item.chave, !item.ativo, versao)
       .pipe(finalize(() => this.saving = false)).subscribe({
         next: data => {
           this.current = data;
