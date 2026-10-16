@@ -31,6 +31,16 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'transportadoras',
+    canActivate: [permissionGuard],
+    loadComponent: () => import('./transportadoras/transportadoras').then(m => m.TransportadorasComponent),
+    data: {
+      title: 'Transportadoras',
+      requiredPermissions: ['GERAL_CONFIG_SISTEMA', 'FORN_LISTAR_PEDIDOS'],
+      permissionMode: 'any'
+    }
+  },
+  {
     path: 'seguradoras',
     canActivate: [permissionGuard],
     loadComponent: () => import('./seguradoras/seguradoras').then(m => m.SeguradorasComponent),
