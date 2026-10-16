@@ -1,6 +1,7 @@
 package com.neritech.saas.produtoServico.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import com.neritech.saas.common.tenancy.TenantAccess;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,14 +37,22 @@ public class ProdutoFornecedorService {
 
     @Transactional
     public ProdutoFornecedorResponse create(ProdutoFornecedorRequest request) {
+        Long tenant = TenantAccess.requireCurrent();
+        TenantAccess.require(entity.getFornecedor().getEmpresaId());
         Produto produto = produtoRepository.findById(request.produtoId())
                 .orElseThrow(
                         () -> new EntityNotFoundException("Produto nÃ£o encontrado com ID: " + request.produtoId()));
 
+        TenantAccess.require(produto.getEmpresaId());
         Fornecedor fornecedor = fornecedorRepository.findById(request.fornecedorId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Fornecedor nÃ£o encontrado com ID: " + request.fornecedorId()));
 
+        TenantAccess.require(fornecedor.getEmpresaId());
+        if (!Boolean.TRUE.equals(fornecedor.getAtivo())) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+                    "Fornecedor inativo para novas cotações");
+        }
         ProdutoFornecedor entity = mapper.toEntity(request);
         entity.setProduto(produto);
         entity.setFornecedor(fornecedor);
@@ -55,13 +64,16 @@ public class ProdutoFornecedorService {
     @Transactional(readOnly = true)
     public ProdutoFornecedorResponse findById(Long id) {
         return repository.findById(id)
-                .map(mapper::toResponse)
+                .map(p -> { TenantAccess.require(p.getFornecedor().getEmpresaId()); return mapper.toResponse(p); })
                 .orElseThrow(
                         () -> new EntityNotFoundException("RelaÃ§Ã£o Produto-Fornecedor nÃ£o encontrada com ID: " + id));
     }
 
     @Transactional(readOnly = true)
     public Page<ProdutoFornecedorResponse> findByProduto(Long produtoId, Pageable pageable) {
+        Produto produto = produtoRepository.findById(produtoId)
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+        TenantAccess.require(produto.getEmpresaId());
         if (!produtoRepository.existsById(produtoId)) {
             throw new EntityNotFoundException("Produto nÃ£o encontrado com ID: " + produtoId);
         }
@@ -71,6 +83,9 @@ public class ProdutoFornecedorService {
 
     @Transactional(readOnly = true)
     public Page<ProdutoFornecedorResponse> findByFornecedor(Long fornecedorId, Pageable pageable) {
+        Fornecedor fornecedor = fornecedorRepository.findById(fornecedorId)
+                .orElseThrow(() -> new EntityNotFoundException("Fornecedor não encontrado"));
+        TenantAccess.require(fornecedor.getEmpresaId());
         if (!fornecedorRepository.existsById(fornecedorId)) {
             throw new EntityNotFoundException("Fornecedor nÃ£o encontrado com ID: " + fornecedorId);
         }
@@ -92,6 +107,12 @@ public class ProdutoFornecedorService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Fornecedor nÃ£o encontrado com ID: " + request.fornecedorId()));
 
+        TenantAccess.require(produto.getEmpresaId());
+        TenantAccess.require(fornecedor.getEmpresaId());
+        if (!Boolean.TRUE.equals(fornecedor.getAtivo())) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+                    "Fornecedor inativo para novas cotações");
+        }
         mapper.updateEntityFromRequest(request, entity);
         entity.setProduto(produto);
         entity.setFornecedor(fornecedor);
@@ -102,9 +123,9 @@ public class ProdutoFornecedorService {
 
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("RelaÃ§Ã£o Produto-Fornecedor nÃ£o encontrada com ID: " + id);
-        }
-        repository.deleteById(id);
+        ProdutoFornecedor relation = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Relação Produto-Fornecedor não encontrada"));
+        TenantAccess.require(relation.getFornecedor().getEmpresaId());
+        repository.delete(relation);
     }
 }
