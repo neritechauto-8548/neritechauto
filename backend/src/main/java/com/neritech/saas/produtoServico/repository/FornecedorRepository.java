@@ -63,7 +63,9 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
     @org.springframework.data.jpa.repository.Query("""
         SELECT f FROM Fornecedor f WHERE f.empresaId = :tenant
         AND f.transportadora = true
-        AND (:ativo IS NULL OR f.ativo = :ativo)
+        AND (:ativo IS NULL OR
+          (:ativo = true AND f.ativo = true AND f.transportadoraAtiva = true) OR
+          (:ativo = false AND (f.ativo = false OR f.transportadoraAtiva = false)))
         AND (:regiao IS NULL OR :regiao = '' OR
              LOWER(f.cidade) LIKE LOWER(CONCAT('%', :regiao, '%')) OR
              LOWER(f.estado) = LOWER(:regiao))
