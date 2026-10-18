@@ -48,6 +48,11 @@ export const routes: Routes = [
         loadChildren: () => import('./routes/os/os.routes').then(m => m.routes),
       },
       {
+        path: 'patio',
+        data: { title: 'Gestão de Pátio', requiredPermissions: ['GERAL_USUARIO', 'ADMIN'], permissionMode: 'any' },
+        loadComponent: () => import('./routes/patio/patio').then(m => m.PatioComponent),
+      },
+      {
         path: 'pdv',
         loadChildren: () => import('./routes/pdv/pdv.routes').then(m => m.routes),
       },

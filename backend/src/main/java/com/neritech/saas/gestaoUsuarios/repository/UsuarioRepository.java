@@ -17,7 +17,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     java.util.List<Usuario> findAllByEmpresaId(Long empresaId);
     @org.springframework.data.jpa.repository.Query("select distinct u from Usuario u left join u.funcoes f " +
             "where u.empresaId=:empresaId and (:ativo is null or u.ativo=:ativo) " +
-            "and (:q is null or lower(u.nomeCompleto) like lower(concat('%',:q,'%')) " +
+            "and (lower(u.nomeCompleto) like lower(concat('%',:q,'%')) " +
             "or lower(u.email) like lower(concat('%',:q,'%')) or lower(f.nome) like lower(concat('%',:q,'%')))")
     org.springframework.data.domain.Page<Usuario> searchByTenant(
             @org.springframework.data.repository.query.Param("empresaId") Long empresaId,

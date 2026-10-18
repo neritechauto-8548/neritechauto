@@ -19,7 +19,7 @@ public class TrialController {
     private final TrialService trialService;
 
     @PostMapping("/register")
-    @Operation(summary = "Registrar nova empresa para 180 dias de teste")
+    @Operation(summary = "Registrar nova empresa para 14 dias de teste")
     public ResponseEntity<TrialRegisterResponse> register(@Valid @RequestBody TrialRegisterRequest request) {
         try {
             TrialRegisterResponse response = trialService.registerTrial(request);

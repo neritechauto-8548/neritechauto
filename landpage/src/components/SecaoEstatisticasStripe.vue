@@ -37,7 +37,7 @@ const items = [
   { value: '+2h', label: 'economizadas por dia no controle manual' },
   { value: '+40%', label: 'de aprovação com orçamento digital' },
   { value: '100%', label: 'nuvem — PC, tablet e celular' },
-  { value: '180', label: 'dias para testar sem cartão de crédito' },
+  { value: '14', label: 'dias para testar sem cartão de crédito' },
 ];
 
 const pillars = [

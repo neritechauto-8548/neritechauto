@@ -67,13 +67,18 @@ public class FornecedorService {
     @Transactional(readOnly = true)
     public Page<FornecedorResponse> search(Long empresaId, String query, Pageable pageable) {
         TenantAccess.require(empresaId);
-        return repository.search(empresaId, query, pageable).map(mapper::toResponse);
+        return repository.search(empresaId, filtroTexto(query), pageable).map(mapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<FornecedorResponse> filter(Long empresaId, String termo, Boolean ativo, String cidade, Pageable pageable) {
         TenantAccess.require(empresaId);
-        return repository.filter(empresaId, termo, ativo, cidade, pageable).map(mapper::toResponse);
+        return repository.filter(empresaId, filtroTexto(termo), ativo, filtroTexto(cidade), pageable)
+                .map(mapper::toResponse);
+    }
+
+    private static String filtroTexto(String value) {
+        return value == null || value.isBlank() ? "" : value.trim();
     }
 
     @Transactional

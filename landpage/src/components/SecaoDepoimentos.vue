@@ -52,7 +52,7 @@
           <h3>Seja um dos primeiros a usar</h3>
           <p>
             Vagas abertas para oficinas que querem digitalizar a gestão com preço especial de lançamento.
-            180 dias grátis, sem cartão de crédito.
+            14 dias grátis, sem cartão de crédito.
           </p>
         </div>
         <router-link to="/teste-gratis" class="btn btn-primary eab-cta" id="early-access-cta">

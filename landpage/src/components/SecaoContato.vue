@@ -7,7 +7,7 @@
         <div class="contact-info aos-init">
           <span class="section-label">Fale Conosco</span>
           <h2 class="contact-title">Fale com quem <span class="text-gradient">entende de oficina.</span></h2>
-          <p class="contact-subtitle">Tire suas dúvidas sobre o sistema, planos ou integrações. Respondemos em até 1 dia útil.</p>
+          <p class="contact-subtitle">Tire suas dúvidas sobre o sistema, os planos ou a implantação. Nossa equipe responde em horário comercial.</p>
 
           <div class="contact-channels">
             <a
@@ -67,7 +67,7 @@
 
             <Button type="submit" class="btn-submit" :disabled="submitted" :label="submitted ? 'Mensagem enviada! ✓' : 'Enviar Mensagem'" icon="pi pi-send" iconPos="right" />
 
-            <p class="form-note">Respondemos em até 2 horas úteis via Chat Online ou e-mail.</p>
+            <p class="form-note">Retornaremos pelo contato informado em horário comercial.</p>
           </form>
         </div>
 
@@ -118,7 +118,7 @@ const openChat = (e) => {
 /* ── Info ── */
 .contact-title {
   font-size: clamp(2.125rem, 4vw, 3rem);
-  font-weight: 300;
+  font-weight: 600;
   color: var(--midnight-navy);
   letter-spacing: -0.04em;
   line-height: 1.06;

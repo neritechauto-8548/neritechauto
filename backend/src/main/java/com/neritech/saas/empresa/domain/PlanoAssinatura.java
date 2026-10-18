@@ -67,7 +67,7 @@ public class PlanoAssinatura extends BaseEntity {
     private SuporteTecnico suporteTecnico;
 
     @Column(name = "periodo_teste_dias")
-    private Integer periodoTesteDias = 15;
+    private Integer periodoTesteDias = 14;
 
     @Column(name = "ativo")
     private Boolean ativo = true;

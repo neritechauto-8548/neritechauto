@@ -66,7 +66,9 @@ public class UsuarioService {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY, "Paginação inválida");
         }
-        String normalized = query == null || query.isBlank() ? null : query.trim();
+        // PostgreSQL infere um parâmetro String nulo usado em lower/concat como bytea.
+        // A string vazia mantém a semântica de "sem filtro" por resultar em LIKE '%%'.
+        String normalized = query == null || query.isBlank() ? "" : query.trim();
         return usuarioRepository.searchByTenant(empresaId, normalized, ativo, pageable).map(this::toResponse);
     }
 
@@ -331,6 +333,12 @@ public class UsuarioService {
                     assinatura.getGracePeriodEndsAt() != null && 
                     assinatura.getGracePeriodEndsAt().isBefore(java.time.LocalDateTime.now())) {
                     status = com.neritech.saas.empresa.domain.enums.StatusAssinatura.SUSPENSO;
+                }
+
+                if (status == com.neritech.saas.empresa.domain.enums.StatusAssinatura.TESTE) {
+                    if (com.neritech.saas.trial.service.TrialPolicy.isExpired(assinatura)) {
+                        status = com.neritech.saas.empresa.domain.enums.StatusAssinatura.INATIVO;
+                    }
                 }
 
                 // Validação de assinatura ativa/liberada

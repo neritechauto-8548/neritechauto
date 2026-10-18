@@ -94,8 +94,7 @@ export class CadastroCliente implements OnInit {
       { label: 'Dados Gerais' },
       { label: 'Endereço' },
       { label: 'Contatos' },
-      { label: 'Veículos' },
-      { label: 'Documentos' }
+      { label: 'Veículos' }
   ];
   savedClienteId: string | number | null = null;
 
@@ -253,7 +252,6 @@ export class CadastroCliente implements OnInit {
         // Carrega listas dependentes
         this.loadContatos(id);
         this.loadEnderecos(id);
-        this.loadDocumentos(id);
         this.loadVeiculos(id);
       },
       error: (err) => {

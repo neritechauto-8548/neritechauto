@@ -3,6 +3,7 @@ package com.neritech.saas.common.exception;
 import com.neritech.saas.common.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.RollbackException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,8 +37,8 @@ public class GlobalExceptionHandler {
         return buildErrorResponse("BUSINESS_RULE", ex.getMessage(), null, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler({ResourceNotFoundException.class, EntityNotFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleNotFound(Exception ex) {
         return buildErrorResponse("NOT_FOUND", ex.getMessage(), null, HttpStatus.NOT_FOUND);
     }
 

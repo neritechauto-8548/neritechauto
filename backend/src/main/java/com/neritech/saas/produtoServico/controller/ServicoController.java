@@ -46,11 +46,10 @@ public class ServicoController {
     public ResponseEntity<Page<ServicoResponse>> findAll(
             @RequestParam Long empresaId,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long areaId,
+            @RequestParam(required = false) Boolean ativo,
             Pageable pageable) {
-        if (search != null && !search.isBlank()) {
-            return ResponseEntity.ok(service.search(empresaId, search, pageable));
-        }
-        return ResponseEntity.ok(service.findAll(empresaId, pageable));
+        return ResponseEntity.ok(service.search(empresaId, search, areaId, ativo, pageable));
     }
 
     @PutMapping("/{id}")

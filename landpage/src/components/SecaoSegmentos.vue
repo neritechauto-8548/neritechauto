@@ -3,8 +3,8 @@
     <div class="container">
       <div class="seg-header aos-init">
         <span class="section-label">Para cada tipo de oficina</span>
-        <h2 class="seg-title">Escolha o perfil. A plataforma se adapta.</h2>
-        <p class="seg-subtitle">Mecânica, centro automotivo ou funilaria — o mesmo sistema cobre workflow, estoque, financeiro e comunicação com o cliente.</p>
+        <h2 class="seg-title">Uma rotina organizada para cada tipo de oficina.</h2>
+        <p class="seg-subtitle">Da mecânica à funilaria, acompanhe os serviços, as peças, o financeiro e o histórico dos clientes no mesmo sistema.</p>
       </div>
 
       <!-- Tabs -->
@@ -35,7 +35,7 @@
                 </li>
               </ul>
               <router-link to="/teste-gratis" class="btn btn-primary" id="seg-cta-btn">
-                Experimente grátis por 180 dias →
+                Testar grátis por 14 dias →
               </router-link>
             </div>
             <div class="seg-panel-visual">
@@ -84,14 +84,14 @@ const segments = [
     icon: 'wrench',
     title: 'Oficinas mecânicas',
     route: 'oficina',
-    description: 'Gerencie o fluxo do veículo da entrada à entrega: OS, checklist com fotos, aprovação de orçamento e histórico por placa — em tempo real.',
+    description: 'Acompanhe cada veículo da entrada à entrega, com OS, inspeção com fotos, orçamento e histórico por placa.',
     benefits: [
-      'Workflow do pátio com status por baia',
+      'Pátio com status de cada serviço',
       'Checklist digital com fotos e vídeos',
       'Orçamento aprovado via WhatsApp ou link',
       'Histórico completo por placa e cliente',
     ],
-    screenTitle: 'Workflow — Oficina',
+    screenTitle: 'Pátio — Oficina',
     menuItems: ['Pátio', 'Ordens', 'Clientes', 'Financeiro', 'Estoque'],
     stats: [
       { value: 'Kanban', label: 'Fluxo de OS' },
@@ -172,7 +172,7 @@ const segments = [
 
 .seg-title {
   font-size: clamp(2.125rem, 4vw, 3.125rem);
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.06;
   margin-bottom: 1rem;

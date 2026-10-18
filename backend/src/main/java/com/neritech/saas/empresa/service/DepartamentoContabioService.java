@@ -65,7 +65,30 @@ public class DepartamentoContabioService {
         if (!List.of(20, 50, 100, 1000).contains(pageable.getPageSize())) invalid("Paginação inválida");
         String query = q == null || q.isBlank() ? null : q.trim();
         String type = tipo == null || tipo.isBlank() ? null : tipo.trim();
-        return repository.search(empresaId, query, ativo, type, pageable).map(this::response);
+
+        org.springframework.data.jpa.domain.Specification<DepartamentoContabio> spec = (root, cq, cb) -> {
+            if (cq != null && !Long.class.equals(cq.getResultType()) && !long.class.equals(cq.getResultType())) {
+                root.fetch("empresa", jakarta.persistence.criteria.JoinType.LEFT);
+            }
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("empresa").get("id"), empresaId));
+            if (query != null && !query.isBlank()) {
+                String pattern = "%" + query.toLowerCase() + "%";
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("descricao")), pattern),
+                    cb.like(cb.lower(root.get("codigo")), pattern)
+                ));
+            }
+            if (ativo != null) {
+                predicates.add(cb.equal(root.get("ativo"), ativo));
+            }
+            if (type != null && !type.isBlank()) {
+                predicates.add(cb.equal(root.get("tipoOperacao"), type));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        return repository.findAll(spec, pageable).map(this::response);
     }
 
     @Transactional(readOnly = true)
@@ -123,9 +146,11 @@ public class DepartamentoContabioService {
     private static void conflict(String message) { throw new ResponseStatusException(HttpStatus.CONFLICT, message); }
 
     private DepartamentoContabioResponse response(DepartamentoContabio entity) {
-        Long empresaId = entity.getEmpresa().getId();
-        entity.setNumeroFuncionarios(funcionarioRepository.countByEmpresaIdAndDepartamentoId(empresaId, entity.getId()));
-        entity.setNumeroCargos(cargoRepository.countByEmpresaIdAndAreaId(empresaId, entity.getId()));
+        Long empresaId = entity.getEmpresa() != null ? entity.getEmpresa().getId() : null;
+        if (empresaId != null) {
+            entity.setNumeroFuncionarios(funcionarioRepository.countByEmpresaIdAndDepartamentoId(empresaId, entity.getId()));
+            entity.setNumeroCargos(cargoRepository.countByEmpresaIdAndAreaId(empresaId, entity.getId()));
+        }
         entity.setNumeroServicos(0L);
         return mapper.toResponse(entity);
     }

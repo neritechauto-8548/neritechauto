@@ -1,0 +1,359 @@
+<main #pageRoot class="patio" [class.patio--expanded]="expanded" [class.patio--fullscreen]="nativeFullscreen" aria-labelledby="patio-title">
+  <header class="patio-header">
+    <div>
+      <p class="eyebrow">Oficina · PATIO-001</p>
+      <h1 id="patio-title">Gestão de Pátio</h1>
+      <p class="subtitle">Ordens de serviço em andamento, com dados da empresa autenticada.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="action" (click)="reload()" [disabled]="refreshing">Atualizar</button>
+      @if (expanded) {
+        <button type="button" class="action" (click)="restore()">Restaurar</button>
+      } @else {
+        <button type="button" class="action" (click)="expand()">Expandir tela</button>
+      }
+      <button type="button" class="action" (click)="fullscreen()">Tela cheia</button>
+      <a class="action" [href]="newTabUrl" target="_blank" rel="noopener noreferrer">Abrir em nova aba</a>
+      @if (canCreateOrder) { <a class="action action--primary" routerLink="/os/cadastro">Nova OS</a> }
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <nav class="view-tabs" aria-label="Visões do Pátio">
+      <button type="button" [attr.aria-current]="view === 'kanban' ? 'page' : null" (click)="selectView('kanban')">Kanban</button>
+      <button type="button" [attr.aria-current]="view === 'lista' ? 'page' : null" (click)="selectView('lista')">Lista</button>
+      <button type="button" [attr.aria-current]="view === 'agenda' ? 'page' : null" (click)="selectView('agenda')">Agenda</button>
+      <button type="button" [attr.aria-current]="view === 'boxes' ? 'page' : null" (click)="selectView('boxes')">Boxes</button>
+      <button type="button" [attr.aria-current]="view === 'alertas' ? 'page' : null" (click)="selectView('alertas')">Alertas</button>
+      <button type="button" [attr.aria-current]="view === 'tv' ? 'page' : null" (click)="selectView('tv')">Painel TV</button>
+    </nav>
+    @if (view === 'tv' && tvBoard) {
+      <p class="updated" role="status">{{ tvBoard.count }} OS em aberto · atualizado {{ tvBoard.updatedAt | date:'shortTime' }}</p>
+    } @else if (view === 'alertas' && alertBoard) {
+      <p class="updated" role="status">{{ alertBoard.count }} alerta(s) · atualizado {{ alertBoard.updatedAt | date:'shortTime' }}</p>
+    } @else if (view !== 'boxes' && board) {
+      <p class="updated" role="status">{{ board.count }} OS em aberto · atualizado {{ board.updatedAt | date:'shortTime' }}
+        @if (refreshing) { · atualizando… }
+      </p>
+    }
+  </div>
+
+  @if (view !== 'tv' && view !== 'boxes' && view !== 'alertas') {
+    <form class="filters" (submit)="$event.preventDefault(); applyFilters()" aria-label="Filtros do Pátio">
+      <label>{{ canReadClients ? 'Buscar placa, OS ou cliente' : 'Buscar placa ou OS' }}
+        <input type="search" name="search" [(ngModel)]="filters.search" (ngModelChange)="onSearch()" maxlength="100" placeholder="Ex.: ABC1D23" />
+      </label>
+      <label>Etapa
+        <select name="status" [(ngModel)]="filters.statusId" (ngModelChange)="applyFilters()">
+          <option [ngValue]="null">Todas</option>
+          @for (column of columns; track column.id) { <option [ngValue]="column.id">{{ column.nome }}</option> }
+        </select>
+      </label>
+      <label>Responsável da OS
+        <select name="responsavel" [(ngModel)]="filters.responsavelId" (ngModelChange)="applyFilters()">
+          <option [ngValue]="null">Todos</option>
+          @for (person of team; track person.id) { <option [ngValue]="person.id">{{ person.nome }}</option> }
+        </select>
+      </label>
+      <label>Prioridade
+        <select name="priority" [(ngModel)]="filters.prioridade" (ngModelChange)="applyFilters()">
+          <option value="">Todas</option><option value="BAIXA">Baixa</option><option value="NORMAL">Normal</option>
+          <option value="ALTA">Alta</option><option value="URGENTE">Urgente</option>
+        </select>
+      </label>
+      <label>Prazo
+        <select name="late" [(ngModel)]="filters.atrasado" (ngModelChange)="applyFilters()">
+          <option [ngValue]="null">Todos</option><option [ngValue]="true">Atrasadas</option>
+          <option [ngValue]="false">No prazo</option>
+        </select>
+      </label>
+      <button type="submit" class="action">Aplicar filtros</button>
+    </form>
+  }
+
+  @if (error) {
+    <nt-data-view-state [kind]="error" [title]="error === 'forbidden' ? 'Acesso negado ao Pátio' : 'Não foi possível atualizar o Pátio'"
+      [description]="(board || tvBoard || alertBoard || resourcesLoaded) ? 'Os dados exibidos podem estar desatualizados. Tente novamente.' : 'Confira a conexão ou sua sessão e tente novamente.'"
+      [retryAvailable]="error !== 'forbidden'" (retry)="reload()" />
+  }
+  @if (loading && !board && !tvBoard && !resourcesLoaded) { <nt-data-view-state kind="loading" /> }
+  @if (!loading && !error && board?.count === 0 && view !== 'boxes' && view !== 'tv' && view !== 'alertas') {
+    <nt-data-view-state kind="empty" title="Nenhuma OS para estes filtros"
+      description="As ordens criadas na Oficina aparecerão aqui quando estiverem em andamento." />
+  }
+
+  @if (board && board.count > 0 && view === 'kanban') {
+    <section class="board" aria-label="Kanban das ordens de serviço" cdkDropListGroup>
+      @for (column of columns; track column.id) {
+        <section class="lane" [attr.aria-label]="column.nome" cdkDropList [cdkDropListData]="column" (cdkDropListDropped)="drop($event)">
+          <header class="lane-header"><span class="lane-dot" [style.background]="column.cor || '#64748b'"></span>
+            <h2>{{ column.nome }}</h2><span class="count">{{ cardsFor(column).length }}</span></header>
+          <div class="lane-cards">
+            @for (card of cardsFor(column); track card.osId) {
+              <article class="os-card" cdkDrag [cdkDragData]="card" [cdkDragDisabled]="!canMove || movingId !== null">
+                <div class="card-top"><strong>OS {{ card.numeroOS }}</strong>
+                  @if (card.atrasado) { <span class="alert">Atrasada</span> }
+                </div>
+                @if (card.prioridade === 'ALTA' || card.prioridade === 'URGENTE') {
+                  <span class="alert">Prioridade {{ card.prioridade === 'URGENTE' ? 'urgente' : 'alta' }}</span>
+                }
+                @if (blocker(card); as reason) { <span class="alert">{{ reason }}</span> }
+                <p class="vehicle">{{ card.placa || 'Sem placa' }} · {{ card.modelo || 'Modelo não informado' }}</p>
+                @if (canReadClients) { <p class="muted">{{ card.cliente || 'Cliente não informado' }}</p> }
+                <p class="muted">Responsável: {{ card.responsavel || 'Não atribuído' }}</p>
+                @if (card.boxNome) { <p class="muted">Box ocupado: {{ card.boxNome }}</p> }
+                <div class="progress-label"><span>Serviços {{ card.servicosConcluidos }}/{{ card.servicosTotal }}</span><span>{{ progress(card) }}%</span></div>
+                <progress [value]="card.servicosConcluidos" [max]="card.servicosTotal || 1" [attr.aria-label]="'Progresso da OS ' + card.numeroOS"></progress>
+                @if (card.previsaoEntrega) { <p class="muted">Entrega {{ card.previsaoEntrega | date:'dd/MM HH:mm' }}</p> }
+                @if (card.minutosPrevistos) { <p class="muted">{{ card.minutosTrabalhados }} min trabalhados · {{ remaining(card) }} min restantes</p> }
+                <div class="card-actions">
+                  <button type="button" class="text-action" (click)="openDetail(card)">Ver detalhe</button>
+                  @if (canMove) {
+                    <label class="move-select">Mover para etapa
+                      <select [ngModel]="card.statusId" (ngModelChange)="move(card, $event)" [ngModelOptions]="{standalone: true}"
+                        [disabled]="movingId !== null" [attr.aria-label]="'Mover OS ' + card.numeroOS + ' para etapa'">
+                        <option [ngValue]="card.statusId">{{ card.statusNome }}</option>
+                        @for (target of columns; track target.id) {
+                          @if (allowedTarget(card, target)) { <option [ngValue]="target">{{ target.nome }}</option> }
+                        }
+                      </select>
+                    </label>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </section>
+  }
+
+  @if (board && board.count > 0 && view === 'lista') {
+    <div class="table-wrap"><table><caption>Ordens de serviço em andamento</caption>
+      <thead><tr><th>OS</th><th>Veículo</th>@if (canReadClients) { <th>Cliente</th> }<th>Responsável</th><th>Box</th><th>Etapa</th><th>Entrega</th><th>Progresso</th><th>Ação</th></tr></thead>
+      <tbody>@for (card of cards; track card.osId) {
+        <tr><td>{{ card.numeroOS }}</td><td>{{ card.placa || '—' }} · {{ card.modelo || '—' }}</td>
+          @if (canReadClients) { <td>{{ card.cliente || '—' }}</td> }<td>{{ card.responsavel || '—' }}</td><td>{{ card.boxNome || '—' }}</td>
+          <td>{{ card.statusNome || 'Sem etapa' }}</td><td>{{ card.previsaoEntrega | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ card.servicosConcluidos }}/{{ card.servicosTotal }}</td>
+          <td><button type="button" class="text-action" (click)="openDetail(card)">Detalhe</button></td></tr>
+      }</tbody>
+    </table></div>
+  }
+
+  @if (board && board.count > 0 && view === 'agenda') {
+    <section class="agenda" aria-label="Prazos de entrega das OS">
+      <h2>Entregas previstas</h2>
+      @for (card of cards; track card.osId) {
+        @if (card.previsaoEntrega) {
+          <div class="agenda-row"><time [attr.datetime]="card.previsaoEntrega">{{ card.previsaoEntrega | date:'dd/MM HH:mm' }}</time>
+            <span>OS {{ card.numeroOS }} · {{ card.placa || 'Sem placa' }}</span>
+            <span>{{ card.statusNome }}</span><button type="button" class="text-action" (click)="openDetail(card)">Detalhe</button></div>
+        }
+      }
+      <p class="muted">Datas de entrega da OS. Reservas de recursos permanecem na Agenda.</p>
+    </section>
+  }
+
+  @if (view === 'boxes' && resourcesLoaded) {
+    <section class="agenda" aria-label="Boxes e recursos da Agenda">
+      <h2>Boxes e recursos</h2>
+      <label>Dia das reservas <input type="date" [(ngModel)]="selectedDay" (ngModelChange)="reload()" /></label>
+      @if (reservationBoard?.legadoIndeterminado) {
+        <p class="alert" role="status">Há agendamentos antigos com recursos não normalizados neste dia. Reservas coincidentes serão recusadas até conferência na Agenda.</p>
+      }
+      <p class="muted">Ocupação confirmada apenas pelas reservas de OS registradas nesta área. Recursos legados incertos não são mostrados como livres.</p>
+      @if (!resources.length) { <p>Nenhuma baia ou elevador cadastrado.</p> }
+      @for (resource of resources; track resource.id) {
+        <div class="agenda-row"><strong>{{ resource.nome }}</strong><span>{{ resource.tipo }}</span>
+          <span>Capacidade {{ resource.capacidade }}</span><span>{{ resource.localizacao || 'Local não informado' }}</span>
+          <span>{{ resource.habilitado ? 'Habilitado' : 'Indisponível' }}</span>
+          <span>{{ occupiedCount(resource.id) }} ocupado(s) · {{ reservationsFor(resource.id).length }} reserva(s) no dia</span></div>
+        @for (reservation of reservationsFor(resource.id); track reservation.id) {
+          <div class="agenda-row reservation-row">
+            <strong>OS {{ reservation.numeroOS }}</strong>
+            <time [attr.datetime]="reservation.inicio">{{ reservation.inicio | date:'HH:mm' }}</time>
+            <span>até {{ reservation.fim | date:'HH:mm' }}</span><span>{{ reservation.estado }}</span>
+            @if (canManageResources) {
+              @if (reservation.estado === 'RESERVADO') {
+                <button type="button" class="action" [disabled]="reservationBusyId !== null" (click)="reservationAction(reservation, 'occupy')">Marcar ocupado</button>
+                <button type="button" class="action" [disabled]="reservationBusyId !== null" (click)="reservationAction(reservation, 'cancel')">Cancelar reserva</button>
+              } @else if (reservation.estado === 'OCUPADO') {
+                <button type="button" class="action" [disabled]="reservationBusyId !== null" (click)="reservationAction(reservation, 'release')">Liberar recurso</button>
+              }
+            }
+          </div>
+        }
+      }
+      @if (canOpenAgenda) { <a class="action" routerLink="/agendamento/calendario">Abrir Agenda</a> }
+    </section>
+  }
+
+  @if (view === 'alertas' && alertBoard) {
+    <section class="agenda" aria-label="Alertas operacionais da OS">
+      <h2>Alertas operacionais</h2>
+      <p class="muted">Condições derivadas das OS reais. Reconhecer ou resolver um alerta não altera a condição da OS.</p>
+      @if (canManageAlerts) {
+        <div class="alert-controls">
+          <label>Motivo para adiar (mínimo 10 caracteres) <input type="text" maxlength="500" [(ngModel)]="alertReason" /></label>
+          <label>Adiar até <input type="datetime-local" [(ngModel)]="alertUntil" /></label>
+        </div>
+      }
+      @if (!alertBoard.count) { <p>Nenhum alerta ativo nesta empresa.</p> }
+      @for (alert of alertBoard.alertas; track alert.id) {
+        <article class="alert-entry">
+          <div class="agenda-row"><strong>OS {{ alert.numeroOS }}</strong><span class="alert">{{ alert.severidade }}</span>
+            <span>{{ alert.estado }}</span><span>{{ alert.motivo }}</span>
+            <span>Responsável: {{ alert.responsavel || 'Não atribuído' }}</span>
+            <time [attr.datetime]="alert.detectadoEm">Desde {{ alert.detectadoEm | date:'dd/MM HH:mm' }}</time>
+            @if (alert.adiadoAte) { <span>Adiado até {{ alert.adiadoAte | date:'dd/MM HH:mm' }}</span> }
+          </div>
+          @if (canManageAlerts) {
+            <div class="timer-actions">
+              @if (alert.estado === 'OPEN') {
+                <button type="button" class="action" [disabled]="alertBusyId !== null" (click)="alertAction(alert, 'acknowledge')">Reconhecer</button>
+              }
+              @if (alert.estado !== 'SNOOZED' && alert.severidade !== 'CRITICA') {
+                <button type="button" class="action" [disabled]="alertBusyId !== null || alertReason.trim().length < 10 || !alertUntil"
+                  (click)="alertAction(alert, 'snooze')">Adiar com motivo</button>
+              }
+              <button type="button" class="action" [disabled]="alertBusyId !== null" (click)="alertAction(alert, 'resolve')">Marcar resolvido</button>
+            </div>
+          }
+          <details><summary (click)="loadAlertHistory(alert.id)">Histórico do alerta</summary>
+            @for (event of alertEvents[alert.id] || []; track event.id) {
+              <p>{{ event.criadoEm | date:'dd/MM HH:mm' }} · {{ event.estadoAntes || 'NOVO' }} → {{ event.estadoDepois }} · {{ event.motivo }}</p>
+            }
+          </details>
+        </article>
+      }
+      @if (alertBoard.count > 20) {
+        <div class="pagination"><span>Página {{ alertPage + 1 }}</span>
+          <button type="button" class="action" [disabled]="alertPage === 0 || refreshing" (click)="changeAlertPage(-1)">Anterior</button>
+          <button type="button" class="action" [disabled]="(alertPage + 1) * 20 >= alertBoard.count || refreshing" (click)="changeAlertPage(1)">Próxima</button>
+        </div>
+      }
+    </section>
+  }
+
+  @if (tvBoard && view === 'tv') {
+    <section class="tv" aria-label="Painel TV somente leitura">
+      <h2>Acompanhamento da oficina</h2>
+      <p>Visão somente leitura · {{ tvBoard.updatedAt | date:'shortTime' }}</p>
+      <div class="tv-columns">@for (stage of tvBoard.stages; track stage.etapa) {
+        <div class="tv-column"><h3>{{ stage.etapa }}</h3><strong>{{ stage.total }}</strong>
+          @if (stage.atrasadas) { <p>{{ stage.atrasadas }} com prazo ultrapassado</p> }
+        </div>
+      }</div>
+      <p class="muted">Resumo completo, sem dados de clientes, veículos ou valores.</p>
+    </section>
+  }
+
+  @if (board && board.count > 0 && view !== 'tv' && view !== 'boxes' && view !== 'alertas') {
+    <footer class="pagination">
+      <span>Exibindo {{ cards.length }} de {{ board.count }} · página {{ page + 1 }}</span>
+      <label>Por página <select [(ngModel)]="size" (ngModelChange)="changeSize()" aria-label="Itens por página">
+        <option [ngValue]="20">20</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option></select></label>
+      <button type="button" class="action" (click)="changePage(-1)" [disabled]="page === 0 || refreshing">Anterior</button>
+      <button type="button" class="action" (click)="changePage(1)" [disabled]="lastPage || refreshing">Próxima</button>
+    </footer>
+  }
+
+  @if (detailCard && view !== 'tv') {
+    <div class="drawer-shade" (click)="closeDetail()"></div>
+    <aside class="detail" role="dialog" aria-modal="true" cdkTrapFocus [cdkTrapFocusAutoCapture]="true"
+      [attr.aria-label]="'Detalhes da OS ' + detailCard.numeroOS">
+      <header><div><p class="eyebrow">Ordem de serviço</p><h2>OS {{ detailCard.numeroOS }}</h2></div>
+        <button type="button" class="action" (click)="closeDetail()" aria-label="Fechar detalhes">Fechar</button></header>
+      @if (detailLoading) { <nt-data-view-state kind="loading" /> }
+      @if (detailError) { <nt-data-view-state kind="error" title="Detalhe indisponível" /> }
+      @if (detail) {
+        <dl class="detail-facts"><div><dt>Veículo</dt><dd>{{ detail.placaVeiculo || detailCard.placa || '—' }} · {{ detail.nomeVeiculo || detailCard.modelo || '—' }}</dd></div>
+          <div><dt>Cliente</dt><dd>{{ detail.nomeCliente || detailCard.cliente || '—' }}</dd></div>
+          <div><dt>Etapa</dt><dd>{{ detail.statusNome || detailCard.statusNome || '—' }}</dd></div>
+          <div><dt>Entrega prevista</dt><dd>{{ detail.dataPromessa | date:'dd/MM/yyyy HH:mm' }}</dd></div></dl>
+        <h3>Serviços</h3>
+        @if (!detailServices.length) { <p class="muted">Nenhum serviço cadastrado nesta OS.</p> }
+        @for (item of detailServices; track item.id) {
+          <div class="service-row"><strong>{{ item.descricao || item.nomeServico || 'Serviço' }}</strong>
+            <span>{{ item.statusExecucao || 'PENDENTE' }} · {{ item.tempoExecucaoPrevisto || 0 }} min previstos</span>
+            @if (canAssign && team.length) {
+              <label class="move-select">Responsável
+                <select [ngModel]="item.mecanicoExecutorId || null" (ngModelChange)="assign(item, $event)"
+                  [disabled]="assigningId !== null || item.statusExecucao === 'CONCLUIDO' || item.statusExecucao === 'CANCELADO'"
+                  [ngModelOptions]="{standalone: true}">
+                  <option [ngValue]="null">Sem responsável</option>
+                  @for (person of team; track person.id) { <option [ngValue]="person.id">{{ person.nome }}</option> }
+                </select>
+              </label>
+            }
+            <div class="timer">
+              @if (activeTimer(item.id); as running) {
+                <span role="timer">{{ seconds(running) }} s ativos · {{ running.estado === 'PAUSADO' ? 'pausado' : 'em execução' }}</span>
+                @if (item.mecanicoExecutorId === myEmployeeId) {
+                  <div class="timer-actions">
+                    @if (running.estado === 'EM_EXECUCAO') {
+                      <button type="button" class="action" [disabled]="timerBusyItem !== null" (click)="timerAction(item, 'pause')">Pausar</button>
+                    } @else {
+                      <button type="button" class="action" [disabled]="timerBusyItem !== null" (click)="timerAction(item, 'resume')">Retomar</button>
+                    }
+                    <button type="button" class="action" [disabled]="timerBusyItem !== null" (click)="timerAction(item, 'finish')">Concluir serviço</button>
+                  </div>
+                }
+              } @else if (item.mecanicoExecutorId === myEmployeeId && item.statusExecucao !== 'CONCLUIDO' &&
+                item.statusExecucao !== 'CANCELADO' && detailCard.statusCodigo === 'EM_EXECUCAO' &&
+                (item.aprovadoCliente || detail.aprovadoCliente)) {
+                <button type="button" class="action" [disabled]="timerBusyItem !== null" (click)="timerAction(item, 'start')">Iniciar cronômetro</button>
+              }
+              @if (timersByItem[item.id]?.length) {
+                <details><summary>Histórico de apontamentos ({{ timersByItem[item.id].length }})</summary>
+                  @for (entry of timersByItem[item.id]; track entry.id) {
+                    <p>{{ entry.inicio | date:'dd/MM HH:mm' }} · {{ entry.estado }} · {{ entry.segundosAtivos }} s ativos</p>
+                    @if (canAdjustTime && entry.estado === 'FINALIZADO') {
+                      <div class="adjust-form">
+                        <label>Ajuste em minutos (+ ou −)
+                          <input type="number" min="-1440" max="1440" [(ngModel)]="adjustDelta" />
+                        </label>
+                        <label>Motivo (mínimo 10 caracteres)
+                          <input type="text" maxlength="500" [(ngModel)]="adjustReason" />
+                        </label>
+                        <button type="button" class="action" [disabled]="adjustingId !== null || !adjustDelta || adjustReason.trim().length < 10"
+                          (click)="adjustTime(item, entry)">Registrar ajuste</button>
+                      </div>
+                    }
+                  }
+                </details>
+              }
+              @if (adjustmentsByItem[item.id]?.length) {
+                <details><summary>Ajustes auditáveis ({{ adjustmentsByItem[item.id].length }})</summary>
+                  @for (adjustment of adjustmentsByItem[item.id]; track adjustment.id) {
+                    <p>{{ adjustment.criadoEm | date:'dd/MM HH:mm' }} · {{ adjustment.deltaMinutos }} min · {{ adjustment.motivo }}</p>
+                  }
+                </details>
+              }
+            </div>
+          </div>
+        }
+        @if (canManageResources && resources.length) {
+          <h3>Reservar box ou elevador</h3>
+          <p class="muted">Capacidade e conflitos são confirmados pelo servidor. Reservas legadas incertas exigem conferência na Agenda.</p>
+          <div class="adjust-form">
+            <label>Recurso
+              <select [(ngModel)]="selectedResourceId"><option [ngValue]="null">Selecione</option>
+                @for (resource of resources; track resource.id) {
+                  @if (resource.habilitado) { <option [ngValue]="resource.id">{{ resource.nome }}</option> }
+                }
+              </select>
+            </label>
+            <label>Início <input type="datetime-local" [(ngModel)]="reservationStart" /></label>
+            <label>Fim <input type="datetime-local" [(ngModel)]="reservationEnd" /></label>
+            <button type="button" class="action" [disabled]="reservationBusy || !selectedResourceId || !reservationStart || !reservationEnd"
+              (click)="reserveForDetail()">Confirmar reserva</button>
+          </div>
+        }
+        @if (detail.observacoesCliente) { <h3>Observações do cliente</h3><p>{{ detail.observacoesCliente }}</p> }
+        <a class="action action--primary" [routerLink]="['/os/visualizar-editar-os', detail.numeroOS]">Abrir OS completa</a>
+      }
+    </aside>
+  }
+</main>

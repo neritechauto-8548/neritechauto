@@ -1,5 +1,5 @@
 <template>
-  <LayoutLegal title="Termos de Uso" lastUpdated="18 de Abril de 2026">
+  <LayoutLegal title="Termos de Uso" lastUpdated="18 de outubro de 2026">
     <template #navigation>
       <a href="#aceitacao">1. Aceitação</a>
       <a href="#servicos">2. Descrição dos Serviços</a>
@@ -43,7 +43,7 @@
 
       <section id="trial">
         <h2>5. Período de Teste (Free Trial)</h2>
-        <p>Oferecemos um período de teste gratuito de 180 dias para novos usuários. Após esse período, o acesso será restrito a menos que uma assinatura paga seja ativada.</p>
+        <p>Oferecemos um período de teste gratuito de 14 dias para novos usuários. Após esse período, o acesso será restrito a menos que uma assinatura paga seja ativada.</p>
       </section>
 
       <section id="proibido">

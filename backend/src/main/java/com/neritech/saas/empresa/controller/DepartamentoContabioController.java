@@ -16,7 +16,7 @@ import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
-@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA') or hasAuthority('FIN_LISTAR_CONTAS') or hasAuthority('FIN_CONTAS_PAGAR') or hasAuthority('FIN_CONTAS_RECEBER') or hasAuthority('FIN_VIS_CAIXA')")
 @RequestMapping("/v1/departamentos-contabio-empresa")
 @Tag(name = "Departamentos Contábio", description = "Endpoints para gestão de departamentos contábios por empresa")
 public class DepartamentoContabioController {

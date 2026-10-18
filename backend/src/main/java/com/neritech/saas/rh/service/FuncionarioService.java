@@ -38,7 +38,7 @@ public class FuncionarioService {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY, "Paginação inválida");
         }
-        String normalized = query == null || query.isBlank() ? null : query.trim();
+        String normalized = query == null || query.isBlank() ? "" : query.trim();
         return repository.search(TenantAccess.require(empresaId), normalized, status, cargoId, departamentoId, pageable)
                 .map(mapper::toResponse);
     }

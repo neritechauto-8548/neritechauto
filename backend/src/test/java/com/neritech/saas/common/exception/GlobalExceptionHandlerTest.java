@@ -74,4 +74,24 @@ class GlobalExceptionHandlerTest {
         assertNotNull(rollback.getBody());
         assertFalse(rollback.getBody().toString().contains(SENSITIVE));
     }
+
+    @Test
+    void entityNotFoundReturns404() {
+        ResponseEntity<ApiErrorResponse> response =
+            handler.handleNotFound(new jakarta.persistence.EntityNotFoundException("Configuração não encontrada para esta empresa"));
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("NOT_FOUND", response.getBody().type());
+        assertEquals("Configuração não encontrada para esta empresa", response.getBody().message());
+    }
+
+    @Test
+    void resourceNotFoundReturns404() {
+        ResponseEntity<ApiErrorResponse> response =
+            handler.handleNotFound(new ResourceNotFoundException("Recurso não encontrado"));
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("NOT_FOUND", response.getBody().type());
+        assertEquals("Recurso não encontrado", response.getBody().message());
+    }
 }

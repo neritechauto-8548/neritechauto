@@ -5,9 +5,9 @@
       <!-- ── Bloco 1: Workflow ── -->
       <div class="feature-block aos-init" id="feat-workflow">
         <div class="feature-block__copy">
-          <span class="section-label">Workflow do pátio</span>
+          <span class="section-label">Pátio e ordens de serviço</span>
           <h2 class="feature-block__title">
-            Controle o fluxo da oficina de qualquer lugar, em tempo real.
+            Veja cada veículo e o próximo passo da equipe.
           </h2>
           <div class="feature-points">
             <div class="fp-item" v-for="p in workflow" :key="p.title">
@@ -31,8 +31,8 @@
             </div>
             <div class="feat-mockup__body">
               <div class="fmb-header">
-                <span class="fmb-title">Workflow do Pátio</span>
-                <span class="fmb-badge">● Ao vivo</span>
+                <span class="fmb-title">Pátio da oficina</span>
+                <span class="fmb-badge">Exemplo ilustrativo</span>
               </div>
               <div class="fmb-kanban">
                 <div class="fmb-col" v-for="col in kanban" :key="col.label">
@@ -49,12 +49,12 @@
         </div>
       </div>
 
-      <!-- ── Bloco 2: Orçamentos & Pagamentos ── -->
+      <!-- ── Bloco 2: Orçamentos ── -->
       <div class="feature-block feature-block--reverse aos-init" id="feat-orcamentos">
         <div class="feature-block__copy">
-          <span class="section-label">Orçamentos & Pagamentos</span>
+          <span class="section-label">Orçamentos</span>
           <h2 class="feature-block__title">
-            Orçamentos rápidos, aprovação digital e pagamento sem complicação.
+            Orçamentos claros, antes de começar o serviço.
           </h2>
           <div class="feature-points">
             <div class="fp-item" v-for="p in payments" :key="p.title">
@@ -74,7 +74,7 @@
               <span class="md md--red"></span>
               <span class="md md--yellow"></span>
               <span class="md md--green"></span>
-              <span class="feat-mockup__url">Orçamento #1042 · Honda Civic</span>
+                <span class="feat-mockup__url">Exemplo de orçamento · Honda Civic</span>
             </div>
             <div class="feat-mockup__body" style="padding: 1.25rem;">
               <div class="forc-line" v-for="line in orcLines" :key="line.item">
@@ -85,10 +85,10 @@
                 <span>Total</span>
                 <strong>R$ 680,00</strong>
               </div>
-              <button class="forc-btn">Aprovar orçamento</button>
+              <span class="forc-btn">Aprovar orçamento</span>
               <div class="forc-status">
                 <span>💬</span>
-                <span>Cliente aprovou via WhatsApp · 14:32</span>
+                <span>Exemplo de aprovação registrada na OS</span>
               </div>
             </div>
           </div>
@@ -98,9 +98,9 @@
       <!-- ── Bloco 3: CRM & Inspeção ── -->
       <div class="feature-block aos-init" id="feat-crm">
         <div class="feature-block__copy">
-          <span class="section-label">CRM & Inspeção Digital</span>
+          <span class="section-label">Inspeção digital</span>
           <h2 class="feature-block__title">
-            Mantenha as baias cheias e aumente o ticket médio.
+            Mostre ao cliente o que foi encontrado no veículo.
           </h2>
           <div class="feature-points">
             <div class="fp-item" v-for="p in crm" :key="p.title">
@@ -120,7 +120,7 @@
               <span class="md md--red"></span>
               <span class="md md--yellow"></span>
               <span class="md md--green"></span>
-              <span class="feat-mockup__url">Inspeção Visual · ABC-1234</span>
+                <span class="feat-mockup__url">Exemplo de inspeção · ABC-1234</span>
             </div>
             <div class="feat-mockup__body" style="padding: 1.25rem; gap: 0.875rem; display:flex; flex-direction:column;">
               <div class="finsp-row" v-for="item in inspection" :key="item.label">
@@ -133,7 +133,7 @@
                   <span>📷</span>
                 </div>
               </div>
-              <button class="forc-btn">Enviar inspeção ao cliente</button>
+              <span class="forc-btn">Enviar inspeção ao cliente</span>
             </div>
           </div>
         </div>
@@ -151,22 +151,22 @@ const workflow = [
     icon: 'workflow',
     iconBg: 'rgba(99, 91, 255, 0.08)',
     color: '#635BFF',
-    title: 'Gerencie o workflow completo da oficina',
-    desc: 'Acompanhe cada veículo em tempo real — da recepção à entrega. Status, baia e técnico em um só painel.',
+    title: 'Acompanhe cada OS',
+    desc: 'Veja em que etapa está cada veículo e quem está cuidando do serviço.',
   },
   {
     icon: 'message',
     iconBg: 'rgba(13, 148, 136, 0.08)',
     color: '#0D9488',
-    title: 'Reduza a fricção com mensagens integradas',
-    desc: 'Comunique-se com clientes e a equipe dentro do sistema — atualizações, perguntas e aprovações, tudo em um lugar.',
+    title: 'Organize a rotina do pátio',
+    desc: 'Recepção, gestão e técnicos veem o andamento do trabalho.',
   },
   {
     icon: 'chart',
     iconBg: 'rgba(0, 212, 255, 0.1)',
     color: '#0891B2',
-    title: 'Relatórios e performance da equipe',
-    desc: 'Monitore o desempenho da oficina com relatórios poderosos: horas produtivas, ticket médio e margem por OS.',
+    title: 'Consulte o histórico do veículo',
+    desc: 'Encontre serviços anteriores pela placa ao abrir uma nova OS.',
   },
 ];
 
@@ -175,22 +175,22 @@ const payments = [
     icon: 'receipt',
     iconBg: 'rgba(99, 91, 255, 0.08)',
     color: '#635BFF',
-    title: 'Orçamentos e notas em poucos cliques',
-    desc: 'Envie orçamentos profissionais e NF-e por WhatsApp ou e-mail. Cliente aprova com um toque.',
+    title: 'Detalhe peças e mão de obra',
+    desc: 'Monte um orçamento que o cliente consegue entender antes de autorizar o reparo.',
   },
   {
     icon: 'currency',
     iconBg: 'rgba(255, 92, 160, 0.1)',
     color: '#DB2777',
-    title: 'Receba sem dor de cabeça',
-    desc: 'Pix, boleto e cartão integrados. O pagamento entra automaticamente no financeiro — sem digitação.',
+    title: 'Envie para aprovação',
+    desc: 'Compartilhe o orçamento por link e acompanhe a resposta junto da OS.',
   },
   {
     icon: 'box',
     iconBg: 'rgba(255, 176, 32, 0.12)',
     color: '#B47A00',
-    title: 'Financeiro completo integrado',
-    desc: 'Contas a pagar e receber ligadas à OS. Caixa, comissões e DRE em tempo real — sem planilha.',
+    title: 'Organize o que vem depois',
+    desc: 'Mantenha serviços, peças e lançamentos financeiros no mesmo fluxo.',
   },
 ];
 
@@ -199,22 +199,22 @@ const crm = [
     icon: 'camera',
     iconBg: 'rgba(99, 91, 255, 0.08)',
     color: '#635BFF',
-    title: 'Aumente o ARO com inspeções digitais',
-    desc: 'Faça upsell com inspeção visual em fotos e vídeos no celular. Mostre o problema, justifique o serviço.',
+    title: 'Documente a inspeção',
+    desc: 'Registre observações e fotos para mostrar ao cliente o que foi encontrado.',
   },
   {
     icon: 'calendar',
     iconBg: 'rgba(13, 148, 136, 0.08)',
     color: '#0D9488',
-    title: 'Agenda que elimina no-shows',
-    desc: 'Confirmações e lembretes automáticos por WhatsApp. Reduza faltas e mantenha as baias sempre cheias.',
+    title: 'Planeje a agenda',
+    desc: 'Organize os próximos atendimentos com uma visão do trabalho da oficina.',
   },
   {
     icon: 'star',
     iconBg: 'rgba(255, 92, 160, 0.1)',
     color: '#DB2777',
-    title: 'Marketing e CRM integrado',
-    desc: 'Histórico por placa, campanhas de retorno e gestão de reputação — tudo dentro do sistema.',
+    title: 'Retome o contexto do cliente',
+    desc: 'Consulte veículos e atendimentos anteriores antes de abrir uma nova OS.',
   },
 ];
 
@@ -279,12 +279,11 @@ const inspection = [
 }
 
 .feature-block__title {
-  /* Stripe: 36-40px, weight 300, comprimido */
   font-size: clamp(1.875rem, 3.2vw, 2.875rem);
-  font-weight: 300;
+  font-weight: 600;
   color: #0A2540;
   letter-spacing: -0.04em;
-  line-height: 1.06;
+  line-height: 1.14;
   margin-bottom: 2.5rem;
   margin-top: 0.5rem;
 }
@@ -323,7 +322,7 @@ const inspection = [
 
 .fp-item p {
   font-size: 1rem;
-  color: #6B7C93;
+  color: #425466;
   line-height: 1.6;
 }
 

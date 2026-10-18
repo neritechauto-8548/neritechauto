@@ -7,31 +7,30 @@
 
     <div class="container hero-container">
       <div class="hero-copy">
-        <p class="hero-eyebrow aos-init">NeriTech Auto</p>
+        <p class="hero-eyebrow aos-init">Sistema de gestão para oficinas</p>
 
         <h1 class="hero-title aos-init aos-delay-1">
-          Software de gestão<br>
-          para oficinas crescerem.
+          Da entrada à entrega,<br>
+          sua oficina no controle.
         </h1>
 
         <p class="hero-subtitle aos-init aos-delay-2">
-          Tudo em um só lugar: workflow do pátio, orçamentos com aprovação digital,
-          checklist com fotos, estoque, financeiro, NF-e e portal do cliente —
-          da entrada do veículo até a entrega.
+          Organize o pátio, as ordens de serviço, os orçamentos, o estoque e o financeiro
+          em um só lugar. Saiba o que acontece com cada veículo e o que a equipe precisa fazer agora.
         </p>
 
         <div class="hero-actions aos-init aos-delay-3">
           <router-link to="/teste-gratis" class="btn-hero-primary" id="hero-cta-start">
-            Começar agora
+            Testar grátis por 14 dias
           </router-link>
-          <a href="#demonstracao" class="btn-hero-link" id="hero-cta-demo">
-            Ver o produto
+          <a href="#funcionalidades" class="btn-hero-link" id="hero-cta-demo">
+            Ver como funciona
             <StripeIcon name="arrow" :size="14" />
           </a>
         </div>
 
         <p class="hero-trust aos-init aos-delay-4">
-          180 dias grátis · Sem cartão · Cancele quando quiser
+          14 dias grátis. Sem cartão de crédito.
         </p>
       </div>
 
@@ -53,8 +52,8 @@
             </aside>
             <div class="app-body">
               <div class="app-top">
-                <span class="app-top-title">Workflow do pátio</span>
-                <span class="app-pill">Ao vivo</span>
+                <span class="app-top-title">Pátio da oficina</span>
+                <span class="app-pill">Exemplo ilustrativo</span>
               </div>
               <div class="app-metrics">
                 <div class="metric" v-for="s in stats" :key="s.label">
@@ -81,8 +80,8 @@
             <StripeIcon name="camera" :size="16" />
           </div>
           <div>
-            <span>Checklist digital</span>
-            <strong>12 fotos enviadas</strong>
+              <span>Inspeção do veículo</span>
+            <strong>Fotos na OS</strong>
           </div>
         </div>
 
@@ -92,7 +91,7 @@
           </div>
           <div>
             <span>Orçamento aprovado</span>
-            <strong>R$ 1.480 · WhatsApp</strong>
+            <strong>Resposta na OS</strong>
           </div>
         </div>
       </div>
@@ -109,9 +108,9 @@ const canvasEl = ref(null);
 let gradientApi = null;
 
 const stats = [
-  { value: '8', label: 'Na baia' },
+  { value: '8', label: 'Em serviço' },
   { value: '5', label: 'Aguardando' },
-  { value: '3', label: 'Entrega' },
+  { value: '3', label: 'Prontos' },
 ];
 
 const osRows = [
@@ -136,36 +135,33 @@ onUnmounted(() => {
   padding: 132px 0 0;
   overflow: hidden;
   background: #fff;
-  min-height: 720px;
+  min-height: 660px;
 }
 
 .hero-mesh {
   position: absolute;
-  left: 0;
+  left: 49%;
   right: 0;
-  top: 72px;
-  height: min(620px, 78vh);
+  top: 66px;
+  height: 570px;
   z-index: 0;
   pointer-events: none;
-  transform: skewY(-8deg);
-  transform-origin: 0;
-  border-radius: 0 0 40% 0 / 0 0 80px 0;
+  border-radius: 0 0 0 72px;
   overflow: hidden;
 }
 
 .hero-canvas {
   position: absolute;
-  inset: -12% -4% -8%;
-  width: 108%;
-  height: 120%;
-  transform: skewY(8deg);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: block;
 }
 
 .hero-mesh-skew {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0) 55%, rgba(255,255,255,0.85) 88%, #fff 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0) 65%, rgba(255,255,255,0.8) 95%, #fff 100%);
   pointer-events: none;
 }
 
@@ -175,30 +171,29 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 1fr 1.05fr;
   gap: 3rem;
-  align-items: start;
+  align-items: center;
   padding-bottom: 64px;
 }
 
 .hero-copy {
-  padding-top: 28px;
-  max-width: 540px;
+  padding-top: 12px;
+  max-width: 600px;
 }
 
 .hero-eyebrow {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #0A2540;
   margin-bottom: 1rem;
   letter-spacing: -0.02em;
 }
 
 .hero-title {
-  /* Stripe hero: 56px+ com weight 300 */
-  font-size: clamp(2.75rem, 5.5vw, 4.5rem);
-  font-weight: 300;
+  font-size: clamp(2.75rem, 5vw, 4.5rem);
+  font-weight: 600;
   color: #0A2540 !important;
-  letter-spacing: -0.05em;
-  line-height: 1.0;
+  letter-spacing: -0.045em;
+  line-height: 1.07;
   margin-bottom: 1.5rem;
 }
 
@@ -206,10 +201,10 @@ onUnmounted(() => {
   /* Stripe: 18-20px no subtítulo do hero */
   font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
   font-weight: 400;
-  color: #425466 !important;
-  line-height: 1.6;
+  color: #25364A !important;
+  line-height: 1.55;
   margin-bottom: 2.25rem;
-  max-width: 480px;
+  max-width: 550px;
 }
 
 .hero-actions {
@@ -255,14 +250,14 @@ onUnmounted(() => {
 
 .hero-trust {
   font-size: 0.875rem;
-  color: #8898AA;
-  font-weight: 400;
+  color: #425466;
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 
 .hero-stage {
   position: relative;
-  padding: 24px 8px 40px;
+  padding: 42px 8px 48px;
 }
 
 .stage-card--main {
@@ -273,11 +268,7 @@ onUnmounted(() => {
     0 50px 100px -20px rgba(50, 50, 93, 0.25),
     0 30px 60px -30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  transform: perspective(1200px) rotateY(-6deg) rotateX(4deg);
-  transition: transform 0.5s ease;
-}
-.hero-stage:hover .stage-card--main {
-  transform: perspective(1200px) rotateY(-3deg) rotateX(2deg);
+  transform: none;
 }
 
 .stage-bar {
@@ -302,13 +293,13 @@ onUnmounted(() => {
   border: 1px solid #E6EBF1;
   border-radius: 6px;
   padding: 3px 10px;
-  font-size: 0.625rem;
-  color: #8898AA;
+  font-size: 0.75rem;
+  color: #526579;
 }
 
 .app-shell {
   display: grid;
-  grid-template-columns: 108px 1fr;
+  grid-template-columns: 118px 1fr;
   min-height: 320px;
   background: #fff;
 }
@@ -337,9 +328,9 @@ onUnmounted(() => {
 }
 
 .side-item {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: #6B7C93;
+  color: #425466;
   padding: 6px 8px;
   border-radius: 6px;
 }
@@ -361,12 +352,12 @@ onUnmounted(() => {
   align-items: center;
 }
 .app-top-title {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   color: #0A2540;
 }
 .app-pill {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   padding: 3px 9px;
   border-radius: 9999px;
@@ -394,8 +385,8 @@ onUnmounted(() => {
   letter-spacing: -0.02em;
 }
 .metric span {
-  font-size: 0.5rem;
-  color: #8898AA;
+  font-size: 0.6875rem;
+  color: #425466;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -415,22 +406,22 @@ onUnmounted(() => {
   background: #F6F9FC;
   border-radius: 6px;
   border: 1px solid #E6EBF1;
-  font-size: 0.6875rem;
-  color: #425466;
+  font-size: 0.75rem;
+  color: #25364A;
 }
 .row strong {
   display: block;
   color: #0A2540;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .row small {
-  color: #8898AA;
-  font-size: 0.5625rem;
+  color: #526579;
+  font-size: 0.6875rem;
 }
 
 .tag {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   padding: 3px 7px;
   border-radius: 4px;
@@ -455,9 +446,9 @@ onUnmounted(() => {
 }
 .stage-float span {
   display: block;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: #8898AA;
+  color: #425466;
 }
 .stage-float strong {
   font-size: 0.8125rem;
@@ -490,15 +481,14 @@ onUnmounted(() => {
 
 @media (max-width: 900px) {
   .hero { padding-top: 110px; min-height: auto; }
-  .hero-mesh { top: 64px; height: 520px; }
+  .hero-mesh { left: 0; top: auto; bottom: 0; height: 390px; border-radius: 36px; }
   .hero-container { grid-template-columns: 1fr; gap: 2.5rem; }
   .hero-copy { padding-top: 12px; max-width: 100%; }
-  .stage-card--main,
-  .hero-stage:hover .stage-card--main { transform: none; }
+  .hero-stage { padding-top: 8px; }
 }
 
 @media (max-width: 600px) {
-  .hero-title { font-size: 2.15rem; }
+  .hero-title { font-size: clamp(2.25rem, 8vw, 3rem); }
   .hero-actions { flex-direction: column; align-items: flex-start; }
   .app-side { display: none; }
   .app-shell { grid-template-columns: 1fr; }

@@ -8,6 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long> {
     java.util.Optional<OrdemServico> findByIdAndEmpresaId(Long id, Long empresaId);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select o from OrdemServico o where o.id = :id and o.empresaId = :empresaId")
+    java.util.Optional<OrdemServico> lockForPatio(@org.springframework.data.repository.query.Param("id") Long id,
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
     Page<OrdemServico> findByEmpresaId(Long empresaId, Pageable pageable);
     Page<OrdemServico> findByEmpresaIdAndStatusId(Long empresaId, Long statusId, Pageable pageable);
     Page<OrdemServico> findByEmpresaIdAndClienteId(Long empresaId, Long clienteId, Pageable pageable);

@@ -142,6 +142,12 @@ export class AuthService {
   }
 
   private clearTenantState() {
+    if (typeof sessionStorage !== 'undefined') {
+      try {
+        Object.keys(sessionStorage).filter(key => key.startsWith('neritech-patio-filters:'))
+          .forEach(key => sessionStorage.removeItem(key));
+      } catch { /* Logout não depende de storage do navegador. */ }
+    }
     this.storage.remove('tenantId');
     this.storage.remove('empresaId');
     if (typeof localStorage !== 'undefined') {

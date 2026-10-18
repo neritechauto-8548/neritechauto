@@ -53,7 +53,8 @@ public class SeguradoraService {
         if (page.getPageSize() != 20 && page.getPageSize() != 50 && page.getPageSize() != 100) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Paginação deve ser 20, 50 ou 100");
         }
-        return repository.buscar(tenant, ativo, busca, page).map(this::resposta);
+        String filtro = busca == null || busca.isBlank() ? "" : busca.trim();
+        return repository.buscar(tenant, ativo, filtro, page).map(this::resposta);
     }
 
     @Transactional(readOnly = true)

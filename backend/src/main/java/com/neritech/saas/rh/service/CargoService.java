@@ -33,7 +33,7 @@ public class CargoService {
                     org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY, "Paginação inválida");
         }
         if (areaId != null) validateArea(areaId, empresaId);
-        String q = query == null || query.isBlank() ? null : query.trim();
+        String q = query == null || query.isBlank() ? "" : query.trim();
         final Long tenantId = empresaId;
         return repository.search(tenantId, q, ativo, areaId, pageable).map(c -> response(c, tenantId));
     }

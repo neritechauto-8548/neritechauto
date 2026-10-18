@@ -9,6 +9,7 @@ import { BASE_URL, hasHttpScheme } from './base-url-interceptor';
 
 export enum STATUS {
   UNAUTHORIZED = 401,
+  PAYMENT_REQUIRED = 402,
   FORBIDDEN = 403,
   NOT_FOUND = 404,
   UNPROCESSABLE_ENTITY = 422,
@@ -48,6 +49,14 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
         if (!skipToast) messages.add({ severity: 'warn', summary: 'Sessão expirada', detail: 'Entre novamente para continuar.', sticky: true });
         const returnUrl = router.url.startsWith('/') ? router.url : '/home';
         router.navigateByUrl(router.createUrlTree(['/auth/login'], { queryParams: { returnUrl } }));
+      }
+      return throwError(() => error);
+    }
+
+    if (error.status === STATUS.PAYMENT_REQUIRED && internalRequest) {
+      if (!router.url.startsWith('/configuracoes/assinatura')) {
+        if (!skipToast) messages.add({ severity: 'warn', summary: 'Teste encerrado', detail: 'Escolha um plano para continuar.' });
+        router.navigateByUrl('/configuracoes/assinatura');
       }
       return throwError(() => error);
     }

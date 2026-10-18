@@ -48,7 +48,7 @@ public class TransportadoraService {
     public Page<TransportadoraResponse> listar(String busca, String regiao, Boolean ativo, Pageable pageable) {
         Long tenant = TenantAccess.requireCurrent();
         validarPagina(pageable);
-        return fornecedores.listarTransportadoras(tenant, ativo, regiao, busca, pageable)
+        return fornecedores.listarTransportadoras(tenant, ativo, filtroTexto(regiao), filtroTexto(busca), pageable)
                 .map(this::response);
     }
 
@@ -284,6 +284,7 @@ public class TransportadoraService {
         f.setObservacoes(limpar(r.observacoes()));
     }
     private static String limpar(String v) { return v == null || v.isBlank() ? null : v.trim(); }
+    private static String filtroTexto(String v) { return v == null || v.isBlank() ? "" : v.trim(); }
     private static String documento(String v) {
         return v == null || v.isBlank() ? null :
                 v.replaceAll("[^a-zA-Z0-9]", "").toUpperCase(Locale.ROOT);

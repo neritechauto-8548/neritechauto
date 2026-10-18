@@ -36,12 +36,16 @@ import AccordionContent from 'primevue/accordioncontent';
 
 const faqs = [
   {
+    q: 'Como funcionam os 14 dias de teste?',
+    a: 'Você cria a conta sem informar cartão de crédito e pode conhecer o sistema por 14 dias. Ao fim do período, escolha um plano para continuar usando.',
+  },
+  {
     q: 'O que é a NeriTech Auto?',
-    a: 'É um sistema de gestão para oficinas automotivas que cobre o fluxo completo: da entrada do veículo à entrega — OS, checklist, estoque, financeiro, NF-e e portal do cliente.',
+    a: 'É um sistema de gestão para acompanhar a oficina da entrada do veículo à entrega: OS, inspeção, orçamento, estoque e financeiro.',
   },
   {
     q: 'Quanto tempo leva para começar a usar?',
-    a: 'Em minutos você já abre a primeira OS. Se precisar migrar clientes, veículos e estoque de outro sistema, nossa equipe ajuda — sem custo de implantação.',
+    a: 'Depois de criar a conta, cadastre a oficina e abra a primeira OS. Se você já usa outro sistema, converse com nossa equipe sobre a migração dos dados.',
   },
   {
     q: 'Preciso instalar algo no computador?',
@@ -49,7 +53,7 @@ const faqs = [
   },
   {
     q: 'Posso emitir nota fiscal pelo sistema?',
-    a: 'Sim. NF-e (peças) e NFS-e (serviços) integradas à ordem de serviço, sem precisar de outro software fiscal paralelo.',
+    a: 'Há recursos fiscais conforme o plano e a configuração da sua empresa. Fale com a equipe para confirmar o tipo de documento de que você precisa.',
   },
   {
     q: 'Tem checklist com fotos e aprovação digital?',
@@ -61,7 +65,7 @@ const faqs = [
   },
   {
     q: 'Como funciona o suporte?',
-    a: 'Suporte humano no chat, com time que entende o dia a dia da oficina. Do onboarding às dúvidas operacionais, você fala com gente de verdade.',
+    a: 'Você pode falar com a equipe pelo chat para tirar dúvidas sobre o cadastro e o uso do sistema.',
   },
 ];
 const openChat = (e) => {
@@ -93,7 +97,7 @@ const openChat = (e) => {
 
 .faq-title {
   font-size: clamp(2.125rem, 4vw, 3rem);
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.06;
   margin-bottom: 1rem;

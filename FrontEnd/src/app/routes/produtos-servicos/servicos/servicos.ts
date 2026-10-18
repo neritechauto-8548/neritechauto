@@ -39,9 +39,12 @@ export class Servicos implements OnInit {
   servicos: ServicoResponse[] = [];
   backendPage?: Page<ServicoResponse>;
   isLoading = false;
+  loadError = '';
+  statusFilter: '' | 'true' | 'false' = '';
+  areaFilter: number | null = null;
 
   // Paginação
-  rows = 10;
+  rows = 20;
   first = 0;
   get totalRecords() { return this.backendPage?.totalElements ?? 0; }
   get rangeStart() { return this.totalRecords === 0 ? 0 : this.first + 1; }
@@ -57,9 +60,15 @@ export class Servicos implements OnInit {
   isSaving = false;
 
   form: FormGroup = this.fb.group({
+    codigo: ['', [Validators.maxLength(50)]],
     nome: ['', [Validators.required, Validators.maxLength(255)]],
+    areaId: [null, [Validators.required, Validators.min(1)]],
+    unidade: ['HORA', [Validators.required, Validators.maxLength(30)]],
+    tempoPrevistoHoras: [null, [Validators.required, Validators.min(0.01)]],
     precoBase: [null, [Validators.required, Validators.min(0)]],
     custo: [null, [Validators.required, Validators.min(0)]],
+    aliquotaIss: [null, [Validators.min(0)]],
+    codigoServicoMunicipal: ['', [Validators.maxLength(30)]],
     instrucoesExecucao: [''],
     ativo: [true],
   });
@@ -87,9 +96,12 @@ export class Servicos implements OnInit {
 
   private fetchPage(): void {
     this.isLoading = true;
-    const pageIndex = Math.floor(this.first / this.rows) + 1;
+    this.loadError = '';
+    const pageIndex = Math.floor(this.first / this.rows);
     const params: Record<string, any> = { page: pageIndex, size: this.rows, sort: 'nome,asc' };
     if (this.searchTerm.trim()) params['search'] = this.searchTerm.trim();
+    if (this.statusFilter) params['ativo'] = this.statusFilter;
+    if (this.areaFilter) params['areaId'] = this.areaFilter;
 
     this.service.list(params).subscribe({
       next: (res) => {
@@ -98,9 +110,9 @@ export class Servicos implements OnInit {
         this.isLoading = false;
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar serviços.' });
+        this.loadError = err?.status === 403 ? 'Você não tem permissão para consultar serviços.' : 'Não foi possível carregar os serviços. Tente novamente.';
       },
     });
   }
@@ -108,7 +120,7 @@ export class Servicos implements OnInit {
   abrirCriar(): void {
     this.modo = 'criar';
     this.servicoEditando = undefined;
-    this.form.reset({ nome: '', precoBase: null, custo: null, instrucoesExecucao: '', ativo: true });
+    this.form.reset({ codigo: '', nome: '', areaId: null, unidade: 'HORA', tempoPrevistoHoras: null, precoBase: null, custo: null, aliquotaIss: null, codigoServicoMunicipal: '', instrucoesExecucao: '', ativo: true });
     this.showModal = true;
   }
 
@@ -116,9 +128,15 @@ export class Servicos implements OnInit {
     this.modo = 'editar';
     this.servicoEditando = s;
     this.form.setValue({
+      codigo: s.codigo || '',
       nome: s.nome,
+      areaId: s.areaId,
+      unidade: s.unidade,
+      tempoPrevistoHoras: s.tempoPrevistoHoras,
       precoBase: s.precoBase,
       custo: s.custo,
+      aliquotaIss: s.aliquotaIss ?? null,
+      codigoServicoMunicipal: s.codigoServicoMunicipal || '',
       instrucoesExecucao: s.instrucoesExecucao || '',
       ativo: s.ativo,
     });
@@ -163,10 +181,13 @@ export class Servicos implements OnInit {
       return;
     }
 
-    if (Number(precoBase) < Number(custo)) {
-      this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'O preço base de venda do serviço não pode ser inferior ao seu custo de execução.' });
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.messageService.add({ severity: 'warn', summary: 'Revise os campos', detail: 'Área, unidade e tempo maior que zero são obrigatórios.' });
       return;
     }
+
+    if (Number(precoBase) < Number(custo) && !window.confirm('O preço está abaixo do custo. Deseja salvar mesmo assim?')) return;
 
     this.isSaving = true;
     const payload = this.form.value;
@@ -198,17 +219,17 @@ export class Servicos implements OnInit {
 
   excluir(s: ServicoResponse): void {
     this.confirmationService.confirm({
-      title: 'Excluir Serviço',
-      message: `Tem certeza que deseja excluir o serviço "${s.nome}"? Esta ação não pode ser desfeita.`,
+      title: 'Desativar serviço',
+      message: `Desativar "${s.nome}"? O histórico será preservado e ele deixará de estar disponível em novas OS.`,
       icon: 'warning',
-      confirmText: 'Excluir',
+      confirmText: 'Desativar',
       cancelText: 'Cancelar',
       type: 'danger'
     }).subscribe((confirmed: boolean) => {
       if (confirmed) {
         this.service.delete(s.id).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Excluído', detail: `Serviço "${s.nome}" removido.` });
+            this.messageService.add({ severity: 'success', summary: 'Desativado', detail: `Serviço "${s.nome}" desativado.` });
             this.fetchPage();
           },
           error: () => {

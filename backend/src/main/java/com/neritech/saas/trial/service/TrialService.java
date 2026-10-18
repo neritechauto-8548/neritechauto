@@ -3,14 +3,11 @@ package com.neritech.saas.trial.service;
 import com.neritech.saas.common.mail.EmailService;
 import com.neritech.saas.empresa.domain.Empresa;
 import com.neritech.saas.empresa.service.EmpresaService;
-import com.neritech.saas.empresa.service.StripeService;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.trial.dto.TrialRegisterRequest;
 import com.neritech.saas.trial.dto.TrialRegisterResponse;
-import com.stripe.model.Customer;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import com.neritech.saas.gestaoUsuarios.domain.Funcao;
 import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
 import com.neritech.saas.rh.domain.Funcionario;
@@ -25,13 +22,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TrialService {
 
     private final EmpresaService empresaService;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
-    private final StripeService stripeService;
     private final EmailService emailService;
     private final FuncionarioRepository funcionarioRepository;
     private final FuncaoRepository funcaoRepository;
@@ -42,21 +37,7 @@ public class TrialService {
             throw new IllegalArgumentException("O e-mail informado já está em uso.");
         }
 
-        String customerId = null;
-        try {
-            // 1. Criar cliente na Stripe
-            Customer stripeCustomer = stripeService.createCustomer(request.getEmail(), request.getNomeCompleto(), request.getTelefone());
-            if (stripeCustomer != null) {
-                customerId = stripeCustomer.getId();
-                // Inicia assinatura com 180 dias de trial se tiver configurado preço padrão
-                stripeService.createTrialSubscription(customerId);
-            }
-        } catch (Exception e) {
-            log.error("Erro ao integrar com a Stripe", e);
-            // Non-blocking for now if stripe is not fully configured
-        }
-
-        // 2. Criar a Empresa
+        // O teste local começa no cadastro; Stripe é usado quando a empresa escolhe um plano.
         Empresa empresa = new Empresa();
         empresa.setRazaoSocial(request.getNomeEmpresa());
         empresa.setNomeFantasia(request.getNomeEmpresa());
@@ -64,15 +45,14 @@ public class TrialService {
         empresa.setTelefone(request.getTelefone());
         empresa.setDataAbertura(LocalDate.now());
         empresa.setSegmento(request.getSegmento());
-        empresa.setStripeCustomerId(customerId);
         
         empresa.setCnpj(request.getCnpjOuCpf());        
         Empresa savedEmpresa = empresaService.create(empresa);
 
-        // 3. Gerar senha temporária
+        // Gerar senha temporária
         String rawPassword = generateTemporaryPassword();
 
-        // 4. Criar Funcao Admin e Associar ao Usuario
+        // Criar função Admin e associar ao usuário
         Funcao funcaoAdmin = Funcao.builder()
                 .empresaId(savedEmpresa.getId())
                 .nome("ADMIN")
@@ -93,7 +73,7 @@ public class TrialService {
         usuario.getFuncoes().add(savedFuncao);
         Usuario savedUsuario = usuarioRepository.save(usuario);
 
-        // 5. Criar Registro de Funcionário
+        // Criar registro de funcionário
         Funcionario funcionario = new Funcionario();
         funcionario.setEmpresaId(savedEmpresa.getId());
         funcionario.setUsuarioId(savedUsuario.getId());
@@ -109,7 +89,7 @@ public class TrialService {
         
         funcionarioRepository.save(funcionario);
 
-        // 6. Enviar e-mail de boas-vindas com a senha
+        // Entregar credenciais antes de confirmar o cadastro.
         emailService.sendTrialCredentials(request.getEmail(), request.getNomeCompleto(), rawPassword);
 
         return TrialRegisterResponse.builder()

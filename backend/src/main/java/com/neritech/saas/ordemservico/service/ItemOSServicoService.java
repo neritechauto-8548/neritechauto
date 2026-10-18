@@ -8,9 +8,7 @@ import com.neritech.saas.ordemservico.repository.ItemOSServicoRepository;
 import com.neritech.saas.ordemservico.repository.OrdemServicoRepository;
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.common.exception.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.neritech.saas.produtoServico.repository.ServicoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -23,15 +21,18 @@ public class ItemOSServicoService {
     private final ItemOSServicoRepository repository;
     private final OrdemServicoRepository ordemServicoRepository;
     private final ItemOSServicoMapper mapper;
+    private final ServicoRepository servicoRepository;
 
     public ItemOSServicoService(ItemOSServicoRepository repository, OrdemServicoRepository ordemServicoRepository,
-            ItemOSServicoMapper mapper) {
+            ItemOSServicoMapper mapper, ServicoRepository servicoRepository) {
         this.repository = repository;
         this.ordemServicoRepository = ordemServicoRepository;
         this.mapper = mapper;
+        this.servicoRepository = servicoRepository;
     }
 
     public ItemOSServicoResponse create(ItemOSServicoRequest request) {
+        validateServicoAtivo(request.servicoId());
         ItemOSServico entity = mapper.toEntity(request);
         entity.setOrdemServico(ordemServicoRepository.findByIdAndEmpresaId(request.ordemServicoId(), TenantAccess.requireCurrent())
                 .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço não encontrada")));
@@ -59,6 +60,7 @@ public class ItemOSServicoService {
         if (!entity.getOrdemServico().getId().equals(request.ordemServicoId())) {
             throw new ResourceNotFoundException("Ordem de Serviço não encontrada");
         }
+        if (!java.util.Objects.equals(entity.getServicoId(), request.servicoId())) validateServicoAtivo(request.servicoId());
         mapper.updateEntityFromRequest(request, entity);
         ItemOSServico updated = repository.save(entity);
         return mapper.toResponse(updated);
@@ -71,5 +73,14 @@ public class ItemOSServicoService {
     private ItemOSServico findOwned(Long id) {
         return repository.findByIdAndOrdemServicoEmpresaId(id, TenantAccess.requireCurrent())
                 .orElseThrow(() -> new ResourceNotFoundException("Item não encontrado"));
+    }
+
+    private void validateServicoAtivo(Long servicoId) {
+        if (servicoId == null) return;
+        var servico = servicoRepository.findByIdAndEmpresaId(servicoId, TenantAccess.requireCurrent())
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
+        if (!Boolean.TRUE.equals(servico.getAtivo())) {
+            throw new com.neritech.saas.common.exception.BusinessException("Serviço inativo não pode ser incluído na ordem de serviço.");
+        }
     }
 }

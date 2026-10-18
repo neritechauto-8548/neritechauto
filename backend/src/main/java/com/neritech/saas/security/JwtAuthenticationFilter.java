@@ -1,6 +1,9 @@
 package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
+import com.neritech.saas.empresa.domain.enums.StatusAssinatura;
+import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
+import com.neritech.saas.trial.service.TrialPolicy;
 import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final SessaoUsuarioRepository sessaoUsuarioRepository;
+    private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
 
     @Override
     protected void doFilterInternal(
@@ -35,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
+        Long validatedEmpresaId = null;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             try {
@@ -71,6 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             .isPresent();
                 if (validTenantSession) {
                     TenantContext.setCurrentTenant(empresaId);
+                    validatedEmpresaId = empresaId;
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -89,10 +95,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         try {
+            if (validatedEmpresaId != null && !isSubscriptionRoute(request.getServletPath())
+                    && assinaturaEmpresaRepository.findFirstByEmpresaIdOrderByDataFimDesc(validatedEmpresaId)
+                        .filter(assinatura -> assinatura.getStatus() == StatusAssinatura.TESTE)
+                        .filter(TrialPolicy::isExpired).isPresent()) {
+                response.sendError(HttpServletResponse.SC_PAYMENT_REQUIRED, "Período de teste encerrado.");
+                return;
+            }
             filterChain.doFilter(request, response);
         } finally {
             // Clear tenant context after request
             TenantContext.clear();
         }
+    }
+
+    private boolean isSubscriptionRoute(String path) {
+        return path.equals("/usuarios/me") || path.equals("/usuarios/menu")
+                || path.startsWith("/v1/assinatura/") || path.equals("/v1/assinatura")
+                || path.startsWith("/auth/");
     }
 }

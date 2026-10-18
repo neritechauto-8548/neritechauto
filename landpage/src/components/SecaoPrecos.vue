@@ -3,8 +3,8 @@
     <div class="container">
       <div v-if="!hideHeader" class="pricing-header aos-init">
         <span class="section-label">Preços</span>
-        <h2 class="pricing-title">Preço claro para a oficina crescer.</h2>
-        <p class="pricing-subtitle">Comece grátis. Sem surpresas. Cancele quando quiser.</p>
+        <h2 class="pricing-title">Experimente na rotina da sua oficina.</h2>
+        <p class="pricing-subtitle">14 dias para conhecer o NeriTech Auto, sem informar cartão de crédito.</p>
       </div>
 
       <div class="pricing-grid">
@@ -71,10 +71,9 @@
       <!-- Bottom trust -->
       <div v-if="!hideHeader" class="pricing-footer aos-init">
         <div class="trust-row">
-          <span class="trust-item">🔒 Pagamento seguro via Stripe</span>
-          <span class="trust-item">✓ Sem fidelidade, cancele quando quiser</span>
-          <span class="trust-item">🎁 6 meses grátis na promoção Basic</span>
-          <span class="trust-item">💬 Suporte humanizado incluído</span>
+          <span class="trust-item">14 dias de teste gratuito</span>
+          <span class="trust-item">Sem cartão para começar</span>
+          <span class="trust-item">Escolha um plano depois do teste</span>
         </div>
       </div>
     </div>
@@ -97,18 +96,17 @@ const plans = ref([
     price: '79,90',
     description: 'Sistema essencial de gestão, controle e relacionamento para sua oficina.',
     featured: true,
-    badge: '🔥 Campanha Especial',
-    promoInfo: 'Promoção por tempo limitado: os próximos 50 assinantes ganham 6 meses GRÁTIS! E depois, mais 6 meses pagando apenas a metade do valor (R$ 39,95/mês).',
-    buttonLabel: 'Aproveitar 6 Meses Grátis',
+    badge: '14 dias de teste',
+    promoInfo: 'Valor mensal após o período de teste, caso você escolha assinar.',
+    buttonLabel: 'Testar grátis por 14 dias',
     features: [
-      'Usuários Ilimitados',
-      'Suporte via Chat, Telefone e WhatsApp',
+      'Acesso para a equipe',
+      'Atendimento pelo chat',
       'Gestão de Orçamentos e Ordens de Serviço (OS)',
       'Controle Financeiro e Fluxo de Caixa',
       'Gestão de Estoque e Compras',
       'Relatórios e Dashboards Gerenciais',
-      'Cobrança e Relacionamento via WhatsApp',
-      '❌ Sem Emissão de Notas Fiscais',
+      'Histórico de clientes e veículos',
     ],
   },
   {
@@ -122,20 +120,15 @@ const plans = ref([
     buttonLabel: 'Falar com Consultor',
     features: [
       'Todos os recursos do plano NeriTech Pro',
-      'Emissão de Notas Fiscais ilimitadas (NF-e e NFS-e)',
-      'NF de Consumidor (NFC-e) e SAT/MF-e',
-      'NF de Devolução, Garantia e Retorno',
-      'Importação automática de XML de Compra',
-      'Manifestação de Destinatário e Busca na SEFAZ',
-      'Suporte especializado em Configuração Fiscal',
-      'Módulo Fiscal Avançado (DRE completo)',
+      'Emissão fiscal conforme configuração da empresa',
+      'Recursos para NF-e e NFS-e',
+      'Relatórios fiscais e gerenciais',
     ],
   },
 ]);
 
 const initiateCheckout = () => {
-  // Redireciona para o fluxo de cadastro/teste grátis do sistema
-  // onde o cupom ou trial de 6 meses será aplicado.
+  // O cadastro inicia o período de teste; a assinatura paga é uma decisão posterior.
   window.location.href = '/teste-gratis';
 };
 
@@ -180,7 +173,7 @@ const contactSales = () => {
 .pricing-title {
   /* Stripe: seção heading 36-48px, weight 300 */
   font-size: clamp(2.125rem, 4vw, 3.125rem);
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.06;
   margin-bottom: 0.875rem;
@@ -237,14 +230,14 @@ const contactSales = () => {
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: #f59e0b; /* Amber 500 */
+  background: #635BFF;
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 6px 18px;
   border-radius: 99px;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(99, 91, 255, 0.25);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }

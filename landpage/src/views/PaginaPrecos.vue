@@ -5,9 +5,9 @@
       <div class="container">
         <header class="precos-intro aos-init">
           <span class="section-label">Preços</span>
-          <h1 class="precos-intro__title">Planos simples, sem taxas surpresas.</h1>
+          <h1 class="precos-intro__title">Comece com 14 dias para testar.</h1>
           <p class="precos-intro__subtitle">
-            Teste grátis por 180 dias · Sem cartão · Cancele quando quiser
+            Sem cartão de crédito. Conheça o fluxo antes de escolher um plano.
           </p>
           <ul class="precos-trust">
             <li v-for="t in trustItems" :key="t">{{ t }}</li>
@@ -46,7 +46,7 @@
         <h2 class="cta-title">Comece seu teste grátis hoje</h2>
         <div class="cta-actions">
           <router-link to="/teste-gratis" class="btn-cta-primary">
-            Experimentar 180 dias grátis →
+            Testar grátis por 14 dias →
           </router-link>
           <a href="https://tawk.to/chat/6a42ce3ad118e21d49b241b4/1jsafb5hm" target="_blank" rel="noopener" @click="openChat($event)" class="btn-cta-secondary">
             Chat Online
@@ -77,10 +77,9 @@ const openChat = (e) => {
 };
 
 const trustItems = [
-  '🔒 Pagamento seguro',
-  '✓ Sem fidelidade',
-  '🎁 180 dias grátis',
-  '💬 Suporte incluído',
+  '14 dias grátis',
+  'Sem cartão de crédito',
+  'Cadastro online',
 ];
 
 const valorCards = [

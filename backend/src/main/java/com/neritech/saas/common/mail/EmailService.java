@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +25,6 @@ public class EmailService {
     @Value("${frontend.url:http://localhost:4200}")
     private String frontendUrl;
 
-    @Async
     public void sendTrialCredentials(String to, String name, String password) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -42,7 +40,7 @@ public class EmailService {
             mailSender.send(message);
             log.info("Trial credentials email sent successfully to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send trial credentials email to: {}", to, e);
+            throw new org.springframework.mail.MailSendException("Trial credentials delivery unavailable", e);
         }
     }
 
@@ -106,7 +104,7 @@ public class EmailService {
                 "    <p style='color: #1e293b; font-size: 18px; font-weight: 600; margin-bottom: 16px;'>Olá " + name + ",</p>" +
                 "    <p style='color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 30px;'>" +
                 "      Estamos muito felizes em ter você conosco! Você acaba de dar o primeiro passo para modernizar a sua gestão. " +
-                "      Aproveite os seus <strong>180 dias de acesso total gratuito</strong> para explorar todas as nossas ferramentas." +
+                "      Você tem <strong>14 dias de teste gratuito</strong> para conhecer a rotina da sua oficina no NeriTech Auto." +
                 "    </p>" +
                 "    " +
                 "    <div style='background-color: #f1f5f9; border-radius: 8px; padding: 24px; margin-bottom: 35px; border: 1px solid #e2e8f0;'>" +

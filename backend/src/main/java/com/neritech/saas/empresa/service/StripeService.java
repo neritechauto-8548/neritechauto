@@ -9,7 +9,6 @@ import com.stripe.model.Subscription;
 import com.stripe.model.billingportal.Session;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerListParams;
-import com.stripe.param.SubscriptionCreateParams;
 import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.billingportal.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
@@ -42,10 +41,6 @@ public class StripeService {
 
     @Value("${stripe.api.key:}")
     private String stripeApiKey;
-
-    // Optional: If there's a specific default plan price ID for the trial
-    @Value("${stripe.default.price.id:}")
-    private String defaultPriceId;
 
 
     @Value("${stripe.products.neritech-pro:}")
@@ -90,38 +85,6 @@ public class StripeService {
     }
 
     /**
-     * Creates a subscription with a 7-day free trial.
-     */
-    public Subscription createTrialSubscription(String customerId) throws StripeException {
-        if (defaultPriceId == null || defaultPriceId.isBlank()) {
-            log.warn("No default price ID configured for Stripe. Trial subscription cannot be fully created.");
-            return null;
-        }
-
-        // Idempotência: verifica se já tem assinatura ativa ou trial
-        List<Subscription> existing = getSubscriptions(customerId);
-        for (Subscription sub : existing) {
-            if ("active".equals(sub.getStatus()) || "trialing".equals(sub.getStatus())) {
-                log.info("Cliente {} já possui uma assinatura ativa ou trialing ({}). Pulando criação de trial.", customerId, sub.getId());
-                return sub;
-            }
-        }
-
-        SubscriptionCreateParams params = SubscriptionCreateParams.builder()
-                .setCustomer(customerId)
-                .addItem(
-                        SubscriptionCreateParams.Item.builder()
-                                .setPrice(defaultPriceId)
-                                .build()
-                )
-                .setTrialPeriodDays(180L) // 180 days trial (6 months)
-                .build();
-
-        log.info("Criando nova assinatura Trial para o cliente {}", customerId);
-        return Subscription.create(params);
-    }
-
-    /**
      * Gets active subscriptions for a Stripe customer.
      */
     public List<Subscription> getSubscriptions(String customerId) throws StripeException {
@@ -156,11 +119,6 @@ public class StripeService {
                 .setSuccessUrl(successUrl)
                 .setCancelUrl(cancelUrl)
                 .setAllowPromotionCodes(true) // Habilita cupons de desconto no checkout
-                .setSubscriptionData(
-                        com.stripe.param.checkout.SessionCreateParams.SubscriptionData.builder()
-                                .setTrialPeriodDays(180L) // Trial de 6 meses (180 dias)
-                                .build()
-                )
                 .addLineItem(
                         com.stripe.param.checkout.SessionCreateParams.LineItem.builder()
                                 .setPrice(priceId)

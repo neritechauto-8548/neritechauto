@@ -4,9 +4,9 @@
     <section class="page-hero trial-hero">
       <div class="container">
         <span class="section-label">Teste Grátis</span>
-        <h1 class="page-hero__title">Comece 180 dias grátis</h1>
+        <h1 class="page-hero__title">Teste o NeriTech Auto por 14 dias</h1>
         <p class="page-hero__subtitle">
-          Configuramos sua oficina em segundos. Sem cartão de crédito
+          Crie sua conta para começar. Não é preciso informar cartão de crédito.
         </p>
       </div>
     </section>
@@ -19,8 +19,8 @@
         <!-- Main Form Card (Light Theme) -->
         <div class="stripe-card registration-card">
           <div class="card-glow"></div>
-          <h2 class="form-card-title">Dados de Cadastro</h2>
-          <p class="form-card-subtitle">Preencha as informações para criar sua conta de teste.</p>
+          <h2 class="form-card-title">Dados da sua oficina</h2>
+          <p class="form-card-subtitle">Use um e-mail que você acessa: enviaremos as instruções de entrada por lá.</p>
           
           <form @submit.prevent="lidarRegistro" class="stripe-form">
             <div class="form-row">
@@ -121,7 +121,7 @@
               </div>
             </div>
 
-            <Button type="submit" class="btn-block" :disabled="loading" :label="loading ? 'Processando...' : 'Obter Minha Chave de Teste'" icon="pi pi-key" iconPos="right" />
+            <Button type="submit" class="btn-block" :disabled="loading" :label="loading ? 'Criando conta...' : 'Começar teste de 14 dias'" icon="pi pi-arrow-right" iconPos="right" />
             <p class="form-footer">
               Ao clicar, você concorda com nossos termos de uso e política de privacidade.
             </p>
@@ -134,24 +134,24 @@
             <div class="icon-abstract stripe-icon-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-2 10h8L11 22l2-10H5Z"/></svg>
             </div>
-            <h3>Acesso Imediato</h3>
-            <p>Sua chave de acesso de avaliação é gerada e enviada automaticamente para seu e-mail em segundos.</p>
+            <h3>Acesso por e-mail</h3>
+            <p>Após o cadastro, enviamos os dados para entrar no sistema ao endereço informado.</p>
           </div>
 
           <div class="info-card-mini stripe-card">
             <div class="icon-abstract stripe-icon-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-2a1 1 0 0 1 1-1h5l3 3 3-3h5a1 1 0 0 1 1 1v2"/><path d="M15 13a3 3 0 1 0-6 0"/><rect width="20" height="12" x="2" y="4" rx="2"/></svg>
             </div>
-            <h3>Suporte Dedicado</h3>
-            <p>Nossa equipe técnica atende diretamente no WhatsApp para ajudar você a cadastrar seus primeiros veículos no pátio.</p>
+            <h3>Comece pelo essencial</h3>
+            <p>Cadastre um veículo, abra uma OS e veja como sua equipe acompanha cada etapa.</p>
           </div>
 
           <div class="info-card-mini stripe-card">
             <div class="icon-abstract stripe-icon-3">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
             </div>
-            <h3>Sem Compromisso</h3>
-            <p>Teste todas as funcionalidades Master por 180 dias sem precisar de cartão de crédito.</p>
+            <h3>14 dias para avaliar</h3>
+            <p>Conheça a plataforma na rotina da oficina. Sem cartão de crédito no cadastro.</p>
           </div>
         </div>
       </div>

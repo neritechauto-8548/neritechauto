@@ -173,7 +173,7 @@ export class StartupService {
     // A árvore oficial continua visível; funcionalidades futuras não redirecionam
     // silenciosamente para /home e não simulam telas prontas.
     const registeredRoutes = new Set([
-      '/home', '/cliente/listar', '/cliente/crm', '/cliente/crm/comunicacao', '/cliente/crm/pesquisa', '/agendamento/calendario', '/orcamento/orcamento', '/os',
+      '/home', '/cliente/listar', '/cliente/crm', '/cliente/crm/comunicacao', '/cliente/crm/pesquisa', '/agendamento/calendario', '/orcamento/orcamento', '/os', '/patio',
       '/produtos-servicos/servicos', '/veiculo', '/pdv', '/produtos-servicos/estoque',
       '/configuracoes/inventario', '/financeiro/contas', '/financeiro/receber',
       '/financeiro/pagar', '/financeiro/caixa', '/financeiro/comissoes',

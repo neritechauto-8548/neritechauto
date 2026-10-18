@@ -1,13 +1,6 @@
 {
   "menu": [
     {
-      "name": "Gestão de Pátio",
-      "route": "patio",
-      "type": "link",
-      "disabled": true,
-      "icon": "warehouse"
-    },
-    {
       "name": "Início",
       "route": "home",
       "type": "link",
@@ -127,6 +120,14 @@
         }
       ]
     },
+      {
+          "name": "Gestão de Pátio",
+          "route": "patio",
+          "type": "link",
+          "icon": "warehouse",
+          "permissions": { "only": ["GERAL_USUARIO", "ADMIN"] },
+          "disabled": false
+        },
     {
       "name": "Estoque & Compras",
       "route": "",

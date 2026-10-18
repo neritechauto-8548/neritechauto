@@ -7,6 +7,8 @@ import com.neritech.saas.gestaoUsuarios.dto.UsuarioRequest;
 import com.neritech.saas.gestaoUsuarios.dto.UsuarioResponse;
 import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
 import com.neritech.saas.gestaoUsuarios.repository.FuncaoRepository;
+import com.neritech.saas.empresa.domain.AssinaturaEmpresa;
+import com.neritech.saas.empresa.domain.enums.StatusAssinatura;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,9 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,6 +75,17 @@ class UsuarioServiceTest {
                 .thenReturn(Optional.of(usuario));
     }
 
+    @Test
+    @DisplayName("Deve pesquisar sem enviar parâmetro textual nulo ao banco")
+    void devePesquisarComFiltroVazioQuandoQueryAusente() {
+        PageRequest pageable = PageRequest.of(0, 20);
+        when(usuarioRepository.searchByTenant(1L, "", null, pageable)).thenReturn(Page.empty(pageable));
+
+        usuarioService.search(null, null, pageable);
+
+        verify(usuarioRepository).searchByTenant(1L, "", null, pageable);
+    }
+
     @Nested
     @DisplayName("Create")
     class CreateTests {
@@ -109,6 +125,38 @@ class UsuarioServiceTest {
     @Nested
     @DisplayName("FindById")
     class FindByIdTests {
+
+        @Test
+        @DisplayName("Deve liberar o teste antes do vencimento")
+        void deveLiberarTesteVigente() {
+            AssinaturaEmpresa assinatura = new AssinaturaEmpresa();
+            assinatura.setStatus(StatusAssinatura.TESTE);
+            assinatura.setTrialEndsAt(LocalDateTime.now().plusDays(1));
+            when(usuarioRepository.findByIdAndEmpresaId(1L, 1L)).thenReturn(Optional.of(usuario));
+            when(assinaturaEmpresaRepository.findFirstByEmpresaIdOrderByDataFimDesc(1L))
+                    .thenReturn(Optional.of(assinatura));
+
+            UsuarioResponse response = usuarioService.findById(1L);
+
+            assertThat(response.isAssinaturaAtiva()).isTrue();
+            assertThat(response.getSubscriptionStatus()).isEqualTo(StatusAssinatura.TESTE);
+        }
+
+        @Test
+        @DisplayName("Deve encerrar o acesso quando o teste vence")
+        void deveBloquearTesteVencido() {
+            AssinaturaEmpresa assinatura = new AssinaturaEmpresa();
+            assinatura.setStatus(StatusAssinatura.TESTE);
+            assinatura.setTrialEndsAt(LocalDateTime.now().minusSeconds(1));
+            when(usuarioRepository.findByIdAndEmpresaId(1L, 1L)).thenReturn(Optional.of(usuario));
+            when(assinaturaEmpresaRepository.findFirstByEmpresaIdOrderByDataFimDesc(1L))
+                    .thenReturn(Optional.of(assinatura));
+
+            UsuarioResponse response = usuarioService.findById(1L);
+
+            assertThat(response.isAssinaturaAtiva()).isFalse();
+            assertThat(response.getSubscriptionStatus()).isEqualTo(StatusAssinatura.INATIVO);
+        }
 
         @Test
         @DisplayName("Deve retornar usuário quando id existe")

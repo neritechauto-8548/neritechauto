@@ -5,7 +5,8 @@
 
       <nav class="nav-desktop" role="navigation" aria-label="Navegação principal">
         <router-link to="/" class="nav-link">Início</router-link>
-        <router-link to="/funcionalidades" class="nav-link">Produtos</router-link>
+        <router-link to="/funcionalidades" class="nav-link">Funcionalidades</router-link>
+        <a href="/#oficinas" class="nav-link">Para quem é</a>
         <router-link to="/precos" class="nav-link">Preços</router-link>
         <router-link to="/blog" class="nav-link">Recursos</router-link>
         <a href="/#contato" class="nav-link">Contato</a>
@@ -22,7 +23,7 @@
 
         <a :href="urlSistemaCliente" class="link-login">Entrar</a>
         <router-link to="/teste-gratis" class="btn-try-free" id="nav-cta-btn">
-          Começar agora
+          Testar grátis por 14 dias
         </router-link>
       </div>
 
@@ -44,8 +45,9 @@
       <div v-if="menuMobileAberto" class="mobile-menu">
         <div class="mobile-nav">
           <router-link to="/" class="mobile-link" @click="menuMobileAberto = false">Início</router-link>
-          <router-link to="/funcionalidades" class="mobile-link" @click="menuMobileAberto = false">Produtos</router-link>
-          <a href="/#planos" class="mobile-link" @click="menuMobileAberto = false">Preços</a>
+          <router-link to="/funcionalidades" class="mobile-link" @click="menuMobileAberto = false">Funcionalidades</router-link>
+          <a href="/#oficinas" class="mobile-link" @click="menuMobileAberto = false">Para quem é</a>
+          <router-link to="/precos" class="mobile-link" @click="menuMobileAberto = false">Preços</router-link>
           <router-link to="/blog" class="mobile-link" @click="menuMobileAberto = false">Recursos</router-link>
           <a href="/#contato" class="mobile-link" @click="menuMobileAberto = false">Contato</a>
         </div>
@@ -56,7 +58,7 @@
           </button>
           <a :href="urlSistemaCliente" class="btn-mobile-login">Entrar</a>
           <router-link to="/teste-gratis" class="btn-mobile-cta" @click="menuMobileAberto = false">
-            Começar agora →
+            Testar grátis por 14 dias →
           </router-link>
         </div>
       </div>
@@ -87,7 +89,7 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true });
 
   const temaSalvo = localStorage.getItem('theme');
-  if (temaSalvo === 'dark' || (!temaSalvo && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  if (temaSalvo === 'dark') {
     document.documentElement.classList.add('p-dark');
     ehModoEscuro.value = true;
   } else {
@@ -108,15 +110,13 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid transparent;
+  background: #fff;
+  border-bottom: 1px solid #E6EBF1;
   transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .header.scrolled {
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   border-bottom-color: rgba(50, 50, 93, 0.08);
   box-shadow: 0 1px 0 rgba(50, 50, 93, 0.04);
 }

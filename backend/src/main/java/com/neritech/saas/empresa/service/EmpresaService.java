@@ -19,6 +19,7 @@ import com.neritech.saas.produtoServico.domain.UnidadeMedida;
 import com.neritech.saas.produtoServico.repository.UnidadeMedidaRepository;
 import com.neritech.saas.produtoServico.domain.CategoriaProduto;
 import com.neritech.saas.produtoServico.repository.CategoriaProdutoRepository;
+import com.neritech.saas.trial.service.TrialPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -212,16 +213,19 @@ public class EmpresaService {
                 .findFirst()
                 .orElse(null);
 
-        if (plano != null) {
-            AssinaturaEmpresa assinatura = new AssinaturaEmpresa();
-            assinatura.setEmpresa(empresa);
-            assinatura.setPlano(plano);
-            assinatura.setDataInicio(LocalDate.now());
-            assinatura.setDataFim(LocalDate.now().plusDays(plano.getPeriodoTesteDias() != null ? plano.getPeriodoTesteDias() : 15));
-            assinatura.setValorMensal(plano.getPrecoMensal());
-            assinatura.setStatus(StatusAssinatura.ATIVO);
-            assinaturaEmpresaRepository.save(assinatura);
+        if (plano == null) {
+            throw new IllegalStateException("Plano de teste não configurado.");
         }
+        java.time.LocalDateTime inicioTeste = TrialPolicy.now();
+        AssinaturaEmpresa assinatura = new AssinaturaEmpresa();
+        assinatura.setEmpresa(empresa);
+        assinatura.setPlano(plano);
+        assinatura.setDataInicio(inicioTeste.toLocalDate());
+        assinatura.setDataFim(inicioTeste.toLocalDate().plusDays(TrialPolicy.DURATION_DAYS));
+        assinatura.setTrialEndsAt(inicioTeste.plusDays(TrialPolicy.DURATION_DAYS));
+        assinatura.setValorMensal(plano.getPrecoMensal());
+        assinatura.setStatus(StatusAssinatura.TESTE);
+        assinaturaEmpresaRepository.save(assinatura);
     }
 
     /** Modifica somente a empresa da sessão, com controle de versão e auditoria atômica. */
