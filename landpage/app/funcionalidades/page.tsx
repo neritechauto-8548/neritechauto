@@ -3,7 +3,7 @@ import { pageMetadata } from '@/lib/site';
 
 export const metadata = pageMetadata(
   'Funcionalidades',
-  'Conheça as funcionalidades de gestão de oficina da NERITECH AUTO: atendimento, orçamentos, OS, pátio, estoque, financeiro e fiscal.',
+  'Explore orçamentos, controle de serviços, gestão de pátio, custos, financeiro e inteligência artificial de apoio da NERITECH AUTO, conforme disponibilidade.',
   '/funcionalidades',
 );
 

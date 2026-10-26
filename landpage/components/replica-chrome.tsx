@@ -37,8 +37,8 @@ function ReferenceHeader({ path }: { path:string }) {
 }
 function ReferenceFooter() {
  return <footer className="site-footer"><div className="container"><div className="footer-columns">
-   <div><ReferenceLogo/><p className="footer-follow">Da recepção à entrega. Sua oficina sob controle.</p></div>
-   <div><h4>NERITECH AUTO</h4><p>Gestão de oficinas, do atendimento ao financeiro.</p><a href="/funcionalidades">O sistema</a><a href="/precos">Planos</a><a href="/sobre">Nossa empresa</a></div>
+   <div><ReferenceLogo/><p className="footer-follow">Orçamentos claros. Controle da operação. Lucro em foco. IA para apoiar decisões.</p></div>
+   <div><h4>NERITECH AUTO</h4><p>Software de gestão com orçamentos, controle operacional, visão de lucro e apoio de IA.</p><a href="/funcionalidades">O sistema</a><a href="/precos">Planos</a><a href="/sobre">Nossa empresa</a></div>
    <div><h4>Comece agora</h4><a className="footer-link" href="/teste-gratis">Conhecer teste grátis</a><a className="footer-link" href={loginUrl}>Acessar minha oficina</a><h4>Informações legais</h4><a href="/termos-de-uso">Termos de uso</a><a href="/politica-de-privacidade">Privacidade</a><a href="/politica-de-cookies">Cookies</a></div>
  </div><div className="footer-bottom"><nav><a href="/">Início</a><a href="/dpa">Proteção de dados</a><a href="/blog">Blog</a></nav><span>© {new Date().getFullYear()} NERITECH AUTO</span></div></div></footer>;
 }

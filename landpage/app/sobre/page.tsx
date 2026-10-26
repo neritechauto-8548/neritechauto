@@ -3,7 +3,7 @@ import { pageMetadata } from '@/lib/site';
 
 export const metadata = pageMetadata(
   'Quem somos',
-  'Conheça a NERITECH AUTO e nossa proposta de simplificar a gestão de oficinas mecânicas, com tecnologia orientada à operação.',
+  'Conheça a NERITECH AUTO: orçamentos, controle operacional, lucratividade e inteligência artificial como apoio à gestão de oficinas.',
   '/sobre',
 );
 

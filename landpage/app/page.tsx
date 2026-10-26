@@ -2,8 +2,8 @@ import { ReplicaPage } from '@/components/replica-page';
 import { pageMetadata } from '@/lib/site';
 
 export const metadata = pageMetadata(
-  'Sistema de gestão para oficinas mecânicas',
-  'NERITECH AUTO: clientes, veículos, orçamentos, ordens de serviço, gestão de pátio, estoque e financeiro em um só lugar.',
+  'Orçamentos, controle e lucro com apoio de IA',
+  'NERITECH AUTO: orçamentos, controle da oficina, gestão financeira e inteligência artificial de apoio, conforme disponibilidade. Conheça os dois planos.',
   '/',
 );
 
