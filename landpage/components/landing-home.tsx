@@ -1,43 +1,90 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BarChart3, CalendarDays, Check, ClipboardCheck, ClipboardList, FileText, Package, Sparkles, Users, Wallet } from 'lucide-react';
+import {
+  ArrowRight, BarChart3, CalendarDays, Check, ClipboardCheck, ClipboardList,
+  FileText, Package, ShieldCheck, Sparkles, Users, Wallet, Wrench,
+  MessageCircle, Boxes, CircleCheck, Smartphone, Search
+} from 'lucide-react';
 import { FAQ } from '@/components/faq';
 import { PatioBoard } from '@/components/marketing-visuals';
 import { ProductPreview } from '@/components/product-preview';
 
-const capabilities = [
-  { icon: ClipboardList, title: 'Controle completo', description: 'Uma visão clara do que entrou, do que está em serviço e do que precisa da sua atenção.', id: 'patio', tone: 'dark' },
-  { icon: FileText, title: 'Orçamentos e OS', description: 'Da proposta à execução, mantenha itens, etapas e histórico no mesmo contexto.', id: 'orcamentos', tone: 'blue' },
-  { icon: Users, title: 'Clientes e veículos', description: 'Conheça o histórico para atender com continuidade em cada visita.', id: 'clientes', tone: '' },
-  { icon: Package, title: 'Estoque e compras', description: 'Acompanhe peças, saldos e fornecedores perto da operação.', id: 'estoque', tone: '' },
-  { icon: Wallet, title: 'Gestão financeira', description: 'Conecte custos e receitas para avaliar o resultado da oficina.', id: 'financeiro', tone: 'photo' },
-  { icon: BarChart3, title: 'Indicadores', description: 'Enxergue dados do trabalho para tomar decisões com critério.', id: 'indicadores', tone: '' },
-  { icon: Sparkles, title: 'Inteligência Artificial', description: 'Assistência contextual, quando habilitada, com revisão humana.', id: 'ia', tone: '' },
-  { icon: ClipboardCheck, title: 'Gestão de Pátio', description: 'Uma tela interna para acompanhar etapas, responsáveis e OS.', id: 'patio', tone: 'dark' },
+const featureTiles = [
+  { title: 'CONTROLE TOTAL DA OFICINA', text: 'Orçamentos, ordens de serviço, clientes e veículos em um mesmo fluxo de trabalho.', href: '/funcionalidades#gerencia', icon: ClipboardList, variant: 'large light', image: 'oficina' },
+  { title: 'PRÁTICO E MODERNO', text: 'Uma rotina mais organizada, com acesso aos recursos conforme o perfil e o plano.', href: '/funcionalidades#servicos', icon: Smartphone, variant: 'large blue', image: 'moderno' },
+  { title: 'ESTOQUE E COMPRAS', text: 'Produtos, peças, fornecedores, cotações e movimentações com mais clareza.', href: '/funcionalidades#estoque', icon: Package, variant: 'small' },
+  { title: 'AGILIDADE NOS PROCESSOS', text: 'Acompanhe cada etapa do atendimento sem perder o contexto da OS.', href: '/funcionalidades#orcamentos', icon: Wrench, variant: 'small blue' },
+  { title: 'EQUIPE MAIS PRODUTIVA', text: 'Responsáveis e andamento dos serviços reunidos na operação.', href: '/funcionalidades#patio', icon: Users, variant: 'small dark' },
+  { title: 'GESTÃO COM MAIS CLAREZA', text: 'Custos, movimentações e indicadores conectados às decisões.', href: '/funcionalidades#financeiro', icon: BarChart3, variant: 'small', image: 'financeiro' },
 ];
 
-const operations = [
-  { icon: CalendarDays, number: '01', title: 'Atenda com organização', text: 'Agenda, cliente, veículo e histórico se encontram antes de começar o serviço.' },
-  { icon: FileText, number: '02', title: 'Acompanhe cada etapa', text: 'Orçamento, aprovação e ordem de serviço mantêm a equipe alinhada.' },
-  { icon: BarChart3, number: '03', title: 'Decida com mais clareza', text: 'Peças, custos e indicadores dão contexto ao resultado da oficina.' },
+const process = [
+  { icon: CalendarDays, title: 'Organize os atendimentos', text: 'Agenda, veículo, cliente e orçamento na mesma rotina.', image: '/images/home/oficina-cliente.png' },
+  { icon: ClipboardCheck, title: 'Acompanhe a execução', text: 'Etapas do serviço, responsáveis e prazos em uma visão organizada.', image: '/images/home/oficina-patio.png' },
+  { icon: ShieldCheck, title: 'Entregue com confiança', text: 'Registre informações e mantenha o histórico ao alcance da equipe.', image: '/images/home/oficina-gestao.png' },
 ];
+
+const editorials = [
+  { key: '01', eyebrow: 'GESTÃO COMPLETA', title: 'TUDO DA SUA OFICINA EM UM SÓ LUGAR', text: 'Conecte atendimento, clientes, veículos, ordens de serviço e estoque. O que acontece na operação fica disponível para as próximas decisões.', tags: ['Clientes e veículos', 'Orçamentos e OS', 'Estoque'], href: '/funcionalidades#gerencia', mode: 'preview' },
+  { key: '02', eyebrow: 'FINANCEIRO', title: 'MAIS CONTROLE PARA AS SUAS DECISÕES', text: 'Conecte serviços e movimentações financeiras para acompanhar o resultado da oficina com base nos dados registrados.', tags: ['Contas a pagar', 'Contas a receber', 'Indicadores'], href: '/funcionalidades#financeiro', mode: 'finance' },
+  { key: '03', eyebrow: 'CLIENTES E CRM', title: 'SEU CLIENTE SEMPRE INFORMADO', text: 'Organize contatos, histórico e acompanhamento dos serviços. Os canais de comunicação dependem das integrações habilitadas.', tags: ['Histórico', 'Relacionamento', 'Comunicação'], href: '/funcionalidades#clientes', mode: 'chat' },
+  { key: '04', eyebrow: 'PEÇAS E COMPRAS', title: 'MAIS ORGANIZAÇÃO DO ESTOQUE À EXECUÇÃO', text: 'Acompanhe produtos, kits, fornecedores e movimentações para organizar o trabalho sem perder o contexto de cada peça.', tags: ['Produtos', 'Compras', 'Movimentações'], href: '/funcionalidades#estoque', mode: 'stock' },
+];
+
+function Illustration({ mode }: {mode:string}) {
+  if (mode === 'preview') return <div className="nr-preview-device"><ProductPreview/><span>Interface ilustrativa do sistema</span></div>;
+  if (mode === 'finance') return <div className="nr-illustration nr-illustration-finance" aria-label="Representação ilustrativa de indicadores financeiros"><div className="nr-small-dash"><span>Visão financeira</span><div className="nr-bars">{[35,51,47,73,64,88,78].map((h,i)=><i key={i} style={{height:h+'%'}}/>)}</div><div className="nr-dash-footer"><span>Desempenho</span><BarChart3 size={24}/></div></div><div className="nr-floating-badge"><Wallet size={18}/> Decisões com contexto</div></div>;
+  if (mode === 'chat') return <div className="nr-illustration nr-illustration-chat" aria-label="Exemplo ilustrativo de comunicação com clientes"><div className="nr-chat-bubble"><MessageCircle size={17}/> A ordem de serviço foi registrada.</div><div className="nr-chat-bubble nr-chat-reply"><CircleCheck size={17}/> Atendimento acompanhado.</div><div className="nr-chat-bubble"><MessageCircle size={17}/> Histórico disponível para consulta.</div><small>Exemplo ilustrativo • envios sujeitos a integração</small></div>;
+  return <div className="nr-illustration nr-illustration-stock" aria-label="Representação de estoque e compras"><div className="nr-stock-header"><Boxes size={24}/> Estoque e compras</div><div className="nr-stock-rows">{['Produtos e kits','Cotações e fornecedores','Inventário e movimentações'].map(t=><div key={t}><Check size={17}/><span>{t}</span><i/></div>)}</div></div>;
+}
 
 export function LandingHome() {
-  return <main id="conteudo" className="nl-page">
-    <section className="nl-hero">
-      <Image src="/images/home/hero-oficina-neritech.png" alt="Profissional em uma oficina mecânica" width={1672} height={940} priority className="nl-hero-image"/>
-      <div className="nl-hero-shade"/>
-      <div className="nl-container nl-hero-content"><span className="nl-kicker"><span className="nl-kicker-line"/> Plataforma para oficinas mecânicas</span><h1>O futuro da gestão automotiva <em>começa na sua oficina.</em></h1><p>Tenha mais controle, produtividade e resultados com uma plataforma completa para gerenciar sua oficina mecânica.</p><div className="nl-actions"><Link className="nl-button" href="/teste-gratis">Testar gratuitamente <ArrowRight size={18}/></Link><Link className="nl-button nl-button-ghost" href="/funcionalidades">Conhecer funcionalidades</Link></div><span className="nl-hero-caption">Da entrada do veículo à entrega, tudo no mesmo fluxo.</span></div>
+  return <main id="conteudo" className="nl-page nr-home">
+    <section className="nr-hero">
+      <Image src="/images/home/hero-oficina-neritech.png" width={1672} height={940} priority alt="Profissional em uma oficina mecânica moderna" className="nr-hero-photo"/>
+      <div className="nr-hero-overlay"/>
+      <div className="nl-container nr-hero-inner"><div className="nr-hero-copy">
+        <span className="nr-eyebrow">SISTEMA PARA OFICINAS MECÂNICAS</span>
+        <h1>O FUTURO DA<br/>GESTÃO AUTOMOTIVA<br/><em>COMEÇA AQUI.</em></h1>
+        <p>Mais controle para sua oficina, do primeiro atendimento à entrega do veículo. Uma gestão conectada, simples e inteligente.</p>
+        <Link href="/teste-gratis" className="nr-btn nr-btn-primary">Conhecer teste grátis <ArrowRight size={17}/></Link>
+        <div className="nr-hero-helper"><CircleCheck size={17}/> Da recepção à entrega, tudo no mesmo fluxo.</div>
+      </div></div>
     </section>
-    <section className="nl-proof"><div className="nl-container nl-proof-grid"><div><span>01 / OPERAÇÃO</span><strong>Uma rotina mais organizada</strong><p>Serviços e responsáveis no contexto certo.</p></div><div><span>02 / CONTROLE</span><strong>Informação conectada</strong><p>Clientes, veículos, peças e financeiro.</p></div><div><span>03 / DECISÃO</span><strong>Visão para evoluir</strong><p>Indicadores para acompanhar resultados.</p></div></div></section>
-    <section className="nl-statement"><div className="nl-statement-orbit nl-statement-orbit-one"/><div className="nl-statement-orbit nl-statement-orbit-two"/><div className="nl-container"><span className="nl-kicker">NERITECH AUTO</span><h2>A oficina evoluiu. <br/>A gestão também precisa evoluir.</h2><p>Mais fluidez no dia a dia, com a operação inteira à vista.</p><div className="nl-statement-pills"><span>Atendimento</span><span>Serviço</span><span>Peças</span><span>Resultado</span></div></div></section>
-    <section className="nl-section" id="recursos"><div className="nl-container"><div className="nl-section-head nl-center"><span className="nl-kicker">Tudo em um só lugar</span><h2>O que sua oficina precisa para <em>potencializar o dia a dia.</em></h2><p>Recursos organizados no fluxo real de trabalho, da recepção à gestão.</p></div><div className="nl-capabilities">{capabilities.map(({ icon: Icon, title, description, id, tone }) => <Link href={`/funcionalidades#${id}`} className={`nl-capability nl-capability-${tone}`} key={title}><span className="nl-capability-icon"><Icon size={23}/></span><div><h3>{title}</h3><p>{description}</p><span className="nl-card-link">Explorar recurso <ArrowRight size={15}/></span></div></Link>)}</div></div></section>
-    <section className="nl-section nl-process"><div className="nl-container"><div className="nl-section-head nl-center"><span className="nl-kicker">Segurança para avançar</span><h2>Acelere a operação, <em>sem perder o controle.</em></h2><p>Um caminho claro para a equipe e para quem gere a oficina.</p></div><div className="nl-process-grid">{operations.map(({ icon: Icon, number, title, text }) => <article className="nl-process-card" key={title}><span className="nl-process-number">{number}</span><Icon size={31}/><h3>{title}</h3><p>{text}</p></article>)}</div></div></section>
-    <section className="nl-photo-break"><Image src="/images/home/oficina-cliente.png" width={1536} height={1024} alt="Profissional explica um atendimento automotivo a uma cliente"/><div className="nl-photo-card"><span className="nl-kicker">Atendimento de ponta a ponta</span><h2>Seu cliente bem informado. Sua equipe no controle.</h2><p>Histórico, orçamento e acompanhamento do serviço conectados à rotina.</p><Link href="/funcionalidades" className="nl-button nl-button-light">Conhecer a plataforma <ArrowRight size={17}/></Link></div></section>
-    <section className="nl-section"><div className="nl-container nl-editorial-stack"><div className="nl-editorial"><div><span className="nl-kicker">01 / VISÃO COMPLETA</span><h2>Tudo da sua oficina em um só lugar.</h2><p>Encontre dados da operação sem mudar de contexto a cada decisão. O que a equipe registra ajuda a gestão a entender o trabalho.</p><ul><li><Check size={18}/> Atendimento e agendamento</li><li><Check size={18}/> Clientes e veículos</li><li><Check size={18}/> Orçamentos e ordens de serviço</li></ul><Link href="/funcionalidades" className="nl-text-link">Explorar funcionalidades <ArrowRight size={17}/></Link></div><div className="nl-editorial-preview"><ProductPreview/><span>Prévia ilustrativa da organização da plataforma</span></div></div><div className="nl-editorial nl-editorial-reverse"><div><span className="nl-kicker">02 / DECISÕES MELHORES</span><h2>Custos e margens com mais clareza.</h2><p>Conecte peças, serviços e financeiro para avaliar o resultado da oficina com base nos dados disponíveis.</p><ul><li><Check size={18}/> Estoque e compras</li><li><Check size={18}/> Dados financeiros</li><li><Check size={18}/> Relatórios e indicadores</li></ul><Link href="/funcionalidades#financeiro" className="nl-text-link">Ver gestão financeira <ArrowRight size={17}/></Link></div><div className="nl-finance-visual"><div className="nl-finance-chart"><span>Receitas</span><div><i/><i/><i/><i/><i/><i/></div></div><div className="nl-finance-card"><Wallet size={23}/><strong>Resultado com contexto</strong><small>Peças · Serviços · Custos</small></div><span className="nl-visual-note">Representação ilustrativa</span></div></div></div></section>
-    <section className="nl-dark"><div className="nl-container"><div className="nl-section-head nl-center"><span className="nl-kicker">A operação em tempo real</span><h2>Controle o pátio da sua oficina <em>da melhor maneira.</em></h2><p>A Gestão de Pátio reúne o andamento dos veículos em uma única tela interna.</p></div><div className="nl-patio-frame"><PatioBoard/></div><div className="nl-dark-bottom"><div><span className="nl-kicker">Inteligência com responsabilidade</span><h3>As respostas começam com uma pergunta melhor.</h3><p>A assistência de IA, quando habilitada, apoia análises sobre os dados disponíveis. A revisão permanece com a equipe.</p></div><div className="nl-ai-card"><Sparkles size={23}/><strong>“O que precisa da minha atenção hoje?”</strong><span>Exemplo ilustrativo · sujeito à disponibilidade</span></div></div></div></section>
-    <section className="nl-section"><div className="nl-container"><div className="nl-section-head nl-center"><span className="nl-kicker">Conexões com critério</span><h2>Tudo integrado. <em>Mais resultados para você.</em></h2><p>Configurações externas dependem do plano, das credenciais e da disponibilidade técnica.</p></div><div className="nl-integration-grid">{[{title:'WhatsApp',text:'Canal configurável conforme provedor e credenciais da oficina.'},{title:'E-mail',text:'Envios sujeitos à configuração de serviço de e-mail.'},{title:'SMS',text:'Disponibilidade condicionada a provedor habilitado.'},{title:'Fiscal',text:'Recursos sujeitos ao plano, parâmetros e habilitação técnica.'}].map(item => <article key={item.title}><div className="nl-integration-icon">{item.title.slice(0,2)}</div><h3>{item.title}</h3><p>{item.text}</p><span>Consulte disponibilidade</span></article>)}</div><div className="nl-centered-link"><Link href="/funcionalidades#integracoes" className="nl-text-link">Explorar integrações <ArrowRight size={17}/></Link></div></div></section>
-    <section className="nl-quote"><div className="nl-container nl-quote-grid"><div className="nl-quote-mark">“</div><div><span className="nl-kicker">Feito para a rotina da oficina</span><h2>Menos informação dispersa. Mais tempo para cuidar do que faz a oficina crescer.</h2><p>NERITECH AUTO — Inteligência na gestão. Controle na operação. Lucro em foco.</p><Link href="/teste-gratis" className="nl-button nl-button-light">Conhecer teste grátis <ArrowRight size={17}/></Link></div></div></section>
+    <section className="nr-metrics nl-container" aria-label="Etapas da jornada"><div><strong>01 · ATENDIMENTO</strong><span>Clientes, veículos e agenda</span></div><div><strong>02 · EXECUÇÃO</strong><span>Orçamentos, OS e gestão de pátio</span></div><div><strong>03 · RESULTADOS</strong><span>Estoque, financeiro e indicadores</span></div></section>
+    <section className="nr-statement"><div className="nr-decor nr-decor-one"><Wrench/></div><div className="nr-decor nr-decor-two"><ClipboardCheck/></div><div className="nr-decor nr-decor-three"><BarChart3/></div><div className="nr-decor nr-decor-four"><Sparkles/></div><h2>A oficina evoluiu, seu sistema de gestão<br/>também precisa evoluir.</h2></section>
+
+    <section className="nr-section nr-features nl-container">
+      <div className="nr-center-heading"><span className="nr-eyebrow">POTENCIALIZE O SEU DIA A DIA</span><h2>Possuímos tudo o que você precisa para <em>potencializar sua oficina</em></h2></div>
+      <div className="nr-feature-mosaic">{featureTiles.map(({title,text,href,icon:Icon,variant,image})=><Link href={href} className={'nr-feature-tile '+variant} key={title}><span className="nr-icon"><Icon size={21}/></span><div className="nr-feature-info"><h3>{title}</h3><p>{text}</p></div>{image==='oficina'&&<div className="nr-tile-screen"><ProductPreview/></div>}{image==='moderno'&&<Image src="/images/home/oficina-mecanico.png" alt="" width={460} height={300} className="nr-tile-photo"/>}{image==='financeiro'&&<BarChart3 size={80} className="nr-tile-watermark"/>}</Link>)}</div>
+      <div className="nr-center-heading nr-secondary-heading"><h2>Acelere com segurança e agilidade,<br/><em>vá mais longe em menos tempo.</em></h2></div>
+      <div className="nr-process-cards">{process.map(({icon:Icon,title,text,image})=><article className="nr-process-card" key={title}><Image src={image} width={640} height={500} alt="" className="nr-process-photo"/><div className="nr-process-gradient"/><span className="nr-process-icon"><Icon size={21}/></span><div><h3>{title}</h3><p>{text}</p></div></article>)}</div>
+      <div className="nr-wide-promo"><Image src="/images/home/oficina-mecanico.png" width={1536} height={1024} alt="Profissional trabalhando em oficina mecânica"/><div className="nr-promo-card"><ClipboardCheck size={24}/><h2>Mais organização para uma oficina que não para.</h2><p>Uma visão completa do atendimento à entrega.</p><Link href="/teste-gratis" className="nr-btn nr-btn-white">Conhecer teste grátis <ArrowRight size={16}/></Link></div></div>
+    </section>
+
+    <section className="nr-editorials nl-container" aria-label="Recursos em destaque">
+      {editorials.map((item,i)=><article key={item.key} className={'nr-editorial-row '+(i%2?'reverse':'')}>
+        <div className="nr-editorial-copy"><span className="nr-eyebrow">{item.eyebrow}</span><h2>{item.title}</h2><p>{item.text}</p><div className="nr-tags">{item.tags.map(tag=><span key={tag}>{tag}</span>)}</div><Link href={item.href} className="nr-text-link">Saiba mais <ArrowRight size={16}/></Link></div>
+        <Illustration mode={item.mode}/>
+      </article>)}
+    </section>
+
+    <section className="nr-dark-showcase">
+      <div className="nl-container">
+        <div className="nr-center-heading nr-on-dark"><span className="nr-eyebrow">INTELIGÊNCIA ARTIFICIAL</span><h2>Encontre o que importa, <br/>sem perder tempo.</h2><p>O assistente, quando habilitado, pode ajudar a consultar informações disponíveis, sempre com revisão humana.</p></div>
+        <div className="nr-ai-search"><div><Search size={19}/> Pesquise por OS, cliente, veículo ou informação da operação <span>Busca ilustrativa</span></div><div className="nr-ai-example"><Sparkles size={20}/> “Quais serviços precisam da minha atenção hoje?”</div></div>
+        <div className="nr-patio-content"><div className="nr-patio-copy"><span className="nr-eyebrow">GESTÃO DE PÁTIO EM TEMPO REAL</span><h2>Controle o pátio da sua oficina<br/>da melhor maneira.</h2><p>Uma tela interna para visualizar etapas, responsáveis e ordens de serviço. Consulte também o Kanban em tela cheia.</p><Link href="/funcionalidades#patio" className="nr-text-link nr-link-light">Conhecer Gestão de Pátio <ArrowRight size={17}/></Link></div><div className="nr-patio-visual"><PatioBoard/></div></div>
+        <div className="nr-checklist"><div><span className="nr-eyebrow">INSPEÇÕES E DIAGNÓSTICOS</span><h2>Checklist personalizado, feito para a rotina da oficina.</h2><p>Organize avaliações e registros de serviços, conforme as funcionalidades disponíveis.</p><ul><li><Check size={17}/> Registros vinculados ao veículo</li><li><Check size={17}/> Etapas de verificação</li><li><Check size={17}/> Histórico do atendimento</li></ul></div><div className="nr-checklist-visual"><ClipboardCheck size={54}/><strong>Inspeção digital</strong><span>Prévia ilustrativa</span></div></div>
+      </div>
+    </section>
+    <section className="nr-section nr-integrations nl-container"><div className="nr-center-heading"><span className="nr-eyebrow">CONEXÕES COM CRITÉRIO</span><h2>Tudo integrado. Tudo sob controle.<br/><em>Mais resultados para você.</em></h2><p>Integrações disponíveis conforme plano e configuração técnica.</p></div><div className="nr-integration-cards">{[
+      ['WhatsApp','Comunicação conforme provedor e credenciais.'],
+      ['E-mail','Mensagens a partir de um serviço habilitado.'],
+      ['SMS','Avisos disponíveis conforme provedor.'],
+      ['API','Integrações conforme plano e autorização.'],
+      ['Fiscal','Documentos sujeitos à configuração e habilitação.']
+    ].map(([name,desc])=><article key={name}><div className="nr-partner-mark">{name}</div><p>{desc}</p><small>Consulte disponibilidade</small></article>)}</div><div className="nr-center-link"><Link href="/funcionalidades#integracoes" className="nr-text-link">Conheça as integrações <ArrowRight size={16}/></Link></div></section>
+    <section className="nr-bottom-callout"><div className="nl-container nr-bottom-layout"><Image src="/images/home/oficina-cliente.png" width={1536} height={1024} alt="Atendimento em oficina mecânica"/><div><span className="nr-eyebrow">SUA OFICINA PODE EVOLUIR</span><h2>Mais clareza para a equipe. Mais controle para quem administra.</h2><p>Descubra o que a NERITECH AUTO pode organizar na sua operação.</p><Link href="/teste-gratis" className="nr-btn nr-btn-white">Conhecer teste grátis <ArrowRight size={17}/></Link></div></div></section>
     <FAQ/>
   </main>;
 }
