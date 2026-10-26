@@ -1,7 +1,7 @@
 /* Site demonstrativo, sem backend. Navegação e interações criadas para estudo visual. */
 (() => {
   const page = document.querySelector('.reference-site')?.dataset.page || 'home';
-  const logo = '<span class="logo-mark" aria-hidden="true">♧</span><span class="logo-on">ON</span>MOTOR';
+  const logo = '<img src="/neritech-logo.svg" width="222" height="42" alt="NERITECH AUTO">';
   const headerHost = document.getElementById('site-header');
   if (headerHost) {
     const nav = [

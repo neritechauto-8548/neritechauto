@@ -1,6 +1,7 @@
 
 'use client';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { useState, type ReactNode } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { SiteHeader } from '@/components/site-header';
@@ -15,8 +16,8 @@ const links=[
 ];
 
 function ReferenceLogo() {
- return <a href="/" className="site-logo" aria-label="Onmotor — início">
-   <span className="logo-mark" aria-hidden="true">♧</span><span className="logo-on">ON</span>MOTOR
+ return <a href="/" className="site-logo" aria-label="NERITECH AUTO — início">
+   <Image src="/neritech-logo.svg" alt="NERITECH AUTO" width={222} height={42} priority />
  </a>;
 }
 function ReferenceHeader({ path }: { path:string }) {

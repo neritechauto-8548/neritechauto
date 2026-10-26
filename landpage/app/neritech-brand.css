@@ -1,0 +1,17 @@
+/* Identidade NERITECH AUTO — azul extraído da referência enviada: RGB(24, 50, 138). */
+:root { --neritech-blue: #18328A; }
+.site-header .site-logo,
+.site-footer .site-logo { display: inline-flex; align-items: center; min-width: 0; line-height: 1; }
+.site-header .site-logo img { display: block; width: 181px; height: auto; max-width: 100%; }
+.site-footer .site-logo img { display: block; width: 162px; height: auto; max-width: 100%; }
+.reference-site .brand-invert { line-height: 1; }
+.reference-site .brand-invert-logo { display: block; width: min(234px, 90%); height: auto; }
+.reference-site .email-brand { display: inline-flex; align-items: center; }
+.reference-site .email-brand-logo { display: block; width: 194px; height: auto; }
+.reference-site .email-social-logo { display: inline-block; vertical-align: middle; width: 119px; height: auto; }
+.reference-site .float-sticker,
+.reference-site .hero-social .avatar-stack i { filter: none; }
+@media(max-width:600px) {
+  .site-header .site-logo img { width: 157px; }
+  .reference-site .brand-invert-logo { width: min(190px, 92%); }
+}
