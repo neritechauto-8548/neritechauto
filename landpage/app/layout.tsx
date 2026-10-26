@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default:'NERITECH AUTO | Gestão inteligente para oficinas',template:'%s | NERITECH AUTO' },
   description:signature,
-  openGraph:{locale:'pt_BR',siteName:'NERITECH AUTO',type:'website'},
+  openGraph:{locale:'pt_BR',siteName:'NERITECH AUTO',type:'website',images:[{url:'/images/home/hero-oficina-neritech.png',width:1672,height:940,alt:'NERITECH AUTO — gestão para oficinas mecânicas'}]},
+  twitter:{card:'summary_large_image'},
   icons:{icon:'/favicon.svg'}
 };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
