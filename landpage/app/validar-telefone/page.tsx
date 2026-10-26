@@ -1,4 +1,6 @@
-import type { Metadata } from 'next';
-import { ReplicaPage } from '@/components/replica-page';
-export const metadata:Metadata={title:{absolute:"Verificar telefone | Onmotor"},robots:{index:false,follow:false}};
-export default function Page(){return <ReplicaPage page="validar-telefone"/>;}
+import { redirect } from 'next/navigation';
+
+// Não apresentar confirmação SMS sem provedor e verificação no backend.
+export default function Page() {
+  redirect('/teste-gratis');
+}
