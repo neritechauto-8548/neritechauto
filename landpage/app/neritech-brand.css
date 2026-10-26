@@ -343,177 +343,77 @@
 }
 
 
-/*
- * Home clara premium — revisão de contraste solicitada em 26/10/2026.
- * Escopo exclusivo da página inicial. Mantém a fotografia automotiva,
- * as hierarquias e a cor NERITECH apenas para ações.
- */
-.reference-site[data-page="home"] {
-  background: #fff;
-  color: #1c2731;
-}
-.reference-site[data-page="home"] .home-hero {
-  background: linear-gradient(90deg, #fff 0%, #fff 48%, #f8fafb 75%, #eff3f5 100%);
-}
-.reference-site[data-page="home"] .home-hero-photo {
-  filter: saturate(.88) contrast(.96) brightness(1.12);
-}
-.reference-site[data-page="home"] .home-hero:after {
-  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,.99) 37%, rgba(255,255,255,.68) 64%, rgba(255,255,255,.10) 100%);
-}
 
-/* Substitui a grande faixa escura por uma pausa editorial leve. */
-.reference-site[data-page="home"] .orange-statement {
-  min-height: 260px;
-  padding-block: 58px;
-  background: #edf2f5;
-  border-top: 1px solid #e5eaee;
-  border-bottom: 1px solid #e5eaee;
-}
-.reference-site[data-page="home"] .orange-statement h2 {
-  color: #202e3a;
-}
-
-/* Cards claros com variação sutil de superfície, sem blocos grafite. */
-.reference-site[data-page="home"] .feature-tile.light,
-.reference-site[data-page="home"] .feature-tile.white,
-.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) {
+/* Prévias funcionais substituem fotografias reutilizadas, sem criar claims de produto. */
+.reference-site[data-page="home"] .budget-demo,
+.reference-site[data-page="home"] .patio-demo {
+  width: min(90%, 390px);
   background: #fff;
-  color: #202e3a;
-  border-color: #e3e9ed;
+  border: 1px solid #e2e6ec;
+  border-radius: 12px;
+  box-shadow: 0 14px 44px rgba(19, 27, 37, .09);
+  overflow: hidden;
+  color: #263344;
 }
-.reference-site[data-page="home"] .feature-tile.orange:nth-child(4),
-.reference-site[data-page="home"] .feature-tile.black {
-  background: #edf2f5;
-  color: #202e3a;
-  border-color: #dee6eb;
+.reference-site[data-page="home"] .budget-demo-head,
+.reference-site[data-page="home"] .patio-demo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 19px;
+  background: #f2f4f7;
+  border-bottom: 1px solid #e6eaf0;
+  font-size: 12px;
+  letter-spacing: .025em;
 }
-.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) p,
-.reference-site[data-page="home"] .feature-tile.black p {
-  color: #4a5a66;
+.reference-site[data-page="home"] .budget-demo-head span,
+.reference-site[data-page="home"] .patio-demo-head span {
+  font-size: 10px;
+  color: #647487;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
-.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) .small-icon,
-.reference-site[data-page="home"] .feature-tile.black .small-icon {
-  color: var(--neritech-blue);
+.reference-site[data-page="home"] .budget-demo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #edf0f3;
+  font-size: 12px;
 }
-
-/* Fotos continuam como pontos de contraste, mas deixam de ser quase pretas. */
-.reference-site[data-page="home"] .dark-photo-card {
-  background: #dbe3e8;
+.reference-site[data-page="home"] .budget-demo-row:last-child {border-bottom: 0;}
+.reference-site[data-page="home"] .budget-demo-row span {color: #5e6b7a;}
+.reference-site[data-page="home"] .budget-demo-row b {font-size: 11px;text-align: right;}
+.reference-site[data-page="home"] .patio-demo-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 16px;
 }
-.reference-site[data-page="home"] .dark-photo-bg {
-  filter: grayscale(.14) saturate(.90) brightness(1.18);
+.reference-site[data-page="home"] .patio-demo-track > div {
+  border: 1px solid #e5e9ee;
+  border-top: 3px solid var(--neritech-blue);
+  border-radius: 6px;
+  padding: 15px 8px;
+  min-width: 0;
+  background: #fafbfc;
 }
-.reference-site[data-page="home"] .dark-photo-card:after {
-  background: linear-gradient(180deg, rgba(10,18,26,.04) 0%, rgba(10,18,26,.25) 48%, rgba(10,18,26,.78) 100%);
+.reference-site[data-page="home"] .patio-demo-track b,
+.reference-site[data-page="home"] .patio-demo-track small {
+  display: block;
+  overflow-wrap: anywhere;
 }
-.reference-site[data-page="home"] .big-workshop-photo > img {
-  filter: brightness(1.07) saturate(.94);
-}
-.reference-site[data-page="home"] .overlay-orange {
-  background: #fff;
-  color: #21303b;
-  border: 1px solid #e4e9ed;
-  box-shadow: 0 16px 42px rgba(23,34,43,.12);
-}
-.reference-site[data-page="home"] .overlay-orange p {
-  color: #4d5d69;
-}
-.reference-site[data-page="home"] .overlay-orange .btn-light {
-  background: var(--neritech-blue);
-  color: #fff;
-  border-color: var(--neritech-blue);
-}
-.reference-site[data-page="home"] .overlay-orange .btn-light:hover {
-  background: #10246b;
-  color: #fff;
-}
-
-/* IA, gestão de pátio e inspeções passam de um painel escuro a um ambiente claro. */
-.reference-site[data-page="home"] .dark-showcase {
-  background: #f6f8f9;
-  color: #25323d;
-  border-block: 1px solid #e7ecef;
-}
-.reference-site[data-page="home"] .dark-showcase .white-text h2,
-.reference-site[data-page="home"] .dark-showcase .dark-feature-copy h2 {
-  color: #202e3a;
-}
-.reference-site[data-page="home"] .dark-showcase .white-text p,
-.reference-site[data-page="home"] .dark-showcase .dark-feature-copy p {
-  color: #4c5a66;
-}
-.reference-site[data-page="home"] .dark-showcase .section-kicker,
-.reference-site[data-page="home"] .dark-showcase .text-link.blue-link {
-  color: var(--neritech-blue);
-}
-.reference-site[data-page="home"] .dark-showcase .otto-box {
-  background: #fff;
-  border-color: #dce4e9;
-  box-shadow: 0 18px 42px rgba(24,38,49,.07);
-}
-.reference-site[data-page="home"] .dark-showcase .otto-search {
-  background: #f5f8fa;
-  border-color: #e0e6ea;
-  color: #344653;
-}
-.reference-site[data-page="home"] .dark-showcase .otto-search span {
-  background: #e5edf5;
-  color: #17316b;
-}
-.reference-site[data-page="home"] .dark-showcase .otto-answer {
-  color: #445562;
-}
-.reference-site[data-page="home"] .dark-showcase .otto-answer hr {
-  border-top-color: #e3e9ed;
-}
-.reference-site[data-page="home"] .dark-showcase .kanban-col {
-  background: #fff;
-  border-color: #dfe6eb;
-  box-shadow: 0 12px 32px rgba(22,35,45,.12);
-}
-.reference-site[data-page="home"] .dark-showcase .kanban-col p {
-  background: #f3f6f8;
-  color: #344653;
-}
-.reference-site[data-page="home"] .dark-showcase .kanban-col b {
-  background: #e8edf2;
-  color: #263642;
-}
-.reference-site[data-page="home"] .dark-showcase .kanban-col.blue-top b {
-  background: #e3edf8;
-  color: #254363;
-}
-.reference-site[data-page="home"] .dark-showcase .kanban-col.purple-top b {
-  background: #eceaf1;
-  color: #423b56;
-}
-.reference-site[data-page="home"] .dark-showcase .kanban-col.red-top b {
-  background: #f5e9e7;
-  color: #663c37;
-}
-.reference-site[data-page="home"] .dark-showcase .status-list li {
-  color: #4c5a66;
-}
-.reference-site[data-page="home"] .dark-showcase .checklist-device {
-  box-shadow: 0 18px 38px rgba(22,35,45,.14);
-}
-.reference-site[data-page="home"] .orange-reviews {
-  background: #f2f5f7;
-  border-block: 1px solid #e4e9ed;
-}
-@media (max-width: 600px) {
-  .reference-site[data-page="home"] .home-hero {
-    background: #fff;
-  }
-  .reference-site[data-page="home"] .home-hero-photo {
-    opacity: .34;
-  }
-  .reference-site[data-page="home"] .home-hero:after {
-    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,.99) 46%, rgba(255,255,255,.81) 83%, rgba(255,255,255,.6) 100%);
-  }
-  .reference-site[data-page="home"] .orange-statement {
-    min-height: 225px;
-    padding-block: 45px;
-  }
+.reference-site[data-page="home"] .patio-demo-track b {font-size: 12px;color: #283849;}
+.reference-site[data-page="home"] .patio-demo-track small {font-size: 10px;color: #697988;margin-top: 10px;}
+@media(max-width:600px){
+  .reference-site[data-page="home"] .budget-demo,
+  .reference-site[data-page="home"] .patio-demo {width: 96%;}
+  .reference-site[data-page="home"] .budget-demo-head,
+  .reference-site[data-page="home"] .patio-demo-head {padding: 12px 14px;}
+  .reference-site[data-page="home"] .patio-demo-track {padding: 10px;gap: 5px;}
+  .reference-site[data-page="home"] .patio-demo-track > div {padding: 12px 5px;}
+  .reference-site[data-page="home"] .patio-demo-track b {font-size: 10px;}
+  .reference-site[data-page="home"] .patio-demo-track small {font-size: 9px;}
 }
