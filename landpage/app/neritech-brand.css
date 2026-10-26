@@ -192,3 +192,52 @@
 .reference-site .pricing-hero h1 span {
   color: #b7c8f4;
 }
+
+/* Fluxos reais de planos e cadastro: mesmo azul de marca, sem tons de startup. */
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period button[aria-pressed="true"],
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button,
+.nl-page .nl-trial-submit {
+  background: var(--neritech-blue);
+  border-color: var(--neritech-blue);
+  color: #fff;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period button[aria-pressed="true"]:hover,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button:hover,
+.nl-page .nl-trial-submit:not(:disabled):hover {
+  background: #10246b;
+}
+.reference-site.nl-prices-page .price-block strong,
+.reference-site.nl-prices-page .price-card .eyebrow,
+.nl-page .nl-trial-back,
+.nl-page .nl-trial-consent a {
+  color: var(--neritech-blue);
+}
+.reference-site.nl-prices-page .nl-prices-catalog .price-card:nth-child(2) {
+  border-color: #c6ced7;
+}
+.reference-site.nl-prices-page .pricing-main {
+  padding-bottom: 90px;
+}
+.reference-site.nl-prices-page .price-card {
+  background: #fff;
+  border: 1px solid var(--neritech-stroke);
+  box-shadow: 0 8px 23px rgba(27, 35, 42, .045);
+}
+.nl-page .nl-trial-card,
+.nl-page .nl-trial-success {
+  border-color: var(--neritech-stroke);
+  box-shadow: 0 25px 65px rgba(0, 0, 0, .23);
+}
+.nl-page .nl-trial-stage-shade {
+  background: rgba(20, 27, 33, .75);
+}
+.reference-site .app-banner .btn-light {
+  color: var(--neritech-blue);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reference-site .btn,
+  .reference-site .feature-tab,
+  .nl-page .nl-trial-submit {
+    transition: none;
+  }
+}
