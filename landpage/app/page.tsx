@@ -1,4 +1,12 @@
-import type { Metadata } from 'next';
 import { ReplicaPage } from '@/components/replica-page';
-export const metadata:Metadata={title:{absolute:"Onmotor | Sistema para oficinas"},robots:{index:false,follow:false}};
-export default function Page(){return <ReplicaPage page="home"/>;}
+import { pageMetadata } from '@/lib/site';
+
+export const metadata = pageMetadata(
+  'Sistema de gestão para oficinas mecânicas',
+  'NERITECH AUTO: clientes, veículos, orçamentos, ordens de serviço, gestão de pátio, estoque e financeiro em um só lugar.',
+  '/',
+);
+
+export default function Page() {
+  return <ReplicaPage page="home" />;
+}
