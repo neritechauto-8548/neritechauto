@@ -1,0 +1,307 @@
+/* LANDPAGE-FIDELITY-2026-10-26
+   Ajustes visuais isolados da Home. Preserva rotas, conteúdo, tokens e demais páginas. */
+.nl-page {
+  --nl-fidelity-blue: #2442dc;
+  --nl-fidelity-border: #e1e7f0;
+  font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+}
+.nl-page .nl-container {
+  width: min(1180px, calc(100% - 56px));
+}
+.nl-page .nl-section {
+  padding-block: 78px;
+}
+.nl-page .nl-section-head {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+.nl-page .nl-section-head h2 {
+  font-size: clamp(32px, 3.5vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -.045em;
+}
+.nl-page .nl-section-head p {
+  font-size: 15px;
+  line-height: 1.65;
+}
+.nl-page .nl-hero,
+.nl-page .nl-hero-content {
+  min-height: 580px;
+}
+.nl-page .nl-hero-image {
+  object-position: center 43%;
+}
+.nl-page .nl-hero h1 {
+  max-width: 610px;
+  font-size: clamp(47px, 4.65vw, 67px);
+  letter-spacing: -.055em;
+  line-height: 1.07;
+}
+.nl-page .nl-hero p {
+  max-width: 490px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.nl-page .nl-hero-content {
+  padding-block: 54px;
+}
+.nl-page .nl-proof-grid > div {
+  min-height: 114px;
+  padding-block: 22px;
+}
+.nl-page .nl-proof strong {
+  font-size: 17px;
+}
+.nl-page .nl-statement {
+  padding-block: 76px 82px;
+  background: var(--nl-fidelity-blue);
+}
+.nl-page .nl-statement h2 {
+  max-width: 860px;
+  font-size: clamp(36px, 4.1vw, 59px);
+  line-height: 1.09;
+}
+.nl-page .nl-statement-pills {
+  margin-top: 25px;
+}
+
+/* Bento: dois destaques superiores, quatro recursos compactos e dois destaques finais. */
+.nl-page .nl-capabilities {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: 16px;
+  align-items: stretch;
+}
+.nl-page .nl-capability {
+  min-height: 211px;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid var(--nl-fidelity-border);
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(15, 37, 82, .035);
+  isolation: isolate;
+}
+.nl-page .nl-capability:nth-child(1),
+.nl-page .nl-capability:nth-child(2),
+.nl-page .nl-capability:nth-child(7),
+.nl-page .nl-capability:nth-child(8) {
+  grid-column: span 2;
+  min-height: 254px;
+  padding: 27px;
+}
+.nl-page .nl-capability > div,
+.nl-page .nl-capability-icon {
+  position: relative;
+  z-index: 1;
+}
+.nl-page .nl-capability-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+}
+.nl-page .nl-capability h3 {
+  font-size: clamp(18px, 1.6vw, 21px);
+  line-height: 1.2;
+  margin: 17px 0 8px;
+  letter-spacing: -.035em;
+}
+.nl-page .nl-capability p {
+  max-width: 320px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  line-height: 1.53;
+}
+.nl-page .nl-capability:nth-child(1) h3,
+.nl-page .nl-capability:nth-child(2) h3,
+.nl-page .nl-capability:nth-child(7) h3,
+.nl-page .nl-capability:nth-child(8) h3 {
+  max-width: 300px;
+  font-size: clamp(21px, 2vw, 27px);
+  line-height: 1.12;
+}
+.nl-page .nl-card-link {
+  font-size: 12px;
+}
+.nl-page .nl-capability:first-child {
+  background:
+    linear-gradient(90deg, rgba(8, 22, 43, .98) 0%, rgba(8, 22, 43, .9) 45%, rgba(8, 22, 43, .28) 100%),
+    url("/images/home/oficina-mecanico.png") 66% center / cover;
+  color: #fff;
+  border-color: #193255;
+}
+.nl-page .nl-capability:first-child p,
+.nl-page .nl-capability:first-child .nl-card-link {
+  color: #edf4ff;
+}
+.nl-page .nl-capability:nth-child(2) {
+  background:
+    linear-gradient(90deg, rgba(23, 53, 167, .98) 0%, rgba(35, 70, 194, .92) 49%, rgba(13, 33, 91, .22) 100%),
+    url("/images/home/oficina-patio.png") 68% center / cover;
+  border-color: #2e53bf;
+}
+.nl-page .nl-capability:nth-child(7) {
+  background: #f0f4ff;
+  border-color: #d6e1fb;
+  color: #172c59;
+}
+.nl-page .nl-capability:nth-child(7) p {
+  color: #596b8e;
+}
+.nl-page .nl-capability:nth-child(8) {
+  background:
+    linear-gradient(90deg, rgba(11, 25, 52, .97) 0%, rgba(11, 25, 52, .87) 49%, rgba(11, 25, 52, .2) 100%),
+    url("/images/home/oficina-gestao.png") 70% center / cover;
+  color: #fff;
+  border-color: #183051;
+}
+.nl-page .nl-capability:nth-child(8) p,
+.nl-page .nl-capability:nth-child(8) .nl-card-link {
+  color: #e8f0ff;
+}
+.nl-page .nl-capability:nth-child(1) .nl-capability-icon,
+.nl-page .nl-capability:nth-child(8) .nl-capability-icon {
+  background: rgba(255, 255, 255, .17);
+  color: #fff;
+}
+.nl-page .nl-capability:hover {
+  border-color: #abc0f2;
+  box-shadow: 0 14px 34px rgba(20, 42, 84, .11);
+  transform: translateY(-2px);
+}
+.nl-page .nl-capability:focus-visible {
+  outline: 3px solid var(--nl-fidelity-blue);
+  outline-offset: 3px;
+}
+
+/* Menos cartões gigantes e menos espaços mortos, como nas referências enviadas. */
+.nl-page .nl-process-grid {
+  gap: 16px;
+}
+.nl-page .nl-process-card {
+  min-height: 246px;
+  padding: 26px;
+  border-radius: 12px;
+}
+.nl-page .nl-process-number {
+  margin-bottom: 16px;
+}
+.nl-page .nl-process-card h3 {
+  margin-top: 18px;
+  font-size: 21px;
+}
+.nl-page .nl-process-card p {
+  font-size: 13px;
+}
+.nl-page .nl-photo-break {
+  min-height: 410px;
+  max-width: 1180px;
+  margin-top: 72px;
+  border-radius: 12px;
+}
+.nl-page .nl-photo-card {
+  max-width: 400px;
+  margin: 56px 0 42px 46px;
+  padding: 25px;
+  border-radius: 10px;
+  background: var(--nl-fidelity-blue);
+}
+.nl-page .nl-photo-card h2 {
+  font-size: 28px;
+}
+.nl-page .nl-editorial-stack {
+  gap: 66px;
+}
+.nl-page .nl-editorial {
+  gap: 52px;
+}
+.nl-page .nl-editorial h2 {
+  font-size: clamp(32px, 3vw, 43px);
+}
+.nl-page .nl-editorial-preview {
+  border-radius: 12px;
+}
+.nl-page .nl-editorial-preview > .mockup {
+  transform: none;
+}
+.nl-page .nl-dark {
+  padding-block: 88px;
+}
+.nl-page .nl-dark-bottom {
+  margin-top: 65px;
+}
+.nl-page .nl-ai-card {
+  padding: 30px;
+  border-radius: 12px;
+}
+.nl-page .nl-integration-grid {
+  gap: 14px;
+}
+.nl-page .nl-integration-grid article {
+  min-height: 205px;
+  padding: 22px;
+  border-radius: 12px;
+}
+.nl-page .nl-quote {
+  padding-block: 64px;
+  background: var(--nl-fidelity-blue);
+}
+
+@media (max-width: 1024px) {
+  .nl-page .nl-container { width: min(100% - 44px, 960px); }
+  .nl-page .nl-capabilities { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nl-page .nl-capability:nth-child(1),
+  .nl-page .nl-capability:nth-child(2),
+  .nl-page .nl-capability:nth-child(7),
+  .nl-page .nl-capability:nth-child(8) { grid-column: span 2; min-height: 240px; }
+  .nl-page .nl-capability:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(7)):not(:nth-child(8)) { min-height: 205px; }
+  .nl-page .nl-hero,
+  .nl-page .nl-hero-content { min-height: 565px; }
+  .nl-page .nl-hero-shade { background: linear-gradient(90deg, rgba(255,255,255,.98), rgba(255,255,255,.89) 53%, rgba(255,255,255,.18)); }
+}
+@media (max-width: 700px) {
+  .nl-page .nl-container { width: calc(100% - 34px); }
+  .nl-page .nl-section { padding-block: 62px; }
+  .nl-page .nl-section-head { margin-bottom: 26px; }
+  .nl-page .nl-section-head h2 { font-size: clamp(29px, 7.5vw, 37px); }
+  .nl-page .nl-hero,
+  .nl-page .nl-hero-content { min-height: 620px; }
+  .nl-page .nl-hero-content { padding-block: 46px 70px; }
+  .nl-page .nl-hero h1 { font-size: clamp(40px, 9.5vw, 53px); }
+  .nl-page .nl-hero p { font-size: 15px; }
+  .nl-page .nl-hero-shade {
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,.96) 32%, rgba(255,255,255,.38) 73%, rgba(255,255,255,.05) 100%);
+  }
+  .nl-page .nl-hero-image { object-position: 66% center; }
+  .nl-page .nl-proof-grid > div { min-height: auto; padding-block: 17px; }
+  .nl-page .nl-statement { padding-block: 68px; }
+  .nl-page .nl-capabilities { grid-template-columns: 1fr; gap: 12px; }
+  .nl-page .nl-capability:nth-child(n) { grid-column: span 1; min-height: 190px; padding: 21px; }
+  .nl-page .nl-capability:nth-child(1),
+  .nl-page .nl-capability:nth-child(2),
+  .nl-page .nl-capability:nth-child(7),
+  .nl-page .nl-capability:nth-child(8) { min-height: 225px; }
+  .nl-page .nl-capability h3 { font-size: 20px; }
+  .nl-page .nl-capability:nth-child(1) h3,
+  .nl-page .nl-capability:nth-child(2) h3,
+  .nl-page .nl-capability:nth-child(7) h3,
+  .nl-page .nl-capability:nth-child(8) h3 { font-size: 23px; }
+  .nl-page .nl-process-card { min-height: 220px; }
+  .nl-page .nl-photo-break { min-height: 455px; margin: 54px 17px 0; }
+  .nl-page .nl-photo-card { max-width: calc(100% - 32px); margin: 145px 16px 18px; padding: 22px; }
+  .nl-page .nl-editorial { gap: 30px; }
+  .nl-page .nl-editorial-stack { gap: 58px; }
+  .nl-page .nl-dark { padding-block: 70px; }
+  .nl-page .nl-dark-bottom { margin-top: 48px; }
+  .nl-page .nl-integration-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nl-page .nl-integration-grid article { min-height: 200px; padding: 16px; }
+}
+@media (max-width: 420px) {
+  .nl-page .nl-hero h1 { font-size: clamp(37px, 9.6vw, 42px); }
+  .nl-page .nl-capability:nth-child(n) { padding: 20px; }
+  .nl-page .nl-integration-grid { grid-template-columns: 1fr; }
+  .nl-page .nl-photo-card { margin-top: 180px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nl-page .nl-capability { transition: none; }
+  .nl-page .nl-capability:hover { transform: none; }
+}
