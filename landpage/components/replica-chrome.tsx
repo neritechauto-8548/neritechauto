@@ -29,8 +29,7 @@ function ReferenceHeader({ path }: { path:string }) {
      {links.map(l=><a key={l.href} href={l.href} className={l.href===path?'active':''} onClick={()=>setOpen(false)}>{l.label}</a>)}
    </nav>
    <div className="header-actions">
-     <a href="/teste-gratis" className={cn(buttonVariants({size:'sm'}),'btn','btn-orange')}>Experimente grátis <span aria-hidden="true">↗</span></a>
-     <span className="lang" lang="pt-BR" aria-label="Idioma: português"><span>◎</span> <span>PT</span></span>
+     <a href="/teste-gratis" className={cn(buttonVariants({size:'sm'}),'btn','btn-orange')}>Teste grátis <span aria-hidden="true">↗</span></a>
      <Button type="button" variant="outline" size="sm" className="hamburger" aria-label={open?'Fechar menu':'Abrir menu'} aria-controls="main-nav" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{open?'×':'☰'}</Button>
    </div>
  </div></header>;
