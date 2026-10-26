@@ -1,4 +1,12 @@
-import type { Metadata } from 'next';
 import { ReplicaPage } from '@/components/replica-page';
-export const metadata:Metadata={title:{absolute:"Funcionalidades | Onmotor"},robots:{index:false,follow:false}};
-export default function Page(){return <ReplicaPage page="funcionalidades"/>;}
+import { pageMetadata } from '@/lib/site';
+
+export const metadata = pageMetadata(
+  'Funcionalidades',
+  'Conheça as funcionalidades de gestão de oficina da NERITECH AUTO: atendimento, orçamentos, OS, pátio, estoque, financeiro e fiscal.',
+  '/funcionalidades',
+);
+
+export default function Page() {
+  return <ReplicaPage page="funcionalidades" />;
+}
