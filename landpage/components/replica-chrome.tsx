@@ -7,6 +7,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { cn } from '@/lib/utils';
+import { loginUrl } from '@/lib/site';
 
 const replicaRoutes=new Set(['/','/funcionalidades','/precos','/sobre','/teste-gratis','/bem-vindo','/validar-telefone','/email']);
 const links=[
@@ -29,17 +30,17 @@ function ReferenceHeader({ path }: { path:string }) {
    </nav>
    <div className="header-actions">
      <a href="/teste-gratis" className={cn(buttonVariants({size:'sm'}),'btn','btn-orange')}>Teste grátis <span aria-hidden="true">↗</span></a>
-     <button type="button" className="lang" aria-label="Idioma Português" title="Português"><span>◎</span> <span>PT</span></button>
+     <span className="lang" lang="pt-BR" aria-label="Idioma: português"><span>◎</span> <span>PT</span></span>
      <Button type="button" variant="outline" size="sm" className="hamburger" aria-label={open?'Fechar menu':'Abrir menu'} aria-controls="main-nav" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{open?'×':'☰'}</Button>
    </div>
  </div></header>;
 }
 function ReferenceFooter() {
  return <footer className="site-footer"><div className="container"><div className="footer-columns">
-   <div><ReferenceLogo/><div className="footer-follow">Acompanhe nas redes</div><div className="footer-socials"><a href="#" title="Instagram">◎</a><a href="#" title="YouTube">▶</a><a href="#" title="TikTok">♪</a><a href="#" title="Facebook">▣</a><a href="#" title="LinkedIn">▥</a></div></div>
-   <div><h4>Contato</h4><p><strong>E-mail</strong> suporte@onmotor.com.br</p><p><strong>Endereço</strong> Alameda Afonso Schmidt, 119 · Santa Teresinha · São Paulo (SP)</p><a className="footer-phone" href="tel:+551126497495">✆ &nbsp;(11) 2649-7495</a><a className="footer-phone" href="tel:+5511971569231">◉ &nbsp;(11) 97156-9231</a></div>
-   <div><h4>Acesso remoto</h4><a className="footer-link" href="#">▣ &nbsp;Baixe o nosso acesso remoto</a><h4 style={{marginTop:21}}>Baixe o app Onmotor</h4><div className="app-store-buttons"><a href="#">● App Store</a><a href="#">▶ Google Play</a></div></div>
- </div><div className="footer-bottom"><nav><a href="/">Início</a><a href="/sobre">Quem Somos</a><a href="#">Blog</a><a href="#">Política de Privacidade do App Onmotor</a></nav><span>© 2026 Onmotor</span></div></div></footer>;
+   <div><ReferenceLogo/><p className="footer-follow">Inteligência na gestão. Controle na operação. Lucro em foco.</p></div>
+   <div><h4>NERITECH AUTO</h4><p>Software de gestão para oficinas mecânicas.</p><a href="/funcionalidades">Funcionalidades</a><a href="/precos">Planos e preços</a><a href="/sobre">Quem somos</a></div>
+   <div><h4>Comece agora</h4><a className="footer-link" href="/teste-gratis">Conhecer teste grátis</a><a className="footer-link" href={loginUrl}>Acessar minha oficina</a><h4>Informações legais</h4><a href="/termos-de-uso">Termos de uso</a><a href="/politica-de-privacidade">Privacidade</a><a href="/politica-de-cookies">Cookies</a></div>
+ </div><div className="footer-bottom"><nav><a href="/">Início</a><a href="/dpa">Proteção de dados</a><a href="/blog">Blog</a></nav><span>© {new Date().getFullYear()} NERITECH AUTO</span></div></div></footer>;
 }
 export function ReplicaChrome({children}:{children:ReactNode}){
  const pathname=usePathname()??'/';
