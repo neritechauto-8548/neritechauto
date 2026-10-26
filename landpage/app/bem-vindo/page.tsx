@@ -1,4 +1,6 @@
-import type { Metadata } from 'next';
-import { ReplicaPage } from '@/components/replica-page';
-export const metadata:Metadata={title:{absolute:"Bem-vindo | Onmotor"},robots:{index:false,follow:false}};
-export default function Page(){return <ReplicaPage page="bem-vindo"/>;}
+import { redirect } from 'next/navigation';
+
+// A página de referência simulava um cadastro concluído sem persistência.
+export default function Page() {
+  redirect('/teste-gratis');
+}
