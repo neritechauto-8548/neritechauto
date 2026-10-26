@@ -8,6 +8,7 @@ import './landing-fidelity.css';
 import './reference-fidelity.css';
 import './reference-about.css';
 import './reference-original.css';
+import './home-card-size.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
