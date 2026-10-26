@@ -10,15 +10,15 @@
   const panel=root.querySelector('#feature-panel');
   if(!tabs.length||!desc||!notes||!preview||!panel)return;
   const copy={
-    'Gerência':['Acompanhe indicadores e dados gerenciais da oficina.',['Painéis por período','Orçamentos e OS','Indicadores operacionais']],
-    'Serviços':['Organize a execução dos serviços e o histórico dos veículos.',['Ordens de serviço','Etapas e responsáveis','Histórico de atendimento']],
-    'Balcão':['Registre vendas diretas de peças sem OS.',['Produtos e clientes','Movimentações de estoque','Histórico das vendas']],
-    'Clientes':['Clientes, veículos e relacionamento reunidos.',['Cadastros','Veículos','Histórico e comunicação']],
+    'Painéis':['Consulte painéis e indicadores da operação.',['Painéis por período','Orçamentos e OS','Indicadores operacionais']],
+    'Ordens de Serviço':['Registre a execução dos serviços e acompanhe as ordens de serviço.',['Ordens de serviço','Etapas e responsáveis','Histórico de atendimento']],
+    'Vendas':['Registre vendas de peças sem precisar abrir uma OS.',['Produtos e clientes','Movimentações de estoque','Histórico das vendas']],
+    'Clientes e CRM':['Cadastros de clientes, veículos e histórico de relacionamento.',['Cadastros','Veículos','Histórico e comunicação']],
     'Financeiro':['Contas e lançamentos financeiros da operação.',['Contas a pagar','Contas a receber','Movimentações e indicadores']],
     'Fiscal':['Documentos fiscais conforme configuração e habilitação.',['Documentos fiscais','Informações fiscais','Emissão sujeita a provedor habilitado']],
-    'Estoque':['Produtos, peças e compras organizados.',['Produtos e kits','Inventário','Entradas e saídas']],
-    'Fornecedores':['Organize fornecedores, compras e cotações.',['Fornecedores','Cotações','Compras']],
-    'RH':['Administre os perfis da equipe.',['Usuários e funcionários','Cargos','Permissões']],
+    'Estoque e Compras':['Produtos, peças, fornecedores e compras organizados.',['Produtos e kits','Inventário','Entradas e saídas']],
+    'Cotações':['Consulte cotações e planeje compras com fornecedores cadastrados.',['Fornecedores','Cotações','Compras']],
+    'Equipe':['Organize usuários, funcionários, cargos e permissões.',['Usuários e funcionários','Cargos','Permissões']],
     'Integrações':['Recursos dependem do plano e dos provedores habilitados.',['Disponibilidade por plano','Configuração de integrações','API conforme permissão']]
   };
   function activate(tab,focus=false){

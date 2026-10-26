@@ -1,7 +1,7 @@
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://neritechauto.com.br';
-export const signature = 'Inteligência na gestão. Controle na operação. Lucro em foco.';
-export const heroTitle = 'Organize sua oficina, acompanhe seu lucro e tome decisões mais inteligentes com IA.';
-export const heroSubtitle = 'Da entrada do veículo à entrega, conecte orçamentos, ordens de serviço, pátio, estoque e financeiro. Enxergue custos, margens e resultados com clareza, sem perder o controle da operação.';
+export const signature = 'Da recepção à entrega. Sua oficina sob controle.';
+export const heroTitle = 'Da recepção à entrega, sua oficina organizada em cada etapa.';
+export const heroSubtitle = 'Reúna clientes, veículos, orçamentos, ordens de serviço, gestão de pátio, estoque e financeiro em uma rotina organizada.';
 export const trialUrl = '/teste-gratis';
 export const loginUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sistema.neritechauto.com.br/auth/login';
 export const nav = [{ href: '/funcionalidades', label: 'Funcionalidades' }, { href: '/precos', label: 'Planos' }, { href: '/sobre', label: 'Quem somos' }, { href: '/blog', label: 'Blog' }];

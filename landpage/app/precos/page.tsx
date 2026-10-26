@@ -15,7 +15,7 @@ export default async function Page() {
       <div className="pricing-bg-left" aria-hidden="true" />
       <div className="pricing-bg-right" aria-hidden="true" />
       <div className="pricing-overlay" aria-hidden="true" />
-      <h1 id="prices-title">ESCOLHA O PLANO IDEAL E<br /><span>ACELERE A SUA OFICINA</span></h1>
+      <h1 id="prices-title">DOIS PLANOS PARA A SUA OFICINA.<br /><span>ESCOLHA COMO QUER GERIR.</span></h1>
     </section>
     <section className="nl-prices-catalog pricing-main narrow-container" aria-label="Planos NERITECH AUTO">
       <PricingCatalog plans={plans} />

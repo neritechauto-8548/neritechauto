@@ -13,7 +13,7 @@ import './neritech-brand.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default:'NERITECH AUTO | Gestão inteligente para oficinas',template:'%s | NERITECH AUTO' },
+  title: { default:'NERITECH AUTO | Gestão de oficinas do pátio ao financeiro',template:'%s | NERITECH AUTO' },
   description:signature,
   openGraph:{locale:'pt_BR',siteName:'NERITECH AUTO',type:'website',images:[{url:'/images/home/hero-oficina-neritech.png',width:1672,height:940,alt:'NERITECH AUTO — gestão para oficinas mecânicas'}]},
   twitter:{card:'summary_large_image'},
