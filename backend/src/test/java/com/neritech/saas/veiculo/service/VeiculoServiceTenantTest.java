@@ -25,7 +25,7 @@ class VeiculoServiceTenantTest {
 
     private VeiculoRequest request(Long clienteId) {
         return new VeiculoRequest(clienteId, null, null, null, null,
-            "ABC1D23", null, null, null, null, null, null, null, null, null, null, null);
+            "ABC1D23", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test void noTenantCannotEnumerateVehicles() {

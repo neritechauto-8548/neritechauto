@@ -90,6 +90,16 @@ export interface ClienteRequest {
   dataBloqueio?: string; // ISO datetime
   motivoBloqueio?: string;
   observacoesGerais?: string;
+  rg?: string;
+  categoria?: string;
+  indicadorIsencao?: string;
+  emailSecundario?: string;
+  outrosContatos?: string;
+  enviarNoticia?: boolean;
+  classificacao?: number;
+  limiteDescontoPecas?: number;
+  limiteDescontoServicos?: number;
+  bloquearSeAtrasar?: number;
 }
 
 export interface ClienteResponse extends ClienteRequest {

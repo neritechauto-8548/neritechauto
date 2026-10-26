@@ -50,6 +50,15 @@ public class PlanoAssinaturaService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<PlanoAssinaturaResponse> findPublicPlans() {
+        return repository.findByAtivoTrue().stream()
+                .filter(p -> p.getNivel() != null && (p.getNivel() == 1 || p.getNivel() == 2))
+                .sorted(java.util.Comparator.comparing(PlanoAssinatura::getNivel))
+                .map(mapper::toResponse)
+                .toList();
+    }
+
     public PlanoAssinaturaResponse update(Long id, PlanoAssinaturaRequest request) {
         PlanoAssinatura plano = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Plano nÃ£o encontrado com ID: " + id));

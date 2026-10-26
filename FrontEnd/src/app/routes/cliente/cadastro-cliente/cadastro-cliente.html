@@ -145,6 +145,9 @@
                                   <input type="text" pInputText [(ngModel)]="model.profissao" class="w-full modern-input" placeholder="Ex: Mecânico" />
                              </div>
                          }
+                         @if (model.tipoPessoa === 'Física') {
+                             <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-rg" class="text-xs font-bold text-slate-700">RG</label><input id="cliente-rg" pInputText [(ngModel)]="model.rg" maxlength="30" class="w-full modern-input" /></div>
+                         }
 
                          <!-- Sexo (PF) -->
                          @if (model.tipoPessoa === 'Física') {
@@ -159,7 +162,7 @@
                              <div class="col-span-12">
                                   <div class="grid grid-cols-12 gap-4">
                                        <div class="col-span-12 md:col-span-6 space-y-1">
-                                           <label class="text-xs font-bold text-slate-700">Inscr. Municipal</label>
+                                           <label class="text-xs font-bold text-slate-700">CCM / Inscrição municipal</label>
                                            <input type="text" pInputText [(ngModel)]="model.inscricaoMunicipal" class="w-full modern-input" />
                                        </div>
                                        <div class="col-span-12 md:col-span-6 space-y-1">
@@ -182,6 +185,15 @@
                          <label class="text-xs font-bold text-slate-700">Status</label>
                          <p-select [options]="situacoes" [(ngModel)]="model.situacao" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
                     </div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-categoria" class="text-xs font-bold text-slate-700">Tipo</label><p-select inputId="cliente-categoria" [options]="categoriaOptions" [(ngModel)]="model.categoria" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-isencao" class="text-xs font-bold text-slate-700">Indicador de inscrição estadual</label><p-select inputId="cliente-isencao" [options]="indicadorIsencaoOptions" [(ngModel)]="model.indicadorIsencao" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-email-secundario" class="text-xs font-bold text-slate-700">E-mail secundário</label><input id="cliente-email-secundario" type="email" pInputText [(ngModel)]="model.emailSecundario" maxlength="100" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-outros-contatos" class="text-xs font-bold text-slate-700">Outros contatos</label><input id="cliente-outros-contatos" pInputText [(ngModel)]="model.outrosContatos" maxlength="255" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-noticias" class="text-xs font-bold text-slate-700">Enviar notícias</label><p-select inputId="cliente-noticias" [options]="noticiaOptions" [(ngModel)]="model.enviarNoticia" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-classificacao" class="text-xs font-bold text-slate-700">Classificação (1 a 5)</label><input id="cliente-classificacao" type="number" min="1" max="5" pInputText [(ngModel)]="model.classificacao" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-4 space-y-1"><label for="cliente-limite-pecas" class="text-xs font-bold text-slate-700">Limite de desconto de peças (%)</label><input id="cliente-limite-pecas" type="number" min="0" max="100" step="0.01" pInputText [(ngModel)]="model.limiteDescontoPecas" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-4 space-y-1"><label for="cliente-limite-servicos" class="text-xs font-bold text-slate-700">Limite de desconto de serviços (%)</label><input id="cliente-limite-servicos" type="number" min="0" max="100" step="0.01" pInputText [(ngModel)]="model.limiteDescontoServicos" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-4 space-y-1"><label for="cliente-bloqueio" class="text-xs font-bold text-slate-700">Bloquear se atrasar (R$)</label><input id="cliente-bloqueio" type="number" min="0" step="0.01" pInputText [(ngModel)]="model.bloquearSeAtrasar" class="w-full modern-input" /></div>
                     <div class="col-span-12 space-y-1">
                          <label class="text-xs font-bold text-slate-700">Observações Internas</label>
                          <textarea pTextarea [(ngModel)]="model.observacao" rows="3" class="w-full modern-input" placeholder="Notas sobre o cliente..."></textarea>
@@ -239,6 +251,7 @@
                           <label class="text-xs font-bold text-slate-700">UF <span class="text-rose-500">*</span></label>
                           <input type="text" pInputText [(ngModel)]="model.estado" class="w-full modern-input" />
                       </div>
+                      <div class="col-span-12 md:col-span-3 space-y-1"><label for="cliente-pais" class="text-xs font-bold text-slate-700">País</label><input id="cliente-pais" pInputText [(ngModel)]="model.pais" maxlength="60" class="w-full modern-input" /></div>
                  </div>
             </div>
         }
@@ -408,10 +421,20 @@
             <label for="nt-quick-vehicle-model">Modelo *</label>
             <p-select inputId="nt-quick-vehicle-model" [options]="modelosOptions" [(ngModel)]="veiculoModel.modeloId" (onChange)="onModeloChange()" optionLabel="nome" optionValue="id" [disabled]="!veiculoModel.marcaId" placeholder="Selecione o modelo" styleClass="w-full modern-select" />
         </div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-year">Ano de fabricação / ano modelo</label><p-select inputId="nt-quick-vehicle-year" [options]="anoModeloSelectOptions" [(ngModel)]="veiculoModel.anoModeloId" optionLabel="label" optionValue="value" [disabled]="!veiculoModel.modeloId" placeholder="Selecione o ano" styleClass="w-full modern-select" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-fuel">Combustível</label><p-select inputId="nt-quick-vehicle-fuel" [options]="combustiveisOptions" [(ngModel)]="veiculoModel.combustivelId" optionLabel="nome" optionValue="id" placeholder="Selecione o combustível" styleClass="w-full modern-select" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-engine">Motor</label><input id="nt-quick-vehicle-engine" pInputText [(ngModel)]="veiculoModel.numeroMotor" maxlength="50" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-chassis">Chassi</label><input id="nt-quick-vehicle-chassis" pInputText [(ngModel)]="veiculoModel.chassi" maxlength="17" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-renavam">RENAVAM</label><input id="nt-quick-vehicle-renavam" pInputText [(ngModel)]="veiculoModel.renavam" maxlength="11" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-steering">Direção</label><select id="nt-quick-vehicle-steering" [(ngModel)]="veiculoModel.direcao" class="w-full modern-input"><option [ngValue]="undefined">Selecione</option><option value="HIDRAULICA">Hidráulica</option><option value="ELETRICA">Elétrica</option><option value="ELETRO_HIDRAULICA">Eletro-hidráulica</option><option value="MECANICA">Mecânica</option></select></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-gearbox">Câmbio</label><select id="nt-quick-vehicle-gearbox" [(ngModel)]="veiculoModel.cambio" class="w-full modern-input"><option [ngValue]="undefined">Selecione</option><option value="MANUAL">Manual</option><option value="AUTOMATICO">Automático</option><option value="AUTOMATIZADO">Automatizado</option><option value="CVT">CVT</option></select></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-ac">Ar condicionado</label><select id="nt-quick-vehicle-ac" [(ngModel)]="veiculoModel.arCondicionado" class="w-full modern-input"><option [ngValue]="undefined">Selecione</option><option [ngValue]="true">Sim</option><option [ngValue]="false">Não</option></select></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-doors">Portas</label><input id="nt-quick-vehicle-doors" type="number" min="2" max="6" pInputText [(ngModel)]="veiculoModel.portas" class="w-full modern-input" /></div>
         <div class="nt-quick-vehicle-field">
             <label for="nt-quick-vehicle-color">Cor</label>
             <input id="nt-quick-vehicle-color" pInputText [(ngModel)]="veiculoModel.corExterna" maxlength="50" placeholder="Opcional" class="w-full modern-input" />
         </div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-notes">Observações</label><textarea id="nt-quick-vehicle-notes" pTextarea [(ngModel)]="veiculoModel.observacoes" rows="2" class="w-full modern-input"></textarea></div>
         @if (selectedModeloImage && !vehiclePreviewFailed) {
             <div class="nt-quick-vehicle-preview"><img [src]="selectedModeloImage" [alt]="'Imagem do modelo selecionado'" (error)="vehiclePreviewFailed = true" /></div>
         } @else if (veiculoModel.modeloId) {

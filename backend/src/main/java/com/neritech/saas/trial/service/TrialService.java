@@ -18,10 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class TrialService {
 
     private final EmpresaService empresaService;
@@ -30,27 +36,47 @@ public class TrialService {
     private final EmailService emailService;
     private final FuncionarioRepository funcionarioRepository;
     private final FuncaoRepository funcaoRepository;
+    private final JdbcTemplate jdbcTemplate;
+
+    @Value("${trial.legal.version:}")
+    private String versaoLegalVigente;
+    @Value("${trial.legal.terms-url:}")
+    private String termosUrl;
+    @Value("${trial.legal.privacy-url:}")
+    private String privacidadeUrl;
 
     @Transactional
     public TrialRegisterResponse registerTrial(TrialRegisterRequest request) {
-        if (usuarioRepository.existsByEmailIgnoreCase(request.getEmail())) {
+        if (versaoLegalVigente == null || versaoLegalVigente.isBlank()
+                || !termosUrl.startsWith("https://") || !privacidadeUrl.startsWith("https://")) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Cadastro indisponível até a publicação dos termos legais.");
+        }
+        if (!versaoLegalVigente.equals(request.getVersaoLegal())) {
+            throw new IllegalArgumentException("Os termos foram atualizados. Recarregue o formulário.");
+        }
+        String emailNormalizado = request.getEmail().trim();
+        if (usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)) {
             throw new IllegalArgumentException("O e-mail informado já está em uso.");
+        }
+        String celular = request.getCelular().replaceAll("\\D", "");
+        String telefone = request.getTelefone().replaceAll("\\D", "");
+        if (!celular.matches("[1-9][0-9]9[0-9]{8}") || !telefone.matches("[1-9][0-9][0-9]{8,9}")) {
+            throw new IllegalArgumentException("Telefone ou celular inválido.");
         }
 
         // O teste local começa no cadastro; Stripe é usado quando a empresa escolhe um plano.
         Empresa empresa = new Empresa();
         empresa.setRazaoSocial(request.getNomeEmpresa());
         empresa.setNomeFantasia(request.getNomeEmpresa());
-        empresa.setEmail(request.getEmail());
-        empresa.setTelefone(request.getTelefone());
+        empresa.setEmail(emailNormalizado);
+        empresa.setTelefone(telefone);
+        empresa.setCelularResponsavel(celular);
         empresa.setDataAbertura(LocalDate.now());
         empresa.setSegmento(request.getSegmento());
         
-        empresa.setCnpj(request.getCnpjOuCpf());        
-        Empresa savedEmpresa = empresaService.create(empresa);
-
-        // Gerar senha temporária
-        String rawPassword = generateTemporaryPassword();
+        empresa.setCnpj(request.getCnpjOuCpf().replaceAll("[^a-zA-Z0-9]", "").toUpperCase(java.util.Locale.ROOT));
+        Empresa savedEmpresa = empresaService.createTrial(empresa, request.getPlanoId());
 
         // Criar função Admin e associar ao usuário
         Funcao funcaoAdmin = Funcao.builder()
@@ -65,8 +91,8 @@ public class TrialService {
         Usuario usuario = Usuario.builder()
                 .empresaId(savedEmpresa.getId())
                 .nomeCompleto(request.getNomeCompleto())
-                .email(request.getEmail())
-                .senha(passwordEncoder.encode(rawPassword))
+                .email(emailNormalizado)
+                .senha(passwordEncoder.encode(request.getSenha()))
                 .ativo(true)
                 .bloqueado(false)
                 .build();
@@ -84,22 +110,30 @@ public class TrialService {
         
         // Se o valor informado no registro for um CPF, alimentamos o funcionário, caso contrário fica em branco
         if (request.getCnpjOuCpf() != null && request.getCnpjOuCpf().replaceAll("\\D", "").length() == 11) {
-            funcionario.setCpf(request.getCnpjOuCpf());
+            funcionario.setCpf(empresa.getCnpj());
         }
         
         funcionarioRepository.save(funcionario);
+        jdbcTemplate.update("INSERT INTO trial_aceites_legais (empresa_id, usuario_id, versao, celular, aceito_em) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
+                savedEmpresa.getId(), savedUsuario.getId(), versaoLegalVigente, celular);
 
-        // Entregar credenciais antes de confirmar o cadastro.
-        emailService.sendTrialCredentials(request.getEmail(), request.getNomeCompleto(), rawPassword);
+        if (emailService.isPasswordResetConfigured()) {
+            String email = emailNormalizado;
+            String nome = request.getNomeCompleto();
+            String oficina = request.getNomeEmpresa();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() {
+                    try { emailService.sendTrialWelcome(email, nome, oficina); }
+                    catch (Exception failure) { log.warn("Trial welcome delivery unavailable after account commit"); }
+                }
+            });
+        }
 
         return TrialRegisterResponse.builder()
                 .success(true)
-                .message("Cadastro realizado com sucesso. Verifique seu e-mail para acessar o sistema.")
-                .email(request.getEmail())
+                .message("Cadastro realizado. Acesse com seu e-mail e a senha definida no formulário.")
+                .email(emailNormalizado)
                 .build();
     }
 
-    private String generateTemporaryPassword() {
-        return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-    }
 }

@@ -96,6 +96,10 @@ export interface VeiculoRequest {
   chassi?: string;
   numeroMotor?: string;
   corExterna?: string;
+  direcao?: string;
+  cambio?: string;
+  arCondicionado?: boolean;
+  portas?: number;
   quilometragemAtual?: number;
   quilometragemCadastro?: number;
   dataUltimaRevisao?: string; // YYYY-MM-DD

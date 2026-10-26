@@ -46,6 +46,46 @@ public class ClienteResponse {
     @Schema(description = "Data de inclusão do cliente")
     private LocalDateTime dataCadastro;
 
+    private String rg;
+    public String getRg() { return rg; }
+    public void setRg(String value) { this.rg = value; }
+
+    private String categoria;
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String value) { this.categoria = value; }
+
+    private String indicadorIsencao;
+    public String getIndicadorIsencao() { return indicadorIsencao; }
+    public void setIndicadorIsencao(String value) { this.indicadorIsencao = value; }
+
+    private String emailSecundario;
+    public String getEmailSecundario() { return emailSecundario; }
+    public void setEmailSecundario(String value) { this.emailSecundario = value; }
+
+    private String outrosContatos;
+    public String getOutrosContatos() { return outrosContatos; }
+    public void setOutrosContatos(String value) { this.outrosContatos = value; }
+
+    private Boolean enviarNoticia;
+    public Boolean getEnviarNoticia() { return enviarNoticia; }
+    public void setEnviarNoticia(Boolean value) { this.enviarNoticia = value; }
+
+    private Integer classificacao;
+    public Integer getClassificacao() { return classificacao; }
+    public void setClassificacao(Integer value) { this.classificacao = value; }
+
+    private java.math.BigDecimal limiteDescontoPecas;
+    public java.math.BigDecimal getLimiteDescontoPecas() { return limiteDescontoPecas; }
+    public void setLimiteDescontoPecas(java.math.BigDecimal value) { this.limiteDescontoPecas = value; }
+
+    private java.math.BigDecimal limiteDescontoServicos;
+    public java.math.BigDecimal getLimiteDescontoServicos() { return limiteDescontoServicos; }
+    public void setLimiteDescontoServicos(java.math.BigDecimal value) { this.limiteDescontoServicos = value; }
+
+    private java.math.BigDecimal bloquearSeAtrasar;
+    public java.math.BigDecimal getBloquearSeAtrasar() { return bloquearSeAtrasar; }
+    public void setBloquearSeAtrasar(java.math.BigDecimal value) { this.bloquearSeAtrasar = value; }
+
     // Getters e Setters
     public Long getId() {
         return id;

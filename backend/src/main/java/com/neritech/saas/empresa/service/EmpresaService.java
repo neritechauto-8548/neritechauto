@@ -83,9 +83,22 @@ public class EmpresaService {
 
     @Transactional
     public Empresa create(Empresa empresa) {
+        return createTrial(empresa, null);
+    }
+
+    @Transactional
+    public Empresa createTrial(Empresa empresa, Long planoId) {
         validarEmpresa(empresa, null);
+        PlanoAssinatura plano = planoId == null
+                ? planoAssinaturaRepository.findByAtivoTrue().stream()
+                    .filter(p -> p.getNivel() != null && p.getNivel() == 1).findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Plano de teste não configurado."))
+                : planoAssinaturaRepository.findById(planoId)
+                    .filter(p -> Boolean.TRUE.equals(p.getAtivo()) && p.getNivel() != null
+                            && (p.getNivel() == 1 || p.getNivel() == 2))
+                    .orElseThrow(() -> new IllegalArgumentException("Plano comercial indisponível."));
         Empresa saved = empresaRepository.save(empresa);
-        createTrialSubscription(saved);
+        createTrialSubscription(saved, plano);
         preCarregarUnidadesMedida(saved);
         preCarregarCategorias(saved);
         return saved;
@@ -207,15 +220,7 @@ public class EmpresaService {
         categoriaProdutoRepository.saveAll(categorias);
     }
 
-    private void createTrialSubscription(Empresa empresa) {
-        PlanoAssinatura plano = planoAssinaturaRepository.findAll().stream()
-                .filter(p -> p.getNivel() != null && p.getNivel() == 1)
-                .findFirst()
-                .orElse(null);
-
-        if (plano == null) {
-            throw new IllegalStateException("Plano de teste não configurado.");
-        }
+    private void createTrialSubscription(Empresa empresa, PlanoAssinatura plano) {
         java.time.LocalDateTime inicioTeste = TrialPolicy.now();
         AssinaturaEmpresa assinatura = new AssinaturaEmpresa();
         assinatura.setEmpresa(empresa);

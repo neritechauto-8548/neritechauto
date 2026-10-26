@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://neritechauto.com.br/sitemap.xml

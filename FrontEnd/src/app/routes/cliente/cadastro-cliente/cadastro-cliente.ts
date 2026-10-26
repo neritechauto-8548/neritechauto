@@ -21,7 +21,7 @@ import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, C
   Sexo, EstadoCivil, OrigemCliente, getSexoOptions, getEstadoCivilOptions, getOrigemClienteOptions
 } from '../models/cliente.models';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
-import { VeiculoRequest, VeiculoResponse, MarcaVeiculoResponse, ModeloVeiculoResponse, StatusVeiculo } from '../../veiculo/models/veiculo.models';
+import { VeiculoRequest, VeiculoResponse, MarcaVeiculoResponse, ModeloVeiculoResponse, AnoModeloResponse, TipoCombustivelResponse, StatusVeiculo } from '../../veiculo/models/veiculo.models';
 import { forkJoin } from 'rxjs';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { ConfirmationService } from '@shared/services/confirmation.service';
@@ -110,6 +110,13 @@ export class CadastroCliente implements OnInit {
   // tipoContatoOptions removed (managed by getTipoContatoOptions)
   tipoEnderecoOptions = ['Residencial', 'Comercial', 'Cobrança', 'Entrega'];
   tipoDocumentoOptions = ['CPF', 'RG', 'CNH', 'CNPJ', 'Contrato Social', 'Comprovante de Residência', 'Outros'];
+  readonly categoriaOptions = ['Comum', 'Locadora', 'Taxi - Cooperativa', 'Taxi - Individual', 'Taxi - Associadas', 'Executivo - Aplicativo Uber', 'Executivo - Aplicativo Outros', 'Executivo - Preto', 'Seguradora', 'Frotista', 'Particular'].map(value => ({ label: value, value }));
+  readonly indicadorIsencaoOptions = [
+    { label: 'Não contribuinte', value: 'NAO_CONTRIBUINTE' },
+    { label: 'Contribuinte ICMS', value: 'CONTRIBUINTE_ICMS' },
+    { label: 'Contribuinte isento de inscrição', value: 'CONTRIBUINTE_ISENTO' }
+  ];
+  readonly noticiaOptions = [{ label: 'Sim', value: true }, { label: 'Não', value: false }];
 
   model = {
     tipoPessoa: 'Física' as 'Física' | 'Jurídica',
@@ -117,6 +124,10 @@ export class CadastroCliente implements OnInit {
     nomeRazao: '',
     cpfCnpj: '',
     inscricaoMunicipal: '', // Adicionado para ambas as pessoas
+    rg: '', categoria: '', indicadorIsencao: '', emailSecundario: '', outrosContatos: '',
+    enviarNoticia: false, classificacao: null as number | null,
+    limiteDescontoPecas: null as number | null, limiteDescontoServicos: null as number | null,
+    bloquearSeAtrasar: null as number | null,
     sexo: null as Sexo | null, // Added
     estadoCivil: null as EstadoCivil | null, // Added
     profissao: '',
@@ -137,6 +148,7 @@ export class CadastroCliente implements OnInit {
     cidade: '',
     estado: '',
     uf: '',
+    pais: 'Brasil',
     complemento: '',
     contatoResponsavel: '',
     enderecosExtras: [] as EnderecoExtra[],
@@ -176,6 +188,11 @@ export class CadastroCliente implements OnInit {
   veiculoModel: Partial<VeiculoRequest> = {};
   marcasOptions: MarcaVeiculoResponse[] = [];
   modelosOptions: ModeloVeiculoResponse[] = [];
+  anosModeloOptions: AnoModeloResponse[] = [];
+  get anoModeloSelectOptions() {
+    return this.anosModeloOptions.map(ano => ({ label: `${ano.anoFabricacao} / ${ano.anoModelo}`, value: ano.id }));
+  }
+  combustiveisOptions: TipoCombustivelResponse[] = [];
   showVeiculoDialog = false;
   isSavingVehicle = false;
   vehicleFormError = '';
@@ -232,7 +249,7 @@ export class CadastroCliente implements OnInit {
   }
 
   ngOnInit() {
-    if (!this.isUxPreview) this.loadMarcas(); // Não exigir backend para homologar o cadastro
+    if (!this.isUxPreview) { this.loadMarcas(); this.loadCombustiveis(); } // Não exigir backend para homologar o cadastro
     // Verifica se há ID na rota para edição
     const uuid = this.route.snapshot.paramMap.get('uuid');
     if (uuid) {
@@ -284,6 +301,16 @@ export class CadastroCliente implements OnInit {
     this.model.inscricaoMunicipal = data.inscricaoMunicipal || '';
     this.model.observacao = data.observacoesGerais || '';
     this.model.email = data.email || '';
+    this.model.rg = data.rg || '';
+    this.model.categoria = data.categoria || '';
+    this.model.indicadorIsencao = data.indicadorIsencao || '';
+    this.model.emailSecundario = data.emailSecundario || '';
+    this.model.outrosContatos = data.outrosContatos || '';
+    this.model.enviarNoticia = data.enviarNoticia ?? false;
+    this.model.classificacao = data.classificacao ?? null;
+    this.model.limiteDescontoPecas = data.limiteDescontoPecas ?? null;
+    this.model.limiteDescontoServicos = data.limiteDescontoServicos ?? null;
+    this.model.bloquearSeAtrasar = data.bloquearSeAtrasar ?? null;
   }
 
   loadContatos(id: string | number) {
@@ -319,6 +346,7 @@ export class CadastroCliente implements OnInit {
           this.model.cidade = principal.cidade || '';
           this.model.estado = principal.estado || '';
           this.model.uf = principal.estado || '';
+          this.model.pais = principal.pais || 'Brasil';
       }
     });
   }
@@ -568,6 +596,16 @@ export class CadastroCliente implements OnInit {
       status: this.model.situacao,
       observacoesGerais: this.model.observacao || undefined,
       email: this.model.email || undefined,
+      rg: this.model.tipoPessoa === 'Física' ? (this.model.rg || undefined) : undefined,
+      categoria: this.model.categoria || undefined,
+      indicadorIsencao: this.model.indicadorIsencao || undefined,
+      emailSecundario: this.model.emailSecundario || undefined,
+      outrosContatos: this.model.outrosContatos || undefined,
+      enviarNoticia: this.model.enviarNoticia,
+      classificacao: this.model.classificacao ?? undefined,
+      limiteDescontoPecas: this.model.limiteDescontoPecas ?? undefined,
+      limiteDescontoServicos: this.model.limiteDescontoServicos ?? undefined,
+      bloquearSeAtrasar: this.model.bloquearSeAtrasar ?? undefined,
     };
 
     if (this.isEditMode && this.savedClienteId) {
@@ -634,7 +672,8 @@ export class CadastroCliente implements OnInit {
         complemento: this.model.complemento,
         bairro: this.model.bairro,
         cidade: this.model.cidade,
-        estado: this.model.estado
+        estado: this.model.estado,
+        pais: this.model.pais || 'Brasil'
       };
 
       if (this.model.enderecoId) {
@@ -1160,11 +1199,20 @@ export class CadastroCliente implements OnInit {
       });
   }
 
+  loadCombustiveis() {
+    this.veiculoService.listTiposCombustivel().subscribe({
+      next: res => this.combustiveisOptions = res || [],
+      error: () => this.vehicleFormError = 'Não foi possível carregar os combustíveis.'
+    });
+  }
+
   onMarcaChange() {
       this.vehicleFormError = '';
       const marcaId = this.veiculoModel.marcaId;
       this.veiculoModel.modeloId = undefined;
+      this.veiculoModel.anoModeloId = undefined;
       this.modelosOptions = [];
+      this.anosModeloOptions = [];
       this.vehiclePreviewFailed = false;
       if (marcaId) {
           this.veiculoService.listModelos(marcaId).subscribe({
@@ -1179,6 +1227,13 @@ export class CadastroCliente implements OnInit {
   onModeloChange() {
     this.vehicleFormError = '';
     this.vehiclePreviewFailed = false;
+    const modeloId = this.veiculoModel.modeloId;
+    this.veiculoModel.anoModeloId = undefined;
+    this.anosModeloOptions = [];
+    if (modeloId) this.veiculoService.listAnosModelo(modeloId).subscribe({
+      next: res => { if (this.veiculoModel.modeloId === modeloId) this.anosModeloOptions = res || []; },
+      error: () => this.vehicleFormError = 'Não foi possível carregar os anos do modelo.'
+    });
   }
 
   // ========== HELPERS ==========
@@ -1231,9 +1286,16 @@ export class CadastroCliente implements OnInit {
           marcaId: this.veiculoModel.marcaId,
           modeloId: this.veiculoModel.modeloId,
           anoModeloId: this.veiculoModel.anoModeloId,
+          combustivelId: this.veiculoModel.combustivelId,
           renavam: this.veiculoModel.renavam,
           chassi: this.veiculoModel.chassi,
+          numeroMotor: this.veiculoModel.numeroMotor,
           corExterna: this.veiculoModel.corExterna,
+          direcao: this.veiculoModel.direcao,
+          cambio: this.veiculoModel.cambio,
+          arCondicionado: this.veiculoModel.arCondicionado,
+          portas: this.veiculoModel.portas,
+          observacoes: this.veiculoModel.observacoes,
           status: StatusVeiculo.ATIVO // Default
           // Adicionar outros campos conforme necessário do form
       };

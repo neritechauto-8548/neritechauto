@@ -221,6 +221,10 @@ public class VeiculoService {
                  external.chassi(),
                  external.motor(),
                  external.cor(),
+                 null, // direcao
+                 null, // cambio
+                 null, // arCondicionado
+                 null, // portas
                  null, // quilometragemAtual
                  null, // quilometragemCadastro
                  null, // dataUltimaRevisao
