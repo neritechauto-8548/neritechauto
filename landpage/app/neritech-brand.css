@@ -417,3 +417,333 @@
   .reference-site[data-page="home"] .patio-demo-track b {font-size: 10px;}
   .reference-site[data-page="home"] .patio-demo-track small {font-size: 9px;}
 }
+
+
+
+/*
+ * Mosaico de funcionalidades — decisão visual NERITECH AUTO em 26/10/2026.
+ * Recria a hierarquia de dois cards principais + quatro secundários.
+ * Cobre premium sem laranja, com 1 destaque cobre e 1 grafite.
+ * Somente a home; CTA institucional continua azul #18328A.
+ */
+.reference-site[data-page="home"] {
+  --home-copper: #B8792E;
+  --home-copper-dark: #9E6624;
+  --home-copper-ink: #925B20;
+  --home-copper-soft: #F6EEE6;
+}
+.reference-site[data-page="home"] .section-pad.container > .center-heading:first-child .section-kicker,
+.reference-site[data-page="home"] .section-pad.container > .center-heading:first-child h2 span {
+  color: var(--home-copper-ink);
+}
+.reference-site[data-page="home"] .section-pad.container > .center-heading:first-child h2 {
+  font-size: clamp(27px, 3vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -.038em;
+  color: #1E2833;
+}
+.reference-site[data-page="home"] .home-feature-grid {
+  display: grid;
+  max-width: 1140px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 248px 162px 162px;
+  grid-auto-rows: auto;
+  gap: 14px;
+  align-items: stretch;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile {
+  grid-column: auto;
+  grid-row: auto;
+  padding: 25px;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(22, 31, 40, .055);
+  border: 1px solid #E1E5E9;
+  color: #1F2933;
+  background: #F6F7F8;
+  isolation: isolate;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile > div:not(.stock-illustration),
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile > .small-icon {
+  position: relative;
+  z-index: 2;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile h3 {
+  font-size: clamp(17px, 1.5vw, 22px);
+  letter-spacing: -.025em;
+  line-height: 1.14;
+  margin: 0 0 9px;
+  font-weight: 830;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile p {
+  font-size: 13px;
+  line-height: 1.54;
+  max-width: 280px;
+  color: #52606C;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile .small-icon {
+  border-radius: 9px;
+  background: rgba(255,255,255,.84);
+  border: 1px solid #DAE0E5;
+  color: var(--home-copper-ink);
+  box-shadow: 0 4px 10px rgba(16,24,32,.045);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile img {
+  z-index: 0;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 48%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 28%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 28%);
+}
+/* Primeiro card: orçamento amplo, branco e fotografia original à direita. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) {
+  grid-column: 1 / span 7;
+  grid-row: 1;
+  background: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) > div {
+  width: 54%;
+  max-width: 340px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) img {
+  width: 49%;
+}
+/* Segundo card: o único bloco cobre, com mais presença visual. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) {
+  grid-column: 8 / -1;
+  grid-row: 1;
+  background: linear-gradient(105deg, #9E6624 0%, #9E6624 56%, #B8792E 100%);
+  border-color: #9E6624;
+  color: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) h3,
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) p {
+  color: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) p {
+  max-width: 235px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) > div {
+  max-width: 53%;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) .small-icon {
+  color: #fff;
+  border-color: rgba(255,255,255,.65);
+  background: rgba(22,26,29,.13);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) img {
+  width: 53%;
+  height: 88%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 33%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 33%);
+}
+/* Terceiro card: estoque vertical, com arte vetorial em vez de foto repetida. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(3) {
+  grid-column: 1 / span 3;
+  grid-row: 2 / span 2;
+  background: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(3) p {
+  max-width: 230px;
+}
+.reference-site[data-page="home"] .stock-illustration {
+  width: min(88%, 210px);
+  height: 122px;
+  position: absolute;
+  left: 6%;
+  bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: perspective(450px) rotateY(-9deg);
+  z-index: 0;
+}
+.reference-site[data-page="home"] .stock-shelf {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  padding-inline: 8px;
+  border-bottom: 6px solid #334250;
+}
+.reference-site[data-page="home"] .stock-shelf i {
+  flex: 1;
+  height: 38px;
+  min-width: 0;
+  border-radius: 3px 3px 1px 1px;
+  background: #D7A471;
+  border: 1px solid #A57643;
+  box-shadow: inset -7px 0 0 rgba(96,65,35,.11);
+}
+.reference-site[data-page="home"] .stock-shelf i:nth-child(2) {height: 49px;background: #DFBB93;}
+.reference-site[data-page="home"] .stock-shelf i:nth-child(3) {height: 35px;background: #B98751;}
+/* Ordem de serviço: compacto e claro, com acentos cobre. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) {
+  grid-column: 4 / span 4;
+  grid-row: 2;
+  background: var(--home-copper-soft);
+  border-color: #EBD9C7;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) h3 {
+  font-size: 18px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) p {
+  max-width: 260px;
+  font-size: 12px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots {
+  right: 18px;
+  bottom: 16px;
+  gap: 5px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots i {
+  width: 9px;
+  height: 9px;
+  background: #D2A16B;
+  border: 1px solid #9E6624;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots i:first-child {
+  background: #9E6624;
+}
+/* Resultado financeiro: grafite como o segundo ponto de impacto. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) {
+  grid-column: 4 / span 4;
+  grid-row: 3;
+  color: #fff;
+  background: #1F2832;
+  border-color: #1F2832;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) h3,
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) p {
+  color: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) h3 {font-size: 18px;}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) p {font-size: 12px;max-width: 280px;}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .small-icon {
+  color: #fff;
+  background: #2E3B47;
+  border-color: #71808D;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .mini-steps {
+  right: 17px;
+  bottom: 13px;
+  gap: 5px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .mini-steps b {
+  width: 16px;
+  height: 16px;
+  background: #D6AD7D;
+  color: #1F2832;
+  font-size: 10px;
+}
+/* Tecnologia: card vertical suave, foto da oficina sem bloquear a copy. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) {
+  grid-column: 8 / -1;
+  grid-row: 2 / span 2;
+  background: #F3F5F6;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) > div {
+  max-width: 58%;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img {
+  width: 56%;
+  height: 84%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 40%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 40%);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) p {
+  max-width: 250px;
+}
+@media(max-width: 1000px) {
+  .reference-site[data-page="home"] .home-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: minmax(260px, auto);
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 270px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) p {
+    max-width: 210px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .mini-steps {
+    right: 16px;
+  }
+  .reference-site[data-page="home"] .stock-illustration {
+    height: 92px;
+    width: 160px;
+    left: auto;
+    right: 10px;
+    bottom: 12px;
+    opacity: .9;
+  }
+}
+@media(max-width: 600px) {
+  .reference-site[data-page="home"] .section-pad.container > .center-heading:first-child h2 {
+    font-size: clamp(24px, 6vw, 31px);
+  }
+  .reference-site[data-page="home"] .home-feature-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 12px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    min-height: 250px;
+    padding: 22px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(3) {
+    min-height: 270px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4),
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) {
+    min-height: 215px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile h3 {
+    font-size: 18px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile p {
+    font-size: 12px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) > div {
+    max-width: 57%;
+    width: 57%;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img {
+    width: 50%;
+  }
+  .reference-site[data-page="home"] .stock-illustration {
+    width: 160px;
+    height: 97px;
+  }
+}
+@media(max-width: 390px) {
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) > div {
+    max-width: 63%;
+    width: 63%;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img {
+    width: 45%;
+  }
+}
