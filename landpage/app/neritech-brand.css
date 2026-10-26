@@ -18,7 +18,7 @@
 /*
  * Landing premium automotiva (26/10/2026).
  * Direção cromática aproximada: 60% branco, 20% cinza, 15% grafite,
- * 5% azul como assinatura. Não altera a geometria, os textos ou as imagens.
+ * 5% azul como assinatura. Preserva a composição e as imagens; a redação comercial é específica da NERITECH AUTO.
  * Última camada da cascata para preservar o layout fiel da referência.
  */
 :root {
@@ -240,4 +240,25 @@
   .nl-page .nl-trial-submit {
     transition: none;
   }
+}
+
+/* Títulos de marca: ajuste ótico para evitar quebra em 320–1440 px sem alterar o grid. */
+.reference-site[data-page="home"] .hero-copy h1 span {
+  display: block;
+  font-size: .72em;
+  line-height: 1.1;
+  letter-spacing: -.035em;
+}
+.reference-site[data-page="funcionalidades"] .feature-hero-title h1 span {
+  font-size: .78em;
+  letter-spacing: -.035em;
+}
+.reference-site.nl-prices-page .pricing-hero h1 {
+  max-width: 1100px;
+  padding-inline: 18px;
+  font-size: clamp(27px, 3vw, 48px);
+}
+@media (max-width: 600px) {
+  .reference-site[data-page="home"] .hero-copy h1 span { font-size: .76em; }
+  .reference-site[data-page="funcionalidades"] .feature-hero-title h1 span { font-size: .76em; }
 }
