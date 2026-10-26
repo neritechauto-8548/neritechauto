@@ -15,3 +15,173 @@
   .site-header .site-logo img { width: 157px; }
   .reference-site .brand-invert-logo { width: min(190px, 92%); }
 }
+/*
+ * Landing premium automotiva (26/10/2026).
+ * Direção cromática aproximada: 60% branco, 20% cinza, 15% grafite,
+ * 5% azul como assinatura. Não altera a geometria, os textos ou as imagens.
+ * Última camada da cascata para preservar o layout fiel da referência.
+ */
+:root {
+  --neritech-graphite: #222a32;
+  --neritech-graphite-deep: #161d24;
+  --neritech-gray: #f2f4f5;
+  --neritech-stroke: #e2e6e9;
+}
+
+.reference-site {
+  --orange: var(--neritech-blue);
+  --orange-deep: #11266c;
+  --blue: var(--neritech-blue);
+  --ink: #232b34;
+  --ink2: #2e3740;
+  --muted: #66717c;
+  --gray: var(--neritech-gray);
+  --line: var(--neritech-stroke);
+  --shadow: 0 12px 30px rgba(22, 29, 36, .10);
+}
+
+/* O azul é reservado aos CTAs, links e pequenos elementos ativos. */
+.site-header .btn-orange,
+.reference-site .btn-orange,
+.reference-site .feature-tab.active {
+  background: var(--neritech-blue);
+  border-color: var(--neritech-blue);
+  color: #fff;
+}
+.site-header .btn-orange:hover,
+.reference-site .btn-orange:hover {
+  background: #10246b;
+  color: #fff;
+}
+.reference-site .pricing-switch button.selected {
+  color: var(--neritech-blue);
+  box-shadow: inset 0 0 0 2px var(--neritech-blue);
+}
+.reference-site .section-kicker,
+.reference-site .text-link,
+.reference-site .blue-link,
+.reference-site .center-heading h2 span,
+.reference-site .hero-copy h1 span,
+.reference-site .feature-hero-title h1 span,
+.reference-site .pricing-hero h1 span {
+  color: var(--neritech-blue);
+}
+
+/* Hero: mantém a fotografia original, com tratamento sóbrio e corporativo. */
+.reference-site[data-page="home"] .home-hero {
+  background: linear-gradient(90deg, #fff 0%, #fff 34%, #f7f8f9 59%, #d7dcdf 100%);
+}
+.reference-site[data-page="home"] .home-hero-photo {
+  filter: saturate(.70) contrast(1.06);
+}
+
+/* Faixas e banners grandes deixam de ser azuis. */
+.reference-site .orange-statement {
+  background: linear-gradient(118deg, var(--neritech-graphite) 0%, var(--neritech-graphite-deep) 100%);
+}
+.reference-site .orange-statement .float-sticker {
+  opacity: .56;
+  filter: grayscale(.35);
+}
+.reference-site .app-banner {
+  background: var(--neritech-graphite);
+}
+.reference-site .support-orange {
+  background: var(--neritech-graphite);
+}
+.reference-site .overlay-orange {
+  background: var(--neritech-graphite);
+  box-shadow: 0 16px 40px rgba(15, 20, 25, .24);
+}
+.reference-site .overlay-orange .btn-light {
+  background: #fff;
+  color: var(--neritech-blue);
+}
+
+/* Mosaico: predominantemente branco/cinza, com apenas um card grafite. */
+.reference-site[data-page="home"] .feature-tile {
+  border-color: var(--neritech-stroke);
+  box-shadow: 0 5px 18px rgba(25, 32, 40, .05);
+}
+.reference-site[data-page="home"] .feature-tile.light,
+.reference-site[data-page="home"] .feature-tile.orange {
+  background: var(--neritech-gray);
+  color: var(--neritech-graphite);
+  border-color: var(--neritech-stroke);
+}
+.reference-site[data-page="home"] .feature-tile.orange p {
+  color: #596570;
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(2),
+.reference-site[data-page="home"] .feature-tile.black {
+  background: var(--neritech-graphite);
+  color: #fff;
+  border-color: var(--neritech-graphite);
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) p,
+.reference-site[data-page="home"] .feature-tile.black p {
+  color: #dbe1e6;
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) .small-icon,
+.reference-site[data-page="home"] .feature-tile.black .small-icon {
+  color: #fff;
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(4) .small-icon {
+  color: var(--neritech-blue);
+}
+.reference-site[data-page="home"] .dark-photo-card {
+  background: var(--neritech-graphite-deep);
+}
+.reference-site[data-page="home"] .dark-photo-bg {
+  filter: grayscale(.5) saturate(.7);
+}
+
+/* Depoimentos: fundo cinza e cards brancos, sem mais um bloco azul. */
+.reference-site .orange-reviews {
+  background: linear-gradient(135deg, #f3f4f5, #e7ebee);
+}
+.reference-site .review-interface,
+.reference-site .review-floating {
+  box-shadow: 0 14px 36px rgba(30, 39, 47, .11);
+}
+.reference-site .orange-reviews-inner > .btn-light {
+  background: var(--neritech-blue);
+  color: #fff;
+}
+.reference-site .orange-reviews-inner > .btn-light:hover {
+  background: #10246b;
+  color: #fff;
+}
+
+/* Superfícies claras: cards com borda discreta, sem sombras azuladas. */
+.reference-site .price-card,
+.reference-site .about-info article,
+.reference-site .value-mosaic article,
+.reference-site .value-bottom article {
+  background: #fff;
+  border-color: var(--neritech-stroke);
+  box-shadow: 0 6px 22px rgba(24, 32, 40, .035);
+}
+
+/* Versão React legada: mesma direção caso volte a ser utilizada. */
+.nr-home .nr-statement,
+.nr-home .nr-promo-card,
+.nr-home .nr-bottom-callout {
+  background: var(--neritech-graphite);
+}
+.nr-home .nr-feature-tile.blue {
+  background: var(--neritech-gray);
+  border-color: var(--neritech-stroke);
+  color: var(--neritech-graphite);
+}
+.nr-home .nr-feature-tile.blue p {
+  color: #596570;
+}
+.nr-home .nr-eyebrow,
+.nr-home .nr-text-link {
+  color: var(--neritech-blue);
+}
+.nr-home .nr-on-dark .nr-eyebrow,
+.nr-home .nr-patio-copy .nr-eyebrow {
+  color: #b7c8f4;
+}
