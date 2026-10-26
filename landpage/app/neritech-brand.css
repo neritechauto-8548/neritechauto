@@ -185,3 +185,10 @@
 .nr-home .nr-patio-copy .nr-eyebrow {
   color: #b7c8f4;
 }
+
+/* Contraste do azul nos fundos grafite: variação clara apenas para leitura. */
+.reference-site .dark-showcase .section-kicker,
+.reference-site .dark-showcase .text-link.blue-link,
+.reference-site .pricing-hero h1 span {
+  color: #b7c8f4;
+}
