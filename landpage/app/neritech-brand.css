@@ -669,7 +669,8 @@
     grid-template-rows: none;
     grid-auto-rows: minmax(260px, auto);
   }
-  .reference-site[data-page="home"] .home-feature-grid > .feature-tile {
+  /* Mesma especificidade dos posicionamentos desktop: não criar colunas implícitas no tablet. */
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(n) {
     grid-column: auto;
     grid-row: auto;
     min-height: 270px;
@@ -699,7 +700,7 @@
     grid-auto-rows: auto;
     gap: 12px;
   }
-  .reference-site[data-page="home"] .home-feature-grid > .feature-tile {
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(n) {
     grid-column: 1 / -1;
     grid-row: auto;
     min-height: 250px;
