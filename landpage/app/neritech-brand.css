@@ -262,3 +262,82 @@
   .reference-site[data-page="home"] .hero-copy h1 span { font-size: .76em; }
   .reference-site[data-page="funcionalidades"] .feature-hero-title h1 span { font-size: .76em; }
 }
+
+/* Hero comercial aprovado em 26/10/2026: hierarquia editorial própria, sem destaque visual de IA. */
+.reference-site[data-page="home"] .home-hero,
+.reference-site[data-page="home"] .home-hero-inner {
+  min-height: 560px;
+}
+.reference-site[data-page="home"] .hero-copy {
+  max-width: min(620px, 100%);
+  padding-block: 32px;
+}
+.reference-site[data-page="home"] .hero-copy h1 {
+  font-size: clamp(31px, 3.55vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -.045em;
+  text-transform: none;
+  margin-bottom: 12px;
+  color: var(--neritech-graphite-deep);
+}
+.reference-site[data-page="home"] .hero-copy h1 span {
+  display: block;
+  font-size: .96em;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+  color: var(--neritech-graphite-deep);
+}
+.reference-site[data-page="home"] .hero-copy .hero-support {
+  color: var(--neritech-graphite);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 750;
+  margin: 0 0 12px;
+}
+.reference-site[data-page="home"] .hero-copy .hero-description {
+  max-width: 520px;
+  color: #4d5964;
+  font-size: 15px;
+  line-height: 1.58;
+  margin: 0 0 19px;
+}
+.reference-site[data-page="home"] .hero-cta-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.reference-site[data-page="home"] .hero-cta-group .hero-cta-secondary {
+  color: var(--neritech-graphite);
+  border-color: #c9cfd5;
+  background: #fff;
+}
+.reference-site[data-page="home"] .hero-cta-group .hero-cta-secondary:hover {
+  color: var(--neritech-graphite-deep);
+  background: #f1f3f4;
+}
+.reference-site[data-page="home"] .hero-copy .hero-footnote {
+  max-width: 520px;
+  font-size: 11px;
+  color: #67717a;
+  margin: 12px 0 0;
+  line-height: 1.4;
+}
+@media (max-width: 600px) {
+  .reference-site[data-page="home"] .home-hero,
+  .reference-site[data-page="home"] .home-hero-inner {
+    min-height: 595px;
+  }
+  .reference-site[data-page="home"] .hero-copy {padding-block: 27px;}
+  .reference-site[data-page="home"] .hero-copy h1 {
+    font-size: clamp(28px, 7vw, 38px);
+    line-height: 1.1;
+  }
+  .reference-site[data-page="home"] .hero-copy h1 span {font-size: .96em;}
+  .reference-site[data-page="home"] .hero-copy .hero-support {font-size: 15px;}
+  .reference-site[data-page="home"] .hero-copy .hero-description {font-size: 14px;line-height: 1.5;}
+  .reference-site[data-page="home"] .home-hero-photo {top: 47%;height: 53%;opacity: .45;}
+  .reference-site[data-page="home"] .home-hero:after {
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,.98) 38%, rgba(255,255,255,.89) 70%, rgba(255,255,255,.48) 100%);
+  }
+}

@@ -2,8 +2,8 @@ import { ReplicaPage } from '@/components/replica-page';
 import { pageMetadata } from '@/lib/site';
 
 export const metadata = pageMetadata(
-  'Orçamentos, controle e lucro com apoio de IA',
-  'NERITECH AUTO: orçamentos, controle da oficina, gestão financeira e inteligência artificial de apoio, conforme disponibilidade. Conheça os dois planos.',
+  'Mais controle na oficina. Mais resultado no caixa.',
+  'Cada orçamento conta. Cada resultado importa. Crie orçamentos, acompanhe serviços, custos e margens, com inteligência artificial de apoio quando disponível.',
   '/',
 );
 
