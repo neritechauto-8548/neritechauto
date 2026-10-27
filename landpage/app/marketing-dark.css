@@ -368,3 +368,8 @@
 @media(prefers-reduced-motion:reduce){
   .marketing-theme-toggle{transition:none;}
 }
+
+/* Variante legível do logotipo do rodapé em ambos os temas. */
+.nl-site-footer .nl-brand-logo--dark{display:none;}
+:root[data-theme='dark'] .nl-site-footer .nl-brand-logo--light{display:none;}
+:root[data-theme='dark'] .nl-site-footer .nl-brand-logo--dark{display:block;}
