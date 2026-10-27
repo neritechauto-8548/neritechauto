@@ -8,6 +8,7 @@ import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { cn } from '@/lib/utils';
 import { loginUrl } from '@/lib/site';
+import { ThemeToggle } from '@/components/marketing-theme';
 
 const replicaRoutes=new Set(['/','/funcionalidades','/precos','/sobre','/teste-gratis','/bem-vindo','/validar-telefone','/email']);
 const links=[
@@ -28,9 +29,11 @@ function ReferenceHeader({ path }: { path:string }) {
    <nav className={`nav-links${open?' open':''}`} id="main-nav" aria-label="Navegação principal">
      {links.map(l=><a key={l.href} href={l.href} className={l.href===path?'active':''} onClick={()=>setOpen(false)}>{l.label}</a>)}
      <a href={loginUrl} className="nav-login" onClick={()=>setOpen(false)}>Entrar</a>
+     <ThemeToggle className="header-theme-mobile" />
    </nav>
    <div className="header-actions">
      <a href={loginUrl} className="header-login">Entrar</a>
+     <ThemeToggle className="header-theme-desktop" />
      <a href="/teste-gratis" className={cn(buttonVariants({size:'sm'}),'btn','btn-orange')}>Teste grátis <span aria-hidden="true">↗</span></a>
      <Button type="button" variant="outline" size="sm" className="hamburger" aria-label={open?'Fechar menu':'Abrir menu'} aria-controls="main-nav" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{open?'×':'☰'}</Button>
    </div>

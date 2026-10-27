@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ReplicaChrome } from '@/components/replica-chrome';
+import { MarketingThemeProvider } from '@/components/marketing-theme';
 import { siteUrl, signature } from '@/lib/site';
 import './globals.css';
 import './marketing.css';
@@ -10,6 +11,7 @@ import './reference-about.css';
 import './reference-original.css';
 import './home-card-size.css';
 import './neritech-brand.css';
+import './marketing-dark.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -20,5 +22,5 @@ export const metadata: Metadata = {
   icons:{icon:'/favicon.svg'}
 };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
- return <html lang="pt-BR"><body><a className="skip-link" href="#conteudo">Ir para o conteúdo</a><ReplicaChrome>{children}</ReplicaChrome></body></html>;
+ return <html lang="pt-BR"><head><script dangerouslySetInnerHTML={{__html:`(function(){try{var s=localStorage.getItem('neritech-marketing-theme');document.documentElement.dataset.theme=s==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})();`}} /></head><body><MarketingThemeProvider><a className="skip-link" href="#conteudo">Ir para o conteúdo</a><ReplicaChrome>{children}</ReplicaChrome></MarketingThemeProvider></body></html>;
 }
