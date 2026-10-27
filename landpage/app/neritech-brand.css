@@ -1410,3 +1410,388 @@
   .reference-site[data-page="sobre"] .about-motto i{width:12px;}
   .reference-site[data-page="funcionalidades"] .explorer-notes{grid-template-columns:1fr;}
 }
+
+
+/* UNIFICACAO VISUAL 27-10-2026
+   Identidade: superficie neutra, grafite localizado, cobre como destaque,
+   azul NERITECH em links/acoes. Evitar fotografias repetidas e estetica IA.
+   Delimitar aos componentes reais das paginas de marketing. */
+.reference-site[data-page="home"],
+.reference-site[data-page="funcionalidades"],
+.reference-site[data-page="sobre"],
+.reference-site[data-page="precos"]{
+  --nr-copper:#B8792E;
+  --nr-copper-dark:#9E6624;
+  --nr-copper-text:#925B20;
+  --nr-copper-soft:#F6EEE6;
+  --nr-graphite:#1F2832;
+  --nr-copy:#52616D;
+  --nr-light:#F5F5F3;
+  --nr-border:#E3E7EA;
+}
+.reference-site[data-page="home"] .section-kicker,
+.reference-site[data-page="home"] .center-heading h2 span,
+.reference-site[data-page="funcionalidades"] .section-kicker,
+.reference-site[data-page="funcionalidades"] .intro-features h2 span,
+.reference-site[data-page="sobre"] .heading-line::before {
+  color:var(--nr-copper-text);
+}
+.reference-site[data-page="home"] .hero-copy h1 span{
+  color:#24313C;
+}
+.reference-site[data-page="home"] .hero-copy{
+  border-top:3px solid var(--nr-copper-dark);
+}
+.reference-site[data-page="home"] .metrics strong{
+  color:#26343F;
+}
+.reference-site[data-page="home"] .metrics span{
+  color:#53626E;
+}
+.reference-site[data-page="home"] .feature-tile:nth-child(6){
+  border-color:var(--nr-border);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) .team-operational-flow{
+  position:absolute;
+  z-index:1;
+  right:4%;
+  bottom:22px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  max-width:none;
+  width:92%;
+  padding:10px;
+  background:#FFF;
+  border:1px solid #E2E6EA;
+  border-radius:8px;
+  box-shadow:0 7px 18px rgba(25,34,42,.045);
+}
+.reference-site[data-page="home"] .team-operational-flow span{
+  display:block;
+  flex:1;
+  min-width:0;
+  overflow-wrap:anywhere;
+  text-align:center;
+  font-weight:800;
+  letter-spacing:.02em;
+  font-size:8px;
+  line-height:1.35;
+  color:#475562;
+}
+.reference-site[data-page="home"] .team-operational-flow i{
+  display:block;
+  width:12px;
+  height:1px;
+  flex:0 0 12px;
+  background:#B5824F;
+}
+/* Três cartões de processo não dependem mais de fotos fictícias. */
+.reference-site[data-page="home"] .dark-photo-card{
+  padding:29px;
+  background:#1F2832;
+  border:1px solid #3B4752;
+  border-top:3px solid #AD7740;
+  box-shadow:none;
+}
+.reference-site[data-page="home"] .dark-photo-card:nth-child(2){
+  background:#2C3640;
+}
+.reference-site[data-page="home"] .dark-photo-card:nth-child(3){
+  background:#222E37;
+}
+.reference-site[data-page="home"] .dark-photo-card::after{background:none;}
+.reference-site[data-page="home"] .dark-card-index{
+  position:relative;
+  z-index:1;
+  display:block;
+  font-size:42px;
+  font-weight:800;
+  letter-spacing:-.065em;
+  color:#D5AD84;
+  line-height:1;
+}
+.reference-site[data-page="home"] .dark-photo-card h3{
+  font-size:19px;
+  line-height:1.28;
+  letter-spacing:-.015em;
+  color:#FFF;
+}
+.reference-site[data-page="home"] .dark-photo-card p{
+  font-size:12px;
+  line-height:1.55;
+  color:#E0E5E8;
+}
+.reference-site[data-page="home"] .dark-showcase .section-kicker,
+.reference-site[data-page="home"] .dark-showcase .text-link.blue-link{
+  color:#F0C89B;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img{display:none;}
+
+/* Funcionalidades: fluxos editoriais em vez de dispositivo falso ou screenshot genérico. */
+.reference-site[data-page="funcionalidades"] .feature-hero{
+  background:#F5F5F3;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-board{
+  margin:0 auto;
+  max-width:440px;
+  padding:23px;
+  background:#FFF;
+  color:#263541;
+  border:1px solid #DDE3E6;
+  border-radius:11px;
+  box-shadow:0 10px 26px rgba(25,34,42,.055);
+  text-align:left;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-heading{
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  color:#3A4854;
+  border-bottom:1px solid #E3E8EA;
+  padding-bottom:15px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.055em;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-heading span{
+  color:#677480;
+  font-weight:500;
+  letter-spacing:0;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-steps{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:17px;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-steps span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:16px 12px;
+  background:#F5F6F7;
+  border-left:3px solid #A16D34;
+  border-radius:4px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.35;
+  color:#2C3944;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-steps b{
+  font-size:12px;
+  color:#925B20;
+  font-weight:800;
+}
+.reference-site[data-page="funcionalidades"] .explorer-image{
+  display:grid;
+  place-items:center;
+  padding:26px;
+  background:#ECEFF1;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-outline{
+  width:min(100%,370px);
+  border:1px solid #D9E0E4;
+  border-radius:10px;
+  background:#FFF;
+  box-shadow:0 12px 28px rgba(23,34,44,.055);
+  padding:20px;
+  text-align:left;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-head{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  padding-bottom:15px;
+  border-bottom:1px solid #E4E9EB;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-head span{
+  color:#925B20;
+  font-weight:800;
+  font-size:10px;
+  letter-spacing:.10em;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-head strong{
+  color:#263541;
+  font-size:21px;
+  line-height:1.2;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-rows{
+  display:grid;
+  gap:9px;
+  margin-block:16px;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-rows span{
+  display:block;
+  color:#475563;
+  background:#F5F6F7;
+  border-left:2px solid #9E6624;
+  padding:11px 13px;
+  line-height:1.3;
+  font-weight:600;
+  font-size:12px;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-outline small{
+  display:block;
+  font-size:10px;
+  color:#67747E;
+  line-height:1.4;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-section{
+  padding-block:62px 72px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-section h3{
+  color:#25333D;
+  font-size:clamp(21px,2.5vw,27px);
+  margin:0 0 25px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:13px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article{
+  min-width:0;
+  border:1px solid #E2E7EA;
+  border-top:3px solid #B9824A;
+  border-radius:8px;
+  background:#FFF;
+  padding:20px 16px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article span{
+  display:block;
+  font-size:23px;
+  color:#925B20;
+  font-weight:800;
+  margin-bottom:24px;
+  letter-spacing:-.035em;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article strong{
+  display:block;
+  color:#24323D;
+  font-size:15px;
+  margin-bottom:8px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article p{
+  color:#53616D;
+  font-size:12px;
+  line-height:1.55;
+  margin:0;
+}
+.reference-site[data-page="funcionalidades"] .app-banner-inner{
+  min-height:260px;
+}
+.reference-site[data-page="funcionalidades"] .app-banner-inner > div{
+  max-width:780px;
+}
+.reference-site[data-page="funcionalidades"] .app-banner-inner > img{display:none;}
+
+/* Quem somos: uma foto exclusiva e o resto organizado como conteúdo institucional. */
+.reference-site[data-page="sobre"] .about-history{
+  grid-template-columns:1fr 1fr;
+  align-items:start;
+}
+.reference-site[data-page="sobre"] .timeline-text{
+  border:0;
+  max-width:none;
+  margin:0;
+  padding:0;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry{
+  display:grid;
+  grid-template-columns:50px minmax(0,1fr);
+  gap:17px;
+  align-items:start;
+  justify-content:start;
+  padding:16px 0;
+  min-height:0;
+  margin:0;
+  border-bottom:1px solid #E3E7EA;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry::after{display:none;}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry > span,
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry.current > span{
+  position:static;
+  width:auto;
+  color:#925B20;
+  font-weight:800;
+  font-size:23px;
+  line-height:1.1;
+  letter-spacing:-.035em;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry strong{
+  display:block;
+  font-size:15px;
+  color:#263541;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry p{
+  color:#51616C;
+  margin:5px 0 0;
+  font-size:12px;
+  line-height:1.5;
+}
+.reference-site[data-page="sobre"] .value-mosaic{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:17px;
+}
+.reference-site[data-page="sobre"] .value-mosaic .value-col{gap:17px;}
+.reference-site[data-page="sobre"] .press-item{
+  display:block;
+  padding:32px;
+  border-left:4px solid #9E6624;
+  border-radius:8px;
+  background:#F5F5F3;
+}
+.reference-site[data-page="sobre"] .press-item > div{max-width:760px;}
+
+/* Blog: apenas conteúdo editorial, sem fotografias artificiais de outras marcas. */
+.blog-card .blog-editorial-band{
+  height:5px;
+  margin:-1px -1px 16px;
+  background:linear-gradient(90deg,#9E6624 0%,#D7B08B 50%,#E8EAEC 100%);
+}
+.blog-editorial-rule{
+  border:0;
+  height:2px;
+  background:#C6A17B;
+  width:75px;
+  margin:25px 0;
+}
+@media(max-width:900px){
+  .reference-site[data-page="funcionalidades"] .workflow-steps-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:700px){
+  .reference-site[data-page="sobre"] .about-history{
+    grid-template-columns:1fr;
+  }
+  .reference-site[data-page="sobre"] .timeline-text{
+    margin-top:10px;
+  }
+  .reference-site[data-page="funcionalidades"] .feature-process-board{
+    padding:16px;
+    max-width:100%;
+  }
+  .reference-site[data-page="funcionalidades"] .feature-process-steps span{
+    padding:12px 9px;
+    font-size:11px;
+  }
+  .reference-site[data-page="funcionalidades"] .explorer-image{
+    min-height:285px;
+    padding:15px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) .team-operational-flow{
+    bottom:16px;
+  }
+  .reference-site[data-page="funcionalidades"] .workflow-steps-section{padding-block:44px 60px;}
+}
+@media(max-width:430px){
+  .reference-site[data-page="funcionalidades"] .workflow-steps-grid{grid-template-columns:1fr;}
+  .reference-site[data-page="funcionalidades"] .feature-process-steps{grid-template-columns:1fr;}
+  .reference-site[data-page="funcionalidades"] .feature-process-steps span{min-height:44px;}
+  .reference-site[data-page="home"] .team-operational-flow span{font-size:7px;}
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) .team-operational-flow{padding:8px;gap:4px;}
+  .reference-site[data-page="sobre"] .press-item{padding:23px;}
+}
