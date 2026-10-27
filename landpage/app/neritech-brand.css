@@ -1,5 +1,5 @@
 /* Identidade NERITECH AUTO — azul extraído da referência enviada: RGB(24, 50, 138). */
-:root { --neritech-blue: #18328A; }
+:root { --neritech-purple: #635BFF; --neritech-purple-hover: #4D44D9; --neritech-blue: var(--neritech-purple); }
 .site-header .site-logo,
 .site-footer .site-logo { display: inline-flex; align-items: center; min-width: 0; line-height: 1; }
 .site-header .site-logo img { display: block; width: 181px; height: auto; max-width: 100%; }
@@ -50,7 +50,7 @@
 }
 .site-header .btn-orange:hover,
 .reference-site .btn-orange:hover {
-  background: #10246b;
+  background: #4D44D9;
   color: #fff;
 }
 .reference-site .pricing-switch button.selected {
@@ -149,7 +149,7 @@
   color: #fff;
 }
 .reference-site .orange-reviews-inner > .btn-light:hover {
-  background: #10246b;
+  background: #4D44D9;
   color: #fff;
 }
 
@@ -204,7 +204,7 @@
 .reference-site.nl-prices-page .nl-prices-catalog .pricing-period button[aria-pressed="true"]:hover,
 .reference-site.nl-prices-page .nl-prices-catalog .price-card .button:hover,
 .nl-page .nl-trial-submit:not(:disabled):hover {
-  background: #10246b;
+  background: #4D44D9;
 }
 .reference-site.nl-prices-page .price-block strong,
 .reference-site.nl-prices-page .price-card .eyebrow,
@@ -424,7 +424,7 @@
  * Mosaico de funcionalidades — decisão visual NERITECH AUTO em 26/10/2026.
  * Recria a hierarquia de dois cards principais + quatro secundários.
  * Cobre premium sem laranja, com 1 destaque cobre e 1 grafite.
- * Somente a home; CTA institucional continua azul #18328A.
+ * Somente a home; CTA institucional continua azul #635BFF.
  */
 .reference-site[data-page="home"] {
   --home-copper: #B8792E;
@@ -937,14 +937,14 @@
   margin-top:auto;
   border-radius:7px;
   color:#fff;
-  border:1px solid #18328A;
-  background:#18328A;
+  border:1px solid #635BFF;
+  background:#635BFF;
   box-shadow:none;
   font-size:14px;
   font-weight:750;
 }
 .reference-site.nl-prices-page .nl-prices-catalog .plan-cta:hover{
-  background:#10246B;
+  background:#4D44D9;
   transform:none;
 }
 .reference-site.nl-prices-page .plans-state{
@@ -1208,7 +1208,7 @@
   color:#fff;
   border-color:var(--neritech-blue);
 }
-.reference-site[data-page="funcionalidades"] .training-card .btn:hover{background:#10246B;}
+.reference-site[data-page="funcionalidades"] .training-card .btn:hover{background:#4D44D9;}
 .reference-site[data-page="funcionalidades"] .video-item img{
   border-radius:10px;
   filter:saturate(.85);
@@ -1878,4 +1878,116 @@
   .reference-site[data-page="home"] .records-summary-heading{
     flex-wrap:wrap;
   }
+}
+
+
+/* Identidade aprovada NERITECH AUTO — símbolo N em paralelogramo #635BFF,
+   wordmark grafite/roxo e CTAs roxos, com Entrar branco.
+   O cobre permanece restrito aos destaques editoriais. */
+:root{
+  --neritech-purple:#635BFF;
+  --neritech-purple-hover:#4D44D9;
+  --neritech-blue:#635BFF;
+  --brand:#635BFF;
+}
+.site-header .site-logo img{width:188px;height:auto;}
+.site-footer .site-logo img{width:166px;height:auto;}
+.nl-site-header .nl-brand-logo{display:block;width:188px;height:auto;max-width:100%;}
+.nl-site-footer .nl-brand-logo{display:block;width:166px;height:auto;max-width:100%;}
+.site-header .header-actions{gap:10px;}
+.site-header .header-login,
+.nl-site-header .nl-login-button,
+.nl-mobile-nav .nl-login-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:8px 18px;
+  border:1px solid #DCE1E6;
+  border-radius:7px;
+  color:#283541;
+  background:#FFFFFF;
+  font-size:12px;
+  font-weight:750;
+  line-height:1.2;
+  white-space:nowrap;
+  text-decoration:none;
+  box-shadow:none;
+}
+.site-header .header-login:hover,
+.nl-site-header .nl-login-button:hover,
+.nl-mobile-nav .nl-login-button:hover{
+  background:#F6F5FF;
+  border-color:#A7A0FF;
+  color:#4D44D9;
+}
+.site-header .nav-login{display:none;}
+.site-header .header-actions .btn-orange{
+  background:#635BFF;
+  border:1px solid #635BFF;
+  color:#FFFFFF;
+  min-height:38px;
+  padding:9px 17px;
+  border-radius:7px;
+  box-shadow:none;
+}
+.site-header .header-actions .btn-orange:hover{background:#4D44D9;border-color:#4D44D9;color:#FFFFFF;}
+.reference-site .btn-orange,
+.reference-site.nl-prices-page .nl-prices-catalog .plan-cta,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button,
+.nl-page .nl-trial-submit,
+.nl-site-header .nl-header-cta,
+.nl-page .nl-button:not(.nl-button-ghost):not(.nl-button-light){
+  background:#635BFF;
+  border-color:#635BFF;
+  color:#FFFFFF;
+}
+.reference-site .btn-orange:hover,
+.reference-site.nl-prices-page .nl-prices-catalog .plan-cta:hover,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button:hover,
+.nl-page .nl-trial-submit:not(:disabled):hover,
+.nl-site-header .nl-header-cta:hover,
+.nl-page .nl-button:not(.nl-button-ghost):not(.nl-button-light):hover{
+  background:#4D44D9;
+  border-color:#4D44D9;
+  color:#FFFFFF;
+}
+.nl-site-header .nl-header-actions{gap:10px;}
+.nl-site-header .nl-header-cta{min-height:38px;border-radius:7px;font-size:12px;}
+.nl-site-footer .nl-footer-cta{color:#5148DB;}
+.nl-page .button:not(.button-outline):not(.button-light){
+  background:#635BFF;
+  border-color:#635BFF;
+  color:#FFFFFF;
+}
+.nl-page .button:not(.button-outline):not(.button-light):hover{
+  background:#4D44D9;
+  border-color:#4D44D9;
+  color:#FFFFFF;
+}
+.nl-page .button-outline{color:#5148DB;border-color:#635BFF;}
+.nl-page .nl-button-ghost{color:#5148DB;}
+.nl-site-header .nl-desktop-nav a[aria-current="page"],
+.nl-site-header .nl-desktop-nav a:hover{color:#5148DB;}
+/* Mantém a composição Stripe-like na área pública, com CTA acessível no mobile. */
+@media(max-width:800px){
+  .site-header .header-actions .header-login{display:none;}
+  .site-header .nav-login{display:block;}
+  .site-header .header-row{gap:9px;}
+  .site-header .header-actions{gap:8px;}
+  .site-header .header-actions .btn-orange{
+    display:inline-flex;
+    min-height:34px;
+    font-size:11px;
+    padding:8px 11px;
+  }
+}
+@media(max-width:600px){
+  .site-header .site-logo img{width:148px;}
+  .nl-site-header .nl-brand-logo{width:148px;}
+}
+@media(max-width:390px){
+  .site-header .site-logo img{width:130px;}
+  .site-header .header-actions .btn-orange{font-size:10px;padding:8px;}
+  .site-header .header-actions{gap:5px;}
 }

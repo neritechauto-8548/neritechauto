@@ -1,6 +1,6 @@
 /* NERITECH AUTO / Réplica estrutural da referência fornecida (identidade e fotos próprias).
    Página principal: prefixo nr-* evita atingir o sistema Angular e páginas legais. */
-.nr-home{--nr-blue:#2442dc;--nr-blue-dark:#1735be;--nr-navy:#151d27;--nr-ink:#192335;--nr-muted:#687186;color:var(--nr-ink);font-family:Inter,'Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.55}
+.nr-home{--nr-blue:#635BFF;--nr-blue-dark:#1735be;--nr-navy:#151d27;--nr-ink:#192335;--nr-muted:#687186;color:var(--nr-ink);font-family:Inter,'Segoe UI',Arial,sans-serif;font-size:14px;line-height:1.55}
 .nr-home a{text-decoration:none}
 .nr-home .nl-container{width:min(calc(100% - 48px),1140px);margin-inline:auto}
 .nr-home h1,.nr-home h2,.nr-home h3{font-family:inherit;letter-spacing:-.03em;font-style:normal}
@@ -165,7 +165,7 @@
 .nl-features-page .feature-tabs{gap:10px}
 .nl-features-page .feature-tab-list{gap:9px}
 .nl-features-page .feature-tab{border-radius:7px;min-height:40px;font-size:12px}
-.nl-features-page .feature-tab.active{background:#2442dc}
+.nl-features-page .feature-tab.active{background:#635BFF}
 .nl-features-page .feature-panel{gap:24px;margin-top:22px}
 .nl-features-page .feature-panel-copy h3{font-size:clamp(25px,3vw,35px);max-width:430px}
 .nl-features-page .feature-panel-visual{min-height:370px;border-radius:10px}
@@ -186,7 +186,7 @@
 .nl-prices-page .nl-prices-catalog .price-card:nth-child(2){border-color:#a9b9ed}
 .nl-prices-page .nl-prices-catalog .price-card h2{font-size:24px}
 .nl-prices-page .nl-prices-catalog .price-card .price-block strong{font-size:30px}
-.nl-prices-page .nl-prices-catalog .price-card .button{border-radius:7px;background:#2442dc}
+.nl-prices-page .nl-prices-catalog .price-card .button{border-radius:7px;background:#635BFF}
 .nl-prices-page .pricing-compare{max-width:830px;margin:38px auto 0;text-align:center}
 .nl-prices-page .compare-dialog{width:min(900px,calc(100vw - 36px));max-height:min(86vh,860px);padding:0;border:0;border-radius:12px;box-shadow:0 40px 95px #061b4040;overflow:hidden}
 .nl-prices-page .compare-dialog-head{padding:20px 24px;border-bottom:1px solid #e1e5ed}
@@ -211,7 +211,7 @@
 .nl-about-page .nl-about-values h3{font-size:17px}
 .nl-about-page .nl-about-difference .nl-container{max-width:1070px}
 .nl-about-page .nl-about-difference img{border-radius:10px}
-.nl-about-page .nl-quote{background:#2442dc}
+.nl-about-page .nl-quote{background:#635BFF}
 
 /* Formulário real de cadastro: apenas apresentação, nunca alterar validação nem endpoints. */
 .nl-page .nl-trial-stage{min-height:calc(100vh - 63px);padding:65px 20px}
@@ -220,7 +220,7 @@
 .nl-page .nl-trial-card,.nl-page .nl-trial-success{border-radius:12px;padding:28px}
 .nl-page .nl-trial-head h1{font-size:22px}
 .nl-page .nl-trial-field input,.nl-page .nl-trial-field select{border-radius:7px;min-height:43px}
-.nl-page .nl-trial-submit{background:#2442dc;border-radius:7px}
+.nl-page .nl-trial-submit{background:#635BFF;border-radius:7px}
 .nl-page .nl-trial-pair{gap:11px}
 .nl-page .nl-trial-grid{gap:11px}
 

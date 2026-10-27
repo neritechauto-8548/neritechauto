@@ -1,7 +1,7 @@
 /* LANDPAGE-FIDELITY-2026-10-26
    Ajustes visuais isolados da Home. Preserva rotas, conteúdo, tokens e demais páginas. */
 .nl-page {
-  --nl-fidelity-blue: #2442dc;
+  --nl-fidelity-blue: #635BFF;
   --nl-fidelity-border: #e1e7f0;
   font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
 }
