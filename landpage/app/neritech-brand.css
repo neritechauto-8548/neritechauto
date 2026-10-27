@@ -2053,3 +2053,37 @@
     color: #171B23;
   }
 }
+
+/* Cadastro de teste: restabelece a foto real da oficina e mantém o formulário legível. */
+.nl-page .nl-trial-stage{
+  position:relative; isolation:isolate; min-height:calc(100vh - 63px);
+  overflow:hidden; background:#25313D;
+}
+.nl-page .nl-trial-stage > .nl-trial-background{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:center 43%; z-index:0;
+  filter:saturate(.82) contrast(1.04);
+}
+.nl-page .nl-trial-stage > .nl-trial-stage-shade{
+  display:block; position:absolute; inset:0; z-index:0;
+  background:linear-gradient(100deg,rgba(15,22,30,.84),rgba(19,26,35,.67));
+}
+.nl-page .nl-trial-stage > .nl-trial-stage-inner{position:relative;z-index:1;}
+.nl-page .nl-trial-card,.nl-page .nl-trial-success{
+  border-top:4px solid #635BFF;
+  box-shadow:0 24px 64px rgba(8,13,20,.27);
+}
+.nl-page .nl-trial-unavailable{display:flex;flex-direction:column;gap:10px;padding:10px 0 18px;}
+.nl-page .nl-trial-unavailable .nl-trial-alert{margin:0;}
+.nl-page .nl-trial-retry{
+  align-self:flex-start; border:1px solid #CFCBF9; background:#FFFFFF;
+  color:#443BC3; border-radius:7px; padding:9px 15px;
+  font-size:12px; font-weight:750; cursor:pointer;
+}
+.nl-page .nl-trial-retry:hover{background:#F4F2FF;}
+.nl-page .nl-trial-retry:focus-visible{outline:2px solid #635BFF;outline-offset:3px;}
+@media(max-width:650px){
+  .nl-page .nl-trial-stage{padding:36px 15px 55px;}
+  .nl-page .nl-trial-stage > .nl-trial-background{object-position:65% center;}
+  .nl-page .nl-trial-stage > .nl-trial-stage-shade{background:rgba(17,24,32,.73);}
+}
