@@ -1991,3 +1991,65 @@
   .site-header .header-actions .btn-orange{font-size:10px;padding:8px;}
   .site-header .header-actions{gap:5px;}
 }
+
+
+/* Refinamento do cabeçalho: navegação preta ao centro e marca com cantos suaves.
+   O símbolo N mantém o paralelogramo roxo, sem quadrado de estilo IA. */
+@media (min-width: 801px) {
+  .site-header .header-row,
+  .nl-site-header .nl-header-inner {
+    position: relative;
+  }
+  .site-header .nav-links {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    gap: 32px;
+  }
+  .site-header .header-actions,
+  .nl-site-header .nl-header-actions {
+    margin-left: auto;
+  }
+  .nl-site-header .nl-desktop-nav {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    gap: 32px;
+  }
+}
+.site-header .nav-links a:not(.nav-login),
+.site-header .nav-links a.active,
+.nl-site-header .nl-desktop-nav a,
+.nl-site-header .nl-desktop-nav a[aria-current="page"] {
+  color: #171B23;
+  font-weight: 650;
+}
+.site-header .nav-links a:not(.nav-login):hover,
+.nl-site-header .nl-desktop-nav a:hover {
+  color: #171B23;
+  text-decoration: underline;
+  text-decoration-color: #635BFF;
+  text-underline-offset: 7px;
+}
+.site-header .nav-links a:focus-visible,
+.nl-site-header .nl-desktop-nav a:focus-visible {
+  outline: 2px solid #635BFF;
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+@media (max-width: 800px) {
+  .site-header .nav-links {
+    margin: 0;
+    transform: none;
+  }
+  .site-header .nav-links a:not(.nav-login) {
+    color: #171B23;
+  }
+  .nl-site-header .nl-mobile-nav a:not(.nl-header-cta):not(.nl-login-button) {
+    color: #171B23;
+  }
+}
