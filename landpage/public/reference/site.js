@@ -27,8 +27,24 @@
     panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);
     desc.textContent=data[0];
     notes.replaceChildren(...data[1].map(t=>{const div=document.createElement('div');div.className='explorer-note';const symbol=document.createElement('span');symbol.textContent='✓';symbol.setAttribute('aria-hidden','true');const p=document.createElement('p');p.textContent=t;div.append(symbol,p);return div}));
-    if(tab.dataset.feature==='Integrações'){const element=document.createElement('div');element.className='integration-mini';element.textContent='Consulte os provedores e recursos disponíveis.';preview.replaceChildren(element)}
-    else {const img=document.createElement('img');img.src='/images/home/oficina-gestao.png';img.alt='Representação ilustrativa da plataforma';preview.replaceChildren(img)}
+    const outline=document.createElement('div');
+    outline.className='feature-module-outline';
+    outline.setAttribute('role','img');
+    outline.setAttribute('aria-label','Resumo ilustrativo do módulo '+tab.dataset.feature);
+    const header=document.createElement('div');
+    header.className='feature-module-head';
+    const kicker=document.createElement('span');
+    kicker.textContent='ÁREA DA PLATAFORMA';
+    const title=document.createElement('strong');
+    title.textContent=tab.dataset.feature;
+    header.append(kicker,title);
+    const rows=document.createElement('div');
+    rows.className='feature-module-rows';
+    data[1].forEach(label=>{const row=document.createElement('span');row.textContent=label;rows.append(row)});
+    const disclaimer=document.createElement('small');
+    disclaimer.textContent='Representação funcional, não é uma captura do sistema';
+    outline.append(header,rows,disclaimer);
+    preview.replaceChildren(outline)
     if(focus){tab.focus();tab.scrollIntoView({block:'nearest',inline:'center'})}
   }
   tabs.forEach(tab=>{
