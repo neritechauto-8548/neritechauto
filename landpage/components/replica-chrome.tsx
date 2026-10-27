@@ -24,7 +24,7 @@ function ReferenceLogo() {
 function ReferenceHeader({ path }: { path:string }) {
  const [open,setOpen]=useState(false);
  return <header className="site-header"><div className="container header-row">
-   <a href="/" className="site-logo" aria-label="NERITECH AUTO — início"><Image src="/neritech-logo-white.svg" alt="NERITECH AUTO" width={222} height={44} priority /></a>
+   <a href="/" className="site-logo" aria-label="NERITECH AUTO — início"><Image src="/neritech-logo.svg" alt="NERITECH AUTO" width={222} height={44} priority /></a>
    <nav className={`nav-links${open?' open':''}`} id="main-nav" aria-label="Navegação principal">
      {links.map(l=><a key={l.href} href={l.href} className={l.href===path?'active':''} onClick={()=>setOpen(false)}>{l.label}</a>)}
      <a href={loginUrl} className="nav-login" onClick={()=>setOpen(false)}>Entrar</a>
