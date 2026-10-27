@@ -2087,3 +2087,63 @@
   .nl-page .nl-trial-stage > .nl-trial-background{object-position:65% center;}
   .nl-page .nl-trial-stage > .nl-trial-stage-shade{background:rgba(17,24,32,.73);}
 }
+
+
+/* Cabeçalho fixo na navegação pública: não cobrir o hero, formulários ou âncoras. */
+:root{
+  --marketing-header-height:63px;
+  --marketing-alt-header-height:70px;
+}
+.site-header,
+.nl-site-header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  width:100%;
+  z-index:1000;
+  background:#FFFFFF;
+  border-bottom:1px solid #E8EBEE;
+  box-shadow:0 3px 16px rgba(21,30,40,.055);
+}
+.reference-header-spacer{
+  height:var(--marketing-header-height);
+  flex-shrink:0;
+}
+.marketing-header-spacer{
+  height:var(--marketing-alt-header-height);
+  flex-shrink:0;
+}
+html{
+  scroll-padding-top:90px;
+}
+main#conteudo,
+.reference-site [id],
+.nl-page [id],
+section[id]{
+  scroll-margin-top:90px;
+}
+/* O salto por teclado deve ficar acima da barra fixa. */
+body>.skip-link{
+  position:fixed;
+  z-index:1100;
+}
+.nl-site-header .nl-mobile-nav{
+  max-height:calc(100dvh - var(--marketing-alt-header-height));
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+@media(max-width:800px){
+  :root{
+    --marketing-header-height:60px;
+  }
+  html{
+    scroll-padding-top:82px;
+  }
+  main#conteudo,
+  .reference-site [id],
+  .nl-page [id],
+  section[id]{
+    scroll-margin-top:82px;
+  }
+}

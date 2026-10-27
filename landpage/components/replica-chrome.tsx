@@ -46,8 +46,8 @@ function ReferenceFooter() {
 export function ReplicaChrome({children}:{children:ReactNode}){
  const pathname=usePathname()??'/';
  const isReplica=replicaRoutes.has(pathname);
- if(!isReplica)return <><SiteHeader/>{children}<SiteFooter/></>;
+ if(!isReplica)return <><SiteHeader/><div className="marketing-header-spacer" aria-hidden="true"/>{children}<SiteFooter/></>;
  const noHead=pathname==='/validar-telefone'||pathname==='/email';
  const noFoot=['/teste-gratis','/bem-vindo','/validar-telefone','/email'].includes(pathname);
- return <>{!noHead&&<ReferenceHeader key={pathname} path={pathname}/>} {children} {!noFoot&&<ReferenceFooter/>}</>;
+ return <>{!noHead&&<><ReferenceHeader key={pathname} path={pathname}/><div className="reference-header-spacer" aria-hidden="true"/></>} {children} {!noFoot&&<ReferenceFooter/>}</>;
 }
