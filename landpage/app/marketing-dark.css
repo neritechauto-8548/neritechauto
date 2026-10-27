@@ -373,3 +373,36 @@
 .nl-site-footer .nl-brand-logo--dark{display:none;}
 :root[data-theme='dark'] .nl-site-footer .nl-brand-logo--light{display:none;}
 :root[data-theme='dark'] .nl-site-footer .nl-brand-logo--dark{display:block;}
+
+
+/* Acentos cobre em modo escuro: versão clara para contraste AA. */
+:root[data-theme="dark"] .reference-site[data-page="home"] :is(.section-kicker,.center-heading h2 span,.hero-copy .eyebrow),
+:root[data-theme="dark"] .reference-site[data-page="funcionalidades"] :is(.section-kicker,.intro-features h2 span,.feature-hero-title h1 span),
+:root[data-theme="dark"] .reference-site[data-page="sobre"] :is(.about-motto,.timeline-text .timeline-entry > span),
+:root[data-theme="dark"] .reference-site.nl-prices-page :is(.pricing-eyebrow,.pricing-intro h1 span,.plan-index,.price-features li svg){
+  color:#F0C89B;
+}
+:root[data-theme="dark"] .reference-site.nl-prices-page .nl-prices-catalog .price-card .plan-index{
+  color:#F0C89B;
+}
+:root[data-theme="dark"] .reference-site.nl-prices-page .nl-prices-catalog .price-features li svg{
+  color:#F0C89B;
+}
+:root[data-theme="dark"] .reference-site[data-page="funcionalidades"] .feature-tab.active:hover{
+  background:#8A622E;border-color:#C2935E;color:#FFFFFF;
+}
+:root[data-theme="dark"] .reference-site[data-page="funcionalidades"] .feature-module-head span{
+  color:#F0C89B;
+}
+:root[data-theme="dark"] .reference-site[data-page="funcionalidades"] .feature-tab:hover:not(.active){
+  color:#F5F7FA;background:#344454;border-color:#6C7C89;
+}
+:root[data-theme="dark"] .reference-site[data-page="sobre"] .press-item .text-link{
+  color:#F0C89B;
+}
+:root[data-theme="dark"] .reference-site.nl-prices-page .pricing-comparison-table .pricing-included{
+  color:#9FE5A8;
+}
+:root[data-theme="dark"] .reference-site.nl-prices-page .pricing-comparison-table .pricing-unavailable{
+  color:#B1BEC9;
+}
