@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { TrialForm } from '@/components/trial-form';
 import { pageMetadata } from '@/lib/site';
 
@@ -11,7 +10,6 @@ export const metadata = pageMetadata(
 export default function Page() {
   return <main id="conteudo" className="nl-page">
     <section className="nl-trial-stage" aria-label="Cadastro de teste grátis">
-      <Image src="/images/home/oficina-cliente.png" alt="" fill sizes="100vw" priority />
       <div className="nl-trial-stage-shade" aria-hidden="true" />
       <div className="nl-trial-stage-inner"><TrialForm /></div>
     </section>
