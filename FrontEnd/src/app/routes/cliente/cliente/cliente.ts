@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -19,8 +20,8 @@ import { DialogModule } from 'primeng/dialog';
 import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
 import { CadastroCliente } from '../cadastro-cliente/cadastro-cliente';
 import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { forkJoin, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
 import {
@@ -63,6 +64,8 @@ export class Cliente implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
   private readonly veiculosService = inject(VeiculoService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly searchChanges = new Subject<string>();
 
   // Expose enums to template
   readonly TipoCliente = TipoCliente;
@@ -118,6 +121,7 @@ export class Cliente implements OnInit {
     contato: string;
     dataCadastro?: string;
     quantidadeVeiculos: number | null;
+    email: string;
   }[] = [];
   backendPage: Page<ClienteResponseDTO> | null = null;
 
@@ -152,9 +156,38 @@ export class Cliente implements OnInit {
     return Math.min(this.first + this.rows, this.totalRecords);
   }
 
-  onSearch() {
+  onSearchTermChange(value: string): void {
+    this.searchChanges.next(value);
+  }
+
+  onSearch(): void {
     this.first = 0;
     this.fetchPage();
+  }
+
+  atualizar(): void {
+    this.fetchPage();
+  }
+
+  get canCreateClient(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_CRIAR');
+  }
+
+  get canOpenClient(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_EDITAR') || !!this.permissionsService.getPermission('GERAL_USUARIO');
+  }
+
+  get canOpenVehicles(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('GERAL_USUARIO');
+  }
+
+  abrirVeiculos(row: { id?: number; uuid: number | string }): void {
+    if (!this.canOpenVehicles) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito', detail: 'Você não tem permissão para consultar veículos.' });
+      return;
+    }
+    const clienteId = row.id ?? row.uuid;
+    this.router.navigate(['/veiculo'], { queryParams: { clienteId } });
   }
 
   onFilterChange(): void {
@@ -227,8 +260,9 @@ export class Cliente implements OnInit {
   menuItemsFor(row: any): MenuItem[] {
     const items: MenuItem[] = [];
     const clienteId = row.id ?? row.uuid;
-    if (this.isUxPreview || this.permissionsService.getPermission('CLIENTE_EDITAR')) {
-      items.push({ label: 'Visualizar / Editar Cliente', routerLink: ['/cliente/editar', row.uuid], queryParams: this.listQueryParams() });
+    if (this.canOpenClient) {
+      items.push({ label: this.permissionsService.getPermission('CLIENTE_EDITAR') || this.isUxPreview ? 'Consultar / editar cliente' : 'Consultar cliente',
+        routerLink: ['/cliente/editar', row.uuid], queryParams: this.listQueryParams() });
     }
     if (this.isUxPreview || this.permissionsService.getPermission('GERAL_USUARIO')) {
       items.push({ label: 'Visualizar / Editar Veículos', routerLink: ['/veiculo'], queryParams: { clienteId } });
@@ -276,12 +310,8 @@ export class Cliente implements OnInit {
   }
 
   navigateToEdit(row: { uuid?: string | number }) {
-    if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_EDITAR')) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Atenção', 
-        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
-      });
+    if (!this.canOpenClient) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito', detail: 'Seu perfil não possui permissão para consultar este cadastro.' });
       return;
     }
     const id = row?.uuid;
@@ -309,6 +339,13 @@ export class Cliente implements OnInit {
 
 
   ngOnInit() {
+    this.searchChanges.pipe(
+      map(value => value.trim()),
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.onSearch());
+
     const qp = this.route.snapshot.queryParamMap;
     const statusParam = qp.get('status') as StatusCliente | null;
     const tipoParam = qp.get('tipo') as TipoCliente | null;
@@ -396,7 +433,7 @@ export class Cliente implements OnInit {
         this.loadErrorMessage = err.status === 403 ? 'Seu perfil não tem permissão para consultar esta lista.' : 'Verifique sua conexão e tente novamente.';
         this.backendPage = null;
         this.clients = [];
-        console.error('Erro ao carregar clientes:', err);
+        // A UI apresenta a falha sem registrar dados de clientes no console.
         
         if (err.status !== 403) {
           this.messageService.add({ 
