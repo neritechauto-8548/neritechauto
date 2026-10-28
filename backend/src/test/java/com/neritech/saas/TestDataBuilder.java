@@ -22,7 +22,7 @@ public class TestDataBuilder {
     }
 
     public static class UsuarioBuilder {
-        private Long id = 1L;
+        private Long id = null;
         private Long empresaId = 1L;
         private String nomeCompleto = "João da Silva";
         private String email = "joao.silva@test.com";
@@ -139,7 +139,7 @@ public class TestDataBuilder {
     }
 
     public static class FuncaoBuilder {
-        private Long id = 1L;
+        private Long id = null;
         private Long empresaId = 1L;
         private String nome = "ADMIN";
         private String descricao = "Administrador do Sistema";
@@ -196,7 +196,7 @@ public class TestDataBuilder {
     }
 
     public static class PermissaoBuilder {
-        private Long id = 1L;
+        private Long id = null;
         private String chave = "USUARIO.READ";
         private String descricao = "Visualizar usuários";
         private String valor = "USUARIO_READ";

@@ -40,7 +40,12 @@ class FuncaoRepositoryTest extends BaseRepositoryTest {
         Funcao f2 = TestDataBuilder.umaFuncao().comNome("USER").comEmpresaId(1L).build();
         Funcao f3 = TestDataBuilder.umaFuncao().comNome("ADMIN").comEmpresaId(2L).build();
         
-        funcaoRepository.saveAll(List.of(f1, f2, f3));
+        // Criar cada empresa no seu próprio contexto, sem violar o bloqueio cross-tenant.
+        com.neritech.saas.common.tenancy.TenantContext.setCurrentTenant(1L);
+        funcaoRepository.saveAllAndFlush(List.of(f1, f2));
+        com.neritech.saas.common.tenancy.TenantContext.setCurrentTenant(2L);
+        funcaoRepository.saveAndFlush(f3);
+        com.neritech.saas.common.tenancy.TenantContext.setCurrentTenant(1L);
 
         // Act
         List<Funcao> funcoes = funcaoRepository.findAllByEmpresaId(1L);

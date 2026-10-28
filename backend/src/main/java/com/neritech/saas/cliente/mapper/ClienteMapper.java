@@ -21,6 +21,16 @@ public class ClienteMapper {
         c.setOrigemCliente(r.getOrigemCliente());
         c.setStatus(r.getStatus());
         c.setObservacoesGerais(r.getObservacoesGerais());
+        c.setRg(r.getRg());
+        c.setCategoria(r.getCategoria());
+        c.setIndicadorIsencao(r.getIndicadorIsencao());
+        c.setEmailSecundario(r.getEmailSecundario());
+        c.setOutrosContatos(r.getOutrosContatos());
+        c.setEnviarNoticia(r.getEnviarNoticia());
+        c.setClassificacao(r.getClassificacao());
+        c.setLimiteDescontoPecas(r.getLimiteDescontoPecas());
+        c.setLimiteDescontoServicos(r.getLimiteDescontoServicos());
+        c.setBloquearSeAtrasar(r.getBloquearSeAtrasar());
         return c;
     }
 
@@ -39,6 +49,16 @@ public class ClienteMapper {
         c.setOrigemCliente(r.getOrigemCliente());
         c.setStatus(r.getStatus());
         c.setObservacoesGerais(r.getObservacoesGerais());
+        c.setRg(r.getRg());
+        c.setCategoria(r.getCategoria());
+        c.setIndicadorIsencao(r.getIndicadorIsencao());
+        c.setEmailSecundario(r.getEmailSecundario());
+        c.setOutrosContatos(r.getOutrosContatos());
+        c.setEnviarNoticia(r.getEnviarNoticia());
+        c.setClassificacao(r.getClassificacao());
+        c.setLimiteDescontoPecas(r.getLimiteDescontoPecas());
+        c.setLimiteDescontoServicos(r.getLimiteDescontoServicos());
+        c.setBloquearSeAtrasar(r.getBloquearSeAtrasar());
     }
 
     public static ClienteResponse toResponse(Cliente c) {
@@ -59,6 +79,17 @@ public class ClienteMapper {
         r.setOrigemCliente(c.getOrigemCliente());
         r.setStatus(c.getStatus());
         r.setObservacoesGerais(c.getObservacoesGerais());
+        r.setRg(c.getRg());
+        r.setCategoria(c.getCategoria());
+        r.setIndicadorIsencao(c.getIndicadorIsencao());
+        r.setEmailSecundario(c.getEmailSecundario());
+        r.setOutrosContatos(c.getOutrosContatos());
+        r.setEnviarNoticia(c.getEnviarNoticia());
+        r.setClassificacao(c.getClassificacao());
+        r.setLimiteDescontoPecas(c.getLimiteDescontoPecas());
+        r.setLimiteDescontoServicos(c.getLimiteDescontoServicos());
+        r.setBloquearSeAtrasar(c.getBloquearSeAtrasar());
+        r.setDataCadastro(c.getDataCadastro());
         return r;
     }
 }

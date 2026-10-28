@@ -1,0 +1,53 @@
+<main class="inspection-page" aria-labelledby="inspection-title">
+  <page-header canonical hideBreadcrumb title="Central de inspeções" titleId="inspection-title" eyebrow="Checklists" description="Localize, priorize, execute e revise inspeções sem perder o vínculo com a operação.">
+    <div pageHeaderActions class="header-actions">
+      <a class="nt-button nt-button--secondary" routerLink="/configuracoes/checklist"><nt-icon name="clipboard-list" [size]="16" />Templates</a>
+      <a class="nt-button nt-button--primary" routerLink="/checklists-operacionais/nova"><nt-icon name="plus" [size]="16" />Nova inspeção</a>
+    </div>
+  </page-header>
+
+  <section class="summary-strip" aria-label="Resumo da central">
+    <div><nt-icon name="info-circle" [size]="18" /><span><strong>Indicadores dependem do mesmo snapshot da lista</strong><small>Nenhum total é estimado no navegador.</small></span></div>
+    <span class="sync-status"><nt-icon name="database" [size]="16" />Read model não conectado</span>
+  </section>
+
+  <section class="list-card" aria-labelledby="inspection-list-title">
+    <div class="tabs" role="tablist" aria-label="Situação das inspeções">
+      @for (aba of abas; track aba) {
+        <button type="button" role="tab" [attr.aria-selected]="abaAtiva === aba" [class.tabs__item--active]="abaAtiva === aba" (click)="abaAtiva = aba">{{ aba }}</button>
+      }
+    </div>
+
+    <div class="toolbar">
+      <label class="field field--search">
+        <span>Buscar inspeção</span>
+        <span class="input-icon"><nt-icon name="search" [size]="18" /><input [(ngModel)]="busca" type="search" placeholder="ID, OS, placa ou veículo" /></span>
+      </label>
+      <label class="field"><span>Unidade</span><select [(ngModel)]="unidade"><option value="">Todas autorizadas</option></select></label>
+      <label class="field"><span>Origem</span><select [(ngModel)]="origem"><option value="">Todas</option><option value="CHECK_IN">Check-in</option><option value="OS">Ordem de serviço</option><option value="ORCAMENTO">Orçamento</option><option value="VEICULO">Veículo</option></select></label>
+      <button type="button" class="filter-button" [attr.aria-expanded]="filtrosAvancados" (click)="filtrosAvancados = !filtrosAvancados"><nt-icon name="filter" [size]="16" />Mais filtros @if (filtrosAplicados) { <span>{{ filtrosAplicados }}</span> }</button>
+    </div>
+
+    @if (filtrosAvancados) {
+      <div class="advanced-filters">
+        <label class="field"><span>Severidade</span><select [(ngModel)]="severidade"><option value="">Todas</option><option value="NORMAL">Normal</option><option value="ATENCAO">Atenção</option><option value="CRITICO">Crítico</option></select></label>
+        <label class="field"><span>Inspetor</span><input [(ngModel)]="inspetor" placeholder="Buscar usuário" /></label>
+        <label class="field"><span>Evidência</span><select [(ngModel)]="evidencia"><option value="">Todas</option><option value="PENDENTE">Pendente</option><option value="DISPONIVEL">Disponível</option></select></label>
+        <label class="field"><span>Período inicial</span><input [(ngModel)]="periodoInicio" type="date" /></label>
+        <label class="field"><span>Período final</span><input [(ngModel)]="periodoFim" type="date" /></label>
+        <button type="button" class="clear-button" (click)="limparFiltros()" [disabled]="!filtrosAplicados"><nt-icon name="filter-x" [size]="16" />Limpar</button>
+      </div>
+    }
+
+    <div class="list-options">
+      <div><h2 id="inspection-list-title">{{ abaAtiva }}</h2><span>Ordenação oficial: críticos vencidos, revisão, execução e pendentes.</span></div>
+      <div class="density" aria-label="Densidade da lista"><button type="button" [class.active]="densidade === 'confortavel'" (click)="densidade = 'confortavel'">Confortável</button><button type="button" [class.active]="densidade === 'compacta'" (click)="densidade = 'compacta'">Compacta</button></div>
+    </div>
+
+    <div class="table-head" aria-hidden="true"><span>Inspeção e vínculo</span><span>Veículo</span><span>Template</span><span>Progresso</span><span>Achados</span><span>Atualização</span><span>Próxima ação</span></div>
+    <nt-data-view-state kind="info" icon="database" title="Central pronta para receber inspeções" description="A tabela será preenchida quando a API entregar abas exclusivas, progresso verificável, achados, evidências e allowedActions em uma projeção tenant-safe.">
+      <a class="state-action" routerLink="/checklists-operacionais/nova">Preparar nova inspeção</a>
+      <a class="state-action state-action--secondary" routerLink="/ordens-servico">Abrir ordens de serviço</a>
+    </nt-data-view-state>
+  </section>
+</main>

@@ -26,14 +26,18 @@ export class Colaboradores implements OnInit {
   searchTerm   = '';
   statusFilter = '';
 
-  rows  = 10;
+  rows  = 20;
   first = 0;
   totalRecords = 0;
   colaboradores: FuncionarioResponse[] = [];
+  loading = false;
+  loadError = '';
 
   ngOnInit() { this.loadData(); }
 
   loadData() {
+    this.loading = true;
+    this.loadError = '';
     const page = Math.floor(this.first / this.rows);
     const params: any = { page, size: this.rows };
     if (this.searchTerm)   params['nomeCompleto'] = this.searchTerm;
@@ -43,8 +47,13 @@ export class Colaboradores implements OnInit {
       next: (data) => {
         this.colaboradores  = data.content ?? [];
         this.totalRecords   = data.totalElements ?? 0;
+        this.loading = false;
       },
-      error: () => this.toast.error('Erro ao carregar colaboradores'),
+      error: (error) => {
+        this.loading = false;
+        this.colaboradores = [];
+        this.loadError = error?.status === 403 ? 'Você não tem permissão para consultar funcionários.' : 'Não foi possível carregar os funcionários.';
+      },
     });
   }
 
@@ -71,10 +80,10 @@ export class Colaboradores implements OnInit {
   }
 
   excluir(id: number) {
-    if (!confirm('Deseja realmente excluir este colaborador? Esta ação não pode ser desfeita.')) return;
+    if (!confirm('Deseja inativar este colaborador? Os históricos de OS, agenda e comissões serão preservados.')) return;
     this.service.delete(id).subscribe({
-      next: () => { this.toast.success('Colaborador excluído'); this.loadData(); },
-      error: () => this.toast.error('Erro ao excluir colaborador'),
+      next: () => { this.toast.success('Colaborador inativado'); this.loadData(); },
+      error: (error) => this.toast.error(error?.status === 409 ? 'Conflito ao inativar colaborador' : 'Erro ao inativar colaborador'),
     });
   }
 

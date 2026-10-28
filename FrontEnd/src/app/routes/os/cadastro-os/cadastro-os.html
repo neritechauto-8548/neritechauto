@@ -206,6 +206,50 @@
 
   </div>
 
+  @if (osId && !isOrcamento) {
+    <section class="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 mx-4 mb-6 space-y-4"
+      aria-labelledby="os-seguradora-titulo">
+      <div>
+        <h2 id="os-seguradora-titulo" class="text-base font-semibold">Seguradora / convênio</h2>
+        <p class="text-sm text-slate-600">Associação interna e manual. Não representa aprovação de sinistro nem emissão de apólice.</p>
+      </div>
+      @if (seguradoraBusy) { <p role="status" aria-live="polite">Consultando seguradoras...</p> }
+      @if (seguradoraError) {
+        <div role="alert" class="text-red-700">
+          <p>{{ seguradoraError }}</p>
+          <button type="button" class="underline" (click)="carregarSeguradorasDaOS()">Tentar novamente</button>
+        </div>
+      }
+      @if (seguradoraVinculo) {
+        <p role="status">Seguradora: {{ seguradoraVinculo.seguradora }} — {{ seguradoraVinculo.tipoVinculo }}</p>
+        <button type="button" class="border border-red-300 text-red-700 rounded-lg px-4 py-2 min-h-11"
+          [disabled]="seguradoraBusy" (click)="removerSeguradora()">Remover vínculo</button>
+      } @else {
+        <div class="flex flex-wrap gap-3 items-end">
+          <label class="text-sm font-medium">Seguradora ativa
+            <select [ngModel]="seguradoraId" (ngModelChange)="seguradoraId = $event"
+              [ngModelOptions]="{ standalone: true }"
+              class="block mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option [ngValue]="null">Selecione...</option>
+              @for (s of seguradorasOpcoes; track s.id) {
+                <option [ngValue]="s.id">{{ s.nomeFantasia }}</option>
+              }
+            </select>
+          </label>
+          <label class="text-sm font-medium">Tipo de vínculo
+            <select [(ngModel)]="seguradoraTipo" [ngModelOptions]="{ standalone: true }"
+              class="block mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option value="CONVENIO">Convênio</option><option value="REEMBOLSO">Reembolso</option>
+            </select>
+          </label>
+          <button type="button" class="rounded-lg bg-blue-700 text-white px-4 py-2 min-h-11 disabled:opacity-50"
+            [disabled]="seguradoraBusy || !seguradoraId || !!seguradoraError"
+            (click)="vincularSeguradora()">Vincular à OS</button>
+        </div>
+      }
+    </section>
+  }
+
   <!-- DIALOGS — mantidos inalterados -->
 
   <!-- Add Produto -->

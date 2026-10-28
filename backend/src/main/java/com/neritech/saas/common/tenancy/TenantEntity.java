@@ -33,12 +33,14 @@ public abstract class TenantEntity extends BaseEntity {
 
     @PrePersist
     public void prePersistTenant() {
+        Long current = TenantContext.getCurrentTenant();
         if (this.empresaId == null) {
-            Long current = TenantContext.getCurrentTenant();
             if (current == null) {
-                throw new IllegalStateException("Cabeçalho X-Tenant-Id é obrigatório para criar entidades");
+                throw new IllegalStateException("Contexto da empresa é obrigatório para criar entidades");
             }
             this.empresaId = current;
+        } else if (current != null && !this.empresaId.equals(current)) {
+            throw new IllegalStateException("Não é permitido criar registros em outra empresa");
         }
     }
 

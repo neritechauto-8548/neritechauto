@@ -1,76 +1,156 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { HotToastService, provideHotToastConfig } from '@ngxpert/hot-toast';
+import { Router, provideRouter } from '@angular/router';
+import { TokenService } from '@core/authentication';
+import { LocalStorageService, MemoryStorageService } from '@shared/services/storage.service';
+import { MessageService } from 'primeng/api';
 import { errorInterceptor } from './error-interceptor';
+import { BASE_URL } from './base-url-interceptor';
 
 describe('ErrorInterceptor', () => {
-  let httpMock: HttpTestingController;
   let http: HttpClient;
+  let requests: HttpTestingController;
   let router: Router;
-  let toast: HotToastService;
-  const emptyFn = () => {};
-
-  function assertStatus(status: number, statusText: string) {
-    spyOn(router, 'navigateByUrl');
-
-    http.get('/user').subscribe({ next: emptyFn, error: emptyFn, complete: emptyFn });
-
-    httpMock.expectOne('/user').flush({}, { status, statusText });
-
-    expect(router.navigateByUrl).toHaveBeenCalledWith(`/${status}`, {
-      skipLocationChange: true,
-    });
-  }
+  let messages: MessageService;
+  let tokens: TokenService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(withInterceptors([errorInterceptor])),
-        provideHttpClientTesting(),
-        provideHotToastConfig(),
-      ],
-    });
-
-    httpMock = TestBed.inject(HttpTestingController);
+    TestBed.configureTestingModule({ providers: [
+      provideHttpClient(withInterceptors([errorInterceptor])),
+      provideHttpClientTesting(),
+      provideRouter([]),
+      { provide: BASE_URL, useValue: 'https://api.neritechauto.com.br/api' },
+      { provide: LocalStorageService, useClass: MemoryStorageService },
+      MessageService,
+    ] });
     http = TestBed.inject(HttpClient);
+    requests = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
-    toast = TestBed.inject(HotToastService);
+    messages = TestBed.inject(MessageService);
+    tokens = TestBed.inject(TokenService);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => requests.verify());
 
-  it('should handle status code 401', () => {
-    spyOn(router, 'navigateByUrl');
-    spyOn(toast, 'error');
+  function fail(url: string, status: number, body: object = {}) {
+    http.get(url).subscribe({ error: () => {} });
+    requests.expectOne(url).flush(body, { status, statusText: 'Error' });
+  }
 
-    http.get('/user').subscribe({ next: emptyFn, error: emptyFn, complete: emptyFn });
-    httpMock.expectOne('/user').flush({}, { status: 401, statusText: 'Unauthorized' });
-
-    expect(toast.error).toHaveBeenCalledWith('401 Unauthorized');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
+  it('keeps invalid credentials on the login screen', () => {
+    const navigate = spyOn(router, 'navigateByUrl');
+    const add = spyOn(messages, 'add');
+    fail('/api/auth/login', 401, { message: 'Internal detail' });
+    expect(navigate).not.toHaveBeenCalled();
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({ detail: 'Credenciais inválidas.' }));
   });
 
-  it('should handle status code 403', () => {
-    assertStatus(403, 'Forbidden');
+  it('clears the session after a protected request returns 401', () => {
+    tokens.set({ access_token: 'token', token_type: 'Bearer' });
+    const navigate = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    fail('/api/usuarios/me', 401);
+    expect(tokens.valid()).toBeFalse();
+    expect(navigate).toHaveBeenCalledWith(router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: router.url } }));
   });
 
-  it('should handle status code 404', () => {
-    assertStatus(404, 'Not Found');
+  it('preserva a sessão diante de erro 401 vindo de serviço externo', () => {
+    tokens.set({ access_token: 'token', token_type: 'Bearer' });
+    const navigate = spyOn(router, 'navigateByUrl');
+    fail('https://terceiros.example.com/dados', 401);
+    expect(tokens.valid()).toBeTrue();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('should handle status code 500', () => {
-    assertStatus(500, 'Internal Server Error');
+  it('encerra a sessão quando uma API própria absoluta responde 401', () => {
+    tokens.set({ access_token: 'token', token_type: 'Bearer' });
+    const navigate = spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    fail('https://api.neritechauto.com.br/api/usuarios/me', 401);
+    expect(tokens.valid()).toBeFalse();
+    expect(navigate).toHaveBeenCalled();
   });
 
-  it('should handle others status code', () => {
-    spyOn(toast, 'error');
+  it('shows resource errors without navigating away from the current page', () => {
+    const navigate = spyOn(router, 'navigateByUrl');
+    const add = spyOn(messages, 'add');
+    fail('/api/clientes/unknown', 404);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({ detail: 'O recurso solicitado não foi encontrado.' }));
+  });
 
-    http.get('/user').subscribe({ next: emptyFn, error: emptyFn, complete: emptyFn });
+  it('does not expose a server error body', () => {
+    const add = spyOn(messages, 'add');
+    fail('/api/clientes', 500, { message: 'stack trace' });
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      detail: 'O servidor não conseguiu concluir a operação. Tente novamente mais tarde.', sticky: true,
+    }));
+  });
 
-    httpMock.expectOne('/user').flush({}, { status: 504, statusText: 'Gateway Timeout' });
+  it('preserves 422 field payload and shows actionable validation feedback', () => {
+    const add = spyOn(messages, 'add');
+    let original: any;
+    http.post('/api/clientes', { nome: '' }).subscribe({ error: value => original = value });
+    requests.expectOne('/api/clientes').flush(
+      { message: 'internal sql details', errors: [{ field: 'nome', message: 'Obrigatório' }] },
+      { status: 422, statusText: 'Unprocessable Entity' }
+    );
+    expect(original.status).toBe(422);
+    expect(original.error.errors[0].field).toBe('nome');
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Verifique os campos',
+      detail: 'Existem dados inválidos. Corrija os campos indicados e tente novamente.',
+    }));
+  });
 
-    expect(toast.error).toHaveBeenCalledWith('504 Gateway Timeout');
+  it('retains the real Spring validation error map for inline form feedback', () => {
+    const add = spyOn(messages, 'add');
+    let response: any;
+    let acceptedAsSuccess = false;
+    http.post('/api/clientes', { nome: '' }).subscribe({
+      next: () => acceptedAsSuccess = true,
+      error: value => response = value,
+    });
+    requests.expectOne('/api/clientes').flush({
+      type: 'VALIDATION',
+      message: 'Erro de validação nos campos',
+      errors: { nome: 'Campo obrigatório', cpfCnpj: 'Documento inválido' },
+      timestamp: '2026-10-15T14:00:00',
+    }, { status: 422, statusText: 'Unprocessable Entity' });
+    expect(acceptedAsSuccess).toBeFalse();
+    expect(response.status).toBe(422);
+    expect(response.error.errors.nome).toBe('Campo obrigatório');
+    expect(response.error.errors.cpfCnpj).toBe('Documento inválido');
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Verifique os campos',
+    }));
+  });
+
+  it('differentiates 409 conflict without exposing backend diagnostics', () => {
+    const add = spyOn(messages, 'add');
+    fail('/api/clientes/123', 409, { message: 'duplicate key internal database failure' });
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'Alteração em conflito',
+      detail: 'O registro pode ter sido alterado por outra pessoa. Atualize os dados antes de tentar novamente.',
+    }));
+  });
+
+  it('announces offline state and does not navigate to an unrelated error route', () => {
+    const navigate = spyOn(router, 'navigateByUrl');
+    const add = spyOn(messages, 'add');
+    http.get('/api/clientes').subscribe({ error: () => {} });
+    requests.expectOne('/api/clientes').error(new ProgressEvent('error'));
+    expect(navigate).not.toHaveBeenCalled();
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      detail: 'Sem conexão com o servidor. Verifique sua rede e tente novamente.', sticky: true,
+    }));
+  });
+
+  it('keeps the local toast option out of API headers', () => {
+    const add = spyOn(messages, 'add');
+    http.get('/api/empresas/1', { headers: { 'X-Skip-Toast': 'true' } }).subscribe({ error: () => {} });
+    const request = requests.expectOne('/api/empresas/1');
+    expect(request.request.headers.has('X-Skip-Toast')).toBeFalse();
+    request.flush({}, { status: 404, statusText: 'Not Found' });
+    expect(add).not.toHaveBeenCalled();
   });
 });

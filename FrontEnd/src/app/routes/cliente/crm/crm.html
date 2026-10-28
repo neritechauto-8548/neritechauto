@@ -1,0 +1,114 @@
+<main class="crm-page" aria-labelledby="crm-title">
+  <header class="crm-header">
+    <span class="crm-eyebrow">CLIENTES / CRM</span>
+    <h1 id="crm-title">Relacionamento com clientes</h1>
+    <p>Encontre clientes, organize pesquisas e acompanhe as ferramentas de relacionamento da sua oficina.</p>
+  </header>
+
+  <section class="crm-resources" aria-label="Recursos do CRM">
+    <a class="crm-resource crm-resource-active" routerLink="/cliente/crm/comunicacao">
+      <span class="crm-resource-icon"><nt-icon name="settings" [size]="22" /></span>
+      <span class="crm-resource-copy">
+        <strong>Comunicação</strong>
+        <span>Histórico real de mensagens enviadas, entregas e falhas.</span>
+      </span>
+      <nt-icon name="arrow-up-right" [size]="18" />
+    </a>
+    <a class="crm-resource crm-resource-active" routerLink="/cliente/crm/pesquisa">
+      <span class="crm-resource-icon"><nt-icon name="file-search" [size]="22" /></span>
+      <span class="crm-resource-copy">
+        <strong>Questionário de pesquisa</strong>
+        <span>Crie perguntas e mantenha seus modelos de pesquisa organizados.</span>
+      </span>
+      <nt-icon name="arrow-up-right" [size]="18" />
+    </a>
+    <div class="crm-resource crm-resource-pending">
+      <span class="crm-resource-icon"><nt-icon name="trend-up" [size]="22" /></span>
+      <span class="crm-resource-copy">
+        <strong>Análise estatística</strong>
+        <span>Disponível quando houver resultados de pesquisas integrados.</span>
+      </span>
+      <span class="crm-pending-label">Em preparação</span>
+    </div>
+    <div class="crm-resource crm-resource-pending">
+      <span class="crm-resource-icon"><nt-icon name="users" [size]="22" /></span>
+      <span class="crm-resource-copy">
+        <strong>Análise individual</strong>
+        <span>Disponível quando houver respostas individuais integradas.</span>
+      </span>
+      <span class="crm-pending-label">Em preparação</span>
+    </div>
+  </section>
+
+  <section class="crm-clients" aria-labelledby="crm-clients-title">
+    <div class="crm-section-heading">
+      <div>
+        <span class="crm-section-kicker">BASE DE CLIENTES</span>
+        <h2 id="crm-clients-title">Filtro de clientes</h2>
+        <p>Pesquise por nome, documento ou e-mail e filtre pelo período de cadastro.</p>
+      </div>
+      <a routerLink="/cliente/listar" class="crm-text-link">Abrir cadastro de clientes <nt-icon name="arrow-up-right" [size]="16" /></a>
+    </div>
+
+    <form class="crm-filters" (ngSubmit)="buscar()">
+      <label class="crm-field crm-field-search">
+        <span>Pesquisar cliente</span>
+        <input type="search" name="cliente" [(ngModel)]="searchTerm" placeholder="Nome, CPF/CNPJ ou e-mail" autocomplete="off" />
+      </label>
+      <label class="crm-field">
+        <span>Data inicial</span>
+        <input type="date" name="dataInicio" [(ngModel)]="dataInicio" />
+      </label>
+      <label class="crm-field">
+        <span>Data final</span>
+        <input type="date" name="dataFim" [(ngModel)]="dataFim" />
+      </label>
+      <div class="crm-filter-actions">
+        <button type="submit" class="crm-button-primary"><nt-icon name="search" [size]="17" /> Filtrar</button>
+        @if (hasFilters) {
+          <button type="button" class="crm-button-secondary" (click)="limpar()">Limpar</button>
+        }
+      </div>
+    </form>
+    @if (validationError) { <p class="crm-message crm-message-error" role="alert">{{ validationError }}</p> }
+
+    <div class="crm-results-heading">
+      <h3>Clientes encontrados</h3>
+      @if (!loading && !error) { <span aria-live="polite">{{ total }} {{ total === 1 ? 'cliente' : 'clientes' }}</span> }
+    </div>
+    @if (loading) {
+      <div class="crm-state" role="status"><nt-icon name="loader" [size]="20" /> Carregando clientes…</div>
+    } @else if (error) {
+      <div class="crm-state crm-state-error" role="alert">
+        <nt-icon name="alert-circle" [size]="20" /> {{ error }}
+        <button type="button" class="crm-text-link" (click)="buscar()">Tentar novamente</button>
+      </div>
+    } @else if (clientes.length === 0) {
+      <div class="crm-state"><nt-icon name="search" [size]="20" /> Nenhum cliente encontrado para este filtro.</div>
+    } @else {
+      <div class="crm-table-wrap">
+        <table class="crm-table">
+          <thead><tr><th scope="col">Cliente</th><th scope="col">Contato</th><th scope="col">Cadastro</th><th scope="col">Status</th><th scope="col">Ação</th></tr></thead>
+          <tbody>
+            @for (cliente of clientes; track cliente.id) {
+              <tr>
+                <td><strong>{{ nomeCliente(cliente) }}</strong><small>{{ cliente.cpf || cliente.cnpj || 'Documento não informado' }}</small></td>
+                <td>{{ cliente.email || 'E-mail não informado' }}</td>
+                <td>{{ cliente.dataCadastro ? (cliente.dataCadastro | date:'dd/MM/yyyy') : '—' }}</td>
+                <td><span class="crm-status" [class.is-inactive]="cliente.status !== 'ATIVO'">{{ cliente.status ? statusLabels[cliente.status] : 'Não informado' }}</span></td>
+                <td><a [routerLink]="['/cliente/editar', cliente.id]" [attr.aria-label]="'Abrir cliente ' + nomeCliente(cliente)">Abrir</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <nav class="crm-pagination" aria-label="Páginas de clientes">
+        <span>Página {{ page + 1 }} de {{ totalPages }}</span>
+        <div>
+          <button type="button" (click)="irParaPagina(page - 1)" [disabled]="page === 0">Anterior</button>
+          <button type="button" (click)="irParaPagina(page + 1)" [disabled]="page + 1 >= totalPages">Próxima</button>
+        </div>
+      </nav>
+    }
+  </section>
+</main>

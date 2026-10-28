@@ -12,8 +12,9 @@ export class ServicoService {
   private readonly base = `${environment.baseUrl}/v1/servicos`;
 
   private getTenantId(): string {
-    const t = this.storage.has('tenantId') ? this.storage.get('tenantId') : '1';
-    return (!t || typeof t === 'object') ? '1' : String(t);
+    const t = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
+    if (!t || typeof t === 'object' || !/^\d+$/.test(String(t))) throw new Error('Contexto da empresa não encontrado.');
+    return String(t);
   }
 
   private headers(): HttpHeaders {

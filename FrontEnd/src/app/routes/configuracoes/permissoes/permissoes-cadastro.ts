@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastModule } from 'primeng/toast';
 import { PermissaoService, PermissaoResponse } from './permissao.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export interface GrupoPermissao {
   chave: string;
@@ -44,8 +45,8 @@ export class PermissoesCadastro implements OnInit {
   private readonly messageService = inject(MessageService);
 
   form: FormGroup = this.fb.group({
-    nomePerfil: [''],
-    descricao: [''],
+    nomePerfil: ['', [Validators.required, Validators.maxLength(50)]],
+    descricao: ['', Validators.maxLength(255)],
     ativo: [true],
     permissoesSelecionadas: this.fb.group({})
   });
@@ -55,6 +56,9 @@ export class PermissoesCadastro implements OnInit {
   todasPermissoes: PermissaoResponse[] = [];
   loading = true;
   funcaoId?: number;
+  versao?: number;
+  loadError = '';
+  historico: Array<{ operacao: string; data: string }> = [];
 
   ngOnInit() {
     const nav = this.router.getCurrentNavigation();
@@ -64,7 +68,7 @@ export class PermissoesCadastro implements OnInit {
 
     if (this.funcaoId) {
       if (state?.nome) {
-        this.popularForm(state.nome, state.descricao, state.ativo, state.permissoes);
+        this.popularForm(state.nome, state.descricao, state.ativo, state.permissoes, state.sistema, state.versao);
       } else {
         this.carregarFuncao(this.funcaoId);
       }
@@ -76,22 +80,24 @@ export class PermissoesCadastro implements OnInit {
   carregarFuncao(id: number) {
     this.permissaoService.getFuncao(id).subscribe({
       next: (f) => {
-        this.popularForm(f.nome, f.descricao, f.ativo, f.permissoes);
+        this.popularForm(f.nome, f.descricao, f.ativo, f.permissoes, f.sistema, f.versao);
+        this.permissaoService.historico(id).subscribe({ next: page => this.historico = page.content ?? [] });
       },
-      error: () => {
-        console.error('Erro ao carregar função');
-        this.carregarPermissoes();
+      error: (error: HttpErrorResponse) => {
+        this.loading = false;
+        this.loadError = error.status === 403 ? 'Você não tem permissão para acessar este perfil.' : 'Não foi possível carregar o perfil.';
       }
     });
   }
 
-  popularForm(nome: string, descricao?: string, ativo?: boolean, permissoes?: PermissaoResponse[]) {
+  popularForm(nome: string, descricao?: string, ativo?: boolean, permissoes?: PermissaoResponse[], sistema?: boolean, versao?: number) {
     this.form.patchValue({ 
       nomePerfil: nome,
       descricao: descricao || '',
       ativo: ativo ?? true
     });
-    this.isAdmin = String(nome).toUpperCase().includes('ADMIN');
+    this.isAdmin = !!sistema;
+    this.versao = versao;
     this.carregarPermissoes(permissoes);
   }
 
@@ -123,7 +129,7 @@ export class PermissoesCadastro implements OnInit {
       },
       error: () => {
         this.loading = false;
-        console.error('Erro ao carregar permissões');
+        this.loadError = 'Não foi possível carregar a matriz de capabilities.';
       }
     });
   }
@@ -156,7 +162,8 @@ export class PermissoesCadastro implements OnInit {
       nome: value.nomePerfil,
       descricao: value.descricao || value.nomePerfil,
       ativo: value.ativo,
-      permissoes: permissoesIds
+      permissaoIds: permissoesIds.map(p => p.id),
+      versao: this.versao
     };
 
     const action$ = this.funcaoId 
@@ -169,9 +176,13 @@ export class PermissoesCadastro implements OnInit {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Perfil salvo com sucesso' });
         this.router.navigateByUrl('/configuracoes/permissoes');
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar Perfil' });
+        const detail = error.status === 403 ? 'Operação não autorizada.'
+          : error.status === 409 ? (error.error?.message || 'Conflito: recarregue o perfil antes de salvar.')
+          : error.status === 0 ? 'Sem conexão. Verifique sua rede e tente novamente.'
+          : 'Erro ao salvar perfil';
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail });
       }
     });
   }

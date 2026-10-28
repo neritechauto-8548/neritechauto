@@ -9,6 +9,7 @@ public record CargoResponse(
         String nome,
         String descricao,
         String codigoCbo,
+        Long areaId,
         Integer nivelHierarquico,
         Long cargoSuperiorId,
         BigDecimal salarioBaseMinimo,
@@ -21,6 +22,8 @@ public record CargoResponse(
         BigDecimal metaVendasMensal,
         Integer cargaHorariaSemanal,
         Boolean ativo,
+        Long numeroFuncionarios,
         LocalDateTime dataCadastro,
-        LocalDateTime dataAtualizacao) {
+        LocalDateTime dataAtualizacao,
+        Integer versao) {
 }

@@ -1,1 +1,14 @@
-/* Styles handled by Tailwind */
+@use '../login/login.scss';
+
+.field-help { margin: 0; color: var(--nt-text-secondary, #4F5870); font-size: 13px; line-height: 1.5; }
+.back-link { display: inline-flex; align-items: center; min-height: 44px; gap: 7px; margin-top: 18px; color: var(--nt-primary-600, #2442DC); font-size: 14px; font-weight: 650; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.back-link:focus-visible, .auth-primary-link:focus-visible { outline: 3px solid var(--nt-focus, #3154FF); outline-offset: 3px; }
+.success-state { max-width: 500px; }
+.success-icon { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 12px; background: var(--nt-success-surface, #F0FDF4); color: var(--nt-success, #15803D); }
+.success-state h2 { margin: 0; color: var(--nt-text, #182033); font-size: 22px; line-height: 1.3; font-weight: 700; }
+.success-state p { margin: 12px 0 24px; color: var(--nt-text-secondary, #4F5870); font-size: 14px; line-height: 1.65; }
+.auth-primary-link { display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
+.recover-request-error { margin: 0 0 20px; padding: 12px 14px; border: 1px solid var(--nt-danger, #B91C1C); border-radius: var(--nt-radius-md, 8px); background: var(--nt-danger-surface, #FEF2F2); color: var(--nt-danger, #B91C1C); line-height: 1.5; font-size: 14px; }
+@media (max-width: 375px) { .success-state p { overflow-wrap: anywhere; } }
+@media (prefers-reduced-motion: reduce) { .auth-primary, .back-link { transition: none; } }

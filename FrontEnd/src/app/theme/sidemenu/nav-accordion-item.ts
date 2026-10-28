@@ -13,7 +13,8 @@ export class NavAccordionItem implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
 
   @Input() route = '';
-  @Input() type: 'link' | 'sub' | 'extLink' | 'extTabLink' = 'link';
+  @Input() activeWhen: string[] = [];
+  @Input() type: 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading' = 'link';
 
   @Input()
   get expanded() {

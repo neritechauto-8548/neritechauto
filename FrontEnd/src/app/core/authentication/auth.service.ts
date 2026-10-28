@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { environment } from '@env/environment';
 import { BehaviorSubject, catchError, iif, map, merge, of, share, switchMap, tap, take, timeout } from 'rxjs';
 import { base64, filterObject, isEmptyObject } from './helpers';
 import { User } from './interface';
@@ -40,6 +41,11 @@ export class AuthService {
   login(username: string, password: string, rememberMe = false) {
     return this.loginService.login(username, password, rememberMe).pipe(
       tap(token => {
+        // Uma autenticação nova não pode herdar usuário ou empresa da sessão anterior.
+        if (!isEmptyObject(this.user$.getValue())) {
+          this.user$.next({});
+        }
+        this.clearTenantState();
         this.setTenantFromToken(token.access_token);
         this.tokenService.set(token);
       }),
@@ -63,14 +69,15 @@ export class AuthService {
   }
 
   logout() {
+    // Mesmo que a API de revogação falhe, nunca manter credenciais locais acessíveis.
+    // O erro remoto continua propagado para que a UI informe que a revogação não foi confirmada.
+    const clearLocalSession = () => {
+      this.tokenService.clear();
+      this.user$.next({});
+      this.clearTenantState();
+    };
     return this.loginService.logout().pipe(
-      tap(() => {
-        this.tokenService.clear();
-        this.storage.remove('tenantId');
-        this.storage.remove('empresaId');
-        localStorage.removeItem('tenantId');
-        localStorage.removeItem('empresaId');
-      }),
+      tap({ next: clearLocalSession, error: clearLocalSession }),
       map(() => !this.check())
     );
   }
@@ -80,11 +87,12 @@ export class AuthService {
   }
 
   menu() {
-    return iif(() => this.check(), this.loginService.menu(), of([]));
+    return iif(() => this.check() || environment.uxPreview, this.loginService.menu(), of([]));
   }
 
   private assignUser() {
     if (!this.check()) {
+      this.clearTenantState();
       return of({}).pipe(tap(user => this.user$.next(user)));
     }
 
@@ -94,7 +102,8 @@ export class AuthService {
 
     return this.loginService.user().pipe(
       take(1),
-      timeout(1000),
+      // Conexões móveis e redes lentas podem levar mais de 1 segundo para carregar o perfil.
+      timeout(10000),
       catchError(() => {
         // Silenciosamente falha e retorna objeto vazio — o guard tratará o acesso
         return of({} as User);
@@ -132,6 +141,21 @@ export class AuthService {
     );
   }
 
+  private clearTenantState() {
+    if (typeof sessionStorage !== 'undefined') {
+      try {
+        Object.keys(sessionStorage).filter(key => key.startsWith('neritech-patio-filters:'))
+          .forEach(key => sessionStorage.removeItem(key));
+      } catch { /* Logout não depende de storage do navegador. */ }
+    }
+    this.storage.remove('tenantId');
+    this.storage.remove('empresaId');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('tenantId');
+      localStorage.removeItem('empresaId');
+    }
+  }
+
   private setTenantFromToken(accessToken: string) {
     try {
       if (!accessToken || !accessToken.includes('.')) {
@@ -141,7 +165,6 @@ export class AuthService {
       const payload = JSON.parse(atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/')));
       const tenantId = payload.empresaId || payload.tenantId;
       if (tenantId) {
-        console.log('🏢 Setting Tenant ID from token payload:', tenantId);
         const cleanId = String(tenantId);
         this.storage.set('tenantId', cleanId);
         this.storage.set('empresaId', cleanId);

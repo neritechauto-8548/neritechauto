@@ -33,6 +33,12 @@ public class Empresa extends BaseEntity {
     @Column(name = "telefone", length = 30)
     private String telefone;
 
+    @Column(name = "celular_responsavel", length = 20)
+    private String celularResponsavel;
+
+    public String getCelularResponsavel() { return celularResponsavel; }
+    public void setCelularResponsavel(String value) { this.celularResponsavel = value; }
+
     @Column(name = "site", length = 120)
     private String site;
 

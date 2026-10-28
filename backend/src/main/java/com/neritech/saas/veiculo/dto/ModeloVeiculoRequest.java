@@ -13,5 +13,7 @@ public record ModeloVeiculoRequest(
 
                 @NotNull(message = "A categoria é obrigatória") CategoriaVeiculo categoria,
 
-                @URL(message = "A URL do logo é inválida") @Size(max = 500, message = "A URL do logo deve ter no máximo 500 caracteres") String logoUrl) {
+                @URL(message = "A URL do logo é inválida") @Size(max = 500, message = "A URL do logo deve ter no máximo 500 caracteres") String logoUrl,
+
+                @URL(message = "A URL da imagem é inválida") @Size(max = 500, message = "A URL da imagem deve ter no máximo 500 caracteres") String imagemUrl) {
 }

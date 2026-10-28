@@ -1,0 +1,74 @@
+/* Shared UI-MASTER data states: light and dark use the same semantic tokens. */
+:host {
+  display: block;
+  min-width: 0;
+}
+.nt-data-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 176px;
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--nt-text, #182033);
+}
+.nt-data-state-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 15px;
+  border: 1px solid var(--nt-border, #D9DDEA);
+  border-radius: 12px;
+  background: var(--nt-surface-subtle, #F7F8FC);
+  color: var(--nt-text-muted, #687187);
+}
+.nt-data-state-critical .nt-data-state-icon {
+  background: var(--nt-warning-surface, #FFFBEB);
+  color: var(--nt-warning, #B45309);
+}
+.nt-data-state-title {
+  margin: 0;
+  color: var(--nt-text, #182033);
+  font: 650 15px/22px Inter, system-ui, sans-serif;
+  letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+}
+.nt-data-state-description {
+  max-width: min(100%, 390px);
+  margin: 7px 0 0;
+  color: var(--nt-text-secondary, #4F5870);
+  font: 400 14px/21px Inter, system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+.nt-data-state-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  max-width: 100%;
+  margin-top: 18px;
+  padding: 10px 16px;
+  border: 1px solid var(--nt-border, #D9DDEA);
+  border-radius: var(--nt-radius-md, 8px);
+  background: var(--nt-state-action-bg, #EEF1FF);
+  color: var(--nt-state-action-fg, #2442DC);
+  font: 600 14px/20px Inter, system-ui, sans-serif;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.nt-data-state-retry:hover {
+  background: var(--nt-state-action-hover, #DFE5FF);
+}
+.nt-data-state-retry:focus-visible {
+  outline: 3px solid var(--nt-focus, #3154FF);
+  outline-offset: 3px;
+}
+@media (max-width: 599px) {
+  .nt-data-state { min-height: 150px; padding: 24px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nt-data-state-retry { transition: none; }
+}

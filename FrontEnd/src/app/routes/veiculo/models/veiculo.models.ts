@@ -96,6 +96,10 @@ export interface VeiculoRequest {
   chassi?: string;
   numeroMotor?: string;
   corExterna?: string;
+  direcao?: string;
+  cambio?: string;
+  arCondicionado?: boolean;
+  portas?: number;
   quilometragemAtual?: number;
   quilometragemCadastro?: number;
   dataUltimaRevisao?: string; // YYYY-MM-DD
@@ -110,6 +114,7 @@ export interface VeiculoResponse extends VeiculoRequest {
   clienteNome?: string;
   marcaNome?: string;
   modeloNome?: string;
+  modeloImagemUrl?: string;
   anoFabricacao?: number;
   anoModelo?: number;
   combustivelNome?: string;
@@ -145,6 +150,8 @@ export interface ModeloVeiculoRequest {
   marcaId: number;
   nome: string;
   categoria: CategoriaVeiculo;
+  logoUrl?: string;
+  imagemUrl?: string;
   segmento: SegmentoVeiculo;
   tipoTracao: TipoTracao;
   numeroPortas?: number;

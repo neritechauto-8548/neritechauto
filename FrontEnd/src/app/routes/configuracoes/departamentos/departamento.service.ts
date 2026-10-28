@@ -4,10 +4,19 @@ import { Observable } from 'rxjs';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../categoria/categoria-produto.service';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 
 export interface DepartamentoContabioRequest {
   empresaId: number;
   descricao: string;
+  codigo: string;
+  detalhes?: string;
+  tipoOperacao?: string;
+  supervisorId?: number;
+  ativo?: boolean;
+  ordem?: number;
+  tempoPadraoMinutos?: number;
+  versao?: number;
 }
 
 export interface DepartamentoContabioResponse {
@@ -15,6 +24,17 @@ export interface DepartamentoContabioResponse {
   empresaId: number;
   empresaNome?: string;
   descricao: string;
+  codigo: string;
+  detalhes?: string;
+  tipoOperacao?: string;
+  supervisorId?: number;
+  ativo: boolean;
+  ordem: number;
+  tempoPadraoMinutos?: number;
+  numeroFuncionarios: number;
+  numeroCargos: number;
+  numeroServicos: number;
+  versao: number;
   dataCadastro?: string;
   dataAtualizacao?: string;
 }
@@ -26,27 +46,7 @@ export class DepartamentoService {
   private readonly base = environment.baseUrl + '/v1/departamentos-contabio-empresa';
 
   private getTenantId(): string {
-    let tenantId: any = this.storage.has('empresaId') ? this.storage.get('empresaId') :
-                        this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
-
-    if (tenantId && typeof tenantId === 'object') {
-      tenantId = tenantId.id || tenantId.tenantId || tenantId.empresaId || null;
-    }
-    
-    if (!tenantId) {
-      const tokenStr = localStorage.getItem('ng-matero-token');
-      if (tokenStr) {
-        try {
-          const tokenObj = JSON.parse(tokenStr);
-          if (tokenObj && tokenObj.access_token) {
-            const payload = JSON.parse(atob(tokenObj.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-            tenantId = payload.empresaId || payload.tenantId;
-          }
-        } catch (e) {}
-      }
-    }
-
-    return String(tenantId || '');
+    return String(empresaIdAtual(this.storage) ?? '');
   }
 
   private getHeaders(): HttpHeaders {
@@ -56,7 +56,7 @@ export class DepartamentoService {
     });
   }
 
-  list(params?: { page?: number; size?: number; sort?: string }): Observable<Page<DepartamentoContabioResponse>> {
+  list(params?: { page?: number; size?: number; sort?: string; q?: string; ativo?: boolean; tipo?: string }): Observable<Page<DepartamentoContabioResponse>> {
     let httpParams = new HttpParams();
     httpParams = httpParams.set('empresaId', this.getTenantId());
     if (params) {
@@ -88,5 +88,9 @@ export class DepartamentoService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`, { headers: this.getHeaders() });
+  }
+
+  historico(id: number): Observable<Page<any>> {
+    return this.http.get<Page<any>>(`${this.base}/${id}/historico`, { params: { page: 0, size: 20 }, headers: this.getHeaders() });
   }
 }

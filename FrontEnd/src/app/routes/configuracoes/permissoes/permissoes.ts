@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { PermissaoService, FuncaoResponse, PermissaoResponse } from './permissao.service';
 import { ConfirmationService } from '@shared/services/confirmation.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 
 
@@ -24,13 +25,29 @@ export class Permissoes implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
 
   funcoes:  FuncaoResponse[] = [];
+  loading = false;
+  loadError = '';
+  deletingId: number | null = null;
+  busca = '';
+  filtroAtivo = '';
+  pagina = 0;
+  totalPaginas = 1;
 
-  ngOnInit() {
-    this.service.listFuncoes().subscribe({
-      next: (funcoes) => {
-        this.funcoes = funcoes;
+  ngOnInit() { this.carregar(); }
+
+  carregar() {
+    this.loading = true;
+    this.loadError = '';
+    this.service.listFuncoes({ page: this.pagina, size: 20, q: this.busca.trim() || undefined,
+      ativo: this.filtroAtivo === '' ? undefined : this.filtroAtivo === 'true' }).subscribe({
+      next: (page) => {
+        this.funcoes = page.content ?? [];
+        this.totalPaginas = page.totalPages || 1;
+        this.loading = false;
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar funções' }),
+      error: (error: HttpErrorResponse) => { this.loading = false; this.funcoes = []; this.loadError = error.status === 403
+        ? 'Você não tem permissão para administrar perfis.' : error.status === 0
+          ? 'Sem conexão. Verifique sua rede e tente novamente.' : 'Não foi possível carregar os perfis. Tente novamente.'; },
     });
   }
 
@@ -45,27 +62,39 @@ export class Permissoes implements OnInit {
       state: funcao ? { 
         id: funcao.id, 
         nome: funcao.nome,
+        descricao: funcao.descricao,
+        ativo: funcao.ativo,
+        sistema: funcao.sistema,
+        versao: funcao.versao,
         permissoes: funcao.permissoes
       } : {}
     });
   }
 
+  filtrar() { this.pagina = 0; this.carregar(); }
+  mudarPagina(delta: number) { const next = this.pagina + delta; if (next >= 0 && next < this.totalPaginas) { this.pagina = next; this.carregar(); } }
+
   excluirFuncao(id: number) {
+    if (this.deletingId !== null) return;
     this.confirmationService.confirm({
-      title: 'Confirmar Exclusão',
-      message: 'Tem certeza que deseja excluir esta função? Esta ação não poderá ser desfeita.',
-      confirmText: 'Sim, Excluir',
+      title: 'Confirmar inativação',
+      message: 'Inativar este perfil? Usuários e histórico permanecerão vinculados.',
+      confirmText: 'Sim, inativar',
       cancelText: 'Cancelar',
       type: 'danger',
       icon: 'delete_forever'
     }).subscribe(confirmed => {
       if (confirmed) {
+        this.deletingId = id;
         this.service.deleteFuncao(id).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Função excluída com sucesso' });
-            this.funcoes = this.funcoes.filter(f => f.id !== id);
+            this.deletingId = null;
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Perfil inativado; vínculos preservados' });
+            this.carregar();
           },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir função' })
+          error: (error: HttpErrorResponse) => { this.deletingId = null; this.messageService.add({ severity: 'error', summary: 'Erro', detail:
+            error.status === 409 ? (error.error?.message || 'Conflito: o último administrador não pode ser removido.')
+              : error.status === 403 ? 'Operação não autorizada.' : 'Erro ao inativar perfil' }); }
         });
       }
     });

@@ -16,7 +16,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "veiculos", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_veiculo_placa_empresa", columnNames = { "placa", "id_empresa" })
+        @UniqueConstraint(name = "uk_veiculo_placa_empresa", columnNames = { "placa", "empresa_id" })
 })
 public class Veiculo extends TenantEntity {
 
@@ -57,6 +57,24 @@ public class Veiculo extends TenantEntity {
     @Size(max = 50, message = "A cor externa deve ter no mÃ¡ximo 50 caracteres")
     @Column(name = "cor_externa", length = 50)
     private String corExterna;
+
+    @Column(name = "direcao", length = 30)
+    private String direcao;
+    @Column(name = "cambio", length = 30)
+    private String cambio;
+    @Column(name = "ar_condicionado")
+    private Boolean arCondicionado;
+    @Column(name = "portas")
+    private Integer portas;
+
+    public String getDirecao() { return direcao; }
+    public void setDirecao(String value) { this.direcao = value; }
+    public String getCambio() { return cambio; }
+    public void setCambio(String value) { this.cambio = value; }
+    public Boolean getArCondicionado() { return arCondicionado; }
+    public void setArCondicionado(Boolean value) { this.arCondicionado = value; }
+    public Integer getPortas() { return portas; }
+    public void setPortas(Integer value) { this.portas = value; }
 
     @Column(name = "quilometragem_atual")
     private Integer quilometragemAtual = 0;

@@ -23,17 +23,34 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários da empresa")
     public ResponseEntity<List<UsuarioResponse>> findAll() {
         return ResponseEntity.ok(usuarioService.findAll());
     }
 
+    @GetMapping("/pagina")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('GERAL_USUARIO')")
+    public ResponseEntity<org.springframework.data.domain.Page<UsuarioResponse>> search(
+            @RequestParam(required = false) String q, @RequestParam(required = false) Boolean ativo,
+            @org.springframework.data.web.PageableDefault(size = 20, sort = "nomeCompleto")
+            org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(usuarioService.search(q, ativo, pageable));
+    }
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('GERAL_USUARIO')")
     @Operation(summary = "Buscar usuário", description = "Busca um usuário pelo ID")
     public ResponseEntity<UsuarioResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.findById(id));
+    }
+
+    @GetMapping("/{id}/historico")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    public ResponseEntity<org.springframework.data.domain.Page<com.neritech.saas.gestaoUsuarios.dto.UsuarioAlteracaoResponse>> history(
+            @PathVariable Long id, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(usuarioService.history(id, page, size));
     }
 
     @PostMapping
@@ -41,6 +58,13 @@ public class UsuarioController {
     @Operation(summary = "Criar usuário", description = "Cria um novo usuário")
     public ResponseEntity<UsuarioResponse> create(@RequestBody @Valid UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.create(request));
+    }
+
+    @PostMapping("/convites")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+    @Operation(summary = "Convidar usuário", description = "Cria a identidade e envia link de uso único")
+    public ResponseEntity<UsuarioResponse> invite(@RequestBody @Valid UsuarioRequest request) {
+        return ResponseEntity.accepted().body(usuarioService.invite(request));
     }
 
     @PutMapping("/{id}")

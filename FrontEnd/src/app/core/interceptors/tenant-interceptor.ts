@@ -1,10 +1,15 @@
 import { HttpHandlerFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { BASE_URL, hasHttpScheme } from './base-url-interceptor';
 
 // Appends tenant/company headers from local storage (defaults to '7')
 export function tenantInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
+  if (/\/auth\/(?:login|refresh|recover-password|reset-password)(?:\?|$)/.test(req.url)) {
+    return next(req);
+  }
   const storage = inject(LocalStorageService);
+  const baseUrl = inject(BASE_URL, { optional: true });
   let tenantId: any = null;
 
   // 1. Tenta extrair o tenantId diretamente do token JWT no localStorage
@@ -36,7 +41,8 @@ export function tenantInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn
   const cleanId = String(tenantId);
   
   // Evita adicionar cabeçalhos em requisições externas (Ex: ViaCEP)
-  const isInternal = req.url.includes('/api/') || !req.url.startsWith('http');
+  const isInternal = !hasHttpScheme(req.url) || !!(baseUrl && hasHttpScheme(baseUrl)
+    && (req.url === baseUrl || req.url.startsWith(`${baseUrl.replace(/\/$/, '')}/`)));
   if (!isInternal) {
     return next(req);
   }

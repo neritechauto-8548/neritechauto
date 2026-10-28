@@ -4,6 +4,8 @@
 .matero-container-wrap,
 .matero-container {
   --mat-sidenav-content-background-color: transparent;
+  --sidenav-width: var(--nt-sidebar-width, 264px);
+  --sidenav-collapsed-width: 72px;
 
   height: 100%;
 }
@@ -168,3 +170,45 @@
     padding-top: var(--gutter);
   }
 }
+
+/* Tokens compartilhados do Application Shell — identidade NERITECH. */
+.matero-container-wrap{
+  --nt-primary:#2563eb;
+  --nt-text:#0f172a;
+  --nt-text-muted:#64748b;
+  --nt-border:#e2e8f0;
+  --nt-surface:#fff;
+  --nt-surface-subtle:#f8fafc;
+}
+.matero-page-content{padding:24px 32px 40px}
+@media(max-width:1024px){.matero-page-content{padding:20px 22px 32px}}
+@media(max-width:640px){.matero-page-content{padding:16px}}
+
+/* Tablet e mobile: menu sobreposto, conteúdo sempre usa largura integral. */
+@media(max-width:959px){
+ .matero-container-wrap,.matero-container,.matero-content{min-width:0;max-width:100%}
+ .matero-container-wrap .matero-content{margin-left:0!important;margin-right:0!important}
+ .matero-container-wrap .matero-sidenav{width:min(280px,calc(100vw - 48px))!important;max-width:min(280px,calc(100vw - 48px));border-radius:0 12px 12px 0}
+ .matero-container-wrap .matero-sidenav .nt-sidebar-header{justify-content:space-between;padding-inline:16px}
+ .matero-container-wrap .matero-sidenav .nt-sidebar-menu{overflow-y:auto}
+ .matero-page-content{padding:20px 20px 32px;min-width:0}
+}
+@media(max-width:599px){
+ .matero-page-content{padding:16px 12px 24px}
+ .matero-container-wrap .matero-sidenav{width:min(280px,calc(100vw - 32px))!important}
+}
+
+/* Desktop sidebar is flush with the application shell, not a floating card. */
+@media(min-width:960px){
+  .matero-container-wrap .matero-sidenav{
+    border-radius:0!important;
+  }
+}
+.matero-container-wrap .matero-sidenav{
+  box-sizing:border-box;
+  background:var(--nt-surface,#fff)!important;
+}
+
+/* WCAG 2.2: skip link is visible only while keyboard-focused. */
+.nt-skip-link{position:fixed;top:8px;left:12px;z-index:2000;transform:translateY(-150%);padding:10px 14px;border-radius:8px;background:var(--nt-surface,#fff);color:var(--nt-text,#0f172a);border:2px solid var(--nt-primary,#2563eb);box-shadow:0 8px 24px rgba(15,23,42,.12);text-decoration:none;font:600 14px/20px Inter,system-ui,sans-serif}
+.nt-skip-link:focus-visible{transform:translateY(0);outline:2px solid var(--nt-primary,#2563eb);outline-offset:2px}

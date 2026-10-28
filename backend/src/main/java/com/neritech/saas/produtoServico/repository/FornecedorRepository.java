@@ -10,6 +10,24 @@ import com.neritech.saas.produtoServico.domain.Fornecedor;
 @Repository
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
     Page<Fornecedor> findByEmpresaId(Long empresaId, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("""
+      SELECT (COUNT(f) > 0) FROM Fornecedor f
+      WHERE f.empresaId = :tenant AND f.cpf = :cpf
+        AND (:excluding IS NULL OR f.id <> :excluding)
+      """)
+    boolean existsOtherCpf(@org.springframework.data.repository.query.Param("tenant") Long tenant,
+            @org.springframework.data.repository.query.Param("cpf") String cpf,
+            @org.springframework.data.repository.query.Param("excluding") Long excluding);
+
+    @org.springframework.data.jpa.repository.Query("""
+      SELECT (COUNT(f) > 0) FROM Fornecedor f
+      WHERE f.empresaId = :tenant AND f.cnpj = :cnpj
+        AND (:excluding IS NULL OR f.id <> :excluding)
+      """)
+    boolean existsOtherCnpj(@org.springframework.data.repository.query.Param("tenant") Long tenant,
+            @org.springframework.data.repository.query.Param("cnpj") String cnpj,
+            @org.springframework.data.repository.query.Param("excluding") Long excluding);
+
 
     boolean existsByEmpresaIdAndCpf(Long empresaId, String cpf);
 
@@ -23,5 +41,45 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             "LOWER(f.cpf) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Fornecedor> search(Long empresaId, String search, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT f FROM Fornecedor f
+         WHERE f.empresaId = :empresaId
+           AND (:search IS NULL OR :search = '' OR
+                LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(f.cpf) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :search, '%')))
+           AND (:ativo IS NULL OR f.ativo = :ativo)
+           AND (:cidade IS NULL OR :cidade = '' OR
+                LOWER(f.cidade) LIKE LOWER(CONCAT('%', :cidade, '%')))
+        """)
+    Page<Fornecedor> filter(@org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("ativo") Boolean ativo,
+            @org.springframework.data.repository.query.Param("cidade") String cidade,
+            Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT f FROM Fornecedor f WHERE f.empresaId = :tenant
+        AND f.transportadora = true
+        AND (:ativo IS NULL OR
+          (:ativo = true AND f.ativo = true AND f.transportadoraAtiva = true) OR
+          (:ativo = false AND (f.ativo = false OR f.transportadoraAtiva = false)))
+        AND (:regiao IS NULL OR :regiao = '' OR
+             LOWER(f.cidade) LIKE LOWER(CONCAT('%', :regiao, '%')) OR
+             LOWER(f.estado) = LOWER(:regiao))
+        AND (:busca IS NULL OR :busca = '' OR
+             LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+             LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+             LOWER(f.cpf) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+             LOWER(f.cnpj) LIKE LOWER(CONCAT('%', :busca, '%')))
+        """)
+    Page<Fornecedor> listarTransportadoras(
+        @org.springframework.data.repository.query.Param("tenant") Long tenant,
+        @org.springframework.data.repository.query.Param("ativo") Boolean ativo,
+        @org.springframework.data.repository.query.Param("regiao") String regiao,
+        @org.springframework.data.repository.query.Param("busca") String busca,
+        Pageable page);
 }
 

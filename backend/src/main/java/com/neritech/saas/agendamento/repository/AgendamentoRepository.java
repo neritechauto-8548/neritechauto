@@ -19,6 +19,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     List<Agendamento> findByEmpresaId(Long empresaId);
 
+    Optional<Agendamento> findByIdAndEmpresaId(Long id, Long empresaId);
+
     Optional<Agendamento> findByNumeroAgendamento(String numeroAgendamento);
 
     List<Agendamento> findByClienteId(Long clienteId);
@@ -44,12 +46,13 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> findAgendamentosNaoConfirmados(@Param("empresaId") Long empresaId,
             @Param("dataAtual") LocalDate dataAtual);
 
-    @Query("SELECT a FROM Agendamento a WHERE a.veiculoId = :veiculoId " +
+    @Query("SELECT a FROM Agendamento a WHERE a.empresaId = :empresaId AND a.veiculoId = :veiculoId " +
            "AND a.dataAgendamento = :dataAgendamento " +
            "AND a.status <> com.neritech.saas.agendamento.domain.enums.StatusAgendamento.CANCELADO " +
            "AND (:id IS NULL OR a.id <> :id) " +
            "AND a.horaInicio < :horaFim AND a.horaFim > :horaInicio")
-    List<Agendamento> findConflictingAgendamentos(@Param("veiculoId") Long veiculoId,
+    List<Agendamento> findConflictingAgendamentos(@Param("empresaId") Long empresaId,
+                                                @Param("veiculoId") Long veiculoId,
                                                 @Param("dataAgendamento") LocalDate dataAgendamento,
                                                 @Param("horaInicio") java.time.LocalTime horaInicio,
                                                 @Param("horaFim") java.time.LocalTime horaFim,

@@ -37,5 +37,6 @@ public record FornecedorResponse(
                 String bancoPix,
                 ClassificacaoFornecedor classificacao,
                 String observacoes,
-                Boolean ativo) {
+                Boolean ativo,
+                Integer versao) {
 }

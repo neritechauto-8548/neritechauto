@@ -9,6 +9,7 @@ export interface UsuarioRequest {
   departamento?: string;
   telefone?: string;
   preferencias?: Record<string, any>;
+  versao?: number;
 }
 
 export interface UsuarioResponse {
@@ -19,6 +20,8 @@ export interface UsuarioResponse {
   ativo: boolean;
   bloqueado: boolean;
   ultimoAcesso?: string;
+  conviteTokenExpira?: string;
+  versao?: number;
   funcoes: string[];
   funcoesIds: number[];
   cargo?: string;

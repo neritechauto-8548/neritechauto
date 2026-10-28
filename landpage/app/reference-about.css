@@ -1,0 +1,52 @@
+/* Quem somos — estrutura da referência com narrativa e imagens NERITECH. */
+.nr-about-page{--nr-blue:#2442dc;font-family:Inter,'Segoe UI',Arial,sans-serif}
+.nr-about-page .nl-container{width:min(calc(100% - 48px),1070px);margin-inline:auto}
+.nr-about-page .nr-eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--nr-blue)}
+.nr-about-page .nr-center-heading{text-align:center;margin:0 auto 38px;max-width:740px}
+.nr-about-page .nr-center-heading h2{font-size:clamp(24px,3vw,34px);line-height:1.23}
+.nr-about-page .nr-center-heading p{font-size:13px;color:#65748d}
+.nr-about-photo{position:relative;height:385px;overflow:hidden;background:#edf2f7}
+.nr-about-photo>img{height:100%;width:100%;object-fit:cover;object-position:center 48%}
+.nr-about-history{display:grid;grid-template-columns:.92fr 1.08fr;gap:85px;padding-bottom:75px}
+.nr-about-story-card{position:relative;z-index:2;align-self:start;margin-top:-77px;padding:30px 31px;border:1px solid #e1e6ee;border-radius:10px;box-shadow:0 18px 38px rgba(20,35,61,.13);background:#fff}
+.nr-about-story-card h1{font-size:29px;margin:14px 0 18px;line-height:1.1}
+.nr-about-story-card p{font-size:13px;line-height:1.75;color:#5f6d82;margin-bottom:12px}
+.nr-about-timeline{position:relative;padding-top:35px}
+.nr-about-timeline:before{content:'';position:absolute;top:78px;bottom:38px;left:50%;width:2px;background:#dbe0e8}
+.nr-about-timeline>.nr-eyebrow{margin-bottom:21px}
+.nr-about-timeline-row{position:relative;display:grid;grid-template-columns:.95fr 1.05fr;gap:27px;align-items:center;min-height:140px}
+.nr-about-timeline-row:before{content:'';position:absolute;left:calc(50% - 6px);top:calc(50% - 6px);width:12px;height:12px;border:2px solid #fff;border-radius:50%;background:#2442dc;z-index:2;box-shadow:0 0 0 1px #b8c8e9}
+.nr-about-timeline-photo{border-radius:9px;overflow:hidden;transform:rotate(-4deg);box-shadow:0 10px 23px #1e345528}
+.nr-about-timeline-row:nth-child(3) .nr-about-timeline-photo{transform:rotate(4deg)}
+.nr-about-timeline-photo img{display:block;width:100%;height:101px;object-fit:cover}
+.nr-about-timeline-step{display:flex;flex-direction:column;gap:3px;padding-left:8px}
+.nr-about-timeline-step b{font-size:12px;color:#2442dc}
+.nr-about-timeline-step strong{font-size:15px}
+.nr-about-timeline-step small{font-size:11px;line-height:1.5;color:#738096}
+.nr-about-mission{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-bottom:30px}
+.nr-about-mission article{padding:25px;background:#fff;border:1px solid #e1e6ef;border-radius:10px}
+.nr-about-mission article svg{color:#2442dc;margin-bottom:11px}
+.nr-about-mission h2{font-size:16px;margin:4px 0 11px}
+.nr-about-mission p{font-size:13px;color:#627089;margin:0;line-height:1.63}
+.nr-about-page .nr-section{padding-block:65px}
+.nr-about-value-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1010px;margin:auto}
+.nr-about-value-grid article{padding:22px;background:#fff;border:1px solid #e2e7ee;border-radius:10px;min-height:159px}
+.nr-about-value-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:6px;background:#e9efff;color:#2442dc}
+.nr-about-value-grid h3{font-size:16px;margin:14px 0 8px}
+.nr-about-value-grid p{font-size:12px;color:#68768a;line-height:1.55;margin:0}
+.nr-about-principles{padding-block:25px 85px}
+.nr-about-commitments{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.nr-about-commitments article{min-height:160px;border:1px solid #e0e6ee;border-radius:9px;padding:22px}
+.nr-about-commitments svg{color:#2442dc}
+.nr-about-commitments h3{font-size:16px;margin:17px 0 7px}
+.nr-about-commitments p{font-size:12px;color:#68768b;margin:0}
+.nr-about-bottom{background:#2442dc;color:#fff}
+.nr-about-bottom .nl-container{display:grid;grid-template-columns:1fr .95fr;align-items:center;gap:60px;min-height:340px}
+.nr-about-bottom .nr-eyebrow{color:#cdd8ff}
+.nr-about-bottom h2{font-size:clamp(29px,3.2vw,41px);line-height:1.15;color:#fff;margin:15px 0}
+.nr-about-bottom p{font-size:13px;color:#dde5ff}
+.nr-about-bottom .nr-btn{display:inline-flex;align-items:center;gap:10px;margin-top:14px;padding:12px 21px;color:#2442dc;background:#fff;border-radius:7px;font-weight:750;font-size:13px}
+.nr-about-bottom img{width:100%;height:320px;object-fit:cover}
+@media(max-width:980px){.nr-about-history{gap:34px}.nr-about-timeline-row{gap:18px}.nr-about-photo{height:325px}}
+@media(max-width:700px){.nr-about-page .nl-container{width:calc(100% - 34px)}.nr-about-photo{height:255px}.nr-about-history{grid-template-columns:1fr;padding-bottom:45px;gap:10px}.nr-about-story-card{margin-top:-45px;padding:24px}.nr-about-timeline{padding-top:20px}.nr-about-timeline-row{min-height:127px}.nr-about-timeline-photo img{height:90px}.nr-about-mission,.nr-about-commitments{grid-template-columns:1fr}.nr-about-value-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nr-about-bottom .nl-container{grid-template-columns:1fr;gap:0;padding-bottom:35px}.nr-about-bottom img{height:250px;order:-1}.nr-about-bottom .nl-container>div{padding-top:25px}}
+@media(max-width:430px){.nr-about-value-grid{grid-template-columns:1fr}.nr-about-timeline-row{grid-template-columns:1fr 1fr;gap:10px}.nr-about-timeline-step strong{font-size:13px}.nr-about-timeline-photo img{height:79px}}

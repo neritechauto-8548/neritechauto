@@ -1,159 +1,57 @@
-# NeriTech - Sistema de Consulta de Ordem de Serviço
+# Portal do Cliente — NERITECH AUTO
 
-Sistema moderno de consulta de ordens de serviço para clientes, desenvolvido com Vue 3, inspirado no portal da Ultracar.
+Aplicação independente para os proprietários de veículos, agora em **React 19 + Next.js 16 (App Router)**. O sistema interno continua em Angular/Spring Boot e a landing page Next.js permanece isolada em `landpage/`.
 
-## 🚀 Funcionalidades
+## Rotas
 
-- ✅ **Consulta Rápida**: Consulta pública de OS sem necessidade de login (CPF + Número da OS)
-- ✅ **Portal do Cliente**: Autenticação segura para acesso ao histórico completo
-- ✅ **Histórico de Ordens**: Visualização de todas as ordens de serviço do cliente
-- ✅ **Detalhamento Completo**: Informações detalhadas incluindo:
-  - Status em tempo real com timeline visual
-  - Serviços executados
-  - Peças aplicadas
-  - Galeria de fotos com lightbox
-  - Histórico de alterações
-  - Breakdown de valores
+| Rota | Descrição |
+| --- | --- |
+| `/` | Redireciona para `/consulta` |
+| `/consulta` | Consulta reduzida por CPF, número da OS e código de acesso |
+| `/login` | Login **específico para proprietário**, sem reutilizar o login da oficina |
+| `/historico` | Ordens pertencentes ao cliente autenticado |
+| `/os/[id]` | Detalhes, peças, serviços, andamento e decisão de orçamento autorizada |
 
-## 🎨 Design
+A autenticação e as consultas são encaminhadas ao Spring Boot pelo **BFF do Next.js** em `/api/portal/**`, com cookie HttpOnly/SameSite e chamadas de servidor a servidor. Nenhum JWT é armazenado em localStorage nem entregue ao JavaScript do navegador.
 
-- Interface moderna estilo SaaS
-- Cores principais: Azul (#005CFF), Branco, Cinza neutro
-- Totalmente responsivo (Mobile, Tablet, Desktop)
-- Animações suaves e micro-interações
-- Ícones Lucide modernos
-- Tipografia Inter (Google Fonts)
+## Começar
 
-## 🛠️ Tecnologias
+Requer Node.js 22 ou superior.
 
-- **Vue 3** (Composition API)
-- **Vue Router 4** (SPA routing)
-- **Axios** (HTTP requests)
-- **Vite** (Build tool)
-- **CSS Vanilla** (Design system customizado)
-
-## 📦 Instalação
-
-1. Clone o repositório:
 ```bash
-cd sistemaCliente
-```
-
-2. Instale as dependências:
-```bash
-npm install
-```
-
-3. Configure as variáveis de ambiente:
-```bash
-# Copie o arquivo de exemplo
-cp .env.example .env
-
-# Edite o arquivo .env e configure a URL da API
-VITE_API_URL=http://localhost:8080/api
-```
-
-## 🚀 Executar
-
-### Desenvolvimento
-```bash
+cd PortalCliente
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
-Acesse: http://localhost:3000
 
-### Build para Produção
+Acesse http://localhost:3002. Para validar:
+
 ```bash
+npm run typecheck
 npm run build
 ```
 
-### Preview da Build
-```bash
-npm run preview
-```
+## Configuração de integração (não habilitada automaticamente)
 
-## 📁 Estrutura do Projeto
+No `.env.local`, informe `PORTAL_BACKEND_URL` e as **rotas próprias do portal** disponíveis na API. Consulte [INTEGRATION.md](./INTEGRATION.md) para contrato, autorização, auditoria e configurações.
 
-```
-src/
-├── api/
-│   └── osService.js          # Serviço de API com Axios
-├── router/
-│   └── index.js              # Configuração de rotas
-├── views/
-│   ├── ConsultaRapida.vue    # Consulta pública
-│   ├── Login.vue             # Portal do cliente
-│   ├── Historico.vue         # Lista de ordens
-│   └── DetalheOS.vue         # Detalhes da ordem
-├── components/
-│   ├── OsCard.vue            # Card de ordem
-│   ├── OsStatusTimeline.vue  # Timeline de status
-│   ├── OsServicoItem.vue     # Item de serviço
-│   ├── OsPecaItem.vue        # Item de peça
-│   └── OsFotoViewer.vue      # Galeria de fotos
-├── App.vue                   # Componente raiz
-├── main.js                   # Entry point
-└── style.css                 # Estilos globais
-```
+**IMPORTANTE:** o backend desta branch ainda não implementa os endpoints de cliente exigidos por este portal. Os endpoints `/auth/login`, `/public/ordem-servico/**` e `/v1/ordens-servico/cliente/:id` são internos e **não devem ser expostos aos clientes**. Por segurança, todas as integrações não configuradas respondem com indisponibilidade explícita (503). Não existe modo mock, token em localStorage nem aprovação fingida.
 
-## 🔌 Endpoints da API
+Para consulta reduzida, somente habilite `PORTAL_PUBLIC_LOOKUP_ENABLED=true` após implementar um endpoint POST que valide simultaneamente CPF, OS, código de acesso, expiração, tenant, rate limit e anti-enumeração.
 
-O sistema espera os seguintes endpoints no backend:
+## Visual e UX
 
-### Consulta Pública
-```
-GET /public/ordem-servico/consulta?cpf={cpf}&numeroOs={numeroOs}
-```
+- Identidade NERITECH AUTO com tema claro, branco, grafite e acento `#635BFF`.
+- Formulários com validação, mensagens claras, loading, empty, 401/403/404/409 e 503.
+- Cards móveis, status acessível por texto, detalhes e timeline por dados reais.
+- Aprovação somente se a API de cliente retornar `podeAprovar: true` e o endpoint seguro estiver configurado.
+- Sem carregamento externo de fonte; foto existente em `public/bg-oficina.png`.
 
-### Autenticação
-```
-POST /auth/login
-Body: { email, senha }
-Response: { token, user }
-```
+## Implantação
 
-### Histórico do Cliente
-```
-GET /cliente/ordens
-Headers: Authorization: Bearer {token}
-```
+Defina o diretório raiz do projeto Vercel como `PortalCliente`. Configure as variáveis de ambiente **somente no servidor**. Use HTTPS no backend em produção. O CI específico em `.github/workflows/portal-cliente-quality.yml` executa `npm ci`, TypeScript e build.
 
-### Detalhes da OS
-```
-GET /cliente/ordem-servico/{id}
-Headers: Authorization: Bearer {token}
-```
+## Limites desta migração
 
-## 🔐 Autenticação
-
-O sistema utiliza JWT (JSON Web Token) para autenticação:
-- Token armazenado em `localStorage`
-- Interceptor Axios adiciona token automaticamente
-- Redirecionamento automático para login em caso de token inválido
-
-## 📱 Responsividade
-
-- **Mobile**: < 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: > 1024px
-
-## 🎯 Rotas
-
-- `/` - Redireciona para `/consulta`
-- `/consulta` - Consulta rápida (pública)
-- `/login` - Portal do cliente
-- `/historico` - Histórico de ordens (requer autenticação)
-- `/os/:id` - Detalhes da ordem (requer autenticação)
-
-## 🌟 Destaques UX/UI
-
-- **Loading States**: Feedback visual durante requisições
-- **Error Handling**: Mensagens de erro amigáveis
-- **Validação de Formulários**: Validação em tempo real
-- **CPF Masking**: Máscara automática no campo CPF
-- **Timeline Visual**: Acompanhamento visual do status
-- **Lightbox de Fotos**: Galeria profissional com navegação
-- **Print-Friendly**: Tela de detalhes otimizada para impressão
-
-## 📝 Licença
-
-Copyright © 2025 NeriTech. Todos os direitos reservados.
+Este commit migra **somente o frontend** e prepara o BFF. Falta implementar/homologar a autenticação de clientes, ownership de OS e endpoints de consulta/aprovação no Spring Boot. Nenhuma funcionalidade sensível é marcada como operacional até esses testes de ponta a ponta.

@@ -1,29 +1,72 @@
-// Header moderno com efeitos especiais (Stripe Style)
-.matero-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  display: block;
-  background: rgba(246, 249, 252, 0.8) !important; /* Ice Gray com Transparência */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-  transition: all 0.3s ease;
+.matero-header{position:sticky;top:0;z-index:1000;display:block;background:var(--nt-surface, #fff)!important;border-bottom:1px solid var(--nt-border, #e2e8f0);box-shadow:none!important}
+.nt-topbar{height:60px;display:flex;align-items:center;gap:20px;width:100%;padding:0 20px;background:var(--nt-surface, #fff)}
+.nt-topbar-left,.nt-topbar-actions{display:flex;align-items:center;gap:8px}
+.nt-topbar-left{min-width:210px}
+.nt-topbar-actions{margin-left:auto}
+.nt-topbar-icon{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:7px;background:transparent;color:var(--nt-text-muted, #64748b);cursor:pointer;transition:background .15s ease,color .15s ease}
+.nt-topbar-icon:hover{background:#f1f5f9;color:var(--nt-text, #0f172a)}
+.nt-topbar-icon:focus-visible{outline:3px solid rgba(37,99,235,.16);outline-offset:2px}
+.nt-topbar-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nt-global-search{position:relative;display:flex;align-items:center;width:min(100%,560px);height:34px;margin:0 auto;color:#94a3b8}
+.nt-global-search>svg{position:absolute;left:10px;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.nt-global-search input{width:100%;height:34px;padding:0 58px 0 34px;border:1px solid var(--nt-border, #e2e8f0);border-radius:7px;background:var(--nt-surface-subtle, #f8fafc);color:var(--nt-text, #0f172a);font:400 11px/16px Inter,sans-serif;outline:none;transition:border .15s ease,background .15s ease}
+.nt-global-search input::placeholder{color:#94a3b8}
+.nt-global-search input:focus{border-color:#93b4f5;background:var(--nt-surface, #fff);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.nt-global-search kbd{position:absolute;right:8px;padding:2px 5px;border:1px solid var(--nt-border, #e2e8f0);border-radius:4px;background:var(--nt-surface, #fff);color:#94a3b8;font:600 9px/13px Inter,sans-serif}
+@media(max-width:768px){.nt-topbar{padding:0 12px}.nt-topbar-left{min-width:auto}.nt-global-search{display:none}}
+
+.nt-search-results{position:absolute;top:40px;left:0;right:0;z-index:1200;overflow:hidden;border:1px solid var(--nt-border,#e2e8f0);border-radius:8px;background:var(--nt-surface,#fff);box-shadow:0 10px 30px rgba(15,23,42,.08)}
+.nt-search-result{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:42px;padding:8px 11px;border:0;border-bottom:1px solid var(--nt-border,#e2e8f0);background:transparent;color:var(--nt-text,#0f172a);text-align:left;font:500 11px/16px Inter,sans-serif;cursor:pointer}
+.nt-search-result:last-child{border-bottom:0}.nt-search-result:hover,.nt-search-result:focus-visible{background:#f8fafc;outline:0}.nt-search-result svg{width:15px;height:15px;fill:none;stroke:var(--nt-primary,#2563eb);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Busca e controles: densidade e foco coerentes com o UI-MASTER-001. */
+.nt-topbar{height:60px;padding-inline:24px;gap:24px}
+.nt-global-search{height:40px}
+.nt-global-search input{height:40px;border-radius:9px;font-size:13px}
+.nt-global-search>svg{left:13px}
+.nt-global-search input{padding-left:40px}
+.nt-topbar-icon{width:40px;height:40px;border-radius:9px}
+.nt-search-result{font-size:13px}
+.nt-search-results{top:45px;border-radius:10px;box-shadow:0 16px 40px rgba(15,23,42,.10)}
+@media(max-width:768px){.nt-topbar{padding-inline:12px;gap:12px}}
+
+/* Breakpoints NERITECH: barra desktop, tablet e busca móvel expansível. */
+.nt-topbar{min-width:0;max-width:100%;box-sizing:border-box}
+.nt-topbar-left{flex:0 0 auto;min-width:0}
+.nt-global-search{flex:1 1 480px;min-width:0;max-width:560px}
+.nt-topbar-actions{flex:0 0 auto}
+.nt-mobile-search-toggle{display:none}
+@media(max-width:1199px){
+ .nt-topbar{gap:12px;padding-inline:16px}
+ .nt-global-search{max-width:420px}
+}
+@media(max-width:959px){
+ .nt-topbar-left{min-width:0}
+ .nt-global-search{max-width:360px}
+ .nt-topbar-actions{margin-left:auto;gap:4px}
+}
+@media(max-width:768px){
+ .nt-topbar{height:56px;padding:0 12px;gap:8px;position:relative}
+ .nt-topbar-icon{width:40px;height:40px;min-width:40px}
+ .nt-topbar-left .branding{gap:7px}
+ .nt-topbar-left .logo-text{font-size:11px;letter-spacing:.01em}
+ .nt-topbar-left .logo-box{width:28px;height:28px}
+ .nt-mobile-search-toggle{display:grid}
+ .nt-global-search{display:none;position:absolute;top:56px;left:0;right:0;width:100%;max-width:none;margin:0;height:auto;padding:10px 12px;background:#fff;border-bottom:1px solid #e2e8f0;box-shadow:0 6px 18px rgba(15,23,42,.06);z-index:1400}
+ .nt-global-search.nt-mobile-search-open{display:flex}
+ .nt-global-search input{height:42px;padding-left:40px;font-size:14px}
+ .nt-global-search>svg{left:25px}
+ .nt-global-search kbd{display:none}
+ .nt-search-results{top:58px;left:12px;right:12px;max-height:min(48vh,340px);overflow-y:auto}
+}
+@media(max-width:379px){
+ .nt-topbar{padding-inline:8px;gap:4px}
+ .nt-topbar-left .logo-text{font-size:10px}
+ .nt-topbar-actions{gap:0}
+ .nt-topbar-icon{width:36px;height:36px;min-width:36px}
 }
 
-mat-toolbar {
-  background: transparent !important; /* Deixa o fundo do .matero-header brilhar */
-  height: 64px !important;
-  padding: 0 1.5rem !important;
-}
-
-// Icon Button Hover Effects
-button[mat-icon-button] {
-  @apply rounded-lg;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-  }
-}
+/* Accessible suggestion selection with a non-color-only indicator. */
+.nt-search-result[aria-selected='true']{background:var(--nt-surface-subtle,#eff6ff);box-shadow:inset 3px 0 0 var(--nt-primary,#2563eb)}
+.nt-search-empty{position:absolute;top:45px;left:0;right:0;padding:14px;border:1px solid var(--nt-border,#e2e8f0);border-radius:10px;background:var(--nt-surface,#fff);color:var(--nt-text-muted,#64748b);font-size:13px;box-shadow:0 16px 40px rgba(15,23,42,.10);z-index:1200}
+@media(max-width:680px){.nt-search-empty{top:58px;left:12px;right:12px}}

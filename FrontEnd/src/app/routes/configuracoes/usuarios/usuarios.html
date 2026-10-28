@@ -7,15 +7,29 @@
         <h1 class="text-base font-bold text-slate-900">Usuários do Sistema</h1>
         <p class="text-xs text-slate-500">{{ usuarios.length }} usuário(s) cadastrado(s)</p>
       </div>
-      <button (click)="novoUsuario()"
+      <div class="flex gap-2">
+      <button type="button" (click)="convidarUsuario()" class="flex items-center gap-2 px-4 py-2 border border-slate-300 bg-white text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50">
+        <i class="ti ti-mail-forward" aria-hidden="true"></i> Convidar
+      </button>
+      <button type="button" (click)="novoUsuario()"
         class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
-        <span class="material-icons text-base">person_add</span>
+        <i class="ti ti-user-plus" aria-hidden="true"></i>
         Novo Usuário
       </button>
+      </div>
     </div>
   </div>
 
   <div class="px-6 py-6">
+    <div class="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_auto_auto]">
+      <label class="sr-only" for="usuarios-busca">Buscar usuários</label>
+      <input id="usuarios-busca" [(ngModel)]="query" (keyup.enter)="filtrar()" class="rounded-lg border border-slate-300 px-3 py-2" placeholder="Buscar por nome, e-mail ou perfil" />
+      <label class="sr-only" for="usuarios-status">Filtrar status</label>
+      <select id="usuarios-status" [(ngModel)]="status" (change)="filtrar()" class="rounded-lg border border-slate-300 px-3 py-2">
+        <option value="todos">Todos</option><option value="ativos">Ativos</option><option value="inativos">Inativos</option>
+      </select>
+      <button type="button" (click)="filtrar()" class="rounded-lg bg-slate-900 px-4 py-2 text-white">Buscar</button>
+    </div>
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <table class="w-full text-sm">
         <thead>
@@ -25,12 +39,14 @@
             <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Cargo</th>
             <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Funções</th>
             <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Status</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Acesso / convite</th>
             <th class="text-right px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Ações</th>
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="loadError && !loading"><td colspan="7" class="px-4 py-8 text-center" role="alert">{{ loadError }} <button type="button" class="underline ml-2" (click)="carregar()">Tentar novamente</button></td></tr>
           <tr *ngIf="loading">
-            <td colspan="6" class="px-4 py-10 text-center text-sm text-slate-500">Carregando...</td>
+            <td colspan="7" class="px-4 py-10 text-center text-sm text-slate-500">Carregando...</td>
           </tr>
           <tr *ngFor="let u of usuarios" class="border-b border-slate-100 hover:bg-slate-50/50">
             <td class="px-4 py-3 font-semibold text-slate-900">{{ u.nomeCompleto }}</td>
@@ -49,21 +65,24 @@
                 {{ u.ativo ? 'Ativo' : 'Inativo' }}
               </span>
             </td>
+            <td class="px-4 py-3 text-xs text-slate-600">
+              {{ u.ultimoAcesso ? (u.ultimoAcesso | date:'short') : (u.conviteTokenExpira ? 'Convite até ' + (u.conviteTokenExpira | date:'short') : 'Nunca acessou') }}
+            </td>
             <td class="px-4 py-3 text-right">
               <div class="flex items-center justify-end gap-1">
-                <button (click)="editarUsuario(u.id)"
+                <button type="button" [attr.aria-label]="'Editar usuário ' + u.nomeCompleto" (click)="editarUsuario(u.id)"
                   class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-blue-50 hover:text-blue-600 text-slate-400 transition-colors">
                   <span class="material-icons text-base">edit</span>
                 </button>
-                <button (click)="excluirUsuario(u.id)"
+                <button type="button" [disabled]="savingId !== null" [attr.aria-label]="'Inativar usuário ' + u.nomeCompleto" (click)="excluirUsuario(u.id)"
                   class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 hover:text-red-600 text-slate-400 transition-colors">
                   <span class="material-icons text-base">delete_outline</span>
                 </button>
               </div>
             </td>
           </tr>
-          <tr *ngIf="!loading && usuarios.length === 0">
-            <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500">
+          <tr *ngIf="!loading && !loadError && usuarios.length === 0">
+            <td colspan="7" class="px-4 py-12 text-center text-sm text-slate-500">
               <span class="material-icons text-4xl text-slate-300 block mb-2">manage_accounts</span>
               Nenhum usuário encontrado
             </td>
@@ -71,5 +90,10 @@
         </tbody>
       </table>
     </div>
+    <nav *ngIf="total > pageSize" aria-label="Paginação de usuários" class="mt-4 flex items-center justify-between text-sm">
+      <button type="button" [disabled]="page === 0" (click)="pagina(-1)" class="rounded border px-3 py-2 disabled:opacity-50">Anterior</button>
+      <span>Página {{ page + 1 }} de {{ Math.ceil(total / pageSize) }}</span>
+      <button type="button" [disabled]="(page + 1) * pageSize >= total" (click)="pagina(1)" class="rounded border px-3 py-2 disabled:opacity-50">Próxima</button>
+    </nav>
   </div>
 </div>

@@ -13,8 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA') or hasAuthority('FIN_LISTAR_CONTAS') or hasAuthority('FIN_CONTAS_PAGAR') or hasAuthority('FIN_CONTAS_RECEBER') or hasAuthority('FIN_VIS_CAIXA')")
 @RequestMapping("/v1/departamentos-contabio-empresa")
 @Tag(name = "Departamentos Contábio", description = "Endpoints para gestão de departamentos contábios por empresa")
 public class DepartamentoContabioController {
@@ -41,8 +43,9 @@ public class DepartamentoContabioController {
 
     @GetMapping
     @Operation(summary = "Listar departamentos contábios", description = "Lista departamentos contábios com paginação")
-    public ResponseEntity<Page<DepartamentoContabioResponse>> findAll(Pageable pageable) {
-        Page<DepartamentoContabioResponse> response = service.findAll(pageable);
+    public ResponseEntity<Page<DepartamentoContabioResponse>> findAll(@RequestParam(required = false) String q,
+            @RequestParam(required = false) Boolean ativo, @RequestParam(required = false) String tipo, Pageable pageable) {
+        Page<DepartamentoContabioResponse> response = service.findAll(q, ativo, tipo, pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -62,10 +65,16 @@ public class DepartamentoContabioController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir departamento contábio", description = "Remove um departamento contábio pelo ID")
+    @Operation(summary = "Inativar área", description = "Inativa a área preservando seus vínculos")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/historico")
+    public ResponseEntity<Page<com.neritech.saas.empresa.dto.DepartamentoAlteracaoResponse>> history(
+            @PathVariable Long id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(service.history(id,page,size));
     }
 }
 

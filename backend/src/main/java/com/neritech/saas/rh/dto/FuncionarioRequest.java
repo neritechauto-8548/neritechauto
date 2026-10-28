@@ -66,5 +66,6 @@ public record FuncionarioRequest(
         @Size(max = 5) String cnhCategoria,
         LocalDate cnhValidade,
         @Size(max = 500) String fotoFuncionarioUrl,
-        String observacoes) {
+        String observacoes,
+        Integer versao) {
 }

@@ -1,6 +1,7 @@
+<a class="nt-skip-link" href="#nt-main-content">Ir para o conteúdo principal</a>
 <div
   class="matero-container-wrap"
-  [class.matero-sidenav-collapsed]="options.sidenavCollapsed && options.navPos !== 'top'"
+  [class.matero-sidenav-collapsed]="options.sidenavCollapsed && !isOver && options.navPos !== 'top'"
   [class.matero-navbar-side]="options.navPos === 'side'"
   [class.matero-navbar-top]="options.navPos === 'top'"
   [class.matero-header-above]="options.headerPos === 'above'"
@@ -14,7 +15,8 @@
     <app-header
       (toggleSidenav)="onSidenavToggle()"
       (toggleSidenavNotice)="sidenavNotice.toggle()"
-      [showBranding]="true"
+      [showBranding]="isOver || options.navPos === 'top'"
+      [showToggle]="isOver || options.sidenavCollapsed"
     />
   }
 
@@ -25,6 +27,7 @@
       [mode]="isOver ? 'over' : 'side'"
       [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver"
       (openedChange)="onSidenavOpenedChange($event)"
+      (transitionend)="onLayoutTransitionEnd($event)"
       (closedStart)="onSidenavClosedStart()"
       (mouseenter)="onMouseEnter()"
       (mouseleave)="onMouseLeave()"
@@ -32,8 +35,8 @@
       <app-sidebar
         [showToggle]="!isOver"
         [showUser]="false"
-        [showHeader]="false"
-        [toggleChecked]="options.sidenavCollapsed"
+        [showHeader]="true"
+        [toggleChecked]="options.sidenavCollapsed && !isOver"
         (toggleCollapsed)="toggleCollapsed()"
         (closeSidenav)="sidenav.close()"
       />
@@ -46,8 +49,8 @@
     <mat-sidenav-content #content class="matero-content">
       @if (options.showHeader && options.headerPos !== 'above') {
         <app-header
-          [showToggle]="!options.sidenavCollapsed && options.navPos !== 'top'"
-          [showBranding]="options.navPos === 'top'"
+          [showToggle]="isOver || (options.sidenavCollapsed && options.navPos !== 'top')"
+          [showBranding]="isOver || options.navPos === 'top'"
           (toggleSidenav)="onSidenavToggle()"
           (toggleSidenavNotice)="sidenavNotice.toggle()"
         />
@@ -59,7 +62,7 @@
 
       <app-breadcrumb />
 
-      <main class="matero-page-content">
+      <main id="nt-main-content" class="matero-page-content" tabindex="-1" aria-label="Conteúdo principal">
         <router-outlet />
       </main>
     </mat-sidenav-content>

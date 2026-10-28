@@ -55,6 +55,9 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpec
     @Query("select count(c) from Cliente c where c.status = :status and c.empresaId = ?#{T(com.neritech.saas.common.tenancy.TenantContext).getCurrentTenant()}")
     long countByStatus(@Param("status") StatusCliente status);
 
+    @Query("select count(c) from Cliente c where c.status = :status and c.empresaId = :empresaId")
+    long countByStatusAndEmpresaId(@Param("status") StatusCliente status, @Param("empresaId") Long empresaId);
+
     @org.springframework.data.jpa.repository.Query(nativeQuery = true, value =
            "SELECT * FROM cliente c " +
            "WHERE c.empresa_id = :empresaId " +

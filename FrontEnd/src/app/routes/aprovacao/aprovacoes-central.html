@@ -1,0 +1,52 @@
+<main class="approval-page" aria-labelledby="approval-title">
+  <page-header canonical hideBreadcrumb title="Central de aprovações" titleId="approval-title" eyebrow="Orçamentos" description="Priorize retornos, acompanhe decisões e preserve o contexto da versão comercial atual.">
+    <div pageHeaderActions class="header-actions">
+      <a class="nt-button nt-button--secondary" routerLink="/orcamentos"><nt-icon name="file-invoice" [size]="16" />Orçamentos</a>
+      <a class="nt-button nt-button--primary" routerLink="/aprovacoes/registrar-decisao"><nt-icon name="clipboard-check" [size]="16" />Registrar retorno</a>
+    </div>
+  </page-header>
+
+  <section class="freshness" aria-label="Situação dos dados">
+    <div><nt-icon name="info-circle" [size]="18" /><span><strong>Uma versão, uma fila principal</strong><small>Alertas não duplicam contagens nem alteram a decisão do cliente.</small></span></div>
+    <span class="freshness__status"><nt-icon name="database" [size]="16" />Projeção não conectada</span>
+  </section>
+
+  <section class="kpi-strip" aria-label="Indicadores da fila">
+    @for (indicador of indicadores; track indicador.nome) {
+      <button type="button" disabled [attr.aria-label]="indicador.nome + ': indisponível. ' + indicador.definicao">
+        <span>{{ indicador.nome }}</span><strong>—</strong><small>{{ indicador.definicao }}</small>
+      </button>
+    }
+  </section>
+
+  <section class="queue-card" aria-labelledby="queue-title">
+    <div class="queue-tabs" role="tablist" aria-label="Filas de aprovação">
+      @for (fila of filas; track fila) {
+        <button type="button" role="tab" [attr.aria-selected]="filaAtiva === fila" [class.active]="filaAtiva === fila" (click)="filaAtiva = fila">{{ fila }}</button>
+      }
+    </div>
+
+    <div class="toolbar">
+      <label class="field field--search"><span>Buscar aprovação</span><span class="input-icon"><nt-icon name="search" [size]="18" /><input [(ngModel)]="busca" type="search" placeholder="Orçamento, cliente ou placa" /></span></label>
+      <label class="field"><span>Unidade</span><select [(ngModel)]="unidade"><option value="">Todas autorizadas</option></select></label>
+      <label class="field"><span>Responsável</span><input [(ngModel)]="responsavel" placeholder="Equipe ou consultor" /></label>
+      <button type="button" class="filter-button" [attr.aria-expanded]="filtrosAvancados" (click)="filtrosAvancados = !filtrosAvancados"><nt-icon name="filter" [size]="16" />Mais filtros @if(filtrosAplicados){<span>{{ filtrosAplicados }}</span>}</button>
+    </div>
+
+    @if (filtrosAvancados) {
+      <div class="advanced-filters">
+        <label class="field"><span>Prioridade</span><select [(ngModel)]="prioridade"><option value="">Todas</option><option value="CRITICA">Crítica</option><option value="ALTA">Alta</option><option value="NORMAL">Normal</option></select></label>
+        <label class="field"><span>Validade</span><select [(ngModel)]="validade"><option value="">Qualquer período</option><option value="48H">Expira em 48 horas</option><option value="VENCIDO">Expirado</option></select></label>
+        <label class="field"><span>Canal</span><select [(ngModel)]="canal"><option value="">Todos</option><option value="WHATSAPP">WhatsApp</option><option value="EMAIL">E-mail</option><option value="LINK">Link</option><option value="PRESENCIAL">Presencial</option></select></label>
+        <button type="button" class="clear-button" (click)="limparFiltros()" [disabled]="!filtrosAplicados"><nt-icon name="filter-x" [size]="16" />Limpar filtros</button>
+      </div>
+    }
+
+    <div class="queue-heading"><div><span>Fila atual</span><h2 id="queue-title">{{ filaAtiva }}</h2></div><p>Prioridade calculada por próxima ação, validade e motivo explicável.</p></div>
+    <div class="table-head" aria-hidden="true"><span>Orçamento / versão</span><span>Cliente e veículo</span><span>Estado</span><span>Validade</span><span>Responsável</span><span>Próxima ação</span></div>
+    <nt-data-view-state kind="info" icon="database" title="Fila pronta para receber aprovações" description="A lista será preenchida pela projeção oficial com classificação exclusiva, snapshot, reasonCodes, allowedActions e escopo tenant-safe.">
+      <a class="state-action" routerLink="/orcamentos">Abrir orçamentos</a>
+      <a class="state-action state-action--secondary" routerLink="/aprovacoes/registrar-decisao">Registrar retorno recebido</a>
+    </nt-data-view-state>
+  </section>
+</main>

@@ -34,10 +34,14 @@ export class Fornecedor implements OnInit {
   private readonly fornecedorService = inject(FornecedorService);
 
   searchTerm = '';
+  cidadeFilter = '';
+  statusFilter: 'todos' | 'ativos' | 'inativos' = 'todos';
+  loading = false;
+  errorMessage = '';
 
   items: any[] = [];
 
-  rows = 10;
+  rows = 20;
   first = 0;
   totalRecords = 0;
 
@@ -51,6 +55,10 @@ export class Fornecedor implements OnInit {
     const sort = 'id,desc';
     
     const params: Record<string, any> = { page, size, sort };
+    if (this.statusFilter !== 'todos') params['ativo'] = this.statusFilter === 'ativos';
+    if (this.cidadeFilter.trim()) params['cidade'] = this.cidadeFilter.trim();
+    this.loading = true;
+    this.errorMessage = '';
     if (this.searchTerm && this.searchTerm.trim() !== '') {
       params['search'] = this.searchTerm.trim();
     }
@@ -58,9 +66,14 @@ export class Fornecedor implements OnInit {
     this.fornecedorService.list(params).subscribe({
       next: (res: any) => {
         this.items = (res?.content || []).map((f: any) => this.mapFornecedor(f));
-        this.totalRecords = res?.totalElements || this.items.length;
+        this.totalRecords = res?.totalElements ?? this.items.length;
+        this.loading = false;
       },
-      error: () => {
+      error: (error: any) => {
+        this.loading = false;
+        this.errorMessage = error?.status === 403 ? 'Sem permissão para consultar fornecedores.'
+          : error?.status === 0 ? 'Sem conexão. Verifique sua rede e tente novamente.'
+          : 'Não foi possível carregar os fornecedores.';
         this.items = [];
         this.totalRecords = 0;
       },
@@ -103,7 +116,9 @@ export class Fornecedor implements OnInit {
       email: f.emailPrincipal || f.emailContato || '-',
       cidadeEstado: (f.cidade && f.estado) ? `${f.cidade} - ${f.estado}` : (f.cidade || f.estado || 'Endereço n/a'),
       classificacao: f.classificacao, // PRODUTO, SERVICO, AMBOS
-      ativo: f.ativo !== false
+      ativo: f.ativo !== false,
+      cidade: f.cidade || '-',
+      estado: f.estado || '-'
     };
   }
 
@@ -113,6 +128,13 @@ export class Fornecedor implements OnInit {
 
   get totalPages() {
     return Math.ceil(this.totalRecords / this.rows) || 1;
+  }
+
+  changePageSize(value: number) {
+    if (![20, 50, 100].includes(Number(value))) return;
+    this.rows = Number(value);
+    this.first = 0;
+    this.buscar();
   }
 
   onSearch() {

@@ -23,7 +23,7 @@ public class AgendamentoController {
     private final AgendamentoService service;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_VISUALIZAR')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_AGENDAMENTO_EDITAR')")
     public ResponseEntity<AgendamentoResponse> criar(@Valid @RequestBody AgendamentoRequest request) {
         AgendamentoResponse response = service.criar(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

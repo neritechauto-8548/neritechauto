@@ -1,7 +1,8 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { environment } from '../../../../environments/environment';
 import { Page } from '../categoria/categoria-produto.service';
 
@@ -11,6 +12,7 @@ export interface QuestionarioRequest {
   urlImagem?: string;
   snAtivo?: boolean;
 }
+export type StatusPesquisa = 'DRAFT' | 'PUBLISHED' | 'PAUSED' | 'CLOSED';
 
 export interface QuestionarioResponse {
   id: number;
@@ -18,6 +20,7 @@ export interface QuestionarioResponse {
   dsQuestionario: string;
   urlImagem?: string;
   snAtivo?: boolean;
+  statusPesquisa: StatusPesquisa;
   dataCadastro?: string;
   dataAtualizacao?: string;
 }
@@ -28,44 +31,44 @@ export class QuestionarioService {
   private readonly storage = inject(LocalStorageService);
   private readonly base = environment.baseUrl + '/v1/comunicacao/questionarios';
 
-  private getHeaders(): HttpHeaders {
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-    return new HttpHeaders({
-      'X-Tenant-Id': String(tenantId),
-      'Accept': 'application/json',
-    });
+  private empresaId(): number | null { return empresaIdAtual(this.storage); }
+  private missingTenant<T>(): Observable<T> {
+    return throwError(() => new Error('Não foi possível identificar sua empresa. Entre novamente no sistema.'));
   }
 
   list(params?: { page?: number; size?: number; sort?: string }): Observable<Page<QuestionarioResponse>> {
-    let httpParams = new HttpParams();
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-    httpParams = httpParams.set('empresaId', String(tenantId));
-    if (params) {
-      Object.keys(params).forEach(key => {
-        const val = (params as any)[key];
-        if (val !== null && val !== undefined) {
-          httpParams = httpParams.set(key, String(val));
-        }
-      });
-    }
-    return this.http.get<Page<QuestionarioResponse>>(this.base, { params: httpParams, headers: this.getHeaders() });
+    const tenantId = this.empresaId();
+    if (!tenantId) return this.missingTenant();
+    let httpParams = new HttpParams().set('empresaId', String(tenantId));
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) httpParams = httpParams.set(key, String(value));
+    });
+    return this.http.get<Page<QuestionarioResponse>>(this.base, { params: httpParams });
   }
-
   getById(id: number): Observable<QuestionarioResponse> {
-    return this.http.get<QuestionarioResponse>(`${this.base}/${id}`, { headers: this.getHeaders() });
+    if (!this.empresaId()) return this.missingTenant();
+    return this.http.get<QuestionarioResponse>(`${this.base}/${id}`);
   }
-
   create(dto: QuestionarioRequest): Observable<QuestionarioResponse> {
-    return this.http.post<QuestionarioResponse>(this.base, dto, { headers: this.getHeaders() });
+    const tenantId = this.empresaId();
+    if (!tenantId) return this.missingTenant();
+    return this.http.post<QuestionarioResponse>(this.base, { ...dto, empresaId: tenantId });
   }
-
   update(id: number, dto: QuestionarioRequest): Observable<QuestionarioResponse> {
-    return this.http.put<QuestionarioResponse>(`${this.base}/${id}`, dto, { headers: this.getHeaders() });
+    const tenantId = this.empresaId();
+    if (!tenantId) return this.missingTenant();
+    return this.http.put<QuestionarioResponse>(`${this.base}/${id}`, { ...dto, empresaId: tenantId });
   }
-
+  duplicar(id: number, titulo: string): Observable<QuestionarioResponse> {
+    if (!this.empresaId()) return this.missingTenant();
+    return this.http.post<QuestionarioResponse>(`${this.base}/${id}/duplicar`, { titulo });
+  }
+  mudarStatus(id: number, action: 'publicar' | 'pausar' | 'retomar' | 'encerrar'): Observable<QuestionarioResponse> {
+    if (!this.empresaId()) return this.missingTenant();
+    return this.http.post<QuestionarioResponse>(`${this.base}/${id}/${action}`, {});
+  }
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`, { headers: this.getHeaders() });
+    if (!this.empresaId()) return this.missingTenant();
+    return this.http.delete<void>(`${this.base}/${id}`);
   }
 }

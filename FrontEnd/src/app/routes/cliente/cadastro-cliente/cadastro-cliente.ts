@@ -17,16 +17,18 @@ import { TagModule } from 'primeng/tag';
 import { InputMaskModule } from 'primeng/inputmask';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ClientesService, ClienteRequestDTO, ClienteResponseDTO } from '../cliente/cliente.service';
-import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, getTipoContatoOptions, TipoContatoLabels,
+import { TipoCliente, StatusCliente, TipoContato, TipoEndereco, TipoDocumento, ContatoClienteRequest, ContatoClienteResponse, EnderecoClienteRequest, DocumentoClienteRequest, DocumentoClienteResponse, getTipoContatoOptions, TipoContatoLabels, getStatusClienteOptions, StatusClienteLabels,
   Sexo, EstadoCivil, OrigemCliente, getSexoOptions, getEstadoCivilOptions, getOrigemClienteOptions
 } from '../models/cliente.models';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
-import { VeiculoRequest, VeiculoResponse, MarcaVeiculoResponse, ModeloVeiculoResponse, StatusVeiculo } from '../../veiculo/models/veiculo.models';
+import { VeiculoRequest, VeiculoResponse, MarcaVeiculoResponse, ModeloVeiculoResponse, AnoModeloResponse, TipoCombustivelResponse, StatusVeiculo } from '../../veiculo/models/veiculo.models';
 import { forkJoin } from 'rxjs';
+import { NgxPermissionsService } from 'ngx-permissions';
 import { ConfirmationService } from '@shared/services/confirmation.service';
 import { isValidCpf, isValidCnpj } from '@shared/utils/validators';
 import { UtilService } from '@shared/services/util.service';
 import { CnpjMaskDirective } from '@shared/directives/cnpj-mask';
+import { environment } from '../../../../environments/environment';
 
 interface ContatoExtra {
   tipoContato: string;
@@ -71,6 +73,7 @@ interface DocumentoExtra {
   ],
 })
 export class CadastroCliente implements OnInit {
+  readonly isUxPreview = environment.uxPreview;
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
@@ -79,6 +82,7 @@ export class CadastroCliente implements OnInit {
   private readonly utilService = inject(UtilService);
   private readonly veiculoService = inject(VeiculoService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly permissionsService = inject(NgxPermissionsService);
 
   @Input() modalMode = false;
   @Output() saved = new EventEmitter<any>();
@@ -86,15 +90,17 @@ export class CadastroCliente implements OnInit {
 
   activeIndex = 0;
 
-  tabs = [
-      { label: 'Geral', icon: 'pi pi-user' },
-      { label: 'Endereço', icon: 'pi pi-map-marker' },
-      { label: 'Contatos', icon: 'pi pi-phone' }
+  readonly tabs = [
+      { label: 'Dados Gerais' },
+      { label: 'Endereço' },
+      { label: 'Contatos' },
+      { label: 'Veículos' }
   ];
   savedClienteId: string | number | null = null;
 
   tiposPessoa = ['Física', 'Jurídica'];
-  situacoes = ['Ativo', 'Inativo'];
+  situacoes = getStatusClienteOptions();
+  statusLabels = StatusClienteLabels;
 
   // Options for Dropdowns
   sexoOptions = getSexoOptions();
@@ -104,13 +110,24 @@ export class CadastroCliente implements OnInit {
   // tipoContatoOptions removed (managed by getTipoContatoOptions)
   tipoEnderecoOptions = ['Residencial', 'Comercial', 'Cobrança', 'Entrega'];
   tipoDocumentoOptions = ['CPF', 'RG', 'CNH', 'CNPJ', 'Contrato Social', 'Comprovante de Residência', 'Outros'];
+  readonly categoriaOptions = ['Comum', 'Locadora', 'Taxi - Cooperativa', 'Taxi - Individual', 'Taxi - Associadas', 'Executivo - Aplicativo Uber', 'Executivo - Aplicativo Outros', 'Executivo - Preto', 'Seguradora', 'Frotista', 'Particular'].map(value => ({ label: value, value }));
+  readonly indicadorIsencaoOptions = [
+    { label: 'Não contribuinte', value: 'NAO_CONTRIBUINTE' },
+    { label: 'Contribuinte ICMS', value: 'CONTRIBUINTE_ICMS' },
+    { label: 'Contribuinte isento de inscrição', value: 'CONTRIBUINTE_ISENTO' }
+  ];
+  readonly noticiaOptions = [{ label: 'Sim', value: true }, { label: 'Não', value: false }];
 
   model = {
     tipoPessoa: 'Física' as 'Física' | 'Jurídica',
-    situacao: 'Ativo' as 'Ativo' | 'Inativo',
+    situacao: StatusCliente.ATIVO as StatusCliente,
     nomeRazao: '',
     cpfCnpj: '',
     inscricaoMunicipal: '', // Adicionado para ambas as pessoas
+    rg: '', categoria: '', indicadorIsencao: '', emailSecundario: '', outrosContatos: '',
+    enviarNoticia: false, classificacao: null as number | null,
+    limiteDescontoPecas: null as number | null, limiteDescontoServicos: null as number | null,
+    bloquearSeAtrasar: null as number | null,
     sexo: null as Sexo | null, // Added
     estadoCivil: null as EstadoCivil | null, // Added
     profissao: '',
@@ -131,6 +148,7 @@ export class CadastroCliente implements OnInit {
     cidade: '',
     estado: '',
     uf: '',
+    pais: 'Brasil',
     complemento: '',
     contatoResponsavel: '',
     enderecosExtras: [] as EnderecoExtra[],
@@ -148,25 +166,90 @@ export class CadastroCliente implements OnInit {
   tipoContatoOptions = getTipoContatoOptions();
   TipoContatoLabels = TipoContatoLabels; // Para usar no template
 
+  // DOCUMENTOS
+  documentosList: DocumentoClienteResponse[] = [];
+  documentosLoading = false;
+  documentosError = false;
+  documentosPage = 0;
+  documentosTotal = 0;
+  readonly documentosPageSize = 10;
+  get documentosPages(): number {
+    return Math.max(1, Math.ceil(this.documentosTotal / this.documentosPageSize));
+  }
+  isSavingDocuments = false;
+  get canManageDocuments(): boolean {
+    return !this.isUxPreview && !!this.permissionsService.getPermission('CLIENTE_EDITAR');
+  }
+
   // VEÍCULOS
   veiculosList: VeiculoResponse[] = [];
+  veiculosLoading = false;
+  veiculosError = false;
   veiculoModel: Partial<VeiculoRequest> = {};
   marcasOptions: MarcaVeiculoResponse[] = [];
   modelosOptions: ModeloVeiculoResponse[] = [];
+  anosModeloOptions: AnoModeloResponse[] = [];
+  get anoModeloSelectOptions() {
+    return this.anosModeloOptions.map(ano => ({ label: `${ano.anoFabricacao} / ${ano.anoModelo}`, value: ano.id }));
+  }
+  combustiveisOptions: TipoCombustivelResponse[] = [];
+  showVeiculoDialog = false;
+  isSavingVehicle = false;
+  vehicleFormError = '';
+  vehiclePreviewFailed = false;
+  readonly vehicleImageFailures = new Set<number>();
+
+  get selectedModeloImage(): string | undefined {
+    return this.modelosOptions.find(modelo => modelo.id === this.veiculoModel.modeloId)?.imagemUrl || undefined;
+  }
 
   get pageTitle(): string {
     return this.isEditMode ? 'Editar Cliente' : 'Novo Cliente';
   }
 
+  get canSaveForm(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission(this.isEditMode ? 'CLIENTE_EDITAR' : 'CLIENTE_CRIAR');
+  }
+
+  get canDeleteClient(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_EXCLUIR');
+  }
+
+  get canReadCommunication(): boolean {
+    return !this.isUxPreview &&
+      (!!this.permissionsService.getPermission('GERAL_USUARIO')
+        || !!this.permissionsService.getPermission('ADMIN'));
+  }
+
+  abrirComunicacoesCliente(): void {
+    if (!this.savedClienteId || !this.canReadCommunication) return;
+    const clienteId = Number(this.savedClienteId);
+    if (!Number.isSafeInteger(clienteId) || clienteId <= 0) return;
+    this.router.navigate(['/cliente/crm/comunicacao'], { queryParams: { clienteId } });
+  }
+
   isEditMode = false;
   submitted = false; // Flag para controle de validação visual
+  isSaving = false; // Bloqueia submissões simultâneas e sinaliza o estado da operação
+  isLoadingClient = false;
+  clientLoadError = false;
 
   get contatoDialogTitle(): string {
-    return 'Adicionar Contato';
+    return this.contatoEditIndex !== null ? 'Editar contato' : 'Adicionar contato';
+  }
+
+  onTabKeydown(event: KeyboardEvent, index: number) {
+    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    const target = event.key === 'Home' ? 0 : event.key === 'End' ? this.tabs.length - 1 :
+      direction ? (index + direction + this.tabs.length) % this.tabs.length : -1;
+    if (target < 0) return;
+    event.preventDefault();
+    this.activeIndex = target;
+    document.getElementById(`nt-client-form-tab-${target}`)?.focus();
   }
 
   ngOnInit() {
-    this.loadMarcas(); // Carrega marcas para o combo de veículo
+    if (!this.isUxPreview) { this.loadMarcas(); this.loadCombustiveis(); } // Não exigir backend para homologar o cadastro
     // Verifica se há ID na rota para edição
     const uuid = this.route.snapshot.paramMap.get('uuid');
     if (uuid) {
@@ -177,17 +260,21 @@ export class CadastroCliente implements OnInit {
   }
 
   loadClienteData(id: string | number) {
+    this.isLoadingClient = true;
+    this.clientLoadError = false;
     this.clientesService.getById(id).subscribe({
       next: (data: ClienteResponseDTO) => {
+        this.isLoadingClient = false;
         this.patchModel(data);
         // Carrega listas dependentes
         this.loadContatos(id);
         this.loadEnderecos(id);
-        this.loadDocumentos(id);
         this.loadVeiculos(id);
       },
       error: (err) => {
-        console.error('Erro ao carregars cliente', err);
+        this.isLoadingClient = false;
+        this.clientLoadError = true;
+        console.error('Erro ao carregar cliente', err);
         // O interceptor global já mostrará o erro de rede.
       }
     });
@@ -195,7 +282,7 @@ export class CadastroCliente implements OnInit {
 
   patchModel(data: ClienteResponseDTO) {
     this.model.tipoPessoa = (data.tipoCliente === 'PESSOA_JURIDICA') ? 'Jurídica' : 'Física';
-    this.model.situacao = (data.status === 'ATIVO') ? 'Ativo' : 'Inativo';
+    this.model.situacao = (data.status as StatusCliente) || StatusCliente.ATIVO;
     this.model.origemCliente = data.origemCliente as OrigemCliente || null;
 
     if (this.model.tipoPessoa === 'Física') {
@@ -214,6 +301,16 @@ export class CadastroCliente implements OnInit {
     this.model.inscricaoMunicipal = data.inscricaoMunicipal || '';
     this.model.observacao = data.observacoesGerais || '';
     this.model.email = data.email || '';
+    this.model.rg = data.rg || '';
+    this.model.categoria = data.categoria || '';
+    this.model.indicadorIsencao = data.indicadorIsencao || '';
+    this.model.emailSecundario = data.emailSecundario || '';
+    this.model.outrosContatos = data.outrosContatos || '';
+    this.model.enviarNoticia = data.enviarNoticia ?? false;
+    this.model.classificacao = data.classificacao ?? null;
+    this.model.limiteDescontoPecas = data.limiteDescontoPecas ?? null;
+    this.model.limiteDescontoServicos = data.limiteDescontoServicos ?? null;
+    this.model.bloquearSeAtrasar = data.bloquearSeAtrasar ?? null;
   }
 
   loadContatos(id: string | number) {
@@ -249,12 +346,75 @@ export class CadastroCliente implements OnInit {
           this.model.cidade = principal.cidade || '';
           this.model.estado = principal.estado || '';
           this.model.uf = principal.estado || '';
+          this.model.pais = principal.pais || 'Brasil';
       }
     });
   }
 
   loadDocumentos(id: string | number) {
-    // Implementar se necessário, similar aos outros
+    this.documentosLoading = true;
+    this.documentosError = false;
+    this.clientesService.listarDocumentos(id, this.documentosPage, this.documentosPageSize).subscribe({
+      next: res => {
+        this.documentosList = res.content || [];
+        this.documentosTotal = res.totalElements || 0;
+        this.documentosLoading = false;
+      },
+      error: () => {
+        this.documentosList = [];
+        this.documentosError = true;
+        this.documentosLoading = false;
+      }
+    });
+  }
+
+  irParaPaginaDocumentos(page: number) {
+    if (!this.savedClienteId || page < 0 || page * this.documentosPageSize >= this.documentosTotal) return;
+    this.documentosPage = page;
+    this.loadDocumentos(this.savedClienteId);
+  }
+
+  baixarDocumento(doc: DocumentoClienteResponse) {
+    if (!this.savedClienteId || this.isUxPreview) return;
+    this.clientesService.downloadDocumento(this.savedClienteId, doc.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.arquivoNome || 'documento';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      },
+      error: () => this.messageService.add({
+        severity: 'error', summary: 'Download não realizado',
+        detail: 'Não foi possível baixar este documento.'
+      })
+    });
+  }
+
+  excluirDocumentoCliente(doc: DocumentoClienteResponse) {
+    if (!this.savedClienteId || !this.canManageDocuments) return;
+    this.confirmationService.confirm({
+      title: 'Excluir documento',
+      message: 'Excluir este documento de forma permanente?',
+      confirmText: 'Excluir documento',
+      cancelText: 'Cancelar',
+      type: 'danger',
+      icon: 'warning'
+    }).subscribe(confirmed => {
+      if (!confirmed || !this.savedClienteId) return;
+      this.clientesService.excluirDocumento(this.savedClienteId, doc.id).subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Documento removido.' });
+          this.documentosPage = 0;
+          this.loadDocumentos(this.savedClienteId!);
+        },
+        error: () => this.messageService.add({
+          severity: 'error', summary: 'Exclusão não realizada',
+          detail: 'Não foi possível excluir este documento.'
+        })
+      });
+    });
   }
 
   ufs: string[] = [];
@@ -273,6 +433,21 @@ export class CadastroCliente implements OnInit {
 
   onDocumentoBlur() {
     if (!this.model.cpfCnpj) return;
+
+    // No preview, a validação local permite testar o formulário sem API.
+    if (this.isUxPreview) {
+      const valido = this.model.tipoPessoa === 'Física'
+        ? isValidCpf(this.model.cpfCnpj)
+        : isValidCnpj(this.model.cpfCnpj);
+      if (!valido) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Documento inválido',
+          detail: `O ${this.model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ'} informado não é válido.`
+        });
+      }
+      return;
+    }
 
     this.utilService.validarDocumento(this.model.cpfCnpj, this.model.tipoPessoa).subscribe({
       next: (isValid) => {
@@ -358,10 +533,13 @@ export class CadastroCliente implements OnInit {
 
   // Ações
   salvar() {
+    const requiredPermission = this.isEditMode ? 'CLIENTE_EDITAR' : 'CLIENTE_CRIAR';
+    if (!this.isUxPreview && !this.permissionsService.getPermission(requiredPermission)) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode salvar este cliente.' });
+      return;
+    }
+    if (this.isSaving) return;
     this.submitted = true; // Ativa validação visual imediatamente
-
-    console.log('💾 salvar() chamado. Model:', this.model);
-    console.log('📝 isEditMode:', this.isEditMode, 'ID:', this.savedClienteId);
 
     // Validação simples alinhada ao backend
     const obrigatorios =
@@ -369,11 +547,8 @@ export class CadastroCliente implements OnInit {
         ? [this.model.nomeRazao, this.model.cpfCnpj]
         : [this.model.razaoSocial, this.model.cpfCnpj];
 
-    console.log('🔍 Campos obrigatórios preenchidos?', obrigatorios);
-
     const invalid = obrigatorios.some(v => !v);
     if (invalid) {
-      console.warn('❌ Validação falhou. Campos vazios.');
       this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha os campos obrigatórios (Nome/Razão e CPF/CNPJ).' });
       return;
     }
@@ -401,6 +576,8 @@ export class CadastroCliente implements OnInit {
         return;
     }
 
+    this.isSaving = true;
+
     // Preparar DTO (reaproveita lógica existente)
     const dto: ClienteRequestDTO = {
       tipoCliente: this.model.tipoPessoa === 'Física' ? TipoCliente.PESSOA_FISICA : TipoCliente.PESSOA_JURIDICA,
@@ -416,28 +593,37 @@ export class CadastroCliente implements OnInit {
       estadoCivil: this.model.tipoPessoa === 'Física' ? (this.model.estadoCivil || undefined) : undefined,
       profissao: this.model.tipoPessoa === 'Física' ? (this.model.profissao || undefined) : undefined,
       origemCliente: this.model.origemCliente || undefined,
-      status: this.model.situacao === 'Ativo' ? StatusCliente.ATIVO : StatusCliente.INATIVO,
+      status: this.model.situacao,
       observacoesGerais: this.model.observacao || undefined,
       email: this.model.email || undefined,
+      rg: this.model.tipoPessoa === 'Física' ? (this.model.rg || undefined) : undefined,
+      categoria: this.model.categoria || undefined,
+      indicadorIsencao: this.model.indicadorIsencao || undefined,
+      emailSecundario: this.model.emailSecundario || undefined,
+      outrosContatos: this.model.outrosContatos || undefined,
+      enviarNoticia: this.model.enviarNoticia,
+      classificacao: this.model.classificacao ?? undefined,
+      limiteDescontoPecas: this.model.limiteDescontoPecas ?? undefined,
+      limiteDescontoServicos: this.model.limiteDescontoServicos ?? undefined,
+      bloquearSeAtrasar: this.model.bloquearSeAtrasar ?? undefined,
     };
 
     if (this.isEditMode && this.savedClienteId) {
       this.clientesService.update(this.savedClienteId, dto).subscribe({
         next: (res) => {
-          this.messageService.add({ severity: 'success', summary: 'Atualizado', detail: 'Cliente atualizado com sucesso!' });
           if (this.modalMode) {
-             this.saved.emit(res);
-          } else {
-             // Tenta salvar dados adicionais também no update
              this.salvarDadosAdicionais(this.savedClienteId!, true);
+          } else {
+             this.salvarDadosAdicionais(this.savedClienteId!, false);
           }
           // Salva/Atualiza dados extras (simplesmente chama salvarDadosAdicionais por enquanto)
           // Nota: idealmente teríamos lógica de diff para atualização, mas salvarDadosAdicionais cria novos.
           // Para MVP de edição, focar em salvar o principal.
         },
         error: (err) => {
+             this.isSaving = false;
              console.error('Erro ao atualizar', err);
-             // Interceptor trata o erro de rede
+             this.messageService.add({ severity: 'error', summary: 'Não foi possível atualizar', detail: err.status === 409 ? 'Este CPF/CNPJ já está vinculado a outro cliente da empresa.' : 'Verifique os dados e tente novamente.' });
         }
       });
     } else {
@@ -446,22 +632,29 @@ export class CadastroCliente implements OnInit {
           next: (res: ClienteResponseDTO) => {
             const id = (res as any).id ?? null;
             this.savedClienteId = id;
+            if (id) this.isEditMode = true;
 
             if (this.modalMode) {
-              this.saved.emit(res);
+              if (id) this.salvarDadosAdicionais(id, true);
+              else {
+                this.isSaving = false;
+                this.saved.emit(res);
+              }
             } else {
               if (id) {
                 // Ao criar, se tiver ID, tenta salvar endereço também se preenchido
                 this.salvarDadosAdicionais(id);
               } else {
+                 this.isSaving = false;
                  this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Cliente salvo com sucesso!' });
                  // Mantém na mesma aba para o usuário decidir o próximo passo
               }
             }
           },
           error: (err: unknown) => {
+            this.isSaving = false;
             console.error('Erro ao salvar cliente', err);
-            alert('Erro ao salvar cliente.');
+            this.messageService.add({ severity: 'error', summary: 'Não foi possível salvar', detail: (err as any)?.status === 409 ? 'Este CPF/CNPJ já está cadastrado para esta empresa.' : 'Verifique os dados e tente novamente.' });
           },
         });
     }
@@ -479,7 +672,8 @@ export class CadastroCliente implements OnInit {
         complemento: this.model.complemento,
         bairro: this.model.bairro,
         cidade: this.model.cidade,
-        estado: this.model.estado
+        estado: this.model.estado,
+        pais: this.model.pais || 'Brasil'
       };
 
       if (this.model.enderecoId) {
@@ -506,12 +700,18 @@ export class CadastroCliente implements OnInit {
     if (requests.length > 0) {
       forkJoin(requests).subscribe({
         next: () => {
+          this.isSaving = false;
+          if (this.modalMode) {
+            this.saved.emit({ id: clienteId });
+            return;
+          }
           if (!omitSuccessToast) {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Cliente e dados cadastrados!' });
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente e dados cadastrados!' });
           }
           // Mantém na mesma aba
         },
         error: (err) => {
+          this.isSaving = false;
           console.error('Erro ao salvar dados adicionais', err);
 
           // Tratamento de erro padronizado
@@ -528,10 +728,15 @@ export class CadastroCliente implements OnInit {
         }
       });
     } else {
-      if (!omitSuccessToast) {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Cliente salvo com sucesso!' });
+      this.isSaving = false;
+      if (this.modalMode) {
+        this.saved.emit({ id: clienteId });
+        return;
       }
-      this.activeIndex = 1;
+      if (!omitSuccessToast) {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente salvo com sucesso!' });
+      }
+      if (!this.isEditMode) this.activeIndex = 1;
     }
   }
 
@@ -756,6 +961,10 @@ export class CadastroCliente implements OnInit {
   }
 
   excluirCliente() {
+      if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_EXCLUIR')) {
+          this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode excluir clientes.' });
+          return;
+      }
       if (!this.savedClienteId) return;
 
       this.confirmationService.confirm({
@@ -771,7 +980,7 @@ export class CadastroCliente implements OnInit {
                   next: () => {
                       this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Cliente deletado com sucesso!' });
                       if (!this.modalMode) {
-                          this.router.navigate(['/cliente']);
+                          this.voltarParaLista();
                       } else {
                           this.saved.emit(null);
                       }
@@ -786,15 +995,19 @@ export class CadastroCliente implements OnInit {
   }
 
   voltar() {
-    this.router.navigate(['/cliente']);
+    this.voltarParaLista();
   }
 
   cancelar() {
     if (this.modalMode) {
       this.canceled.emit();
     } else {
-      this.router.navigate(['/cliente']);
+      this.voltarParaLista();
     }
+  }
+
+  private voltarParaLista() {
+    this.router.navigate(['/cliente/listar'], { queryParams: this.route.snapshot.queryParams });
   }
 
 
@@ -887,8 +1100,18 @@ export class CadastroCliente implements OnInit {
       return;
     }
     const clienteId = this.savedClienteId;
+    if (this.isSavingDocuments || !this.canManageDocuments) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão',
+        detail: 'Você não pode enviar documentos para este cliente.' });
+      return;
+    }
     const docs = (this.model.documentosExtras || []).filter(d => !!d.arquivoFile);
-
+    if (docs.some(d => !d.arquivoFile || d.arquivoFile.size > 5 * 1024 * 1024
+       || !['application/pdf', 'image/jpeg', 'image/png'].includes(d.arquivoFile.type))) {
+      this.messageService.add({ severity: 'warn', summary: 'Arquivo inválido',
+        detail: 'Envie PDF, JPG ou PNG com até 5 MB.' });
+      return;
+    }
     if (!docs.length) {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Adicione ao menos um documento com arquivo para salvar.' });
       return;
@@ -901,13 +1124,21 @@ export class CadastroCliente implements OnInit {
       d.descricao || undefined
     ));
 
+    this.isSavingDocuments = true;
     forkJoin(uploads).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Documentos enviados com sucesso!' });
+        this.isSavingDocuments = false;
+        this.model.documentosExtras = [];
+        this.documentosPage = 0;
+        this.loadDocumentos(clienteId);
+        this.messageService.add({ severity: 'success', summary: 'Sucesso',
+          detail: 'Documentos salvos com segurança.' });
       },
-      error: err => {
-        console.error('Erro ao enviar documentos', err);
-        // Interceptor trata o erro de rede
+      error: () => {
+        this.isSavingDocuments = false;
+        this.loadDocumentos(clienteId);
+        this.messageService.add({ severity: 'error', summary: 'Envio incompleto',
+          detail: 'Verifique os arquivos cadastrados antes de tentar novamente; alguns podem ter sido salvos.' });
       }
     });
   }
@@ -915,27 +1146,94 @@ export class CadastroCliente implements OnInit {
   // ========== VEÍCULOS ==========
 
   loadVeiculos(id: string | number) {
-      // Cast to number if needed, service expects string/number usually fine but let's check
+      this.veiculosLoading = true;
+      this.veiculosError = false;
       this.veiculoService.list(Number(id)).subscribe({
-          next: (res) => this.veiculosList = res,
-          error: (err) => console.error('Erro ao carregar veículos', err)
+          next: (res) => {
+            this.veiculosList = Array.isArray(res) ? res : [];
+            this.vehicleImageFailures.clear();
+            this.veiculosLoading = false;
+          },
+          error: () => {
+            this.veiculosError = true;
+            this.veiculosLoading = false;
+          }
       });
   }
 
+  openVehicle(vehicle: VeiculoResponse) {
+    if (this.isUxPreview) {
+      this.messageService.add({ severity: 'info', summary: 'Modo demonstrativo', detail: 'A edição de veículos não está disponível na prévia.' });
+      return;
+    }
+    if (!this.isUxPreview && !this.permissionsService.getPermission('VEICULO_EDITAR')) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode editar veículos.' });
+      return;
+    }
+    this.router.navigate(['/veiculo/editar', vehicle.id]);
+  }
+
+  addVehicle() {
+    if (this.isUxPreview) {
+      this.messageService.add({ severity: 'info', summary: 'Modo demonstrativo', detail: 'O cadastro de veículos não está disponível na prévia.' });
+      return;
+    }
+    if (!this.savedClienteId) {
+      this.messageService.add({ severity: 'info', summary: 'Salve o cliente primeiro', detail: 'Depois do cadastro, você poderá vincular um veículo.' });
+      return;
+    }
+    if (!this.isUxPreview && !this.permissionsService.getPermission('VEICULO_CRIAR')) {
+      this.messageService.add({ severity: 'warn', summary: 'Sem permissão', detail: 'Seu perfil não pode cadastrar veículos.' });
+      return;
+    }
+    this.veiculoModel = {};
+    this.modelosOptions = [];
+    this.vehicleFormError = '';
+    this.vehiclePreviewFailed = false;
+    this.showVeiculoDialog = true;
+  }
+
   loadMarcas() {
-      this.veiculoService.listMarcas({}).subscribe(res => {
+      this.veiculoService.listMarcas({ ativo: true, size: 1000 }).subscribe(res => {
           this.marcasOptions = res.content || [];
       });
   }
 
+  loadCombustiveis() {
+    this.veiculoService.listTiposCombustivel().subscribe({
+      next: res => this.combustiveisOptions = res || [],
+      error: () => this.vehicleFormError = 'Não foi possível carregar os combustíveis.'
+    });
+  }
+
   onMarcaChange() {
-      if (this.veiculoModel.marcaId) {
-          this.veiculoService.listModelos(this.veiculoModel.marcaId).subscribe(res => {
-              this.modelosOptions = res || [];
+      this.vehicleFormError = '';
+      const marcaId = this.veiculoModel.marcaId;
+      this.veiculoModel.modeloId = undefined;
+      this.veiculoModel.anoModeloId = undefined;
+      this.modelosOptions = [];
+      this.anosModeloOptions = [];
+      this.vehiclePreviewFailed = false;
+      if (marcaId) {
+          this.veiculoService.listModelos(marcaId).subscribe({
+            next: res => {
+              if (this.veiculoModel.marcaId === marcaId) this.modelosOptions = res || [];
+            },
+            error: () => this.vehicleFormError = 'Não foi possível carregar os modelos. Tente selecionar a marca novamente.'
           });
-      } else {
-          this.modelosOptions = [];
       }
+  }
+
+  onModeloChange() {
+    this.vehicleFormError = '';
+    this.vehiclePreviewFailed = false;
+    const modeloId = this.veiculoModel.modeloId;
+    this.veiculoModel.anoModeloId = undefined;
+    this.anosModeloOptions = [];
+    if (modeloId) this.veiculoService.listAnosModelo(modeloId).subscribe({
+      next: res => { if (this.veiculoModel.modeloId === modeloId) this.anosModeloOptions = res || []; },
+      error: () => this.vehicleFormError = 'Não foi possível carregar os anos do modelo.'
+    });
   }
 
   // ========== HELPERS ==========
@@ -943,7 +1241,10 @@ export class CadastroCliente implements OnInit {
   private formatDate(date: any): string | undefined {
       if (!date) return undefined;
       if (date instanceof Date) {
-          return date.toISOString().split('T')[0];
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
       }
       if (typeof date === 'string' && date.trim()) {
            return date.split('T')[0];
@@ -953,37 +1254,64 @@ export class CadastroCliente implements OnInit {
 
 
   salvarVeiculo() {
-      if (!this.savedClienteId) {
-          this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Salve o cliente primeiro antes de adicionar veículos.' });
+      if (this.isSavingVehicle) return;
+      this.vehicleFormError = '';
+      if (this.isUxPreview) {
+          this.vehicleFormError = 'O cadastro de veículos não está disponível no modo demonstrativo.';
           return;
       }
-      if (!this.veiculoModel.placa || !this.veiculoModel.marcaId || !this.veiculoModel.modeloId) {
-           this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha Placa, Marca e Modelo.' });
+      if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+          this.vehicleFormError = 'Seu perfil não tem permissão para cadastrar veículos.';
+          return;
+      }
+      const clienteId = Number(this.savedClienteId);
+      if (!Number.isSafeInteger(clienteId) || clienteId <= 0) {
+          this.vehicleFormError = 'Salve um cliente válido antes de adicionar veículos.';
+          return;
+      }
+      const placa = (this.veiculoModel.placa || '').trim().toUpperCase();
+      if (!placa || !this.veiculoModel.marcaId || !this.veiculoModel.modeloId) {
+           this.vehicleFormError = 'Preencha placa, marca e modelo.';
            return;
       }
 
+      if (!this.modelosOptions.some(modelo => modelo.id === this.veiculoModel.modeloId && modelo.marcaId === this.veiculoModel.marcaId)) {
+          this.vehicleFormError = 'Selecione um modelo da marca escolhida.';
+          return;
+      }
+
       const dto: VeiculoRequest = {
-          clienteId: Number(this.savedClienteId),
-          placa: this.veiculoModel.placa,
+          clienteId,
+          placa,
           marcaId: this.veiculoModel.marcaId,
           modeloId: this.veiculoModel.modeloId,
           anoModeloId: this.veiculoModel.anoModeloId,
+          combustivelId: this.veiculoModel.combustivelId,
           renavam: this.veiculoModel.renavam,
           chassi: this.veiculoModel.chassi,
+          numeroMotor: this.veiculoModel.numeroMotor,
           corExterna: this.veiculoModel.corExterna,
+          direcao: this.veiculoModel.direcao,
+          cambio: this.veiculoModel.cambio,
+          arCondicionado: this.veiculoModel.arCondicionado,
+          portas: this.veiculoModel.portas,
+          observacoes: this.veiculoModel.observacoes,
           status: StatusVeiculo.ATIVO // Default
           // Adicionar outros campos conforme necessário do form
       };
 
+      this.isSavingVehicle = true;
       this.veiculoService.create(dto).subscribe({
           next: () => {
+              this.isSavingVehicle = false;
+              this.showVeiculoDialog = false;
               this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Veículo adicionado!' });
               this.veiculoModel = {}; // Reset
               this.loadVeiculos(this.savedClienteId!);
           },
           error: (err) => {
-              console.error(err);
-              // Interceptor trata o erro de rede
+              this.isSavingVehicle = false;
+              this.vehicleFormError = err.status === 409 ? 'Já existe um veículo com esta placa.' : 'Não foi possível salvar o veículo. Confira os dados e tente novamente.';
           }
       });
   }

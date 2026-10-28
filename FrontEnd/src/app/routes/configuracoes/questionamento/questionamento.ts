@@ -1,26 +1,25 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { DynamicDialogModule, DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
-import { MatIconModule } from '@angular/material/icon';
-
+import { NgxPermissionsService } from 'ngx-permissions';
 import { LocalStorageService } from '@shared/services/storage.service';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { ConfirmationService } from '@shared/services/confirmation.service';
-import { PageHeader, ConfirmationDialogComponent } from '@shared/components';
+import { ConfirmationDialogComponent, DataViewState, NeriTechIcon } from '@shared/components';
 
 import { QuestionamentoItemDialog } from './questionamento-item-dialog';
 import { QuestionamentoModeloDialog } from './questionamento-modelo-dialog';
-import { QuestionarioService, QuestionarioResponse } from './questionario.service';
+import { QuestionarioService, QuestionarioResponse, StatusPesquisa } from './questionario.service';
 import { ItQuestionarioService, ItQuestionarioResponse, TipoItem } from './it-questionario.service';
+import { PesquisaResultados } from './pesquisa-resultados';
 
 export type TipoPergunta = 'avaliacao' | 'simnao' | 'aberta';
 
 export interface PerguntaItem {
+  id?: number;
   texto: string;
   tipo: TipoPergunta;
 }
@@ -30,8 +29,12 @@ export interface ModeloQuestionamento {
   titulo: string;
   perguntas: PerguntaItem[];
   expanded?: boolean;
+  resultadosAbertos?: boolean;
   ativo?: boolean;
+  statusPesquisa: StatusPesquisa;
+  statusUpdating?: boolean;
   loading?: boolean;
+  erroPerguntas?: boolean;
 }
 
 @Component({
@@ -40,13 +43,12 @@ export interface ModeloQuestionamento {
   imports: [
     CommonModule,
     FormsModule,
-    ButtonModule,
-    InputTextModule,
     DynamicDialogModule,
-    MatIconModule,
     ToastModule,
-    TooltipModule,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    DataViewState,
+    NeriTechIcon,
+    PesquisaResultados,
   ],
   providers: [DialogService, MessageService, ConfirmationService],
   templateUrl: './questionamento.html',
@@ -57,16 +59,23 @@ export class Questionamento implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly storage = inject(LocalStorageService);
+  private readonly permissionsService = inject(NgxPermissionsService);
+
+  get canManageResearch(): boolean {
+    return !!this.permissionsService.getPermission('GERAL_CONFIG_SISTEMA')
+      || !!this.permissionsService.getPermission('ADMIN');
+  }
   private readonly questionarioService = inject(QuestionarioService);
   private readonly itQuestionarioService = inject(ItQuestionarioService);
 
   modelos: ModeloQuestionamento[] = [];
   searchTerm = '';
-  loading = false;
+  loading = true;
+  loadError = '';
 
   get filteredModelos() {
-    if (!this.searchTerm) return this.modelos;
-    const term = this.searchTerm.toLowerCase();
+    const term = this.searchTerm.trim().toLocaleLowerCase('pt-BR');
+    if (!term) return this.modelos;
     return this.modelos.filter(m => m.titulo.toLowerCase().includes(term));
   }
 
@@ -82,10 +91,9 @@ export class Questionamento implements OnInit {
     return this.modelos.reduce((acc, m) => acc + (m.perguntas?.length || 0), 0);
   }
 
-  get tenantId(): string | number {
-    let tid = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tid || typeof tid === 'object') tid = '1';
-    return tid;
+  get tenantId(): number {
+    // A API recusará o cadastro sem uma empresa autenticada; não utilizar ID fixo.
+    return empresaIdAtual(this.storage) ?? 0;
   }
 
   ngOnInit() {
@@ -106,6 +114,7 @@ export class Questionamento implements OnInit {
 
   load() {
     this.loading = true;
+    this.loadError = '';
     this.questionarioService.list({ page: 0, size: 1000, sort: 'dsQuestionario,asc' }).subscribe({
       next: (resp) => {
         this.modelos = (resp.content || []).map((q: QuestionarioResponse) => ({
@@ -114,6 +123,7 @@ export class Questionamento implements OnInit {
           perguntas: [],
           expanded: false,
           ativo: !!q.snAtivo,
+          statusPesquisa: q.statusPesquisa || 'DRAFT',
           loading: true,
         }));
         this.loading = false;
@@ -122,12 +132,13 @@ export class Questionamento implements OnInit {
         this.modelos.forEach(modelo => {
           this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
             next: (items: ItQuestionarioResponse[]) => {
-              modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+              modelo.perguntas = items.map(it => ({ id: it.id, texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
               modelo.loading = false;
               this.modelos = [...this.modelos];
             },
             error: (err) => {
               console.error(`Erro ao carregar itens para o questionário ${modelo.id}:`, err);
+              modelo.erroPerguntas = true;
               modelo.loading = false;
               this.modelos = [...this.modelos];
             }
@@ -137,7 +148,9 @@ export class Questionamento implements OnInit {
       error: (err) => {
         console.error('Erro ao listar questionários', err);
         this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar questionários' });
+        this.loadError = err.status === 403
+          ? 'Seu perfil não tem permissão para consultar esta pesquisa.'
+          : 'Verifique a conexão e tente carregar os dados novamente.';
       }
     });
   }
@@ -146,13 +159,15 @@ export class Questionamento implements OnInit {
     modelo.expanded = !modelo.expanded;
     if (modelo.expanded && modelo.perguntas.length === 0 && !modelo.loading) {
       modelo.loading = true;
+      modelo.erroPerguntas = false;
       this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
         next: (items: ItQuestionarioResponse[]) => {
-          modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+          modelo.perguntas = items.map(it => ({ id: it.id, texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
           modelo.loading = false;
         },
         error: (err) => {
           console.error('Erro ao listar itens de questionário', err);
+          modelo.erroPerguntas = true;
           modelo.loading = false;
         }
       });
@@ -160,6 +175,11 @@ export class Questionamento implements OnInit {
   }
 
   incluirPergunta(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoItemDialog, {
       header: 'Adicionar Pergunta',
       width: '450px',
@@ -190,16 +210,26 @@ export class Questionamento implements OnInit {
 
   private refreshPerguntas(modelo: ModeloQuestionamento) {
     modelo.loading = true;
+    modelo.erroPerguntas = false;
     this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe({
       next: items => {
-        modelo.perguntas = items.map(it => ({ texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+        modelo.perguntas = items.map(it => ({ id: it.id, texto: it.dsItQuestionario, tipo: this.mapTipoItemToPergunta(it.tpItQuestionario) }));
+        modelo.erroPerguntas = false;
         modelo.loading = false;
       },
-      error: () => modelo.loading = false
+      error: () => {
+        modelo.erroPerguntas = true;
+        modelo.loading = false;
+      }
     });
   }
 
   editarPergunta(modelo: ModeloQuestionamento, index: number): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const pergunta = modelo.perguntas[index];
     const ref = this.dialogService.open(QuestionamentoItemDialog, {
       header: 'Editar Pergunta',
@@ -210,29 +240,29 @@ export class Questionamento implements OnInit {
       data: pergunta,
     });
     ref?.onClose?.subscribe((result: PerguntaItem | undefined) => {
-      if (result && result.texto?.trim()) {
-        this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe(items => {
-          const target = items[index];
-          if (target) {
-            const payload = {
-              questionarioId: modelo.id,
-              dsItQuestionario: result.texto,
-              tpItQuestionario: this.mapPerguntaToTipoItem(result.tipo),
-            };
-            this.itQuestionarioService.update(target.id, payload).subscribe({
-              next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta atualizada com sucesso' });
-                this.refreshPerguntas(modelo);
-              },
-              error: (err) => console.error('Erro ao atualizar pergunta', err)
-            });
-          }
+      if (result && result.texto?.trim() && pergunta?.id != null) {
+        const payload = {
+          questionarioId: modelo.id,
+          dsItQuestionario: result.texto,
+          tpItQuestionario: this.mapPerguntaToTipoItem(result.tipo),
+        };
+        this.itQuestionarioService.update(pergunta.id, payload).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta atualizada com sucesso' });
+            this.refreshPerguntas(modelo);
+          },
+          error: (err) => console.error('Erro ao atualizar pergunta', err)
         });
       }
     });
   }
 
   removerPergunta(modelo: ModeloQuestionamento, index: number): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     this.confirmationService.confirm({
       title: 'Excluir Pergunta',
       message: 'Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.',
@@ -241,24 +271,25 @@ export class Questionamento implements OnInit {
       type: 'danger',
       icon: 'delete'
     }).subscribe(confirmed => {
-      if (confirmed) {
-        this.itQuestionarioService.listPorQuestionario(modelo.id).subscribe(items => {
-          const target = items[index];
-          if (target) {
-            this.itQuestionarioService.delete(target.id).subscribe({
-              next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta apagada com sucesso' });
-                this.refreshPerguntas(modelo);
-              },
-              error: (err) => console.error('Erro ao excluir pergunta', err)
-            });
-          }
+      const perguntaId = modelo.perguntas[index]?.id;
+      if (confirmed && perguntaId != null) {
+        this.itQuestionarioService.delete(perguntaId).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Pergunta apagada com sucesso' });
+            this.refreshPerguntas(modelo);
+          },
+          error: (err) => console.error('Erro ao excluir pergunta', err)
         });
       }
     });
   }
 
   duplicarModelo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoModeloDialog, {
       header: 'Duplicar Questionário',
       width: '450px',
@@ -270,18 +301,25 @@ export class Questionamento implements OnInit {
     ref?.onClose?.subscribe((result: { titulo: string } | undefined) => {
       const titulo = result?.titulo?.trim();
       if (titulo) {
-        this.questionarioService.create({ empresaId: Number(this.tenantId), dsQuestionario: titulo, snAtivo: true }).subscribe({
+        this.questionarioService.duplicar(modelo.id, titulo).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Questionário duplicado com sucesso' });
+            this.messageService.add({ severity: 'success', summary: 'Pesquisa duplicada',
+              detail: 'Novo rascunho criado com todas as perguntas; nenhuma resposta foi copiada.' });
             this.load();
           },
-          error: (err) => console.error('Erro ao duplicar questionário', err)
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro ao duplicar',
+            detail: 'Verifique o título (deve ser exclusivo na empresa) e tente novamente.' })
         });
       }
     });
   }
 
   editarModelo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoModeloDialog, {
       header: 'Editar Questionário',
       width: '450px',
@@ -306,21 +344,47 @@ export class Questionamento implements OnInit {
     });
   }
 
-  toggleAtivo(modelo: ModeloQuestionamento): void {
-    const payload = { empresaId: Number(this.tenantId), dsQuestionario: modelo.titulo, snAtivo: !modelo.ativo };
-    this.questionarioService.update(modelo.id, payload).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: !modelo.ativo ? 'Questionário ativado' : 'Questionário desativado' });
-        modelo.ativo = !modelo.ativo;
-      },
-      error: (err) => console.error('Erro ao atualizar status do questionário', err)
-    });
+  readonly statusLabels: Record<StatusPesquisa, string> = {
+    DRAFT: 'Rascunho', PUBLISHED: 'Publicado', PAUSED: 'Pausado', CLOSED: 'Encerrado',
+  };
+
+  mudarEtapa(modelo: ModeloQuestionamento, action: 'publicar' | 'pausar' | 'retomar' | 'encerrar'): void {
+    if (!this.canManageResearch || modelo.statusUpdating) return;
+    const executar = () => {
+      modelo.statusUpdating = true;
+      this.questionarioService.mudarStatus(modelo.id, action).subscribe({
+        next: atualizado => {
+          modelo.statusPesquisa = atualizado.statusPesquisa;
+          modelo.ativo = !!atualizado.snAtivo;
+          modelo.statusUpdating = false;
+          this.messageService.add({ severity: 'success', summary: 'Pesquisa atualizada',
+            detail: 'Novo status: ' + this.statusLabels[atualizado.statusPesquisa] + '.' });
+        },
+        error: err => {
+          modelo.statusUpdating = false;
+          this.messageService.add({ severity: 'error', summary: 'Transição não realizada',
+            detail: err.status === 403 ? 'Perfil não autorizado.'
+              : 'Verifique o estado da pesquisa e se existem perguntas cadastradas.' });
+        },
+      });
+    };
+    if (action !== 'encerrar') { executar(); return; }
+    this.confirmationService.confirm({
+      title: 'Encerrar pesquisa',
+      message: 'A pesquisa será encerrada definitivamente. As respostas ficam preservadas e uma pesquisa encerrada não pode ser reaberta.',
+      confirmText: 'Encerrar pesquisa', cancelText: 'Cancelar', type: 'danger', icon: 'warning'
+    }).subscribe(confirmed => { if (confirmed) executar(); });
   }
 
   removerModelo(modelo: ModeloQuestionamento): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     this.confirmationService.confirm({
       title: 'Excluir Questionário',
-      message: `Tem certeza que deseja excluir o questionário <span class="font-semibold text-slate-900">${modelo.titulo}</span> e todos os seus itens?`,
+      message: 'Tem certeza que deseja excluir este questionário e todos os seus itens? Esta ação não pode ser desfeita.',
       confirmText: 'Excluir Todo Questionário',
       cancelText: 'Cancelar',
       type: 'danger',
@@ -339,6 +403,11 @@ export class Questionamento implements OnInit {
   }
 
   incluirModelo(): void {
+    if (!this.canManageResearch) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito',
+        detail: 'Seu perfil pode consultar, mas não gerenciar pesquisas.' });
+      return;
+    }
     const ref = this.dialogService.open(QuestionamentoModeloDialog, {
       header: 'Novo Questionário',
       width: '450px',

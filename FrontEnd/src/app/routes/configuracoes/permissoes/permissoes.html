@@ -9,13 +9,19 @@
       </div>
       <button (click)="abrirCadastro()"
         class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
-        <span class="material-icons text-base">add</span>
-        Nova Função
+        <i class="ti ti-plus" aria-hidden="true"></i>
+        Novo Perfil
       </button>
     </div>
   </div>
 
   <div class="px-6 py-6 space-y-6">
+    <div class="flex flex-wrap gap-3 items-center">
+      <label for="perfil-busca" class="text-sm font-medium">Buscar</label>
+      <input id="perfil-busca" [(ngModel)]="busca" (keyup.enter)="filtrar()" class="border rounded-lg px-3 py-2" placeholder="Nome ou descrição" />
+      <select [(ngModel)]="filtroAtivo" (change)="filtrar()" aria-label="Filtrar situação" class="border rounded-lg px-3 py-2"><option value="">Todos</option><option value="true">Ativos</option><option value="false">Inativos</option></select>
+      <button type="button" (click)="filtrar()" class="border rounded-lg px-3 py-2">Buscar</button>
+    </div>
 
     <!-- Funcoes list -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -29,18 +35,23 @@
             <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Função</th>
             <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Descrição</th>
 
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Usuários</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Acessos</th>
             <th class="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Status</th>
             <th class="text-right px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide">Ações</th>
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="loading"><td colspan="6" class="px-4 py-8 text-center">Carregando perfis...</td></tr>
+          <tr *ngIf="loadError && !loading"><td colspan="6" class="px-4 py-8 text-center" role="alert">{{ loadError }} <button type="button" class="underline ml-2" (click)="carregar()">Tentar novamente</button></td></tr>
           <tr *ngFor="let f of funcoes" class="border-b border-slate-100 hover:bg-slate-50/50">
             <td class="px-4 py-3">
               <div class="font-semibold text-slate-900">{{ f.nome }}</div>
               <div *ngIf="f.sistema" class="text-xs text-amber-600 font-medium">Sistema</div>
             </td>
             <td class="px-4 py-3 text-slate-600 text-xs">{{ f.descricao || '—' }}</td>
-
+            <td class="px-4 py-3">{{ f.usuariosVinculados }}</td>
+            <td class="px-4 py-3 text-xs">{{ f.permissoes.length }} capabilities</td>
             <td class="px-4 py-3">
               <span [class]="f.ativo
                 ? 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700'
@@ -53,14 +64,14 @@
                 <button (click)="abrirCadastro(f)" title="Editar" class="w-8 h-8 flex items-center justify-center rounded text-blue-600 hover:bg-blue-50 transition-colors">
                   <span class="material-icons text-sm">edit</span>
                 </button>
-                <button *ngIf="!f.sistema" (click)="excluirFuncao(f.id)" title="Excluir" class="w-8 h-8 flex items-center justify-center rounded text-red-600 hover:bg-red-50 transition-colors">
-                  <span class="material-icons text-sm">delete</span>
+                <button *ngIf="!f.sistema && f.ativo" [disabled]="deletingId !== null" [attr.aria-label]="'Inativar perfil ' + f.nome" (click)="excluirFuncao(f.id)" title="Inativar" class="w-8 h-8 flex items-center justify-center rounded text-red-600 hover:bg-red-50 transition-colors">
+                  <i class="ti ti-user-off" aria-hidden="true"></i>
                 </button>
               </div>
             </td>
           </tr>
-          <tr *ngIf="funcoes.length === 0">
-            <td colspan="4" class="px-4 py-12 text-center text-sm text-slate-500">
+          <tr *ngIf="!loading && !loadError && funcoes.length === 0">
+            <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500">
               <span class="material-icons text-4xl text-slate-300 block mb-2">manage_accounts</span>
               Nenhuma função cadastrada.
             </td>
@@ -68,6 +79,12 @@
         </tbody>
       </table>
     </div>
+
+    <nav *ngIf="totalPaginas > 1" aria-label="Paginação" class="flex justify-end gap-3 items-center">
+      <button type="button" class="border rounded px-3 py-2" [disabled]="pagina === 0" (click)="mudarPagina(-1)">Anterior</button>
+      <span>Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
+      <button type="button" class="border rounded px-3 py-2" [disabled]="pagina + 1 >= totalPaginas" (click)="mudarPagina(1)">Próxima</button>
+    </nav>
 
 
 

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, defer } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../environments/environment';
@@ -26,22 +26,27 @@ export class OrdemServicoService {
   private readonly catalogServUrl = `${environment.baseUrl}/v1/servicos`;
 
   private getTenantId(): number {
-    let tenantId = this.storage.has('tenantId') ? (this.storage.get('tenantId') as string | number) : '1';
-    if (!tenantId || typeof tenantId === 'object') tenantId = '1';
-    return Number(tenantId);
+    const stored = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
+    const tenantId = typeof stored === 'string' || typeof stored === 'number' ? Number(stored) : NaN;
+    if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
+      throw new Error('Empresa autenticada ausente. Entre novamente para acessar ordens de serviço.');
+    }
+    return tenantId;
   }
 
   // ========== ORDEM DE SERVIÇO ==========
   list(params?: { page?: number; size?: number; sort?: string; search?: string; tipo?: string; dataTipo?: string; de?: string; ate?: string; status?: string }): Observable<Page<OrdemServicoResponse>> {
-    const empresaId = this.getTenantId();
-    let httpParams = new HttpParams();
-    Object.entries(params || {}).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && `${v}` !== '') {
-        httpParams = httpParams.set(k, String(v));
-      }
-    });
-    return this.http.get<Page<OrdemServicoResponse>>(`${this.base}/empresa/${empresaId}`, {
-      params: httpParams,
+    return defer(() => {
+      const empresaId = this.getTenantId();
+      let httpParams = new HttpParams();
+      Object.entries(params || {}).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && `${v}` !== '') {
+          httpParams = httpParams.set(k, String(v));
+        }
+      });
+      return this.http.get<Page<OrdemServicoResponse>>(`${this.base}/empresa/${empresaId}`, {
+        params: httpParams,
+      });
     });
   }
 
@@ -50,25 +55,31 @@ export class OrdemServicoService {
   }
 
   create(dto: Omit<OrdemServicoRequest, 'empresaId'>): Observable<OrdemServicoResponse> {
-    const tenantId = this.getTenantId();
-    const body: OrdemServicoRequest = { ...dto, empresaId: tenantId };
-    return this.http.post<OrdemServicoResponse>(this.base, body);
+    return defer(() => {
+      const tenantId = this.getTenantId();
+      const body: OrdemServicoRequest = { ...dto, empresaId: tenantId };
+      return this.http.post<OrdemServicoResponse>(this.base, body);
+    });
   }
 
   createVendaBalcao(dto: { ordemServico: any, produtos: any[] }): Observable<OrdemServicoResponse> {
-    const tenantId = this.getTenantId();
-    const body = {
-      ordemServico: { ...dto.ordemServico, empresaId: tenantId },
-      produtos: dto.produtos
-    };
-    return this.http.post<OrdemServicoResponse>(`${this.base}/venda-balcao`, body);
+    return defer(() => {
+      const tenantId = this.getTenantId();
+      const body = {
+        ordemServico: { ...dto.ordemServico, empresaId: tenantId },
+        produtos: dto.produtos
+      };
+      return this.http.post<OrdemServicoResponse>(`${this.base}/venda-balcao`, body);
+    });
   }
 
 
   update(id: number | string, dto: Omit<OrdemServicoRequest, 'empresaId'>): Observable<OrdemServicoResponse> {
-    const tenantId = this.getTenantId();
-    const body: OrdemServicoRequest = { ...dto, empresaId: tenantId };
-    return this.http.put<OrdemServicoResponse>(`${this.base}/${id}`, body);
+    return defer(() => {
+      const tenantId = this.getTenantId();
+      const body: OrdemServicoRequest = { ...dto, empresaId: tenantId };
+      return this.http.put<OrdemServicoResponse>(`${this.base}/${id}`, body);
+    });
   }
 
   delete(id: number | string): Observable<void> {

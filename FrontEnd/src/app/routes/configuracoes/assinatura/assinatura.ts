@@ -57,36 +57,33 @@ export class AssinaturaComponent implements OnInit {
       id: 'basic',
       nome: 'NeriTech Pro',
       preco: '79,90',
-      descricao: 'A gestão essencial para sua oficina que busca performance e organização.',
+      descricao: 'Ordens de serviço, estoque e financeiro organizados em um só lugar.',
       destaque: true,
       productId: 'prod_Uni268aevR5Yvy',
-      badge: '🎉 SUPER PROMOÇÃO',
-      promoInfo: 'Promoção por tempo limitado: os próximos 50 assinantes ganham 6 meses GRÁTIS! E depois, mais 6 meses pagando apenas a metade do valor (R$ 39,95/mês).',
-      buttonLabel: 'Aproveitar Promoção',
+      buttonLabel: 'Assinar NeriTech Pro',
       features: [
-        'Cadastros Ilimitados',
+        'Cadastro de clientes e veículos',
         'Ordens de Serviço e PDV',
         'Financeiro Operacional',
         'Estoque e Insumos',
         'Relatórios Gerenciais',
         'Dashboards Iniciais',
-        '❌ Sem Emissão de Notas Fiscais'
+        'Histórico de atendimentos'
       ]
     },
     {
       id: 'pro',
       nome: 'NeriTech Ultra',
       preco: 'Sob Consulta',
-      descricao: 'O nível máximo de controle com inteligência de dados, gestão fiscal e emissão de notas.',
+      descricao: 'Recursos fiscais para oficinas que precisam emitir documentos.',
       destaque: false,
       productId: 'pro_consult',
       buttonLabel: 'Falar com Consultor',
       features: [
         'Tudo do NeriTech Pro',
-        'Emissão de Notas Fiscais ilimitadas (NF-e, NFS-e e NFC-e)',
-        'SAT/MF-e e Importação de XML automática',
-        'Módulo Fiscal Avançado (DRE completo)',
-        'Suporte especializado em Configuração Fiscal',
+        'Emissão fiscal conforme configuração da empresa',
+        'Recursos para NF-e e NFS-e',
+        'Relatórios fiscais e gerenciais',
         'Portal do Cliente e Auditoria de Acesso',
       ]
     }

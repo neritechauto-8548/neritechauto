@@ -14,6 +14,7 @@ public interface QuestionarioMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "statusPesquisa", ignore = true)
     Questionario toEntity(QuestionarioRequest request);
 
     QuestionarioResponse toResponse(Questionario entity);
@@ -22,5 +23,6 @@ public interface QuestionarioMapper {
     @Mapping(target = "dataCadastro", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     @Mapping(target = "versao", ignore = true)
+    @Mapping(target = "statusPesquisa", ignore = true)
     void updateEntityFromRequest(QuestionarioRequest request, @MappingTarget Questionario entity);
 }

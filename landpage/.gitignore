@@ -4,8 +4,9 @@ node_modules/
 .pnp.js
 
 # Build
-dist/
-dist-ssr/
+.next/
+out/
+*.tsbuildinfo
 *.local
 
 # Logs
@@ -34,5 +35,3 @@ Thumbs.db
 .env.local
 .env.*.local
 
-# Cache Vite
-.vite/

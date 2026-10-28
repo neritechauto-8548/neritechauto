@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.NonNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
@@ -18,6 +19,7 @@ import java.util.List;
  * ConfiguraÃ§Ã£o para registrar o interceptor de tenant e configurar o filtro Hibernate
  */
 @Configuration
+@ConditionalOnProperty(prefix = "neritech.tenancy.web", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TenantFilterConfiguration implements WebMvcConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(TenantFilterConfiguration.class);
@@ -60,8 +62,8 @@ public class TenantFilterConfiguration implements WebMvcConfigurer {
     public void addArgumentResolvers(@NonNull List<HandlerMethodArgumentResolver> argumentResolvers) {
         log.info("=== CONFIGURING PAGEABLE RESOLVER ===");
         PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver();
-        resolver.setOneIndexedParameters(true); // PÃ¡ginas comeÃ§am em 1 em vez de 0
-        resolver.setMaxPageSize(100); // Tamanho mÃ¡ximo de pÃ¡gina
+        resolver.setOneIndexedParameters(false); // API /v1/clientes usa page=0 para a primeira página
+        resolver.setMaxPageSize(1000); // Tamanho máximo de página (suporta dropdowns de entidades)
         argumentResolvers.add(resolver);
         log.info("=== PAGEABLE RESOLVER CONFIGURED SUCCESSFULLY ===");
     }

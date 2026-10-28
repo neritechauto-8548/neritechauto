@@ -24,6 +24,10 @@ public record VeiculoRequest(
                 @Size(max = 50, message = "O nÃºmero do motor deve ter no mÃ¡ximo 50 caracteres") String numeroMotor,
 
                 @Size(max = 50, message = "A cor externa deve ter no mÃ¡ximo 50 caracteres") String corExterna,
+                @Size(max = 30) String direcao,
+                @Size(max = 30) String cambio,
+                Boolean arCondicionado,
+                @jakarta.validation.constraints.Min(2) @jakarta.validation.constraints.Max(6) Integer portas,
 
                 Integer quilometragemAtual,
                 Integer quilometragemCadastro,

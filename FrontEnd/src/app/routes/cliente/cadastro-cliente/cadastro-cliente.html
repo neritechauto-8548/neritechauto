@@ -1,51 +1,71 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
-
-  <!-- Action Bar (Sticky Top) -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm backdrop-blur-sm">
-      <div class="flex items-center gap-4">
-          <button (click)="voltar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
-              <i class="pi pi-arrow-left text-sm"></i>
-          </button>
-          <div>
-              <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ pageTitle }}</h1>
-              <span class="text-xs text-slate-500 font-normal">{{ isEditMode ? 'Editando registro' : 'Novo registro' }}</span>
-          </div>
+<main class="nt-client-form-page">
+  <header class="nt-client-form-header">
+    <div class="nt-client-form-title-group">
+      @if (!modalMode) { <button type="button" (click)="voltar()" class="nt-client-form-back" aria-label="Voltar para lista de clientes" title="Voltar para Clientes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6M9 12h12"></path></svg>
+      </button> }
+      <div>
+        <span class="nt-client-form-eyebrow">Relacionamento / Clientes</span>
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ isEditMode ? 'Atualize os dados e mantenha o histórico do cliente.' : 'Cadastre um novo cliente para iniciar um atendimento.' }}</p>
+        @if (isUxPreview) {
+          <span class="nt-client-form-preview" role="status"><span aria-hidden="true"></span> Homologação · dados demonstrativos</span>
+        }
       </div>
-
-      <div class="flex gap-3 items-center">
-          @if (savedClienteId) {
-              <button (click)="excluirCliente()" class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-                 <i class="pi pi-trash text-[13px]"></i> Excluir
-              </button>
-              <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-          }
-          <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
-              Cancelar
-          </button>
-          <button (click)="salvar()" class="px-3.5 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5">
-              <i class="pi pi-check text-xs"></i> Salvar
-          </button>
-      </div>
-  </div>
-
-  <div class="p-6 w-full space-y-8">
-
-    <!-- Tabs as Pill Navigation -->
-    <div class="flex justify-center">
-        <div class="bg-slate-100 p-1 rounded-lg inline-flex border border-slate-200">
-            @for (tab of tabs; track tab.label; let i = $index) {
-                <button
-                    (click)="activeIndex = i"
-                    [class]="activeIndex === i ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-                    class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
-                    <i [class]="tab.icon"></i> {{ tab.label }}
-                </button>
-            }
-        </div>
     </div>
+    <div class="nt-client-form-actions">
+      @if (savedClienteId && !modalMode && canReadCommunication) {
+        <button type="button" class="nt-client-form-secondary" (click)="abrirComunicacoesCliente()">
+          Histórico de comunicação
+        </button>
+      }
+      @if (savedClienteId && !modalMode && canDeleteClient) {
+        <button type="button" class="nt-client-form-danger" [disabled]="isSaving" (click)="excluirCliente()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"></path></svg>
+          Excluir
+        </button>
+      }
+      <button type="button" class="nt-client-form-secondary" [disabled]="isSaving" (click)="cancelar()">Cancelar</button>
+      <button type="button" class="nt-client-form-save" [disabled]="isSaving || isLoadingClient || clientLoadError || !canSaveForm" [attr.aria-busy]="isSaving || isLoadingClient" (click)="salvar()">
+        @if (isSaving) {
+          <span class="nt-client-form-spinner" aria-hidden="true"></span> Salvando...
+        } @else {
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+          Salvar cliente
+        }
+      </button>
+    </div>
+  </header>
+
+  @if (isLoadingClient) {
+    <div class="nt-client-form-notice" role="status" aria-live="polite">Carregando dados do cliente…</div>
+  }
+  @if (clientLoadError) {
+    <div class="nt-client-form-notice nt-client-form-notice-error" role="alert">
+      <span>Não foi possível carregar este cliente. Nenhum dado será salvo para evitar sobrescrever informações.</span>
+      <button type="button" (click)="loadClienteData(savedClienteId!)">Tentar novamente</button>
+    </div>
+  }
+  @if (!canSaveForm && !clientLoadError && !isUxPreview) {
+    <div class="nt-client-form-notice nt-client-form-notice-error" role="status">Seu perfil pode consultar este cliente, mas não possui permissão para alterar os dados.</div>
+  }
+
+  @if (!clientLoadError) { <div class="nt-client-form-body">
+    <nav class="nt-client-form-tabs" role="tablist" aria-label="Seções do cadastro de cliente">
+      @for (tab of tabs; track tab.label; let i = $index) {
+        <button type="button" role="tab"
+          [attr.id]="'nt-client-form-tab-' + i"
+          [attr.aria-selected]="activeIndex === i"
+          [attr.aria-controls]="'nt-client-form-panel'"
+          [attr.tabindex]="activeIndex === i ? 0 : -1"
+          [class.active]="activeIndex === i"
+          (keydown)="onTabKeydown($event, i)"
+          (click)="activeIndex = i">{{ tab.label }}</button>
+      }
+    </nav>
 
     <!-- Content Area -->
-    <div class="grid grid-cols-1 gap-6 animate-fade-in-up">
+    <div id="nt-client-form-panel" role="tabpanel" [attr.aria-labelledby]="'nt-client-form-tab-' + activeIndex" class="grid grid-cols-1 gap-6 animate-fade-in-up">
 
         <!-- Tab 0: Dados Gerais -->
         @if (activeIndex === 0) {
@@ -114,6 +134,21 @@
                              }
                          </div>
 
+                         <!-- Dados complementares (PF) -->
+                         @if (model.tipoPessoa === 'Física') {
+                             <div class="col-span-12 md:col-span-6 space-y-1">
+                                  <label class="text-xs font-bold text-slate-700">Estado civil</label>
+                                  <p-select [options]="estadoCivilOptions" [(ngModel)]="model.estadoCivil" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." />
+                             </div>
+                             <div class="col-span-12 md:col-span-6 space-y-1">
+                                  <label class="text-xs font-bold text-slate-700">Profissão</label>
+                                  <input type="text" pInputText [(ngModel)]="model.profissao" class="w-full modern-input" placeholder="Ex: Mecânico" />
+                             </div>
+                         }
+                         @if (model.tipoPessoa === 'Física') {
+                             <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-rg" class="text-xs font-bold text-slate-700">RG</label><input id="cliente-rg" pInputText [(ngModel)]="model.rg" maxlength="30" class="w-full modern-input" /></div>
+                         }
+
                          <!-- Sexo (PF) -->
                          @if (model.tipoPessoa === 'Física') {
                              <div class="col-span-12 md:col-span-6 space-y-1">
@@ -127,7 +162,7 @@
                              <div class="col-span-12">
                                   <div class="grid grid-cols-12 gap-4">
                                        <div class="col-span-12 md:col-span-6 space-y-1">
-                                           <label class="text-xs font-bold text-slate-700">Inscr. Municipal</label>
+                                           <label class="text-xs font-bold text-slate-700">CCM / Inscrição municipal</label>
                                            <input type="text" pInputText [(ngModel)]="model.inscricaoMunicipal" class="w-full modern-input" />
                                        </div>
                                        <div class="col-span-12 md:col-span-6 space-y-1">
@@ -148,8 +183,17 @@
                     </div>
                     <div class="col-span-12 md:col-span-6 space-y-1">
                          <label class="text-xs font-bold text-slate-700">Status</label>
-                         <p-select [options]="situacoes" [(ngModel)]="model.situacao" appendTo="body" styleClass="w-full modern-select" />
+                         <p-select [options]="situacoes" [(ngModel)]="model.situacao" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" />
                     </div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-categoria" class="text-xs font-bold text-slate-700">Tipo</label><p-select inputId="cliente-categoria" [options]="categoriaOptions" [(ngModel)]="model.categoria" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-isencao" class="text-xs font-bold text-slate-700">Indicador de inscrição estadual</label><p-select inputId="cliente-isencao" [options]="indicadorIsencaoOptions" [(ngModel)]="model.indicadorIsencao" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" placeholder="Selecione..." /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-email-secundario" class="text-xs font-bold text-slate-700">E-mail secundário</label><input id="cliente-email-secundario" type="email" pInputText [(ngModel)]="model.emailSecundario" maxlength="100" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-outros-contatos" class="text-xs font-bold text-slate-700">Outros contatos</label><input id="cliente-outros-contatos" pInputText [(ngModel)]="model.outrosContatos" maxlength="255" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-noticias" class="text-xs font-bold text-slate-700">Enviar notícias</label><p-select inputId="cliente-noticias" [options]="noticiaOptions" [(ngModel)]="model.enviarNoticia" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full modern-select" /></div>
+                    <div class="col-span-12 md:col-span-6 space-y-1"><label for="cliente-classificacao" class="text-xs font-bold text-slate-700">Classificação (1 a 5)</label><input id="cliente-classificacao" type="number" min="1" max="5" pInputText [(ngModel)]="model.classificacao" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-4 space-y-1"><label for="cliente-limite-pecas" class="text-xs font-bold text-slate-700">Limite de desconto de peças (%)</label><input id="cliente-limite-pecas" type="number" min="0" max="100" step="0.01" pInputText [(ngModel)]="model.limiteDescontoPecas" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-4 space-y-1"><label for="cliente-limite-servicos" class="text-xs font-bold text-slate-700">Limite de desconto de serviços (%)</label><input id="cliente-limite-servicos" type="number" min="0" max="100" step="0.01" pInputText [(ngModel)]="model.limiteDescontoServicos" class="w-full modern-input" /></div>
+                    <div class="col-span-12 md:col-span-4 space-y-1"><label for="cliente-bloqueio" class="text-xs font-bold text-slate-700">Bloquear se atrasar (R$)</label><input id="cliente-bloqueio" type="number" min="0" step="0.01" pInputText [(ngModel)]="model.bloquearSeAtrasar" class="w-full modern-input" /></div>
                     <div class="col-span-12 space-y-1">
                          <label class="text-xs font-bold text-slate-700">Observações Internas</label>
                          <textarea pTextarea [(ngModel)]="model.observacao" rows="3" class="w-full modern-input" placeholder="Notas sobre o cliente..."></textarea>
@@ -207,6 +251,7 @@
                           <label class="text-xs font-bold text-slate-700">UF <span class="text-rose-500">*</span></label>
                           <input type="text" pInputText [(ngModel)]="model.estado" class="w-full modern-input" />
                       </div>
+                      <div class="col-span-12 md:col-span-3 space-y-1"><label for="cliente-pais" class="text-xs font-bold text-slate-700">País</label><input id="cliente-pais" pInputText [(ngModel)]="model.pais" maxlength="60" class="w-full modern-input" /></div>
                  </div>
             </div>
         }
@@ -253,12 +298,83 @@
              </div>
         }
 
+        @if (activeIndex === 3) {
+            <section class="nt-client-vehicles" aria-labelledby="nt-client-vehicles-title">
+                <header class="nt-client-vehicles-header">
+                    <div>
+                        <h2 id="nt-client-vehicles-title">Veículos vinculados</h2>
+                        <p>Consulte e cadastre os automóveis associados a este cliente.</p>
+                    </div>
+                    @if (!isUxPreview) { <button type="button" class="nt-client-vehicle-add" (click)="addVehicle()" [disabled]="!savedClienteId">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                        + Adicionar veículo
+                    </button> }
+                </header>
+
+                @if (!savedClienteId) {
+                    <div class="nt-client-vehicle-state" role="status">Salve o cliente para vincular veículos.</div>
+                } @else if (veiculosLoading) {
+                    <div class="nt-client-vehicle-state" role="status" aria-live="polite">Carregando veículos…</div>
+                } @else if (veiculosError) {
+                    <div class="nt-client-vehicle-state nt-client-vehicle-error" role="alert">
+                        <span>Não foi possível carregar os veículos.</span>
+                        <button type="button" (click)="loadVeiculos(savedClienteId!)">Tentar novamente</button>
+                    </div>
+                } @else if (!veiculosList.length) {
+                    <div class="nt-client-vehicle-state">Nenhum veículo vinculado a este cliente.</div>
+                } @else {
+                    <div class="nt-client-vehicle-list">
+                        @for (vehicle of veiculosList; track vehicle.id) {
+                            <article class="nt-client-vehicle-card">
+                                <div class="nt-client-vehicle-details">
+                                    <div class="nt-client-vehicle-title">
+                                        <div>
+                                            <span class="nt-client-vehicle-plate">{{ vehicle.placa }}</span>
+                                            <h3>{{ vehicle.marcaNome || 'Marca não informada' }} {{ vehicle.modeloNome || '' }}</h3>
+                                            <p>{{ vehicle.anoModelo || vehicle.anoFabricacao || 'Ano não informado' }} <span aria-hidden="true">·</span> {{ vehicle.corExterna || 'Cor não informada' }}</p>
+                                        </div>
+                                        <span class="nt-client-vehicle-status" [class.is-inactive]="vehicle.status !== 'ATIVO'">{{ vehicle.status || 'Status não informado' }}</span>
+                                    </div>
+                                    <dl class="nt-client-vehicle-specs">
+                                        <div><dt>Combustível</dt><dd>{{ vehicle.combustivelNome || '—' }}</dd></div>
+                                        <div><dt>Quilometragem</dt><dd>{{ vehicle.quilometragemAtual != null ? (vehicle.quilometragemAtual | number) + ' km' : '—' }}</dd></div>
+                                        <div><dt>Chassi</dt><dd>{{ vehicle.chassi || '—' }}</dd></div>
+                                        <div><dt>RENAVAM</dt><dd>{{ vehicle.renavam || '—' }}</dd></div>
+                                        <div><dt>Motor</dt><dd>{{ vehicle.numeroMotor || '—' }}</dd></div>
+                                    </dl>
+                                    @if (!isUxPreview) { <button type="button" class="nt-client-vehicle-edit" (click)="openVehicle(vehicle)">Abrir cadastro do veículo</button> }
+                                </div>
+                                <div class="nt-client-vehicle-visual">
+                                    @if (vehicle.modeloImagemUrl && !vehicleImageFailures.has(vehicle.id)) {
+                                        <img [src]="vehicle.modeloImagemUrl" [alt]="'Imagem do modelo ' + vehicle.marcaNome + ' ' + vehicle.modeloNome" (error)="vehicleImageFailures.add(vehicle.id)" />
+                                    } @else {
+                                    <div class="nt-client-vehicle-placeholder" role="img" [attr.aria-label]="'Ilustração neutra de automóvel para ' + vehicle.placa">
+                                        <span class="nt-client-vehicle-brand">NERITECH AUTO</span>
+                                        <svg viewBox="0 0 320 180" aria-hidden="true">
+                                            <path class="car-shadow" d="M45 132h230l-18 15H63z" />
+                                            <path class="car-body" d="m62 113 16-37c5-12 16-19 30-21l38-6 28 1 40 7c12 2 21 9 27 20l17 36c7 3 12 9 12 17v13H48v-13c0-8 5-14 14-17Z" />
+                                            <path class="car-window" d="m96 77 13-10 37-6v38H81zM154 61l34 1 37 7 14 30h-85z" />
+                                            <circle class="car-wheel" cx="99" cy="132" r="20"/><circle class="car-wheel-inner" cx="99" cy="132" r="8"/>
+                                            <circle class="car-wheel" cx="232" cy="132" r="20"/><circle class="car-wheel-inner" cx="232" cy="132" r="8"/>
+                                            <path class="car-light" d="m52 113 16-6M267 108l12 5" />
+                                        </svg>
+                                        <span>Foto não cadastrada</span>
+                                    </div>
+                                    }
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        }
+
     </div>
-  </div>
-</div>
+  </div> }
+</main>
 
 <!-- Simple clean dialog for contacts -->
-<p-dialog [(visible)]="showContatoDialog" [modal]="true" [style]="{width: '400px'}" header="Novo Contato" styleClass="modern-dialog">
+<p-dialog [(visible)]="showContatoDialog" [modal]="true" [style]="{width: '400px'}" [header]="contatoDialogTitle" styleClass="modern-dialog">
     <div class="space-y-4 pt-2">
         <div class="space-y-1">
             <label class="text-xs font-bold text-slate-700">Tipo</label>
@@ -286,6 +402,48 @@
     </div>
     <div class="flex justify-end gap-2 mt-6">
         <button (click)="showContatoDialog = false" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-100 text-sm font-bold">Cancelar</button>
-        <button (click)="salvarContatoLista()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-bold">Adicionar</button>
+        <button (click)="salvarContatoLista()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-bold">{{ contatoEditIndex !== null ? 'Salvar alterações' : 'Adicionar' }}</button>
+    </div>
+</p-dialog>
+
+<p-dialog [(visible)]="showVeiculoDialog" [modal]="true" [closable]="!isSavingVehicle" [closeOnEscape]="!isSavingVehicle" [style]="{width: '440px', maxWidth: 'calc(100vw - 32px)'}" header="Adicionar veículo" styleClass="modern-dialog">
+    <div class="nt-quick-vehicle-form">
+        <p>Cadastro rápido vinculado a este cliente. Para os demais dados, abra o cadastro completo após adicionar.</p>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-plate">Placa *</label>
+            <input id="nt-quick-vehicle-plate" pInputText [(ngModel)]="veiculoModel.placa" maxlength="10" autocomplete="off" placeholder="ABC1D23" class="w-full modern-input" />
+        </div>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-brand">Marca *</label>
+            <p-select inputId="nt-quick-vehicle-brand" [options]="marcasOptions" [(ngModel)]="veiculoModel.marcaId" (onChange)="onMarcaChange()" optionLabel="nome" optionValue="id" placeholder="Selecione a marca" styleClass="w-full modern-select" />
+        </div>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-model">Modelo *</label>
+            <p-select inputId="nt-quick-vehicle-model" [options]="modelosOptions" [(ngModel)]="veiculoModel.modeloId" (onChange)="onModeloChange()" optionLabel="nome" optionValue="id" [disabled]="!veiculoModel.marcaId" placeholder="Selecione o modelo" styleClass="w-full modern-select" />
+        </div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-year">Ano de fabricação / ano modelo</label><p-select inputId="nt-quick-vehicle-year" [options]="anoModeloSelectOptions" [(ngModel)]="veiculoModel.anoModeloId" optionLabel="label" optionValue="value" [disabled]="!veiculoModel.modeloId" placeholder="Selecione o ano" styleClass="w-full modern-select" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-fuel">Combustível</label><p-select inputId="nt-quick-vehicle-fuel" [options]="combustiveisOptions" [(ngModel)]="veiculoModel.combustivelId" optionLabel="nome" optionValue="id" placeholder="Selecione o combustível" styleClass="w-full modern-select" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-engine">Motor</label><input id="nt-quick-vehicle-engine" pInputText [(ngModel)]="veiculoModel.numeroMotor" maxlength="50" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-chassis">Chassi</label><input id="nt-quick-vehicle-chassis" pInputText [(ngModel)]="veiculoModel.chassi" maxlength="17" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-renavam">RENAVAM</label><input id="nt-quick-vehicle-renavam" pInputText [(ngModel)]="veiculoModel.renavam" maxlength="11" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-steering">Direção</label><select id="nt-quick-vehicle-steering" [(ngModel)]="veiculoModel.direcao" class="w-full modern-input"><option [ngValue]="undefined">Selecione</option><option value="HIDRAULICA">Hidráulica</option><option value="ELETRICA">Elétrica</option><option value="ELETRO_HIDRAULICA">Eletro-hidráulica</option><option value="MECANICA">Mecânica</option></select></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-gearbox">Câmbio</label><select id="nt-quick-vehicle-gearbox" [(ngModel)]="veiculoModel.cambio" class="w-full modern-input"><option [ngValue]="undefined">Selecione</option><option value="MANUAL">Manual</option><option value="AUTOMATICO">Automático</option><option value="AUTOMATIZADO">Automatizado</option><option value="CVT">CVT</option></select></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-ac">Ar condicionado</label><select id="nt-quick-vehicle-ac" [(ngModel)]="veiculoModel.arCondicionado" class="w-full modern-input"><option [ngValue]="undefined">Selecione</option><option [ngValue]="true">Sim</option><option [ngValue]="false">Não</option></select></div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-doors">Portas</label><input id="nt-quick-vehicle-doors" type="number" min="2" max="6" pInputText [(ngModel)]="veiculoModel.portas" class="w-full modern-input" /></div>
+        <div class="nt-quick-vehicle-field">
+            <label for="nt-quick-vehicle-color">Cor</label>
+            <input id="nt-quick-vehicle-color" pInputText [(ngModel)]="veiculoModel.corExterna" maxlength="50" placeholder="Opcional" class="w-full modern-input" />
+        </div>
+        <div class="nt-quick-vehicle-field"><label for="nt-quick-vehicle-notes">Observações</label><textarea id="nt-quick-vehicle-notes" pTextarea [(ngModel)]="veiculoModel.observacoes" rows="2" class="w-full modern-input"></textarea></div>
+        @if (selectedModeloImage && !vehiclePreviewFailed) {
+            <div class="nt-quick-vehicle-preview"><img [src]="selectedModeloImage" [alt]="'Imagem do modelo selecionado'" (error)="vehiclePreviewFailed = true" /></div>
+        } @else if (veiculoModel.modeloId) {
+            <p class="nt-quick-vehicle-no-image">Foto não cadastrada para este modelo.</p>
+        }
+        @if (vehicleFormError) { <p class="nt-quick-vehicle-error" role="alert">{{ vehicleFormError }}</p> }
+        <div class="nt-quick-vehicle-actions">
+            <button type="button" (click)="showVeiculoDialog = false" [disabled]="isSavingVehicle">Cancelar</button>
+            <button type="button" (click)="salvarVeiculo()" [disabled]="isSavingVehicle">{{ isSavingVehicle ? 'Salvando…' : 'Adicionar' }}</button>
+        </div>
     </div>
 </p-dialog>

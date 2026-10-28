@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.neritech.saas.cliente.domain.ContatoCliente;
 import com.neritech.saas.cliente.dto.ContatoClienteRequest;
@@ -29,6 +30,7 @@ public class ContatoClienteController {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('GERAL_USUARIO','CLIENTE_CRIAR','CLIENTE_EDITAR')")
     @GetMapping
     @Operation(summary = "Listar contatos do cliente")
     public Page<ContatoClienteResponse> listar(@PathVariable Long clienteId, Pageable pageable) {
@@ -36,6 +38,7 @@ public class ContatoClienteController {
         return page.map(ContatoClienteMapper::toResponse);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('GERAL_USUARIO','CLIENTE_CRIAR','CLIENTE_EDITAR')")
     @GetMapping("/{id}")
     @Operation(summary = "Buscar contato por ID")
     public ContatoClienteResponse buscar(@PathVariable Long clienteId, @PathVariable Long id) {
@@ -46,6 +49,7 @@ public class ContatoClienteController {
         return ContatoClienteMapper.toResponse(contato);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAnyAuthority('CLIENTE_CRIAR','CLIENTE_EDITAR')")
     @PostMapping
     @Operation(summary = "Criar contato para cliente")
     public ResponseEntity<ContatoClienteResponse> criar(@PathVariable Long clienteId,
@@ -54,18 +58,22 @@ public class ContatoClienteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ContatoClienteMapper.toResponse(criado));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_EDITAR')")
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar contato do cliente")
     public ContatoClienteResponse atualizar(@PathVariable Long clienteId,
             @PathVariable Long id,
             @Valid @RequestBody ContatoClienteRequest request) {
-        ContatoCliente atualizado = service.atualizar(id, request);
-        if (!atualizado.getCliente().getId().equals(clienteId)) {
-            throw new IllegalArgumentException("Contato nÃ£o pertence ao cliente informado");
+        // Validar o vínculo ANTES de mutar o contato. A validação posterior
+        // permitiria alterar o contato de outro cliente da mesma empresa.
+        ContatoCliente existente = service.buscarPorId(id);
+        if (existente.getCliente() == null || !existente.getCliente().getId().equals(clienteId)) {
+            throw new IllegalArgumentException("Contato não pertence ao cliente informado");
         }
-        return ContatoClienteMapper.toResponse(atualizado);
+        return ContatoClienteMapper.toResponse(service.atualizar(id, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('CLIENTE_EDITAR')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Remover contato do cliente")

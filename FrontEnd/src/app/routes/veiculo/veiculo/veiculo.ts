@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
@@ -35,6 +35,7 @@ import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
 })
 export class Veiculo implements OnInit {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly veiculoService = inject(VeiculoService);
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
@@ -70,7 +71,9 @@ export class Veiculo implements OnInit {
   }
 
   ngOnInit() {
-    this.loadVehicles();
+    const clienteIdParam = this.route.snapshot.queryParamMap.get('clienteId');
+    const clienteId = clienteIdParam ? Number(clienteIdParam) : null;
+    this.loadVehicles(Number.isFinite(clienteId) ? clienteId! : undefined);
   }
 
   loadVehicles(clienteId?: number) {

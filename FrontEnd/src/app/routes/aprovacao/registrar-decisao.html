@@ -1,0 +1,57 @@
+<main class="decision-page" aria-labelledby="decision-title">
+  <page-header canonical hideBreadcrumb title="Registrar decisão recebida" titleId="decision-title" eyebrow="Aprovações" description="Documente um retorno feito fora do portal sem assinar, decidir ou alterar o orçamento em nome do cliente.">
+    <a pageHeaderActions class="nt-button nt-button--secondary" routerLink="/aprovacoes"><nt-icon name="arrow-left" [size]="16" />Voltar à central</a>
+  </page-header>
+
+  <div class="decision-layout">
+    <form class="decision-form" (ngSubmit)="revisar()">
+      <section class="form-section" aria-labelledby="context-title">
+        <header><span class="section-icon"><nt-icon name="file-invoice" [size]="20" /></span><div><span>Etapa 1</span><h2 id="context-title">Versão comercial</h2><p>A decisão sempre pertence à versão atual e ao escopo congelado pelo servidor.</p></div></header>
+        <div class="form-grid">
+          <label class="field field--8"><span>Orçamento <b>*</b></span><input [(ngModel)]="orcamento" name="orcamento" placeholder="Buscar número, cliente ou placa" />@if(tentouRevisar&&!orcamento.trim()){<small class="error">Selecione um orçamento autorizado.</small>}</label>
+          <label class="field field--4"><span>Versão atual <b>*</b></span><input [(ngModel)]="versao" name="versao" placeholder="Ex.: v3" />@if(tentouRevisar&&!versao.trim()){<small class="error">Confirme a versão atual.</small>}</label>
+        </div>
+        <div class="version-note"><nt-icon name="shield-check" [size]="18" /><span>Uma nova versão ou decisão concorrente exigirá revisão antes da confirmação.</span></div>
+      </section>
+
+      <section class="form-section" aria-labelledby="evidence-title">
+        <header><span class="section-icon"><nt-icon name="mail" [size]="20" /></span><div><span>Etapa 2</span><h2 id="evidence-title">Origem e evidência</h2><p>Identifique como, quando e por quem o retorno foi recebido.</p></div></header>
+        <div class="form-grid">
+          <label class="field field--4"><span>Método <b>*</b></span><select [(ngModel)]="metodo" name="metodo"><option value="TELEFONE">Telefone</option><option value="PRESENCIAL">Presencial</option><option value="WHATSAPP">WhatsApp</option><option value="EMAIL">E-mail</option></select></label>
+          <label class="field field--4"><span>Recebido em <b>*</b></span><input [(ngModel)]="recebidoEm" name="recebidoEm" type="datetime-local" />@if(tentouRevisar&&!recebidoEm){<small class="error">Informe data e hora.</small>}</label>
+          <label class="field field--4"><span>Contato que decidiu <b>*</b></span><input [(ngModel)]="contato" name="contato" placeholder="Selecionar contato cadastrado" />@if(tentouRevisar&&!contato.trim()){<small class="error">Identifique o contato.</small>}</label>
+          <label class="field field--12"><span>Referência da evidência</span><input [(ngModel)]="evidencia" name="evidencia" placeholder="Protocolo, canal ou anexo autorizado — sem copiar dados sensíveis desnecessários" /></label>
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="scope-title">
+        <header><span class="section-icon"><nt-icon name="clipboard-list" [size]="20" /></span><div><span>Etapa 3</span><h2 id="scope-title">Decisão por item</h2><p>Itens não mencionados permanecem pendentes; aprovação parcial nunca infere recusa.</p></div></header>
+        @if (contextoSelecionado) {
+          <nt-data-view-state kind="info" icon="database" title="Itens aguardando snapshot da versão" description="Serviços, peças, grupos dependentes e totais serão carregados pela API da versão selecionada. A decisão só será habilitada com snapshot íntegro." />
+        } @else {
+          <nt-data-view-state kind="empty" icon="search" title="Selecione orçamento e versão" description="O escopo comercial aparecerá aqui para aprovação, recusa ou manutenção como pendente item a item." />
+        }
+      </section>
+
+      <section class="form-section" aria-labelledby="confirmation-title">
+        <header><span class="section-icon"><nt-icon name="clipboard-check" [size]="20" /></span><div><span>Etapa 4</span><h2 id="confirmation-title">Registro e próxima ação</h2><p>Resuma apenas o necessário e organize o follow-up sem alterar a decisão.</p></div></header>
+        <div class="form-grid">
+          <label class="field field--12"><span>Resumo interno <b>*</b></span><textarea [(ngModel)]="resumo" name="resumo" rows="4" maxlength="600" placeholder="Ex.: cliente confirmou o retorno por ligação recebida"></textarea><small [class.error]="tentouRevisar&&!resumo.trim()">@if(tentouRevisar&&!resumo.trim()){Informe um resumo objetivo. }{{ resumo.length }}/600 caracteres</small></label>
+          <label class="field field--6"><span>Próximo retorno</span><input [(ngModel)]="proximoRetorno" name="proximoRetorno" type="datetime-local" /></label>
+          <label class="field field--6"><span>Responsável pelo follow-up</span><input [(ngModel)]="responsavel" name="responsavel" placeholder="Buscar usuário autorizado" /></label>
+        </div>
+        <label class="attestation"><input [(ngModel)]="atestacao" name="atestacao" type="checkbox" /><span><strong>Confirmo que estou registrando uma decisão recebida do contato identificado.</strong><small>Este registro não cria assinatura digital nem autoriza agir em nome do cliente.</small></span></label>
+        @if(tentouRevisar&&!atestacao){<p class="error error--block">A confirmação de responsabilidade é obrigatória.</p>}
+      </section>
+
+      <div class="command-note" role="status"><nt-icon name="info-circle" [size]="20" /><div><strong>Confirmação ainda indisponível</strong><p>O comando final depende do snapshot da versão, da revisão de decisão e da API idempotente com tratamento de conflito.</p></div></div>
+      <footer><a class="nt-button nt-button--secondary" routerLink="/aprovacoes">Cancelar</a><button type="submit" class="nt-button nt-button--secondary">Revisar campos</button><button type="button" class="nt-button nt-button--primary" disabled>Confirmar decisão</button></footer>
+    </form>
+
+    <aside class="decision-summary" aria-label="Resumo do registro">
+      <span>Resumo do registro</span><h2>{{ texto(orcamento) }}</h2><p>{{ texto(versao) }}</p>
+      <dl><div><dt>Método</dt><dd>{{ metodo }}</dd></div><div><dt>Contato</dt><dd>{{ texto(contato) }}</dd></div><div><dt>Recebido em</dt><dd>{{ recebidoEm || 'Não informado' }}</dd></div><div><dt>Escopo decidido</dt><dd>Aguardando itens</dd></div><div><dt>Follow-up</dt><dd>{{ proximoRetorno || 'Não agendado' }}</dd></div></dl>
+      <div class="summary-rule"><nt-icon name="lock" [size]="18" /><span>O backend validará versão, revisão, permissão e escopo no momento da confirmação.</span></div>
+    </aside>
+  </div>
+</main>

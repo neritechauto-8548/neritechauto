@@ -1,0 +1,11 @@
+ALTER TABLE cliente
+    ADD COLUMN IF NOT EXISTS rg VARCHAR(30),
+    ADD COLUMN IF NOT EXISTS categoria VARCHAR(60),
+    ADD COLUMN IF NOT EXISTS indicador_isencao VARCHAR(40),
+    ADD COLUMN IF NOT EXISTS email_secundario VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS outros_contatos VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS enviar_noticia BOOLEAN,
+    ADD COLUMN IF NOT EXISTS classificacao INTEGER,
+    ADD COLUMN IF NOT EXISTS limite_desconto_pecas NUMERIC(12,2),
+    ADD COLUMN IF NOT EXISTS limite_desconto_servicos NUMERIC(12,2),
+    ADD COLUMN IF NOT EXISTS bloquear_se_atrasar NUMERIC(12,2);

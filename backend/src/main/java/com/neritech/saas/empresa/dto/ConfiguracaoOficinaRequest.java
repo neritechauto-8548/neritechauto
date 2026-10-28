@@ -24,6 +24,7 @@ public record ConfiguracaoOficinaRequest(
         String formatoData,
         String formatoHora,
         String timezone,
+        @Pattern(regexp = "light|dark|auto", message = "Tema inválido") String corTema,
         Boolean possuiIntervalo,
         LocalTime inicioIntervalo,
         LocalTime fimIntervalo,

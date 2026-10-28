@@ -1,34 +1,43 @@
 @if (showHeader) {
-  <div class="matero-sidebar-header">
-    <p-toolbar [styleClass]="(settings.options.menuThemeClass || '!bg-[var(--p-surface-0)] dark:!bg-[var(--p-surface-900)] !text-[var(--p-text-color)]') + ' !border-none !shadow-none !px-4 flex items-center w-full !rounded-none transition-colors duration-200'">
+  <header class="nt-sidebar-header">
+    <div class="nt-sidebar-brand">
       <app-branding [showName]="!toggleChecked" />
+    </div>
 
-      <span class="flex-fill"></span>
-
-      @if (showToggle) {
-        <p-button
-          icon="{{ toggleChecked ? 'pi pi-chevron-right' : 'pi pi-bars' }}"
-          [text]="true"
-          [rounded]="true"
-          severity="secondary"
-          (click)="toggleCollapsed.emit()"
-          [attr.aria-label]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
-          [matTooltip]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
-          matTooltipPosition="below"
-        ></p-button>
-      } @else {
-        <p-button
-          icon="pi pi-times"
-          [text]="true"
-          [rounded]="true"
-          severity="secondary"
-          (click)="closeSidenav.emit()"
-          matTooltip="Fechar"
-          matTooltipPosition="below"
-        ></p-button>
-      }
-    </p-toolbar>
-  </div>
+    @if (showToggle) {
+      <button
+        type="button"
+        class="nt-sidebar-toggle"
+        (click)="toggleCollapsed.emit()"
+        [attr.aria-label]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
+        [matTooltip]="toggleChecked ? 'Expandir menu' : 'Recolher menu'"
+        matTooltipPosition="right"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          @if (toggleChecked) {
+            <path d="M9 5l7 7-7 7"></path>
+          } @else {
+            <path d="M5 7h14M5 12h14M5 17h14"></path>
+          }
+        </svg>
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="nt-sidebar-toggle"
+        (click)="closeSidenav.emit()"
+        aria-label="Fechar menu"
+        matTooltip="Fechar"
+        matTooltipPosition="right"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </button>
+    }
+  </header>
 }
 
-<app-sidemenu></app-sidemenu>
+<div class="nt-sidebar-menu">
+  <app-sidemenu></app-sidemenu>
+</div>

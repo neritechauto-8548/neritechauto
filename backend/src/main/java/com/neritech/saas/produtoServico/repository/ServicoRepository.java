@@ -19,6 +19,9 @@ public interface ServicoRepository extends JpaRepository<Servico, Long> {
     boolean existsByEmpresaIdAndNomeIgnoreCase(Long empresaId, String nome);
 
     boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Long empresaId, String nome, Long id);
+    boolean existsByEmpresaIdAndCodigoIgnoreCase(Long empresaId, String codigo);
+    boolean existsByEmpresaIdAndCodigoIgnoreCaseAndIdNot(Long empresaId, String codigo, Long id);
+    java.util.Optional<Servico> findByIdAndEmpresaId(Long id, Long empresaId);
 
     Page<Servico> findByEmpresaId(Long empresaId, Pageable pageable);
 
@@ -28,6 +31,9 @@ public interface ServicoRepository extends JpaRepository<Servico, Long> {
 
     Page<Servico> findByEmpresaIdAndAtivoFalse(Long empresaId, Pageable pageable);
 
-    @Query("SELECT s FROM Servico s WHERE s.empresaId = :empresaId AND LOWER(s.nome) LIKE LOWER(CONCAT('%', :search, '%'))")
-    Page<Servico> search(@Param("empresaId") Long empresaId, @Param("search") String search, Pageable pageable);
+    @Query("SELECT s FROM Servico s WHERE s.empresaId = :empresaId AND " +
+            "(:ativo IS NULL OR s.ativo = :ativo) AND (:areaId IS NULL OR s.areaId = :areaId) AND " +
+            "(:search IS NULL OR LOWER(s.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(COALESCE(s.codigo,'')) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Servico> search(@Param("empresaId") Long empresaId, @Param("search") String search,
+                         @Param("areaId") Long areaId, @Param("ativo") Boolean ativo, Pageable pageable);
 }

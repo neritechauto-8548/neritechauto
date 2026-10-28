@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 import { MenuItem, MessageService } from 'primeng/api';
 import { ViewChild } from '@angular/core';
@@ -14,13 +16,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MenuModule } from 'primeng/menu';
+import { DialogModule } from 'primeng/dialog';
 import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
+import { CadastroCliente } from '../cadastro-cliente/cadastro-cliente';
 import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { LocalStorageService } from '@shared/services/storage.service';
-import { ConfirmationService } from '@shared/services/confirmation.service';
+import { forkJoin, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { NgxPermissionsService } from 'ngx-permissions';
+import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
 import {
   TipoCliente,
   StatusCliente,
@@ -47,18 +50,22 @@ import {
     ToastModule,
     SkeletonModule,
     MenuModule,
+    DialogModule,
+    CadastroCliente,
     RouterModule,
   ],
 })
 export class Cliente implements OnInit {
+  readonly isUxPreview = environment.uxPreview;
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly clientesService = inject(ClientesService);
-  private readonly storage = inject(LocalStorageService);
-  private readonly confirmationService = inject(ConfirmationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
+  private readonly veiculosService = inject(VeiculoService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly searchChanges = new Subject<string>();
 
   // Expose enums to template
   readonly TipoCliente = TipoCliente;
@@ -67,6 +74,9 @@ export class Cliente implements OnInit {
   // Filtros
   searchTerm = '';
   isLoading = false;
+  loadError = false;
+  loadErrorMessage = 'Tente novamente em instantes.';
+  private requestVersion = 0;
 
   // Menu popup
   activeRow: any = null;
@@ -79,6 +89,14 @@ export class Cliente implements OnInit {
   }
   selectedTipo: TipoCliente | null = null;
   selectedStatus: StatusCliente | null = null;
+  sort = 'nomeCompleto,asc';
+  readonly pageSizes = [10, 25, 50];
+  readonly sortOptions = [
+    { label: 'Nome: A–Z', value: 'nomeCompleto,asc' },
+    { label: 'Nome: Z–A', value: 'nomeCompleto,desc' },
+    { label: 'Cadastro mais recente', value: 'dataCadastro,desc' },
+    { label: 'Status', value: 'status,asc' },
+  ];
 
   // Opções para dropdowns
   tipoOptions = [{ label: 'Todos', value: null }, ...getTipoClienteOptions()];
@@ -101,11 +119,14 @@ export class Cliente implements OnInit {
     tipo: TipoCliente;
     status: StatusCliente;
     contato: string;
+    dataCadastro?: string;
+    quantidadeVeiculos: number | null;
+    email: string;
   }[] = [];
   backendPage: Page<ClienteResponseDTO> | null = null;
 
   // Paginação
-  rows = 5;
+  rows = 10;
   first = 0;
 
   get totalRecords() {
@@ -115,6 +136,7 @@ export class Cliente implements OnInit {
     return Math.floor(this.first / this.rows) + 1;
   }
   jumpPageInput = '';
+  isQuickFormOpen = false;
 
   // Filtrados (aplicado no frontend para dados já carregados)
   get filtered() {
@@ -134,9 +156,65 @@ export class Cliente implements OnInit {
     return Math.min(this.first + this.rows, this.totalRecords);
   }
 
-  onSearch() {
+  onSearchTermChange(value: string): void {
+    this.searchChanges.next(value);
+  }
+
+  onSearch(): void {
     this.first = 0;
     this.fetchPage();
+  }
+
+  atualizar(): void {
+    this.fetchPage();
+  }
+
+  get canCreateClient(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_CRIAR');
+  }
+
+  get canOpenClient(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('CLIENTE_EDITAR') || !!this.permissionsService.getPermission('GERAL_USUARIO');
+  }
+
+  get canOpenVehicles(): boolean {
+    return this.isUxPreview || !!this.permissionsService.getPermission('GERAL_USUARIO');
+  }
+
+  abrirVeiculos(row: { id?: number; uuid: number | string }): void {
+    if (!this.canOpenVehicles) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito', detail: 'Você não tem permissão para consultar veículos.' });
+      return;
+    }
+    const clienteId = row.id ?? row.uuid;
+    this.router.navigate(['/veiculo'], { queryParams: { clienteId } });
+  }
+
+  onFilterChange(): void {
+    this.first = 0;
+    this.fetchPage();
+  }
+
+  onPageSizeChange(): void {
+    this.first = 0;
+    this.fetchPage();
+  }
+
+  onSortChange(): void {
+    this.first = 0;
+    this.fetchPage();
+  }
+
+  limparFiltros(): void {
+    this.searchTerm = '';
+    this.selectedTipo = null;
+    this.selectedStatus = null;
+    this.first = 0;
+    this.fetchPage();
+  }
+
+  get hasFilters(): boolean {
+    return !!this.searchTerm.trim() || !!this.selectedTipo || !!this.selectedStatus;
   }
 
   goPrev() {
@@ -180,18 +258,29 @@ export class Cliente implements OnInit {
   }
 
   menuItemsFor(row: any): MenuItem[] {
-    return [
-      { label: 'Visualizar / Editar Cliente', icon: 'pi pi-user', routerLink: ['/cliente/editar', row.uuid] },
-      { label: 'Cadastrar Agendamento / Alerta', icon: 'pi pi-bell', command: () => {} },
-      { label: 'Visualizar / Editar Veículos', icon: 'pi pi-car', command: () => {} },
-      { label: 'Cadastrar OS', icon: 'pi pi-file-edit', command: () => {} },
-      { label: 'Visualizar OS Veículo', icon: 'pi pi-list', command: () => {} },
-      { label: 'Histórico Veículo', icon: 'pi pi-history', command: () => {} },
-    ];
+    const items: MenuItem[] = [];
+    const clienteId = row.id ?? row.uuid;
+    if (this.canOpenClient) {
+      items.push({ label: this.permissionsService.getPermission('CLIENTE_EDITAR') || this.isUxPreview ? 'Consultar / editar cliente' : 'Consultar cliente',
+        routerLink: ['/cliente/editar', row.uuid], queryParams: this.listQueryParams() });
+    }
+    if (this.isUxPreview || this.permissionsService.getPermission('GERAL_USUARIO')) {
+      items.push({ label: 'Visualizar / Editar Veículos', routerLink: ['/veiculo'], queryParams: { clienteId } });
+    }
+    if (this.isUxPreview || this.permissionsService.getPermission('VEICULO_CRIAR')) {
+      items.push({ label: 'Adicionar veículo', routerLink: ['/veiculo/cadastro'], queryParams: { clienteId } });
+    }
+    if (this.isUxPreview || this.permissionsService.getPermission('AGENDAMENTO_CRIAR')) {
+      items.push({ label: 'Cadastrar Agendamento / Alerta', routerLink: ['/agendamento/cadastro'], queryParams: { clienteId } });
+    }
+    if (this.isUxPreview || this.permissionsService.getPermission('OS_INCLUIR')) {
+      items.push({ label: 'Cadastrar OS', routerLink: ['/os/cadastro'], queryParams: { clienteId } });
+    }
+    return items;
   }
 
   cadastrarCliente() {
-    if (!this.permissionsService.getPermission('CLIENTE_CRIAR')) {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_CRIAR')) {
       this.messageService.add({ 
         severity: 'warn', 
         summary: 'Atenção', 
@@ -199,26 +288,40 @@ export class Cliente implements OnInit {
       });
       return;
     }
-    this.router.navigate(['/cliente/cadastro']);
+    this.router.navigate(['/cliente/cadastro'], { queryParams: this.listQueryParams() });
+  }
+
+  abrirCadastroRapido() {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('CLIENTE_CRIAR')) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Seu perfil não possui permissão para cadastrar clientes.' });
+      return;
+    }
+    this.isQuickFormOpen = true;
+  }
+
+  onQuickClientSaved() {
+    this.isQuickFormOpen = false;
+    this.messageService.add({ severity: 'success', summary: 'Cliente salvo', detail: 'O cadastro e os dados associados foram salvos.' });
+    this.fetchPage();
+  }
+
+  onQuickClientCanceled() {
+    this.isQuickFormOpen = false;
   }
 
   navigateToEdit(row: { uuid?: string | number }) {
-    if (!this.permissionsService.getPermission('CLIENTE_EDITAR')) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Atenção', 
-        detail: 'Seu perfil não possui permissão para realizar esta operação.' 
-      });
+    if (!this.canOpenClient) {
+      this.messageService.add({ severity: 'warn', summary: 'Acesso restrito', detail: 'Seu perfil não possui permissão para consultar este cadastro.' });
       return;
     }
     const id = row?.uuid;
     if (id) {
-      this.router.navigate(['/cliente/editar', id]);
+      this.router.navigate(['/cliente/editar', id], { queryParams: this.listQueryParams() });
     }
   }
 
   navigateToAddVeiculo(row: { id?: string | number; uuid?: string | number; nome?: string }) {
-    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+    if (!this.isUxPreview && !this.permissionsService.getPermission('VEICULO_CRIAR')) {
       this.messageService.add({ 
         severity: 'warn', 
         summary: 'Atenção', 
@@ -235,12 +338,24 @@ export class Cliente implements OnInit {
 
 
 
-  // SplitButton gerencia abertura do menu; não precisamos do handler manual
-
   ngOnInit() {
+    this.searchChanges.pipe(
+      map(value => value.trim()),
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.onSearch());
+
     const qp = this.route.snapshot.queryParamMap;
     const statusParam = qp.get('status') as StatusCliente | null;
     const tipoParam = qp.get('tipo') as TipoCliente | null;
+    this.searchTerm = qp.get('busca') || '';
+    const page = Number(qp.get('page'));
+    const size = Number(qp.get('size'));
+    this.first = Number.isInteger(page) && page >= 0 ? page * (this.pageSizes.includes(size) ? size : this.rows) : 0;
+    if (this.pageSizes.includes(size)) this.rows = size;
+    const sortParam = qp.get('sort');
+    if (this.sortOptions.some(option => option.value === sortParam)) this.sort = sortParam!;
     if (statusParam && Object.values(StatusCliente).includes(statusParam)) {
       this.selectedStatus = statusParam;
     }
@@ -265,24 +380,28 @@ export class Cliente implements OnInit {
       status,
       email: dto.email || '',
       contato: '', // Placeholder
+      dataCadastro: dto.dataCadastro,
+      quantidadeVeiculos: null,
     };
   }
 
   private fetchPage() {
-    // Backend usa 1-indexed parameters (page 1 é a primeira), então somamos 1
-    const pageIndex = Math.floor(this.first / this.rows) + 1;
+    const requestId = ++this.requestVersion;
+    this.loadError = false;
+    // Spring Data Pageable usa paginação 0-indexed: a primeira página é page=0.
+    const pageIndex = Math.floor(this.first / this.rows);
     this.isLoading = true;
 
-    console.log(`[PAGINATION] first: ${this.first}, rows: ${this.rows}, pageIndex to API: ${pageIndex}`);
 
-    const filters: any = { page: pageIndex, size: this.rows, sort: 'id,desc' }; // Restaurado para id,desc
+    const filters: any = { page: pageIndex, size: this.rows, sort: this.sort };
+    this.router.navigate([], { relativeTo: this.route, queryParams: this.listQueryParams(), replaceUrl: true });
 
     // Filtro de busca por nome ou documento
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.trim();
-      filters.nomeCompleto = term;
-      // Mandamos no cpf também para o backend procurar no CPF e CNPJ
-      filters.cpf = term.replace(/[^a-zA-Z0-9]/g, '');
+      // A busca é tratada no backend como OR entre nome/razão/nome fantasia/CPF/CNPJ.
+      // Isso evita exigir que o mesmo termo exista simultaneamente em nome e documento.
+      filters.busca = term;
     }
 
     // Filtro por tipo de cliente
@@ -295,25 +414,26 @@ export class Cliente implements OnInit {
       filters.status = this.selectedStatus;
     }
 
-    // Console log the filters for debugging if needed
-    // console.log('📤 Sending filters to API:', filters);
-
-
     this.clientesService.list(filters).subscribe({
       next: (res: Page<ClienteResponseDTO>) => {
-        console.log('[API RESPONSE] Backend Page:', res);
+        if (requestId !== this.requestVersion) return;
         this.backendPage = res;
         this.clients = (res.content || []).map((d: ClienteResponseDTO) => this.mapToRow(d));
 
         this.isLoading = false;
         this.cdr.detectChanges(); // Forçar atualização da view
 
-        // Após mapear clientes, buscar contatos para preencher a coluna "Contato"
-        this.loadContatosForRows();
+        // Enriquecer a página com os contatos e veículos disponíveis nos serviços existentes.
+        this.loadContatosForRows(requestId);
       },
       error: (err: any) => {
+        if (requestId !== this.requestVersion) return;
         this.isLoading = false;
-        console.error('❌ Erro ao carregar clientes:', err);
+        this.loadError = true;
+        this.loadErrorMessage = err.status === 403 ? 'Seu perfil não tem permissão para consultar esta lista.' : 'Verifique sua conexão e tente novamente.';
+        this.backendPage = null;
+        this.clients = [];
+        // A UI apresenta a falha sem registrar dados de clientes no console.
         
         if (err.status !== 403) {
           this.messageService.add({ 
@@ -326,35 +446,51 @@ export class Cliente implements OnInit {
     });
   }
 
-  private loadContatosForRows() {
+  private listQueryParams() {
+    return {
+      busca: this.searchTerm.trim() || null,
+      tipo: this.selectedTipo,
+      status: this.selectedStatus,
+      page: this.first ? Math.floor(this.first / this.rows) : null,
+      size: this.rows === 10 ? null : this.rows,
+      sort: this.sort === 'nomeCompleto,asc' ? null : this.sort,
+    };
+  }
+
+  formatDataCadastro(value?: string): string {
+    if (!value) return '—';
+    const [datePart] = value.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pt-BR').format(date);
+  }
+
+  private loadContatosForRows(requestId: number) {
     const currentPageRows = this.clients;
     if (!currentPageRows || !currentPageRows.length) return;
 
-    // Log do tenant/empresa para diagnosticar chamadas multi-tenant
-    const tenantId = this.storage.has('tenantId') ? this.storage.get('tenantId') : null;
-    console.debug('🔎 Buscando contatos para página atual', {
-      rows: currentPageRows.map(r => ({ id: (r as any).id ?? r.uuid, uuid: r.uuid })),
-      tenantId,
+    const requests = currentPageRows.map(row => {
+      const id = row.id ?? row.uuid;
+      return forkJoin({
+        contatos: this.clientesService.listarContatos(id).pipe(
+          map((res: Page<ContatoClienteResponse>) => res.content || []),
+          catchError(() => of([] as ContatoClienteResponse[]))
+        ),
+        veiculos: this.veiculosService.list(Number(id)).pipe(catchError(() => of(null)))
+      }).pipe(map(result => ({ id, ...result })));
     });
 
-    const requests = currentPageRows.map(row =>
-      this.clientesService
-        .listarContatos((row as any).id ?? row.uuid)
-        .pipe(
-          map((res: Page<ContatoClienteResponse>) => ({ id: (row as any).id ?? row.uuid, contatos: res.content || [] })),
-          catchError(err => {
-            console.error('Erro ao carregar contatos do cliente', (row as any).id ?? row.uuid, err);
-            return of({ id: (row as any).id ?? row.uuid, contatos: [] as ContatoClienteResponse[] });
-          })
-        )
-    );
-
     forkJoin(requests).subscribe(results => {
-      const byId = new Map(results.map(r => [r.id, r.contatos]));
+      if (requestId !== this.requestVersion) return;
+      const byId = new Map(results.map(r => [r.id, r]));
       this.clients = this.clients.map(c => {
         const key = (c as any).id ?? c.uuid;
-        const contatos = byId.get(key) || [];
-        return { ...c, contato: this.formatContatoLabel((c as any).email, contatos) };
+        const result = byId.get(key);
+        return {
+          ...c,
+          contato: this.formatContatoLabel((c as any).email, result?.contatos || []),
+          quantidadeVeiculos: result?.veiculos?.length ?? null,
+        };
       });
     });
   }

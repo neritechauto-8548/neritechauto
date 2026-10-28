@@ -1,0 +1,2149 @@
+/* Identidade NERITECH AUTO — azul extraído da referência enviada: RGB(24, 50, 138). */
+:root { --neritech-purple: #635BFF; --neritech-purple-hover: #4D44D9; --neritech-blue: var(--neritech-purple); }
+.site-header .site-logo,
+.site-footer .site-logo { display: inline-flex; align-items: center; min-width: 0; line-height: 1; }
+.site-header .site-logo img { display: block; width: 181px; height: auto; max-width: 100%; }
+.site-footer .site-logo img { display: block; width: 162px; height: auto; max-width: 100%; }
+.reference-site .brand-invert { line-height: 1; }
+.reference-site .brand-invert-logo { display: block; width: min(234px, 90%); height: auto; }
+.reference-site .email-brand { display: inline-flex; align-items: center; }
+.reference-site .email-brand-logo { display: block; width: 194px; height: auto; }
+.reference-site .email-social-logo { display: inline-block; vertical-align: middle; width: 119px; height: auto; }
+.reference-site .float-sticker,
+.reference-site .hero-social .avatar-stack i { filter: none; }
+@media(max-width:600px) {
+  .site-header .site-logo img { width: 157px; }
+  .reference-site .brand-invert-logo { width: min(190px, 92%); }
+}
+/*
+ * Landing premium automotiva (26/10/2026).
+ * Direção cromática aproximada: 60% branco, 20% cinza, 15% grafite,
+ * 5% azul como assinatura. Preserva a composição e as imagens; a redação comercial é específica da NERITECH AUTO.
+ * Última camada da cascata para preservar o layout fiel da referência.
+ */
+:root {
+  --neritech-graphite: #222a32;
+  --neritech-graphite-deep: #161d24;
+  --neritech-gray: #f2f4f5;
+  --neritech-stroke: #e2e6e9;
+}
+
+.reference-site {
+  --orange: var(--neritech-blue);
+  --orange-deep: #11266c;
+  --blue: var(--neritech-blue);
+  --ink: #232b34;
+  --ink2: #2e3740;
+  --muted: #66717c;
+  --gray: var(--neritech-gray);
+  --line: var(--neritech-stroke);
+  --shadow: 0 12px 30px rgba(22, 29, 36, .10);
+}
+
+/* O azul é reservado aos CTAs, links e pequenos elementos ativos. */
+.site-header .btn-orange,
+.reference-site .btn-orange,
+.reference-site .feature-tab.active {
+  background: var(--neritech-blue);
+  border-color: var(--neritech-blue);
+  color: #fff;
+}
+.site-header .btn-orange:hover,
+.reference-site .btn-orange:hover {
+  background: #4D44D9;
+  color: #fff;
+}
+.reference-site .pricing-switch button.selected {
+  color: var(--neritech-blue);
+  box-shadow: inset 0 0 0 2px var(--neritech-blue);
+}
+.reference-site .section-kicker,
+.reference-site .text-link,
+.reference-site .blue-link,
+.reference-site .center-heading h2 span,
+.reference-site .hero-copy h1 span,
+.reference-site .feature-hero-title h1 span,
+.reference-site .pricing-hero h1 span {
+  color: var(--neritech-blue);
+}
+
+/* Hero: mantém a fotografia original, com tratamento sóbrio e corporativo. */
+.reference-site[data-page="home"] .home-hero {
+  background: linear-gradient(90deg, #fff 0%, #fff 34%, #f7f8f9 59%, #d7dcdf 100%);
+}
+.reference-site[data-page="home"] .home-hero-photo {
+  filter: saturate(.70) contrast(1.06);
+}
+
+/* Faixas e banners grandes deixam de ser azuis. */
+.reference-site .orange-statement {
+  background: linear-gradient(118deg, var(--neritech-graphite) 0%, var(--neritech-graphite-deep) 100%);
+}
+.reference-site .orange-statement .float-sticker {
+  opacity: .56;
+  filter: grayscale(.35);
+}
+.reference-site .app-banner {
+  background: var(--neritech-graphite);
+}
+.reference-site .support-orange {
+  background: var(--neritech-graphite);
+}
+.reference-site .overlay-orange {
+  background: var(--neritech-graphite);
+  box-shadow: 0 16px 40px rgba(15, 20, 25, .24);
+}
+.reference-site .overlay-orange .btn-light {
+  background: #fff;
+  color: var(--neritech-blue);
+}
+
+/* Mosaico: predominantemente branco/cinza, com apenas um card grafite. */
+.reference-site[data-page="home"] .feature-tile {
+  border-color: var(--neritech-stroke);
+  box-shadow: 0 5px 18px rgba(25, 32, 40, .05);
+}
+.reference-site[data-page="home"] .feature-tile.light,
+.reference-site[data-page="home"] .feature-tile.orange {
+  background: var(--neritech-gray);
+  color: var(--neritech-graphite);
+  border-color: var(--neritech-stroke);
+}
+.reference-site[data-page="home"] .feature-tile.orange p {
+  color: #596570;
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(2),
+.reference-site[data-page="home"] .feature-tile.black {
+  background: var(--neritech-graphite);
+  color: #fff;
+  border-color: var(--neritech-graphite);
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) p,
+.reference-site[data-page="home"] .feature-tile.black p {
+  color: #dbe1e6;
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(2) .small-icon,
+.reference-site[data-page="home"] .feature-tile.black .small-icon {
+  color: #fff;
+}
+.reference-site[data-page="home"] .feature-tile.orange:nth-child(4) .small-icon {
+  color: var(--neritech-blue);
+}
+.reference-site[data-page="home"] .dark-photo-card {
+  background: var(--neritech-graphite-deep);
+}
+.reference-site[data-page="home"] .dark-photo-bg {
+  filter: grayscale(.5) saturate(.7);
+}
+
+/* Depoimentos: fundo cinza e cards brancos, sem mais um bloco azul. */
+.reference-site .orange-reviews {
+  background: linear-gradient(135deg, #f3f4f5, #e7ebee);
+}
+.reference-site .review-interface,
+.reference-site .review-floating {
+  box-shadow: 0 14px 36px rgba(30, 39, 47, .11);
+}
+.reference-site .orange-reviews-inner > .btn-light {
+  background: var(--neritech-blue);
+  color: #fff;
+}
+.reference-site .orange-reviews-inner > .btn-light:hover {
+  background: #4D44D9;
+  color: #fff;
+}
+
+/* Superfícies claras: cards com borda discreta, sem sombras azuladas. */
+.reference-site .price-card,
+.reference-site .about-info article,
+.reference-site .value-mosaic article,
+.reference-site .value-bottom article {
+  background: #fff;
+  border-color: var(--neritech-stroke);
+  box-shadow: 0 6px 22px rgba(24, 32, 40, .035);
+}
+
+/* Versão React legada: mesma direção caso volte a ser utilizada. */
+.nr-home .nr-statement,
+.nr-home .nr-promo-card,
+.nr-home .nr-bottom-callout {
+  background: var(--neritech-graphite);
+}
+.nr-home .nr-feature-tile.blue {
+  background: var(--neritech-gray);
+  border-color: var(--neritech-stroke);
+  color: var(--neritech-graphite);
+}
+.nr-home .nr-feature-tile.blue p {
+  color: #596570;
+}
+.nr-home .nr-eyebrow,
+.nr-home .nr-text-link {
+  color: var(--neritech-blue);
+}
+.nr-home .nr-on-dark .nr-eyebrow,
+.nr-home .nr-patio-copy .nr-eyebrow {
+  color: #b7c8f4;
+}
+
+/* Contraste do azul nos fundos grafite: variação clara apenas para leitura. */
+.reference-site .dark-showcase .section-kicker,
+.reference-site .dark-showcase .text-link.blue-link,
+.reference-site .pricing-hero h1 span {
+  color: #b7c8f4;
+}
+
+/* Fluxos reais de planos e cadastro: mesmo azul de marca, sem tons de startup. */
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period button[aria-pressed="true"],
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button,
+.nl-page .nl-trial-submit {
+  background: var(--neritech-blue);
+  border-color: var(--neritech-blue);
+  color: #fff;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period button[aria-pressed="true"]:hover,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button:hover,
+.nl-page .nl-trial-submit:not(:disabled):hover {
+  background: #4D44D9;
+}
+.reference-site.nl-prices-page .price-block strong,
+.reference-site.nl-prices-page .price-card .eyebrow,
+.nl-page .nl-trial-back,
+.nl-page .nl-trial-consent a {
+  color: var(--neritech-blue);
+}
+.reference-site.nl-prices-page .nl-prices-catalog .price-card:nth-child(2) {
+  border-color: #c6ced7;
+}
+.reference-site.nl-prices-page .pricing-main {
+  padding-bottom: 90px;
+}
+.reference-site.nl-prices-page .price-card {
+  background: #fff;
+  border: 1px solid var(--neritech-stroke);
+  box-shadow: 0 8px 23px rgba(27, 35, 42, .045);
+}
+.nl-page .nl-trial-card,
+.nl-page .nl-trial-success {
+  border-color: var(--neritech-stroke);
+  box-shadow: 0 25px 65px rgba(0, 0, 0, .23);
+}
+.nl-page .nl-trial-stage-shade {
+  background: rgba(20, 27, 33, .75);
+}
+.reference-site .app-banner .btn-light {
+  color: var(--neritech-blue);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reference-site .btn,
+  .reference-site .feature-tab,
+  .nl-page .nl-trial-submit {
+    transition: none;
+  }
+}
+
+/* Títulos de marca: ajuste ótico para evitar quebra em 320–1440 px sem alterar o grid. */
+.reference-site[data-page="home"] .hero-copy h1 span {
+  display: block;
+  font-size: .72em;
+  line-height: 1.1;
+  letter-spacing: -.035em;
+}
+.reference-site[data-page="funcionalidades"] .feature-hero-title h1 span {
+  font-size: .78em;
+  letter-spacing: -.035em;
+}
+.reference-site.nl-prices-page .pricing-hero h1 {
+  max-width: 1100px;
+  padding-inline: 18px;
+  font-size: clamp(27px, 3vw, 48px);
+}
+@media (max-width: 600px) {
+  .reference-site[data-page="home"] .hero-copy h1 span { font-size: .76em; }
+  .reference-site[data-page="funcionalidades"] .feature-hero-title h1 span { font-size: .76em; }
+}
+
+/* Hero comercial aprovado em 26/10/2026: hierarquia editorial própria, sem destaque visual de IA. */
+.reference-site[data-page="home"] .home-hero,
+.reference-site[data-page="home"] .home-hero-inner {
+  min-height: 560px;
+}
+.reference-site[data-page="home"] .hero-copy {
+  max-width: min(620px, 100%);
+  padding-block: 32px;
+}
+.reference-site[data-page="home"] .hero-copy h1 {
+  font-size: clamp(31px, 3.55vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -.045em;
+  text-transform: none;
+  margin-bottom: 12px;
+  color: var(--neritech-graphite-deep);
+}
+.reference-site[data-page="home"] .hero-copy h1 span {
+  display: block;
+  font-size: .96em;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+  color: var(--neritech-graphite-deep);
+}
+.reference-site[data-page="home"] .hero-copy .hero-support {
+  color: var(--neritech-graphite);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 750;
+  margin: 0 0 12px;
+}
+.reference-site[data-page="home"] .hero-copy .hero-description {
+  max-width: 520px;
+  color: #4d5964;
+  font-size: 15px;
+  line-height: 1.58;
+  margin: 0 0 19px;
+}
+.reference-site[data-page="home"] .hero-cta-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.reference-site[data-page="home"] .hero-cta-group .hero-cta-secondary {
+  color: var(--neritech-graphite);
+  border-color: #c9cfd5;
+  background: #fff;
+}
+.reference-site[data-page="home"] .hero-cta-group .hero-cta-secondary:hover {
+  color: var(--neritech-graphite-deep);
+  background: #f1f3f4;
+}
+.reference-site[data-page="home"] .hero-copy .hero-footnote {
+  max-width: 520px;
+  font-size: 11px;
+  color: #67717a;
+  margin: 12px 0 0;
+  line-height: 1.4;
+}
+@media (max-width: 600px) {
+  .reference-site[data-page="home"] .home-hero,
+  .reference-site[data-page="home"] .home-hero-inner {
+    min-height: 595px;
+  }
+  .reference-site[data-page="home"] .hero-copy {padding-block: 27px;}
+  .reference-site[data-page="home"] .hero-copy h1 {
+    font-size: clamp(28px, 7vw, 38px);
+    line-height: 1.1;
+  }
+  .reference-site[data-page="home"] .hero-copy h1 span {font-size: .96em;}
+  .reference-site[data-page="home"] .hero-copy .hero-support {font-size: 15px;}
+  .reference-site[data-page="home"] .hero-copy .hero-description {font-size: 14px;line-height: 1.5;}
+  .reference-site[data-page="home"] .home-hero-photo {top: 47%;height: 53%;opacity: .45;}
+  .reference-site[data-page="home"] .home-hero:after {
+    background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,.98) 38%, rgba(255,255,255,.89) 70%, rgba(255,255,255,.48) 100%);
+  }
+}
+
+
+
+/* Prévias funcionais substituem fotografias reutilizadas, sem criar claims de produto. */
+.reference-site[data-page="home"] .budget-demo,
+.reference-site[data-page="home"] .patio-demo {
+  width: min(90%, 390px);
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 12px;
+  box-shadow: 0 14px 44px rgba(19, 27, 37, .09);
+  overflow: hidden;
+  color: #263344;
+}
+.reference-site[data-page="home"] .budget-demo-head,
+.reference-site[data-page="home"] .patio-demo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 19px;
+  background: #f2f4f7;
+  border-bottom: 1px solid #e6eaf0;
+  font-size: 12px;
+  letter-spacing: .025em;
+}
+.reference-site[data-page="home"] .budget-demo-head span,
+.reference-site[data-page="home"] .patio-demo-head span {
+  font-size: 10px;
+  color: #647487;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.reference-site[data-page="home"] .budget-demo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #edf0f3;
+  font-size: 12px;
+}
+.reference-site[data-page="home"] .budget-demo-row:last-child {border-bottom: 0;}
+.reference-site[data-page="home"] .budget-demo-row span {color: #5e6b7a;}
+.reference-site[data-page="home"] .budget-demo-row b {font-size: 11px;text-align: right;}
+.reference-site[data-page="home"] .patio-demo-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 16px;
+}
+.reference-site[data-page="home"] .patio-demo-track > div {
+  border: 1px solid #e5e9ee;
+  border-top: 3px solid var(--neritech-blue);
+  border-radius: 6px;
+  padding: 15px 8px;
+  min-width: 0;
+  background: #fafbfc;
+}
+.reference-site[data-page="home"] .patio-demo-track b,
+.reference-site[data-page="home"] .patio-demo-track small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.reference-site[data-page="home"] .patio-demo-track b {font-size: 12px;color: #283849;}
+.reference-site[data-page="home"] .patio-demo-track small {font-size: 10px;color: #697988;margin-top: 10px;}
+@media(max-width:600px){
+  .reference-site[data-page="home"] .budget-demo,
+  .reference-site[data-page="home"] .patio-demo {width: 96%;}
+  .reference-site[data-page="home"] .budget-demo-head,
+  .reference-site[data-page="home"] .patio-demo-head {padding: 12px 14px;}
+  .reference-site[data-page="home"] .patio-demo-track {padding: 10px;gap: 5px;}
+  .reference-site[data-page="home"] .patio-demo-track > div {padding: 12px 5px;}
+  .reference-site[data-page="home"] .patio-demo-track b {font-size: 10px;}
+  .reference-site[data-page="home"] .patio-demo-track small {font-size: 9px;}
+}
+
+
+
+/*
+ * Mosaico de funcionalidades — decisão visual NERITECH AUTO em 26/10/2026.
+ * Recria a hierarquia de dois cards principais + quatro secundários.
+ * Cobre premium sem laranja, com 1 destaque cobre e 1 grafite.
+ * Somente a home; CTA institucional continua azul #635BFF.
+ */
+.reference-site[data-page="home"] {
+  --home-copper: #B8792E;
+  --home-copper-dark: #9E6624;
+  --home-copper-ink: #925B20;
+  --home-copper-soft: #F6EEE6;
+}
+.reference-site[data-page="home"] .section-pad.container > .center-heading:first-child .section-kicker,
+.reference-site[data-page="home"] .section-pad.container > .center-heading:first-child h2 span {
+  color: var(--home-copper-ink);
+}
+.reference-site[data-page="home"] .section-pad.container > .center-heading:first-child h2 {
+  font-size: clamp(27px, 3vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -.038em;
+  color: #1E2833;
+}
+.reference-site[data-page="home"] .home-feature-grid {
+  display: grid;
+  max-width: 1140px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 248px 162px 162px;
+  grid-auto-rows: auto;
+  gap: 14px;
+  align-items: stretch;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile {
+  grid-column: auto;
+  grid-row: auto;
+  padding: 25px;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(22, 31, 40, .055);
+  border: 1px solid #E1E5E9;
+  color: #1F2933;
+  background: #F6F7F8;
+  isolation: isolate;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile > div:not(.stock-illustration),
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile > .small-icon {
+  position: relative;
+  z-index: 2;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile h3 {
+  font-size: clamp(17px, 1.5vw, 22px);
+  letter-spacing: -.025em;
+  line-height: 1.14;
+  margin: 0 0 9px;
+  font-weight: 830;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile p {
+  font-size: 13px;
+  line-height: 1.54;
+  max-width: 280px;
+  color: #52606C;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile .small-icon {
+  border-radius: 9px;
+  background: rgba(255,255,255,.84);
+  border: 1px solid #DAE0E5;
+  color: var(--home-copper-ink);
+  box-shadow: 0 4px 10px rgba(16,24,32,.045);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile img {
+  z-index: 0;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 48%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 28%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 28%);
+}
+/* Primeiro card: orçamento amplo, branco e fotografia original à direita. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) {
+  grid-column: 1 / span 7;
+  grid-row: 1;
+  background: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) > div {
+  width: 54%;
+  max-width: 340px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) img {
+  width: 49%;
+}
+/* Segundo card: o único bloco cobre, com mais presença visual. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) {
+  grid-column: 8 / -1;
+  grid-row: 1;
+  background: linear-gradient(105deg, #9E6624 0%, #9E6624 56%, #B8792E 100%);
+  border-color: #9E6624;
+  color: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) h3,
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) p {
+  color: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) p {
+  max-width: 235px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) > div {
+  max-width: 53%;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) .small-icon {
+  color: #fff;
+  border-color: rgba(255,255,255,.65);
+  background: rgba(22,26,29,.13);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) img {
+  width: 53%;
+  height: 88%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 33%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 33%);
+}
+/* Terceiro card: estoque vertical, com arte vetorial em vez de foto repetida. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(3) {
+  grid-column: 1 / span 3;
+  grid-row: 2 / span 2;
+  background: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(3) p {
+  max-width: 230px;
+}
+.reference-site[data-page="home"] .stock-illustration {
+  width: min(88%, 210px);
+  height: 122px;
+  position: absolute;
+  left: 6%;
+  bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: perspective(450px) rotateY(-9deg);
+  z-index: 0;
+}
+.reference-site[data-page="home"] .stock-shelf {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  padding-inline: 8px;
+  border-bottom: 6px solid #334250;
+}
+.reference-site[data-page="home"] .stock-shelf i {
+  flex: 1;
+  height: 38px;
+  min-width: 0;
+  border-radius: 3px 3px 1px 1px;
+  background: #D7A471;
+  border: 1px solid #A57643;
+  box-shadow: inset -7px 0 0 rgba(96,65,35,.11);
+}
+.reference-site[data-page="home"] .stock-shelf i:nth-child(2) {height: 49px;background: #DFBB93;}
+.reference-site[data-page="home"] .stock-shelf i:nth-child(3) {height: 35px;background: #B98751;}
+/* Ordem de serviço: compacto e claro, com acentos cobre. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) {
+  grid-column: 4 / span 4;
+  grid-row: 2;
+  background: var(--home-copper-soft);
+  border-color: #EBD9C7;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) h3 {
+  font-size: 18px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) p {
+  max-width: 260px;
+  font-size: 12px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots {
+  right: 18px;
+  bottom: 16px;
+  gap: 5px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots i {
+  width: 9px;
+  height: 9px;
+  background: #D2A16B;
+  border: 1px solid #9E6624;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots i:first-child {
+  background: #9E6624;
+}
+/* Resultado financeiro: grafite como o segundo ponto de impacto. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) {
+  grid-column: 4 / span 4;
+  grid-row: 3;
+  color: #fff;
+  background: #1F2832;
+  border-color: #1F2832;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) h3,
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) p {
+  color: #fff;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) h3 {font-size: 18px;}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) p {font-size: 12px;max-width: 280px;}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .small-icon {
+  color: #fff;
+  background: #2E3B47;
+  border-color: #71808D;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .mini-steps {
+  right: 17px;
+  bottom: 13px;
+  gap: 5px;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .mini-steps b {
+  width: 16px;
+  height: 16px;
+  background: #D6AD7D;
+  color: #1F2832;
+  font-size: 10px;
+}
+/* Tecnologia: card vertical suave, foto da oficina sem bloquear a copy. */
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) {
+  grid-column: 8 / -1;
+  grid-row: 2 / span 2;
+  background: #F3F5F6;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) > div {
+  max-width: 58%;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img {
+  width: 56%;
+  height: 84%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 40%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 40%);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) p {
+  max-width: 250px;
+}
+@media(max-width: 1000px) {
+  .reference-site[data-page="home"] .home-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: minmax(260px, auto);
+  }
+  /* Mesma especificidade dos posicionamentos desktop: não criar colunas implícitas no tablet. */
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(n) {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 270px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) p {
+    max-width: 210px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4) .process-dots,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) .mini-steps {
+    right: 16px;
+  }
+  .reference-site[data-page="home"] .stock-illustration {
+    height: 92px;
+    width: 160px;
+    left: auto;
+    right: 10px;
+    bottom: 12px;
+    opacity: .9;
+  }
+}
+@media(max-width: 600px) {
+  .reference-site[data-page="home"] .section-pad.container > .center-heading:first-child h2 {
+    font-size: clamp(24px, 6vw, 31px);
+  }
+  .reference-site[data-page="home"] .home-feature-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 12px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(n) {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    min-height: 250px;
+    padding: 22px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(3) {
+    min-height: 270px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(4),
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(5) {
+    min-height: 215px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile h3 {
+    font-size: 18px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile p {
+    font-size: 12px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) > div {
+    max-width: 57%;
+    width: 57%;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img {
+    width: 50%;
+  }
+  .reference-site[data-page="home"] .stock-illustration {
+    width: 160px;
+    height: 97px;
+  }
+}
+@media(max-width: 390px) {
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) > div,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) > div {
+    max-width: 63%;
+    width: 63%;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(1) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(2) img,
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img {
+    width: 45%;
+  }
+}
+
+
+/* NERITECH AUTO - cobre premium: precos, funcionalidades e quem somos (2026-10-26).
+ * Estilo isolado de paginas institucionais. Azul da marca nos CTAs.
+ */
+.reference-site[data-page="precos"],
+.reference-site[data-page="funcionalidades"],
+.reference-site[data-page="sobre"]{
+  --page-copper:#B8792E;
+  --page-copper-dark:#9E6624;
+  --page-copper-text:#925B20;
+  --page-copper-soft:#F6EEE6;
+  --page-graphite:#1F2832;
+}
+/* PREÇOS — composição editorial B2B, sem hero escuro, gradientes ou efeitos de startup. */
+.reference-site.nl-prices-page{background:#fff;color:#24303b;}
+.reference-site.nl-prices-page .pricing-intro{
+  padding:76px 24px 65px;
+  background:#F5F5F3;
+  border-bottom:1px solid #E4E6E6;
+}
+.reference-site.nl-prices-page .pricing-intro-inner{max-width:920px;margin:auto;text-align:center;}
+.reference-site.nl-prices-page .pricing-eyebrow{
+  margin:0 0 17px;
+  color:#85531E;
+  font-size:11px;
+  letter-spacing:.15em;
+  font-weight:800;
+}
+.reference-site.nl-prices-page .pricing-intro h1{
+  color:#1F2832;
+  font-size:clamp(33px,4vw,53px);
+  letter-spacing:-.048em;
+  line-height:1.12;
+  font-weight:800;
+  max-width:900px;
+  margin:0 auto 20px;
+}
+.reference-site.nl-prices-page .pricing-intro h1 span{color:#925B20;}
+.reference-site.nl-prices-page .pricing-intro-subtitle{
+  max-width:695px;
+  margin:0 auto;
+  color:#53616B;
+  font-size:clamp(14px,1.45vw,16px);
+  line-height:1.7;
+}
+.reference-site.nl-prices-page .pricing-main{
+  padding-top:57px;
+  padding-bottom:100px;
+}
+.reference-site.nl-prices-page .pricing-section-head{text-align:center;margin:0 auto 32px;}
+.reference-site.nl-prices-page .pricing-section-head h2{
+  font-size:clamp(24px,2.5vw,32px);
+  margin:0 0 11px;
+  color:#1F2832;
+  letter-spacing:-.035em;
+}
+.reference-site.nl-prices-page .pricing-section-head p{
+  max-width:580px;
+  font-size:14px;
+  margin:0 auto;
+  line-height:1.65;
+  color:#58656F;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period{
+  margin:0 auto 28px;
+  border:1px solid #DEE3E7;
+  background:#F6F7F8;
+  border-radius:9px;
+  box-shadow:none;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period button{
+  min-width:130px;
+  padding:12px 20px;
+  background:transparent;
+  color:#46545F;
+  border:0;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-period button[aria-pressed="true"]{
+  background:#25313D;
+  color:#fff;
+  border-color:#25313D;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .pricing-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:20px;
+  max-width:940px;
+  margin-inline:auto;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .price-card,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card:nth-child(2){
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:520px;
+  padding:31px;
+  background:#fff;
+  border:1px solid #DBE0E4;
+  border-top:4px solid #626E79;
+  border-radius:10px;
+  box-shadow:0 5px 20px rgba(21,30,40,.045);
+  color:#25323D;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .price-card:nth-child(2){
+  border-top-color:#9E6624;
+  background:#FEFDFC;
+}
+.reference-site.nl-prices-page .plan-heading{min-height:128px;}
+.reference-site.nl-prices-page .plan-index{
+  display:block;
+  color:#925B20;
+  font-size:11px;
+  letter-spacing:.13em;
+  font-weight:800;
+  margin-bottom:14px;
+}
+.reference-site.nl-prices-page .plan-heading h3{
+  color:#1F2832;
+  font-size:clamp(25px,2.5vw,30px);
+  margin:0 0 11px;
+  font-weight:800;
+  letter-spacing:-.035em;
+}
+.reference-site.nl-prices-page .plan-heading p{
+  color:#54626E;
+  font-size:14px;
+  line-height:1.55;
+  margin:0;
+}
+.reference-site.nl-prices-page .price-block{
+  border-top:1px solid #E2E6E9;
+  border-bottom:1px solid #E2E6E9;
+  padding:21px 0;
+  margin:14px 0 23px;
+}
+.reference-site.nl-prices-page .plan-price-caption{
+  display:block;
+  margin-bottom:8px;
+  color:#66727D;
+  font-size:12px;
+}
+.reference-site.nl-prices-page .plan-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;}
+.reference-site.nl-prices-page .nl-prices-catalog .price-block strong,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card:nth-child(2) .price-block strong{
+  font-size:clamp(25px,2.6vw,32px);
+  font-weight:800;
+  letter-spacing:-.035em;
+  color:#202B35;
+  overflow-wrap:anywhere;
+}
+.reference-site.nl-prices-page .plan-price span{color:#68747E;font-size:13px;}
+.reference-site.nl-prices-page .price-features{flex:1;}
+.reference-site.nl-prices-page .price-features h4{
+  font-size:13px;
+  font-weight:800;
+  color:#2A3741;
+  margin:0 0 15px;
+}
+.reference-site.nl-prices-page .price-features .feature-list{
+  margin:0 0 25px;
+  padding:0;
+  list-style:none;
+  display:grid;
+  gap:12px;
+}
+.reference-site.nl-prices-page .price-features li{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:13px;
+  line-height:1.5;
+  padding:0;
+  margin:0;
+  color:#4D5C68;
+}
+.reference-site.nl-prices-page .price-features li::before{content:none;}
+.reference-site.nl-prices-page .price-features li svg{
+  flex:0 0 auto;
+  color:#925B20;
+  margin-top:1px;
+}
+.reference-site.nl-prices-page .price-features li strong{font-weight:750;color:#263440;}
+.reference-site.nl-prices-page .nl-prices-catalog .plan-cta{
+  width:100%;
+  min-height:48px;
+  margin-top:auto;
+  border-radius:7px;
+  color:#fff;
+  border:1px solid #635BFF;
+  background:#635BFF;
+  box-shadow:none;
+  font-size:14px;
+  font-weight:750;
+}
+.reference-site.nl-prices-page .nl-prices-catalog .plan-cta:hover{
+  background:#4D44D9;
+  transform:none;
+}
+.reference-site.nl-prices-page .plans-state{
+  text-align:center;
+  padding:14px 18px;
+  margin:24px 0 0;
+  border:1px solid #D9E0E5;
+  border-radius:8px;
+  background:#F5F7F8;
+  color:#3C4C5A;
+  font-size:13px;
+}
+.reference-site.nl-prices-page .pricing-disclaimer{
+  max-width:820px;
+  margin:19px auto 0;
+  font-size:12px;
+  text-align:center;
+  color:#66727C;
+  line-height:1.6;
+}
+.reference-site.nl-prices-page .pricing-compare{
+  margin:74px auto 0;
+  max-width:940px;
+  padding:0;
+  background:transparent;
+  box-shadow:none;
+  border:0;
+  text-align:left;
+}
+.reference-site.nl-prices-page .pricing-compare-heading{margin-bottom:23px;}
+.reference-site.nl-prices-page .pricing-compare-heading h2{
+  font-size:clamp(24px,2.5vw,31px);
+  color:#202C36;
+  margin:0 0 10px;
+  letter-spacing:-.035em;
+}
+.reference-site.nl-prices-page .pricing-compare-heading p{
+  margin:0;
+  font-size:14px;
+  color:#586670;
+  line-height:1.6;
+}
+.reference-site.nl-prices-page .pricing-comparison-table-scroll{
+  border:1px solid #DEE3E7;
+  border-radius:10px;
+  overflow:auto;
+  background:#fff;
+}
+.reference-site.nl-prices-page .pricing-comparison-table{
+  width:100%;
+  min-width:570px;
+  border-collapse:collapse;
+  font-size:13px;
+  text-align:left;
+}
+.reference-site.nl-prices-page .pricing-comparison-table thead{background:#F2F4F5;}
+.reference-site.nl-prices-page .pricing-comparison-table th,
+.reference-site.nl-prices-page .pricing-comparison-table td{
+  padding:15px 17px;
+  color:#35434E;
+  border-bottom:1px solid #E7EBED;
+  line-height:1.45;
+}
+.reference-site.nl-prices-page .pricing-comparison-table thead th{
+  font-size:13px;
+  font-weight:800;
+  color:#25323D;
+}
+.reference-site.nl-prices-page .pricing-comparison-table thead th:last-child{
+  border-top:3px solid #9E6624;
+}
+.reference-site.nl-prices-page .pricing-comparison-table th:first-child{width:43%;}
+.reference-site.nl-prices-page .pricing-comparison-table td:not(:first-child),
+.reference-site.nl-prices-page .pricing-comparison-table thead th:not(:first-child){text-align:center;}
+.reference-site.nl-prices-page .pricing-comparison-table tbody th{font-weight:600;}
+.reference-site.nl-prices-page .pricing-comparison-table tbody tr:last-child th,
+.reference-site.nl-prices-page .pricing-comparison-table tbody tr:last-child td{border-bottom:0;}
+.reference-site.nl-prices-page .pricing-comparison-table tbody tr:nth-child(even){background:#FCFCFC;}
+.reference-site.nl-prices-page .pricing-included{color:#3D6A46;}
+.reference-site.nl-prices-page .pricing-unavailable{color:#7B8791;}
+@media (max-width:760px){
+  .reference-site.nl-prices-page .pricing-intro{padding:58px 20px 51px;}
+  .reference-site.nl-prices-page .pricing-main{padding-top:40px;padding-bottom:65px;}
+  .reference-site.nl-prices-page .nl-prices-catalog .pricing-grid{
+    grid-template-columns:1fr;
+    max-width:510px;
+    gap:15px;
+  }
+  .reference-site.nl-prices-page .nl-prices-catalog .price-card,
+  .reference-site.nl-prices-page .nl-prices-catalog .price-card:nth-child(2){
+    min-height:0;
+    padding:25px;
+  }
+  .reference-site.nl-prices-page .plan-heading{min-height:0;}
+  .reference-site.nl-prices-page .pricing-compare{margin-top:58px;}
+}
+@media (max-width:390px){
+  .reference-site.nl-prices-page .pricing-intro{padding-inline:16px;}
+  .reference-site.nl-prices-page .nl-prices-catalog .price-card{padding:20px;}
+  .reference-site.nl-prices-page .nl-prices-catalog .pricing-period button{min-width:115px;padding:11px 15px;}
+}
+
+/* FUNCIONALIDADES — cobre nos destaques, cinza nos previews, grafite no apoio. */
+.reference-site[data-page="funcionalidades"] .feature-hero{
+  margin-top:32px;
+  padding:28px 33px;
+  min-height:330px;
+  height:auto;
+  gap:24px;
+  border:1px solid #E1E6E9;
+  border-radius:16px;
+  background:linear-gradient(110deg,#F3F5F6,#fff 90%);
+}
+.reference-site[data-page="funcionalidades"] .feature-hero-device img{
+  width:92%;
+  max-height:290px;
+  object-fit:contain;
+}
+.reference-site[data-page="funcionalidades"] .feature-hero-title h1{
+  color:#202B35;
+  font-size:clamp(29px,3.6vw,49px);
+  line-height:1.14;
+  letter-spacing:-.045em;
+}
+.reference-site[data-page="funcionalidades"] .feature-hero-title h1 span{
+  color:var(--page-copper-text);
+  font-size:.95em;
+}
+.reference-site[data-page="funcionalidades"] .intro-features{
+  padding-top:35px;
+  margin-top:0;
+}
+.reference-site[data-page="funcionalidades"] .intro-features h2{
+  font-size:clamp(22px,2.4vw,30px);
+  line-height:1.2;
+  color:#202B35;
+}
+.reference-site[data-page="funcionalidades"] .intro-features h2 span{color:var(--page-copper-text);}
+.reference-site[data-page="funcionalidades"] .intro-features p{
+  font-size:14px;
+  color:#4D5C68;
+  line-height:1.75;
+}
+.reference-site[data-page="funcionalidades"] .heading-line{color:#25323D;font-size:clamp(20px,2vw,26px);}
+.reference-site[data-page="funcionalidades"] .feature-tab{
+  color:#2B3945;
+  border-color:#DDE3E8;
+  background:#fff;
+}
+.reference-site[data-page="funcionalidades"] .feature-tab.active{
+  color:#fff;
+  border-color:var(--page-copper-dark);
+  background:var(--page-copper-dark);
+}
+.reference-site[data-page="funcionalidades"] .feature-tab:hover:not(.active),
+.reference-site[data-page="funcionalidades"] .tab-arrow:hover{
+  background:var(--page-copper-soft);
+  border-color:#DBBA95;
+}
+.reference-site[data-page="funcionalidades"] .explorer-explain{
+  color:#4D5B67;
+  font-size:13px;
+  line-height:1.6;
+}
+.reference-site[data-page="funcionalidades"] .explorer-content{
+  border:1px solid #E3E8EC;
+  background:#F5F7F8;
+  border-radius:12px;
+  overflow:hidden;
+  min-height:370px;
+}
+.reference-site[data-page="funcionalidades"] .explorer-notes{padding:20px;gap:12px;}
+.reference-site[data-page="funcionalidades"] .explorer-note{
+  background:#fff;
+  border:1px solid #E3E8EB;
+  border-radius:10px;
+  min-height:106px;
+}
+.reference-site[data-page="funcionalidades"] .explorer-note>span{color:var(--page-copper-text);}
+.reference-site[data-page="funcionalidades"] .explorer-note p{font-size:12px;line-height:1.5;color:#50616E;}
+.reference-site[data-page="funcionalidades"] .explorer-image{background:#E5E9ED;margin-left:0;}
+.reference-site[data-page="funcionalidades"] .redes-feature{
+  margin-top:20px;
+  border:1px solid #E5D5C5;
+  border-radius:14px;
+  background:linear-gradient(110deg,#FFF9F2,#fff 87%);
+}
+.reference-site[data-page="funcionalidades"] .redes-feature h2,
+.reference-site[data-page="funcionalidades"] .redes-feature a{color:var(--page-copper-text);}
+.reference-site[data-page="funcionalidades"] .redes-panel{
+  width:100%;
+  min-height:215px;
+  padding:20px;
+  border:1px solid #DBE2E7;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 13px 30px rgba(20,30,40,.075);
+}
+.reference-site[data-page="funcionalidades"] .redes-panel-heading{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:9px;
+  padding-bottom:15px;
+  border-bottom:1px solid #E2E7EA;
+  font-size:12px;
+  font-weight:800;
+  color:#263541;
+}
+.reference-site[data-page="funcionalidades"] .redes-panel-heading span{font-size:10px;font-weight:500;color:#62717F;}
+.reference-site[data-page="funcionalidades"] .redes-panel-stages{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  margin-top:16px;
+}
+.reference-site[data-page="funcionalidades"] .redes-panel-stages span{
+  min-width:0;
+  overflow-wrap:anywhere;
+  padding:12px 6px;
+  font-size:11px;
+  font-weight:700;
+  color:#33424D;
+  background:#F3F5F6;
+  border-radius:6px;
+  border-top:3px solid var(--page-copper-dark);
+}
+.reference-site[data-page="funcionalidades"] .redes-panel-bars{display:flex;gap:9px;margin-top:15px;}
+.reference-site[data-page="funcionalidades"] .redes-panel-bars i{
+  flex:1;
+  height:6px;
+  border-radius:6px;
+  background:#D8B28C;
+}
+.reference-site[data-page="funcionalidades"] .redes-panel-bars i:last-child{background:#C8D0D8;}
+.reference-site[data-page="funcionalidades"] .support-orange{
+  background:var(--page-copper-dark);
+  border-radius:12px;
+}
+.reference-site[data-page="funcionalidades"] .support-orange h3,
+.reference-site[data-page="funcionalidades"] .support-orange p{color:#fff;}
+.reference-site[data-page="funcionalidades"] .support-orange .white-icon{color:var(--page-copper-text);}
+.reference-site[data-page="funcionalidades"] .channels-box{
+  background:#F4F6F7;
+  border:1px solid #E4E8EC;
+  border-radius:11px;
+}
+.reference-site[data-page="funcionalidades"] .training-card{
+  background:var(--page-graphite);
+  color:#fff;
+  border-color:var(--page-graphite);
+  border-radius:12px;
+}
+.reference-site[data-page="funcionalidades"] .training-card h3,
+.reference-site[data-page="funcionalidades"] .training-card p,
+.reference-site[data-page="funcionalidades"] .training-card strong{color:#fff;}
+.reference-site[data-page="funcionalidades"] .training-card .orange-rule{background:#D8AD7F;}
+.reference-site[data-page="funcionalidades"] .training-card .orange-icon{color:var(--page-copper-text);}
+.reference-site[data-page="funcionalidades"] .training-card .btn{
+  background:var(--neritech-blue);
+  color:#fff;
+  border-color:var(--neritech-blue);
+}
+.reference-site[data-page="funcionalidades"] .training-card .btn:hover{background:#4D44D9;}
+.reference-site[data-page="funcionalidades"] .video-item img{
+  border-radius:10px;
+  filter:saturate(.85);
+}
+.reference-site[data-page="funcionalidades"] .app-banner{
+  background:var(--page-graphite);
+  border-top:4px solid var(--page-copper-dark);
+}
+.reference-site[data-page="funcionalidades"] .app-banner h2{color:#fff;}
+.reference-site[data-page="funcionalidades"] .app-banner p{color:#DDE4E8;}
+.reference-site[data-page="funcionalidades"] .app-banner .btn-light{
+  background:var(--neritech-blue);
+  border-color:var(--neritech-blue);
+  color:#fff;
+}
+
+/* QUEM SOMOS — hero fotográfico, narrativa, valores e painéis. */
+.reference-site[data-page="sobre"] .about-photo-band{
+  position:relative;
+  height:340px;
+  background:#25313C;
+}
+.reference-site[data-page="sobre"] .about-photo-band img{
+  height:100%;
+  object-fit:cover;
+  object-position:center 45%;
+  filter:saturate(.78) brightness(.88);
+}
+.reference-site[data-page="sobre"] .about-photo-band:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:5px;
+  background:var(--page-copper-dark);
+}
+.reference-site[data-page="sobre"] .about-history{gap:55px;margin-top:-65px;align-items:start;}
+.reference-site[data-page="sobre"] .history-card{
+  position:relative;
+  max-width:500px;
+  padding:32px;
+  border:1px solid #E1E6EB;
+  border-top:4px solid var(--page-copper-dark);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 17px 44px rgba(20,30,42,.10);
+}
+.reference-site[data-page="sobre"] .history-card h1{
+  color:#24313D;
+  font-size:clamp(25px,2.7vw,34px);
+  letter-spacing:-.035em;
+}
+.reference-site[data-page="sobre"] .history-card p{color:#51616E;font-size:13px;line-height:1.75;}
+.reference-site[data-page="sobre"] .timeline{border-right-color:#DCE3E8;}
+.reference-site[data-page="sobre"] .timeline-entry.current:after{background:var(--page-copper-dark);}
+.reference-site[data-page="sobre"] .timeline-entry.current span{color:var(--page-copper-text);}
+.reference-site[data-page="sobre"] .timeline-entry img{
+  border:2px solid #fff;
+  box-shadow:0 12px 25px rgba(20,30,42,.12);
+}
+.reference-site[data-page="sobre"] .about-motto{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  padding:22px 15px;
+  margin:12px auto 55px;
+  border-block:1px solid #E1E7EB;
+  color:var(--page-copper-text);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.11em;
+}
+.reference-site[data-page="sobre"] .about-motto i{
+  height:1px;
+  width:38px;
+  background:#D5B797;
+}
+.reference-site[data-page="sobre"] .about-info article{
+  border:1px solid #E2E7EA;
+  background:#fff;
+  border-radius:12px;
+  min-height:180px;
+  padding:29px;
+  box-shadow:0 9px 24px rgba(20,30,42,.045);
+}
+.reference-site[data-page="sobre"] .about-info article h3{font-size:20px;color:#263541;}
+.reference-site[data-page="sobre"] .about-info article p{font-size:13px;color:#52616F;line-height:1.7;}
+.reference-site[data-page="sobre"] .about-info article:nth-child(2){
+  background:var(--page-graphite);
+  border-color:var(--page-graphite);
+  color:#fff;
+}
+.reference-site[data-page="sobre"] .about-info article:nth-child(2) h3,
+.reference-site[data-page="sobre"] .about-info article:nth-child(2) p{color:#fff;}
+.reference-site[data-page="sobre"] .heading-line{
+  color:#25323D;
+  font-size:clamp(20px,2vw,25px);
+}
+.reference-site[data-page="sobre"] .value-mosaic img{
+  border-radius:12px;
+  object-fit:cover;
+  height:100%;
+  min-height:260px;
+}
+.reference-site[data-page="sobre"] .value-mosaic article,
+.reference-site[data-page="sobre"] .value-bottom article,
+.reference-site[data-page="sobre"] .testimonials-grid article{
+  border:1px solid #E1E6EA;
+  border-radius:11px;
+  box-shadow:0 7px 20px rgba(20,30,42,.045);
+}
+.reference-site[data-page="sobre"] .value-mosaic article>span,
+.reference-site[data-page="sobre"] .value-bottom article>span{
+  background:var(--page-copper-dark);
+  color:#fff;
+}
+.reference-site[data-page="sobre"] .value-bottom article:nth-child(2){
+  background:var(--page-copper-soft);
+  border-color:#E7D0BA;
+}
+.reference-site[data-page="sobre"] .value-mosaic article h4,
+.reference-site[data-page="sobre"] .value-bottom article h4{
+  color:#263541;
+  font-size:15px;
+}
+.reference-site[data-page="sobre"] .value-mosaic article p,
+.reference-site[data-page="sobre"] .value-bottom article p{
+  color:#51616F;
+  font-size:12px;
+  line-height:1.55;
+}
+.reference-site[data-page="sobre"] .testimonials-grid article{
+  border-top:3px solid #DBB48C;
+  min-height:225px;
+}
+.reference-site[data-page="sobre"] .person-avatar,
+.reference-site[data-page="sobre"] .person-avatar.warm{background:var(--page-copper-dark);}
+.reference-site[data-page="sobre"] .about-video-grid img{
+  border-radius:10px;
+  filter:saturate(.85);
+}
+.reference-site[data-page="sobre"] .press-item{
+  border:1px solid #E3E8EB;
+  border-radius:14px;
+  padding:20px;
+  background:#F6F8F9;
+}
+.reference-site[data-page="sobre"] .press-item > img{
+  width:100%;
+  max-height:260px;
+  object-fit:cover;
+  border-radius:10px;
+}
+.reference-site[data-page="sobre"] .press-item h3{color:#263541;font-size:clamp(19px,2vw,25px);}
+.reference-site[data-page="sobre"] .press-item p{color:#52616F;font-size:13px;line-height:1.7;}
+.reference-site[data-page="sobre"] .press-item .text-link{color:var(--page-copper-text);}
+
+/* Dispositivos: preserva o grid sem transbordar em telas menores. */
+@media(max-width:980px){
+  .reference-site.nl-prices-page .nl-prices-catalog .pricing-grid{gap:15px;}
+  .reference-site.nl-prices-page .nl-prices-catalog .price-card{padding:23px;}
+  .reference-site[data-page="sobre"] .about-history{gap:24px;}
+}
+@media(max-width:700px){
+  .reference-site.nl-prices-page .pricing-hero{height:auto;min-height:280px;}
+  .reference-site.nl-prices-page .nl-prices-catalog .pricing-grid{
+    grid-template-columns:1fr;
+    max-width:520px;
+  }
+  .reference-site[data-page="funcionalidades"] .feature-hero{
+    margin-top:18px;
+    padding:22px 18px;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .reference-site[data-page="funcionalidades"] .feature-hero-device img{width:76%;height:205px;}
+  .reference-site[data-page="funcionalidades"] .feature-hero-title h1{
+    font-size:clamp(29px,6vw,38px);
+    text-align:center;
+    margin:0 0 8px;
+  }
+  .reference-site[data-page="funcionalidades"] .explorer-content{grid-template-columns:1fr;}
+  .reference-site[data-page="funcionalidades"] .explorer-notes{padding:12px;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .reference-site[data-page="funcionalidades"] .explorer-image{height:235px;}
+  .reference-site[data-page="funcionalidades"] .redes-feature{padding:22px 17px;}
+  .reference-site[data-page="funcionalidades"] .support-grid{grid-template-columns:1fr;}
+  .reference-site[data-page="sobre"] .about-history{
+    margin-top:-34px;
+    grid-template-columns:1fr;
+  }
+  .reference-site[data-page="sobre"] .history-card{max-width:none;padding:24px;}
+  .reference-site[data-page="sobre"] .value-mosaic{grid-template-columns:1fr;}
+  .reference-site[data-page="sobre"] .value-mosaic img{max-height:270px;min-height:185px;}
+  .reference-site[data-page="sobre"] .value-bottom{grid-template-columns:1fr;}
+}
+@media(max-width:430px){
+  .reference-site[data-page="sobre"] .about-motto{gap:10px;font-size:9px;padding-inline:4px;}
+  .reference-site[data-page="sobre"] .about-motto i{width:12px;}
+  .reference-site[data-page="funcionalidades"] .explorer-notes{grid-template-columns:1fr;}
+}
+
+
+/* UNIFICACAO VISUAL 27-10-2026
+   Identidade: superficie neutra, grafite localizado, cobre como destaque,
+   azul NERITECH em links/acoes. Evitar fotografias repetidas e estetica IA.
+   Delimitar aos componentes reais das paginas de marketing. */
+.reference-site[data-page="home"],
+.reference-site[data-page="funcionalidades"],
+.reference-site[data-page="sobre"],
+.reference-site[data-page="precos"]{
+  --nr-copper:#B8792E;
+  --nr-copper-dark:#9E6624;
+  --nr-copper-text:#925B20;
+  --nr-copper-soft:#F6EEE6;
+  --nr-graphite:#1F2832;
+  --nr-copy:#52616D;
+  --nr-light:#F5F5F3;
+  --nr-border:#E3E7EA;
+}
+.reference-site[data-page="home"] .section-kicker,
+.reference-site[data-page="home"] .center-heading h2 span,
+.reference-site[data-page="funcionalidades"] .section-kicker,
+.reference-site[data-page="funcionalidades"] .intro-features h2 span,
+.reference-site[data-page="sobre"] .heading-line::before {
+  color:var(--nr-copper-text);
+}
+.reference-site[data-page="home"] .hero-copy h1 span{
+  color:#24313C;
+}
+.reference-site[data-page="home"] .hero-copy{
+  border-top:3px solid var(--nr-copper-dark);
+}
+.reference-site[data-page="home"] .metrics strong{
+  color:#26343F;
+}
+.reference-site[data-page="home"] .metrics span{
+  color:#53626E;
+}
+.reference-site[data-page="home"] .feature-tile:nth-child(6){
+  border-color:var(--nr-border);
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) .team-operational-flow{
+  position:absolute;
+  z-index:1;
+  right:4%;
+  bottom:22px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  max-width:none;
+  width:92%;
+  padding:10px;
+  background:#FFF;
+  border:1px solid #E2E6EA;
+  border-radius:8px;
+  box-shadow:0 7px 18px rgba(25,34,42,.045);
+}
+.reference-site[data-page="home"] .team-operational-flow span{
+  display:block;
+  flex:1;
+  min-width:0;
+  overflow-wrap:anywhere;
+  text-align:center;
+  font-weight:800;
+  letter-spacing:.02em;
+  font-size:8px;
+  line-height:1.35;
+  color:#475562;
+}
+.reference-site[data-page="home"] .team-operational-flow i{
+  display:block;
+  width:12px;
+  height:1px;
+  flex:0 0 12px;
+  background:#B5824F;
+}
+/* Três cartões de processo não dependem mais de fotos fictícias. */
+.reference-site[data-page="home"] .dark-photo-card{
+  padding:29px;
+  background:#1F2832;
+  border:1px solid #3B4752;
+  border-top:3px solid #AD7740;
+  box-shadow:none;
+}
+.reference-site[data-page="home"] .dark-photo-card:nth-child(2){
+  background:#2C3640;
+}
+.reference-site[data-page="home"] .dark-photo-card:nth-child(3){
+  background:#222E37;
+}
+.reference-site[data-page="home"] .dark-photo-card::after{background:none;}
+.reference-site[data-page="home"] .dark-card-index{
+  position:relative;
+  z-index:1;
+  display:block;
+  font-size:42px;
+  font-weight:800;
+  letter-spacing:-.065em;
+  color:#D5AD84;
+  line-height:1;
+}
+.reference-site[data-page="home"] .dark-photo-card h3{
+  font-size:19px;
+  line-height:1.28;
+  letter-spacing:-.015em;
+  color:#FFF;
+}
+.reference-site[data-page="home"] .dark-photo-card p{
+  font-size:12px;
+  line-height:1.55;
+  color:#E0E5E8;
+}
+.reference-site[data-page="home"] .dark-showcase .section-kicker,
+.reference-site[data-page="home"] .dark-showcase .text-link.blue-link{
+  color:#F0C89B;
+}
+.reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) img{display:none;}
+
+/* Funcionalidades: fluxos editoriais em vez de dispositivo falso ou screenshot genérico. */
+.reference-site[data-page="funcionalidades"] .feature-hero{
+  background:#F5F5F3;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-board{
+  margin:0 auto;
+  max-width:440px;
+  padding:23px;
+  background:#FFF;
+  color:#263541;
+  border:1px solid #DDE3E6;
+  border-radius:11px;
+  box-shadow:0 10px 26px rgba(25,34,42,.055);
+  text-align:left;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-heading{
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  color:#3A4854;
+  border-bottom:1px solid #E3E8EA;
+  padding-bottom:15px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.055em;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-heading span{
+  color:#677480;
+  font-weight:500;
+  letter-spacing:0;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-steps{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:17px;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-steps span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:16px 12px;
+  background:#F5F6F7;
+  border-left:3px solid #A16D34;
+  border-radius:4px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.35;
+  color:#2C3944;
+}
+.reference-site[data-page="funcionalidades"] .feature-process-steps b{
+  font-size:12px;
+  color:#925B20;
+  font-weight:800;
+}
+.reference-site[data-page="funcionalidades"] .explorer-image{
+  display:grid;
+  place-items:center;
+  padding:26px;
+  background:#ECEFF1;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-outline{
+  width:min(100%,370px);
+  border:1px solid #D9E0E4;
+  border-radius:10px;
+  background:#FFF;
+  box-shadow:0 12px 28px rgba(23,34,44,.055);
+  padding:20px;
+  text-align:left;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-head{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  padding-bottom:15px;
+  border-bottom:1px solid #E4E9EB;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-head span{
+  color:#925B20;
+  font-weight:800;
+  font-size:10px;
+  letter-spacing:.10em;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-head strong{
+  color:#263541;
+  font-size:21px;
+  line-height:1.2;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-rows{
+  display:grid;
+  gap:9px;
+  margin-block:16px;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-rows span{
+  display:block;
+  color:#475563;
+  background:#F5F6F7;
+  border-left:2px solid #9E6624;
+  padding:11px 13px;
+  line-height:1.3;
+  font-weight:600;
+  font-size:12px;
+}
+.reference-site[data-page="funcionalidades"] .feature-module-outline small{
+  display:block;
+  font-size:10px;
+  color:#67747E;
+  line-height:1.4;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-section{
+  padding-block:62px 72px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-section h3{
+  color:#25333D;
+  font-size:clamp(21px,2.5vw,27px);
+  margin:0 0 25px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:13px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article{
+  min-width:0;
+  border:1px solid #E2E7EA;
+  border-top:3px solid #B9824A;
+  border-radius:8px;
+  background:#FFF;
+  padding:20px 16px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article span{
+  display:block;
+  font-size:23px;
+  color:#925B20;
+  font-weight:800;
+  margin-bottom:24px;
+  letter-spacing:-.035em;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article strong{
+  display:block;
+  color:#24323D;
+  font-size:15px;
+  margin-bottom:8px;
+}
+.reference-site[data-page="funcionalidades"] .workflow-steps-grid article p{
+  color:#53616D;
+  font-size:12px;
+  line-height:1.55;
+  margin:0;
+}
+.reference-site[data-page="funcionalidades"] .app-banner-inner{
+  min-height:260px;
+}
+.reference-site[data-page="funcionalidades"] .app-banner-inner > div{
+  max-width:780px;
+}
+.reference-site[data-page="funcionalidades"] .app-banner-inner > img{display:none;}
+
+/* Quem somos: uma foto exclusiva e o resto organizado como conteúdo institucional. */
+.reference-site[data-page="sobre"] .about-history{
+  grid-template-columns:1fr 1fr;
+  align-items:start;
+}
+.reference-site[data-page="sobre"] .timeline-text{
+  border:0;
+  max-width:none;
+  margin:0;
+  padding:0;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry{
+  display:grid;
+  grid-template-columns:50px minmax(0,1fr);
+  gap:17px;
+  align-items:start;
+  justify-content:start;
+  padding:16px 0;
+  min-height:0;
+  margin:0;
+  border-bottom:1px solid #E3E7EA;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry::after{display:none;}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry > span,
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry.current > span{
+  position:static;
+  width:auto;
+  color:#925B20;
+  font-weight:800;
+  font-size:23px;
+  line-height:1.1;
+  letter-spacing:-.035em;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry strong{
+  display:block;
+  font-size:15px;
+  color:#263541;
+}
+.reference-site[data-page="sobre"] .timeline-text .timeline-entry p{
+  color:#51616C;
+  margin:5px 0 0;
+  font-size:12px;
+  line-height:1.5;
+}
+.reference-site[data-page="sobre"] .value-mosaic{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:17px;
+}
+.reference-site[data-page="sobre"] .value-mosaic .value-col{gap:17px;}
+.reference-site[data-page="sobre"] .press-item{
+  display:block;
+  padding:32px;
+  border-left:4px solid #9E6624;
+  border-radius:8px;
+  background:#F5F5F3;
+}
+.reference-site[data-page="sobre"] .press-item > div{max-width:760px;}
+
+/* Blog: apenas conteúdo editorial, sem fotografias artificiais de outras marcas. */
+.blog-card .blog-editorial-band{
+  height:5px;
+  margin:-1px -1px 16px;
+  background:linear-gradient(90deg,#9E6624 0%,#D7B08B 50%,#E8EAEC 100%);
+}
+.blog-editorial-rule{
+  border:0;
+  height:2px;
+  background:#C6A17B;
+  width:75px;
+  margin:25px 0;
+}
+@media(max-width:900px){
+  .reference-site[data-page="funcionalidades"] .workflow-steps-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:700px){
+  .reference-site[data-page="sobre"] .about-history{
+    grid-template-columns:1fr;
+  }
+  .reference-site[data-page="sobre"] .timeline-text{
+    margin-top:10px;
+  }
+  .reference-site[data-page="funcionalidades"] .feature-process-board{
+    padding:16px;
+    max-width:100%;
+  }
+  .reference-site[data-page="funcionalidades"] .feature-process-steps span{
+    padding:12px 9px;
+    font-size:11px;
+  }
+  .reference-site[data-page="funcionalidades"] .explorer-image{
+    min-height:285px;
+    padding:15px;
+  }
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) .team-operational-flow{
+    bottom:16px;
+  }
+  .reference-site[data-page="funcionalidades"] .workflow-steps-section{padding-block:44px 60px;}
+}
+@media(max-width:430px){
+  .reference-site[data-page="funcionalidades"] .workflow-steps-grid{grid-template-columns:1fr;}
+  .reference-site[data-page="funcionalidades"] .feature-process-steps{grid-template-columns:1fr;}
+  .reference-site[data-page="funcionalidades"] .feature-process-steps span{min-height:44px;}
+  .reference-site[data-page="home"] .team-operational-flow span{font-size:7px;}
+  .reference-site[data-page="home"] .home-feature-grid > .feature-tile:nth-child(6) .team-operational-flow{padding:8px;gap:4px;}
+  .reference-site[data-page="sobre"] .press-item{padding:23px;}
+}
+
+
+/* IA como recurso operacional, sem interface fictícia de chat ou fundo neon. */
+.reference-site[data-page="home"] .records-summary{
+  max-width:770px;
+  margin:20px auto 40px;
+  padding:0;
+  background:#FFFFFF;
+  border:1px solid #DDE3E7;
+  border-radius:10px;
+  color:#263540;
+  overflow:hidden;
+  box-shadow:0 12px 30px rgba(5,12,18,.13);
+}
+.reference-site[data-page="home"] .records-summary-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  padding:17px 20px;
+  border-bottom:1px solid #E1E6EA;
+  background:#F5F6F7;
+}
+.reference-site[data-page="home"] .records-summary-heading strong{
+  color:#263541;
+  font-size:12px;
+  letter-spacing:.065em;
+}
+.reference-site[data-page="home"] .records-summary-heading span{
+  color:#65737F;
+  font-size:11px;
+}
+.reference-site[data-page="home"] .records-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+}
+.reference-site[data-page="home"] .records-summary-grid > div{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  border-right:1px solid #E3E7EA;
+  padding:22px 16px;
+}
+.reference-site[data-page="home"] .records-summary-grid > div:last-child{border-right:0;}
+.reference-site[data-page="home"] .records-summary-grid b{
+  color:#293843;
+  font-size:13px;
+}
+.reference-site[data-page="home"] .records-summary-grid small{
+  color:#5D6A75;
+  font-size:11px;
+  line-height:1.5;
+}
+/* Cadastro sem repetir a foto da Home, com contraste corporativo. */
+.nl-page .nl-trial-stage{
+  background:#F5F5F3;
+}
+.nl-page .nl-trial-stage-shade{
+  display:none;
+}
+.nl-page .nl-trial-card,
+.nl-page .nl-trial-success{
+  border:1px solid #DEE4E8;
+  border-top:4px solid #9E6624;
+  background:#FFFFFF;
+  box-shadow:0 14px 36px rgba(24,33,40,.09);
+}
+@media(max-width:650px){
+  .reference-site[data-page="home"] .records-summary-grid{
+    grid-template-columns:1fr;
+  }
+  .reference-site[data-page="home"] .records-summary-grid > div{
+    border-right:0;
+    border-bottom:1px solid #E3E7EA;
+    padding:15px 18px;
+  }
+  .reference-site[data-page="home"] .records-summary-grid > div:last-child{
+    border-bottom:0;
+  }
+  .reference-site[data-page="home"] .records-summary-heading{
+    flex-wrap:wrap;
+  }
+}
+
+
+/* Identidade aprovada NERITECH AUTO — símbolo N em paralelogramo #635BFF,
+   wordmark grafite/roxo e CTAs roxos, com Entrar branco.
+   O cobre permanece restrito aos destaques editoriais. */
+:root{
+  --neritech-purple:#635BFF;
+  --neritech-purple-hover:#4D44D9;
+  --neritech-blue:#635BFF;
+  --brand:#635BFF;
+}
+.site-header .site-logo img{width:188px;height:auto;}
+.site-footer .site-logo img{width:166px;height:auto;}
+.nl-site-header .nl-brand-logo{display:block;width:188px;height:auto;max-width:100%;}
+.nl-site-footer .nl-brand-logo{display:block;width:166px;height:auto;max-width:100%;}
+.site-header .header-actions{gap:10px;}
+.site-header .header-login,
+.nl-site-header .nl-login-button,
+.nl-mobile-nav .nl-login-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:8px 18px;
+  border:1px solid #DCE1E6;
+  border-radius:7px;
+  color:#283541;
+  background:#FFFFFF;
+  font-size:12px;
+  font-weight:750;
+  line-height:1.2;
+  white-space:nowrap;
+  text-decoration:none;
+  box-shadow:none;
+}
+.site-header .header-login:hover,
+.nl-site-header .nl-login-button:hover,
+.nl-mobile-nav .nl-login-button:hover{
+  background:#F6F5FF;
+  border-color:#A7A0FF;
+  color:#4D44D9;
+}
+.site-header .nav-login{display:none;}
+.site-header .header-actions .btn-orange{
+  background:#635BFF;
+  border:1px solid #635BFF;
+  color:#FFFFFF;
+  min-height:38px;
+  padding:9px 17px;
+  border-radius:7px;
+  box-shadow:none;
+}
+.site-header .header-actions .btn-orange:hover{background:#4D44D9;border-color:#4D44D9;color:#FFFFFF;}
+.reference-site .btn-orange,
+.reference-site.nl-prices-page .nl-prices-catalog .plan-cta,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button,
+.nl-page .nl-trial-submit,
+.nl-site-header .nl-header-cta,
+.nl-page .nl-button:not(.nl-button-ghost):not(.nl-button-light){
+  background:#635BFF;
+  border-color:#635BFF;
+  color:#FFFFFF;
+}
+.reference-site .btn-orange:hover,
+.reference-site.nl-prices-page .nl-prices-catalog .plan-cta:hover,
+.reference-site.nl-prices-page .nl-prices-catalog .price-card .button:hover,
+.nl-page .nl-trial-submit:not(:disabled):hover,
+.nl-site-header .nl-header-cta:hover,
+.nl-page .nl-button:not(.nl-button-ghost):not(.nl-button-light):hover{
+  background:#4D44D9;
+  border-color:#4D44D9;
+  color:#FFFFFF;
+}
+.nl-site-header .nl-header-actions{gap:10px;}
+.nl-site-header .nl-header-cta{min-height:38px;border-radius:7px;font-size:12px;}
+.nl-site-footer .nl-footer-cta{color:#5148DB;}
+.nl-page .button:not(.button-outline):not(.button-light){
+  background:#635BFF;
+  border-color:#635BFF;
+  color:#FFFFFF;
+}
+.nl-page .button:not(.button-outline):not(.button-light):hover{
+  background:#4D44D9;
+  border-color:#4D44D9;
+  color:#FFFFFF;
+}
+.nl-page .button-outline{color:#5148DB;border-color:#635BFF;}
+.nl-page .nl-button-ghost{color:#5148DB;}
+.nl-site-header .nl-desktop-nav a[aria-current="page"],
+.nl-site-header .nl-desktop-nav a:hover{color:#5148DB;}
+/* Mantém a composição Stripe-like na área pública, com CTA acessível no mobile. */
+@media(max-width:800px){
+  .site-header .header-actions .header-login{display:none;}
+  .site-header .nav-login{display:block;}
+  .site-header .header-row{gap:9px;}
+  .site-header .header-actions{gap:8px;}
+  .site-header .header-actions .btn-orange{
+    display:inline-flex;
+    min-height:34px;
+    font-size:11px;
+    padding:8px 11px;
+  }
+}
+@media(max-width:600px){
+  .site-header .site-logo img{width:148px;}
+  .nl-site-header .nl-brand-logo{width:148px;}
+}
+@media(max-width:390px){
+  .site-header .site-logo img{width:130px;}
+  .site-header .header-actions .btn-orange{font-size:10px;padding:8px;}
+  .site-header .header-actions{gap:5px;}
+}
+
+
+/* Refinamento do cabeçalho: navegação preta ao centro e marca com cantos suaves.
+   O símbolo N mantém o paralelogramo roxo, sem quadrado de estilo IA. */
+@media (min-width: 801px) {
+  .site-header .header-row,
+  .nl-site-header .nl-header-inner {
+    position: relative;
+  }
+  .site-header .nav-links {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    gap: 32px;
+  }
+  .site-header .header-actions,
+  .nl-site-header .nl-header-actions {
+    margin-left: auto;
+  }
+  .nl-site-header .nl-desktop-nav {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    gap: 32px;
+  }
+}
+.site-header .nav-links a:not(.nav-login),
+.site-header .nav-links a.active,
+.nl-site-header .nl-desktop-nav a,
+.nl-site-header .nl-desktop-nav a[aria-current="page"] {
+  color: #171B23;
+  font-weight: 650;
+}
+.site-header .nav-links a:not(.nav-login):hover,
+.nl-site-header .nl-desktop-nav a:hover {
+  color: #171B23;
+  text-decoration: underline;
+  text-decoration-color: #635BFF;
+  text-underline-offset: 7px;
+}
+.site-header .nav-links a:focus-visible,
+.nl-site-header .nl-desktop-nav a:focus-visible {
+  outline: 2px solid #635BFF;
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+@media (max-width: 800px) {
+  .site-header .nav-links {
+    margin: 0;
+    transform: none;
+  }
+  .site-header .nav-links a:not(.nav-login) {
+    color: #171B23;
+  }
+  .nl-site-header .nl-mobile-nav a:not(.nl-header-cta):not(.nl-login-button) {
+    color: #171B23;
+  }
+}
+
+/* Cadastro de teste: restabelece a foto real da oficina e mantém o formulário legível. */
+.nl-page .nl-trial-stage{
+  position:relative; isolation:isolate; min-height:calc(100vh - 63px);
+  overflow:hidden; background:#25313D;
+}
+.nl-page .nl-trial-stage > .nl-trial-background{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:center 43%; z-index:0;
+  filter:saturate(.82) contrast(1.04);
+}
+.nl-page .nl-trial-stage > .nl-trial-stage-shade{
+  display:block; position:absolute; inset:0; z-index:0;
+  background:linear-gradient(100deg,rgba(15,22,30,.84),rgba(19,26,35,.67));
+}
+.nl-page .nl-trial-stage > .nl-trial-stage-inner{position:relative;z-index:1;}
+.nl-page .nl-trial-card,.nl-page .nl-trial-success{
+  border-top:4px solid #635BFF;
+  box-shadow:0 24px 64px rgba(8,13,20,.27);
+}
+.nl-page .nl-trial-unavailable{display:flex;flex-direction:column;gap:10px;padding:10px 0 18px;}
+.nl-page .nl-trial-unavailable .nl-trial-alert{margin:0;}
+.nl-page .nl-trial-retry{
+  align-self:flex-start; border:1px solid #CFCBF9; background:#FFFFFF;
+  color:#443BC3; border-radius:7px; padding:9px 15px;
+  font-size:12px; font-weight:750; cursor:pointer;
+}
+.nl-page .nl-trial-retry:hover{background:#F4F2FF;}
+.nl-page .nl-trial-retry:focus-visible{outline:2px solid #635BFF;outline-offset:3px;}
+@media(max-width:650px){
+  .nl-page .nl-trial-stage{padding:36px 15px 55px;}
+  .nl-page .nl-trial-stage > .nl-trial-background{object-position:65% center;}
+  .nl-page .nl-trial-stage > .nl-trial-stage-shade{background:rgba(17,24,32,.73);}
+}
+
+
+/* Cabeçalho fixo na navegação pública: não cobrir o hero, formulários ou âncoras. */
+:root{
+  --marketing-header-height:63px;
+  --marketing-alt-header-height:70px;
+}
+.site-header,
+.nl-site-header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  width:100%;
+  z-index:1000;
+  background:#FFFFFF;
+  border-bottom:1px solid #E8EBEE;
+  box-shadow:0 3px 16px rgba(21,30,40,.055);
+}
+.reference-header-spacer{
+  height:var(--marketing-header-height);
+  flex-shrink:0;
+}
+.marketing-header-spacer{
+  height:var(--marketing-alt-header-height);
+  flex-shrink:0;
+}
+html{
+  scroll-padding-top:90px;
+}
+main#conteudo,
+.reference-site [id],
+.nl-page [id],
+section[id]{
+  scroll-margin-top:90px;
+}
+/* O salto por teclado deve ficar acima da barra fixa. */
+body>.skip-link{
+  position:fixed;
+  z-index:1100;
+}
+.nl-site-header .nl-mobile-nav{
+  max-height:calc(100dvh - var(--marketing-alt-header-height));
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+@media(max-width:800px){
+  :root{
+    --marketing-header-height:60px;
+  }
+  html{
+    scroll-padding-top:82px;
+  }
+  main#conteudo,
+  .reference-site [id],
+  .nl-page [id],
+  section[id]{
+    scroll-margin-top:82px;
+  }
+}

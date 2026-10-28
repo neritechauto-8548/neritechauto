@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,30 +19,39 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${spring.mail.host:}")
+    private String smtpHost;
+
     @Value("${frontend.url:http://localhost:4200}")
     private String frontendUrl;
 
-    @Async
-    public void sendTrialCredentials(String to, String name, String password) {
+    public void sendTrialWelcome(String to, String name, String workshop) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject("Seja bem-vindo ao NeriTech! Seu acesso foi criado.");
-
-            String htmlContent = buildTrialEmailTemplate(name, to, password);
-            helper.setText(htmlContent, true);
-
+            helper.setSubject("Boas-vindas à NERITECH AUTO");
+            String safeName = org.springframework.web.util.HtmlUtils.htmlEscape(name);
+            String safeWorkshop = org.springframework.web.util.HtmlUtils.htmlEscape(workshop);
+            String loginUrl = frontendUrl + "/auth/login";
+            helper.setText("<html><body style='margin:0;background:#f4f6fa;font-family:Arial,sans-serif;color:#14233e'>"
+                    + "<div style='max-width:560px;margin:30px auto;background:white;border:1px solid #dfe6f1'>"
+                    + "<div style='padding:28px;background:#172a50;color:white;font-size:22px;font-weight:bold'>NERITECH AUTO</div>"
+                    + "<div style='padding:30px'><h1 style='font-size:24px'>Bem-vindo à NERITECH AUTO</h1>"
+                    + "<p>Olá " + safeName + ", o cadastro da oficina " + safeWorkshop + " foi concluído.</p>"
+                    + "<p>Acesse com o e-mail informado e a senha que você definiu no cadastro.</p>"
+                    + "<p><a href='" + loginUrl + "' style='display:inline-block;padding:13px 20px;background:#3154ff;color:white;text-decoration:none'>Acessar minha oficina</a></p>"
+                    + "<p>Por segurança, nunca compartilhe sua senha. Se precisar, use a opção de recuperação de acesso na tela de login.</p>"
+                    + "</div><div style='padding:18px 30px;background:#f4f6fa;color:#62718b;font-size:12px'>NERITECH AUTO</div></div></body></html>", true);
             mailSender.send(message);
-            log.info("Trial credentials email sent successfully to: {}", to);
+            log.info("Trial welcome email accepted by SMTP transport");
         } catch (Exception e) {
-            log.error("Failed to send trial credentials email to: {}", to, e);
+            throw new org.springframework.mail.MailSendException("Trial welcome delivery unavailable", e);
         }
     }
 
-    @Async
+    /** Synchronous delivery for recovery so outages cannot be silently swallowed. */
     public void sendPasswordResetLink(String to, String name, String token) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -57,73 +65,39 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("Password reset email sent successfully to: {}", to);
+            log.info("Password reset email accepted by SMTP transport");
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {}", to, e);
+            // Never include the raw reset link/token in HTTP responses or logs.
+            throw new org.springframework.mail.MailSendException("Password reset delivery unavailable", e);
         }
     }
 
-    private String buildTrialEmailTemplate(String name, String email, String password) {
-        String loginUrl = frontendUrl + "/login"; // URL do sistema cliente
-        
-        return "<html>" +
-                "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +
-                "<div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);'>" +
-                "  <!-- Header with Gradient -->" +
-                "  <div style='background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); padding: 40px; text-align: center;'>" +
-                "    <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;'>Bem-vindo à NeriTech</h1>" +
-                "    <p style='color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;'>Sua oficina elevada ao próximo nível.</p>" +
-                "  </div>" +
-                "  " +
-                "  <div style='padding: 40px;'>" +
-                "    <p style='color: #1e293b; font-size: 18px; font-weight: 600; margin-bottom: 16px;'>Olá " + name + ",</p>" +
-                "    <p style='color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 30px;'>" +
-                "      Estamos muito felizes em ter você conosco! Você acaba de dar o primeiro passo para modernizar a sua gestão. " +
-                "      Aproveite os seus <strong>180 dias de acesso total gratuito</strong> para explorar todas as nossas ferramentas." +
-                "    </p>" +
-                "    " +
-                "    <div style='background-color: #f1f5f9; border-radius: 8px; padding: 24px; margin-bottom: 35px; border: 1px solid #e2e8f0;'>" +
-                "      <p style='margin: 0 0 16px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em;'>Suas Credenciais de Acesso</p>" +
-                "      " +
-                "      <div style='margin-bottom: 12px; display: flex; align-items: center;'>" +
-                "        <span style='color: #64748b; font-size: 14px; width: 60px; display: inline-block;'>E-mail:</span>" +
-                "        <span style='color: #1e293b; font-size: 15px; font-weight: 600;'>" + email + "</span>" +
-                "      </div>" +
-                "      " +
-                "      <div style='display: flex; align-items: center;'>" +
-                "        <span style='color: #64748b; font-size: 14px; width: 60px; display: inline-block;'>Senha:</span>" +
-                "        <span style='background-color: #ffffff; color: #6366f1; padding: 4px 10px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace; font-size: 14px; font-weight: 700; border: 1px solid #cbd5e1;'>" + password + "</span>" +
-                "      </div>" +
-                "    </div>" +
-                "    " +
-                "    <div style='text-align: center;'>" +
-                "      <a href='" + loginUrl + "' style='display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.2s;'>Entrar no Painel Agora</a>" +
-                "      <p style='margin-top: 15px; color: #94a3b8; font-size: 13px;'>Link seguro: " + loginUrl + "</p>" +
-                "    </div>" +
-                "    " +
-                "    <hr style='border: 0; border-top: 1px solid #f1f5f9; margin: 40px 0 30px 0;' />" +
-                "    " +
-                "    <div style='color: #64748b; font-size: 14px; line-height: 1.6;'>" +
-                "      <p style='margin-bottom: 8px;'><strong>Próximos passos recomendados:</strong></p>" +
-                "      <ul style='padding-left: 20px; margin: 0;'>" +
-                "        <li>Complete o cadastro da sua oficina nas configurações.</li>" +
-                "        <li>Cadastre o seu primeiro cliente e veículo.</li>" +
-                "        <li>Altere sua senha temporária no menu de perfil.</li>" +
-                "      </ul>" +
-                "    </div>" +
-                "  </div>" +
-                "  " +
-                "  <div style='background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #f1f5f9;'>" +
-                "    <p style='margin: 0; font-size: 12px; color: #94a3b8;'>NeriTech &copy; " + java.time.Year.now().getValue() + " | Todos os direitos reservados.</p>" +
-                "    <p style='margin: 5px 0 0 0; font-size: 11px; color: #cbd5e1;'>Você está recebendo este e-mail porque solicitou um teste em neritech.com.br</p>" +
-                "  </div>" +
-                "</div>" +
-                "</body>" +
-                "</html>";
+    /** Entrega síncrona: o cadastro do convite deve falhar se o provedor não aceitar a mensagem. */
+    public void sendUserInvitationLink(String to, String name, String token) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("Convite para acessar o NeriTech Auto");
+            String url = frontendUrl + "/auth/reset-password#token=" + token;
+            helper.setText("<p>Olá " + org.springframework.web.util.HtmlUtils.htmlEscape(name) + ",</p><p>Você foi convidado para acessar o NERITECH AUTO.</p>"
+                    + "<p><a href='" + url + "'>Definir senha e aceitar convite</a></p>"
+                    + "<p>Este convite é de uso único e expira em 48 horas.</p>", true);
+            mailSender.send(message);
+        } catch (Exception ex) {
+            throw new org.springframework.mail.MailSendException("Invitation delivery unavailable", ex);
+        }
+    }
+
+    public boolean isPasswordResetConfigured() {
+        return smtpHost != null && !smtpHost.isBlank()
+                && fromEmail != null && !fromEmail.isBlank();
     }
 
     private String buildResetEmailTemplate(String name, String token) {
-        String resetUrl = frontendUrl + "/auth/reset-password?token=" + token;
+        // A URL fragment is not sent to the web server or Referer header.
+        String resetUrl = frontendUrl + "/auth/reset-password#token=" + token;
         
         return "<html>" +
                 "<body style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 0;'>" +

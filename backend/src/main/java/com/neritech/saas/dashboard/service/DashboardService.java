@@ -2,7 +2,10 @@ package com.neritech.saas.dashboard.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -26,71 +29,96 @@ public class DashboardService {
 
     public DashboardDTO getDashboardData(Long empresaId) {
         LocalDate now = LocalDate.now();
-        LocalDate startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
+        return getDashboardData(empresaId, now.with(TemporalAdjusters.firstDayOfMonth()), now.with(TemporalAdjusters.lastDayOfMonth()));
+    }
 
-        // Clientes Ativos
-        Long totalClientes = clienteRepository.countByStatus(com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO);
+    public DashboardDTO getDashboardData(Long empresaId, LocalDate startOfMonth, LocalDate endOfMonth) {
+        LocalDate now = LocalDate.now();
+        long periodDays = ChronoUnit.DAYS.between(startOfMonth, endOfMonth) + 1;
+        LocalDate previousEnd = startOfMonth.minusDays(1);
+        LocalDate previousStart = previousEnd.minusDays(periodDays - 1);
 
-        // Ordens de Serviço
+        Long totalClientes = clienteRepository.countByStatusAndEmpresaId(
+                com.neritech.saas.cliente.domain.enums.StatusCliente.ATIVO, empresaId);
+
         long osAbertas = ordemServicoRepository.countAtivas(empresaId);
         long osConcluidas = ordemServicoRepository.countConcluidas(empresaId);
         long osCanceladas = ordemServicoRepository.countCanceladas(empresaId);
-        long osEmAndamento = osAbertas; // No momento tratamos ativas como em andamento/abertas
+        long osEmAndamento = osAbertas;
 
-        // Financeiro - Faturamento e Despesas
-        BigDecimal faturamentoMes = contasReceberRepository.calculateFaturamentoMes(empresaId, startOfMonth, endOfMonth);
-        if (faturamentoMes == null) faturamentoMes = BigDecimal.ZERO;
-
-        BigDecimal despesasMes = contasPagarRepository.calculateDespesasMes(empresaId, startOfMonth, endOfMonth);
-        if (despesasMes == null) despesasMes = BigDecimal.ZERO;
-
+        BigDecimal faturamentoMes = zeroIfNull(
+                contasReceberRepository.calculateFaturamentoMes(empresaId, startOfMonth, endOfMonth));
+        BigDecimal despesasMes = zeroIfNull(
+                contasPagarRepository.calculateDespesasMes(empresaId, startOfMonth, endOfMonth));
         BigDecimal lucroMes = faturamentoMes.subtract(despesasMes);
+        BigDecimal faturamentoPeriodoAnterior = zeroIfNull(
+                contasReceberRepository.calculateFaturamentoMes(empresaId, previousStart, previousEnd));
+        BigDecimal despesasPeriodoAnterior = zeroIfNull(
+                contasPagarRepository.calculateDespesasMes(empresaId, previousStart, previousEnd));
+        BigDecimal lucroPeriodoAnterior = faturamentoPeriodoAnterior.subtract(despesasPeriodoAnterior);
 
-        // Métricas Pro
-        BigDecimal ticketMedio = ordemServicoRepository.calculateTicketMedio(empresaId);
-        if (ticketMedio == null) ticketMedio = BigDecimal.ZERO;
-
-        BigDecimal contasReceber = contasReceberRepository.calculateTotalPendentes(empresaId);
-        if (contasReceber == null) contasReceber = BigDecimal.ZERO;
-
-        BigDecimal contasPagar = contasPagarRepository.calculateTotalPendentes(empresaId);
-        if (contasPagar == null) contasPagar = BigDecimal.ZERO;
-
-        BigDecimal valoresVencidos = contasReceberRepository.calculateTotalVencidos(empresaId, now);
-        if (valoresVencidos == null) valoresVencidos = BigDecimal.ZERO;
+        BigDecimal ticketMedio = zeroIfNull(ordemServicoRepository.calculateTicketMedio(empresaId));
+        BigDecimal contasReceber = zeroIfNull(contasReceberRepository.calculateTotalPendentes(empresaId));
+        BigDecimal contasPagar = zeroIfNull(contasPagarRepository.calculateTotalPendentes(empresaId));
+        BigDecimal valoresVencidos = zeroIfNull(
+                contasReceberRepository.calculateTotalVencidos(empresaId, now));
 
         long veiculosEmAtraso = ordemServicoRepository.countAtrasadas(empresaId);
 
-        // Novas Métricas de Status e Entradas/Saídas
-        java.time.LocalDateTime startOfMonthDateTime = startOfMonth.atStartOfDay();
-        java.time.LocalDateTime endOfMonthDateTime = endOfMonth.atTime(23, 59, 59, 999999999);
+        var startOfMonthDateTime = startOfMonth.atStartOfDay();
+        var endOfMonthDateTime = endOfMonth.atTime(23, 59, 59, 999999999);
+
         List<String> codigosAberto = List.of("ABERTA", "DIAGNOSTICO", "AGUARDANDO_APROVACAO");
         List<String> codigosAutorizado = List.of("APROVADA", "EM_EXECUCAO", "AGUARDANDO_PECAS");
 
-        long abertosMesVal = ordemServicoRepository.countByStatusCodesAndPeriod(empresaId, codigosAberto, startOfMonthDateTime, endOfMonthDateTime);
+        long abertosMesVal = ordemServicoRepository.countByStatusCodesAndPeriod(
+                empresaId, codigosAberto, startOfMonthDateTime, endOfMonthDateTime);
         long abertosTotalVal = ordemServicoRepository.countByStatusCodes(empresaId, codigosAberto);
 
-        long autorizadosMesVal = ordemServicoRepository.countByStatusCodesAndPeriod(empresaId, codigosAutorizado, startOfMonthDateTime, endOfMonthDateTime);
+        long autorizadosMesVal = ordemServicoRepository.countByStatusCodesAndPeriod(
+                empresaId, codigosAutorizado, startOfMonthDateTime, endOfMonthDateTime);
         long autorizadosTotalVal = ordemServicoRepository.countByStatusCodes(empresaId, codigosAutorizado);
 
-        long canceladosMesVal = ordemServicoRepository.countByCancelaOSAndPeriod(empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
+        long canceladosMesVal = ordemServicoRepository.countByCancelaOSAndPeriod(
+                empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
         long canceladosTotalVal = ordemServicoRepository.countByCancelaOS(empresaId, true);
 
-        long fechadosMesVal = ordemServicoRepository.countByFinalizaOSAndPeriod(empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
+        long fechadosMesVal = ordemServicoRepository.countByFinalizaOSAndPeriod(
+                empresaId, true, startOfMonthDateTime, endOfMonthDateTime);
+        var previousStartDateTime = previousStart.atStartOfDay();
+        var previousEndDateTime = previousEnd.atTime(23, 59, 59, 999999999);
+        long abertosPeriodoAnterior = ordemServicoRepository.countByStatusCodesAndPeriod(
+                empresaId, codigosAberto, previousStartDateTime, previousEndDateTime);
+        long autorizadosPeriodoAnterior = ordemServicoRepository.countByStatusCodesAndPeriod(
+                empresaId, codigosAutorizado, previousStartDateTime, previousEndDateTime);
+        long canceladosPeriodoAnterior = ordemServicoRepository.countByCancelaOSAndPeriod(
+                empresaId, true, previousStartDateTime, previousEndDateTime);
+        long fechadosPeriodoAnterior = ordemServicoRepository.countByFinalizaOSAndPeriod(
+                empresaId, true, previousStartDateTime, previousEndDateTime);
         long fechadosTotalVal = ordemServicoRepository.countByFinalizaOS(empresaId, true);
 
-        long entradasVeiculosMesVal = ordemServicoRepository.countByPeriod(empresaId, startOfMonthDateTime, endOfMonthDateTime);
-        long saidasVeiculosMesVal = ordemServicoRepository.countSaidasByPeriod(empresaId, startOfMonthDateTime, endOfMonthDateTime);
+        long entradasVeiculosMesVal = ordemServicoRepository.countByPeriod(
+                empresaId, startOfMonthDateTime, endOfMonthDateTime);
+        long saidasVeiculosMesVal = ordemServicoRepository.countSaidasByPeriod(
+                empresaId, startOfMonthDateTime, endOfMonthDateTime);
 
-        // Dados do Gráfico (Mock estruturado para evoluir para real)
-        List<BigDecimal> historicoFaturamento = List.of(
-                new BigDecimal("2800"), new BigDecimal("2900"), new BigDecimal("3300"),
-                new BigDecimal("3600"), new BigDecimal("4200"), faturamentoMes);
-        List<BigDecimal> historicoServicos = List.of(
-                new BigDecimal("4500"), new BigDecimal("5200"), new BigDecimal("5300"),
-                new BigDecimal("4900"), new BigDecimal("6200"), faturamentoMes.multiply(new BigDecimal("0.6")));
-        List<String> historicoMeses = List.of("Jan", "Fev", "Mar", "Abr", "Mai", "Jun");
+        // Histórico real dos últimos seis meses: faturamento recebido x despesas pagas.
+        List<BigDecimal> historicoFaturamento = new ArrayList<>();
+        List<BigDecimal> historicoDespesas = new ArrayList<>();
+        List<String> historicoMeses = new ArrayList<>();
+
+        YearMonth firstMonth = YearMonth.from(startOfMonth);
+        YearMonth lastMonth = YearMonth.from(endOfMonth);
+        for (YearMonth month = firstMonth; !month.isAfter(lastMonth); month = month.plusMonths(1)) {
+            LocalDate inicio = month.atDay(1).isBefore(startOfMonth) ? startOfMonth : month.atDay(1);
+            LocalDate fim = month.atEndOfMonth().isAfter(endOfMonth) ? endOfMonth : month.atEndOfMonth();
+
+            historicoFaturamento.add(zeroIfNull(
+                    contasReceberRepository.calculateFaturamentoMes(empresaId, inicio, fim)));
+            historicoDespesas.add(zeroIfNull(
+                    contasPagarRepository.calculateDespesasMes(empresaId, inicio, fim)));
+            historicoMeses.add(formatMonth(month));
+        }
 
         return new DashboardDTO(
                 totalClientes != null ? totalClientes : 0L,
@@ -107,7 +135,7 @@ public class DashboardService {
                 valoresVencidos,
                 veiculosEmAtraso,
                 historicoFaturamento,
-                historicoServicos,
+                historicoDespesas,
                 historicoMeses,
                 abertosMesVal,
                 abertosTotalVal,
@@ -118,6 +146,25 @@ public class DashboardService {
                 fechadosMesVal,
                 fechadosTotalVal,
                 entradasVeiculosMesVal,
-                saidasVeiculosMesVal);
+                saidasVeiculosMesVal,
+                startOfMonth,
+                endOfMonth,
+                faturamentoPeriodoAnterior,
+                despesasPeriodoAnterior,
+                lucroPeriodoAnterior,
+                abertosPeriodoAnterior,
+                autorizadosPeriodoAnterior,
+                canceladosPeriodoAnterior,
+                fechadosPeriodoAnterior);
+    }
+
+    private static BigDecimal zeroIfNull(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private static String formatMonth(YearMonth month) {
+        String[] labels = {"JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
+                "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"};
+        return labels[month.getMonthValue() - 1] + "/" + month.getYear();
     }
 }

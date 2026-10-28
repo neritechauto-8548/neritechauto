@@ -1,150 +1,215 @@
-<div class="flex flex-col h-full gap-6">
+<main class="nt-clients-page" id="conteudo">
+  <header class="nt-clients-heading">
+    <div class="nt-clients-heading-copy">
+      <span class="nt-clients-eyebrow">Gestão de relacionamento</span>
+      <h1>Clientes</h1>
+      <p>Centralize seus contatos, acompanhe os veículos vinculados e encontre cada cadastro.</p>
+      @if (isUxPreview) {
+        <span class="nt-clients-preview" role="status">Homologação · dados demonstrativos</span>
+      }
+    </div>
+    <div class="nt-clients-heading-actions">
+      @if (canCreateClient) {
+        <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()">
+          <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Novo cliente
+        </button>
+      }
+    </div>
+  </header>
 
-  <!-- Actions Bar -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-       <!-- Search -->
-       <div class="relative w-full sm:max-w-md group">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none"></i>
-            <input
-                pInputText
-                [(ngModel)]="searchTerm"
-                (keyup.enter)="onSearch()"
-                placeholder="Buscar por nome, CPF ou CNPJ..."
-                class="w-full !pl-10 !pr-12 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-            />
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">⌘K</div>
-       </div>
+  <section class="nt-clients-overview" aria-label="Resumo da listagem">
+    <div class="nt-clients-overview-icon"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></div>
+    <div class="nt-clients-overview-copy">
+      <strong>@if (isLoading) { Consultando clientes… } @else if (loadError) { Consulta indisponível } @else { {{ totalRecords }} {{ totalRecords === 1 ? 'cliente encontrado' : 'clientes encontrados' }} }</strong>
+      <span>@if (hasFilters) { Resultados dos filtros aplicados } @else { Base de clientes da sua oficina }</span>
+    </div>
+    <button type="button" class="nt-clients-refresh" (click)="atualizar()" [disabled]="isLoading" aria-label="Atualizar listagem">
+      <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.2-5L3 9"/><path d="M3 4v5h5M4 13a8 8 0 0 0 14.2 5L21 15"/><path d="M21 20v-5h-5"/></svg> <span>Atualizar</span>
+    </button>
+  </section>
 
-       <!-- New Client Button -->
-       <button (click)="cadastrarCliente()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <i class="pi pi-plus text-[14px]"></i>
-          <span>Novo Cliente</span>
-       </button>
-   </div>
+  <section class="nt-clients-toolbar" aria-label="Pesquisa e filtros">
+    <div class="nt-clients-field nt-clients-search">
+      <label for="nt-client-search">Pesquisar cliente</label>
+      <div class="nt-clients-search-control">
+        <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+        <input id="nt-client-search" pInputText [(ngModel)]="searchTerm" (ngModelChange)="onSearchTermChange($event)"
+          (keyup.enter)="onSearch()" type="search" autocomplete="off"
+          placeholder="Nome, razão social ou CPF/CNPJ" class="nt-clients-input" />
+      </div>
+    </div>
+    <div class="nt-clients-field nt-clients-filter">
+      <label for="nt-client-type">Tipo de pessoa</label>
+      <p-select inputId="nt-client-type" [options]="tipoOptions" [(ngModel)]="selectedTipo"
+        optionLabel="label" optionValue="value" [showClear]="false"
+        (onChange)="onFilterChange()" styleClass="nt-clients-select" />
+    </div>
+    <div class="nt-clients-field nt-clients-filter">
+      <label for="nt-client-status">Situação</label>
+      <p-select inputId="nt-client-status" [options]="statusOptions" [(ngModel)]="selectedStatus"
+        optionLabel="label" optionValue="value" [showClear]="false"
+        (onChange)="onFilterChange()" styleClass="nt-clients-select" />
+    </div>
+    <div class="nt-clients-field nt-clients-filter nt-clients-sort">
+      <label for="nt-client-sort">Ordenar por</label>
+      <p-select inputId="nt-client-sort" [options]="sortOptions" [(ngModel)]="sort"
+        optionLabel="label" optionValue="value" (onChange)="onSortChange()"
+        styleClass="nt-clients-select" />
+    </div>
+    <button type="button" class="nt-clients-search-button" (click)="onSearch()">Buscar</button>
+    @if (hasFilters) {
+      <button type="button" class="nt-clients-clear" (click)="limparFiltros()">Limpar filtros</button>
+    }
+  </section>
 
-  <!-- Data Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-      <div class="overflow-x-auto flex-1">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[40%] align-middle">Cliente</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Documento</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[25%] align-middle">Contato</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @if (isLoading) {
-                    @for (i of [1, 2, 3, 4, 5]; track i) {
-                        <tr>
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <p-skeleton shape="circle" size="2.25rem"></p-skeleton>
-                                    <div class="flex flex-col gap-1.5">
-                                        <p-skeleton width="150px" height="1rem"></p-skeleton>
-                                        <p-skeleton width="80px" height="0.75rem"></p-skeleton>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="120px" height="1.25rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="100px" height="1rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle text-right pr-4">
-                                <p-skeleton shape="circle" size="1.75rem" styleClass="inline-block"></p-skeleton>
-                            </td>
-                        </tr>
-                    }
-                } @else {
-                    @for (row of pagedData; track row.uuid) {
-                        <tr class="group hover:bg-gray-50 transition-colors duration-200">
-                            <!-- Cliente -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                        {{ row.nome.charAt(0).toUpperCase() }}
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="navigateToEdit(row)">{{ row.nome }}</span>
-                                        <span class="text-[11px] text-slate-500">{{ getTipoClienteLabel(row.tipo) }}</span>
-                                    </div>
-                                </div>
-                            </td>
+  @if (loadError) {
+    <section class="nt-clients-error" role="alert">
+      <div><strong>{{ loadErrorMessage.includes('permissão') ? 'Acesso não autorizado.' : 'Não foi possível carregar os clientes.' }}</strong>
+        <p>{{ loadErrorMessage }}</p></div>
+      @if (!loadErrorMessage.includes('permissão')) {
+        <button type="button" class="nt-clients-outline" (click)="atualizar()">Tentar novamente</button>
+      }
+    </section>
+  }
 
-                            <!-- Documento -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                                    {{ formatCpfCnpj(row.cpfCnpj) }}
-                                </span>
-                            </td>
+  <section class="nt-clients-results" aria-label="Clientes cadastrados">
+    <div class="nt-clients-results-top">
+      <div><h2>Lista de clientes</h2><p>Selecione um cliente para consultar ou editar seus dados.</p></div>
+      <span class="nt-clients-results-caption">Dados da empresa atual</span>
+    </div>
 
-                            <!-- Contato -->
-                            <td class="py-2.5 px-6 align-middle">
-                                @if (row.contato) {
-                                    <div class="flex items-center gap-2 text-sm text-slate-600">
-                                        <i class="pi pi-phone text-xs text-slate-400"></i>
-                                        {{ row.contato }}
-                                    </div>
-                                } @else {
-                                    <span class="text-xs text-slate-400 italic">Sem contato</span>
-                                }
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="py-2.5 px-6 align-middle text-right">
-                                <button pButton icon="pi pi-ellipsis-v" class="p-button-text p-button-rounded p-button-secondary w-8 h-8 flex items-center justify-center" (click)="toggleMenu(row, $event, menu)"></button>
-                            </td>
-                        </tr>
-                    }
-
-                    @if (clients.length === 0) {
-                        <tr>
-                            <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                                <div class="flex flex-col items-center gap-3 text-slate-400">
-                                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                                     <i class="pi pi-search text-xl text-slate-400"></i>
-                                  </div>
-                                  <p class="text-sm font-medium text-slate-500">Nenhum cliente encontrado</p>
-                                  <button (click)="cadastrarCliente()" class="text-xs text-blue-600 font-bold hover:underline">
-                                      Cadastrar novo cliente
-                                  </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
+    @if (isLoading) {
+      <div class="nt-clients-loading" role="status" aria-label="Carregando clientes">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="nt-clients-skeleton"><p-skeleton shape="circle" size="2.5rem" /><span><p-skeleton width="175px" /><p-skeleton width="100px" /></span><p-skeleton width="100px" /></div>
+        }
+      </div>
+    } @else if (!loadError && clients.length === 0) {
+      <div class="nt-clients-empty">
+        <div class="nt-clients-empty-icon"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"/></svg></div>
+        <h3>{{ hasFilters ? 'Nenhum resultado encontrado' : 'Sua carteira de clientes começa aqui' }}</h3>
+        <p>{{ hasFilters ? 'Tente outros termos ou remova os filtros para ampliar a busca.' : 'Cadastre um cliente para associar veículos, orçamentos e ordens de serviço.' }}</p>
+        @if (hasFilters) {
+          <button type="button" class="nt-clients-outline" (click)="limparFiltros()">Limpar filtros</button>
+        } @else if (canCreateClient) {
+          <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Cadastrar cliente</button>
+        }
+      </div>
+    } @else if (!loadError) {
+      <div class="nt-clients-table-wrap">
+        <table class="nt-clients-table">
+          <caption class="sr-only">Lista de clientes da empresa, ordenada e paginada pelo servidor</caption>
+          <thead>
+            <tr>
+              <th scope="col">Cliente</th>
+              <th scope="col">Documento</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Contato</th>
+              <th scope="col">Veículos</th>
+              <th scope="col">Cadastro</th>
+              <th scope="col">Situação</th>
+              <th scope="col"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of pagedData; track row.uuid) {
+              <tr>
+                <td>
+                  <div class="nt-clients-person">
+                    <span class="nt-clients-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() || 'C' }}</span>
+                    <span class="nt-clients-person-copy">
+                      @if (canOpenClient) {
+                        <button type="button" class="nt-clients-person-name" (click)="navigateToEdit(row)">{{ row.nome }}</button>
+                      } @else { <strong>{{ row.nome }}</strong> }
+                      <small>{{ row.email || 'E-mail não cadastrado' }}</small>
+                    </span>
+                  </div>
+                </td>
+                <td class="nt-clients-muted">{{ formatCpfCnpj(row.cpfCnpj) || '—' }}</td>
+                <td class="nt-clients-muted">{{ getTipoClienteLabel(row.tipo) }}</td>
+                <td class="nt-clients-muted">{{ row.contato || '—' }}</td>
+                <td>
+                  @if (canOpenVehicles) {
+                    <button type="button" class="nt-clients-vehicles" (click)="abrirVeiculos(row)"
+                      [attr.aria-label]="'Ver veículos de ' + row.nome">
+                      <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 16-1.5 2v2h3v-2h11v2h3v-2L19 16l-2-7H7l-2 7Z"/><path d="M5 16h14M7 12h10M7.5 16h.01M16.5 16h.01"/></svg> {{ row.quantidadeVeiculos ?? '—' }}
+                    </button>
+                  } @else { <span class="nt-clients-muted">{{ row.quantidadeVeiculos ?? '—' }}</span> }
+                </td>
+                <td class="nt-clients-muted">{{ formatDataCadastro(row.dataCadastro) }}</td>
+                <td><span class="nt-clients-status"
+                  [class.nt-clients-status-active]="row.status === StatusCliente.ATIVO"
+                  [class.nt-clients-status-inactive]="row.status === StatusCliente.INATIVO"
+                  [class.nt-clients-status-blocked]="row.status === StatusCliente.BLOQUEADO">{{ getStatusLabel(row.status) }}</span></td>
+                <td>
+                  <button type="button" class="nt-row-action" [attr.aria-label]="'Ações para ' + row.nome"
+                    (click)="toggleMenu(row, $event, menu)"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></button>
+                </td>
+              </tr>
+            }
+          </tbody>
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10">
-        <div class="text-xs text-slate-500">
-            Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
-        </div>
-        <div class="flex gap-2">
-            <button
-                [disabled]="first === 0 || isLoading"
-                (click)="goPrev()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                <i class="pi pi-chevron-left text-xs"></i> Anterior
-            </button>
-            <button
-                [disabled]="first + rows >= totalRecords || isLoading"
-                (click)="goNext()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                Próximo <i class="pi pi-chevron-right text-xs"></i>
-            </button>
-        </div>
+      <div class="nt-clients-mobile-list" aria-label="Clientes em cartões">
+        @for (row of pagedData; track row.uuid) {
+          <article class="nt-clients-mobile-card">
+            <div class="nt-clients-mobile-head">
+              <div class="nt-clients-person">
+                <span class="nt-clients-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() || 'C' }}</span>
+                <div class="nt-clients-person-copy">
+                  <strong>{{ row.nome }}</strong>
+                  <small>{{ getTipoClienteLabel(row.tipo) }}</small>
+                </div>
+              </div>
+              <span class="nt-clients-status"
+                [class.nt-clients-status-active]="row.status === StatusCliente.ATIVO"
+                [class.nt-clients-status-inactive]="row.status === StatusCliente.INATIVO"
+                [class.nt-clients-status-blocked]="row.status === StatusCliente.BLOQUEADO">{{ getStatusLabel(row.status) }}</span>
+            </div>
+            <dl class="nt-clients-mobile-details">
+              <div><dt>Documento</dt><dd>{{ formatCpfCnpj(row.cpfCnpj) || '—' }}</dd></div>
+              <div><dt>Contato</dt><dd>{{ row.contato || row.email || '—' }}</dd></div>
+              <div><dt>Veículos</dt><dd>{{ row.quantidadeVeiculos ?? '—' }}</dd></div>
+              <div><dt>Cadastro</dt><dd>{{ formatDataCadastro(row.dataCadastro) }}</dd></div>
+            </dl>
+            <div class="nt-clients-mobile-actions">
+              @if (canOpenClient) {
+                <button type="button" class="nt-clients-outline" (click)="navigateToEdit(row)">Abrir cadastro <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+              }
+              @if (canOpenVehicles) {
+                <button type="button" class="nt-clients-vehicles" (click)="abrirVeiculos(row)"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 16-1.5 2v2h3v-2h11v2h3v-2L19 16l-2-7H7l-2 7Z"/><path d="M5 16h14M7 12h10M7.5 16h.01M16.5 16h.01"/></svg> Veículos</button>
+              }
+              <button type="button" class="nt-row-action" [attr.aria-label]="'Mais ações para ' + row.nome"
+                (click)="toggleMenu(row, $event, menu)"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></button>
+            </div>
+          </article>
+        }
       </div>
-  </div>
+    }
 
-</div>
+    @if (!isLoading && !loadError && totalRecords > 0) {
+      <footer class="nt-clients-pagination">
+        <div class="nt-clients-page-size">
+          <label for="nt-client-page-size">Por página</label>
+          <select id="nt-client-page-size" class="nt-page-size" [(ngModel)]="rows" (ngModelChange)="onPageSizeChange()">
+            @for (size of pageSizes; track size) { <option [ngValue]="size">{{ size }}</option> }
+          </select>
+          <span>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalRecords }}</span>
+        </div>
+        <nav class="nt-clients-page-navigation" aria-label="Navegação entre páginas">
+          <button type="button" class="nt-clients-outline" [disabled]="first === 0" (click)="goPrev()">Anterior</button>
+          <span aria-live="polite">Página {{ currentPage }} de {{ backendPage?.totalPages || 1 }}</span>
+          <button type="button" class="nt-clients-outline" [disabled]="first + rows >= totalRecords" (click)="goNext()">Próxima</button>
+        </nav>
+      </footer>
+    }
+  </section>
+</main>
 
-<!-- Popup menu -->
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
+<p-dialog [(visible)]="isQuickFormOpen" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{ width: 'min(960px, 96vw)' }" [breakpoints]="{'720px': '96vw'}"
+  styleClass="nt-client-quick-dialog" header="Cadastro rápido de cliente">
+  <cadastro-cliente [modalMode]="true" (saved)="onQuickClientSaved()" (canceled)="onQuickClientCanceled()" />
+</p-dialog>

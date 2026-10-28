@@ -9,6 +9,7 @@ import {
   ConfiguracaoSms,
   ConfiguracaoWhatsapp,
   Empresa,
+  EmpresaHistoricoPage,
   EnderecoEmpresa
 } from '../models/empresa.models';
 
@@ -39,7 +40,7 @@ export class EmpresaService {
       dataAbertura: data.dataAbertura,
       observacoes: data.observacoes,
       ativo: data.ativo,
-      logoPath: data.logoPath
+      versao: data.versao
     };
     return this.http.put<Empresa>(`/api/v1/empresas/${id}`, payload);
   }
@@ -48,6 +49,22 @@ export class EmpresaService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<Empresa>(`/api/v1/empresas/${id}/logo`, formData);
+  }
+
+  getLogo(id: number): Observable<Blob> {
+    return this.http.get(`/api/v1/empresas/${id}/logo`, {
+      responseType: 'blob', headers: { 'X-Skip-Toast': 'true' }
+    });
+  }
+
+  removeLogo(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/v1/empresas/${id}/logo`);
+  }
+
+  getHistorico(id: number, page = 0, size = 20): Observable<EmpresaHistoricoPage> {
+    return this.http.get<EmpresaHistoricoPage>(`/api/v1/empresas/${id}/historico`, {
+      params: { page, size }, headers: { 'X-Skip-Toast': 'true' }
+    });
   }
 
   // --- Endereço Empresa ---
@@ -120,8 +137,7 @@ export class EmpresaService {
       serieNfe: data.serieNfe,
       numeracaoNfe: data.numeracaoNfe,
       ambienteNfe: data.ambienteNfe,
-      certificadoDigitalA1: data.certificadoDigitalA1,
-      senhaCertificado: data.senhaCertificado,
+      // Segredos fiscais exigem configuração segura fora do cadastro comum.
       validadeCertificado: data.validadeCertificado
     };
     return data.id
@@ -154,6 +170,7 @@ export class EmpresaService {
       formatoData: data.formatoData,
       formatoHora: data.formatoHora,
       timezone: data.timezone,
+      corTema: data.corTema,
       possuiIntervalo: data.possuiIntervalo,
       inicioIntervalo: data.inicioIntervalo,
       fimIntervalo: data.fimIntervalo

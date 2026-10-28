@@ -2,9 +2,11 @@ package com.neritech.saas.empresa.controller;
 
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.empresa.domain.Empresa;
+import com.neritech.saas.empresa.domain.enums.StatusAssinatura;
 import com.neritech.saas.empresa.dto.AssinaturaDTO;
 import com.neritech.saas.empresa.service.EmpresaService;
 import com.neritech.saas.empresa.service.StripeService;
+import com.neritech.saas.trial.service.TrialPolicy;
 import com.stripe.model.Customer;
 import com.stripe.model.Subscription;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +44,25 @@ public class AssinaturaController {
 
             Empresa empresa = this.empresaService.findById(empresaId);
             String customerId = empresa.getStripeCustomerId();
+
+            // O teste gratuito é local até a empresa escolher uma assinatura paga.
+            var assinaturaLocal = this.empresaService.findActiveSubscriptionByEmpresa(empresaId);
+            if (assinaturaLocal.isPresent() && assinaturaLocal.get().getStatus() == StatusAssinatura.TESTE) {
+                var teste = assinaturaLocal.get();
+                java.time.LocalDateTime fim = TrialPolicy.endsAt(teste);
+                java.time.LocalDateTime agora = TrialPolicy.now();
+                boolean vigente = !TrialPolicy.isExpired(teste);
+                return ResponseEntity.ok(AssinaturaDTO.builder()
+                        .plano(teste.getPlano().getNome())
+                        .status(vigente ? "TESTE" : "INATIVO")
+                        .precoFormatado(String.format("R$ %,.2f", teste.getValorMensal()))
+                        .trial(vigente)
+                        .inicioTrial(teste.getDataInicio().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                        .fimTrial(fim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                        .diasRestantesTrial(vigente ? java.time.temporal.ChronoUnit.DAYS.between(
+                                agora.toLocalDate(), fim.toLocalDate()) : 0)
+                        .build());
+            }
 
             if (!this.stripeService.isConfigured()) {
                 // Se não houver Stripe, tenta buscar a assinatura local do banco

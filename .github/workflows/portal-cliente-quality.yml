@@ -1,0 +1,38 @@
+name: Portal do Cliente Quality
+
+on:
+  push:
+    branches: [feature/develop]
+    paths:
+      - 'PortalCliente/**'
+      - '.github/workflows/portal-cliente-quality.yml'
+  pull_request:
+    branches: [feature/develop]
+    paths:
+      - 'PortalCliente/**'
+      - '.github/workflows/portal-cliente-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: TypeScript e build Next.js
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: PortalCliente
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: PortalCliente/package-lock.json
+      - name: Instalar dependências de forma reprodutível
+        run: npm ci --no-audit --no-fund
+      - name: Verificar tipos
+        run: npm run typecheck
+      - name: Build de produção
+        run: npm run build

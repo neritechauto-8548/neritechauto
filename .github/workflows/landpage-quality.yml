@@ -1,0 +1,38 @@
+name: Landpage Quality
+
+on:
+  push:
+    branches: [feature/develop]
+    paths:
+      - 'landpage/**'
+      - '.github/workflows/landpage-quality.yml'
+  pull_request:
+    branches: [feature/develop]
+    paths:
+      - 'landpage/**'
+      - '.github/workflows/landpage-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nextjs:
+    name: Build Next.js landing
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: landpage
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: landpage/package-lock.json
+      - name: Instalar dependencias bloqueadas
+        run: npm ci --no-audit --no-fund
+      - name: Verificar TypeScript
+        run: npx tsc --noEmit
+      - name: Build de producao
+        run: npm run build

@@ -5,6 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,6 +45,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/public/ordem-servico/**", "/api/public/ordem-servico/**").authenticated()
                 .requestMatchers(
                     "/auth/login",
                     "/auth/refresh",
@@ -56,13 +62,25 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     HttpMethod.GET,
-                    "/v1/ordens-servico/fotos/*/download",
                     "/v1/empresas/*/logo",
                     "/v1/rh/funcionarios/*/foto",
                     "/v1/produtos/*/foto"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+            // Contrato HTTP de Orçamentos: ausência de autenticação retorna 401.
+            // Não alterar o entry point dos outros módulos (regressão de OS).
+            .exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
+                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                new OrRequestMatcher(
+                    new AntPathRequestMatcher("/v1/orcamentos"),
+                    new AntPathRequestMatcher("/v1/orcamentos/**")
+                )
+            ).defaultAuthenticationEntryPointFor(
+                // A aplicação preserva 403 como contrato legado nos demais endpoints.
+                new HttpStatusEntryPoint(HttpStatus.FORBIDDEN),
+                AnyRequestMatcher.INSTANCE
+            ))
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )

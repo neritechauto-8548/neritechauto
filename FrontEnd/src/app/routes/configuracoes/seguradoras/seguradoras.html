@@ -1,0 +1,241 @@
+<main class="mx-auto w-full max-w-7xl p-4 sm:p-6 space-y-5">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Seguradoras</h1>
+      <p class="text-sm text-slate-600">Cadastro de parceiros e vínculo manual com ordens de serviço.</p>
+    </div>
+    <button type="button" (click)="novo()"
+      class="rounded-lg bg-blue-700 px-4 py-3 text-white font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      Nova seguradora
+    </button>
+  </header>
+
+  @if (notice) { <p role="status" aria-live="polite" class="rounded-lg border border-green-200 p-3 text-green-800">{{ notice }}</p> }
+
+  <section class="rounded-xl bg-white border border-slate-200 p-4 space-y-4" aria-label="Lista de seguradoras">
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="flex-1 min-w-48 text-sm font-medium">Buscar nome ou documento
+        <input class="mt-1 block w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" type="search"
+          [(ngModel)]="busca" (keyup.enter)="filtrar()" maxlength="255" placeholder="Nome ou CNPJ" />
+      </label>
+      <label class="text-sm font-medium">Situação
+        <select class="mt-1 block border border-slate-300 rounded-lg px-3 py-2 min-h-11"
+          [(ngModel)]="status" (change)="filtrar()">
+          <option value="todos">Todas</option><option value="ativos">Ativas</option>
+          <option value="inativos">Inativas</option>
+        </select>
+      </label>
+      <label class="text-sm font-medium">Por página
+        <select class="mt-1 block border border-slate-300 rounded-lg px-3 py-2 min-h-11"
+          [ngModel]="size" (ngModelChange)="mudarTamanho($event)">
+          <option [ngValue]="20">20</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option>
+        </select>
+      </label>
+      <button type="button" (click)="filtrar()" [disabled]="loading"
+        class="border border-slate-300 rounded-lg px-4 py-2 min-h-11">Buscar</button>
+    </div>
+
+    @if (loading) { <p role="status" aria-live="polite">Carregando seguradoras...</p> }
+    @if (error) {
+      <div class="rounded-lg border border-red-200 p-4 text-red-700" role="alert">
+        <p>{{ error }}</p><button type="button" class="underline mt-2" (click)="listar()">Tentar novamente</button>
+      </div>
+    }
+
+    @if (!loading && !error) {
+      @if (!items.length) {
+        <div class="text-center py-10 text-slate-600" role="status">
+          Nenhuma seguradora encontrada. Utilize “Nova seguradora” para cadastrar.
+        </div>
+      } @else {
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Seguradoras com rolagem horizontal">
+          <table class="w-full min-w-[780px] text-sm text-left">
+            <caption class="sr-only">Seguradoras da empresa autenticada</caption>
+            <thead><tr class="border-b border-slate-200 text-slate-700">
+              <th scope="col" class="p-3">Seguradora</th><th scope="col" class="p-3">CNPJ</th>
+              <th scope="col" class="p-3">Contato</th><th scope="col" class="p-3">Telefone</th>
+              <th scope="col" class="p-3">Convênio</th><th scope="col" class="p-3">OS</th>
+              <th scope="col" class="p-3">Situação</th><th scope="col" class="p-3">Ação</th>
+            </tr></thead>
+            <tbody>
+              @for (item of items; track item.id) {
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                  <th scope="row" class="p-3 font-semibold">{{ item.nomeFantasia }}</th>
+                  <td class="p-3">{{ item.cnpj || '—' }}</td>
+                  <td class="p-3">{{ item.nomeContato || item.email || '—' }}</td>
+                  <td class="p-3">{{ item.telefone || '—' }}</td>
+                  <td class="p-3">{{ item.tipoConvenio || '—' }}</td>
+                  <td class="p-3">{{ item.totalOS }}</td>
+                  <td class="p-3">{{ item.ativo ? 'Ativa' : 'Inativa' }}</td>
+                  <td class="p-3"><button type="button" class="text-blue-700 font-medium underline"
+                    (click)="editar(item)" [attr.aria-label]="'Editar seguradora ' + item.nomeFantasia">Detalhes</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="Páginas de seguradoras" class="flex flex-wrap gap-4 items-center">
+          <span class="text-sm text-slate-600 mr-auto">{{ total }} registros — página {{ page + 1 }}</span>
+          <button type="button" [disabled]="loading || page === 0" (click)="proxima(-1)"
+            class="border border-slate-300 rounded-lg min-h-11 px-4 disabled:opacity-50">Anterior</button>
+          <button type="button" [disabled]="loading || (page + 1) * size >= total" (click)="proxima(1)"
+            class="border border-slate-300 rounded-lg min-h-11 px-4 disabled:opacity-50">Próxima</button>
+        </nav>
+      }
+    }
+  </section>
+
+  @if (formVisible) {
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 space-y-5"
+      aria-labelledby="seguradora-edicao-titulo">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="seguradora-edicao-titulo" class="text-xl font-semibold">
+          {{ selected ? 'Editar seguradora' : 'Nova seguradora' }}
+        </h2>
+        <button type="button" class="text-slate-700 underline p-2" (click)="fechar()">Fechar</button>
+      </div>
+      @if (formError) { <p role="alert" class="rounded-lg border border-red-300 p-3 text-red-700">{{ formError }}</p> }
+      <form (ngSubmit)="salvar()" #seguradoraForm="ngForm" class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label class="text-sm font-medium">Nome da seguradora *
+            <input name="nomeFantasia" [(ngModel)]="form.nomeFantasia" required maxlength="255"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Razão social
+            <input name="razaoSocial" [(ngModel)]="form.razaoSocial" maxlength="255"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">CNPJ (quando aplicável)
+            <input name="cnpj" [(ngModel)]="form.cnpj" maxlength="18" inputmode="text"
+              placeholder="00.000.000/0000-00"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Registro SUSEP (opcional)
+            <input name="registroSusep" [(ngModel)]="form.registroSusep" maxlength="60"
+              aria-describedby="susep-disclaimer"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <p id="susep-disclaimer" class="sm:col-span-2 text-xs text-amber-800">
+            Registro informado pelo usuário, pendente de verificação. Nenhuma consulta à SUSEP é realizada.
+          </p>
+          <label class="text-sm font-medium">Nome do contato
+            <input name="nomeContato" [(ngModel)]="form.nomeContato" maxlength="255"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Telefone
+            <input name="telefone" [(ngModel)]="form.telefone" maxlength="20" type="tel"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">E-mail
+            <input name="email" [(ngModel)]="form.email" maxlength="255" type="email"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium">Tipo de convênio
+            <select name="tipoConvenio" [(ngModel)]="form.tipoConvenio"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option [ngValue]="null">Não informado</option>
+              <option value="CONVENIO">Convênio</option><option value="REEMBOLSO">Reembolso</option>
+              <option value="AMBOS">Ambos</option>
+            </select>
+          </label>
+          <label class="text-sm font-medium sm:col-span-2">Endereço
+            <input name="endereco" [(ngModel)]="form.endereco" maxlength="500"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
+          </label>
+          <label class="text-sm font-medium sm:col-span-2">Notas internas
+            <textarea name="notas" [(ngModel)]="form.notas" maxlength="4000" rows="3"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2"></textarea>
+          </label>
+          <label class="text-sm font-medium">Situação
+            <select name="ativo" [(ngModel)]="form.ativo"
+              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+              <option [ngValue]="true">Ativa</option><option [ngValue]="false">Inativa</option>
+            </select>
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-3 items-center">
+          <button type="submit" [disabled]="saving || seguradoraForm.invalid"
+            class="bg-blue-700 text-white rounded-lg px-5 py-3 font-semibold disabled:opacity-50">
+            {{ saving ? 'Salvando...' : 'Salvar seguradora' }}
+          </button>
+          @if (selected?.ativo && !confirmInactivate) {
+            <button type="button" class="border border-red-300 rounded-lg px-4 py-3 text-red-700"
+              (click)="confirmInactivate = true">Inativar</button>
+          }
+          @if (confirmInactivate) {
+            <p class="text-sm text-red-800">Inativar sem excluir OS vinculadas?</p>
+            <button type="button" class="bg-red-700 text-white rounded-lg px-4 py-3"
+              [disabled]="saving" (click)="inativar()">Confirmar inativação</button>
+            <button type="button" class="underline p-2" (click)="confirmInactivate = false">Cancelar</button>
+          }
+        </div>
+      </form>
+
+      @if (selected) {
+        <section class="pt-5 border-t border-slate-200 space-y-3" aria-labelledby="seguradora-os-titulo">
+          <h3 id="seguradora-os-titulo" class="text-lg font-semibold">Vínculo com atendimento / OS</h3>
+          <p class="text-sm text-slate-600">Informe o ID da OS existente. Nenhum sinistro ou apólice será gerado automaticamente.</p>
+          <div class="flex flex-wrap items-end gap-3">
+            <label class="text-sm font-medium">ID da OS
+              <input type="number" min="1" [(ngModel)]="osInput" class="block mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11 w-36" />
+            </label>
+            <label class="text-sm font-medium">Tipo de vínculo
+              <select [(ngModel)]="osTipo" class="block mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
+                <option value="CONVENIO">Convênio</option><option value="REEMBOLSO">Reembolso</option>
+              </select>
+            </label>
+            <button type="button" class="border border-slate-300 rounded-lg px-4 py-2 min-h-11"
+              [disabled]="linking || !osInput" (click)="consultarOS()">Consultar OS</button>
+            <button type="button" class="bg-blue-700 text-white rounded-lg px-4 py-2 min-h-11 disabled:opacity-50"
+              [disabled]="linking || !osInput || !selected.ativo || !!osLink" (click)="vincularOS()">Vincular</button>
+          </div>
+          @if (osError) { <p role="alert" class="text-red-700">{{ osError }}</p> }
+          @if (osLink) {
+            <div class="flex flex-wrap gap-3 items-center">
+              <span role="status">OS #{{ osLink.ordemServicoId }} vinculada a {{ osLink.seguradora }} ({{ osLink.tipoVinculo }}).</span>
+              @if (osLink.seguradoraId === selected.id) {
+                <button type="button" class="underline text-red-700" (click)="desvincularOS()" [disabled]="linking">Remover vínculo</button>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="pt-5 border-t border-slate-200 space-y-3" aria-labelledby="seguradora-historico-titulo">
+          <h3 id="seguradora-historico-titulo" class="text-lg font-semibold">Histórico auditado</h3>
+          @if (historyLoading) { <p role="status">Carregando histórico...</p> }
+          @if (historyError) {
+            <div role="alert"><p>{{ historyError }}</p>
+              <button type="button" class="underline" (click)="carregarHistorico(historyPage)">Tentar novamente</button></div>
+          }
+          @if (!historyLoading && !historyError && !history.length) { <p class="text-slate-600">Sem alterações registradas.</p> }
+          @if (history.length) {
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Histórico com rolagem">
+              <table class="min-w-[620px] w-full text-sm text-left">
+                <thead><tr class="border-b">
+                  <th scope="col" class="p-2">Campo</th><th scope="col" class="p-2">Anterior</th>
+                  <th scope="col" class="p-2">Novo</th><th scope="col" class="p-2">Usuário</th>
+                  <th scope="col" class="p-2">Data</th><th scope="col" class="p-2">Versão</th>
+                </tr></thead>
+                <tbody>@for (event of history; track $index) {
+                  <tr class="border-b"><th scope="row" class="p-2">{{ event.campo }}</th>
+                    <td class="p-2">{{ event.anterior }}</td><td class="p-2">{{ event.novo }}</td>
+                    <td class="p-2">#{{ event.autor }}</td>
+                    <td class="p-2">{{ event.data | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="p-2">{{ event.versao }}</td>
+                  </tr>
+                }</tbody>
+              </table>
+            </div>
+            <nav aria-label="Paginação do histórico" class="flex gap-3 items-center">
+              <span class="text-sm text-slate-600 mr-auto">{{ historyTotal }} alterações</span>
+              <button type="button" class="border rounded-lg p-3" (click)="carregarHistorico(historyPage - 1)"
+                [disabled]="historyLoading || historyPage === 0">Anterior</button>
+              <button type="button" class="border rounded-lg p-3" (click)="carregarHistorico(historyPage + 1)"
+                [disabled]="historyLoading || (historyPage + 1) * 20 >= historyTotal">Próxima</button>
+            </nav>
+          }
+        </section>
+      }
+    </section>
+  }
+</main>

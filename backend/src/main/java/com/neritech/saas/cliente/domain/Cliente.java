@@ -77,6 +77,66 @@ public class Cliente extends TenantEntity {
     @Column(name = "observacoes_gerais", columnDefinition = "TEXT")
     private String observacoesGerais;
 
+    @Column(name = "rg", length = 30)
+    private String rg;
+
+    public String getRg() { return rg; }
+    public void setRg(String value) { this.rg = value; }
+
+    @Column(name = "categoria", length = 60)
+    private String categoria;
+
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String value) { this.categoria = value; }
+
+    @Column(name = "indicador_isencao", length = 40)
+    private String indicadorIsencao;
+
+    public String getIndicadorIsencao() { return indicadorIsencao; }
+    public void setIndicadorIsencao(String value) { this.indicadorIsencao = value; }
+
+    @Column(name = "email_secundario", length = 100)
+    private String emailSecundario;
+
+    public String getEmailSecundario() { return emailSecundario; }
+    public void setEmailSecundario(String value) { this.emailSecundario = value; }
+
+    @Column(name = "outros_contatos", length = 255)
+    private String outrosContatos;
+
+    public String getOutrosContatos() { return outrosContatos; }
+    public void setOutrosContatos(String value) { this.outrosContatos = value; }
+
+    @Column(name = "enviar_noticia")
+    private Boolean enviarNoticia;
+
+    public Boolean getEnviarNoticia() { return enviarNoticia; }
+    public void setEnviarNoticia(Boolean value) { this.enviarNoticia = value; }
+
+    @Column(name = "classificacao")
+    private Integer classificacao;
+
+    public Integer getClassificacao() { return classificacao; }
+    public void setClassificacao(Integer value) { this.classificacao = value; }
+
+    @Column(name = "limite_desconto_pecas")
+    private java.math.BigDecimal limiteDescontoPecas;
+
+    public java.math.BigDecimal getLimiteDescontoPecas() { return limiteDescontoPecas; }
+    public void setLimiteDescontoPecas(java.math.BigDecimal value) { this.limiteDescontoPecas = value; }
+
+    @Column(name = "limite_desconto_servicos")
+    private java.math.BigDecimal limiteDescontoServicos;
+
+    public java.math.BigDecimal getLimiteDescontoServicos() { return limiteDescontoServicos; }
+    public void setLimiteDescontoServicos(java.math.BigDecimal value) { this.limiteDescontoServicos = value; }
+
+    @Column(name = "bloquear_se_atrasar")
+    private java.math.BigDecimal bloquearSeAtrasar;
+
+    public java.math.BigDecimal getBloquearSeAtrasar() { return bloquearSeAtrasar; }
+    public void setBloquearSeAtrasar(java.math.BigDecimal value) { this.bloquearSeAtrasar = value; }
+
     // Manual setters for specific fields (Lombok workaround)
     public void setTipoCliente(TipoCliente tipoCliente) {
         this.tipoCliente = tipoCliente;

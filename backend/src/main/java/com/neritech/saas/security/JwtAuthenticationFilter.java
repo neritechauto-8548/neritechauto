@@ -1,6 +1,10 @@
 package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
+import com.neritech.saas.empresa.domain.enums.StatusAssinatura;
+import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
+import com.neritech.saas.trial.service.TrialPolicy;
+import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final SessaoUsuarioRepository sessaoUsuarioRepository;
+    private final AssinaturaEmpresaRepository assinaturaEmpresaRepository;
 
     @Override
     protected void doFilterInternal(
@@ -33,9 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
+        Long validatedEmpresaId = null;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            try {
+                filterChain.doFilter(request, response);
+            } finally {
+                // Fluxos públicos (inclusive login/refresh) também podem definir
+                // TenantContext no serviço; nunca reutilizar esse valor na thread.
+                TenantContext.clear();
+            }
             return;
         }
 
@@ -45,16 +58,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Extract email and tenant from token
             userEmail = jwtService.extractUsername(jwt);
             
-            // Extract Tenant ID from claims and set context
+            // O claim da empresa só pode entrar no contexto após validar JWT,
+            // sessão ativa e pertencimento real do usuário ao tenant.
             Long empresaId = jwtService.extractClaim(jwt, claims -> claims.get("empresaId", Long.class));
-            if (empresaId != null) {
-                TenantContext.setCurrentTenant(empresaId);
-            }
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userEmail != null && empresaId != null && empresaId > 0
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                boolean validTenantSession = jwtService.isTokenValid(jwt, userDetails)
+                        && sessaoUsuarioRepository.findByTokenSessao(jwt)
+                            .filter(sessao -> Boolean.TRUE.equals(sessao.getAtivo())
+                                    && empresaId.equals(sessao.getEmpresaId())
+                                    && sessao.getUsuario() != null
+                                    && empresaId.equals(sessao.getUsuario().getEmpresaId())
+                                    && userEmail.equalsIgnoreCase(sessao.getUsuario().getEmail()))
+                            .isPresent();
+                if (validTenantSession) {
+                    TenantContext.setCurrentTenant(empresaId);
+                    validatedEmpresaId = empresaId;
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -73,10 +95,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         try {
+            if (validatedEmpresaId != null && !isSubscriptionRoute(request.getServletPath())
+                    && assinaturaEmpresaRepository.findFirstByEmpresaIdOrderByDataFimDesc(validatedEmpresaId)
+                        .filter(assinatura -> assinatura.getStatus() == StatusAssinatura.TESTE)
+                        .filter(TrialPolicy::isExpired).isPresent()) {
+                response.sendError(HttpServletResponse.SC_PAYMENT_REQUIRED, "Período de teste encerrado.");
+                return;
+            }
             filterChain.doFilter(request, response);
         } finally {
             // Clear tenant context after request
             TenantContext.clear();
         }
+    }
+
+    private boolean isSubscriptionRoute(String path) {
+        return path.equals("/usuarios/me") || path.equals("/usuarios/menu")
+                || path.startsWith("/v1/assinatura/") || path.equals("/v1/assinatura")
+                || path.startsWith("/auth/");
     }
 }

@@ -20,10 +20,10 @@ public class SessaoUsuario extends TenantEntity {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "token_sessao", nullable = false)
+    @Column(name = "token_sessao", nullable = false, columnDefinition = "text")
     private String tokenSessao;
 
-    @Column(name = "refresh_token")
+    @Column(name = "refresh_token", columnDefinition = "text")
     private String refreshToken;
 
     @Column(name = "ip_address")

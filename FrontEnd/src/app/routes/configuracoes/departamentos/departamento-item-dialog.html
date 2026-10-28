@@ -2,16 +2,38 @@
   <!-- Content Grid -->
   <div class="space-y-4">
     <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-bold text-slate-700 tracking-tight uppercase">Descrição <span class="text-red-500">*</span></label>
+      <label for="area-nome" class="text-xs font-bold text-slate-700 tracking-tight uppercase">Nome <span class="text-red-500">*</span></label>
       <input
+        id="area-nome"
         name="descricao"
         pInputText
         [(ngModel)]="descricao"
         class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all text-sm"
-        placeholder="Ex.: Administrativo, Financeiro, Comercial, RH"
+        placeholder="Ex.: Mecânica"
        
       />
     </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <label class="flex flex-col gap-1 text-xs font-bold text-slate-700 uppercase">Código *
+        <input name="codigo" pInputText maxlength="30" [(ngModel)]="codigo" class="p-2.5 border rounded-lg" placeholder="MEC" />
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-bold text-slate-700 uppercase">Tipo
+        <input name="tipo" pInputText maxlength="50" [(ngModel)]="tipoOperacao" class="p-2.5 border rounded-lg" placeholder="Mecânica, elétrica..." />
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-bold text-slate-700 uppercase">Ordem
+        <input name="ordem" type="number" min="0" [(ngModel)]="ordem" class="p-2.5 border rounded-lg" />
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-bold text-slate-700 uppercase">Tempo padrão (min)
+        <input name="tempo" type="number" min="1" [(ngModel)]="tempoPadraoMinutos" class="p-2.5 border rounded-lg" />
+      </label>
+      <label class="flex flex-col gap-1 text-xs font-bold text-slate-700 uppercase sm:col-span-2">Responsável
+        <select name="supervisor" [(ngModel)]="supervisorId" class="p-2.5 border rounded-lg"><option [ngValue]="undefined">Sem responsável</option><option *ngFor="let pessoa of responsaveis" [ngValue]="pessoa.id">{{ pessoa.nomeCompleto }}</option></select>
+      </label>
+    </div>
+    <label class="flex flex-col gap-1 text-xs font-bold text-slate-700 uppercase">Descrição
+      <textarea name="detalhes" maxlength="2000" [(ngModel)]="detalhes" class="p-2.5 border rounded-lg"></textarea>
+    </label>
+    <label class="flex items-center gap-2 text-sm"><input name="ativo" type="checkbox" [(ngModel)]="ativo" /> Área ativa</label>
   </div>
 
   <!-- Actions -->
@@ -23,9 +45,9 @@
     </button>
     <button
       (click)="salvar()"
-      [disabled]="!descricao"
+      [disabled]="!descricao || !codigo"
       class="px-5 py-2.5 text-sm font-semibold bg-[#635bff] hover:bg-[#5851eb] text-white rounded-lg shadow-sm shadow-blue-200 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border-0">
-      <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">check</mat-icon>
+      <i class="ti ti-check" aria-hidden="true"></i>
       <span>{{ isEdit ? 'Salvar Alterações' : 'Confirmar Cadastro' }}</span>
     </button>
   </div>

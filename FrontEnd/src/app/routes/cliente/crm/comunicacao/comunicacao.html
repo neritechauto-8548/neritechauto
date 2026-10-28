@@ -1,0 +1,73 @@
+<main class="crm-page" aria-labelledby="comunicacao-title">
+  <header class="crm-header">
+    <span class="crm-eyebrow">CLIENTES / CRM / COMUNICAÇÃO</span>
+    <h1 id="comunicacao-title">Histórico de comunicação</h1>
+    <p>Consulte mensagens efetivamente registradas para a sua empresa, com entrega e falhas. Esta tela não simula envios.</p>
+    <a class="crm-text-link" routerLink="/cliente/crm">Voltar ao CRM</a>
+  </header>
+
+  <section class="crm-clients" aria-labelledby="comunicacao-lista-title">
+    <div class="crm-section-heading">
+      <div><span class="crm-section-kicker">HISTÓRICO</span><h2 id="comunicacao-lista-title">Comunicações registradas</h2>
+      <p>Dados consultados diretamente na API, respeitando autenticação e permissões.</p></div>
+      <button type="button" class="crm-button-secondary" [disabled]="loading" (click)="carregar()">Atualizar</button>
+    </div>
+    <form class="crm-filters crm-comunicacao-filters" (ngSubmit)="aplicarFiltros()">
+      <label class="crm-field">
+        <span>Canal</span>
+        <select name="canal" [(ngModel)]="canal">
+          <option value="">Todos os canais</option>
+          @for (c of canais; track c) { <option [value]="c">{{ c }}</option> }
+        </select>
+      </label>
+      <label class="crm-field">
+        <span>Status</span>
+        <select name="status" [(ngModel)]="status">
+          <option value="">Todos os status</option>
+          @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </label>
+      <label class="crm-field">
+        <span>Data inicial</span>
+        <input type="date" name="dataInicio" [(ngModel)]="dataInicio" />
+      </label>
+      <label class="crm-field">
+        <span>Data final</span>
+        <input type="date" name="dataFim" [(ngModel)]="dataFim" />
+      </label>
+      <div class="crm-filter-actions">
+        <button type="submit" class="crm-button-primary" [disabled]="loading">Filtrar</button>
+        <button type="button" class="crm-button-secondary" (click)="limparFiltros()" [disabled]="loading">Limpar</button>
+      </div>
+    </form>
+    @if (clienteId) {
+      <p class="crm-message" role="status">Exibindo somente comunicações vinculadas ao cliente selecionado.</p>
+    }
+    @if (filterError) { <p class="crm-message crm-message-error" role="alert">{{ filterError }}</p> }
+    @if (loading) {
+      <div class="crm-state" role="status"><nt-icon name="loader" [size]="20" /> Carregando histórico…</div>
+    } @else if (error) {
+      <div class="crm-state crm-state-error" role="alert"><nt-icon name="alert-circle" [size]="20" />
+        {{ error }} <button type="button" class="crm-text-link" (click)="carregar()">Tentar novamente</button></div>
+    } @else if (!registros.length) {
+      <div class="crm-state" role="status"><nt-icon name="info-circle" [size]="20" />
+        Nenhuma comunicação registrada nesta empresa.</div>
+    } @else {
+      <div class="crm-table-wrap"><table class="crm-table">
+        <thead><tr><th scope="col">Destinatário</th><th scope="col">Canal</th><th scope="col">Assunto</th><th scope="col">Data</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+        @for (item of registros; track item.id) {
+          <tr><td><strong>{{ item.destinatarioNome }}</strong><small>{{ item.destinatarioContato }}</small></td>
+          <td>{{ item.tipoComunicacao }}</td><td>{{ item.assunto || '—' }}</td>
+          <td>{{ (item.dataEnvio || item.dataCadastro) ? ((item.dataEnvio || item.dataCadastro) | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+          <td><span class="crm-status" [class.is-inactive]="item.status !== 'ENVIADA' && item.status !== 'ENTREGUE' && item.status !== 'LIDA'">{{ item.status }}</span></td></tr>
+        }
+        </tbody></table></div>
+      <nav class="crm-pagination" aria-label="Páginas de comunicações">
+        <span>Página {{ page + 1 }} de {{ paginas }} · {{ total }} registros</span>
+        <div><button type="button" [disabled]="page === 0" (click)="irParaPagina(page - 1)">Anterior</button>
+          <button type="button" [disabled]="page + 1 >= paginas" (click)="irParaPagina(page + 1)">Próxima</button></div>
+      </nav>
+    }
+  </section>
+</main>

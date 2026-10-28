@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HotToastService } from '@ngxpert/hot-toast';
+import { HttpErrorResponse } from '@angular/common/http';
 import { UsuarioService } from '../../usuario.service';
 
 import { PanelModule } from 'primeng/panel';
@@ -38,6 +39,9 @@ export class CadastroUsuarioComponent implements OnInit {
   id: number | null = null;
   loading = false;
   roles: any[] = [];
+  convite = false;
+  loadError = '';
+  historico: Array<{ operacao: string; campos: string; valores: string; autor: number; data: string }> = [];
 
   constructor() {
     this.form = this.fb.group({
@@ -54,11 +58,13 @@ export class CadastroUsuarioComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.convite = this.route.snapshot.queryParamMap.get('convite') === '1';
     this.carregarRoles();
     this.id = this.route.snapshot.params['id'];
     if (this.id) {
       this.carregarUsuario(this.id);
-    } else {
+      this.service.history(this.id).subscribe({ next: page => this.historico = page.content, error: () => {} });
+    } else if (!this.convite) {
         this.form.get('senha')?.addValidators(Validators.required);
     }
   }
@@ -92,6 +98,7 @@ export class CadastroUsuarioComponent implements OnInit {
       },
       error: () => {
          this.toast.error('Erro ao carregar usuário');
+         this.loadError = 'Não foi possível carregar o usuário. Tente novamente.';
          this.loading = false;
       }
     });
@@ -109,19 +116,20 @@ export class CadastroUsuarioComponent implements OnInit {
              this.toast.success('Usuário atualizado!');
              this.router.navigate(['/configuracoes/usuarios']);
            },
-           error: () => {
-             this.toast.error('Erro ao atualizar usuário.');
+           error: (error: HttpErrorResponse) => {
+             this.toast.error(this.errorMessage(error, 'Erro ao atualizar usuário.'));
              this.loading = false;
            }
         });
      } else {
-        this.service.create(req).subscribe({
+        const operation = this.convite ? this.service.invite(req) : this.service.create(req);
+        operation.subscribe({
            next: () => {
-             this.toast.success('Usuário criado!');
+             this.toast.success(this.convite ? 'Convite enviado!' : 'Usuário criado!');
              this.router.navigate(['/configuracoes/usuarios']);
            },
-           error: () => {
-             this.toast.error('Erro ao criar usuário.');
+           error: (error: HttpErrorResponse) => {
+             this.toast.error(this.errorMessage(error, this.convite ? 'Erro ao enviar convite.' : 'Erro ao criar usuário.'));
              this.loading = false;
            }
         });
@@ -130,5 +138,11 @@ export class CadastroUsuarioComponent implements OnInit {
 
   cancelar() {
       this.router.navigate(['/configuracoes/usuarios']);
+  }
+
+  private errorMessage(error: HttpErrorResponse, fallback: string): string {
+    if (error.status === 403) return 'Você não tem permissão para administrar usuários.';
+    if (error.status === 409) return error.error?.message || 'Conflito: revise os dados e tente novamente.';
+    return fallback;
   }
 }

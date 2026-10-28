@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,6 +19,7 @@ import com.neritech.saas.gestaoUsuarios.repository.UsuarioRepository;
  * e configurÃ¡-lo no TenantContext
  */
 @Component
+@ConditionalOnProperty(prefix = "neritech.tenancy.web", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TenantInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(TenantInterceptor.class);
@@ -75,6 +77,13 @@ public class TenantInterceptor implements HandlerInterceptor {
         try {
             Long tenantId = Long.parseLong(tenantValue);
             log.debug("Resolved tenantId={} from {}", tenantId, tenantSource);
+            // Nunca confiar em um tenant informado pelo cliente quando o JWT
+            // ja estabeleceu a empresa autenticada para esta requisicao.
+            Long authenticatedTenant = TenantContext.getCurrentTenant();
+            if (authenticatedTenant != null && !authenticatedTenant.equals(tenantId)) {
+                response.sendError(HttpStatus.FORBIDDEN.value(), "Empresa informada difere da sessao autenticada");
+                return false;
+            }
             TenantContext.setCurrentTenant(tenantId);
 
             // Habilita o filtro Hibernate para isolar por id_empresa

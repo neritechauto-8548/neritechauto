@@ -104,6 +104,15 @@ public class Fornecedor extends TenantEntity {
 
     @Column(name = "ativo")
     private Boolean ativo = true;
+    // ADM-010: papel logístico do mesmo cadastro mestre; não cria outra pessoa fiscal.
+    @Column(name = "transportadora", nullable = false)
+    private Boolean transportadora = false;
+
+    @Column(name = "transportadora_ativa", nullable = false)
+    private Boolean transportadoraAtiva = false;
+
+    @Column(name = "modalidade_transporte", length = 20)
+    private String modalidadeTransporte;
 
     public TipoPessoa getTipoPessoa() {
         return tipoPessoa;
@@ -344,4 +353,11 @@ public class Fornecedor extends TenantEntity {
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
     }
+    public Boolean getTransportadoraAtiva() { return transportadoraAtiva; }
+    public void setTransportadoraAtiva(Boolean ativo) { this.transportadoraAtiva = ativo; }
+    public Boolean getTransportadora() { return transportadora; }
+    public void setTransportadora(Boolean transportadora) { this.transportadora = transportadora; }
+    public String getModalidadeTransporte() { return modalidadeTransporte; }
+    public void setModalidadeTransporte(String modalidadeTransporte) { this.modalidadeTransporte = modalidadeTransporte; }
+
 }
