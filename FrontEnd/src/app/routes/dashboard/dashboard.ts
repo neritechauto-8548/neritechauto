@@ -151,6 +151,19 @@ export class Dashboard implements OnInit {
     const rows:{
       [key:string]:{nome:string,valor:string}[]
     }={
+      'financeiro-os':[
+        {nome:'A receber (pendente)',valor:money(d.contasReceber)},
+        {nome:'A pagar (pendente)',valor:money(d.contasPagar)},
+        {nome:'Recebíveis vencidos',valor:money(d.valoresVencidos)},
+        {nome:'Receita do período',valor:money(d.faturamentoMes)},
+        {nome:'Despesas do período',valor:money(d.despesasMes)}
+      ],
+      'ordens':[
+        {nome:'Ordens em andamento',valor:num(d.osEmAndamento)},
+        {nome:'Ordens concluídas',valor:num(d.osConcluidas)},
+        {nome:'Veículos em atraso',valor:num(d.veiculosEmAtraso)},
+        {nome:'Ticket médio global',valor:money(d.ticketMedio)}
+      ],
       'gerencial':[{nome:'Resultado do período',valor:money(d.lucroMes)},{nome:'OS em andamento',valor:num(d.osEmAndamento)},{nome:'Clientes ativos',valor:num(d.totalClientes)}],
       'padrao':[{nome:'Ordens abertas',valor:num(d.osAbertas)},{nome:'Ordens concluídas',valor:num(d.osConcluidas)}],
       'faturamento-geral':[{nome:'Receitas do período',valor:money(d.faturamentoMes)},{nome:'Período anterior',valor:money(d.faturamentoPeriodoAnterior)}],

@@ -72,7 +72,7 @@ describe('MASTER — Visão geral de referência', () => {
     component.showAddComponent = true;
     component.widgetClientes = true;
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.master-widget').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.master-widget, .dw-card').length).toBe(1);
     expect(fixture.nativeElement.textContent).toContain('Clientes sem movimentação');
     expect(fixture.nativeElement.textContent).toContain('Indicador indisponível');
     expect(service.getDashboardData).toHaveBeenCalledTimes(1);
