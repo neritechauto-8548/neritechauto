@@ -279,3 +279,56 @@ O usuário relatou que a implementação anterior **não estava fiel** às image
 - [ ] Cadastro técnico persistido sem perda dos novos campos e sem enriquecimento externo fictício
 - [ ] Etiquetas acompanham ajustes de margem, fonte e grid; impressão testada
 - [ ] Build Angular/Maven e deploy aprovados
+
+---
+
+## Lote 07 — Revisão por campo dos anexos Screenshot_5(2)–Screenshot_23(1), 30/10/2026
+
+### 1. Margens e conteúdo de etiquetas
+
+| Campo | Comportamento | Padrão |
+|---|---|---|
+| Todos os lados (mm) | Aplica valor aos quatro lados; aceita 10,00 em formato brasileiro | 10,00 |
+| Superior / Inferior / Esquerda / Direita | Controle independente da margem da folha | 10,00 |
+| Alinhamento | Esquerda, centralizado, direita; aplica na impressão | Esquerda |
+| Texto (pt) | Fonte configurável entre 7–18 pontos | 9 |
+| Caracteres do nome | Trunca nome de maneira determinística | 40 |
+| Colunas do endereço | Apresentado e bloqueado até consulta/concatenação autorizada de endereços | 2 |
+| Altura automática / altura fixa | Controle habilita altura quando o modo automático está desligado | Automática |
+| Borda | Opção liga/desliga borda de cada etiqueta | Ligada |
+| Personalização | Nome, CNPJ, endereço/contatos reais da empresa autenticada, data/hora, divisor, tamanho e cor | Nome/CNPJ/Emissão |
+| Logo | Carrega da API real quando a empresa possui logo; caso não haja, mostra inicial corporativa; visual sem imagem falsificada | Ligada |
+| Usuário que emitiu | Apresentado, mas desativado até a identificação auditável do emissor | Desativado |
+
+**Não alegar paridade com os relatórios do concorrente.** A personalização atual vale para etiquetas de clientes; a funcionalidade multi-relatório não está integrada. Emissão de PDF via diálogo de impressão do navegador, opção Salvar como PDF.
+
+### 2. Filtro avançado de clientes
+
+Sete campos na ordem e grid 2 colunas da captura: CPF/CNPJ, Nome fantasia, Contato, Tipo de pessoa, Gênero, Placa, Situação. O backend recebe filtros independentes `nomeFantasia`, `contato`, `sexo`, `placa` com subconsultas por `empresaId` para contatos e veículos. O botão Resetar limpa também esses filtros, preservando as regras de autorização.
+
+### 3. Cadastro de cliente
+
+- PF: CPF, documento estrangeiro, nome, país, nascimento, RG, estado civil, gênero, observações;
+- PJ: CNPJ, documento estrangeiro, razão social, país, nome fantasia, tipo de contribuinte, observações; contribuição ICMS sugerida por padrão somente ao alternar para PJ sem valor previamente selecionado;
+- Complementares PF: profissão, apólice, crédito, origem, site, locadora;
+- Complementares PJ: inscrição municipal/estadual, apólice/crédito, origem em linha completa, site e locadora;
+- Legais: órgão público, ISS, IRRF/CSLL, alerta LGPD, autorização LGPD;
+- Contatos: botão abre segundo drawer de 585px, campos nome*, sexo, nascimento, grupo principal e inclusão do meio de contato (tipo/valor); confirmação exige ambos. Para edição, reutiliza registro existente; para criação, salva lista em memória até API confirmar cadastro.
+
+### 4. Criação do veículo
+
+- Etapa 1: cliente vinculado, buscado por nome/documento na API da empresa, listagem rolável e ação Cadastrar cliente abre drawer aninhado; após confirmação, vincula automaticamente o ID persistido.
+- Etapa 2: consulta de veículo antes de cadastro; provedor Fraga exposto como integração pendente, não simulado. Busca interna por placa responde encontrado/não encontrado/erro/carregando, e existe bloqueio contra duplicidade.
+- Etapa 3: Dados gerais em pares: placa/chassi, marca/modelo, ano fabricação/ano modelo, combustível/cor, geração/renavam, média de KM/KM, frota/tipo, acessórios. Ano fabricação limita as opções reais de ano/modelo da API.
+- Etapa 4: Dados do motor: cilindrada, válvulas, cilindros, nome/código, potências, número do motor.
+- Etapa 5: Dados complementares: direção, transmissão, linha, entrada de ar, freios, tração, injeção, configuração, freios dianteiro/traseiro, portas, ar-condicionado e observações.
+- NERITECH Vision por imagem: botão desativado e indicado como integração futura, sem fingir dados externos ou reconhecimento de imagem.
+
+### Revisão e QA ainda obrigatórios
+
+- [ ] Compilar Angular e Spring Boot após este commit (pipeline anterior já falhava por outros módulos).
+- [ ] Homologar painel 585px em 599/768/1440 e zoom 200%; validar teclado, foco, scroll e máscara do modal aninhado.
+- [ ] Conferir todos os campos em comparação visual **lado a lado nas mesmas dimensões**.
+- [ ] Validar consultas de contato/placa, gênero e nome fantasia com tenants A/B e registros reais.
+- [ ] Verificar impressão de etiquetas com margens 10,00 e altura, além de logotipo e cabeçalho de empresa autorizada.
+- [ ] Completar integrações licenciadas Fraga/visão e relatórios em lote quando houver contrato/API; não simular sucesso.

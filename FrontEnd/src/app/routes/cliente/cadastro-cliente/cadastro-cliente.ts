@@ -180,6 +180,9 @@ export class CadastroCliente implements OnInit {
   contatosList: ContatoClienteRequest[] = [];
   showContatoDialog = false;
   contatoForm: ContatoClienteRequest = this.getEmptyContato();
+  contatoChannelOpen = false;
+  contactFormError = '';
+  get canSubmitContact(): boolean { return !!this.contatoForm.nome?.trim() && this.contatoChannelOpen && !!this.contatoForm.valor?.trim() && !this.isSaving; }
   contatoEditIndex: number | null = null; // Guardar se estamos editando um contato
 
   // Opções de Contato
@@ -228,7 +231,12 @@ export class CadastroCliente implements OnInit {
   }
 
   get canSaveForm(): boolean {
-    return this.isUxPreview || !!this.permissionsService.getPermission(this.isEditMode ? 'CLIENTE_EDITAR' : 'CLIENTE_CRIAR');
+    const allowed=this.isUxPreview || !!this.permissionsService.getPermission(this.isEditMode ? 'CLIENTE_EDITAR' : 'CLIENTE_CRIAR');
+    if(!allowed)return false;
+    if(!this.modalMode)return true;
+    return this.model.tipoPessoa==='Física'
+      ? !!this.model.nomeRazao.trim()
+      : !!this.model.razaoSocial.trim() && !!this.model.nomeFantasia.trim();
   }
 
   get canDeleteClient(): boolean {
@@ -459,6 +467,7 @@ export class CadastroCliente implements OnInit {
       this.model.inscricaoEstadual = '';
     } else {
       this.model.dataNascimento = null;
+      if(!this.model.indicadorIsencao)this.model.indicadorIsencao='CONTRIBUINTE_ICMS';
     }
     // Ajusta máscara do CPF/CNPJ
     this.model.cpfCnpj = this.applyCpfCnpjMask(this.stripNonDigits(this.model.cpfCnpj));
@@ -797,6 +806,8 @@ export class CadastroCliente implements OnInit {
 
   abrirDialogContato() {
     this.contatoForm = this.getEmptyContato();
+    this.contatoChannelOpen = false;
+    this.contactFormError = '';
     this.contatoEditIndex = null;
     this.showContatoDialog = true;
   }
@@ -804,20 +815,25 @@ export class CadastroCliente implements OnInit {
   editarContatoLista(index: number) {
     const contato = this.contatosList[index];
     this.contatoForm = { ...contato, valor: (contato as any).contato || contato.valor };
+    this.contatoChannelOpen = true;
+    this.contactFormError = '';
     this.contatoEditIndex = index;
     this.showContatoDialog = true;
   }
 
   salvarContatoLista() {
+    this.contactFormError = '';
     const valorSalvar = this.isPhoneType(this.contatoForm.tipoContato) 
       ? this.stripNonDigits(this.contatoForm.valor) 
       : this.contatoForm.valor;
 
-    if (this.modalMode && !this.contatoForm.nome?.trim()) {
+    if (!this.contatoForm.nome?.trim()) {
+      this.contactFormError='Informe o nome do contato.';
       this.messageService.add({ severity:'warn', summary:'Nome obrigatório', detail:'Informe o nome do contato.' });
       return;
     }
     if (!valorSalvar.trim()) {
+      this.contactFormError='Adicione pelo menos um telefone, e-mail ou outro meio de contato.';
       this.messageService.add({ severity:'warn', summary:'Contato obrigatório', detail:'Informe telefone, e-mail ou outro contato.' });
       return;
     }

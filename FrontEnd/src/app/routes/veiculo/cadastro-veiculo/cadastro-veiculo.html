@@ -4,39 +4,61 @@
     <p-toast />
     <header class="nt-ref-vehicle-header"><div><h2>Criação do veículo</h2><p>Vincule um cliente e preencha os dados do veículo</p></div><button type="button" (click)="cancelar()" aria-label="Fechar cadastro">×</button></header>
     <div class="nt-ref-vehicle-scroll">
-      <section class="nt-ref-vehicle-block">
-        <h3>Cliente vinculado <small>obrigatório</small></h3>
+      <section class="nt-ref-vehicle-block nt-ref-customer-card" [class.nt-ref-customer-empty]="!selectedCliente?.id">
+        <h3><span class="nt-ref-vehicle-title-icon">♙</span> Cliente vinculado <small>obrigatório</small></h3>
         <p>Escolha para quem este veículo será cadastrado.</p>
-        <p-autoComplete [(ngModel)]="selectedCliente" [suggestions]="filteredClientes"
-          (completeMethod)="searchCliente($event)" optionLabel="nome" dataKey="id"
-          placeholder="Selecionar cliente por nome ou CPF/CNPJ" [dropdown]="true" [forceSelection]="true"
-          styleClass="w-full" inputStyleClass="w-full" />
-        @if (!selectedCliente?.id) { <p class="nt-ref-vehicle-hint">Selecione um cliente cadastrado para continuar.</p> }
+        <div class="nt-ref-customer-select">
+          <button type="button" class="nt-ref-customer-trigger" (click)="customerLookupOpen=!customerLookupOpen;customerLookupOpen&&openCustomerLookup()" [attr.aria-expanded]="customerLookupOpen" aria-controls="nt-customer-options">
+            <span aria-hidden="true">♙</span>
+            <span class="nt-ref-customer-selected">@if(selectedCliente?.id){<b>{{selectedCliente.nome}}</b><small>{{selectedCliente.cpfCnpj||'Sem documento'}}</small>} @else {<span>Selecionar cliente</span>}</span>
+            <span aria-hidden="true">⌄</span>
+          </button>
+          @if(customerLookupOpen){
+            <div class="nt-ref-customer-menu" id="nt-customer-options" role="group" aria-label="Selecione um cliente">
+              <input type="search" [(ngModel)]="customerQuery" (ngModelChange)="searchCustomerText($event)" placeholder="Pesquisar" aria-label="Pesquisar cliente por nome, CPF ou CNPJ" />
+              <button type="button" class="nt-ref-new-customer" (click)="clientCreationOpen=true;customerLookupOpen=false">＋ &nbsp; Cadastrar cliente</button>
+              <div class="nt-ref-customer-items" role="listbox">
+                @if(customerLoading){<p role="status">Buscando clientes…</p>}
+                @else if(customerLookupError){<p role="alert">{{customerLookupError}}</p>}
+                @else if(!filteredClientes.length){<p>Nenhum cliente encontrado.</p>}
+                @else {@for(client of filteredClientes;track client.id){<button type="button" role="option" [attr.aria-selected]="selectedCliente?.id===client.id" (click)="chooseCustomer(client)"><strong>{{client.nome}}</strong><small>{{client.cpfCnpj||'Sem documento'}}</small></button>}}
+              </div>
+            </div>
+          }
+        </div>
       </section>
       @if (selectedCliente?.id) {
         <section class="nt-ref-vehicle-block">
-          <h3>Veículo <small>consulta interna</small></h3>
-          <p>Busque por placa antes de preencher os dados manualmente.</p>
-          <div class="nt-ref-lookup-banner"><strong>Base técnica / Consulta de dados</strong><span>Preencha identificação, motor e complementares manualmente ou consulte os veículos da sua própria empresa.</span>
+          <h3><span class="nt-ref-vehicle-title-icon">⌕</span> Veículo <small>busca assistida</small></h3>
+          <p>Busque por placa, chassi ou imagem antes de preencher manualmente.</p>
+          <div class="nt-ref-source-selector">
+            <label>◈ &nbsp; Busca Fraga <small>placa e chassi</small></label>
+            <select aria-label="Fonte de consulta" disabled title="Provedor Fraga exige integração contratada">
+              <option>Fraga — integração não configurada</option>
+            </select>
+          </div>
+          <div class="nt-ref-lookup-banner"><strong>◈ &nbsp; Base técnica integrada</strong><span>Consulte dados do veículo por placa ou chassi e preencha o cadastro com menos digitação quando a integração estiver disponível.</span><small class="nt-ref-provider-state">Fraga — integração pendente</small>
             <div class="nt-ref-capability-grid"><span><strong>◧ &nbsp; Identificação</strong><small>Marca, modelo, ano</small></span><span><strong>⚙ &nbsp; Motor</strong><small>Cilindrada, válvulas e potência</small></span><span><strong>ⓘ &nbsp; Complementares</strong><small>Linha, transmissão, tração</small></span></div></div>
-          <h4>Localizar veículo</h4>
+          <div class="nt-ref-vehicle-lookup-card"><h4><span class="nt-ref-vehicle-title-icon">▰</span> Localizar veículo <small [class.is-found]="lookupState==='found'">{{lookupState==='found'?'Encontrado':lookupState==='loading'?'Consultando':'Aguardando'}}</small></h4><p>Encontre o cadastro pelo dado mais rápido em mãos.</p>
           <div class="nt-ref-vehicle-segment" role="group" aria-label="Tipo de busca">
             <button type="button" [class.active]="searchMode === 'placa'" (click)="searchMode='placa';lookupState='idle'">Placa</button>
             <button type="button" [class.active]="searchMode === 'chassi'" (click)="searchMode='chassi';lookupState='idle'">Chassi</button>
           </div>
           <div class="nt-ref-vehicle-lookup">
             @if(searchMode === 'placa') {
-              <label>Placa <input pInputText [(ngModel)]="form.placa" maxlength="7" placeholder="ABC1D23" (ngModelChange)="existingVehicleId=null;lookupState='idle'" /></label>
+              <label>Placa <input pInputText [(ngModel)]="form.placa" maxlength="7" placeholder="ABC1234" (ngModelChange)="existingVehicleId=null;lookupState='idle'" /></label>
             } @else {
               <label>Chassi <input pInputText [(ngModel)]="form.chassi" maxlength="17" placeholder="17 caracteres" /></label>
             }
-            <button type="button" (click)="consultarCadastroInterno()" [disabled]="lookupState==='loading'">{{lookupState==='loading'?'Consultando…':'Buscar cadastro'}}</button>
+            <button type="button" (click)="consultarCadastroInterno()" [disabled]="lookupState==='loading'" title="Consulta segura na base da sua empresa">⌕ &nbsp; Consultar</button><button type="button" disabled title="Reconhecimento de placa por imagem requer integração de câmera/visão">◧ &nbsp; NERITECH Vision</button>
           </div>
           @if(lookupMessage) { <p role="status" class="nt-ref-lookup-state">{{ lookupMessage }}</p> }
-          @if(existingVehicleId) { <a [href]="'/veiculo/editar/'+existingVehicleId">Abrir veículo existente</a> }
+          @if(foundVehicle){<div class="nt-ref-found-vehicle"><div><strong>{{foundVehicle.placa}} · {{foundVehicle.marcaNome}} {{foundVehicle.modeloNome}}</strong><small>{{foundVehicle.anoFabricacao || 'Ano não informado'}} · Veículo já cadastrado nesta empresa</small></div><a [href]="'/veiculo/editar/'+foundVehicle.id">Abrir cadastro</a></div>}
+          @else if(lookupState==='none'){<p class="nt-ref-lookup-empty">Não encontrado no cadastro da oficina. Continue preenchendo os dados manualmente.</p>}
+          </div>
         </section>
         <section class="nt-ref-vehicle-block">
-          <h3>Dados gerais <small>obrigatório</small></h3>
+          <h3><span class="nt-ref-vehicle-title-icon">▰</span> Dados gerais <small>obrigatório</small></h3><p>Identificação principal, modelo, ano, cor e combustível</p>
           <div class="nt-ref-vehicle-image">
             @if (selectedModelImage) { <img [src]="selectedModelImage" alt="Imagem cadastrada do modelo selecionado" loading="lazy" /> }
             @else { <div class="nt-ref-vehicle-image-empty" role="img" aria-label="Imagem não cadastrada"><svg viewBox="0 0 80 50" width="90" height="60" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 31h64l-8-15H17L8 31Z"/><path d="M8 31v10h12m40 0h12V31"/><circle cx="23" cy="41" r="6"/><circle cx="57" cy="41" r="6"/></svg><small>Imagem não cadastrada para este modelo</small></div> }
@@ -50,26 +72,34 @@
             <label>Modelo * <select [(ngModel)]="form.modeloId" (ngModelChange)="onModeloChange()" [disabled]="!form.marcaId">
               <option [ngValue]="undefined">Selecione o modelo</option>
               @for(model of modelos;track model.id){<option [ngValue]="model.id">{{model.nome}}</option>}</select></label>
-            <label>Ano fabricação/modelo * <select [(ngModel)]="form.anoModeloId" [disabled]="!form.modeloId">
-              <option [ngValue]="undefined">Selecione o ano</option>
-              @for(year of anosModelos;track year.id){<option [ngValue]="year.id">{{year.anoFabricacao}} / {{year.anoModelo}}</option>}</select></label>
+            <label>Ano de fabricação * <select [(ngModel)]="selectedFabricationYear" (ngModelChange)="onFabricationYearChange()" [disabled]="!form.modeloId">
+              <option [ngValue]="null">Selecione o ano de fabricação</option>
+              @for(year of availableFabricationYears;track year){<option [ngValue]="year">{{year}}</option>}
+            </select></label>
+            <label>Ano do modelo * <select [(ngModel)]="form.anoModeloId" [disabled]="!form.modeloId||selectedFabricationYear===null">
+              <option [ngValue]="undefined">Selecione o ano do modelo</option>
+              @for(year of availableYearModels;track year.id){<option [ngValue]="year.id">{{year.anoModelo}}</option>}
+            </select></label>
             <label>Combustível * <select [(ngModel)]="form.combustivelId">
               <option [ngValue]="undefined">Selecione o combustível</option>
-              @for(fuel of combustiveis;track fuel.id){<option [ngValue]="fuel.id">{{fuel.nome}}</option>}</select></label>
-            <label>Cor <input pInputText [(ngModel)]="form.corExterna" maxlength="50" /></label>
-            <label>RENAVAM <input pInputText [(ngModel)]="form.renavam" maxlength="11" inputmode="numeric" /></label>
+              @for(fuel of combustiveis;track fuel.id){<option [ngValue]="fuel.id">{{fuel.nome}}</option>}
+            </select></label>
+            <label>Cor * <input pInputText [(ngModel)]="form.corExterna" maxlength="50" list="nt-vehicle-colors" placeholder="Informe a cor" />
+              <datalist id="nt-vehicle-colors"><option value="Branco"></option><option value="Prata"></option><option value="Preto"></option><option value="Cinza"></option><option value="Vermelho"></option><option value="Azul"></option><option value="Verde"></option><option value="Amarelo"></option><option value="Bege"></option></datalist>
+            </label>
             <label>Geração <input pInputText [(ngModel)]="form.geracao" maxlength="40" placeholder="G 5" /></label>
-            <label>Média de KM no cadastro <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemCadastro" /></label>
-            <label>KM atual <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemAtual" /></label>
-            <label>Frota <input pInputText [(ngModel)]="form.frota" maxlength="80" placeholder="Identificação da frota" /></label>
+            <label>Renavam <input pInputText [(ngModel)]="form.renavam" maxlength="11" inputmode="numeric" placeholder="Informe o número do Renavam" /></label>
+            <label>Média de KM <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemCadastro" placeholder="Informe a média de quilometragem" /></label>
+            <label>KM <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemAtual" placeholder="Informe a quilometragem atual" /></label>
+            <label>Frota <input pInputText [(ngModel)]="form.frota" maxlength="80" placeholder="Informe a identificação da frota" /></label>
             <label>Tipo de veículo <input pInputText [(ngModel)]="form.tipoVeiculo" maxlength="80" placeholder="Selecione o tipo de veículo" /></label>
             <label class="nt-ref-wide">Acessórios <input pInputText [(ngModel)]="form.acessorios" maxlength="2000" placeholder="Informe os acessórios do veículo" /></label>
           </div>
         </section>
         <section class="nt-ref-vehicle-block">
-          <h3>Dados do motor <small>técnico</small></h3>
+          <h3><span class="nt-ref-vehicle-title-icon">⚙</span> Dados do motor <small>técnico</small></h3><p>Especificações técnicas usadas em orçamentos e histórico</p>
           <div class="nt-ref-vehicle-fields">
-            <label>Cilindrada <input type="number" min="0" max="99.99" step="0.01" pInputText [(ngModel)]="form.cilindrada" placeholder="Ex.: 1.6" /></label>
+            <label>Cilindrada <input type="number" min="0" max="99.99" step="0.01" pInputText [(ngModel)]="form.cilindrada" placeholder="1.6" /></label>
             <label>Nº de válvulas <input type="number" min="0" max="99" pInputText [(ngModel)]="form.quantidadeValvulas" placeholder="Ex.: 8" /></label>
             <label>Nº de cilindros <input type="number" min="0" max="99" pInputText [(ngModel)]="form.quantidadeCilindros" placeholder="Ex.: 4" /></label>
             <label>Nome do motor <input pInputText [(ngModel)]="form.nomeMotor" maxlength="100" placeholder="Ex.: EA111 VHT" /></label>
@@ -79,7 +109,7 @@
           </div>
         </section>
         <section class="nt-ref-vehicle-block">
-          <h3>Dados complementares <small>opcional</small></h3>
+          <h3><span class="nt-ref-vehicle-title-icon">ⓘ</span> Dados complementares <small>opcional</small></h3><p>Informações adicionais para qualificar o cadastro</p>
           <div class="nt-ref-vehicle-fields">
             <label>Direção <select [(ngModel)]="form.direcao"><option [ngValue]="undefined">Selecione</option><option value="HIDRAULICA">Hidráulica</option><option value="ELETRICA">Elétrica</option><option value="MECANICA">Mecânica</option></select></label>
             <label>Transmissão <select [(ngModel)]="form.cambio"><option [ngValue]="undefined">Selecione</option><option value="MANUAL">Manual</option><option value="AUTOMATICO">Automático</option><option value="AUTOMATIZADO">Automatizado</option><option value="CVT">CVT</option></select></label>
@@ -99,8 +129,16 @@
       }
     </div>
     <footer class="nt-ref-vehicle-footer"><button type="button" (click)="cancelar()" [disabled]="saving">Cancelar</button>
-      <button type="button" class="nt-ref-vehicle-save" (click)="salvar()" [disabled]="!canSaveModal">{{saving?'Salvando…':'Salvar veículo'}}</button>
+      <button type="button" class="nt-ref-vehicle-save" (click)="salvar()" [disabled]="!canSaveModal">{{saving?'Salvando…':'▣  Salvar'}}</button>
     </footer>
+    @if(clientCreationOpen){
+      <div class="nt-ref-client-nested-mask" (click)="clientCreationOpen=false">
+        <section class="nt-ref-client-nested-panel" role="dialog" aria-modal="true" aria-label="Cadastrar cliente vinculado" (click)="$event.stopPropagation()">
+          <header><div><strong>Cadastro de cliente</strong><small>Preencha as informações para registrar um novo cliente</small></div><button type="button" (click)="clientCreationOpen=false" aria-label="Fechar">×</button></header>
+          <cadastro-cliente [modalMode]="true" (saved)="onClientCreationSaved($event)" (canceled)="clientCreationOpen=false" />
+        </section>
+      </div>
+    }
   </section>
 } @else {
 <div class="flex flex-col h-full bg-slate-50 relative min-h-screen">

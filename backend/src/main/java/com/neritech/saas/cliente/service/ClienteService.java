@@ -200,11 +200,22 @@ public class ClienteService {
             StatusCliente status,
             java.time.LocalDate dataInicio,
             java.time.LocalDate dataFim,
+            String nomeFantasia,
+            String contato,
+            com.neritech.saas.rh.domain.enums.Sexo sexo,
+            String placa,
             Pageable pageable) {
         
         org.springframework.data.jpa.domain.Specification<Cliente> spec = 
-            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, dataInicio, dataFim);
+            com.neritech.saas.cliente.repository.ClienteSpecification.buildSpecification(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, dataInicio, dataFim, nomeFantasia, contato, sexo, placa);
             
         return repository.findAll(spec, pageable);
+    }
+    /** Mantém consumidores anteriores que ainda enviam somente os filtros originais. */
+    public Page<Cliente> search(String busca, String nomeCompleto, String razaoSocial, String cpf, String cnpj,
+            TipoCliente tipoCliente, StatusCliente status, java.time.LocalDate dataInicio, java.time.LocalDate dataFim,
+            Pageable pageable) {
+        return search(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, dataInicio, dataFim,
+                null, null, null, null, pageable);
     }
 }

@@ -186,18 +186,18 @@
       <header><div><h2>Filtro avançado de clientes</h2><p>Filtro de listagem avançado</p></div><button type="button" (click)="advancedOpen = false" aria-label="Fechar filtro">×</button></header>
       <div class="nt-ref-filter-body">
         <div class="nt-ref-fields">
-          <label>CPF/CNPJ <input [(ngModel)]="advancedDocument" placeholder="Informe um CPF ou CNPJ" /></label>
-          <label>Nome ou nome fantasia <input [(ngModel)]="advancedName" placeholder="Informe um nome" /></label>
-          <label>Tipo de pessoa <select [(ngModel)]="selectedTipo"><option [ngValue]="null">Todos</option>
+          <label>CPF/CNPJ <input [(ngModel)]="advancedDocument" placeholder="Informe um cpf ou cnpj" /></label>
+          <label>Nome fantasia <input [(ngModel)]="advancedName" placeholder="Informe um nome fantasia" /></label>
+          <label>Contato <input [(ngModel)]="advancedContact" placeholder="Contato" /></label>
+          <label>Tipo de pessoa <select [(ngModel)]="selectedTipo"><option [ngValue]="null">Selecione um tipo de pessoa</option>
             @for (item of tipoOptionsFiltered; track item.value) { <option [ngValue]="item.value">{{ item.label }}</option> }
           </select></label>
-          <label>Situação <select [(ngModel)]="selectedStatus"><option [ngValue]="null">Todas</option>
+          <label>Gênero <select [(ngModel)]="advancedGender"><option value="">Selecione um gênero</option><option value="M">Masculino</option><option value="F">Feminino</option><option value="O">Outro</option></select></label>
+          <label>Placa <input [(ngModel)]="advancedPlate" placeholder="Informe uma placa" maxlength="10" (ngModelChange)="advancedPlate=advancedPlate.toUpperCase()" /></label>
+          <label>Situação <select [(ngModel)]="selectedStatus"><option [ngValue]="null">Selecionar situação</option>
             @for (item of statusOptions; track item.label) { <option [ngValue]="item.value">{{ item.label }}</option> }
           </select></label>
-          <label>Cadastro de <input type="date" [(ngModel)]="advancedFrom" /></label>
-          <label>Cadastro até <input type="date" [(ngModel)]="advancedTo" /></label>
         </div>
-        <p class="nt-ref-note">Contato, placa e gênero exigem filtros específicos no servidor para pesquisar toda a base. Não são aplicados nesta versão.</p>
         @if (advancedError) { <p role="alert" class="nt-ref-error">{{ advancedError }}</p> }
       </div>
       <footer><button type="button" class="nt-clients-outline" (click)="advancedOpen = false">Cancelar</button><button type="button" class="nt-ref-reset" (click)="resetAdvancedFilters()">Resetar</button><button type="button" class="nt-clients-primary" (click)="applyAdvancedFilters()">⚲ &nbsp; Filtrar</button></footer>
@@ -284,11 +284,11 @@
             <button type="button" (click)="labelsOpenSection=labelsOpenSection==='margins'?'filters':'margins'" [attr.aria-expanded]="labelsOpenSection==='margins'">▱ &nbsp; Margens da folha <span>⌄</span></button>
             @if(labelsOpenSection==='margins'){
               <div class="nt-ref-label-panel nt-ref-label-fields">
-                <label class="wide">Todos os lados (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMargin" (ngModelChange)="setUniformLabelMargin($event)" /></label>
-                <label>Superior (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginTop" /></label>
-                <label>Inferior (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginBottom" /></label>
-                <label>Esquerda (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginLeft" /></label>
-                <label>Direita (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginRight" /></label>
+                <label class="wide">Todos os lados (mm)<input type="text" inputmode="decimal" [value]="formatLabelMm(labelsMargin)" (blur)="changeLabelMm('all',$any($event.target).value);$any($event.target).value=formatLabelMm(labelsMargin)" /></label>
+                <label>Superior (mm)<input type="text" inputmode="decimal" [value]="formatLabelMm(labelsMarginTop)" (blur)="changeLabelMm('top',$any($event.target).value);$any($event.target).value=formatLabelMm(labelsMarginTop)" /></label>
+                <label>Inferior (mm)<input type="text" inputmode="decimal" [value]="formatLabelMm(labelsMarginBottom)" (blur)="changeLabelMm('bottom',$any($event.target).value);$any($event.target).value=formatLabelMm(labelsMarginBottom)" /></label>
+                <label>Esquerda (mm)<input type="text" inputmode="decimal" [value]="formatLabelMm(labelsMarginLeft)" (blur)="changeLabelMm('left',$any($event.target).value);$any($event.target).value=formatLabelMm(labelsMarginLeft)" /></label>
+                <label>Direita (mm)<input type="text" inputmode="decimal" [value]="formatLabelMm(labelsMarginRight)" (blur)="changeLabelMm('right',$any($event.target).value);$any($event.target).value=formatLabelMm(labelsMarginRight)" /></label>
               </div>
             }
           </div>
@@ -341,17 +341,25 @@
           <div class="nt-ref-label-config-body">
             <section class="nt-ref-label-config-list">
               <h3>▤ &nbsp; Cabeçalho</h3>
-              <h4>Dados da empresa</h4><p>O que identifica a oficina no documento</p>
-              <p class="nt-ref-note">Os dados de empresa não são incluídos em etiquetas sem vínculo validado com o cadastro da matriz.</p>
-              <h4>Emissão</h4>
-              <div class="nt-ref-config-row"><label>Data e hora de emissão</label><input type="checkbox" [(ngModel)]="labelsShowDate" /></div>
-              <div class="nt-ref-config-row"><label>Linha divisória</label><input type="checkbox" [(ngModel)]="labelsHeaderDivider" /></div>
-              <h4>Aparência</h4>
+              <div class="nt-ref-config-heading"><span>▤</span><div><h4>Dados da empresa</h4><p>O que identifica a oficina no documento</p></div></div>
+              <div class="nt-ref-config-row"><div><label>Logo da empresa</label><p>Usa a imagem do cadastro da empresa. Sem logo cadastrado, mostra as iniciais dela.</p></div><input type="checkbox" [(ngModel)]="labelsShowLogo" [disabled]="!hasLabelsCompany" title="Disponível quando a empresa estiver identificada" /></div>
+              <div class="nt-ref-config-row"><div><label>Razão social</label><p>Nome da empresa em destaque no topo do documento.</p></div><input type="checkbox" [(ngModel)]="labelsShowCompanyName" [disabled]="!hasLabelsCompany" /></div>
+              <div class="nt-ref-config-row"><div><label>CNPJ</label><p>Documento da empresa abaixo do nome.</p></div><input type="checkbox" [(ngModel)]="labelsShowCompanyCnpj" [disabled]="!hasLabelsCompany" /></div>
+              <div class="nt-ref-config-row"><div><label>Endereço</label><p>Logradouro, bairro, cidade e CEP da empresa.</p></div><input type="checkbox" [(ngModel)]="labelsShowCompanyAddress" (ngModelChange)="$event&&loadLabelAddress()" [disabled]="!hasLabelsCompany" /></div>
+              <div class="nt-ref-config-row"><div><label>Telefone e e-mail</label><p>Contatos ativos da empresa.</p></div><input type="checkbox" [(ngModel)]="labelsShowCompanyContacts" [disabled]="!hasLabelsCompany" /></div>
+              @if(labelsCompanyLoading){<p class="nt-ref-note" role="status">Consultando dados da empresa…</p>}
+              @if(labelsCompanyError){<p class="nt-ref-note" role="status">{{labelsCompanyError}}</p>}
+              <div class="nt-ref-config-heading"><span>▣</span><div><h4>Emissão</h4><p>Rastreabilidade de quando e por quem foi gerado</p></div></div>
+              <div class="nt-ref-config-row"><div><label>Data e hora de emissão</label><p>Momento em que o relatório foi gerado.</p></div><input type="checkbox" [(ngModel)]="labelsShowDate" /></div>
+              <div class="nt-ref-config-row"><div><label>Usuário que emitiu</label><p>Nome de quem gerou o relatório.</p></div><input type="checkbox" [(ngModel)]="labelsShowIssuedBy" disabled title="Requer usuário autenticado para gerar o nome" /></div>
+              <div class="nt-ref-config-row"><div><label>Linha divisória</label><p>Separa o cabeçalho do conteúdo usando a cor escolhida.</p></div><input type="checkbox" [(ngModel)]="labelsHeaderDivider" /></div>
+              <div class="nt-ref-config-heading"><span>◉</span><div><h4>Aparência</h4><p>Layout, tamanho do logo e cor de destaque</p></div></div>
               <div class="nt-ref-label-segment"><button type="button" [class.selected]="labelsLayoutType==='dividido'" (click)="labelsLayoutType='dividido'">Dividido</button><button type="button" [class.selected]="labelsLayoutType==='centralizado'" (click)="labelsLayoutType='centralizado'">Centralizado</button></div>
               <div class="nt-ref-label-segment">@for(size of ['P','M','G'];track size){<button type="button" [class.selected]="labelsHeaderSize===size" (click)="labelsHeaderSize=$any(size)">{{size}}</button>}</div>
-              <label class="nt-ref-highlight">Cor de destaque <input type="color" [(ngModel)]="labelsHighlight" /></label>
+              <label class="nt-ref-highlight">Cor de destaque <small>Aplicada ao nome da empresa, ao título e à linha divisória.</small></label>
+              <div class="nt-ref-label-palette">@for(color of labelPalette;track color){<button type="button" [style.background]="color" [class.selected]="labelsHighlight===color" [attr.aria-label]="'Cor '+color" (click)="labelsHighlight=color"></button>}<input type="color" [(ngModel)]="labelsHighlight" title="Escolher outra cor" aria-label="Outra cor" /></div>
             </section>
-            <section class="nt-ref-label-config-preview"><h3>Pré-visualização</h3><div class="nt-ref-layout-paper"><span [style.background]="labelsHighlight"></span><div><strong>NERITECH AUTO — etiquetas</strong><small>Layout de impressão configurado para {{labelsSheet}}</small></div></div><p>A prévia utiliza a identidade NERITECH. Os dados da matriz só serão mostrados quando integrados ao cadastro.</p></section>
+            <section class="nt-ref-label-config-preview"><h3>Pré-visualização</h3><div class="nt-ref-layout-paper"><span [style.background]="labelsHighlight"></span><div><strong>{{labelsCompany?.razaoSocial || 'NERITECH AUTO — etiquetas'}}</strong><small>{{labelsCompany?.cnpj || 'Layout de impressão '+labelsSheet}}</small></div>@if(labelsShowLogo&&labelsLogoUrl){<img class="nt-ref-layout-preview-logo" [src]="labelsLogoUrl" alt="Logotipo cadastrado da empresa" />}@for(line of labelCompanyPreview;track line){<p class="nt-ref-layout-company-line">{{line}}</p>}@if(labelsShowDate){<p class="nt-ref-layout-company-line">Data e hora de emissão</p>}</div><p>A prévia usa os dados autorizados da empresa da sessão.</p><div class="nt-ref-layout-applies"><strong>Onde esta configuração se aplica</strong><small>Etiquetas de clientes e impressão desta página</small></div></section>
           </div>
           <footer><button type="button" class="nt-ref-layout-trigger" (click)="restoreLabels()">Restaurar padrão</button><span></span><button type="button" (click)="labelsConfigOpen=false">Cancelar</button><button type="button" class="nt-clients-primary" (click)="saveLabelSettings()">Salvar</button></footer>
         </section>

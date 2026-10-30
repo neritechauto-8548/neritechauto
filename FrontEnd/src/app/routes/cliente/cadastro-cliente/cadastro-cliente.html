@@ -70,14 +70,14 @@
             @if (model.tipoPessoa === 'Física') {
               <label>Profissão <input pInputText [(ngModel)]="model.profissao" maxlength="120" placeholder="Informe uma profissão" /></label>
             } @else {
-              <label>Inscrição municipal <input pInputText [(ngModel)]="model.inscricaoMunicipal" maxlength="20" /></label>
-              <label>Inscrição estadual <input pInputText [(ngModel)]="model.inscricaoEstadual" maxlength="20" /></label>
+              <label>Inscrição Municipal <input pInputText [(ngModel)]="model.inscricaoMunicipal" maxlength="20" placeholder="Informe a inscrição municipal" /></label>
+              <label>Inscrição Estadual <input pInputText [(ngModel)]="model.inscricaoEstadual" maxlength="20" placeholder="Informe a inscrição estadual" /></label>
             }
             <label>Número apólice <input pInputText [(ngModel)]="model.numeroApolice" maxlength="80" placeholder="Informe o número da apólice" /></label>
-            <label>Limite de crédito <input type="number" min="0" step="0.01" pInputText [(ngModel)]="model.limiteCredito" placeholder="0,00" /></label>
-            <label>Como nos conheceu?
+            <label>Limite de crédito <input type="number" min="0" step="0.01" pInputText [(ngModel)]="model.limiteCredito" placeholder="Informe um limite de crédito" /></label>
+            <label [class.nt-ref-full]="model.tipoPessoa === 'Jurídica'">Como nos conheceu?
               <select [(ngModel)]="model.comoNosConheceu">
-                <option value="">Selecione</option>
+                <option value="">Informe como nos conheceu?</option>
                 <option value="INDICACAO">Indicação</option>
                 <option value="SITE">Site</option>
                 <option value="TELEFONE">Telefone</option>
@@ -85,7 +85,7 @@
                 <option value="OUTROS">Outros</option>
               </select>
             </label>
-            <label class="nt-ref-full">Site <input type="url" pInputText [(ngModel)]="model.site" maxlength="255" placeholder="https://meusite.com" /></label>
+            <label class="nt-ref-full">Site <span class="nt-ref-input-with-icon"><span aria-hidden="true">♧</span><input type="url" pInputText [(ngModel)]="model.site" maxlength="255" placeholder="https://meusite.com" /></span></label>
             <label class="nt-ref-check nt-ref-full"><input type="checkbox" [(ngModel)]="model.locadoraVeiculos" /> Locadora de veículos?</label>
           </div>
         </section>
@@ -94,7 +94,7 @@
           <div class="nt-ref-legal-row"><span>É um órgão público?</span><div class="nt-ref-choices"><button type="button" [class.active]="model.orgaoPublico === true" (click)="model.orgaoPublico = true">Sim</button><button type="button" [class.active]="model.orgaoPublico === false" (click)="model.orgaoPublico = false">Não</button></div></div>
           <div class="nt-ref-legal-row"><span>Haverá retenção de ISS para o cliente?</span><div class="nt-ref-choices"><button type="button" [class.active]="model.retencaoIss === true" (click)="model.retencaoIss = true">Sim</button><button type="button" [class.active]="model.retencaoIss === false" (click)="model.retencaoIss = false">Não</button></div></div>
           <div class="nt-ref-legal-row"><span>Haverá retenção de IRRF/CSLL para o cliente?</span><div class="nt-ref-choices"><button type="button" [class.active]="model.retencaoIrrfCsll === true" (click)="model.retencaoIrrfCsll = true">Sim</button><button type="button" [class.active]="model.retencaoIrrfCsll === false" (click)="model.retencaoIrrfCsll = false">Não</button></div></div>
-          <div class="nt-ref-legal-row"><span>Mostrar alerta de LGPD ao editar/salvar uma OS?</span><div class="nt-ref-choices"><button type="button" [class.active]="model.alertaLgpd === true" (click)="model.alertaLgpd = true">Sim</button><button type="button" [class.active]="model.alertaLgpd === false" (click)="model.alertaLgpd = false">Não</button></div></div>
+          <div class="nt-ref-legal-row"><span>Mostrar alerta de LGPD ao editar/salvar a ordem de serviço?</span><div class="nt-ref-choices"><button type="button" [class.active]="model.alertaLgpd === true" (click)="model.alertaLgpd = true">Sim</button><button type="button" [class.active]="model.alertaLgpd === false" (click)="model.alertaLgpd = false">Não</button></div></div>
           <div class="nt-ref-legal-row"><span>Autoriza uso de dados (LGPD)</span><div class="nt-ref-choices"><button type="button" [class.active]="model.autorizacaoLgpd === null" (click)="model.autorizacaoLgpd = null">Sem decisão</button><button type="button" [class.active]="model.autorizacaoLgpd === true" (click)="model.autorizacaoLgpd = true">Sim</button><button type="button" [class.active]="model.autorizacaoLgpd === false" (click)="model.autorizacaoLgpd = false">Não</button></div></div>
           <p class="nt-ref-client-note">As decisões aqui são registradas no cadastro. O uso efetivo para comunicação e retenções fiscais depende dos fluxos específicos de autorização e tributação.</p>
         </section>
@@ -490,23 +490,42 @@
   }
 </main>
 
-<!-- Simple clean dialog for contacts -->
-<p-dialog [(visible)]="showContatoDialog" [modal]="true" [style]="{width:'min(580px,96vw)'}"
-  [header]="contatoEditIndex !== null ? 'Editar contato' : 'Criação do contato'" styleClass="modern-dialog nt-ref-contact-dialog">
-  <div class="nt-ref-contact-editor">
-    <h3>Dados do contato</h3>
-    <div class="nt-ref-form-grid">
-      <label>Nome <em>*</em><input pInputText [(ngModel)]="contatoForm.nome" maxlength="160" placeholder="Informe o nome" /></label>
-      <label>Gênero <select [(ngModel)]="contatoForm.sexo"><option [ngValue]="undefined">Não informado</option><option value="M">Masculino</option><option value="F">Feminino</option></select></label>
-      <label>Data de nascimento <input type="date" [(ngModel)]="contatoForm.dataNascimento" /></label>
-      <label class="nt-ref-check"><input type="checkbox" [(ngModel)]="contatoForm.grupoPrincipal" /> Grupo de contato principal?</label>
-      <label>Tipo de contato <select [(ngModel)]="contatoForm.tipoContato">@for(v of tipoContatoOptions;track v.value){<option [ngValue]="v.value">{{v.label}}</option>}</select></label>
-      <label>Telefone / e-mail / contato <em>*</em><input pInputText [(ngModel)]="contatoForm.valor" maxlength="255" placeholder="Informe o contato" /></label>
+<!-- Contato secundário: drawer sobre o cadastro, seguindo a hierarquia da referência -->
+<p-dialog [(visible)]="showContatoDialog" [modal]="true" [draggable]="false" [resizable]="false"
+  [style]="{width:'min(585px,100vw)',height:'100dvh',maxHeight:'100dvh'}" position="right"
+  styleClass="nt-ref-contact-dialog" [header]="contatoEditIndex !== null ? 'Editar contato' : 'Criação do contato'">
+  <div class="nt-ref-contact-layout">
+    <div class="nt-ref-contact-scroll">
+      <section class="nt-ref-client-section nt-ref-contact-data">
+        <h2>Dados do contato</h2>
+        <div class="nt-ref-form-grid">
+          <label>Nome <em>*</em><input pInputText [(ngModel)]="contatoForm.nome" maxlength="160" autocomplete="name" /></label>
+          <label>Sexo <select [(ngModel)]="contatoForm.sexo"><option [ngValue]="undefined">Não informado</option><option value="M">Masculino</option><option value="F">Feminino</option></select></label>
+          <label>Data de nascimento <input type="date" [(ngModel)]="contatoForm.dataNascimento" aria-label="Data de nascimento do contato" /></label>
+          <label class="nt-ref-spacer" aria-hidden="true"></label>
+          <label class="nt-ref-check nt-ref-full"><input type="checkbox" [(ngModel)]="contatoForm.grupoPrincipal" /> Grupo de contato principal?</label>
+        </div>
+      </section>
+      <section class="nt-ref-contact-channels">
+        <h2>Contatos</h2>
+        @if(contatoChannelOpen) {
+          <div class="nt-ref-contact-channel-row">
+            <div class="nt-ref-form-grid">
+              <label>Tipo de contato <em>*</em><select [(ngModel)]="contatoForm.tipoContato">@for(v of tipoContatoOptions;track v.value){<option [ngValue]="v.value">{{v.label}}</option>}</select></label>
+              <label>Telefone / e-mail / contato <em>*</em><input pInputText [(ngModel)]="contatoForm.valor" maxlength="255" placeholder="Informe o contato" /></label>
+            </div>
+            @if(!contatoForm.valor?.trim()) {<button type="button" class="nt-ref-remove-channel" (click)="contatoChannelOpen=false" aria-label="Remover meio de contato">×</button>}
+          </div>
+        } @else {
+          <button type="button" class="nt-ref-add-contact" (click)="contatoChannelOpen=true">＋ &nbsp; Adicionar contato</button>
+        }
+        @if(contactFormError){<p class="nt-ref-contact-error" role="alert">{{contactFormError}}</p>}
+      </section>
     </div>
-  </div>
-  <div class="nt-ref-contact-footer">
-    <button type="button" (click)="showContatoDialog=false">Cancelar</button>
-    <button type="button" class="nt-ref-save" (click)="salvarContatoLista()">{{contatoEditIndex !== null ? 'Salvar alterações' : '＋ Cadastrar contato'}}</button>
+    <footer class="nt-ref-contact-footer">
+      <button type="button" (click)="showContatoDialog=false">Cancelar</button>
+      <button type="button" class="nt-ref-save" (click)="salvarContatoLista()" [disabled]="!canSubmitContact">{{contatoEditIndex !== null ? 'Salvar alterações' : '＋ Cadastrar contato'}}</button>
+    </footer>
   </div>
 </p-dialog>
 

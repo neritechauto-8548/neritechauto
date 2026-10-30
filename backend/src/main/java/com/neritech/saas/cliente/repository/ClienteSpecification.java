@@ -13,7 +13,8 @@ import com.neritech.saas.common.tenancy.TenantContext;
 
 public class ClienteSpecification {
 
-    public static Specification<Cliente> buildSpecification(String busca, String nomeCompleto, String razaoSocial, String cpf, String cnpj, TipoCliente tipoCliente, StatusCliente status, LocalDate dataInicio, LocalDate dataFim) {
+    public static Specification<Cliente> buildSpecification(String busca, String nomeCompleto, String razaoSocial, String cpf, String cnpj, TipoCliente tipoCliente, StatusCliente status, LocalDate dataInicio, LocalDate dataFim,
+            String nomeFantasia, String contato, com.neritech.saas.rh.domain.enums.Sexo sexo, String placa) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -64,6 +65,37 @@ public class ClienteSpecification {
                 }
             }
 
+            // Filtros avançados independentes com isolamento da empresa em subconsultas.
+            if (nomeFantasia != null && !nomeFantasia.isBlank()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nomeFantasia")),
+                    "%" + nomeFantasia.trim().toLowerCase(java.util.Locale.ROOT) + "%"));
+            }
+            if (sexo != null) {
+                predicates.add(criteriaBuilder.equal(root.get("sexo"), sexo));
+            }
+            if (contato != null && !contato.isBlank()) {
+                var contactQuery = query.subquery(Long.class);
+                var contact = contactQuery.from(com.neritech.saas.cliente.domain.ContatoCliente.class);
+                String term = "%" + contato.trim().toLowerCase(java.util.Locale.ROOT) + "%";
+                contactQuery.select(contact.get("cliente").get("id")).where(
+                    criteriaBuilder.equal(contact.get("empresaId"), TenantContext.getCurrentTenant()),
+                    criteriaBuilder.equal(contact.get("cliente").get("id"), root.get("id")),
+                    criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(contact.get("contato")), term),
+                        criteriaBuilder.like(criteriaBuilder.lower(contact.get("nome")), term)));
+                predicates.add(criteriaBuilder.exists(contactQuery));
+            }
+            if (placa != null && !placa.isBlank()) {
+                var plateQuery = query.subquery(Long.class);
+                var vehicle = plateQuery.from(com.neritech.saas.veiculo.domain.Veiculo.class);
+                String plate = "%" + placa.trim().toLowerCase(java.util.Locale.ROOT) + "%";
+                plateQuery.select(vehicle.get("cliente").get("id")).where(
+                    criteriaBuilder.equal(vehicle.get("empresaId"), TenantContext.getCurrentTenant()),
+                    criteriaBuilder.equal(vehicle.get("cliente").get("id"), root.get("id")),
+                    criteriaBuilder.like(criteriaBuilder.lower(vehicle.get("placa")), plate));
+                predicates.add(criteriaBuilder.exists(plateQuery));
+            }
+
             if (tipoCliente != null) {
                 predicates.add(criteriaBuilder.equal(root.get("tipoCliente"), tipoCliente));
             }
@@ -81,5 +113,11 @@ public class ClienteSpecification {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+    /** API de filtros anterior, mantida para compatibilidade. */
+    public static Specification<Cliente> buildSpecification(String busca, String nomeCompleto, String razaoSocial,
+        String cpf, String cnpj, TipoCliente tipoCliente, StatusCliente status, LocalDate dataInicio, LocalDate dataFim) {
+        return buildSpecification(busca, nomeCompleto, razaoSocial, cpf, cnpj, tipoCliente, status, dataInicio, dataFim,
+                null, null, null, null);
     }
 }

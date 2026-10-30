@@ -25,6 +25,9 @@ import { forkJoin, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { VeiculoService } from '../../veiculo/veiculo/veiculo.service';
+import { EmpresaService } from '../../configuracoes/empresa/services/empresa.service';
+import { Empresa, EnderecoEmpresa } from '../../configuracoes/empresa/models/empresa.models';
+import { LocalStorageService } from '@shared/services/storage.service';
 import {
   TipoCliente,
   StatusCliente,
@@ -66,6 +69,8 @@ export class Cliente implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly permissionsService = inject(NgxPermissionsService);
   private readonly veiculosService = inject(VeiculoService);
+  private readonly empresaService = inject(EmpresaService);
+  private readonly storageService = inject(LocalStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly searchChanges = new Subject<string>();
 
@@ -93,6 +98,9 @@ export class Cliente implements OnInit {
   advancedOpen = false;
   advancedDocument = '';
   advancedName = '';
+  advancedContact = '';
+  advancedGender: 'M'|'F'|'O'|'' = '';
+  advancedPlate = '';
   advancedFrom = '';
   advancedTo = '';
   advancedError = '';
@@ -135,11 +143,73 @@ export class Cliente implements OnInit {
   labelsAddressColumns = 2;
   labelsAutomaticHeight = true;
   labelsHeight = 30;
-  labelsShowDate = false;
+  labelsShowDate = true;
+  labelsCompany: Empresa | null = null;
+  labelsCompanyAddress = '';
+  labelsCompanyLoading = false;
+  labelsCompanyError = '';
+  labelsShowLogo = true;
+  labelsShowCompanyName = true;
+  labelsShowCompanyCnpj = true;
+  labelsShowCompanyAddress = false;
+  labelsShowCompanyContacts = false;
+  labelsShowIssuedBy = false;
+  labelsLogoUrl = '';
+  get hasLabelsCompany():boolean { return !!this.labelsCompany; }
+  loadLabelCompany():void {
+    if(this.isUxPreview){this.labelsCompanyError='Dados reais da oficina indisponíveis na demonstração.';return;}
+    const tenant = Number(this.storageService.get('tenantId') || this.storageService.get('empresaId'));
+    if(!Number.isSafeInteger(tenant)||tenant<=0){this.labelsCompanyError='Empresa da sessão não identificada.';return;}
+    this.labelsCompanyLoading=true;this.labelsCompanyError='';
+    this.empresaService.getEmpresa(tenant).subscribe({
+      next: empresa => {
+        this.labelsCompany=empresa;
+        this.labelsCompanyLoading=false;
+        this.labelsLogoUrl='';
+        if(empresa.logoPath){
+          this.empresaService.getLogo(tenant).subscribe({
+            next:blob => {
+              if(!blob.type.startsWith('image/'))return;
+              const reader=new FileReader();
+              reader.onload=()=>{if(typeof reader.result==='string' && reader.result.startsWith('data:image/'))this.labelsLogoUrl=reader.result;};
+              reader.readAsDataURL(blob);
+            },
+            error:()=>{this.labelsLogoUrl='';}
+          });
+        }
+        if(this.labelsShowCompanyAddress){
+          this.loadLabelAddress(tenant);
+        }
+      },
+      error: () => {this.labelsCompany=null;this.labelsCompanyLoading=false;this.labelsCompanyError='Dados da empresa indisponíveis para o relatório.';}
+    });
+  }
+  loadLabelAddress(tenant?:number):void {
+    const id=tenant || Number(this.storageService.get('tenantId'));
+    if(!Number.isSafeInteger(id)||id<=0)return;
+    this.empresaService.getEnderecos(id).subscribe({
+      next: addresses => {
+        const a: EnderecoEmpresa|undefined=addresses.find(a=>a.principal)||addresses[0];
+        this.labelsCompanyAddress=a?[a.logradouro,a.numero,a.bairro,a.cidade,a.estado,a.cep].filter(Boolean).join(', '):'';
+      },
+      error:()=>{this.labelsCompanyAddress='';}
+    });
+  }
+  get labelCompanyPreview():string[] {
+    if(!this.labelsCompany)return ['Dados reais da empresa indisponíveis'];
+    const company=this.labelsCompany;
+    return [
+      this.labelsShowCompanyName ? company.razaoSocial : '',
+      this.labelsShowCompanyCnpj ? 'CNPJ: '+company.cnpj : '',
+      this.labelsShowCompanyAddress ? this.labelsCompanyAddress : '',
+      this.labelsShowCompanyContacts ? [company.telefone,company.email].filter(Boolean).join(' • ') : ''
+    ].filter(Boolean);
+  }
   labelsHeaderDivider = true;
   labelsLayoutType: 'dividido'|'centralizado' = 'dividido';
   labelsHeaderSize: 'P'|'M'|'G' = 'M';
   labelsHighlight = '#18328a';
+  readonly labelPalette=['#343a40','#9099a2','#f34f57','#e53f73','#b83ee0','#7e56fb','#4265ed','#2888dc','#12a4bd','#10b98d','#30bf52','#7fca29','#f0ab0b','#ff7c1c','#18328a'];
   get labelRowsCount():number { return this.labelRows.length; }
   get labelRowsFiltered() {
     return this.pagedData.filter(row =>
@@ -153,6 +223,9 @@ export class Cliente implements OnInit {
     this.labelsType='';this.labelsStatus=StatusCliente.ATIVO;this.labelsGender='';this.labelsDateFrom='';this.labelsDateTo='';
   }
   restoreLabels():void {
+    this.labelsShowLogo=true;this.labelsShowCompanyName=true;this.labelsShowCompanyCnpj=true;
+    this.labelsShowCompanyAddress=false;this.labelsShowCompanyContacts=false;
+    this.labelsShowIssuedBy=false;this.labelsShowDate=true;this.labelsHeaderDivider=true;
     this.labelsColumns=3;this.labelsMargin=10;this.labelsMarginTop=10;this.labelsMarginBottom=10;this.labelsMarginLeft=10;this.labelsMarginRight=10;this.labelsZoom=100;this.labelsFontSize=9;this.labelsWithBorder=true;this.labelsShowDocument=true;
     this.labelsSheet='A4';this.labelsOrientation='portrait';this.labelsGap=4;this.labelsAlign='left';
     this.labelsNameChars=40;this.labelsAddressColumns=2;this.labelsAutomaticHeight=true;this.labelsHeight=30;
@@ -163,7 +236,9 @@ export class Cliente implements OnInit {
       align:this.labelsAlign,nameChars:this.labelsNameChars,addressColumns:this.labelsAddressColumns,
       automaticHeight:this.labelsAutomaticHeight,height:this.labelsHeight,showDate:this.labelsShowDate,
       headerDivider:this.labelsHeaderDivider,layoutType:this.labelsLayoutType,headerSize:this.labelsHeaderSize,
-      highlight:this.labelsHighlight};
+      highlight:this.labelsHighlight,showLogo:this.labelsShowLogo,showName:this.labelsShowCompanyName,
+      showCnpj:this.labelsShowCompanyCnpj,showAddress:this.labelsShowCompanyAddress,
+      showContacts:this.labelsShowCompanyContacts,showBy:this.labelsShowIssuedBy};
     try { localStorage.setItem('neritech-client-label-layout-v1',JSON.stringify(data)); }catch{}
     this.labelsConfigOpen=false;
   }
@@ -189,6 +264,12 @@ export class Cliente implements OnInit {
       if(typeof raw.automaticHeight==='boolean')this.labelsAutomaticHeight=raw.automaticHeight;
       if(Number.isFinite(raw.height)&&raw.height>=10&&raw.height<=200)this.labelsHeight=raw.height;
       if(typeof raw.showDate==='boolean')this.labelsShowDate=raw.showDate;
+      if(typeof raw.showLogo==='boolean')this.labelsShowLogo=raw.showLogo;
+      if(typeof raw.showName==='boolean')this.labelsShowCompanyName=raw.showName;
+      if(typeof raw.showCnpj==='boolean')this.labelsShowCompanyCnpj=raw.showCnpj;
+      if(typeof raw.showAddress==='boolean')this.labelsShowCompanyAddress=raw.showAddress;
+      if(typeof raw.showContacts==='boolean')this.labelsShowCompanyContacts=raw.showContacts;
+      if(typeof raw.showBy==='boolean')this.labelsShowIssuedBy=raw.showBy;
       if(typeof raw.headerDivider==='boolean')this.labelsHeaderDivider=raw.headerDivider;
       if(['dividido','centralizado'].includes(raw.layoutType))this.labelsLayoutType=raw.layoutType;
       if(['P','M','G'].includes(raw.headerSize))this.labelsHeaderSize=raw.headerSize;
@@ -228,7 +309,7 @@ export class Cliente implements OnInit {
   }
   columnLabel(key: string): string { return this.columnOptions.find(c => c.key === key)?.label || key; }
   get labelRows() { return this.labelRowsFiltered; }
-  openLabels(): void { this.loadLabelSettings(); this.labelsOpen = true; }
+  openLabels(): void { this.loadLabelSettings(); this.labelsOpen = true; this.loadLabelCompany(); }
   printLabels(): void {
     if (!this.labelRows.length) return;
     // Isolated print document; escape all customer-supplied text to avoid HTML injection.
@@ -241,6 +322,13 @@ export class Cliente implements OnInit {
     const bottom = Math.min(30, Math.max(0, Number(this.labelsMarginBottom) || 0));
     const left = Math.min(30, Math.max(0, Number(this.labelsMarginLeft) || 0));
     const gap = Math.min(30, Math.max(0, Number(this.labelsGap) || 0));
+    const headerLines=this.labelCompanyPreview.filter(line=>this.hasLabelsCompany&&line);
+    const logo = this.labelsShowLogo && this.labelsCompany ?
+      (this.labelsLogoUrl.startsWith('data:image/') ?
+        '<img src="'+this.labelsLogoUrl+'" alt="Logo da empresa" style="max-height:20mm;max-width:40mm;object-fit:contain;margin-right:4mm">' :
+        '<span style="display:inline-grid;place-items:center;background:'+this.labelsHighlight+';color:white;font-size:14pt;padding:4mm;border-radius:2mm;margin-right:4mm">'+escape(this.labelsCompany.razaoSocial.slice(0,1).toUpperCase())+'</span>') : '';
+    const companyHeader=headerLines.length?'<div style="display:flex;flex-direction:'+(this.labelsLayoutType==='centralizado'?'column':'row')+';align-items:'+(this.labelsLayoutType==='centralizado'?'center':'start')+';gap:2mm;font-size:'+({P:8,M:9,G:11}[this.labelsHeaderSize])+'pt;text-align:'+this.labelsAlign+';margin:0 0 3mm">'+logo+
+      '<div>'+headerLines.map(line=>'<div>'+escape(line)+'</div>').join('')+'</div></div>':'';
     const cells = this.labelRows.map(item =>
       '<article><strong>'+escape(item.nome.slice(0,this.labelsNameChars))+'</strong>' +
       (this.labelsShowDocument && item.cpfCnpj ? '<span>'+escape(this.formatCpfCnpj(item.cpfCnpj))+'</span>' : '') +
@@ -255,7 +343,7 @@ export class Cliente implements OnInit {
       (this.labelsShowDate ? '<header style="font-size:9pt;text-align:'+this.labelsAlign+';color:'+this.labelsHighlight+
         ';border-bottom:'+(this.labelsHeaderDivider?'1px solid '+this.labelsHighlight:'none')+
         ';padding:0 0 2mm;margin:0 0 3mm">Emitido em '+escape(new Date().toLocaleString('pt-BR'))+'</header>' : '') +
-      '<main>'+cells+'</main></body></html>';
+      companyHeader + '<main>'+cells+'</main></body></html>';
     const iframe = document.createElement('iframe');
     iframe.setAttribute('title', 'Impressão de etiquetas');
     iframe.style.position = 'fixed'; iframe.style.width = '0'; iframe.style.height = '0';
@@ -270,6 +358,18 @@ export class Cliente implements OnInit {
     };
     iframe.srcdoc = markup;
     document.body.appendChild(iframe);
+  }
+  formatLabelMm(value:number):string {
+    return Number(value || 0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  changeLabelMm(field:'all'|'top'|'bottom'|'left'|'right',value:string):void {
+    const parsed=Number(value.replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
+    if(!Number.isFinite(parsed)||parsed<0||parsed>30)return;
+    if(field==='all'){this.labelsMargin=parsed;this.setUniformLabelMargin(parsed);}
+    else {
+      const map={top:'labelsMarginTop',bottom:'labelsMarginBottom',left:'labelsMarginLeft',right:'labelsMarginRight'} as const;
+      this[map[field]]=parsed;
+    }
   }
   labelZoomIn():void { this.labelsZoom=Math.min(150,this.labelsZoom+10); }
   labelZoomOut():void { this.labelsZoom=Math.max(70,this.labelsZoom-10); }
@@ -298,6 +398,7 @@ export class Cliente implements OnInit {
   resetAdvancedFilters(): void {
     this.advancedDocument = ''; this.advancedName = '';
     this.advancedFrom = ''; this.advancedTo = ''; this.advancedError = '';
+    this.advancedContact='';this.advancedGender='';this.advancedPlate='';
     this.selectedTipo = null; this.selectedStatus = null;
     this.first = 0; this.fetchPage();
   }
@@ -428,6 +529,7 @@ export class Cliente implements OnInit {
     this.selectedStatus = null;
     this.advancedDocument = '';
     this.advancedName = '';
+    this.advancedContact='';this.advancedGender='';this.advancedPlate='';
     this.advancedFrom = '';
     this.advancedTo = '';
     this.first = 0;
@@ -436,7 +538,8 @@ export class Cliente implements OnInit {
 
   get hasFilters(): boolean {
     return !!this.searchTerm.trim() || !!this.selectedTipo || !!this.selectedStatus ||
-      !!this.advancedDocument.trim() || !!this.advancedName.trim() || !!this.advancedFrom || !!this.advancedTo;
+      !!this.advancedDocument.trim() || !!this.advancedName.trim() || !!this.advancedContact.trim() ||
+      !!this.advancedGender || !!this.advancedPlate.trim() || !!this.advancedFrom || !!this.advancedTo;
   }
 
   goPrev() {
@@ -647,7 +750,10 @@ export class Cliente implements OnInit {
       filters.status = this.selectedStatus;
     }
     if (this.advancedDocument.trim()) filters.cpf = this.advancedDocument.trim();
-    if (this.advancedName.trim()) filters.nomeCompleto = this.advancedName.trim();
+    if (this.advancedName.trim()) filters.nomeFantasia = this.advancedName.trim();
+    if (this.advancedContact.trim()) filters.contato = this.advancedContact.trim();
+    if (this.advancedGender) filters.sexo = this.advancedGender;
+    if (this.advancedPlate.trim()) filters.placa = this.advancedPlate.trim().toUpperCase();
     if (this.advancedFrom) filters.dataInicio = this.advancedFrom;
     if (this.advancedTo) filters.dataFim = this.advancedTo;
 
@@ -693,6 +799,9 @@ export class Cliente implements OnInit {
       sort: this.sort === 'nomeCompleto,asc' ? null : this.sort,
       doc: this.advancedDocument || null,
       nome: this.advancedName || null,
+      contato: this.advancedContact || null,
+      genero: this.advancedGender || null,
+      placa: this.advancedPlate || null,
       de: this.advancedFrom || null,
       ate: this.advancedTo || null,
     };

@@ -21,6 +21,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { VeiculoService } from '../veiculo/veiculo.service';
 import { ClientesService } from '../../cliente/cliente/cliente.service';
+import { CadastroCliente } from '../../cliente/cadastro-cliente/cadastro-cliente';
 import {
   VeiculoRequest,
   VeiculoResponse,
@@ -46,7 +47,8 @@ import {
     AutoCompleteModule,
     ToastModule,
     TagModule,
-    SkeletonModule
+    SkeletonModule,
+    CadastroCliente
   ],
   providers: [MessageService]
 })
@@ -68,6 +70,45 @@ export class CadastroVeiculo implements OnInit {
   searchMode: 'placa' | 'chassi' = 'placa';
   lookupState: 'idle' | 'loading' | 'found' | 'none' | 'error' | 'unavailable' = 'idle';
   lookupMessage = '';
+  selectedFabricationYear:number|null=null;
+  get availableFabricationYears():number[] {
+    return [...new Set(this.anosModelos.map(x=>x.anoFabricacao))].sort((a,b)=>b-a);
+  }
+  get availableYearModels():AnoModeloResponse[] {
+    return this.anosModelos.filter(x=>this.selectedFabricationYear===null || x.anoFabricacao===this.selectedFabricationYear);
+  }
+  onFabricationYearChange():void {
+    const selected=this.anosModelos.find(x=>x.id===this.form.anoModeloId);
+    if(selected && selected.anoFabricacao!==this.selectedFabricationYear) this.form.anoModeloId=undefined;
+  }
+  customerLookupOpen = false;
+  customerQuery = '';
+  customerLookupError = '';
+  customerLoading = false;
+  clientCreationOpen = false;
+  foundVehicle: VeiculoResponse | null = null;
+  openCustomerLookup(): void {
+    this.customerLookupOpen = true;
+    this.searchCliente({query:this.customerQuery});
+  }
+  searchCustomerText(value:string): void {
+    this.customerQuery=value;
+    this.searchCliente({query:value});
+  }
+  chooseCustomer(customer:any): void {
+    this.selectedCliente=customer;
+    this.form.clienteId=customer.id;
+    this.customerQuery=customer.nome;
+    this.customerLookupOpen=false;
+  }
+  clearCustomer(): void {
+    this.selectedCliente=null;this.form.clienteId=0;this.customerQuery='';this.customerLookupOpen=false;
+  }
+  onClientCreationSaved(value:any):void {
+    if(!value?.id)return;
+    this.chooseCustomer({...value,nome:value.nomeCompleto||value.nomeFantasia||value.razaoSocial||'',cpfCnpj:value.cpf||value.cnpj||''});
+    this.clientCreationOpen=false;
+  }
   existingVehicleId: number | null = null;
 
   get selectedModelImage(): string | undefined { return this.modelos.find(m => m.id === this.form.modeloId)?.imagemUrl; }
@@ -75,7 +116,7 @@ export class CadastroVeiculo implements OnInit {
   get canSaveModal(): boolean {
     return !!this.selectedCliente?.id && /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test((this.form.placa || '').trim().toUpperCase())
       && !!this.form.marcaId && !!this.form.modeloId && !!this.form.anoModeloId
-      && !!this.form.combustivelId && !this.existingVehicleId && !this.saving && !this.isUxPreview;
+      && !!this.form.combustivelId && !!this.form.corExterna?.trim() && !this.existingVehicleId && !this.saving && !this.isUxPreview;
   }
 
   // Estado Geral
@@ -141,6 +182,7 @@ export class CadastroVeiculo implements OnInit {
                    nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
                    cpfCnpj: c.cpf || c.cnpj || ''
                };
+               this.customerQuery = this.selectedCliente.nome;
             });
           }
         });
@@ -163,6 +205,7 @@ export class CadastroVeiculo implements OnInit {
                     nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
                     cpfCnpj: c.cpf || c.cnpj || ''
                 };
+                this.customerQuery=this.selectedCliente.nome;
             });
         }
         // Carregar modelos se houver marca
@@ -220,10 +263,12 @@ export class CadastroVeiculo implements OnInit {
     }
     this.anosModelos = [];
     this.form.anoModeloId = undefined;
+    this.selectedFabricationYear=null;
   }
 
   consultarCadastroInterno(): void {
     this.lookupMessage = '';
+    this.foundVehicle=null;
     this.existingVehicleId = null;
     if (this.searchMode === 'chassi') {
       this.lookupState = 'unavailable';
@@ -246,6 +291,7 @@ export class CadastroVeiculo implements OnInit {
     this.veiculoService.getByPlacaInterna(plate).subscribe({
       next: vehicle => {
         this.lookupState = 'found';
+        this.foundVehicle = vehicle;
         this.existingVehicleId = vehicle.id;
         this.lookupMessage = 'Veículo já cadastrado na empresa. Abra o registro existente para editar.';
       },
@@ -324,6 +370,8 @@ export class CadastroVeiculo implements OnInit {
     this.veiculoService.listAnosModelo(modeloId).subscribe({
       next: (data) => {
         this.anosModelos = data;
+        const current=data.find(x=>x.id===this.form.anoModeloId);
+        this.selectedFabricationYear=current?.anoFabricacao ?? null;
         this.loadingAnosModelos = false;
       },
       error: (err) => {
@@ -333,34 +381,21 @@ export class CadastroVeiculo implements OnInit {
     });
   }
 
-  searchCliente(event: any) {
-    const query = event.query;
-    const isNumeric = /^\d+$/.test(query.replace(/[.-]/g, ''));
-
-    const filter: any = {};
-    if (isNumeric) {
-      const cleanQuery = query.replace(/\D/g, '');
-      if (cleanQuery.length > 11) {
-        filter.cnpj = cleanQuery;
-      } else {
-        filter.cpf = cleanQuery;
-      }
-    } else {
-      filter.nomeCompleto = query;
-      filter.nomeFantasia = query;
-      filter.razaoSocial = query;
-    }
-
+  searchCliente(event: {query:string}) {
+    const query=(event.query||'').trim();
+    this.customerLoading=true;this.customerLookupError='';
+    const filter:any={page:0,size:10,sort:'nomeCompleto,asc'};
+    // A busca do backend é OR em nome/razão social/nome fantasia/documento.
+    if(query)filter.busca=query;
     this.clientesService.list(filter).subscribe({
-      next: (page) => {
-        this.filteredClientes = page.content.map(c => ({
-          ...c,
-          nome: c.nomeCompleto || c.nomeFantasia || c.razaoSocial || '',
-          cpfCnpj: c.cpf || c.cnpj || ''
-        }));
+      next: page => {
+        this.filteredClientes=(page.content||[]).map(c=>({...c,
+          nome:c.nomeCompleto||c.nomeFantasia||c.razaoSocial||'',cpfCnpj:c.cpf||c.cnpj||''}));
+        this.customerLoading=false;
       },
-      error: (err) => {
-        console.error('Erro ao buscar clientes:', err);
+      error: () => {
+        this.filteredClientes=[];this.customerLoading=false;
+        this.customerLookupError='Não foi possível consultar os clientes desta empresa.';
       }
     });
   }
@@ -385,7 +420,7 @@ export class CadastroVeiculo implements OnInit {
 
   salvar() {
     if (this.modalMode && !this.canSaveModal) {
-      this.messageService.add({severity:'warn',summary:'Dados obrigatórios',detail:'Selecione cliente, placa, marca, modelo, ano e combustível válidos. O modo demonstração não grava dados.'});
+      this.messageService.add({severity:'warn',summary:'Dados obrigatórios',detail:'Selecione cliente, placa, marca, modelo, ano de fabricação/modelo, combustível e cor válidos. O modo demonstração não grava dados.'});
       return;
     }
     const isNew = !this.id;
