@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { A11yModule } from '@angular/cdk/a11y';
 import { RouterLink } from '@angular/router';
 import { Subject, finalize, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { HistoricoVeiculosService, HistoricoVeiculo, HistoricoRelatorioOpcoes } from './historico-veiculos.service';
@@ -10,7 +11,7 @@ type ColunaHistorico = 'cliente' | 'placa';
 @Component({
   selector: 'nt-historico-veiculos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, A11yModule, RouterLink],
   templateUrl: './historico-veiculos.html',
   styleUrl: './historico-veiculos.scss'
 })
@@ -60,6 +61,15 @@ export class HistoricoVeiculos implements OnInit {
   ngOnInit(): void {
     this.restoreColumns(); this.load();
   }
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(event: KeyboardEvent): void {
+    if (!this.reportOpen && !this.columnsOpen && !this.filterOpen) return;
+    event.preventDefault();
+    if (this.reportOpen) this.reportOpen = false;
+    else if (this.columnsOpen) this.columnsOpen = false;
+    else this.filterOpen = false;
+  }
+
   get hasMore():boolean { return this.rows.length < this.total; }
   get filteredColumnOptions() {
     const q=this.columnSearch.trim().toLocaleLowerCase('pt-BR');

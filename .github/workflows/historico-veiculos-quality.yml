@@ -34,7 +34,7 @@ jobs:
       - name: Build Angular
         run: yarn build
       - name: Testes de contrato HTTP do Histórico de Veículos
-        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/cliente/historico-veiculos/historico-veiculos.service.spec.ts
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/cliente/historico-veiculos/historico-veiculos.service.spec.ts --include=src/app/routes/cliente/historico-veiculos/historico-veiculos.ux.spec.ts
 
 
   java:

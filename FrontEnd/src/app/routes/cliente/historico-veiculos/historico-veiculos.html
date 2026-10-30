@@ -63,7 +63,7 @@
 
 @if(filterOpen){
   <div class="hv-mask" (click)="filterOpen=false">
-    <aside class="hv-filter" role="dialog" aria-modal="true" aria-labelledby="hv-filter-title" (click)="$event.stopPropagation()">
+    <aside class="hv-filter" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="hv-filter-title" (click)="$event.stopPropagation()">
       <header><div><h2 id="hv-filter-title">Filtro avançado de veículos</h2><p>Pesquisa na base da sua empresa</p></div><button type="button" (click)="filterOpen=false" aria-label="Fechar filtro">×</button></header>
       <div class="hv-filter-body">
         <label>Cliente, modelo ou placa <input type="search" [(ngModel)]="busca" placeholder="Pesquisar veículos" /></label>
@@ -75,7 +75,7 @@
 }
 @if(columnsOpen){
   <div class="hv-mask" (click)="columnsOpen=false">
-    <section class="hv-columns-dialog" role="dialog" aria-modal="true" aria-labelledby="hv-columns-title" (click)="$event.stopPropagation()">
+    <section class="hv-columns-dialog" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="hv-columns-title" (click)="$event.stopPropagation()">
       <header><div><h2 id="hv-columns-title">▥ &nbsp; Colunas de histórico de veículos</h2><p>Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div><button type="button" (click)="columnsOpen=false" aria-label="Fechar">×</button></header>
       <div class="hv-columns-note">ⓘ &nbsp; Personalize e salve para criar sua configuração de colunas.</div>
       <div class="hv-columns-content">
@@ -105,7 +105,7 @@
 }
 @if(reportOpen){
   <div class="hv-mask hv-report-mask" (click)="reportOpen=false">
-    <section class="hv-report" [class.hv-report-fullscreen]="reportFullscreen" role="dialog" aria-modal="true" aria-labelledby="hv-report-title" (click)="$event.stopPropagation()">
+    <section class="hv-report" [class.hv-report-fullscreen]="reportFullscreen" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="hv-report-title" (click)="$event.stopPropagation()">
       <header><div><h2 id="hv-report-title">▤ &nbsp; Relatórios <span title="Relatórios NERITECH AUTO">ⓘ</span></h2><p>Navegue pelos relatórios disponíveis na sua empresa</p></div>
         <div class="hv-report-head-actions">
           <button type="button" class="hv-report-expand" (click)="reportFullscreen=!reportFullscreen" [attr.aria-label]="reportFullscreen ? 'Restaurar tamanho do relatório' : 'Expandir relatório'" [attr.aria-pressed]="reportFullscreen" title="Expandir ou restaurar tamanho">⛶</button>
