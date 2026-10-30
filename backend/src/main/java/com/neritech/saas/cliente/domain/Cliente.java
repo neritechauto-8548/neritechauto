@@ -77,6 +77,76 @@ public class Cliente extends TenantEntity {
     @Column(name = "observacoes_gerais", columnDefinition = "TEXT")
     private String observacoesGerais;
 
+    @Column(name = "documento_estrangeiro", length = 80)
+    private String documentoEstrangeiro;
+    public String getDocumentoEstrangeiro() { return documentoEstrangeiro; }
+    public void setDocumentoEstrangeiro(String value) { this.documentoEstrangeiro = value; }
+
+    @Column(name = "pais", length = 80)
+    private String pais;
+    public String getPais() { return pais; }
+    public void setPais(String value) { this.pais = value; }
+
+    @Column(name = "estado_civil", length = 30)
+    private String estadoCivil;
+    public String getEstadoCivil() { return estadoCivil; }
+    public void setEstadoCivil(String value) { this.estadoCivil = value; }
+
+    @Column(name = "profissao", length = 120)
+    private String profissao;
+    public String getProfissao() { return profissao; }
+    public void setProfissao(String value) { this.profissao = value; }
+
+    @Column(name = "numero_apolice", length = 80)
+    private String numeroApolice;
+    public String getNumeroApolice() { return numeroApolice; }
+    public void setNumeroApolice(String value) { this.numeroApolice = value; }
+
+    @Column(name = "limite_credito", precision = 14, scale = 2)
+    private java.math.BigDecimal limiteCredito;
+    public java.math.BigDecimal getLimiteCredito() { return limiteCredito; }
+    public void setLimiteCredito(java.math.BigDecimal value) { this.limiteCredito = value; }
+
+    @Column(name = "como_nos_conheceu", length = 100)
+    private String comoNosConheceu;
+    public String getComoNosConheceu() { return comoNosConheceu; }
+    public void setComoNosConheceu(String value) { this.comoNosConheceu = value; }
+
+    @Column(name = "site", length = 255)
+    private String site;
+    public String getSite() { return site; }
+    public void setSite(String value) { this.site = value; }
+
+    @Column(name = "locadora_veiculos")
+    private Boolean locadoraVeiculos;
+    public Boolean getLocadoraVeiculos() { return locadoraVeiculos; }
+    public void setLocadoraVeiculos(Boolean value) { this.locadoraVeiculos = value; }
+
+    @Column(name = "orgao_publico")
+    private Boolean orgaoPublico;
+    public Boolean getOrgaoPublico() { return orgaoPublico; }
+    public void setOrgaoPublico(Boolean value) { this.orgaoPublico = value; }
+
+    @Column(name = "retencao_iss")
+    private Boolean retencaoIss;
+    public Boolean getRetencaoIss() { return retencaoIss; }
+    public void setRetencaoIss(Boolean value) { this.retencaoIss = value; }
+
+    @Column(name = "retencao_irrf_csll")
+    private Boolean retencaoIrrfCsll;
+    public Boolean getRetencaoIrrfCsll() { return retencaoIrrfCsll; }
+    public void setRetencaoIrrfCsll(Boolean value) { this.retencaoIrrfCsll = value; }
+
+    @Column(name = "alerta_lgpd")
+    private Boolean alertaLgpd;
+    public Boolean getAlertaLgpd() { return alertaLgpd; }
+    public void setAlertaLgpd(Boolean value) { this.alertaLgpd = value; }
+
+    @Column(name = "autorizacao_lgpd")
+    private Boolean autorizacaoLgpd;
+    public Boolean getAutorizacaoLgpd() { return autorizacaoLgpd; }
+    public void setAutorizacaoLgpd(Boolean value) { this.autorizacaoLgpd = value; }
+
     @Column(name = "rg", length = 30)
     private String rg;
 

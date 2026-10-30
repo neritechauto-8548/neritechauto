@@ -182,6 +182,15 @@ public class VeiculoService {
     }
 
     @Transactional(readOnly = true)
+    /** Consulta apenas registros da empresa autenticada, sem serviços externos. */
+    @Transactional(readOnly = true)
+    public Optional<VeiculoResponse> findInternoByPlaca(String placa) {
+        Long tenantId = TenantAccess.requireCurrent();
+        if (placa == null || placa.isBlank()) return Optional.empty();
+        String normalizada = placa.trim().toUpperCase(java.util.Locale.ROOT);
+        return repository.findByEmpresaIdAndPlacaIgnoreCase(tenantId, normalizada).map(mapper::toResponse);
+    }
+
     public Optional<VeiculoResponse> findByPlaca(String placa) {
         TenantAccess.requireCurrent();
         if (placa == null || placa.isBlank()) return Optional.empty();

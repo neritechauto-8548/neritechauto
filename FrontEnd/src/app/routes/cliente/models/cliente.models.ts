@@ -91,6 +91,20 @@ export interface ClienteRequest {
   motivoBloqueio?: string;
   observacoesGerais?: string;
   rg?: string;
+  documentoEstrangeiro?: string;
+  pais?: string;
+  estadoCivil?: EstadoCivil;
+  profissao?: string;
+  numeroApolice?: string;
+  limiteCredito?: number;
+  comoNosConheceu?: string;
+  site?: string;
+  locadoraVeiculos?: boolean;
+  orgaoPublico?: boolean;
+  retencaoIss?: boolean;
+  retencaoIrrfCsll?: boolean;
+  alertaLgpd?: boolean;
+  autorizacaoLgpd?: boolean | null;
   categoria?: string;
   indicadorIsencao?: string;
   emailSecundario?: string;
@@ -130,7 +144,11 @@ export interface EnderecoClienteResponse extends EnderecoClienteRequest {
 
 export interface ContatoClienteRequest {
   tipoContato: TipoContato;
-  valor: string; // Obrigatório (UI)
+  valor: string;
+  nome?: string;
+  sexo?: 'M' | 'F' | null;
+  dataNascimento?: string;
+  grupoPrincipal?: boolean; // Obrigatório (UI)
 }
 
 export interface ContatoClienteResponse extends ContatoClienteRequest {

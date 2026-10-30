@@ -1,3 +1,87 @@
+
+@if (modalMode) {
+  <section class="nt-ref-vehicle-drawer" aria-label="Criação do veículo">
+    <p-toast />
+    <header class="nt-ref-vehicle-header"><div><h2>Criação do veículo</h2><p>Vincule um cliente e preencha os dados do veículo</p></div><button type="button" (click)="cancelar()" aria-label="Fechar cadastro">×</button></header>
+    <div class="nt-ref-vehicle-scroll">
+      <section class="nt-ref-vehicle-block">
+        <h3>Cliente vinculado <small>obrigatório</small></h3>
+        <p>Escolha para quem este veículo será cadastrado.</p>
+        <p-autoComplete [(ngModel)]="selectedCliente" [suggestions]="filteredClientes"
+          (completeMethod)="searchCliente($event)" optionLabel="nome" dataKey="id"
+          placeholder="Selecionar cliente por nome ou CPF/CNPJ" [dropdown]="true" [forceSelection]="true"
+          styleClass="w-full" inputStyleClass="w-full" />
+        @if (!selectedCliente?.id) { <p class="nt-ref-vehicle-hint">Selecione um cliente cadastrado para continuar.</p> }
+      </section>
+      @if (selectedCliente?.id) {
+        <section class="nt-ref-vehicle-block">
+          <h3>Veículo <small>consulta interna</small></h3>
+          <p>Busque por placa antes de preencher os dados manualmente.</p>
+          <div class="nt-ref-lookup-banner"><strong>Base cadastrada na NERITECH AUTO</strong>
+            <span>As integrações externas por placa/chassi não estão configuradas. Nenhuma consulta a fornecedores externos será realizada.</span></div>
+          <h4>Localizar veículo</h4>
+          <div class="nt-ref-vehicle-segment" role="group" aria-label="Tipo de busca">
+            <button type="button" [class.active]="searchMode === 'placa'" (click)="searchMode='placa';lookupState='idle'">Placa</button>
+            <button type="button" [class.active]="searchMode === 'chassi'" (click)="searchMode='chassi';lookupState='idle'">Chassi</button>
+          </div>
+          <div class="nt-ref-vehicle-lookup">
+            @if(searchMode === 'placa') {
+              <label>Placa <input pInputText [(ngModel)]="form.placa" maxlength="7" placeholder="ABC1D23" (ngModelChange)="existingVehicleId=null;lookupState='idle'" /></label>
+            } @else {
+              <label>Chassi <input pInputText [(ngModel)]="form.chassi" maxlength="17" placeholder="17 caracteres" /></label>
+            }
+            <button type="button" (click)="consultarCadastroInterno()" [disabled]="lookupState==='loading'">{{lookupState==='loading'?'Consultando…':'Buscar cadastro'}}</button>
+          </div>
+          @if(lookupMessage) { <p role="status" class="nt-ref-lookup-state">{{ lookupMessage }}</p> }
+          @if(existingVehicleId) { <a [href]="'/veiculo/editar/'+existingVehicleId">Abrir veículo existente</a> }
+        </section>
+        <section class="nt-ref-vehicle-block">
+          <h3>Dados gerais <small>obrigatório</small></h3>
+          <div class="nt-ref-vehicle-fields">
+            <label>Placa * <input pInputText [(ngModel)]="form.placa" maxlength="7" placeholder="ABC1D23" (ngModelChange)="existingVehicleId=null" /></label>
+            <label>Chassi <input pInputText [(ngModel)]="form.chassi" maxlength="17" placeholder="Informe o chassi" /></label>
+            <label>Marca * <select [(ngModel)]="form.marcaId" (ngModelChange)="onMarcaChange()">
+              <option [ngValue]="undefined">Selecione a marca</option>
+              @for(brand of marcas;track brand.id){<option [ngValue]="brand.id">{{brand.nome}}</option>}</select></label>
+            <label>Modelo * <select [(ngModel)]="form.modeloId" (ngModelChange)="onModeloChange()" [disabled]="!form.marcaId">
+              <option [ngValue]="undefined">Selecione o modelo</option>
+              @for(model of modelos;track model.id){<option [ngValue]="model.id">{{model.nome}}</option>}</select></label>
+            <label>Ano fabricação/modelo * <select [(ngModel)]="form.anoModeloId" [disabled]="!form.modeloId">
+              <option [ngValue]="undefined">Selecione o ano</option>
+              @for(year of anosModelos;track year.id){<option [ngValue]="year.id">{{year.anoFabricacao}} / {{year.anoModelo}}</option>}</select></label>
+            <label>Combustível * <select [(ngModel)]="form.combustivelId">
+              <option [ngValue]="undefined">Selecione o combustível</option>
+              @for(fuel of combustiveis;track fuel.id){<option [ngValue]="fuel.id">{{fuel.nome}}</option>}</select></label>
+            <label>Cor <input pInputText [(ngModel)]="form.corExterna" maxlength="50" /></label>
+            <label>RENAVAM <input pInputText [(ngModel)]="form.renavam" maxlength="11" inputmode="numeric" /></label>
+            <label>Média de KM no cadastro <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemCadastro" /></label>
+            <label>KM atual <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemAtual" /></label>
+          </div>
+        </section>
+        <section class="nt-ref-vehicle-block">
+          <h3>Dados do motor <small>técnico</small></h3>
+          <div class="nt-ref-vehicle-fields">
+            <label>Número do motor <input pInputText [(ngModel)]="form.numeroMotor" maxlength="50" /></label>
+          </div>
+          <p>Potência, cilindrada, válvulas e código técnico dependem de expansão do contrato do veículo. Esses campos não serão simulados nem perdidos silenciosamente.</p>
+        </section>
+        <section class="nt-ref-vehicle-block">
+          <h3>Dados complementares <small>opcional</small></h3>
+          <div class="nt-ref-vehicle-fields">
+            <label>Direção <select [(ngModel)]="form.direcao"><option [ngValue]="undefined">Selecione</option><option value="HIDRAULICA">Hidráulica</option><option value="ELETRICA">Elétrica</option><option value="MECANICA">Mecânica</option></select></label>
+            <label>Transmissão <select [(ngModel)]="form.cambio"><option [ngValue]="undefined">Selecione</option><option value="MANUAL">Manual</option><option value="AUTOMATICO">Automático</option><option value="AUTOMATIZADO">Automatizado</option><option value="CVT">CVT</option></select></label>
+            <label>Portas <input type="number" min="2" max="6" pInputText [(ngModel)]="form.portas" /></label>
+            <label>Ar-condicionado <select [(ngModel)]="form.arCondicionado"><option [ngValue]="undefined">Não informado</option><option [ngValue]="true">Sim</option><option [ngValue]="false">Não</option></select></label>
+            <label class="nt-ref-wide">Observações <textarea [(ngModel)]="form.observacoes" rows="3"></textarea></label>
+          </div>
+        </section>
+      }
+    </div>
+    <footer class="nt-ref-vehicle-footer"><button type="button" (click)="cancelar()" [disabled]="saving">Cancelar</button>
+      <button type="button" class="nt-ref-vehicle-save" (click)="salvar()" [disabled]="!canSaveModal">{{saving?'Salvando…':'Salvar veículo'}}</button>
+    </footer>
+  </section>
+} @else {
 <div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
   <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
 
@@ -246,3 +330,5 @@
     }
   </div>
 </div>
+
+}

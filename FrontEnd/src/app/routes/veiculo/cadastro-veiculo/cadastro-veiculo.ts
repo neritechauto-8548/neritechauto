@@ -64,6 +64,18 @@ export class CadastroVeiculo implements OnInit {
   @Output() saved = new EventEmitter<VeiculoResponse>();
   @Output() canceled = new EventEmitter<void>();
 
+  readonly isUxPreview = environment.uxPreview;
+  searchMode: 'placa' | 'chassi' = 'placa';
+  lookupState: 'idle' | 'loading' | 'found' | 'none' | 'error' | 'unavailable' = 'idle';
+  lookupMessage = '';
+  existingVehicleId: number | null = null;
+
+  get canSaveModal(): boolean {
+    return !!this.selectedCliente?.id && /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test((this.form.placa || '').trim().toUpperCase())
+      && !!this.form.marcaId && !!this.form.modeloId && !!this.form.anoModeloId
+      && !!this.form.combustivelId && !this.existingVehicleId && !this.saving && !this.isUxPreview;
+  }
+
   // Estado Geral
   loading = false;
   saving = false;
@@ -208,8 +220,44 @@ export class CadastroVeiculo implements OnInit {
     this.form.anoModeloId = undefined;
   }
 
+  consultarCadastroInterno(): void {
+    this.lookupMessage = '';
+    this.existingVehicleId = null;
+    if (this.searchMode === 'chassi') {
+      this.lookupState = 'unavailable';
+      this.lookupMessage = 'A consulta por chassi não possui endpoint integrado. Preencha manualmente.';
+      return;
+    }
+    const plate = (this.form.placa || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    this.form.placa = plate;
+    if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(plate)) {
+      this.lookupState = 'error';
+      this.lookupMessage = 'Informe uma placa válida com sete caracteres.';
+      return;
+    }
+    if (this.isUxPreview) {
+      this.lookupState = 'unavailable';
+      this.lookupMessage = 'Consulta indisponível na demonstração sem login.';
+      return;
+    }
+    this.lookupState = 'loading';
+    this.veiculoService.getByPlacaInterna(plate).subscribe({
+      next: vehicle => {
+        this.lookupState = 'found';
+        this.existingVehicleId = vehicle.id;
+        this.lookupMessage = 'Veículo já cadastrado na empresa. Abra o registro existente para editar.';
+      },
+      error: err => {
+        this.lookupState = err.status === 404 ? 'none' : 'error';
+        this.lookupMessage = err.status === 404
+          ? 'Veículo não encontrado. Continue o cadastro manual.'
+          : 'Não foi possível consultar a base da oficina. Nenhum serviço externo foi acionado.';
+      }
+    });
+  }
+
   onPlacaBlur() {
-    if (this.id) return; // Não busca se já estamos editando um veículo existente
+    if (this.id || this.modalMode) return; // Não busca se já estamos editando um veículo existente
     
     const placa = this.form.placa?.trim();
     if (!placa || placa.length < 7) return;
@@ -334,6 +382,10 @@ export class CadastroVeiculo implements OnInit {
   // ========== SALVAR VEÍCULO ==========
 
   salvar() {
+    if (this.modalMode && !this.canSaveModal) {
+      this.messageService.add({severity:'warn',summary:'Dados obrigatórios',detail:'Selecione cliente, placa, marca, modelo, ano e combustível válidos. O modo demonstração não grava dados.'});
+      return;
+    }
     const isNew = !this.id;
     const reqPerm = isNew ? 'VEICULO_CRIAR' : 'VEICULO_EDITAR';
     if (!this.permissionsService.getPermission(reqPerm) && !environment.uxPreview) {

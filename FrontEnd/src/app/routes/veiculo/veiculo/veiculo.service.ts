@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 import {
@@ -72,6 +72,15 @@ export class VeiculoService {
   delete(id: number | string): Observable<void> {
     const url = `${this.base}/v1/veiculos/${id}`;
     return this.http.delete<void>(url);
+  }
+
+  /** Registro próprio da empresa; não consulta fontes externas. */
+  getByPlacaInterna(placa: string): Observable<VeiculoResponse> {
+    if (environment.uxPreview) {
+      const existing = this.previewVeiculos.find(v => v.placa.toUpperCase() === placa.toUpperCase());
+      return existing ? of(existing) : throwError(() => ({status:404}));
+    }
+    return this.http.get<VeiculoResponse>(`${this.base}/v1/veiculos/interno/placa/${encodeURIComponent(placa)}`);
   }
 
   getByPlaca(placa: string): Observable<VeiculoResponse> {

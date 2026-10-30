@@ -221,7 +221,7 @@ export class ClientesService {
   criarContato(clienteId: number | string, contato: ContatoClienteRequest): Observable<ContatoClienteResponse> {
     if (environment.uxPreview) {
       const valor = (contato as any).valor ?? (contato as any).contato ?? '';
-      const created: ContatoClienteResponse = { tipoContato: contato.tipoContato, valor, id: this.previewNextId++, clienteId: Number(clienteId) };
+      const created: ContatoClienteResponse = { ...contato, tipoContato: contato.tipoContato, valor, id: this.previewNextId++, clienteId: Number(clienteId) };
       this.previewContatos = [...this.previewContatos, created];
       return of(created);
     }

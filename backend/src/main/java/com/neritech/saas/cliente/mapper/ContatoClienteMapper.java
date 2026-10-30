@@ -10,6 +10,10 @@ public class ContatoClienteMapper {
         ContatoCliente c = new ContatoCliente();
         c.setTipoContato(r.getTipoContato());
         c.setContato(r.getContato());
+        c.setNome(r.getNome());
+        c.setSexo(r.getSexo());
+        c.setDataNascimento(r.getDataNascimento());
+        c.setGrupoPrincipal(r.getGrupoPrincipal());
         c.setPrincipal(r.getPrincipal() != null ? r.getPrincipal() : false);
         return c;
     }
@@ -17,6 +21,10 @@ public class ContatoClienteMapper {
     public static void updateEntity(ContatoCliente c, ContatoClienteRequest r) {
         c.setTipoContato(r.getTipoContato());
         c.setContato(r.getContato());
+        c.setNome(r.getNome());
+        c.setSexo(r.getSexo());
+        c.setDataNascimento(r.getDataNascimento());
+        c.setGrupoPrincipal(r.getGrupoPrincipal());
         c.setPrincipal(r.getPrincipal() != null ? r.getPrincipal() : c.getPrincipal());
     }
 
@@ -26,6 +34,10 @@ public class ContatoClienteMapper {
         r.setClienteId(c.getCliente() != null ? c.getCliente().getId() : null);
         r.setTipoContato(c.getTipoContato());
         r.setContato(c.getContato());
+        r.setNome(c.getNome());
+        r.setSexo(c.getSexo());
+        r.setDataNascimento(c.getDataNascimento());
+        r.setGrupoPrincipal(c.getGrupoPrincipal());
         r.setPrincipal(c.getPrincipal());
         r.setDataCadastro(c.getDataCadastro());
         r.setDataAtualizacao(c.getDataAtualizacao());

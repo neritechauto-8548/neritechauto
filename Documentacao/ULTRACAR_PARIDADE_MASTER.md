@@ -190,3 +190,47 @@ Registrar uma linha por nova tela, com todos os estados visuais (listagem, ediç
 Nenhum endpoint está aberto anonimamente. O acesso temporário `uxPreview=1` só mostra interface e mantém chamadas HTTP de backend bloqueadas pelo interceptor de prévia. Os números e nomes do UltraCar não são persistidos ou reaproveitados. A API existente segue sujeita a JWT, permissões do backend e isolamento por empresa.
 
 **Status do lote:** execução de código entregue para commit; equivalência total e execução de testes ainda não confirmadas.
+
+---
+
+## Lote 05 — Cadastro de clientes (PF/PJ/contatos) e criação de veículo
+
+**Referências enviadas:** `Screenshot_10(1).png` a `Screenshot_23.png`, com continuidade do lote 04 (filtros de clientes e veículos, indicadores e modais laterais).
+
+### Identificação da referência
+
+- **Clientes → Gerenciar clientes → Cadastro:** painel à direita com altura da janela, cabeçalho, rolagem independente e botões Cancelar/Cadastrar fixos no rodapé.
+- Pessoa física: CPF, identificação estrangeira, nome, país, nascimento, RG, estado civil, gênero e observações.
+- Pessoa jurídica: CNPJ, documento estrangeiro, razão social, nome fantasia, país, tipo contribuinte, inscrições municipal/estadual e observações.
+- Informações complementares: profissão (PF), apólice, limite de crédito, origem do relacionamento, site e locadora de veículos.
+- Informações legais: órgão público, retenção ISS, retenção IRRF/CSLL, alerta LGPD em OS, autorização LGPD triestada (sem decisão, sim, não).
+- Contato: diálogo com nome obrigatório, gênero, nascimento, grupo principal e tipo/valor de contato; lista de contatos no cadastro.
+- **Clientes → Veículos → Novo veículo:** drawer à direita, escolha obrigatória de cliente; busca por placa/chassi; ficha com marca, modelo, ano, combustível, chassi, renavam, KM, dados do motor e complementares.
+
+### Implementação efetiva em `master`
+
+- Evolução em `cadastro-cliente.html/.scss/.ts`: interface em seções com rodapé fixo quando `modalMode`, dados complementares, flags legais e contatos. Formulário completo existente continua sendo reutilizado fora do drawer; `salvar()` mantém create/update/autorização e CPF/CNPJ.
+- `Cliente`, `ClienteRequest`, `ClienteResponse`, `ClienteMapper`: 14 propriedades persistidas no mesmo agregado; no campo `autorizacaoLgpd`, o valor `null` significa **sem decisão**; nunca converter para `true` por padrão. Estados legais só registram preferência/cadastro; não representam prova jurídica de consentimento ou execução fiscal.
+- `ContatoCliente` e DTOs/mapper: nome, gênero (M/F), nascimento e grupo principal, preservando o telefone/e-mail existente. Reaproveita endpoints de contatos já autorizados e isolados por empresa.
+- Migration Flyway `V290__cliente_dados_complementares_legais.sql` adiciona as colunas, sem excluir o histórico nem alterar chaves/índices anteriores.
+- `cadastro-veiculo.html/.scss/.ts`: fluxo de criação no drawer com cliente primeiro e demais campos depois; bloqueia salvar dados inválidos e impede salvar enquanto a placa encontrada corresponder a veículo existente.
+- Nova consulta **somente interna** `GET /v1/veiculos/interno/placa/{placa}` em `VeiculoController`, `VeiculoService` e `VeiculoService` (Angular), com JWT/permissão de leitura e `TenantAccess.requireCurrent()` + `findByEmpresaIdAndPlaca`. A consulta externa legada `/placa/{placa}` não foi alterada; **o novo drawer não a invoca**.
+- Cadastro por chassi e integrações Fraga/Ultra Vision: **não implementados**, sem contrato/credenciais. Nenhuma resposta é fabricada. A tela orienta o preenchimento manual.
+- Modo de demonstração `uxPreview`: operações reais e consulta interna não são permitidas, preservando o interceptor de bloqueio HTTP.
+
+### Hipóteses e diferenças
+
+- "Grupo de contato principal" foi mapeado para `grupoPrincipal`, um dado de cadastro distinto do antigo `principal` (canal preferido). Confirmar semântica no processo de negócio antes de impor exclusividade.
+- Campos de motor avançados (cilindrada, número de válvulas, código do motor, potências) e complementares (sistemas de freio, tração, injeção etc.) ainda não têm DTO/persistência próprios nesta entrega. A tela informa a limitação; não simula salvar dados.
+- Dados de pessoa jurídica com retenção fiscal são *configuração declaratória*, sem disparar impostos ou NF-e.
+- Botão de lookup por chassi informa indisponibilidade; consulta técnica externa depende de autorização, contrato e integração próprios.
+- O cadastro completo de cliente continua com outras abas para endereço, documentos e veículos; no modal foi priorizada a organização observada nas imagens.
+- Filtros avançados e indicadores do lote 04 preservados; não duplicar as telas.
+
+### QA e status
+
+- Teste unitário de mapper e valores legais triestados adicionado.
+- Pendente: executar Maven/Angular, testes de criação/edição, cenários tenant A/B (consulta por placa), validação de migração em banco de homologação, verificação de sessão/permissão/erro, captura visual 1440/768/320, teclado e WCAG 2.2 AA.
+- **Não declarar 100% de equivalência** sem testes executados, integração e medição visual.
+
+**Critério de homologação:** dados persistidos e recuperados ao editar; consentimento `null/true/false` preservado; criação com cliente correto; 404 para placa não existente, sem consulta externa; duplicidade protegida no servidor.

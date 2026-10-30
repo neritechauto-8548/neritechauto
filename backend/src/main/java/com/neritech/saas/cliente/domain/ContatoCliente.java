@@ -26,6 +26,26 @@ public class ContatoCliente extends TenantEntity {
     @ColumnDefault("false")
     private Boolean principal = false;
 
+    @Column(name = "nome", length = 160)
+    private String nome;
+    public String getNome() { return nome; }
+    public void setNome(String value) { this.nome = value; }
+
+    @Column(name = "sexo", length = 1)
+    private String sexo;
+    public String getSexo() { return sexo; }
+    public void setSexo(String value) { this.sexo = value; }
+
+    @Column(name = "data_nascimento")
+    private java.time.LocalDate dataNascimento;
+    public java.time.LocalDate getDataNascimento() { return dataNascimento; }
+    public void setDataNascimento(java.time.LocalDate value) { this.dataNascimento = value; }
+
+    @Column(name = "grupo_principal")
+    private Boolean grupoPrincipal;
+    public Boolean getGrupoPrincipal() { return grupoPrincipal; }
+    public void setGrupoPrincipal(Boolean value) { this.grupoPrincipal = value; }
+
     // Getters e Setters
     public Cliente getCliente() {
         return cliente;

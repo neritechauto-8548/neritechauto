@@ -12,3 +12,41 @@
     color: #1f3a56;
   }
 }
+
+/* Lote 05 — cadastro de veículos no painel lateral */
+.nt-ref-vehicle-drawer{height:100dvh;max-height:100dvh;display:flex;flex-direction:column;min-height:0;background:white;font:400 12px/1.5 Inter,system-ui,sans-serif;color:#18253a}
+.nt-ref-vehicle-header{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #dbe2ea;padding:14px 17px}
+.nt-ref-vehicle-header h2{margin:0;font-size:14px;color:#111c2d;font-weight:700}
+.nt-ref-vehicle-header p{margin:3px 0 0;font-size:11px;color:#8290a3}
+.nt-ref-vehicle-header button{border:0;background:none;font-size:22px;color:#56677e;cursor:pointer}
+.nt-ref-vehicle-scroll{min-height:0;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:15px;background:#fff}
+.nt-ref-vehicle-block{border:1px solid #dce4ec;border-radius:8px;padding:14px;background:#fff}
+.nt-ref-vehicle-block h3{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;margin:0 0 4px;font-weight:700}
+.nt-ref-vehicle-block h3 small{font-size:10px;color:#254486;background:#e7efff;border-radius:99px;padding:3px 9px;font-weight:550}
+.nt-ref-vehicle-block p{font-size:11px;color:#7c8b9e;margin:6px 0 13px;line-height:1.5}
+.nt-ref-vehicle-block>p-autoComplete{display:block;width:100%}
+.nt-ref-vehicle-block .p-autocomplete{width:100%}
+.nt-ref-vehicle-block .p-autocomplete input{width:100%;padding:8px;border:1px solid #ced8e4}
+.nt-ref-vehicle-hint{margin-bottom:0!important;color:#4a6b97!important}
+.nt-ref-lookup-banner{display:flex;flex-direction:column;gap:4px;background:#f0f6ff;border:1px solid #d3e3ff;padding:12px;border-radius:7px;color:#254581;font-size:11px;margin:10px 0}
+.nt-ref-lookup-banner span{color:#617998}
+.nt-ref-vehicle-block h4{font-size:12px;margin:12px 0 8px}
+.nt-ref-vehicle-segment{display:flex;gap:3px;background:#eef1f4;border-radius:7px;padding:3px;margin-bottom:10px}
+.nt-ref-vehicle-segment button{flex:1;border:0;background:transparent;border-radius:5px;min-height:29px;cursor:pointer;font-size:12px;color:#5f6c7f}
+.nt-ref-vehicle-segment button.active{background:white;box-shadow:0 1px 3px #0002;color:#163178;font-weight:700}
+.nt-ref-vehicle-lookup{display:flex;align-items:end;gap:10px}
+.nt-ref-vehicle-lookup label{flex:1;min-width:0}
+.nt-ref-vehicle-lookup button{border:1px solid #a3bff2;border-radius:6px;padding:8px 13px;background:#e9f1ff;color:#20448e;white-space:nowrap;cursor:pointer;font-weight:600}
+.nt-ref-vehicle-lookup button:disabled{opacity:.5;cursor:not-allowed}
+.nt-ref-lookup-state{border:1px solid #d5e1ef;border-radius:7px;padding:10px;color:#2d4d75!important}
+.nt-ref-vehicle-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.nt-ref-vehicle-fields label,.nt-ref-vehicle-lookup label{display:flex;flex-direction:column;gap:5px;font-weight:650;font-size:12px;color:#25344a}
+.nt-ref-vehicle-fields input,.nt-ref-vehicle-fields select,.nt-ref-vehicle-fields textarea,.nt-ref-vehicle-lookup input{width:100%;min-width:0;box-sizing:border-box;border:1px solid #ccd7e4;border-radius:6px;min-height:35px;padding:7px 10px;background:#fff;font-size:12px;font-weight:400;color:#152336}
+.nt-ref-vehicle-fields input:focus,.nt-ref-vehicle-fields select:focus,.nt-ref-vehicle-lookup input:focus{outline:2px solid #2453ac;outline-offset:1px}
+.nt-ref-vehicle-fields .nt-ref-wide{grid-column:1/-1}
+.nt-ref-vehicle-fields input::placeholder{color:#a0acbb}
+.nt-ref-vehicle-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 16px;border-top:1px solid #dce4eb;background:#fff}
+.nt-ref-vehicle-footer button{min-height:33px;padding:8px 15px;border:1px solid #ced8e5;border-radius:6px;background:white;font:550 12px Inter,system-ui,sans-serif;cursor:pointer}
+.nt-ref-vehicle-footer .nt-ref-vehicle-save{background:#90f14e;border-color:#90f14e;color:#0f2510;font-weight:700}
+.nt-ref-vehicle-footer button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:550px){.nt-ref-vehicle-fields{grid-template-columns:1fr}.nt-ref-vehicle-scroll{padding:10px}.nt-ref-vehicle-lookup{flex-wrap:wrap}.nt-ref-vehicle-lookup button{flex:1}}

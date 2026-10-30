@@ -61,6 +61,70 @@ public class ClienteRequest {
     @Schema(description = "Observações gerais")
     private String observacoesGerais;
 
+    @Size(max = 80)
+        private String documentoEstrangeiro;
+    public String getDocumentoEstrangeiro() { return documentoEstrangeiro; }
+    public void setDocumentoEstrangeiro(String value) { this.documentoEstrangeiro = value; }
+
+    @Size(max = 80)
+        private String pais;
+    public String getPais() { return pais; }
+    public void setPais(String value) { this.pais = value; }
+
+    @Size(max = 30)
+        private String estadoCivil;
+    public String getEstadoCivil() { return estadoCivil; }
+    public void setEstadoCivil(String value) { this.estadoCivil = value; }
+
+    @Size(max = 120)
+        private String profissao;
+    public String getProfissao() { return profissao; }
+    public void setProfissao(String value) { this.profissao = value; }
+
+    @Size(max = 80)
+        private String numeroApolice;
+    public String getNumeroApolice() { return numeroApolice; }
+    public void setNumeroApolice(String value) { this.numeroApolice = value; }
+
+    @jakarta.validation.constraints.DecimalMin("0")
+        private java.math.BigDecimal limiteCredito;
+    public java.math.BigDecimal getLimiteCredito() { return limiteCredito; }
+    public void setLimiteCredito(java.math.BigDecimal value) { this.limiteCredito = value; }
+
+    @Size(max = 100)
+        private String comoNosConheceu;
+    public String getComoNosConheceu() { return comoNosConheceu; }
+    public void setComoNosConheceu(String value) { this.comoNosConheceu = value; }
+
+    @Size(max = 255)
+        private String site;
+    public String getSite() { return site; }
+    public void setSite(String value) { this.site = value; }
+
+        private Boolean locadoraVeiculos;
+    public Boolean getLocadoraVeiculos() { return locadoraVeiculos; }
+    public void setLocadoraVeiculos(Boolean value) { this.locadoraVeiculos = value; }
+
+        private Boolean orgaoPublico;
+    public Boolean getOrgaoPublico() { return orgaoPublico; }
+    public void setOrgaoPublico(Boolean value) { this.orgaoPublico = value; }
+
+        private Boolean retencaoIss;
+    public Boolean getRetencaoIss() { return retencaoIss; }
+    public void setRetencaoIss(Boolean value) { this.retencaoIss = value; }
+
+        private Boolean retencaoIrrfCsll;
+    public Boolean getRetencaoIrrfCsll() { return retencaoIrrfCsll; }
+    public void setRetencaoIrrfCsll(Boolean value) { this.retencaoIrrfCsll = value; }
+
+        private Boolean alertaLgpd;
+    public Boolean getAlertaLgpd() { return alertaLgpd; }
+    public void setAlertaLgpd(Boolean value) { this.alertaLgpd = value; }
+
+        private Boolean autorizacaoLgpd;
+    public Boolean getAutorizacaoLgpd() { return autorizacaoLgpd; }
+    public void setAutorizacaoLgpd(Boolean value) { this.autorizacaoLgpd = value; }
+
     private String rg;
     public String getRg() { return rg; }
     public void setRg(String value) { this.rg = value; }

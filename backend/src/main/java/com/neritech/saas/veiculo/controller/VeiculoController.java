@@ -48,6 +48,13 @@ public class VeiculoController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @GetMapping("/interno/placa/{placa}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
+    public ResponseEntity<VeiculoResponse> consultarCadastroInterno(@PathVariable String placa) {
+        return service.findInternoByPlaca(placa).map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/placa/{placa}")
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_USUARIO')")
     public ResponseEntity<VeiculoResponse> findByPlaca(@PathVariable String placa) {

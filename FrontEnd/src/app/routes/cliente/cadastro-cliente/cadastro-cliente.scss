@@ -115,3 +115,41 @@
 .nt-client-document-draft label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: #475569; min-width: 0; }
 .nt-client-document-draft select, .nt-client-document-draft input { min-width: 0; width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; font-size: 12px; }
 @media (max-width: 820px) { .nt-client-document-draft { grid-template-columns: 1fr; } .nt-client-document-list li { align-items: flex-start; flex-direction: column; } }
+
+/* Lote 05 — painel lateral de cadastro conforme referência funcional */
+.nt-ref-client-modal{height:100%;max-height:calc(100dvh - 88px);display:flex;flex-direction:column;font:400 12px/1.45 Inter,system-ui,sans-serif;color:#152132;min-height:0}
+.nt-ref-client-scroll{flex:1;min-height:0;overflow:auto;padding:14px 16px 12px;display:flex;flex-direction:column;gap:12px;background:#fff}
+.nt-ref-client-section{padding:16px;border:1px solid #dce3e9;border-radius:9px;background:#fff}
+.nt-ref-client-section h2,.nt-ref-contact-editor h3{font-size:12px;font-weight:650;color:#8996a5;margin:0 0 14px}
+.nt-ref-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+.nt-ref-form-grid label{display:flex;flex-direction:column;min-width:0;gap:6px;color:#1b2838;font-size:12px;font-weight:650}
+.nt-ref-form-grid input:not([type=checkbox]),.nt-ref-form-grid select,.nt-ref-form-grid textarea{box-sizing:border-box;width:100%;min-width:0;border:1px solid #cdd7e3;border-radius:6px;min-height:33px;background:#fff;padding:7px 10px;color:#1d2b3b;font:400 12px Inter,system-ui,sans-serif}
+.nt-ref-form-grid input:focus,.nt-ref-form-grid textarea:focus,.nt-ref-form-grid select:focus{outline:2px solid #1d3c93;outline-offset:1px}
+.nt-ref-form-grid input::placeholder,.nt-ref-form-grid textarea::placeholder{color:#9cabbc}
+.nt-ref-form-grid label em{font-style:normal;color:#ed4141}
+.nt-ref-form-grid .nt-ref-full{grid-column:1/-1}
+.nt-ref-form-grid .nt-ref-check{flex-direction:row;align-items:center;font-weight:450;font-size:11px}
+.nt-ref-form-grid input[type=checkbox]{width:15px;height:15px;accent-color:#233d94}
+.nt-ref-segment{display:inline-flex;gap:2px;padding:3px;background:#f0f2f5;border-radius:7px;margin-bottom:15px}
+.nt-ref-segment button{min-width:120px;min-height:29px;border:0;border-radius:5px;padding:4px 9px;color:#536175;font-size:11px;font-weight:550;background:transparent;cursor:pointer}
+.nt-ref-segment button.active{background:#fff;color:#142033;box-shadow:0 1px 4px #0002}
+.nt-ref-segment button:disabled{opacity:.75}
+.nt-ref-client-section .nt-ref-legal-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:41px}
+.nt-ref-legal-row>span{flex:1}
+.nt-ref-choices{display:inline-flex;gap:2px;background:#eff1f4;padding:3px;border-radius:6px}
+.nt-ref-choices button{padding:6px 8px;background:transparent;color:#627187;border:0;border-radius:4px;font:400 10px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.nt-ref-choices button.active{background:#fff;color:#16243b;box-shadow:0 1px 3px #0002;font-weight:600}
+.nt-ref-client-note{margin:13px 0 0;color:#738497;font-size:10px;line-height:1.6}
+.nt-ref-contact-row{display:flex;align-items:center;gap:12px;padding:9px;border:1px solid #e0e6ee;border-radius:7px;margin-bottom:8px;font-size:11px}
+.nt-ref-contact-row span{flex:1}
+.nt-ref-contact-row small{display:block;color:#768ba1}
+.nt-ref-contact-row button{border:0;background:transparent;color:#1c3f91;cursor:pointer;font-size:11px}
+.nt-ref-add-contact{width:100%;min-height:34px;border:1px solid #cfd8e4;border-radius:7px;background:#fff;font-size:12px;cursor:pointer}
+.nt-ref-client-footer{display:flex;align-items:center;justify-content:flex-end;gap:9px;padding:12px 16px;background:#fff;border-top:1px solid #dce3eb}
+.nt-ref-client-footer button,.nt-ref-contact-footer button{min-height:32px;padding:7px 15px;border:1px solid #ced7e3;border-radius:6px;background:#fff;color:#233047;font:500 12px Inter,system-ui,sans-serif;cursor:pointer}
+.nt-ref-client-footer .nt-ref-save,.nt-ref-contact-footer .nt-ref-save{border-color:#8cf14e;background:#8cf14e;color:#10210e;font-weight:650}
+.nt-ref-client-footer button:disabled{opacity:.5;cursor:not-allowed}
+.nt-ref-contact-editor{padding:10px 4px 5px}
+.nt-ref-contact-footer{display:flex;justify-content:flex-end;gap:9px;padding:12px 0 0}
+.nt-ref-preview{margin:0;padding:8px 15px;color:#2d4b83;background:#edf5ff;font-size:11px}
+@media(max-width:550px){.nt-ref-form-grid{grid-template-columns:1fr}.nt-ref-client-section{padding:13px}.nt-ref-client-scroll{padding:10px}.nt-ref-client-section .nt-ref-legal-row{align-items:flex-start;flex-direction:column;padding:7px 0}.nt-ref-client-modal{max-height:calc(100dvh - 75px)}}

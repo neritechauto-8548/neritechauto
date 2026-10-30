@@ -131,6 +131,17 @@ export class CadastroCliente implements OnInit {
     sexo: null as Sexo | null, // Added
     estadoCivil: null as EstadoCivil | null, // Added
     profissao: '',
+    documentoEstrangeiro: '',
+    numeroApolice: '',
+    limiteCredito: null as number | null,
+    comoNosConheceu: '',
+    site: '',
+    locadoraVeiculos: false,
+    orgaoPublico: false,
+    retencaoIss: false,
+    retencaoIrrfCsll: false,
+    alertaLgpd: false,
+    autorizacaoLgpd: null as boolean | null,
     nomeFantasia: '',
     razaoSocial: '',
     inscricaoEstadual: '',
@@ -155,6 +166,15 @@ export class CadastroCliente implements OnInit {
     documentosExtras: [] as DocumentoExtra[],
     enderecoId: null as number | null, // ID do endereço principal para edição
   };
+
+  formatDateForInput(value: Date | null): string {
+    if (!value) return '';
+    const y=value.getFullYear(),m=String(value.getMonth()+1).padStart(2,'0'),d=String(value.getDate()).padStart(2,'0');
+    return [y,m,d].join('-');
+  }
+  onBirthDateInput(value: string): void {
+    this.model.dataNascimento = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(value + 'T00:00:00') : null;
+  }
 
   // Contatos (Lista local ser salva posteriormente)
   contatosList: ContatoClienteRequest[] = [];
@@ -311,6 +331,19 @@ export class CadastroCliente implements OnInit {
     this.model.limiteDescontoPecas = data.limiteDescontoPecas ?? null;
     this.model.limiteDescontoServicos = data.limiteDescontoServicos ?? null;
     this.model.bloquearSeAtrasar = data.bloquearSeAtrasar ?? null;
+    this.model.documentoEstrangeiro = data.documentoEstrangeiro || '';
+    this.model.pais = data.pais || 'Brasil';
+    this.model.numeroApolice = data.numeroApolice || '';
+    this.model.limiteCredito = data.limiteCredito ?? null;
+    this.model.comoNosConheceu = data.comoNosConheceu || '';
+    this.model.site = data.site || '';
+    this.model.locadoraVeiculos = data.locadoraVeiculos ?? false;
+    this.model.orgaoPublico = data.orgaoPublico ?? false;
+    this.model.retencaoIss = data.retencaoIss ?? false;
+    this.model.retencaoIrrfCsll = data.retencaoIrrfCsll ?? false;
+    this.model.alertaLgpd = data.alertaLgpd ?? false;
+    this.model.autorizacaoLgpd = data.autorizacaoLgpd ?? null;
+
   }
 
   loadContatos(id: string | number) {
@@ -542,14 +575,15 @@ export class CadastroCliente implements OnInit {
     this.submitted = true; // Ativa validação visual imediatamente
 
     // Validação simples alinhada ao backend
-    const obrigatorios =
-      this.model.tipoPessoa === 'Física'
-        ? [this.model.nomeRazao, this.model.cpfCnpj]
-        : [this.model.razaoSocial, this.model.cpfCnpj];
+    const obrigatorios = this.modalMode
+      ? (this.model.tipoPessoa === 'Física'
+        ? [this.model.nomeRazao] : [this.model.razaoSocial, this.model.nomeFantasia])
+      : (this.model.tipoPessoa === 'Física'
+        ? [this.model.nomeRazao, this.model.cpfCnpj] : [this.model.razaoSocial, this.model.cpfCnpj]);
 
     const invalid = obrigatorios.some(v => !v);
     if (invalid) {
-      this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha os campos obrigatórios (Nome/Razão e CPF/CNPJ).' });
+      this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha os campos obrigatórios indicados no formulário.' });
       return;
     }
 
@@ -566,8 +600,13 @@ export class CadastroCliente implements OnInit {
         }
     }
 
+    if (this.model.limiteCredito !== null && this.model.limiteCredito < 0) {
+      this.messageService.add({ severity:'error',summary:'Limite de crédito inválido',detail:'Informe um valor igual ou maior que zero.' });
+      return;
+    }
+
     // Validação Obrigatória de Endereço
-    if (!this.validateEndereco()) {
+    if (!this.modalMode && !this.validateEndereco()) {
         this.messageService.add({ severity: 'error', summary: 'Erro de Validação', detail: 'Preencha todos os campos obrigatórios do endereço.' });
         // Se a aba não for a de endereço, talvez redirecionar?
         if (this.activeIndex !== 1) {
@@ -606,6 +645,18 @@ export class CadastroCliente implements OnInit {
       limiteDescontoPecas: this.model.limiteDescontoPecas ?? undefined,
       limiteDescontoServicos: this.model.limiteDescontoServicos ?? undefined,
       bloquearSeAtrasar: this.model.bloquearSeAtrasar ?? undefined,
+      documentoEstrangeiro: this.model.documentoEstrangeiro || undefined,
+      pais: this.model.pais || 'Brasil',
+      numeroApolice: this.model.numeroApolice || undefined,
+      limiteCredito: this.model.limiteCredito ?? undefined,
+      comoNosConheceu: this.model.comoNosConheceu || undefined,
+      site: this.model.site || undefined,
+      locadoraVeiculos: this.model.locadoraVeiculos,
+      orgaoPublico: this.model.orgaoPublico,
+      retencaoIss: this.model.retencaoIss,
+      retencaoIrrfCsll: this.model.retencaoIrrfCsll,
+      alertaLgpd: this.model.alertaLgpd,
+      autorizacaoLgpd: this.model.autorizacaoLgpd,
     };
 
     if (this.isEditMode && this.savedClienteId) {
@@ -686,7 +737,9 @@ export class CadastroCliente implements OnInit {
     // 2. Contatos da Lista
     if (this.contatosList.length > 0) {
       this.contatosList.forEach((contato: any) => {
-        const payload = { tipoContato: contato.tipoContato, contato: contato.valor };
+        const payload = { tipoContato: contato.tipoContato, contato: contato.valor,
+          nome: contato.nome, sexo: contato.sexo, dataNascimento: contato.dataNascimento,
+          grupoPrincipal: contato.grupoPrincipal ?? false };
 
         if (contato.id) {
             requests.push(this.clientesService.atualizarContato(clienteId, contato.id, payload as any));
@@ -760,7 +813,21 @@ export class CadastroCliente implements OnInit {
       ? this.stripNonDigits(this.contatoForm.valor) 
       : this.contatoForm.valor;
 
-    const payload = { tipoContato: this.contatoForm.tipoContato, contato: valorSalvar };
+    if (this.modalMode && !this.contatoForm.nome?.trim()) {
+      this.messageService.add({ severity:'warn', summary:'Nome obrigatório', detail:'Informe o nome do contato.' });
+      return;
+    }
+    if (!valorSalvar.trim()) {
+      this.messageService.add({ severity:'warn', summary:'Contato obrigatório', detail:'Informe telefone, e-mail ou outro contato.' });
+      return;
+    }
+    const payload = {
+      tipoContato: this.contatoForm.tipoContato, contato: valorSalvar,
+      nome: this.contatoForm.nome?.trim() || undefined,
+      sexo: this.contatoForm.sexo || undefined,
+      dataNascimento: this.contatoForm.dataNascimento || undefined,
+      grupoPrincipal: this.contatoForm.grupoPrincipal ?? false,
+    };
 
     if (this.savedClienteId) {
       // Auto-save logic (Edição remota)
@@ -848,7 +915,8 @@ export class CadastroCliente implements OnInit {
   private getEmptyContato(): ContatoClienteRequest {
     return {
       tipoContato: TipoContato.CELULAR,
-      valor: ''
+      valor: '',
+      nome: '', sexo: undefined, dataNascimento: undefined, grupoPrincipal: false
     };
   }
 
