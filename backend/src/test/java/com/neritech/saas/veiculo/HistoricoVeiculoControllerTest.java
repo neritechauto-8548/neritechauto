@@ -65,4 +65,43 @@ class HistoricoVeiculoControllerTest {
         verify(veiculos).findAll(any(Specification.class),any(Pageable.class));
         verifyNoInteractions(ordens, servicos, produtos);
     }
+    @SuppressWarnings("unchecked")
+    @Test void pdfReallyStartsWithPdfSignature() {
+        TenantContext.setCurrentTenant(20L);
+        when(veiculos.findAll(any(Specification.class),any(Pageable.class)))
+            .thenReturn(new PageImpl<>(List.of()));
+        var response=controller.relatorio(null, "",false,false,false);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/pdf");
+        assertThat(response.getBody()).isNotEmpty();
+        assertThat(new String(response.getBody(),0,4,java.nio.charset.StandardCharsets.US_ASCII))
+            .isEqualTo("%PDF");
+    }
+
+    @Test void closedAndAuthorizedModeIsForwardedOnlyAfterTenantValidation() {
+        TenantContext.setCurrentTenant(20L);
+        var vehicle=mock(com.neritech.saas.veiculo.domain.Veiculo.class);
+        var customer=mock(com.neritech.saas.cliente.domain.Cliente.class);
+        when(vehicle.getCliente()).thenReturn(customer);
+        when(customer.getEmpresaId()).thenReturn(20L);
+        when(veiculos.findByIdAndEmpresaId(123L,20L)).thenReturn(Optional.of(vehicle));
+        when(ordens.historicoPorVeiculo(eq(20L),eq(123L),eq(true),eq(false),eq("filtro"),any(Pageable.class)))
+            .thenReturn(new PageImpl<>(List.of()));
+        var page=controller.ordens(123L,true,false,"filtro","ENTRADA",0,10);
+        assertThat(page.getContent()).isEmpty();
+        verify(ordens).historicoPorVeiculo(eq(20L),eq(123L),eq(true),eq(false),eq("filtro"),any(Pageable.class));
+    }
+
+    @Test void rejectsVehicleWithForeignCustomerEvenIfRepositoryReturnsIt() {
+        TenantContext.setCurrentTenant(20L);
+        var vehicle=mock(com.neritech.saas.veiculo.domain.Veiculo.class);
+        var customer=mock(com.neritech.saas.cliente.domain.Cliente.class);
+        when(vehicle.getCliente()).thenReturn(customer);
+        when(customer.getEmpresaId()).thenReturn(30L);
+        when(veiculos.findByIdAndEmpresaId(123L,20L)).thenReturn(Optional.of(vehicle));
+        assertThatThrownBy(()->controller.detalhe(123L))
+            .isInstanceOf(ResponseStatusException.class).hasMessageContaining("404");
+        verifyNoInteractions(ordens,servicos,produtos);
+    }
+
 }

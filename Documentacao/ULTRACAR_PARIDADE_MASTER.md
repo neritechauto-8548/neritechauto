@@ -353,3 +353,11 @@ Sete campos na ordem e grid 2 colunas da captura: CPF/CNPJ, Nome fantasia, Conta
 **Limitações verificáveis:** nomes de comissionados não estão resolvidos por esta tela (exibe ID do responsável, não inventa nome); o relatório PDF limita 100 veículos e 700 OS e retorna 422 ao exceder; as demais categorias do modal são informativas até integração autorizada. A imagem do concorrente não fornece contrato de impressão, logo há uma implementação NERITECH própria, não afirmação de correspondência de template Jasper.
 
 **QA:** teste unitário do controlador cobre empresa ausente, ID estrangeiro, paginação inválida e consulta vazia; build Angular/Maven, testes integrados A/B e comparação pixel a pixel permanecem dependentes de resultados da CI e homologação visual da tela renderizada.
+
+
+### Evidências CI do lote 08
+
+- Commit `df4293e0f5a753ca6e7fc41e86d7deaaa06f7333`: workflow direcionado `41109615286`, jobs `java` e `angular` concluídos com sucesso.
+- A pipeline de produção backend `41109270395` também compilou com sucesso após corrigir importação de `PdfPTable`.
+- Testes Java direcionados foram ampliados com verificação de PDF real, encaminhamento dos filtros autorizados e rejeição de vínculo com cliente de outra empresa. Executar no próximo build.
+- Ainda pendentes: teste de integração HTTP/PostgreSQL A/B, comparação visual pixel a pixel em navegador real, foco e reflow 200%, e verificação do PDF com volume real.

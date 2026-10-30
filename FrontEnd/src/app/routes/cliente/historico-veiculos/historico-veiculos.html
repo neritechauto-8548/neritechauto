@@ -93,8 +93,6 @@
               <span aria-hidden="true" class="hv-handle">⠿</span><span>{{label(key)}}</span>
               @if(key==='cliente'){<span class="hv-lock" title="Coluna obrigatória">♙</span>}
               @else {
-                <button type="button" (click)="moveColumn(key,-1)" title="Mover para cima" aria-label="Mover coluna para cima">↑</button>
-                <button type="button" (click)="moveColumn(key,1)" title="Mover para baixo" aria-label="Mover coluna para baixo">↓</button>
                 <button type="button" (click)="toggleColumn(key)" title="Remover coluna" aria-label="Remover coluna">×</button>
               }
             </div>
