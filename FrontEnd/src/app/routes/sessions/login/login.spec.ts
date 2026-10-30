@@ -48,6 +48,17 @@ describe('AUTH-001 Login — estados e navegação', () => {
     expect(fixture.nativeElement.querySelector('#email-error')).not.toBeNull();
   });
 
+
+  it('exibe navegação de recuperação, cadastro de teste e suporte reais', () => {
+    const view: HTMLElement = fixture.nativeElement;
+    expect(view.querySelector('a[href="/auth/recover"]')).not.toBeNull();
+    expect(view.querySelector('a.auth-secondary')?.getAttribute('href'))
+      .toBe('https://neritechauto.com.br/teste-gratis');
+    expect(view.querySelector('a.auth-help-link')?.getAttribute('href'))
+      .toContain('neritechauto.atlassian.net');
+    expect(view.querySelector('.auth-visual')).not.toBeNull();
+  });
+
   it('só navega depois de token válido e perfil/empresa autenticados', () => {
     auth.login.and.returnValue(of(true));
     credentials(true);

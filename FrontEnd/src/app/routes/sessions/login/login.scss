@@ -267,8 +267,16 @@
 .auth-visual > * { display: none !important; }
 
 /* Existing password-reset screen imports this shell, so its states remain usable. */
-.auth-brand-mobile, .visual-brand, .visual-copy, .visual-journey, .visual-footer { display: none; }
-.auth-footer { display: none; }
+.visual-brand, .visual-copy, .visual-journey, .visual-footer { display: none; }
+/* AUTH-003 inherits this same shell; preserve its brand and help text. */
+.auth-brand-mobile { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+.auth-brand-mobile .brand-mark {
+  display: grid; place-items: center; width: 34px; height: 34px;
+  border-radius: 7px; background: var(--auth-accent); color: #191919; font-weight: 800;
+}
+.auth-brand-mobile .brand-name { color: #f3f3f3; font-weight: 720; }
+.auth-brand-mobile .brand-product { margin-left: 5px; color: var(--auth-accent); font-weight: 650; }
+.auth-footer { display: flex; align-items: center; gap: 6px; margin-top: 28px; color: #9d9d9d; font-size: 11px; }
 .auth-primary-link { display: flex; }
 .field-help { margin: 0; color: #b2b2b2; font-size: 13px; line-height: 1.55; }
 
