@@ -13,6 +13,7 @@ export interface MenuPermissions {
 
 export interface MenuChildrenItem {
   route: string;
+  icon?: string;
   name: string;
   type: 'link' | 'sub' | 'extLink' | 'extTabLink' | 'heading';
   children?: MenuChildrenItem[];

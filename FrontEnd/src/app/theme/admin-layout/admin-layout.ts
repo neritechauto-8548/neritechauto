@@ -59,7 +59,8 @@ export class AdminLayout implements OnDestroy {
   }
 
   get isHomeRoute(): boolean {
-    return this.router.url === '/home' || this.router.url === '/';
+    const path = this.router.url.split('?')[0].split('#')[0];
+    return path === '/home' || path === '/';
   }
 
   get isOver() {

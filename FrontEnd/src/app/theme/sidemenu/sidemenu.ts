@@ -83,6 +83,30 @@ export class Sidemenu {
   iconPaths(item: { icon?: string; name?: string }): string[] {
     const key = `${item.icon ?? ''} ${item.name ?? ''}`.toLowerCase();
 
+    if (key.includes('clipboard') || key.includes('checklist') || key.includes('inventário')) {
+      return ['M8 4h8', 'M9 3h6v3H9z', 'M7 5H5v16h14V5h-2', 'M8 11h8', 'M8 15h6'];
+    }
+    if (key.includes('document') || key.includes('nota') || key.includes('orçamento')) {
+      return ['M6 3h9l4 4v14H6z','M15 3v5h5','M9 12h6','M9 16h7'];
+    }
+    if (key.includes('pulse') || key.includes('diagnóstico')) {
+      return ['M2 12h5l2-4 3 8 3-6 2 2h5'];
+    }
+    if (key.includes('truck') || key.includes('transportador')) {
+      return ['M3 6h12v11H3z','M15 10h4l3 4v3h-7z','M7 20h.01','M18 20h.01'];
+    }
+    if (key.startsWith('car ') || key.includes('veículos')) {
+      return ['M5 16l1-7h12l1 7','M3 16v3h18v-3l-2-4H5z','M7 19v2M17 19v2','M7 16h.01M17 16h.01'];
+    }
+    if (key.includes('bag') || key.includes('compras') || key.includes('entregas')) {
+      return ['M4 8h16l-1 13H5z','M9 9V6a3 3 0 0 1 6 0v3'];
+    }
+    if (key.includes('transfer')) {
+      return ['M4 8h16','M16 4l4 4-4 4','M20 16H4','M8 12l-4 4 4 4'];
+    }
+    if (key.includes('search') || key.includes('consulta')) {
+      return ['M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14','M15 15l6 6'];
+    }
     if (key.includes('calendar') || key.includes('agendament')) {
       return ['M4 5h16v16H4z', 'M8 3v4', 'M16 3v4', 'M4 10h16', 'M8 14h3', 'M13 14h3'];
     }
