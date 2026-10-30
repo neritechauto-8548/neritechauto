@@ -1,11 +1,12 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import screenfull from 'screenfull';
+import { environment } from '@env/environment';
 
 import { Branding } from '../widgets/branding';
 import { NotificationButton } from '../widgets/notification-button';
@@ -27,6 +28,7 @@ import { TranslateService } from '@ngx-translate/core';
     FormsModule,
     MatTooltipModule,
     Branding,
+    RouterLink,
     NotificationButton,
     UserButton,
   ],
@@ -170,6 +172,8 @@ export class Header {
         this.pageTitle = event['title'] || 'NeriTechAuto';
       });
   }
+
+  abrirAjuda(): void { window.open(environment.supportUrl, '_blank', 'noopener,noreferrer'); }
 
   toggleTheme() {
     this.settings.setTheme(this.settings.getThemeColor() === 'dark' ? 'light' : 'dark');

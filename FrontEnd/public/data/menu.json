@@ -1,80 +1,54 @@
 {
   "menu": [
     {
-      "name": "Início",
+      "name": "Visão geral",
       "route": "home",
       "type": "link",
-      "icon": "home",
-      "disabled": false
+      "icon": "dashboard"
     },
     {
-      "name": "Clientes",
+      "name": "Gestão de pátio",
+      "route": "patio",
+      "type": "link",
+      "permissions": {
+        "only": [
+          "GERAL_USUARIO",
+          "ADMIN"
+        ]
+      },
+      "icon": "patio"
+    },
+    {
+      "name": "Agendamentos",
+      "route": "agendamento/calendario",
+      "type": "link",
+      "icon": "calendar"
+    },
+    {
+      "name": "Área do cliente",
       "route": "",
       "type": "sub",
-      "icon": "people",
+      "icon": "clientes",
       "children": [
         {
-          "name": "Clientes",
-          "route": "cliente/listar",
+          "name": "Portal do cliente",
+          "route": "",
           "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "CRM",
-          "route": "cliente/crm",
-          "type": "sub",
-          "children": [
-            {
-              "name": "Visão geral",
-              "route": "",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Comunicação",
-              "route": "comunicacao",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Questionamento de pesquisa",
-              "route": "pesquisa",
-              "type": "link",
-              "disabled": false
-            }
-          ]
+          "disabled": true
         }
       ]
     },
     {
-      "name": "Oficina",
+      "name": "Orçamentos & Serviços",
       "route": "",
       "type": "sub",
       "icon": "oficina",
       "children": [
         {
-          "name": "Agenda",
-          "route": "agendamento/calendario",
+          "name": "Checklist",
+          "route": "checklist",
           "type": "link",
-          "permissions": {
-            "only": "GERAL_AGENDAMENTO_VISUALIZAR"
-          },
-          "disabled": false
-        },
-        {
-          "name": "Orçamentos",
-          "route": "orcamento/orcamento",
-          "type": "link",
-          "permissions": {
-            "only": "GERAL_ORCAMENTO"
-          },
-          "disabled": false
-        },
-        {
-          "name": "Ordens de Serviço",
-          "route": "os",
-          "type": "link",
-          "disabled": false
+          "disabled": true
         },
         {
           "name": "Diagnósticos",
@@ -83,66 +57,100 @@
           "disabled": true
         },
         {
-          "name": "Inspeções",
-          "route": "inspecao",
-          "type": "link",
-          "disabled": true
+          "name": "Orçamentos",
+          "route": "orcamento/orcamento",
+          "type": "link"
         },
         {
-          "name": "Serviços",
-          "route": "produtos-servicos/servicos",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Veículos",
-          "route": "veiculo",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Entregas",
-          "route": "entrega",
-          "type": "link",
-          "disabled": true
-        },
-        {
-          "name": "Vendas",
-          "route": "pdv",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Histórico",
-          "route": "historico",
-          "type": "link",
-          "disabled": true
+          "name": "Ordens de serviço",
+          "route": "os",
+          "type": "link"
         }
       ]
     },
-      {
-          "name": "Gestão de Pátio",
-          "route": "patio",
-          "type": "link",
-          "icon": "warehouse",
-          "permissions": { "only": ["GERAL_USUARIO", "ADMIN"] },
-          "disabled": false
-        },
     {
-      "name": "Estoque & Compras",
+      "name": "Clientes",
+      "route": "",
+      "type": "sub",
+      "icon": "clientes",
+      "children": [
+        {
+          "name": "Gerenciar clientes",
+          "route": "cliente/listar",
+          "type": "link"
+        },
+        {
+          "name": "Histórico de veículos",
+          "route": "veiculo",
+          "type": "link"
+        }
+      ]
+    },
+    {
+      "name": "Gestão de pessoas",
+      "route": "",
+      "type": "sub",
+      "icon": "users",
+      "children": [
+        {
+          "name": "Usuários",
+          "route": "configuracoes/usuarios",
+          "type": "link"
+        },
+        {
+          "name": "Funcionários",
+          "route": "configuracoes/colaboradores",
+          "type": "link"
+        },
+        {
+          "name": "Cargos e permissões",
+          "route": "configuracoes/cargos",
+          "type": "link"
+        }
+      ]
+    },
+    {
+      "name": "Gestão de recursos",
+      "route": "",
+      "type": "sub",
+      "icon": "settings",
+      "children": [
+        {
+          "name": "Cadastros",
+          "route": "configuracoes/empresa",
+          "type": "link"
+        },
+        {
+          "name": "Seguradoras",
+          "route": "configuracoes/seguradoras",
+          "type": "link"
+        },
+        {
+          "name": "Fornecedores",
+          "route": "fornecedor/lista",
+          "type": "link"
+        },
+        {
+          "name": "Transportadoras",
+          "route": "configuracoes/transportadoras",
+          "type": "link"
+        }
+      ]
+    },
+    {
+      "name": "Peças & Estoque",
       "route": "",
       "type": "sub",
       "icon": "estoque",
       "children": [
         {
-          "name": "Estoque",
+          "name": "Produtos",
           "route": "produtos-servicos/estoque",
-          "type": "link",
-          "disabled": false
+          "type": "link"
         },
         {
-          "name": "Produtos",
-          "route": "produtos-servicos/cadastro-produto",
+          "name": "Consulta de peças",
+          "route": "consulta-pecas",
           "type": "link",
           "disabled": true
         },
@@ -153,26 +161,36 @@
           "disabled": true
         },
         {
-          "name": "Compras",
-          "route": "fornecedor/compras",
-          "type": "link",
-          "disabled": false
-        },
-        {
           "name": "Cotações",
           "route": "cotacoes",
           "type": "link",
           "disabled": true
         },
         {
-          "name": "Inventário",
-          "route": "configuracoes/inventario",
-          "type": "link",
-          "disabled": false
+          "name": "Compras",
+          "route": "fornecedor/compras",
+          "type": "link"
         },
         {
-          "name": "Movimentações",
-          "route": "movimentacoes",
+          "name": "Entregas & Devoluções",
+          "route": "entregas-devolucoes",
+          "type": "link",
+          "disabled": true
+        },
+        {
+          "name": "Inventários",
+          "route": "configuracoes/inventario",
+          "type": "link"
+        },
+        {
+          "name": "Correções de estoque",
+          "route": "correcoes-estoque",
+          "type": "link",
+          "disabled": true
+        },
+        {
+          "name": "Transferências de estoque",
+          "route": "transferencias-estoque",
           "type": "link",
           "disabled": true
         }
@@ -187,47 +205,34 @@
         {
           "name": "Contas",
           "route": "contas",
-          "type": "link",
-          "disabled": false
+          "type": "link"
         },
         {
-          "name": "Contas a Receber",
+          "name": "Pagar & Receber",
           "route": "receber",
-          "type": "link",
-          "disabled": false
+          "type": "link"
         },
         {
-          "name": "Contas a Pagar",
+          "name": "Contas a pagar",
           "route": "pagar",
-          "type": "link",
-          "disabled": false
+          "type": "link"
         },
         {
-          "name": "Lançamentos Bancários",
-          "route": "lancamentos",
-          "type": "link",
-          "disabled": true
-        },
-        {
-          "name": "Movimento de Caixa",
+          "name": "Movimentação financeira",
           "route": "caixa",
-          "type": "link",
-          "disabled": false,
-          "permissions": {
-            "only": "FIN_VIS_CAIXA"
-          }
+          "type": "link"
         },
         {
-          "name": "Movimento Bancário",
-          "route": "bancario",
+          "name": "Boletos bancários",
+          "route": "boletos",
           "type": "link",
           "disabled": true
         },
         {
-          "name": "Comissões",
-          "route": "comissoes",
+          "name": "Conciliação bancária",
+          "route": "conciliacao",
           "type": "link",
-          "disabled": false
+          "disabled": true
         }
       ]
     },
@@ -238,40 +243,21 @@
       "icon": "fiscal",
       "children": [
         {
-          "name": "Documentos Fiscais",
-          "route": "documentos",
-          "type": "link",
-          "disabled": true
-        },
-        {
-          "name": "NF-e",
+          "name": "Nota fiscal",
           "route": "nfe",
-          "type": "link",
-          "disabled": false
+          "type": "link"
         },
         {
-          "name": "NFC-e / Cupom",
-          "route": "nfce",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "NFS-e",
-          "route": "nfse",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Manifestação",
+          "name": "Manifestação do destinatário",
           "route": "manifestacao",
           "type": "link",
           "disabled": true
         },
         {
-          "name": "Inutilização",
-          "route": "nfe/inutilizar-numeracao",
+          "name": "Sintegra",
+          "route": "sintegra",
           "type": "link",
-          "disabled": false
+          "disabled": true
         },
         {
           "name": "NCM",
@@ -280,253 +266,64 @@
           "disabled": true
         },
         {
-          "name": "SINTEGRA",
-          "route": "sintegra",
-          "type": "link",
-          "disabled": true
-        }
-      ],
-      "minPlan": 3
-    },
-    {
-      "name": "Inteligência Artificial",
-      "route": "",
-      "type": "sub",
-      "icon": "ia",
-      "children": [
-        {
-          "name": "Assistente",
-          "route": "assistente",
-          "type": "link",
-          "disabled": true
-        },
-        {
-          "name": "Automações IA",
-          "route": "automacoes",
-          "type": "link",
-          "disabled": true
+          "name": "Inutilizar faixa de numeração",
+          "route": "nfe/inutilizar-numeracao",
+          "type": "link"
         }
       ]
     },
     {
-      "name": "Gráficos Gerenciais",
-      "route": "graficos-gerenciais",
+      "name": "Importações",
+      "route": "importacoes",
       "type": "link",
       "disabled": true,
-      "icon": "analytics"
+      "icon": "import"
     },
     {
       "name": "Relatórios",
-      "route": "",
+      "route": "relatorios",
       "type": "sub",
       "icon": "analytics",
       "children": [
         {
           "name": "Comercial",
-          "route": "relatorios/relatorio-vendas",
-          "type": "link",
-          "disabled": false,
-          "minPlan": 3
+          "route": "relatorio-vendas",
+          "type": "link"
         },
         {
           "name": "Clientes",
-          "route": "relatorios/relatorio-clientes",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Serviços",
-          "route": "relatorios/relatorio-servicos",
-          "type": "link",
-          "disabled": true
+          "route": "relatorio-clientes",
+          "type": "link"
         },
         {
           "name": "Estoque",
-          "route": "relatorios/relatorio-estoque",
-          "type": "link",
-          "disabled": false,
-          "minPlan": 3
-        },
-        {
-          "name": "Compras",
-          "route": "relatorios/relatorio-compras",
-          "type": "link",
-          "disabled": true
+          "route": "relatorio-estoque",
+          "type": "link"
         },
         {
           "name": "Financeiro",
-          "route": "relatorios/relatorio-contas",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Comissões",
-          "route": "relatorios/relatorio-comissoes",
-          "type": "link",
-          "disabled": true
-        },
-        {
-          "name": "Produtividade",
-          "route": "relatorios/relatorio-produtividade",
-          "type": "link",
-          "disabled": true,
-          "minPlan": 3
-        },
-        {
-          "name": "Fiscal",
-          "route": "relatorios/relatorio-fiscal",
-          "type": "link",
-          "disabled": true
+          "route": "relatorio-contas",
+          "type": "link"
         },
         {
           "name": "Gerenciais",
-          "route": "relatorios/relatorio-receitas-despesas",
-          "type": "link",
-          "disabled": false
+          "route": "relatorio-receitas-despesas",
+          "type": "link"
         }
       ]
     },
     {
-      "name": "Administração",
-      "route": "",
-      "type": "sub",
-      "icon": "admin",
-      "children": [
-        {
-          "name": "Empresa",
-          "route": "configuracoes/empresa",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Usuários",
-          "route": "configuracoes/usuarios",
-          "type": "link",
-          "permissions": {
-            "only": "GERAL_CONFIG_SISTEMA"
-          },
-          "disabled": false
-        },
-        {
-          "name": "Funcionários",
-          "route": "configuracoes/colaboradores",
-          "type": "link",
-          "permissions": {
-            "only": "GERAL_CONFIG_SISTEMA"
-          },
-          "disabled": false
-        },
-        {
-          "name": "Cargos",
-          "route": "configuracoes/cargos",
-          "type": "link",
-          "permissions": {
-            "only": "GERAL_CONFIG_SISTEMA"
-          },
-          "disabled": false
-        },
-        {
-          "name": "Permissões",
-          "route": "configuracoes/permissoes",
-          "type": "link",
-          "permissions": {
-            "only": "GERAL_CONFIG_SISTEMA"
-          },
-          "disabled": false
-        },
-        {
-          "name": "Áreas",
-          "route": "configuracoes/areas",
-          "type": "link",
-          "disabled": true
-        },
-        {
-          "name": "Fornecedores",
-          "route": "fornecedor/lista",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Seguradoras",
-          "route": "configuracoes/seguradoras",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Transportadoras",
-          "route": "configuracoes/transportadoras",
-          "type": "link",
-          "disabled": false
-        },
-        {
-          "name": "Configurações",
-          "route": "",
-          "type": "sub",
-          "children": [
-            {
-              "name": "Preferências gerais",
-              "route": "configuracoes/preferencias",
-              "type": "link",
-              "permissions": { "only": "GERAL_CONFIG_SISTEMA" },
-              "disabled": false
-            },
-            {
-              "name": "Departamentos",
-              "route": "configuracoes/departamentos",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Setores",
-              "route": "configuracoes/setores",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Assinatura",
-              "route": "configuracoes/assinatura",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Contas bancárias",
-              "route": "configuracoes/contas",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Formas de pagamento",
-              "route": "configuracoes/formas-pagamento",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Checklist",
-              "route": "configuracoes/checklist",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Localização",
-              "route": "configuracoes/localizacao",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Categorias",
-              "route": "configuracoes/categoria",
-              "type": "link",
-              "disabled": false
-            },
-            {
-              "name": "Opções de envio",
-              "route": "configuracoes/opcoes-envio",
-              "type": "link",
-              "disabled": false
-            }
-          ]
-        }
-      ]
+      "name": "Venda direta",
+      "route": "pdv",
+      "type": "link",
+      "icon": "pdv"
+    },
+    {
+      "name": "Configurar menu",
+      "route": "configurar-menu",
+      "type": "link",
+      "disabled": true,
+      "icon": "settings"
     }
   ]
 }

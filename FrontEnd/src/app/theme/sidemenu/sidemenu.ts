@@ -83,6 +83,18 @@ export class Sidemenu {
   iconPaths(item: { icon?: string; name?: string }): string[] {
     const key = `${item.icon ?? ''} ${item.name ?? ''}`.toLowerCase();
 
+    if (key.includes('calendar') || key.includes('agendament')) {
+      return ['M4 5h16v16H4z', 'M8 3v4', 'M16 3v4', 'M4 10h16', 'M8 14h3', 'M13 14h3'];
+    }
+    if (key.includes('settings') || key.includes('recurso') || key.includes('configurar')) {
+      return ['M4 7h16','M4 12h16','M4 17h16','M9 5v4','M16 10v4','M11 15v4'];
+    }
+    if (key.includes('import')) {
+      return ['M6 3h9l4 4v14H6z','M15 3v5h5','M12 10v8','M9 15l3 3 3-3'];
+    }
+    if (key.includes('pdv') || key.includes('venda direta')) {
+      return ['M3 4h2l2 12h12l2-9H6','M9 21h.01','M18 21h.01'];
+    }
     if (key.includes('home') || key.includes('início') || key.includes('dashboard')) {
       return ['M3 10.5 12 3l9 7.5', 'M5 9.5V21h14V9.5', 'M9 21v-6h6v6'];
     }

@@ -70,3 +70,29 @@
 .nt-search-result[aria-selected='true']{background:var(--nt-surface-subtle,#eff6ff);box-shadow:inset 3px 0 0 var(--nt-primary,#2563eb)}
 .nt-search-empty{position:absolute;top:45px;left:0;right:0;padding:14px;border:1px solid var(--nt-border,#e2e8f0);border-radius:10px;background:var(--nt-surface,#fff);color:var(--nt-text-muted,#64748b);font-size:13px;box-shadow:0 16px 40px rgba(15,23,42,.10);z-index:1200}
 @media(max-width:680px){.nt-search-empty{top:58px;left:12px;right:12px}}
+
+/* MASTER reference topbar — the same bar spans the entire page. */
+.matero-header{background:#fff!important;border-bottom:1px solid #dce1e6;box-shadow:none!important}
+.nt-topbar{height:65px;padding:0 26px;gap:23px;box-sizing:border-box;color:#111827;background:#fff}
+.nt-topbar-left{min-width:112px;gap:9px}
+.nt-topbar .branding .logo-box{display:none}
+.nt-topbar .branding .logo-text{font-size:19px;font-weight:780;letter-spacing:-.055em;color:#15307e}
+.nt-topbar .branding .logo-accent{color:#15307e}
+.nt-reference-navigation{display:flex;align-items:center;gap:20px;min-width:0;white-space:nowrap}
+.nt-reference-navigation a,.nt-reference-navigation button{display:inline-flex;align-items:center;min-height:38px;gap:6px;border:0;background:none;color:#121212;text-decoration:none;font:500 13px/18px Inter,system-ui,sans-serif;cursor:pointer}
+.nt-reference-navigation a:hover,.nt-reference-navigation button:hover{color:#1d4ed8}
+.nt-reference-navigation .nt-master-link{color:#f32665}
+.nt-global-search{flex:0 1 220px;width:220px;min-width:135px;max-width:220px;margin:0 0 0 auto;height:35px}
+.nt-global-search input{height:35px;border-color:#d5dce5;border-radius:8px;background:white;font-size:11px;padding-left:32px}
+.nt-global-search>svg{left:10px;color:#22a72b}
+.nt-global-search input::placeholder{color:#178c14}
+.nt-global-search kbd{color:#667085}
+.nt-topbar-actions{gap:10px;margin-left:0}
+.nt-topbar-icon{height:36px;width:36px;min-width:36px;border:1px solid #d8dee8;border-radius:8px;color:#101820}
+.nt-topbar-icon:hover{background:#f1f4f8}
+.nt-parts-action{background:#dce8ff;border-color:#dce8ff}
+.nt-parts-action svg,.nt-help-action svg{width:18px;height:18px}
+@media(max-width:1290px){.nt-topbar{gap:12px;padding-inline:15px}.nt-reference-navigation{gap:10px}.nt-reference-navigation a,.nt-reference-navigation button{font-size:12px}.nt-global-search{min-width:120px}}
+@media(max-width:1070px){.nt-reference-navigation{display:none}.nt-global-search{flex:1 1 300px;max-width:360px}.nt-topbar-left{min-width:0}}
+@media(max-width:768px){.nt-topbar{height:56px}.nt-global-search{display:none}.nt-global-search.nt-mobile-search-open{display:flex;position:absolute;top:56px;width:100%;max-width:none}.nt-topbar-actions{margin-left:auto;gap:5px}.nt-parts-action{display:none}}
+@media(max-width:400px){.nt-help-action{display:none}}

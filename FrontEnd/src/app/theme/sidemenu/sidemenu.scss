@@ -292,3 +292,22 @@
 @media(prefers-reduced-motion:reduce){
   .matero-sidemenu .menu-heading,.matero-sidemenu .menu-caret{transition:none}
 }
+
+/* Compact Ultra-style menu; original routes and permission filters remain active. */
+.matero-sidemenu.level-0{padding:10px 12px 18px}
+.matero-sidemenu .menu-item{margin-bottom:4px}
+.matero-sidemenu .menu-heading{min-height:40px;padding:8px 11px;border-radius:8px;border:1px solid transparent;color:#121212;font-size:12.5px;font-weight:510}
+.matero-sidemenu .menu-icon{width:17px;height:17px;flex-basis:17px;margin-right:12px;stroke-width:1.8;color:#141414}
+.matero-sidemenu .menu-name{color:inherit}
+.matero-sidemenu .menu-item.active > .menu-heading{background:#dce9ff;border-color:transparent;color:#102652;font-weight:650}
+.matero-sidemenu .menu-item.active > .menu-heading:before{display:none}
+.matero-sidemenu .menu-item.active > .menu-heading .menu-icon{color:#102652}
+.matero-sidemenu .menu-item:not(.menu-item-heading) > .submenu{border-left:0;margin-left:9px;padding-left:2px}
+.matero-sidemenu .menu-item.expanded > .submenu{padding-top:3px;padding-bottom:4px}
+.matero-sidemenu .submenu .menu-heading{min-height:35px;font-size:12px;padding:7px 9px}
+.matero-sidemenu .menu-item.expanded > .menu-toggle{background:#f1f3f5}
+.matero-sidemenu .menu-heading:hover{background:#f3f5f7;color:#101820}
+.matero-sidenav-collapsed .matero-sidemenu.level-0{padding:10px 9px 18px}
+.matero-sidenav-collapsed .matero-sidemenu .menu-heading{min-height:44px;padding:10px 0}
+.matero-sidenav-collapsed .matero-sidemenu .menu-icon{width:18px;height:18px;flex-basis:18px}
+.matero-sidemenu .nt-menu-disabled,.matero-sidemenu .nt-menu-disabled:hover{opacity:.48}

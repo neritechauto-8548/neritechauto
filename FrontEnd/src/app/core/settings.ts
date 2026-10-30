@@ -27,7 +27,7 @@ export const defaults: AppSettings = {
   headerPos: 'above',
   showUserPanel: true,
   sidenavOpened: true,
-  sidenavCollapsed: true,
+  sidenavCollapsed: false,
   language: 'pt-BR',
   primaryColor: 'indigo',
   primaryColorValue: '{indigo}',

@@ -1,3 +1,4 @@
+import { environment } from '@env/environment';
 import { BidiModule } from '@angular/cdk/bidi';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject } from '@angular/core';
@@ -51,9 +52,14 @@ export class AdminLayout implements OnDestroy {
   private readonly settings = inject(SettingsService);
 
   options = this.settings.options;
+  readonly supportUrl = environment.supportUrl;
 
   get themeColor() {
     return this.settings.getThemeColor();
+  }
+
+  get isHomeRoute(): boolean {
+    return this.router.url === '/home' || this.router.url === '/';
   }
 
   get isOver() {

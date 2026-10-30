@@ -15,7 +15,7 @@
     <app-header
       (toggleSidenav)="onSidenavToggle()"
       (toggleSidenavNotice)="sidenavNotice.toggle()"
-      [showBranding]="isOver || options.navPos === 'top'"
+      [showBranding]="true"
       [showToggle]="isOver || options.sidenavCollapsed"
     />
   }
@@ -29,8 +29,7 @@
       (openedChange)="onSidenavOpenedChange($event)"
       (transitionend)="onLayoutTransitionEnd($event)"
       (closedStart)="onSidenavClosedStart()"
-      (mouseenter)="onMouseEnter()"
-      (mouseleave)="onMouseLeave()"
+
     >
       <app-sidebar
         [showToggle]="!isOver"
@@ -60,12 +59,17 @@
         <app-topmenu />
       }
 
-      <app-breadcrumb />
+      @if (!isHomeRoute) {
+        <app-breadcrumb />
+      }
 
       <main id="nt-main-content" class="matero-page-content" tabindex="-1" aria-label="Conteúdo principal">
         <router-outlet />
       </main>
     </mat-sidenav-content>
   </mat-sidenav-container>
+  <a class="nt-floating-help" [href]="supportUrl" target="_blank" rel="noopener noreferrer" aria-label="Abrir Central de ajuda">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-8 8 9 9 0 0 1-4-.9L4 20l1.4-4A8 8 0 1 1 20 11.5Z"/></svg>
+  </a>
 
 </div>

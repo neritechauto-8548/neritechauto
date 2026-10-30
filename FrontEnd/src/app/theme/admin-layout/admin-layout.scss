@@ -212,3 +212,20 @@
 /* WCAG 2.2: skip link is visible only while keyboard-focused. */
 .nt-skip-link{position:fixed;top:8px;left:12px;z-index:2000;transform:translateY(-150%);padding:10px 14px;border-radius:8px;background:var(--nt-surface,#fff);color:var(--nt-text,#0f172a);border:2px solid var(--nt-primary,#2563eb);box-shadow:0 8px 24px rgba(15,23,42,.12);text-decoration:none;font:600 14px/20px Inter,system-ui,sans-serif}
 .nt-skip-link:focus-visible{transform:translateY(0);outline:2px solid var(--nt-primary,#2563eb);outline-offset:2px}
+
+/* Master reference shell: full-width topbar, flush sidebar, pale workspace. */
+.matero-container-wrap{--nt-sidebar-width:270px;--nt-primary:#163b98;--nt-border:#dce1e6;--nt-surface-subtle:#f7f8fa;background:#f7f8fa}
+.matero-header-above .matero-container{height:calc(100% - 65px)!important}
+.matero-content{background:#f7f8fa!important}
+.matero-page-content{padding:0!important;min-height:calc(100% - 35px)}
+.matero-sidenav{border-right:1px solid #dbe1e7!important}
+@media(max-width:768px){.matero-header-above .matero-container{height:calc(100% - 56px)!important}}
+
+.matero-page-content{min-height:100%}
+
+/* Help shortcut goes to the configured, real support portal (not a fake chat). */
+.nt-floating-help{position:fixed;z-index:1090;right:20px;bottom:18px;display:grid;place-items:center;width:50px;height:50px;border:1px solid #79d933;border-radius:50%;background:#8bf14f;color:#10223e;box-shadow:0 3px 12px rgba(0,0,0,.11);text-decoration:none}
+.nt-floating-help:hover{background:#a3ff64}
+.nt-floating-help:focus-visible{outline:3px solid #1d4ed8;outline-offset:3px}
+.nt-floating-help svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:600px){.nt-floating-help{right:12px;bottom:12px;width:44px;height:44px}}

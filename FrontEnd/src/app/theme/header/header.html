@@ -10,9 +10,18 @@
     }
   </div>
 
+  <nav class="nt-reference-navigation" aria-label="Acessos principais">
+    <a routerLink="/home">Aplicativos</a>
+    <a routerLink="/configuracoes/empresa">Empresas</a>
+    <a routerLink="/configuracoes/usuarios">Usuários</a>
+    <a routerLink="/configuracoes/preferencias">Integrações</a>
+    <button type="button" (click)="abrirAjuda()">Informativos</button>
+    <a class="nt-master-link" routerLink="/configuracoes/assinatura">Master</a>
+  </nav>
+
   <div class="nt-global-search" [class.nt-mobile-search-open]="mobileSearchOpen">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-    <input #globalSearchInput id="nt-global-search-input" type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Buscar e navegar..." aria-label="Buscar e navegar" autocomplete="off" role="combobox" aria-autocomplete="list" [attr.aria-expanded]="!!searchTerm.trim()" [attr.aria-controls]="searchTerm.trim() ? 'nt-search-results' : null" [attr.aria-activedescendant]="activeSearchIndex >= 0 ? 'nt-search-result-' + activeSearchIndex : null" (keydown)="onSearchKeydown($event)" />
+    <input #globalSearchInput id="nt-global-search-input" type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Busca Inteligente" aria-label="Buscar páginas e módulos" autocomplete="off" role="combobox" aria-autocomplete="list" [attr.aria-expanded]="!!searchTerm.trim()" [attr.aria-controls]="searchTerm.trim() ? 'nt-search-results' : null" [attr.aria-activedescendant]="activeSearchIndex >= 0 ? 'nt-search-result-' + activeSearchIndex : null" (keydown)="onSearchKeydown($event)" />
     @if (searchTerm.trim()) {
       <div id="nt-search-results" class="nt-search-results" role="listbox" aria-label="Páginas disponíveis">
         @if (searchResults.length) {
@@ -27,7 +36,7 @@
         }
       </div>
     }
-    <kbd>Ctrl K</kbd>
+    <kbd>CTRL+K</kbd>
   </div>
 
   <div class="nt-topbar-actions">
@@ -42,10 +51,8 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
       }
     </button>
-    <button class="nt-topbar-icon" type="button" (click)="toggleTheme()" aria-label="Alternar tema"
-      [matTooltip]="settings.getThemeColor() === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z"></path></svg>
-    </button>
+    <a class="nt-topbar-icon nt-parts-action" routerLink="/produtos-servicos/estoque" aria-label="Consultar peças" matTooltip="Consulta de peças no estoque"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v13H4zM7 9h10M7 13h7M17 21l-3-3"/></svg></a>
+    <button class="nt-topbar-icon nt-help-action" type="button" (click)="abrirAjuda()" aria-label="Abrir Central de ajuda" matTooltip="Central de ajuda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 4v12l-8 4-8-4V6l8-4Z"/><path d="M9.5 9a2.7 2.7 0 0 1 5 1.3c0 2-2.5 2-2.5 3.8M12 17h.01"/></svg></button>
     <app-notification />
     <app-user />
   </div>

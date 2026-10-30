@@ -1,4 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { AuthService } from '@core/authentication';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -19,6 +21,19 @@ type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+  readonly usuario = toSignal(this.auth.user(), { initialValue: {} });
+  get nomeSaudacao(): string {
+    const profile = this.usuario() as { name?: string; nomeCompleto?: string };
+    return (profile.name || profile.nomeCompleto || 'equipe').trim().split(/\s+/)[0];
+  }
+  showAddComponent = false;
+  showViewOptions = false;
+  widgetFinanceiro = true;
+  widgetOrdens = true;
+  widgetClientes = false;
+  activeInfo = '';
+  lastUpdatedAt: Date | null = null;
 
   readonly isUxPreview = environment.uxPreview;
   loading = true;
@@ -99,6 +114,7 @@ export class Dashboard implements OnInit {
       next: data => {
         this.data = data;
         this.chartOptions = this.buildChart(data);
+        this.lastUpdatedAt = new Date();
         this.loading = false;
       },
       error: err => {
@@ -176,7 +192,8 @@ export class Dashboard implements OnInit {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
     }).format(Number(value ?? 0));
   }
 

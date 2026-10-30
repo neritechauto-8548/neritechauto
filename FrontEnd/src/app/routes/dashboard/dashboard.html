@@ -1,40 +1,51 @@
 <main class="home-shell">
   <div class="home-container">
-    <header class="home-header">
-      <div class="home-heading">
-        <span class="eyebrow">Início · Visão geral</span>
-        <h1>{{ saudacao }}, sua oficina.</h1>
-        <p>O que está acontecendo hoje e onde sua equipe precisa de atenção.</p>
+    <header class="master-home-header">
+      <div class="master-home-intro">
+        <div class="master-home-path"><span>NERITECH AUTO</span><span aria-hidden="true">›</span><span>Visão geral</span></div>
+        <h1>{{ saudacao }}, {{ nomeSaudacao }}! <span class="master-help-mark" title="Indicadores da sua oficina">ⓘ</span></h1>
+        <p class="master-notice"><nt-icon name="info-circle" [size]="15" /> Confira as notificações da sua oficina na barra superior.</p>
         @if (isUxPreview) {
-          <span class="preview-indicator" role="status"><i aria-hidden="true"></i> Modo de homologação · dados demonstrativos</span>
+          <span class="preview-indicator" role="status">Prévia visual · dados demonstrativos</span>
         }
       </div>
-
-      <div class="home-controls">
-        <label class="period-control" for="dashboard-period">
-          <nt-icon name="calendar" [size]="16" />
-          <span class="sr-only">Período dos indicadores</span>
+      <div class="master-home-actions">
+        <button type="button" class="master-view-button" (click)="showViewOptions = !showViewOptions"
+          [attr.aria-expanded]="showViewOptions" aria-controls="master-view-options">Visões e período <span aria-hidden="true">⌄</span></button>
+        <button type="button" class="master-add-button" (click)="showAddComponent = !showAddComponent"
+          [attr.aria-expanded]="showAddComponent" aria-controls="master-add-options">
+          <span aria-hidden="true">⊞</span> Adicionar componente
+        </button>
+        @if (showAddComponent) {
+          <div class="master-add-popover" id="master-add-options" aria-label="Personalizar componentes">
+            <h2>Componentes do painel</h2>
+            <label><input type="checkbox" [checked]="widgetFinanceiro" (change)="widgetFinanceiro = !widgetFinanceiro" /> Financeiro</label>
+            <label><input type="checkbox" [checked]="widgetOrdens" (change)="widgetOrdens = !widgetOrdens" /> Ordens de serviço</label>
+            <label><input type="checkbox" [checked]="widgetClientes" (change)="widgetClientes = !widgetClientes" /> Clientes</label>
+            <button type="button" class="master-popover-close" (click)="showAddComponent = false">Concluir</button>
+          </div>
+        }
+      </div>
+    </header>
+    @if (showViewOptions || selectedView !== 'padrao') {
+      <div class="master-view-options" id="master-view-options">
+        <label for="dashboard-period">Período:
           <select id="dashboard-period" [(ngModel)]="selectedPeriod" (ngModelChange)="carregarDados()" [disabled]="loading">
             @for (period of periodOptions; track period.value) { <option [value]="period.value">{{ period.label }}</option> }
           </select>
         </label>
-        <div class="view-switcher" role="tablist" aria-label="Visão do dashboard">
+        <div class="view-switcher" role="tablist" aria-label="Visões do dashboard">
           @for (option of viewOptions; track option.value) {
-            <button type="button"
-              role="tab"
-              [attr.id]="'dashboard-view-' + $index"
-              aria-controls="dashboard-view-panel"
-              [attr.aria-selected]="selectedView === option.value"
+            <button type="button" role="tab" [attr.id]="'dashboard-view-' + $index"
+              aria-controls="dashboard-view-panel" [attr.aria-selected]="selectedView === option.value"
               [attr.tabindex]="selectedView === option.value ? 0 : -1"
               [class.active]="selectedView === option.value"
-              (keydown)="onViewTabKeydown($event, $index)"
-              (click)="selecionarVisao(option.value)">
-              {{ option.label }}
-            </button>
+              (keydown)="onViewTabKeydown($event,$index)" (click)="selecionarVisao(option.value)">{{ option.label }}</button>
           }
         </div>
       </div>
-    </header>
+    }
+
 
     @if (loading) {
       <section class="skeleton-grid">
@@ -47,146 +58,71 @@
         <div><strong>Não conseguimos atualizar sua visão.</strong><p>{{ errorMessage }}</p></div>
         <button type="button" class="secondary-button" (click)="carregarDados()">Tentar novamente</button>
       </section>
-    } @else if (!hasData) {
-      <section class="empty-state">
-        <span class="empty-mark"><nt-icon name="plus" [size]="18" /></span>
-        <h2>Comece pela operação.</h2>
-        <p>Quando clientes, veículos e ordens entrarem no sistema, o Home passa a contar a história da sua oficina automaticamente.</p>
-        <button type="button" class="primary-button" (click)="navegarPara('/cliente/cadastro')">Cadastrar primeiro cliente</button>
-      </section>
     } @else {
-      <div id="dashboard-view-panel" role="tabpanel" [attr.aria-labelledby]="'dashboard-view-' + selectedViewIndex">
+      <div id="dashboard-view-panel" role="tabpanel" [attr.aria-labelledby]="showViewOptions || selectedView !== 'padrao' ? 'dashboard-view-' + selectedViewIndex : null" aria-label="Indicadores da oficina">
       @if (selectedView === 'padrao') {
-      <section class="command-grid">
-        <article class="hero-metric">
-          <div class="metric-top">
-            <span>Faturamento · {{ periodoSelecionadoLabel }}</span>
-            <button type="button" aria-label="Abrir financeiro" (click)="navegarPara('/financeiro')"><nt-icon name="arrow-up-right" [size]="16" /></button>
-          </div>
-          <strong>{{ formatCurrency(data?.faturamentoMes) }}</strong>
-          <div class="hero-footer">
-            @if (variacaoFaturamentoPercentual !== null) {
-              <span class="trend" [class.positive]="variacaoFaturamentoPercentual >= 0" [class.negative]="variacaoFaturamentoPercentual < 0">
-                <nt-icon [name]="variacaoFaturamentoPercentual >= 0 ? 'trend-up' : 'trend-down'" [size]="14" /> {{ variacaoFaturamentoLabel }}
-              </span>
-              <span>vs. período anterior</span>
-            } @else { <span>Sem base comparativa para {{ periodoSelecionadoLabel.toLowerCase() }}</span> }
-          </div>
-          <div class="mini-bars" aria-hidden="true">
-            @for (value of data?.historicoFaturamento ?? []; track $index) {
-              <i [style.height.%]="barHeight(value)"></i>
-            }
-          </div>
-        </article>
-
-        <button type="button" class="signal-card" (click)="navegarPara('/os')">
-          <div class="signal-label"><span class="signal-dot amber"></span> OS ativas</div>
-          <strong>{{ data?.osEmAndamento ?? 0 }}</strong>
-          <p>ordens não finalizadas ou canceladas</p>
-          <span class="card-link">Ver operação <nt-icon name="arrow-up-right" [size]="14" /></span>
-        </button>
-
-        <button type="button" class="signal-card" (click)="navegarPara('/os')">
-          <div class="signal-label"><span class="signal-dot"></span> OS concluídas</div>
-          <strong>{{ data?.fechadosMes ?? 0 }}</strong>
-          <p>ordens finalizadas no período selecionado</p>
-          <span class="card-link">Ver ordens <nt-icon name="arrow-up-right" [size]="14" /></span>
-        </button>
-
-        <button type="button" class="signal-card attention" (click)="navegarPara('/financeiro')">
-          <div class="signal-label"><span class="signal-dot red"></span> Atenção</div>
-          <strong>{{ formatCurrency(data?.valoresVencidos) }}</strong>
-          <p>em contas vencidas</p>
-          <span class="card-link">Resolver pendências <nt-icon name="arrow-up-right" [size]="14" /></span>
-        </button>
-      </section>
-
-      <section class="workspace-grid">
-        <article class="surface performance">
-          <div class="surface-header">
-            <div>
-              <span class="eyebrow">Performance</span>
-              <h2>Receita acompanhando a operação</h2>
-              <p>Valores pagos em títulos com vencimento no período · {{ periodoSelecionadoLabel.toLowerCase() }}. O agrupamento não usa a data efetiva do pagamento.</p>
-            </div>
-            <div class="legend"><span><i></i> Receita</span><span><i class="muted"></i> Despesas</span></div>
-          </div>
-          @if (chartOptions) {
-            <apx-chart class="performance-chart"
-              [series]="chartOptions.series" [chart]="chartOptions.chart"
-              [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis"
-              [stroke]="chartOptions.stroke" [colors]="chartOptions.colors"
-              [fill]="chartOptions.fill" [grid]="chartOptions.grid"
-              [legend]="{show:false}" [tooltip]="chartOptions.tooltip"
-              [dataLabels]="chartOptions.dataLabels"></apx-chart>
+        <section class="master-widget-grid" aria-label="Componentes da Visão geral">
+          @if (widgetFinanceiro) {
+            <article class="master-widget">
+              <header class="master-widget-title">
+                <span class="master-widget-icon" aria-hidden="true">☷</span>
+                <div><h2>Financeiro</h2><p>Indicadores financeiros · {{ periodoSelecionadoLabel }}</p></div>
+                <div class="master-widget-tools">
+                  <button type="button" aria-label="Informações do Financeiro" (click)="activeInfo = activeInfo === 'financeiro' ? '' : 'financeiro'">ⓘ</button>
+                  <button type="button" aria-label="Atualizar Financeiro" (click)="carregarDados()">⟳</button>
+                  <button type="button" aria-label="Ocultar componente Financeiro" (click)="widgetFinanceiro = false">⋮</button>
+                </div>
+              </header>
+              @if (activeInfo === 'financeiro') {
+                <p class="master-widget-info" role="status">Valores agregados provenientes da API da empresa autenticada; a API ainda não separa valores por dia ou vencimentos a pagar.</p>
+              }
+              <div class="master-finance-lines">
+                <div><span><i class="master-dot blue"></i>A receber (pendente)</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
+                <div><span><i class="master-dot teal"></i>A pagar (pendente)</span><strong>{{ formatCurrency(data?.contasPagar) }}</strong></div>
+                <div><span><i class="master-dot orange"></i>Recebíveis vencidos</span><strong>{{ formatCurrency(data?.valoresVencidos) }}</strong></div>
+                <div><span><i class="master-dot violet"></i>Receita do período</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong></div>
+                <div><span><i class="master-dot red"></i>Despesas do período</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong></div>
+              </div>
+              <footer class="master-widget-foot">Atualizado {{ lastUpdatedAt ? (lastUpdatedAt | date:'HH:mm') : '—' }}</footer>
+            </article>
           }
-        </article>
-
-        <aside class="surface health">
-          <div class="surface-header compact">
-            <div><span class="eyebrow">Saúde da operação</span><h2>Indicadores do período</h2></div>
-            <span class="live-pill"><i></i> Dados do período</span>
-          </div>
-
-          <button class="health-row" type="button" (click)="navegarPara('/agendamento')">
-            <span class="health-icon calendar"><nt-icon name="calendar" [size]="15" /></span>
-            <span><b>Entradas</b><small>veículos registrados no período</small></span>
-            <strong>{{ data?.entradasVeiculosMes ?? 0 }}</strong>
-          </button>
-          <button class="health-row" type="button" (click)="navegarPara('/os')">
-            <span class="health-icon"><nt-icon name="check-circle" [size]="15" /></span>
-            <span><b>Saídas</b><small>veículos concluídos</small></span>
-            <strong>{{ data?.saidasVeiculosMes ?? 0 }}</strong>
-          </button>
-          <button class="health-row" type="button" (click)="navegarPara('/os')">
-            <span class="health-icon"><nt-icon name="currency-dollar" [size]="15" /></span>
-            <span><b>Ticket médio</b><small>por ordem de serviço</small></span>
-            <strong>{{ formatCurrency(data?.ticketMedio) }}</strong>
-          </button>
-
-          <div class="health-divider"></div>
-            <div class="health-summary">
-            <div><span>Margem</span><strong>{{ margemPercentual }}%</strong></div>
-            <div><span>OS autorizadas no período</span><strong>{{ data?.autorizadosMes ?? 0 }}</strong></div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="lower-grid">
-        <article class="surface insight">
-          <div class="surface-header compact">
-            <div><span class="eyebrow">Inteligência</span><h2>O que merece sua atenção</h2></div>
-            <button type="button" class="text-button" (click)="navegarPara('/os')">Abrir operação <nt-icon name="arrow-up-right" [size]="13" /></button>
-          </div>
-          <div class="insight-list">
-            <button type="button" (click)="navegarPara('/os')">
-              <span class="insight-number">01</span><span><b>{{ data?.veiculosEmAtraso ?? 0 }} veículos em atraso</b><small>Há veículos aguardando conclusão além do prazo previsto.</small></span><nt-icon name="arrow-up-right" [size]="15" />
-            </button>
-            <button type="button" (click)="navegarPara('/financeiro')">
-              <span class="insight-number">02</span><span><b>{{ formatCurrency(data?.contasReceber) }} para receber</b><small>Acompanhe sua carteira e reduza o tempo de recebimento.</small></span><nt-icon name="arrow-up-right" [size]="15" />
-            </button>
-            <button type="button" (click)="navegarPara('/cliente')">
-              <span class="insight-number">03</span><span><b>{{ data?.totalClientes ?? 0 }} clientes ativos</b><small>Sua base atual de relacionamento.</small></span><nt-icon name="arrow-up-right" [size]="15" />
-            </button>
-          </div>
-        </article>
-
-        <article class="surface finance-summary">
-          <div class="surface-header compact">
-            <div><span class="eyebrow">Financeiro</span><h2>Posição do período</h2></div>
-            <button type="button" class="text-button" (click)="navegarPara('/financeiro')">Ver financeiro <nt-icon name="arrow-up-right" [size]="13" /></button>
-          </div>
-          <div class="finance-main">
-            <span>Resultado</span><strong>{{ formatCurrency(data?.lucroMes) }}</strong>
-            <small>Faturamento menos despesas</small>
-          </div>
-          <div class="finance-lines">
-            <div><span>Receita</span><strong>{{ formatCurrency(data?.faturamentoMes) }}</strong></div>
-            <div><span>Despesas</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong></div>
-            <div><span>A receber</span><strong>{{ formatCurrency(data?.contasReceber) }}</strong></div>
-          </div>
-        </article>
-      </section>
+          @if (widgetOrdens) {
+            <article class="master-widget">
+              <header class="master-widget-title">
+                <span class="master-widget-icon master-grid-icon" aria-hidden="true">⊞</span>
+                <div><h2>Ordens de serviço</h2><p>Indicadores de OS · {{ periodoSelecionadoLabel }}</p></div>
+                <div class="master-widget-tools">
+                  <button type="button" aria-label="Informações das Ordens de Serviço" (click)="activeInfo = activeInfo === 'os' ? '' : 'os'">ⓘ</button>
+                  <button type="button" aria-label="Atualizar Ordens de Serviço" (click)="carregarDados()">⟳</button>
+                  <button type="button" aria-label="Ocultar componente Ordens de Serviço" (click)="widgetOrdens = false">⋮</button>
+                </div>
+              </header>
+              @if (activeInfo === 'os') {
+                <p class="master-widget-info" role="status">O ticket médio é o valor global retornado pela API. Ticket médio mensal separado ainda não está disponível no contrato.</p>
+              }
+              <div class="master-os-metrics">
+                <div class="master-mini-metric blue"><span>Ticket médio total</span><strong>{{ formatCurrency(data?.ticketMedio) }}</strong></div>
+                <div class="master-mini-metric green"><span>Ticket médio do mês</span><strong title="Indicador mensal específico ainda não fornecido pela API">—</strong></div>
+                <div class="master-mini-metric orange"><span>Veículos em atraso</span><strong>{{ data?.veiculosEmAtraso ?? 0 }}</strong></div>
+              </div>
+              <footer class="master-widget-foot">Atualizado {{ lastUpdatedAt ? (lastUpdatedAt | date:'HH:mm') : '—' }}</footer>
+            </article>
+          }
+          @if (widgetClientes) {
+            <article class="master-widget">
+              <header class="master-widget-title">
+                <span class="master-widget-icon" aria-hidden="true">♧</span>
+                <div><h2>Clientes</h2><p>Base cadastrada</p></div>
+                <div class="master-widget-tools"><button type="button" aria-label="Ocultar componente Clientes" (click)="widgetClientes = false">⋮</button></div>
+              </header>
+              <div class="master-os-metrics"><div class="master-mini-metric blue"><span>Clientes ativos</span><strong>{{ data?.totalClientes ?? 0 }}</strong></div></div>
+              <footer class="master-widget-foot">Atualizado {{ lastUpdatedAt ? (lastUpdatedAt | date:'HH:mm') : '—' }}</footer>
+            </article>
+          }
+          @if (!widgetFinanceiro && !widgetOrdens && !widgetClientes) {
+            <div class="master-no-components" role="status">Nenhum componente selecionado. Use “Adicionar componente” para montar sua visão geral.</div>
+          }
+        </section>
     } @else if (selectedView === 'gerencial') {
       <section class="view-section-heading">
         <span class="eyebrow">Painel gerencial</span>
