@@ -95,7 +95,8 @@ export class UserButton implements OnInit {
 
   logout(): void {
     if (this.uxPreview) {
-      this.router.navigateByUrl('/auth/login');
+      // Recarregamento completo desativa o flag calculado no bootstrap.
+      window.location.assign('/auth/login');
       return;
     }
     this.auth.logout().subscribe({

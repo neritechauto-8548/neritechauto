@@ -56,6 +56,7 @@ export class AdminLayout implements OnDestroy {
 
   options = this.settings.options;
   readonly supportUrl = environment.supportUrl;
+  readonly isDemoPreview = environment.uxPreview;
 
   get themeColor() {
     return this.settings.getThemeColor();

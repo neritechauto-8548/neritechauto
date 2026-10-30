@@ -9,6 +9,13 @@
   [dir]="options.dir"
 >
   <ng-progress ngProgressRouter />
+  @if (isDemoPreview) {
+    <div class="nt-demo-banner" role="status">
+      <strong>Modo demonstração</strong>
+      <span>Sem login · dados fictícios ou indisponíveis · operações reais bloqueadas</span>
+      <a href="/auth/login">Sair da prévia</a>
+    </div>
+  }
 
   <!-- Header Above -->
   @if (options.showHeader && options.headerPos === 'above') {

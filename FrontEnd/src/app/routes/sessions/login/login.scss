@@ -302,3 +302,9 @@
   .spinner { animation: none; }
   .field input:not([type='checkbox']) { transition: none; }
 }
+
+/* Temporary master preview entry point: always transparently labeled. */
+.auth-preview-action{display:flex;align-items:center;justify-content:center;gap:10px;min-height:40px;padding:9px 12px;border:1px solid #7999ef;border-radius:7px;background:#24345a;color:#e8f0ff;font-size:13px;font-weight:650;text-decoration:none;text-align:center}
+.auth-preview-action:hover{background:#324875}
+.auth-preview-action:focus-visible{outline:3px solid #afc7ff;outline-offset:3px}
+.auth-preview-note{margin:-5px 0 0;color:#a7a7aa;font-size:11px;line-height:1.5;text-align:center}

@@ -247,3 +247,10 @@
 .nt-crm-sidebar nav>span small{margin-left:auto;font-size:9px;color:#a4aab3}
 .nt-crm-sidebar nav>a:focus-visible{outline:3px solid #2158a4;outline-offset:2px}
 @media(max-width:950px){.nt-crm-layout.is-crm{grid-template-columns:1fr}.nt-crm-sidebar{min-height:0;border-bottom:1px solid #e0e5eb;border-right:0}.nt-crm-sidebar nav{flex-direction:row;overflow-x:auto;padding:5px 12px 12px}.nt-crm-sidebar nav>a,.nt-crm-sidebar nav>span{white-space:nowrap;min-height:38px}}
+
+/* Explicit, front-end-only preview notice (no backend session granted). */
+.nt-demo-banner{position:fixed;z-index:1999;left:50%;top:72px;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:12px;max-width:calc(100vw - 24px);padding:9px 12px;border:1px solid #b9d2ff;border-radius:8px;background:#eaf2ff;color:#173b70;box-shadow:0 6px 20px #10182820;font:500 11px/17px Inter,system-ui,sans-serif}
+.nt-demo-banner strong{font-weight:750;white-space:nowrap}
+.nt-demo-banner span{white-space:nowrap}
+.nt-demo-banner a{white-space:nowrap;color:#173b70;font-weight:750;text-decoration:underline}
+@media(max-width:800px){.nt-demo-banner{top:60px;gap:7px;flex-wrap:wrap;text-align:center}.nt-demo-banner span{white-space:normal}}

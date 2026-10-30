@@ -1,4 +1,5 @@
 export * from './noop-interceptor';
+export * from './preview-readonly-interceptor';
 export * from './base-url-interceptor';
 export * from './settings-interceptor';
 export * from './token-interceptor';
@@ -12,6 +13,7 @@ import { baseUrlInterceptor } from './base-url-interceptor';
 import { errorInterceptor } from './error-interceptor';
 import { loggingInterceptor } from './logging-interceptor';
 import { noopInterceptor } from './noop-interceptor';
+import { previewReadonlyInterceptor } from './preview-readonly-interceptor';
 import { settingsInterceptor } from './settings-interceptor';
 import { tokenInterceptor } from './token-interceptor';
 import { tenantInterceptor } from './tenant-interceptor';
@@ -19,6 +21,7 @@ import { tenantInterceptor } from './tenant-interceptor';
 // Http interceptor providers in outside-in order
 export const interceptors = [
   noopInterceptor,
+  previewReadonlyInterceptor, // bloqueio total de API em UX Preview
   baseUrlInterceptor,
   settingsInterceptor,
   tenantInterceptor,

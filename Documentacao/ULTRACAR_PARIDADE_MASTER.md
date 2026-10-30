@@ -115,3 +115,28 @@ Registrar uma linha por nova tela, com todos os estados visuais (listagem, ediç
 - [ ] Sincronização de preferências de notificação em backend, se desejada.
 - [ ] API de marcação de todas as notificações em lote e indicador global de não lidas quando múltiplas páginas.
 - [ ] Implementar CRM Campanhas/Templates/Visão geral somente após contrato de negócio.
+
+---
+
+## Acesso paliativo — demonstração sem login (30/10/2026)
+
+**Objetivo:** permitir visualização da interface da branch `master` sem JWT, sem liberar dados ou operações do sistema real.
+
+**Como entrar:** abrir `/auth/login` e escolher **Acessar demonstração sem login** ou acessar `/home?uxPreview=1` no mesmo domínio do frontend. A prévia é explicitamente iniciada apenas por esse parâmetro na URL; não altera o login normal. **Sair da prévia** recarrega `/auth/login`, sem o parâmetro.
+
+**Limites e proteção:**
+- `environment.prod.ts`: ativa `uxPreview` exclusivamente quando `?uxPreview=1` está presente no carregamento inicial (temporário no frontend).
+- Guards visuais já existentes permitem renderizar rotas para demonstração, mas não criam token, sessão ou privilégios de servidor.
+- `previewReadonlyInterceptor` é o primeiro bloqueio da cadeia HTTP e **interrompe qualquer requisição a API, interna ou externa, de qualquer método**. Permite apenas GET de recursos estáticos do próprio frontend sob `/data/`, `/i18n/`, `/assets/` ou `/images/`. Responde com 503 local para APIs, sem atravessar a rede.
+- A homepage demonstra indicadores fictícios já existentes, identificados claramente como demonstração; outras telas exibem estado indisponível caso dependam de backend. Nenhuma gravação ou emissão fiscal é simulada como concluída.
+- Banner fixo informa **Modo demonstração · dados fictícios ou indisponíveis · operações bloqueadas**, incluindo link de saída.
+- API Java e suas políticas JWT, multiempresa e permissões **não foram alteradas**.
+- Se uma rota for recarregada sem `?uxPreview=1`, volta a exigir login. Para abrir uma rota específica direto na prévia, anexar `?uxPreview=1` ao endereço.
+- Este modo pode ser aberto por qualquer visitante que conheça o parâmetro, portanto **nenhum dado real, segredo, endpoint administrativo ou conteúdo reservado deve ser embutido nos assets estáticos**.
+
+**Validação necessária:**
+- [ ] Executar os testes de `preview-readonly-interceptor.spec.ts`.
+- [ ] Testar `/auth/login` e `/home?uxPreview=1` no deploy final em janela anônima.
+- [ ] Confirmar no DevTools Network que todas as chamadas `/api/` são bloqueadas localmente, sem HTTP ao servidor.
+- [ ] Testar navegação via menu, dashboard, CRM, logout da prévia e recarga sem parâmetro.
+- [ ] Retirar esta exceção temporária de `environment.prod.ts` e o botão público antes da disponibilização comercial da versão autenticada.
