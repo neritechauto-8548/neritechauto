@@ -155,7 +155,9 @@ public class HistoricoVeiculoController {
         for (ItemOSServico item : servicos.findByOrdemServicoId(os.getId())) {
             itens.add(new ItemHistorico(item.getId(), "SERVICO", item.getDescricao(),
                 item.getQuantidade(), item.getValorUnitario(), item.getDescontoValor(),
-                item.getValorFinal(), item.getMecanicoExecutorId()));
+                item.getValorFinal(),
+                item.getComissaoValor() != null && item.getComissaoValor().signum() > 0
+                    ? item.getMecanicoExecutorId() : null));
         }
         for (ItemOSProduto item : produtos.findByOrdemServicoId(os.getId())) {
             itens.add(new ItemHistorico(item.getId(), "PRODUTO", item.getDescricao(),
@@ -234,10 +236,10 @@ public class HistoricoVeiculoController {
                     doc.add(new Paragraph("OS " + os.getNumeroOS()
                         + "  |  " + (os.getDataAbertura() == null ? "Sem data" : os.getDataAbertura())
                         + "  |  " + (os.getStatus() == null ? "—" : os.getStatus().getNome()), sub));
-                    PdfPTable tabela = new PdfPTable(mostrarValores ? 3 : 1);
+                    PdfPTable tabela = new PdfPTable(mostrarValores ? 4 : 1);
                     tabela.setWidthPercentage(100);
                     tabela.addCell("Descrição");
-                    if (mostrarValores) { tabela.addCell("Desconto"); tabela.addCell("Valor final"); }
+                    if (mostrarValores) { tabela.addCell("Valor unitário"); tabela.addCell("Desconto"); tabela.addCell("Valor final"); }
                     OrdemHistorico historico = osRow(os, empresa);
                     for (ItemHistorico item : historico.itens()) {
                         String label = (item.descricao() == null ? "Item" : item.descricao());
@@ -245,11 +247,15 @@ public class HistoricoVeiculoController {
                             label += " (Responsável ID " + item.comissionadoId() + ")";
                         tabela.addCell(label);
                         if (mostrarValores) {
+                            tabela.addCell(item.valorUnitario() == null ? "—" : item.valorUnitario().toPlainString());
                             tabela.addCell(item.desconto() == null ? "—" : item.desconto().toPlainString());
                             tabela.addCell(item.valorFinal() == null ? "—" : item.valorFinal().toPlainString());
                         }
                     }
-                    if (historico.itens().isEmpty()) tabela.addCell("Sem itens cadastrados");
+                    if (historico.itens().isEmpty()) {
+                        tabela.addCell("Sem itens cadastrados");
+                        if (mostrarValores) { tabela.addCell("—"); tabela.addCell("—"); tabela.addCell("—"); }
+                    }
                     doc.add(tabela);
                     if (mostrarValores) doc.add(new Paragraph("Total OS: "
                         + (os.getValorTotal() == null ? "0,00" : os.getValorTotal().toPlainString()), body));
