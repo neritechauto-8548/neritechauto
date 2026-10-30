@@ -8,6 +8,10 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardService, DashboardDTO } from './dashboard.service';
 import { environment } from '@env/environment';
 import { NeriTechIcon } from '@shared/components/neritech-icon/neritech-icon';
+import { DashboardComponentPicker } from './dashboard-component-picker';
+import { DashboardDynamicWidget } from './dashboard-dynamic-widget';
+import { DashboardPreferencesService } from './dashboard-preferences.service';
+import { DEFAULT_LAYOUT, WIDGET_ITEMS, WidgetLayout } from './dashboard-widgets';
 
 type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
 
@@ -16,12 +20,13 @@ type DashboardView = 'padrao' | 'gerencial' | 'financeiro' | 'orcamento';
   standalone: true,
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
-  imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule, NeriTechIcon],
+  imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule, NeriTechIcon, DashboardComponentPicker, DashboardDynamicWidget],
 })
 export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private preferences = inject(DashboardPreferencesService);
   readonly usuario = toSignal(this.auth.user(), { initialValue: {} });
   get nomeSaudacao(): string {
     const profile = this.usuario() as { name?: string; nomeCompleto?: string };
@@ -29,10 +34,19 @@ export class Dashboard implements OnInit {
   }
   showAddComponent = false;
   showViewOptions = false;
-  widgetFinanceiro = true;
-  widgetOrdens = true;
-  widgetClientes = false;
+  widgets: WidgetLayout[] = DEFAULT_LAYOUT.map(x => ({...x}));
+  layoutSaving = false;
+  layoutError = '';
+  layoutNotice = '';
   activeInfo = '';
+  activeWidgetMenu = '';
+
+  get widgetFinanceiro(): boolean { return this.widgets.some(w=>w.id==='financeiro-os'); }
+  set widgetFinanceiro(value:boolean) { this.toggleWidget('financeiro-os',value,'listagem'); }
+  get widgetOrdens(): boolean { return this.widgets.some(w=>w.id==='ordens'); }
+  set widgetOrdens(value:boolean) { this.toggleWidget('ordens',value,'indicador'); }
+  get widgetClientes(): boolean { return this.widgets.some(w=>w.id==='clientes-sem-movimentacao'); }
+  set widgetClientes(value:boolean) { this.toggleWidget('clientes-sem-movimentacao',value,'indicador'); }
   lastUpdatedAt: Date | null = null;
 
   readonly isUxPreview = environment.uxPreview;
@@ -59,6 +73,98 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.carregarDados();
+    this.carregarLayoutPessoal();
+  }
+
+  private carregarLayoutPessoal(): void {
+    this.preferences.consultar().subscribe({
+      next: response => {
+        this.widgets = this.normalizarComponentes(response.componentes);
+        this.layoutError = '';
+      },
+      error: err => {
+        this.layoutError = err.status===403
+          ? 'Sem permissão para carregar sua configuração pessoal.'
+          : 'Não foi possível carregar seu layout. A disposição padrão é temporária.';
+      }
+    });
+  }
+
+  private normalizarComponentes(items:WidgetLayout[] | null | undefined):WidgetLayout[] {
+    if(!Array.isArray(items))return DEFAULT_LAYOUT.map(x=>({...x}));
+    const seen = new Set<string>();
+    return items.filter(x=>{
+      if(!x || !WIDGET_ITEMS.some(y=>y.id===x.id) || seen.has(x.id)
+        || !['indicador','grafico','listagem'].includes(x.tipo) || ![1,2].includes(x.colunas))
+        return false;
+      seen.add(x.id);return true;
+    }).map(x=>({...x}));
+  }
+
+  salvarLayoutPessoal(next:WidgetLayout[]):void {
+    if(this.layoutSaving)return;
+    this.layoutSaving=true;
+    this.layoutError='';
+    this.layoutNotice='';
+    this.preferences.salvar(this.normalizarComponentes(next)).subscribe({
+      next:response=>{
+        this.widgets=this.normalizarComponentes(response.componentes);
+        this.selectedView='padrao';
+        this.layoutNotice='Sua visão geral foi atualizada apenas para sua conta.';
+        this.layoutSaving=false;
+      },
+      error:err=>{
+        this.layoutError=err.status===403
+          ? 'Seu usuário não tem permissão para editar esta visão geral.'
+          : 'Não foi possível salvar suas preferências. Nenhuma alteração foi aplicada.';
+        this.layoutSaving=false;
+      }
+    });
+  }
+  private toggleWidget(id:string,enabled:boolean,tipo:'indicador'|'listagem'):void {
+    const old=this.widgets.some(x=>x.id===id);
+    if(old===enabled)return;
+    const next=enabled ? [...this.widgets,{id,tipo,colunas:1}] : this.widgets.filter(w=>w.id!==id);
+    this.salvarLayoutPessoal(next);
+  }
+  removerComponente(id:string):void {this.salvarLayoutPessoal(this.widgets.filter(x=>x.id!==id));}
+  moverComponente(id:string,step:number):void {
+    const index=this.widgets.findIndex(w=>w.id===id),target=index+step;
+    if(index<0||target<0||target>=this.widgets.length)return;
+    const copy=this.widgets.map(x=>({...x}));
+    [copy[index],copy[target]]=[copy[target],copy[index]];
+    this.salvarLayoutPessoal(copy);
+    this.activeWidgetMenu='';
+  }
+  editarComponente(id:string):void {
+    this.showAddComponent=true;
+    this.activeWidgetMenu='';
+  }
+  widgetCatalog(id:string){return WIDGET_ITEMS.find(x=>x.id===id);}
+  canShowChart(id:string):boolean {
+    return ['faturamento-geral','despesas-receitas','faturamento-despesas'].includes(id);
+  }
+  widgetRows(id:string):{nome:string,valor:string}[]{
+    const d=this.data; if(!d)return [];
+    const money=(x:number|null|undefined)=>this.formatCurrency(x);
+    const num=(x:number|null|undefined)=>String(x??0);
+    const rows:{
+      [key:string]:{nome:string,valor:string}[]
+    }={
+      'gerencial':[{nome:'Resultado do período',valor:money(d.lucroMes)},{nome:'OS em andamento',valor:num(d.osEmAndamento)},{nome:'Clientes ativos',valor:num(d.totalClientes)}],
+      'padrao':[{nome:'Ordens abertas',valor:num(d.osAbertas)},{nome:'Ordens concluídas',valor:num(d.osConcluidas)}],
+      'faturamento-geral':[{nome:'Receitas do período',valor:money(d.faturamentoMes)},{nome:'Período anterior',valor:money(d.faturamentoPeriodoAnterior)}],
+      'ticket-medio':[{nome:'Ticket médio global da OS',valor:money(d.ticketMedio)}],
+      'faturamento-passagem':[{nome:'Faturamento',valor:money(d.faturamentoMes)},{nome:'Entradas de veículos',valor:num(d.entradasVeiculosMes)},{nome:'Ticket médio global',valor:money(d.ticketMedio)}],
+      'despesas-receitas':[{nome:'Receitas',valor:money(d.faturamentoMes)},{nome:'Despesas',valor:money(d.despesasMes)}],
+      'faturamento-despesas':[{nome:'Faturamento',valor:money(d.faturamentoMes)},{nome:'Despesas',valor:money(d.despesasMes)},{nome:'Resultado',valor:money(d.lucroMes)}],
+      'passagem-veiculos':[{nome:'Entradas de veículos',valor:num(d.entradasVeiculosMes)},{nome:'Saídas de veículos',valor:num(d.saidasVeiculosMes)}]
+    };
+    return rows[id]??[];
+  }
+  widgetMainValue(id:string):string{
+    const rows=this.widgetRows(id);
+    return rows.length?rows[0].valor:'—';
   }
 
   get saudacao(): string {

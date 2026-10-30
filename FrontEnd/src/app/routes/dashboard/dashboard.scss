@@ -252,3 +252,14 @@
 @media(max-width:1100px){.master-widget-grid{grid-template-columns:1fr}.master-home-header{align-items:flex-start}.master-home-actions{align-self:center}}
 @media(max-width:700px){.home-container{padding:18px 14px 30px}.master-home-header{flex-direction:column;align-items:stretch;gap:15px}.master-home-path{margin-bottom:13px}.master-home-actions{align-self:flex-start;flex-wrap:wrap}.master-widget{min-height:0}.master-widget-title p{font-size:11px}.master-os-metrics{grid-template-columns:1fr}.master-mini-metric{min-height:68px}.master-finance-lines span{white-space:normal}}
 @media(prefers-reduced-motion:reduce){.master-add-button,.master-view-button{transition:none}}
+
+/* HOME-001: grade personalizavel pelo usuario; a tela base mantem a referencia clara. */
+.master-widget{position:relative}
+.master-widget-wide{grid-column:span 2}
+.master-widget-menu{position:absolute;right:12px;top:47px;z-index:4;min-width:164px;display:grid;padding:6px;border:1px solid #d6dfea;border-radius:7px;background:white;box-shadow:0 9px 24px #17243b24}
+.master-widget-menu button{padding:8px 10px;border:0;border-radius:4px;background:white;text-align:left;font-size:11px;color:#253449;cursor:pointer}
+.master-widget-menu button:hover:not(:disabled){background:#eff4ff}
+.master-widget-menu button:disabled{opacity:.5;cursor:not-allowed}
+.master-layout-alert,.master-layout-notice{position:fixed;right:18px;bottom:18px;z-index:1200;margin:0;max-width:360px;padding:12px 14px;background:#fff4f4;border:1px solid #e8b3b7;border-radius:7px;color:#9b2339;font-size:12px;box-shadow:0 5px 20px #0001}
+.master-layout-notice{background:#eaf8ee;color:#195c38;border-color:#ade1bc}
+@media(max-width:900px){.master-widget-wide{grid-column:span 1}}

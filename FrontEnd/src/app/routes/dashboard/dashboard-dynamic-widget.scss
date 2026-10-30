@@ -1,0 +1,30 @@
+:host{display:block;min-width:0;color:#111827;font:12px/1.5 Inter,Arial,system-ui,sans-serif}
+.dw-card{position:relative;border:1px solid #dce1e6;border-radius:9px;min-height:278px;background:#fff;box-shadow:0 1px 2px #0f172a15;overflow:hidden}
+.dw-head{display:flex;align-items:center;gap:10px;min-height:55px;border-bottom:1px solid #e0e5eb;padding:9px 12px;box-sizing:border-box}
+.dw-icon{width:32px;height:32px;display:grid;place-items:center;flex:0 0 32px;border-radius:7px;background:#dce9ff;color:#153985}
+.dw-heading{flex:1;min-width:0}
+.dw-heading h2{font-size:14px;margin:0;font-weight:650}
+.dw-heading p{font-size:11px;line-height:15px;color:#8997a8;margin:1px 0 0}
+.dw-actions{display:flex;gap:8px}
+.dw-actions button{border:0;background:transparent;font-size:19px;width:24px;height:26px;border-radius:5px;cursor:pointer;color:#202b39}
+.dw-actions button:hover{background:#edf3ff}
+.dw-menu{position:absolute;right:11px;top:45px;z-index:3;padding:5px;border:1px solid #d6dfe9;border-radius:6px;background:white;box-shadow:0 6px 22px #16223826;min-width:155px;display:grid;gap:2px}
+.dw-menu button{border:0;background:white;text-align:left;padding:7px 10px;font-size:11px;border-radius:4px;cursor:pointer}
+.dw-menu button:hover:not(:disabled){background:#eef3ff}
+.dw-menu button:disabled{opacity:.45;cursor:default}
+.dw-stat{min-height:170px;display:flex;align-items:flex-start;justify-content:center;flex-direction:column;padding:15px 19px}
+.dw-stat span{font-size:11px;color:#8092a5;text-transform:uppercase}
+.dw-stat strong{font-size:25px;letter-spacing:-.02em;line-height:1.25;margin:8px 0 4px;color:#122138}
+.dw-stat small{font-size:11px;color:#74859a}
+.dw-lines{display:grid;gap:11px;padding:17px 13px;min-height:165px;align-content:start}
+.dw-lines>div{display:flex;justify-content:space-between;gap:11px}
+.dw-lines>div>span{display:flex;align-items:center;gap:7px;color:#8493a8}
+.dw-lines i{width:7px;height:7px;border-radius:50%;background:#2c8ff6}
+.dw-lines strong{font-size:11px;white-space:nowrap}
+.dw-unavailable{min-height:165px;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:7px;color:#8796a8;text-align:center;padding:17px}
+.dw-unavailable strong{color:#455973;font-weight:650;font-size:12px}
+.dw-unavailable p{margin:0;font-size:11px}
+.dw-message{padding:11px;background:#f0f6ff;color:#245189;font-size:11px}
+.dw-chart{padding:0 7px;max-height:265px;overflow:hidden}
+.dw-card>footer{margin:0 12px;padding:10px 0;border-top:1px solid #dee5ec;font-size:10px;color:#9aa8b7}
+button:focus-visible{outline:2px solid #1f43ac;outline-offset:2px}

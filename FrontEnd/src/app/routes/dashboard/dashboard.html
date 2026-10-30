@@ -12,19 +12,11 @@
       <div class="master-home-actions">
         <button type="button" class="master-view-button" (click)="showViewOptions = !showViewOptions"
           [attr.aria-expanded]="showViewOptions" aria-controls="master-view-options">Visões e período <span aria-hidden="true">⌄</span></button>
-        <button type="button" class="master-add-button" (click)="showAddComponent = !showAddComponent"
+        <button type="button" class="master-add-button" (click)="showAddComponent = true"
           [attr.aria-expanded]="showAddComponent" aria-controls="master-add-options">
           <span aria-hidden="true">⊞</span> Adicionar componente
         </button>
-        @if (showAddComponent) {
-          <div class="master-add-popover" id="master-add-options" aria-label="Personalizar componentes">
-            <h2>Componentes do painel</h2>
-            <label><input type="checkbox" [checked]="widgetFinanceiro" (change)="widgetFinanceiro = !widgetFinanceiro" /> Financeiro</label>
-            <label><input type="checkbox" [checked]="widgetOrdens" (change)="widgetOrdens = !widgetOrdens" /> Ordens de serviço</label>
-            <label><input type="checkbox" [checked]="widgetClientes" (change)="widgetClientes = !widgetClientes" /> Clientes</label>
-            <button type="button" class="master-popover-close" (click)="showAddComponent = false">Concluir</button>
-          </div>
-        }
+
       </div>
     </header>
     @if (showViewOptions || selectedView !== 'padrao') {
@@ -62,15 +54,16 @@
       <div id="dashboard-view-panel" role="tabpanel" [attr.aria-labelledby]="showViewOptions || selectedView !== 'padrao' ? 'dashboard-view-' + selectedViewIndex : null" aria-label="Indicadores da oficina">
       @if (selectedView === 'padrao') {
         <section class="master-widget-grid" aria-label="Componentes da Visão geral">
-          @if (widgetFinanceiro) {
-            <article class="master-widget">
+          @for(widget of widgets;track widget.id){
+            @if(widget.id==='financeiro-os' && widget.tipo==='listagem'){
+            <article class="master-widget" [class.master-widget-wide]="widget.colunas===2">
               <header class="master-widget-title">
                 <span class="master-widget-icon" aria-hidden="true">☷</span>
                 <div><h2>Financeiro</h2><p>Indicadores financeiros · {{ periodoSelecionadoLabel }}</p></div>
                 <div class="master-widget-tools">
                   <button type="button" aria-label="Informações do Financeiro" (click)="activeInfo = activeInfo === 'financeiro' ? '' : 'financeiro'">ⓘ</button>
                   <button type="button" aria-label="Atualizar Financeiro" (click)="carregarDados()">⟳</button>
-                  <button type="button" aria-label="Ocultar componente Financeiro" (click)="widgetFinanceiro = false">⋮</button>
+                  <button type="button" aria-label="Ocultar componente Financeiro" (click)="activeWidgetMenu=widget.id">⋮</button>
                 </div>
               </header>
               @if (activeInfo === 'financeiro') {
@@ -84,17 +77,25 @@
                 <div><span><i class="master-dot red"></i>Despesas do período</span><strong>{{ formatCurrency(data?.despesasMes) }}</strong></div>
               </div>
               <footer class="master-widget-foot">Atualizado {{ lastUpdatedAt ? (lastUpdatedAt | date:'HH:mm') : '—' }}</footer>
+              @if(activeWidgetMenu===widget.id){
+                <div class="master-widget-menu" role="group" aria-label="Organizar componente">
+                  <button type="button" [disabled]="$index===0 || layoutSaving" (click)="moverComponente(widget.id,-1)">Mover antes</button>
+                  <button type="button" [disabled]="$index===widgets.length-1 || layoutSaving" (click)="moverComponente(widget.id,1)">Mover depois</button>
+                  <button type="button" (click)="editarComponente(widget.id)">Configurar</button>
+                  <button type="button" [disabled]="layoutSaving" (click)="removerComponente(widget.id)">Remover</button>
+                  <button type="button" (click)="activeWidgetMenu=''">Fechar opções</button>
+                </div>
+              }
             </article>
-          }
-          @if (widgetOrdens) {
-            <article class="master-widget">
+            } @else if(widget.id==='ordens' && widget.tipo==='indicador'){
+            <article class="master-widget" [class.master-widget-wide]="widget.colunas===2">
               <header class="master-widget-title">
                 <span class="master-widget-icon master-grid-icon" aria-hidden="true">⊞</span>
                 <div><h2>Ordens de serviço</h2><p>Indicadores de OS · {{ periodoSelecionadoLabel }}</p></div>
                 <div class="master-widget-tools">
                   <button type="button" aria-label="Informações das Ordens de Serviço" (click)="activeInfo = activeInfo === 'os' ? '' : 'os'">ⓘ</button>
                   <button type="button" aria-label="Atualizar Ordens de Serviço" (click)="carregarDados()">⟳</button>
-                  <button type="button" aria-label="Ocultar componente Ordens de Serviço" (click)="widgetOrdens = false">⋮</button>
+                  <button type="button" aria-label="Ocultar componente Ordens de Serviço" (click)="activeWidgetMenu=widget.id">⋮</button>
                 </div>
               </header>
               @if (activeInfo === 'os') {
@@ -106,20 +107,29 @@
                 <div class="master-mini-metric orange"><span>Veículos em atraso</span><strong>{{ data?.veiculosEmAtraso ?? 0 }}</strong></div>
               </div>
               <footer class="master-widget-foot">Atualizado {{ lastUpdatedAt ? (lastUpdatedAt | date:'HH:mm') : '—' }}</footer>
+              @if(activeWidgetMenu===widget.id){
+                <div class="master-widget-menu" role="group" aria-label="Organizar componente">
+                  <button type="button" [disabled]="$index===0 || layoutSaving" (click)="moverComponente(widget.id,-1)">Mover antes</button>
+                  <button type="button" [disabled]="$index===widgets.length-1 || layoutSaving" (click)="moverComponente(widget.id,1)">Mover depois</button>
+                  <button type="button" (click)="editarComponente(widget.id)">Configurar</button>
+                  <button type="button" [disabled]="layoutSaving" (click)="removerComponente(widget.id)">Remover</button>
+                  <button type="button" (click)="activeWidgetMenu=''">Fechar opções</button>
+                </div>
+              }
             </article>
+            } @else {
+              <nt-dashboard-dynamic-widget [widget]="widget" [data]="data"
+                [rows]="widgetRows(widget.id)" [chartOptions]="chartOptions"
+                [index]="$index" [total]="widgets.length"
+                [updatedAt]="lastUpdatedAt" [saving]="layoutSaving"
+                [class.master-widget-wide]="widget.colunas===2"
+                (remove)="removerComponente($event)"
+                (edit)="editarComponente($event)"
+                (move)="moverComponente($event.id,$event.step)"
+                (reload)="carregarDados()"/>
+            }
           }
-          @if (widgetClientes) {
-            <article class="master-widget">
-              <header class="master-widget-title">
-                <span class="master-widget-icon" aria-hidden="true">♧</span>
-                <div><h2>Clientes</h2><p>Base cadastrada</p></div>
-                <div class="master-widget-tools"><button type="button" aria-label="Ocultar componente Clientes" (click)="widgetClientes = false">⋮</button></div>
-              </header>
-              <div class="master-os-metrics"><div class="master-mini-metric blue"><span>Clientes ativos</span><strong>{{ data?.totalClientes ?? 0 }}</strong></div></div>
-              <footer class="master-widget-foot">Atualizado {{ lastUpdatedAt ? (lastUpdatedAt | date:'HH:mm') : '—' }}</footer>
-            </article>
-          }
-          @if (!widgetFinanceiro && !widgetOrdens && !widgetClientes) {
+          @if(!widgets.length){
             <div class="master-no-components" role="status">Nenhum componente selecionado. Use “Adicionar componente” para montar sua visão geral.</div>
           }
         </section>
@@ -226,3 +236,10 @@
     }
   </div>
 </main>
+@if(layoutError){<p class="master-layout-alert" role="alert">{{layoutError}}</p>}
+@if(layoutNotice){<p class="master-layout-notice" role="status">{{layoutNotice}}</p>}
+@if(showAddComponent){
+  <nt-dashboard-component-picker [componentes]="widgets" [saving]="layoutSaving"
+    [error]="layoutError" (closePicker)="showAddComponent=false"
+    (saveLayout)="salvarLayoutPessoal($event)"/>
+}

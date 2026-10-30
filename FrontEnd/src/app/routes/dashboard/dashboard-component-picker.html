@@ -1,0 +1,106 @@
+<div class="cp-scrim" (click)="closePicker.emit()" aria-hidden="true"></div>
+<aside class="cp-drawer" role="dialog" aria-modal="true" aria-labelledby="cp-drawer-title"
+  cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+  <header class="cp-drawer-head">
+    <div><h2 id="cp-drawer-title">Adicionar componente</h2>
+      <p>Escolha um componente para configurar a exibição na visão geral</p></div>
+    <button type="button" class="cp-close" aria-label="Fechar adicionar componente" (click)="closePicker.emit()">×</button>
+  </header>
+  <div class="cp-content">
+    <div class="cp-info" role="note">
+      <nt-icon name="info-circle" [size]="17"/>
+      <div><strong>As alterações feitas nesta visão geral são pessoais</strong>
+        <p>Os componentes adicionados, removidos, reordenados ou editados ficam salvos apenas na conta atual. As alterações não afetam outros usuários da empresa.</p>
+      </div>
+    </div>
+    @if(error){<p class="cp-error" role="alert">{{error}}</p>}
+    @if(saving){<p class="cp-saving" role="status">Salvando preferências da conta…</p>}
+    @if(configuring){
+      <section class="cp-config">
+        <div class="cp-config-back"><button type="button" (click)="configuring=null">‹ Voltar aos componentes</button></div>
+        <h3>{{item(configuring)?.nome}}</h3>
+        <p>{{item(configuring)?.descricao}}</p>
+        @if(!item(configuring)?.dadosDisponiveis){
+          <div class="cp-unavailable" role="note">Esta métrica ainda não possui fonte de dados homologada. O cartão poderá ser adicionado, mas indicará dados indisponíveis, sem apresentar valores fictícios.</div>
+        }
+        <label for="cp-kind">Tipo de visualização <span aria-hidden="true">*</span></label>
+        <select id="cp-kind" [(ngModel)]="tipo">
+          <option value="grafico">Gráfico</option>
+          <option value="indicador">Indicador</option>
+          <option value="listagem">Listagem</option>
+        </select>
+        <label for="cp-cols">Quantidade de colunas na grid <span aria-hidden="true">*</span></label>
+        <select id="cp-cols" [(ngModel)]="colunas">
+          <option [ngValue]="1">1 coluna</option>
+          <option [ngValue]="2">2 colunas</option>
+        </select>
+        <div class="cp-config-actions">
+          <button type="button" class="cp-outline" (click)="configuring=null">Cancelar</button>
+          <button type="button" class="cp-primary" [disabled]="saving" (click)="saveSelected()">
+            {{isSelected(configuring)?'Salvar alterações':'Adicionar componente'}}
+          </button>
+        </div>
+      </section>
+    } @else {
+      <button type="button" class="cp-preset-launch" (click)="openPresets()">
+        <nt-dashboard-icon name="layout-grid" [size]="17"/> Selecionar componentes predefinidos
+      </button>
+      <div class="cp-groups">
+        @for(group of groups;track group.id){
+          <section class="cp-group">
+            <button type="button" class="cp-group-head" [attr.aria-expanded]="expanded.has(group.id)"
+              [attr.aria-controls]="'cp-group-'+group.id" (click)="toggle(group.id)">
+              <span><strong>{{group.nome}}</strong><small>{{group.descricao}}</small></span>
+              <nt-icon [name]="expanded.has(group.id)?'chevron-up':'chevron-down'" [size]="17"/>
+            </button>
+            @if(expanded.has(group.id)){
+              <div class="cp-group-body" [id]="'cp-group-'+group.id">
+                @for(option of group.itens;track option.id){
+                  <button type="button" class="cp-item" [class.cp-item-selected]="isSelected(option.id)"
+                    (click)="configure(option.id)">
+                    <span class="cp-item-icon"><nt-icon [name]="option.icone" [size]="18"/></span>
+                    <span class="cp-item-text"><strong>{{option.nome}}</strong><small>{{option.descricao}}</small></span>
+                    @if(isSelected(option.id)){<span class="cp-added">Adicionado</span>}
+                  </button>
+                }
+              </div>
+            }
+          </section>
+        }
+      </div>
+    }
+  </div>
+</aside>
+
+@if(modal!=='nenhum'){
+  <div class="cp-modal-shade">
+    @if(modal==='modelos'){
+      <section class="cp-modal cp-models" role="dialog" aria-modal="true" aria-labelledby="cp-model-title"
+        cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+        <header><div><small>▦ &nbsp; Modelos prontos</small><h2 id="cp-model-title">Componentes predefinidos</h2>
+          <p>Selecione um modelo pronto para configurar a visão geral automaticamente.</p></div>
+          <button type="button" aria-label="Fechar modelos" (click)="modal='nenhum'">×</button></header>
+        <div class="cp-model-list">
+          @for(model of presets;track model.id){
+            <button type="button" class="cp-model" (click)="choosePreset(model.id)">
+              <span class="cp-model-icon"><nt-icon [name]="model.icone" [size]="19"/></span>
+              <span><strong>{{model.nome}}</strong><small>{{model.descricao}}</small></span>
+            </button>
+          }
+        </div>
+      </section>
+    } @else {
+      <section class="cp-modal cp-confirm" role="alertdialog" aria-modal="true"
+        aria-labelledby="cp-confirm-title" aria-describedby="cp-confirm-text"
+        cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+        <div class="cp-confirm-heading"><span class="cp-confirm-icon">?</span>
+          <h2 id="cp-confirm-title">Substituir componentes atuais</h2></div>
+        <p id="cp-confirm-text">Os componentes configurados atualmente serão substituídos pelo modelo
+          <strong>{{selectedPreset?.nome}}</strong>. Deseja continuar?</p>
+        <footer><button type="button" class="cp-plain" (click)="modal='nenhum'">Cancelar</button>
+          <button type="button" class="cp-orange" [disabled]="saving" (click)="confirmPreset()">Substituir</button>
+        </footer>
+      </section>
+    }
+  </div>
+}

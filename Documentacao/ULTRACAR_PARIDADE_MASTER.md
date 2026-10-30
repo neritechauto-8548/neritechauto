@@ -370,3 +370,21 @@ Sete campos na ordem e grid 2 colunas da captura: CPF/CNPJ, Nome fantasia, Conta
 - Relatórios: controle de expandir/restaurar a janela, mantendo os filtros e a lista enquanto alterna o tamanho.
 - Contrato HTTP Angular coberto por testes focados: busca/paginação, veículo, OS fechadas/autorizadas, parâmetros PDF e propagação de 404 sem mocks de produção.
 - A homologação pixel a pixel continua pendente de capturas renderizadas no mesmo viewport, e o teste E2E completo com dados A/B continua distinto dos testes de serviço/controlador executados em CI.
+
+
+---
+
+## Lote 09 — HOME-001 / Adicionar componente (referências 01.2–01.11)
+
+**Escopo**: screenshots de Visão geral, drawer lateral, catálogo expansível, quatro modelos prontos e edição de tipo/granularidade do componente. O componente é NERITECH AUTO, não copia logomarca ou código UltraCar.
+
+- Drawer direito com cabeçalho fixo e scroll independente. Aviso azul de que a configuração é pessoal. Seis grupos na ordem de referência: Indicadores de OS (4), Faturamento (3), Financeiro (4), Operacional (2), Produtivo (3), Clientes (1), totalizando 17 entradas.
+- Catálogo completo nome/descrição/ícone. A seleção abre configuração por componente com opções Gráfico / Indicador / Listagem, largura 1 ou 2 colunas, botão Adicionar/Salvar e Cancelar.
+- Modal **Componentes predefinidos**: Visão Operacional, Financeira, Gerencial e Comercial; a confirmação de substituição protege a configuração atual, sem substituir antes de confirmação.
+- Reordenação e remoção acontecem pela ação de cada cartão no dashboard e são persistidas após sucesso da API.
+- Estado salvo por **usuário e empresa autenticados** em `dashboard_componentes_usuario` (Flyway V292), pela rota `GET/PUT /api/dashboard/configuracao` e alias `/dashboard/configuracao`. O backend obtém a identidade da sessão JWT e tenant confiável; nunca recebe empresaId ou usuarioId do browser. IDs e tipos de widgets são validados (17 identificadores, 3 tipos, no máximo 2 colunas, sem duplicação).
+- Padrão inicial: Financeiro e Ordens de serviço, preservando cards existentes. Layout de outros usuários ou outras empresas não é afetado.
+- A API atual entrega dados reais agregados para OS, financeiro, resultado, faturamento, ticket médio **global**, receita/despesas e entradas/saídas de veículos. Dados de custo fixo x variável, caixa conciliado, comparação por seguradora, produção de equipe e clientes sem OS não existem no contrato vigente: seus cartões mostram **Indicador indisponível**. Não se inventa série para gráficos.
+- Os quatro dashboards legados (Padrão/Gerencial/Financeiro/Orçamento) continuam disponíveis; a personalização concentra-se na aba Padrão, que é a Visão geral mostrada nas capturas.
+- UI feita com SVGs próprios, modo claro e texto NERITECH. Acessibilidade: teclado, Esc, `cdkTrapFocus`, estados de carregamento/erro; mobile com drawer responsivo.
+- Critérios ainda pendentes: teste de migração V292 em Postgres real, E2E multiusuário A/B, comparação screenshot no mesmo viewport (com largura do menu, topo, drawer e cartões), integração das fontes ausentes e recálculo de ticket médio mensal/tipo de OS. Não declarar paridade integral até validar estes itens.

@@ -1,0 +1,52 @@
+name: HOME-001 - Componentes pessoais
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "FrontEnd/src/app/routes/dashboard/**"
+      - "backend/src/main/java/com/neritech/saas/dashboard/controller/DashboardConfiguracaoController.java"
+      - "backend/src/main/resources/db/migration/V292__dashboard_componentes_usuario.sql"
+      - "backend/src/test/java/com/neritech/saas/dashboard/DashboardConfiguracaoControllerTest.java"
+      - ".github/workflows/home-componentes-quality.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: home-componentes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  angular:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Compilar frontend
+        run: yarn build
+      - name: Testar Home e contrato de preferencias
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/dashboard/dashboard.spec.ts --include=src/app/routes/dashboard/dashboard-preferences.service.spec.ts
+
+  java:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Testes de persistencia pessoal e isolamento
+        run: mvn -B test -Dtest=DashboardConfiguracaoControllerTest
+        env:
+          SPRING_PROFILES_ACTIVE: test

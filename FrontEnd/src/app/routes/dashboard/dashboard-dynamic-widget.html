@@ -1,0 +1,47 @@
+<article class="dw-card">
+  <header class="dw-head">
+    <span class="dw-icon"><nt-icon [name]="meta?.icone || 'layout-grid'" [size]="19"/></span>
+    <div class="dw-heading"><h2>{{meta?.nome}}</h2><p>{{meta?.descricao}}</p></div>
+    <div class="dw-actions">
+      <button type="button" [attr.aria-label]="'Sobre '+meta?.nome" (click)="info=!info">ⓘ</button>
+      <button type="button" [attr.aria-label]="'Atualizar '+meta?.nome" (click)="reload.emit()">⟳</button>
+      <button type="button" [attr.aria-label]="'Ações de '+meta?.nome" [attr.aria-expanded]="menu"
+        (click)="menu=!menu">⋮</button>
+    </div>
+  </header>
+  @if(menu){
+    <div class="dw-menu" role="group" aria-label="Organizar componente">
+      <button type="button" [disabled]="index===0 || saving" (click)="action('before')">← Mover antes</button>
+      <button type="button" [disabled]="index===total-1 || saving" (click)="action('after')">Mover depois →</button>
+      <button type="button" (click)="action('edit')">Configurar</button>
+      <button type="button" [disabled]="saving" (click)="action('remove')">Remover</button>
+    </div>
+  }
+  @if(info){<div class="dw-message" role="status">Indicadores calculados exclusivamente com dados disponíveis na API da empresa atual. Valores indisponíveis não são estimados.</div>}
+  @if(!meta?.dadosDisponiveis){
+    <div class="dw-unavailable" role="status"><nt-dashboard-icon name="info-circle" [size]="22"/>
+      <strong>Indicador indisponível</strong>
+      <p>Esta métrica ainda não possui cálculo homologado no backend.</p>
+    </div>
+  } @else if(widget.tipo==='grafico' && chartSupported && chartOptions){
+    <div class="dw-chart">
+      <apx-chart [series]="chartOptions.series" [chart]="chartOptions.chart"
+        [xaxis]="chartOptions.xaxis" [yaxis]="chartOptions.yaxis" [stroke]="chartOptions.stroke"
+        [fill]="chartOptions.fill" [colors]="chartOptions.colors" [grid]="chartOptions.grid"
+        [tooltip]="chartOptions.tooltip" [dataLabels]="chartOptions.dataLabels"
+        [legend]="{show:false}"></apx-chart>
+    </div>
+  } @else if(widget.tipo==='grafico'){
+    <div class="dw-unavailable" role="status">Não há série histórica para esse gráfico. Escolha Indicador ou Listagem na configuração.</div>
+  } @else if(widget.tipo==='indicador'){
+    <div class="dw-stat"><span>{{rows[0]?.nome || 'Resultado do período'}}</span>
+      <strong>{{rows[0]?.valor || '—'}}</strong>
+      @if(rows.length>1){<small>{{rows[1].nome}}: {{rows[1].valor}}</small>}
+    </div>
+  } @else {
+    <div class="dw-lines">
+      @for(row of rows;track row.nome){<div><span><i aria-hidden="true"></i>{{row.nome}}</span><strong>{{row.valor}}</strong></div>}
+    </div>
+  }
+  <footer>Atualizado {{updatedAt ? (updatedAt|date:'HH:mm'):'—'}}</footer>
+</article>

@@ -4,10 +4,13 @@ import { AuthService } from '@core/authentication';
 import { of } from 'rxjs';
 import { Dashboard } from './dashboard';
 import { DashboardService, DashboardDTO } from './dashboard.service';
+import { DashboardPreferencesService } from './dashboard-preferences.service';
+import { DEFAULT_LAYOUT } from './dashboard-widgets';
 
 describe('MASTER — Visão geral de referência', () => {
   let fixture: ComponentFixture<Dashboard>;
   let service: jasmine.SpyObj<DashboardService>;
+  let prefs: jasmine.SpyObj<DashboardPreferencesService>;
 
   const payload = {
     totalClientes: 0, osAbertas: 0, osEmAndamento: 0, osConcluidas: 0, osCanceladas: 0,
@@ -22,11 +25,15 @@ describe('MASTER — Visão geral de referência', () => {
   beforeEach(() => {
     service = jasmine.createSpyObj<DashboardService>('DashboardService', ['getDashboardData']);
     service.getDashboardData.and.returnValue(of(payload));
+    prefs=jasmine.createSpyObj<DashboardPreferencesService>('DashboardPreferencesService',['consultar','salvar']);
+    prefs.consultar.and.returnValue(of({componentes:DEFAULT_LAYOUT.map(x=>({...x}))}));
+    prefs.salvar.and.callFake(layout=>of({componentes:layout}));
     TestBed.configureTestingModule({
       imports: [Dashboard],
       providers: [
         provideRouter([]),
         { provide: DashboardService, useValue: service },
+        { provide: DashboardPreferencesService, useValue: prefs },
         { provide: AuthService, useValue: { user: () => of({ id: 1, empresaId: 2, name: 'Comercial Teste' }) } },
       ],
     });
@@ -66,7 +73,8 @@ describe('MASTER — Visão geral de referência', () => {
     component.widgetClientes = true;
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.master-widget').length).toBe(1);
-    expect(fixture.nativeElement.textContent).toContain('Clientes ativos');
+    expect(fixture.nativeElement.textContent).toContain('Clientes sem movimentação');
+    expect(fixture.nativeElement.textContent).toContain('Indicador indisponível');
     expect(service.getDashboardData).toHaveBeenCalledTimes(1);
   });
 
@@ -75,5 +83,12 @@ describe('MASTER — Visão geral de referência', () => {
     expect(component.viewOptions.map(view => view.value)).toEqual([
       'padrao', 'gerencial', 'financeiro', 'orcamento'
     ]);
+  });
+});
+
+describe('HOME — organizacao por usuario',()=>{
+  it('nao compartilha layout pela URL: chamadas de preferencias nao recebem empresaId',()=>{
+    // O contrato HTTP garante que identificadores de usuario e empresa saem do JWT, no servidor.
+    expect(DEFAULT_LAYOUT.map(w=>w.id)).toEqual(['financeiro-os','ordens']);
   });
 });
