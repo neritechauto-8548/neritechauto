@@ -1,9 +1,35 @@
 <main class="crm-page" aria-labelledby="crm-title">
   <header class="crm-header">
-    <span class="crm-eyebrow">CLIENTES / CRM</span>
-    <h1 id="crm-title">Relacionamento com clientes</h1>
-    <p>Encontre clientes, organize pesquisas e acompanhe as ferramentas de relacionamento da sua oficina.</p>
+    <span class="crm-eyebrow">CRM &nbsp; › &nbsp; Oportunidades</span>
+    <h1 id="crm-title">Oportunidades</h1>
+    <p>Identifique oportunidades de relacionamento e acompanhe os clientes da sua oficina.</p>
+    <a class="crm-new-message" routerLink="/cliente/crm/comunicacao">Abrir comunicação</a>
   </header>
+
+
+  <section class="crm-opportunity-panel" aria-labelledby="crm-opportunities-title">
+    <form class="crm-opportunity-filters" (submit)="$event.preventDefault()">
+      <label><span class="sr-only">Buscar oportunidade</span><input type="search" name="opportunityTerm" [(ngModel)]="opportunityTerm" placeholder="Buscar oportunidade" autocomplete="off" /></label>
+      <label><span class="sr-only">Categoria</span><select name="opportunityCategory" [(ngModel)]="opportunityCategory">
+        <option value="todas">Todas as categorias</option><option value="Clientes">Clientes</option><option value="Veículos">Veículos</option>
+      </select></label>
+    </form>
+    <div class="crm-opportunity-grid" id="crm-opportunities-title">
+      @for (card of filteredOpportunities; track card.id) {
+        <article class="crm-opportunity-card">
+          <div class="crm-opportunity-label"><span [class]="'crm-opportunity-symbol ' + card.color">▣</span><h2>{{ card.name }}</h2></div>
+          <p><strong>—</strong> {{ card.kind.toLowerCase() }} <small>Indicador ainda não integrado</small></p>
+          <div class="crm-opportunity-buttons">
+            <button type="button" disabled [title]="'Regra de negócio e consulta por período de ' + card.name + ' ainda não disponíveis'">{{ card.action }}</button>
+            <button type="button" disabled title="Lista filtrada indisponível até haver dados para este indicador">Ver lista</button>
+          </div>
+        </article>
+      } @empty {
+        <div class="crm-state">Nenhuma oportunidade corresponde à pesquisa.</div>
+      }
+    </div>
+    <p class="crm-opportunity-note" role="status">Os números do UltraCar não são dados desta empresa. A API atual não fornece os cinco indicadores; as ações de campanha permanecem indisponíveis até integração e autorização.</p>
+  </section>
 
   <section class="crm-resources" aria-label="Recursos do CRM">
     <a class="crm-resource crm-resource-active" routerLink="/cliente/crm/comunicacao">

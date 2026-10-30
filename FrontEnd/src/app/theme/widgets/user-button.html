@@ -1,0 +1,92 @@
+<button type="button" class="nt-profile-trigger" [matMenuTriggerFor]="profileMenu"
+  [attr.aria-label]="'Abrir menu do usuário: ' + displayName" aria-haspopup="menu">
+  <span class="nt-profile-trigger-picture">
+    <img [src]="avatarSrc" [alt]="'Foto de perfil: ' + displayName"
+      (error)="onAvatarError()" decoding="async" />
+  </span>
+</button>
+<mat-menu #profileMenu="matMenu" class="nt-profile-menu-panel" xPosition="before" yPosition="below" [overlapTrigger]="false">
+  <section class="nt-profile-card" aria-label="Menu do usuário">
+    <div class="nt-profile-summary">
+      <span class="nt-profile-initials" aria-hidden="true">{{ initials }}</span>
+      <div class="nt-profile-summary-text">
+        <strong>{{ displayName }}</strong>
+        <small>{{ user.email || 'E-mail não informado' }}</small>
+      </div>
+    </div>
+    <div class="nt-theme-picker" aria-label="Preferência de aparência">
+      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'light'" (click)="changeTheme('light')" aria-label="Tema claro" [attr.aria-pressed]="theme === 'light'">▤</button>
+      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'auto'" (click)="changeTheme('auto')" aria-label="Tema automático" [attr.aria-pressed]="theme === 'auto'">☼</button>
+      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'dark'" (click)="changeTheme('dark')" aria-label="Tema escuro" [attr.aria-pressed]="theme === 'dark'">☾</button>
+    </div>
+    <div class="nt-profile-section">
+      <span class="nt-profile-section-title">Conta</span>
+      <button mat-menu-item class="nt-profile-action" routerLink="/profile/overview"><span class="nt-menu-symbol">◎</span><span>Minha conta</span></button>
+      <button mat-menu-item class="nt-profile-action nt-profile-action-danger" (click)="logout()"><span class="nt-menu-symbol">↪</span><span>Sair da conta</span></button>
+    </div>
+    <div class="nt-profile-section">
+      <span class="nt-profile-section-title">Empresa</span>
+      <button mat-menu-item class="nt-profile-action" routerLink="/configuracoes/empresa"><span class="nt-menu-symbol">⬡</span><span>Configuração</span></button>
+      <button mat-menu-item class="nt-profile-action" routerLink="/configuracoes/assinatura"><span class="nt-menu-symbol">▣</span><span>Assinatura</span></button>
+    </div>
+    <div class="nt-profile-section">
+      <span class="nt-profile-section-title">Sistema</span>
+      <button mat-menu-item class="nt-profile-action" (click)="openDialog('shortcuts')"><span class="nt-menu-symbol">▣</span><span>Atalhos</span><kbd>CTRL+/</kbd></button>
+      <button mat-menu-item class="nt-profile-action" (click)="openSupport()"><span class="nt-menu-symbol">▤</span><span>Central de ajuda</span></button>
+      <button mat-menu-item class="nt-profile-action" (click)="openDialog('about')"><span class="nt-menu-symbol">ⓘ</span><span>Sobre a plataforma</span></button>
+    </div>
+    <div class="nt-profile-section">
+      <span class="nt-profile-section-title">Ajuda</span>
+      <button mat-menu-item class="nt-profile-action" (click)="openSupport()"><span class="nt-menu-symbol">☏</span><span>Suporte NERITECH</span></button>
+    </div>
+    <footer class="nt-profile-version">NERITECH AUTO · Gestão de oficinas</footer>
+  </section>
+</mat-menu>
+
+@if (activeDialog) {
+  <div class="nt-shell-modal-backdrop" (click)="closeDialog()" role="presentation">
+    <section class="nt-shell-modal" role="dialog" aria-modal="true"
+      [attr.aria-label]="activeDialog === 'shortcuts' ? 'Atalhos de comandos' : 'Sobre a plataforma'"
+      (click)="$event.stopPropagation()">
+      <header class="nt-shell-modal-header">
+        <h2>{{ activeDialog === 'shortcuts' ? 'Atalhos de comandos' : 'Sobre a plataforma' }}</h2>
+        <button type="button" class="nt-dialog-close" (click)="closeDialog()" aria-label="Fechar janela">×</button>
+      </header>
+      @if (activeDialog === 'shortcuts') {
+        <div class="nt-shortcuts-scroll">
+          <h3>Ajuda</h3><p>Comandos de ajuda</p>
+          <div class="nt-shortcut-grid"><div class="nt-shortcut-card"><span>Abre ou fecha esta lista de atalhos</span><div><kbd>CTRL</kbd> + <kbd>/</kbd></div></div></div>
+          <h3>Layout</h3><p>Comandos que mudam a aparência do sistema</p>
+          <div class="nt-shortcut-grid">
+            <div class="nt-shortcut-card"><span>Expande o menu lateral</span><div><kbd>]</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Recolhe o menu lateral</span><div><kbd>[</kbd></div></div>
+          </div>
+          <h3>Navegação</h3><p>Comandos de navegação</p>
+          <div class="nt-shortcut-grid">
+            <div class="nt-shortcut-card"><span>Abre a pesquisa rápida do sistema</span><div><kbd>CTRL</kbd> + <kbd>K</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Abre ou fecha as notificações</span><div><kbd>SHIFT</kbd> + <kbd>N</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Fecha esta janela ou painel ativo</span><div><kbd>ESCAPE</kbd></div></div>
+          </div>
+          <h3>Cadastro</h3><p>Criação rápida de informações</p>
+          <div class="nt-shortcut-grid"><div class="nt-shortcut-card"><span>Abre a tela de orçamentos</span><div><kbd>SHIFT</kbd> + <kbd>O</kbd></div></div></div>
+          <h3>Configuração</h3><p>Preferências e administração</p>
+          <div class="nt-shortcut-grid">
+            <div class="nt-shortcut-card"><span>Abre minha conta</span><div><kbd>CTRL</kbd> + <kbd>,</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Abre as configurações da empresa</span><div><kbd>CTRL</kbd> + <kbd>.</kbd></div></div>
+          </div>
+        </div>
+      } @else {
+        <div class="nt-about-body">
+          <p class="nt-about-subtitle">Informações da plataforma e contatos</p>
+          <div class="nt-about-wordmark">NERITECH <strong>AUTO</strong></div>
+          <a [href]="siteUrl" target="_blank" rel="noopener noreferrer">{{ siteUrl }}</a>
+          <p>Sistema de gestão de oficinas automotivas, com acompanhamento de clientes, serviços, estoque e financeiro.</p>
+          <div class="nt-about-detail"><span>CONTA ATUAL</span><strong>{{ displayName }}</strong><small>{{ user.email }}</small></div>
+          <div class="nt-about-detail"><strong>Suporte NERITECH</strong><button type="button" (click)="openSupport()">Abrir central de suporte</button></div>
+          <p class="nt-about-note">Versão do aplicativo: não disponível nesta compilação.</p>
+          <button type="button" class="nt-about-close" (click)="closeDialog()">Fechar</button>
+        </div>
+      }
+    </section>
+  </div>
+}

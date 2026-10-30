@@ -1,0 +1,80 @@
+<button type="button" class="nt-notification-launch" (click)="togglePanel()"
+  [attr.aria-expanded]="panelOpen" aria-label="Abrir notificações" aria-controls="nt-notification-panel">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+  @if (unreadCount > 0) { <span class="nt-notification-count">{{ unreadCount > 99 ? '99+' : unreadCount }}</span> }
+</button>
+
+@if (panelOpen) {
+  <div class="nt-notification-mask" (click)="closePanel()" aria-hidden="true"></div>
+  <aside id="nt-notification-panel" class="nt-notification-drawer" aria-label="Notificações" role="dialog" aria-modal="true">
+    <header class="nt-notification-head">
+      <h2>Notificações</h2>
+      <div>
+        <button type="button" class="nt-notif-text-button" (click)="toggleHistory()">{{ showHistory ? 'Ver recentes' : 'Ver histórico' }}</button>
+        <button type="button" class="nt-notif-settings-button" (click)="settingsOpen = true" aria-label="Configurar notificações" title="Configurações">⚙</button>
+        <button type="button" class="nt-notif-close" (click)="closePanel()" aria-label="Fechar notificações">×</button>
+      </div>
+    </header>
+    <div class="nt-notification-tabs" role="tablist" aria-label="Categoria de notificações">
+      <button type="button" role="tab" [attr.aria-selected]="category === 'system'" [class.selected]="category === 'system'" (click)="category = 'system'">♧ &nbsp; Sistema</button>
+      <button type="button" role="tab" [attr.aria-selected]="category === 'schedule'" [class.selected]="category === 'schedule'" (click)="category = 'schedule'">▣ &nbsp; Solicitações de agendamento</button>
+    </div>
+    <div class="nt-notification-list">
+      @if (actionError) { <p role="alert" class="nt-notif-error">{{ actionError }}</p> }
+      @if (uxPreview) {
+        <div class="nt-notif-empty" role="status"><span>▤</span><p>Prévia visual: notificações reais indisponíveis sem backend autenticado.</p></div>
+      } @else if (!usuarioId) {
+        <div class="nt-notif-empty" role="status"><p>Entre na sua conta para consultar as notificações.</p></div>
+      } @else if (loading) {
+        <div class="nt-notif-empty" role="status"><p>Carregando notificações…</p></div>
+      } @else if (errorMessage) {
+        <div class="nt-notif-empty" role="alert"><p>{{ errorMessage }}</p><button type="button" (click)="loadNotifications()">Recarregar</button></div>
+      } @else if (filteredNotifications.length === 0) {
+        <div class="nt-notif-empty" role="status"><span>▤</span><p>{{ showHistory ? 'Nenhuma notificação no histórico' : 'Não há novas notificações' }}</p>
+          <button type="button" (click)="loadNotifications()">⟳ &nbsp; Recarregar</button></div>
+      } @else {
+        @for (item of filteredNotifications; track item.id) {
+          <button type="button" class="nt-notif-item" [class.is-read]="item.lida"
+            [disabled]="item.lida || pendingIds.has(item.id)" (click)="markAsRead(item)"
+            [attr.aria-label]="(item.lida ? 'Notificação lida: ' : 'Marcar como lida: ') + item.titulo">
+            <span class="nt-notif-item-icon">♧</span><span><strong>{{ item.titulo }}</strong><small>{{ item.mensagem }}</small><em>{{ formatTime(item.dataCadastro) }}</em></span>
+          </button>
+        }
+      }
+    </div>
+    <footer class="nt-notification-foot">
+      <button type="button" (click)="markAllAsRead()"
+        [disabled]="uxPreview || !usuarioId || unreadCount === 0 || loading">✓ &nbsp; Marcar exibidos como lidos</button>
+    </footer>
+  </aside>
+}
+@if (settingsOpen) {
+  <div class="nt-notification-config-mask" (click)="settingsOpen = false">
+    <section class="nt-notif-config-modal" role="dialog" aria-modal="true" aria-label="Configuração de notificação"
+      (click)="$event.stopPropagation()">
+      <header><h2>Configuração de notificação</h2><button type="button" (click)="settingsOpen = false" aria-label="Fechar configurações">×</button></header>
+      <p>Configure as regras de notificação da plataforma para uma melhor experiência.</p>
+      <div class="nt-notif-pref">
+        <label for="nt-pref-sound">Habilitar som de notificação?</label><input id="nt-pref-sound" type="checkbox" [checked]="soundEnabled" (change)="setPreference('sound',$any($event.target).checked)" />
+      </div>
+      <button type="button" class="nt-notif-demo-link" (click)="playSample()" [disabled]="!soundEnabled">Ouvir som</button>
+      <div class="nt-notif-pref">
+        <label for="nt-pref-bubble">Habilitar balão de notificação?</label><input id="nt-pref-bubble" type="checkbox" [checked]="balloonEnabled" (change)="setPreference('balloon',$any($event.target).checked)" />
+      </div>
+      <button type="button" class="nt-notif-demo-link" (click)="showExample()" [disabled]="!balloonEnabled">Notificação de exemplo</button>
+      <div class="nt-notif-pref">
+        <label for="nt-pref-browser">Permitir que o navegador exiba notificações?</label>
+        <input id="nt-pref-browser" type="checkbox" [checked]="browserEnabled" (change)="requestBrowserNotifications($any($event.target).checked)" />
+      </div>
+      @if (permissionMessage) { <p class="nt-notif-permission" role="status">{{ permissionMessage }}</p> }
+      <p class="nt-notif-privacy">ⓘ &nbsp; Preferências salvas somente neste navegador para a conta atual. Não alteram as de outros usuários ou dispositivos.</p>
+    </section>
+  </div>
+}
+@if (exampleVisible) {
+  <div class="nt-notification-example" role="status">
+    <span class="nt-example-icon" aria-hidden="true">♧</span>
+    <span><strong>Notificação</strong><small>Mensagem de notificação de exemplo</small></span>
+    <button type="button" (click)="exampleVisible = false" aria-label="Fechar notificação de exemplo">×</button>
+  </div>
+}

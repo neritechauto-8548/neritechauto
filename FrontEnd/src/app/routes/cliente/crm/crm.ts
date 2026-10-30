@@ -19,6 +19,22 @@ export class Crm implements OnInit {
   readonly statusLabels = StatusClienteLabels;
   readonly pageSize = 10;
 
+  opportunityTerm = '';
+  opportunityCategory = 'todas';
+  readonly opportunityCards = [
+    { id:'aniversario', name:'Aniversariantes do mês', kind:'Clientes', color:'lilac', action:'Enviar parabéns' },
+    { id:'semvenda', name:'Clientes sem movimento em venda', kind:'Clientes', color:'amber', action:'Reativar' },
+    { id:'semos', name:'Clientes sem movimento em O.S', kind:'Clientes', color:'amber', action:'Reativar' },
+    { id:'revisao', name:'Próximas revisões', kind:'Veículos', color:'cyan', action:'Lembrar revisão' },
+    { id:'futuros', name:'Serviços futuros', kind:'Veículos', color:'blue', action:'Lembrar cliente' },
+  ];
+  get filteredOpportunities() {
+    const query = this.opportunityTerm.trim().toLocaleLowerCase('pt-BR');
+    return this.opportunityCards.filter(item =>
+      (this.opportunityCategory === 'todas' || item.kind === this.opportunityCategory) &&
+      item.name.toLocaleLowerCase('pt-BR').includes(query));
+  }
+
   searchTerm = '';
   dataInicio = '';
   dataFim = '';

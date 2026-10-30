@@ -76,3 +76,42 @@ Registrar uma linha por nova tela, com todos os estados visuais (listagem, ediç
 - [ ] Os screenshots originais ainda não estão armazenados como assets no repositório; são referências recebidas no chat.
 
 **Status:** código de layout/integração enviado para o GitHub; equivalência visual, testes e operações indisponíveis ainda não homologados.
+
+---
+
+## Lote 03 — Topbar, Perfil, Notificações, Aplicativos e CRM (capturas 30/10/2026)
+
+**Referências:** `01.5 - Usuario.png`, `01.6 - Notificacoes configuracao.png`, `01.6 - Notificacoes.png`, `01.7 - Notificacoes configuracao.png`, `01.8 - atalho.png`, `01.9 - atalho.png`, `01.9 - sobre.png`, `01.10 - Plano.png`, `11 aplicativos.png` a `11.5 aplicativos CRM.png`, `01.12 - Menu(1).png`, `012 - Menu(1).png`, `013 - Menu(1).png`, `014 - Menu(1).png`, `Screenshot_1.png`, `00 - INICIO(1).png`.
+
+**Regras e UX visualmente observáveis:**
+- Perfil: resumo de conta, opções de tema claro/auto/escuro, grupos Conta, Matriz, Sistema, Ajuda; Minha conta, Sair, Configuração, Atalhos (CTRL+/), Central de ajuda, Sobre a plataforma e link de suporte. Não copiar e-mail, nome, número de cliente ou versão do concorrente mostrados nas capturas.
+- Notificações: painel lateral direito, duas categorias (Sistema / Solicitações de agendamento), Ver histórico, configurar, estado vazio, Recarregar, Marcar todos como lidos. Modal de configurações: som, balão e permissão do navegador; links de teste, aviso de preferências pessoais.
+- Atalhos: CTRL+/; expandir/recolher com [ e ]; Ctrl+K; Shift+N; Shift+O; Ctrl+, e Ctrl+.; Escape. Apenas atalhos implementados constam da modal NERITECH (não copiar atalhos sem integração).
+- Sobre: branding NERITECH, site e suporte próprios; versão do concorrente NÃO reutilizada.
+- Master: cartão do plano atual. Não inventar nome, nível ou preço sem contrato de assinatura.
+- Aplicativos: mega-menu com trilha Sistema e CRM, grupos de módulos e navegação para rotas reais; nenhuma rota arbitrária para recurso não implementado.
+- CRM: submenu separado e tela Oportunidades com 5 cartões (aniversariantes, inativos em venda, inativos em OS, próximas revisões, serviços futuros), filtros e acesso à Comunicação. Contagens dependem de consultas específicas ao histórico da empresa.
+
+**Código alterado:**
+- `theme/widgets/user-button.{ts,html,scss}`: menu e janelas, atalhos e navegação de conta/suporte; preferências de tema reaproveitam SettingsService.
+- `theme/widgets/notification-button.{ts,html,scss}`: drawer, categorias, histórico, recarregar, preferências locais por usuário, solicitação de permissão de navegador, teste de balão e som original; integrações de leitura persistida continuam em `NotificacaoService.findMine` / `marcarComoLida`.
+- `theme/header/header.{ts,html,scss}`: Aplicativos/CRM, subpainel Master e fechamento por clique fora/Escape.
+- `theme/admin-layout/admin-layout.{ts,html,scss}`: sidebar contextual CRM usando a mesma sessão e rotas. Menu operacional é ocultado apenas nas rotas CRM.
+- `routes/cliente/crm/crm.{ts,html,scss}`: painel de oportunidades com busca e filtros de categoria; cadastro e comunicação anteriores são preservados abaixo/do menu CRM.
+- `theme/widgets/notification-button.spec.ts` e `theme/header/header.spec.ts`: casos adicionais de comportamento, **sem execução neste ambiente**.
+
+**Limitações explicitamente preservadas:**
+- O backend só fornece notificações por `GET /v1/comunicacao/notificacoes/me` e `PATCH /{id}/ler`, não fornece histórico de solicitações separado nem endpoint de preferências; classificação de agendamento é feita por categoria do registro e o histórico usa lista paginada. A operação “Marcar todos” aplica-se apenas aos registros carregados; não foi inventada uma API de operação em lote.
+- Preferências (som/balão/permissão do navegador) ficam no armazenamento local por usuário, não sincronizadas entre aparelhos nem substituem push servidor. Push remoto real depende de infraestrutura, subscription e endpoint próprios.
+- Métricas CRM dependem de consultas de vendas, OS, revisões e comunicação filtradas por empresa. Os cinco valores são exibidos como indisponíveis (`—`), não como zero/contagens falsas, e envio em massa permanece desabilitado.
+- A página de assinatura é uma rota real existente; preço, plano contratado e versão do produto só devem ser apresentados após leitura de dados verificados.
+- As imagens não confirmam regras internas de criação de campanhas, atalhos de cadastro por fora das telas observadas ou API de preferências.
+
+**Pendências de homologação:**
+- [ ] Build Angular e testes dirigidos completos, com evidências.
+- [ ] Capturas nas mesmas dimensões de cada referência e diff visual.
+- [ ] Teste com autenticação, permissões e isolamento por tenant.
+- [ ] API de oportunidades CRM e ações de campanha (com opt-in, controle de consentimento e auditoria).
+- [ ] Sincronização de preferências de notificação em backend, se desejada.
+- [ ] API de marcação de todas as notificações em lote e indicador global de não lidas quando múltiplas páginas.
+- [ ] Implementar CRM Campanhas/Templates/Visão geral somente após contrato de negócio.

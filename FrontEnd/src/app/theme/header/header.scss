@@ -96,3 +96,36 @@
 @media(max-width:1070px){.nt-reference-navigation{display:none}.nt-global-search{flex:1 1 300px;max-width:360px}.nt-topbar-left{min-width:0}}
 @media(max-width:768px){.nt-topbar{height:56px}.nt-global-search{display:none}.nt-global-search.nt-mobile-search-open{display:flex;position:absolute;top:56px;width:100%;max-width:none}.nt-topbar-actions{margin-left:auto;gap:5px}.nt-parts-action{display:none}}
 @media(max-width:400px){.nt-help-action{display:none}}
+
+/* MASTER Aplicativos mega-menu and plan popover. */
+.nt-apps-wrap,.nt-plan-wrap{position:relative}
+.nt-reference-navigation button.nt-master-link{color:#f32665}
+.nt-apps-popover{position:absolute;z-index:1500;top:64px;left:12px;display:flex;width:min(900px,calc(100vw - 24px));height:min(530px,calc(100dvh - 80px));overflow:hidden;border:1px solid #e2e7ed;border-radius:9px;background:#fff;box-shadow:0 15px 40px #11182720}
+.nt-apps-rail{display:flex;flex:none;flex-direction:column;gap:5px;width:290px;padding:24px 30px;background:#f0f2f4}
+.nt-apps-rail button{min-height:42px;padding:0 14px;border:0;border-radius:8px;background:transparent;text-align:left;color:#162a50;font-size:13px;cursor:pointer}
+.nt-apps-rail button.selected,.nt-apps-rail button:hover{background:#fff}
+.nt-apps-content{flex:1;min-width:0;overflow:auto;padding:20px 29px}
+.nt-apps-content>header{display:flex;align-items:center;justify-content:space-between;margin:0 0 21px}
+.nt-apps-content>header strong{font-size:14px}
+.nt-apps-content>header a{font-size:12px;color:#153581;text-decoration:none}
+.nt-apps-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px}
+.nt-apps-group{grid-column:1/-1;margin:10px 0 1px;color:#94a0ad;font-size:11px}
+.nt-apps-item{display:flex;align-items:center;gap:12px;min-width:0;min-height:49px;text-decoration:none;border-radius:7px;color:#1b2431}
+.nt-apps-item:hover{background:#f4f7fb}
+.nt-apps-item-icon{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:9px;background:#d9f7d9;color:#1e9055;font-size:19px}
+.nt-apps-item:nth-child(5n) .nt-apps-item-icon{background:#dbe8ff;color:#164aa5}
+.nt-apps-item:nth-child(4n) .nt-apps-item-icon{background:#ffe8cd;color:#ec7a1f}
+.nt-apps-item>span:last-child{display:flex;min-width:0;flex-direction:column;gap:4px}
+.nt-apps-item strong{font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nt-apps-item small{color:#8b97a6;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nt-apps-empty{margin:22px 0;color:#64748b;font-size:13px}
+.nt-plan-popover{position:absolute;top:61px;left:580px;z-index:1510;width:250px;padding:12px;border:1px solid #e0e6ed;border-radius:9px;background:#fff;box-shadow:0 12px 25px #11182718;color:#151922}
+.nt-plan-popover>span{display:block;margin-bottom:6px;color:#7e8b9d;font-size:11px}
+.nt-plan-popover>a{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #dce2e8;border-radius:8px;text-decoration:none;color:#142137}
+.nt-plan-popover>a>span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:2px}
+.nt-plan-popover strong{font-size:12px;font-weight:600}
+.nt-plan-popover small{color:#8492a4;font-size:10px}
+.nt-plan-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:50%;background:#ffe0ef;color:#d91d60;font-size:22px}
+.nt-apps-item:focus-visible,.nt-apps-rail button:focus-visible,.nt-plan-popover a:focus-visible{outline:3px solid #3557a2;outline-offset:2px}
+@media(max-width:950px){.nt-apps-popover{top:56px;left:4px;width:calc(100vw - 8px)}.nt-apps-rail{width:200px;padding:14px}.nt-apps-content{padding:16px}.nt-plan-popover{left:auto;right:12px;top:56px}}
+@media(max-width:580px){.nt-apps-popover{height:min(600px,calc(100dvh - 65px))}.nt-apps-rail{width:118px;padding:10px}.nt-apps-rail button{padding:7px;font-size:11px}.nt-apps-content{padding:12px}.nt-apps-grid{grid-template-columns:1fr;gap:7px}.nt-apps-item-icon{width:29px;flex-basis:29px;height:29px}.nt-apps-content>header{gap:8px}.nt-apps-content>header strong{font-size:12px}}

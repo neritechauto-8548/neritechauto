@@ -25,7 +25,7 @@
       #sidenav
       class="matero-sidenav transition-colors duration-200 {{options.menuThemeClass || '!bg-[var(--p-surface-0)] dark:!bg-[var(--p-surface-900)]'}}"
       [mode]="isOver ? 'over' : 'side'"
-      [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver"
+      [opened]="!isCrmRoute && options.navPos === 'side' && options.sidenavOpened && !isOver"
       (openedChange)="onSidenavOpenedChange($event)"
       (transitionend)="onLayoutTransitionEnd($event)"
       (closedStart)="onSidenavClosedStart()"
@@ -59,13 +59,29 @@
         <app-topmenu />
       }
 
-      @if (!isHomeRoute) {
+      @if (!isHomeRoute && !isCrmRoute) {
         <app-breadcrumb />
       }
 
-      <main id="nt-main-content" class="matero-page-content" tabindex="-1" aria-label="Conteúdo principal">
-        <router-outlet />
-      </main>
+      <div class="nt-crm-layout" [class.is-crm]="isCrmRoute">
+        @if (isCrmRoute) {
+          <aside class="nt-crm-sidebar" aria-label="Menu do CRM">
+            <header><strong>CRM</strong><small>Painel de comunicação com cliente</small></header>
+            <nav aria-label="Navegação CRM">
+              <span class="nt-crm-disabled" aria-disabled="true">▦ &nbsp; Visão geral <small>Em breve</small></span>
+              <a routerLink="/cliente/crm" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">♧ &nbsp; Oportunidades</a>
+              <span class="nt-crm-disabled" aria-disabled="true">▤ &nbsp; Campanhas</span>
+              <a routerLink="/cliente/crm/pesquisa" routerLinkActive="active">◇ &nbsp; Pesquisas</a>
+              <a routerLink="/cliente/crm/comunicacao" routerLinkActive="active">✉ &nbsp; E-mails e comunicação</a>
+              <span class="nt-crm-disabled" aria-disabled="true">☷ &nbsp; Templates de e-mail</span>
+              <span class="nt-crm-disabled" aria-disabled="true">☷ &nbsp; Configurar menu</span>
+            </nav>
+          </aside>
+        }
+        <main id="nt-main-content" class="matero-page-content" tabindex="-1" aria-label="Conteúdo principal">
+          <router-outlet />
+        </main>
+      </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
   <a class="nt-floating-help" [href]="supportUrl" target="_blank" rel="noopener noreferrer" aria-label="Abrir Central de ajuda">

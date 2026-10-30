@@ -74,4 +74,29 @@ describe('NotificationButton global shell', () => {
     expect(widget.errorMessage).toContain('Não foi possível');
     expect(widget.notifications).toEqual([]);
   });
+  it('filtra as abas de sistema e de agendamento com dados da API', () => {
+    Object.defineProperty(widget, 'uxPreview', { value: false });
+    service.findMine.and.returnValue(of({
+      content: [notification(), { ...notification(), id: 9, categoria: 'AGENDAMENTO' }],
+      totalElements: 2, totalPages: 1, size: 20, number: 0,
+    }));
+    widget.ngOnInit(); user$.next({ id: 2 });
+    widget.category = 'system';
+    expect(widget.filteredNotifications.map(item => item.id)).toEqual([8]);
+    widget.category = 'schedule';
+    expect(widget.filteredNotifications.map(item => item.id)).toEqual([9]);
+  });
+
+  it('abre configurações e permite alternar preferências e visualização sem fingir push', () => {
+    widget.setPreference('sound', false);
+    expect(widget.soundEnabled).toBeFalse();
+    widget.setPreference('balloon', true);
+    widget.showExample();
+    expect(widget.exampleVisible).toBeTrue();
+    widget.togglePanel();
+    expect(widget.panelOpen).toBeTrue();
+    widget.closePanel();
+    expect(widget.panelOpen).toBeFalse();
+  });
+
 });

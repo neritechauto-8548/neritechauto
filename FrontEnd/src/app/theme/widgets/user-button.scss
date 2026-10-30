@@ -103,3 +103,50 @@ app-user{display:inline-flex;align-items:center;flex:none}
  .nt-profile-menu-panel .nt-profile-large-avatar{height:62px;width:62px}
  .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action{height:48px!important;min-height:48px!important;padding:0 14px!important}
 }
+
+/* MASTER user dropdown — compact account sections as observed in the supplied references. */
+.nt-profile-trigger{width:39px;height:39px;border-radius:50%;background:#1cc7a8}
+.nt-profile-trigger-picture,.nt-profile-trigger-picture img{width:34px;height:34px;border-radius:50%;background:#14c7a2}
+.nt-profile-online-dot{display:none}
+.nt-profile-menu-panel.mat-mdc-menu-panel{width:270px!important;min-width:270px!important;max-height:min(620px,calc(100dvh - 80px))!important;border-radius:8px!important;border:1px solid #e2e6eb!important;box-shadow:0 6px 18px #11182723!important}
+.nt-profile-summary{display:flex;align-items:center;gap:9px;padding:12px 10px 7px}
+.nt-profile-initials{display:grid;place-items:center;flex:0 0 35px;width:35px;height:35px;border-radius:50%;background:#20c4a2;color:#092923;font-size:12px;font-weight:650}
+.nt-profile-summary-text{display:flex;min-width:0;flex-direction:column;gap:2px}
+.nt-profile-summary-text strong{font-size:12px;font-weight:650;color:#192333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nt-profile-summary-text small{font-size:10px;color:#8290a4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nt-theme-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;margin:2px 9px 8px;border-radius:8px;background:#f0f2f4}
+.nt-theme-picker .nt-theme-choice{height:27px;border:1px solid transparent;border-radius:6px;background:none;color:#4b5563;font-size:17px;cursor:pointer}
+.nt-theme-picker .nt-theme-choice.is-active{background:white;border-color:#e0e5ed;box-shadow:0 1px 3px #11182718}
+.nt-profile-section{padding:8px 10px;border-top:1px solid #e6eaed}
+.nt-profile-section-title{display:block;padding:0 0 5px;color:#929ba9;font-size:10px;font-weight:650}
+.nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action{height:32px!important;min-height:32px!important;padding:0 8px!important;font-size:12px;border-radius:6px}
+.nt-profile-menu-panel .nt-profile-action .mat-mdc-menu-item-text{gap:10px;font-size:12px!important;font-weight:500!important}
+.nt-profile-menu-panel .nt-profile-action .nt-menu-symbol{width:18px;min-width:18px;text-align:center;font-size:17px!important;color:#202a38}
+.nt-profile-menu-panel .nt-profile-action kbd{margin-left:auto;padding:2px 5px;border:1px solid #e0e5ea;border-radius:4px;color:#65768c;font-size:9px}
+.nt-profile-menu-panel .nt-profile-action-danger .nt-menu-symbol{color:#ef4444!important}
+.nt-profile-version{padding:9px 8px;text-align:center;border-top:1px solid #e6eaed;color:#8b97a6;font-size:10px}
+.nt-shell-modal-backdrop{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.77)}
+.nt-shell-modal{width:min(810px,100%);max-height:calc(100dvh - 36px);overflow:hidden;border:1px solid #dbe1e8;border-radius:9px;background:white;box-shadow:0 20px 70px #1018284d;color:#151b28}
+.nt-shell-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 23px;border-bottom:1px solid #e4e7ec}
+.nt-shell-modal-header h2{margin:0;font-size:18px;font-weight:650}
+.nt-dialog-close{border:0;background:none;font-size:23px;color:#526071;cursor:pointer}
+.nt-shortcuts-scroll{max-height:calc(100dvh - 135px);overflow:auto;padding:8px 28px 28px}
+.nt-shortcuts-scroll h3{margin:25px 0 3px;font-size:15px;color:#131b27}
+.nt-shortcuts-scroll p{margin:0 0 17px;font-size:13px}
+.nt-shortcut-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.nt-shortcut-card{min-height:112px;display:flex;flex-direction:column;justify-content:space-between;gap:15px;padding:14px;border:1px solid #dce2e8;border-radius:8px;font-size:12px;color:#222}
+.nt-shortcut-card kbd{display:inline-block;border:1px solid #dce2e8;border-radius:3px;background:#f8fafc;padding:3px 6px;font-size:11px;color:#333}
+.nt-about-body{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px 25px}
+.nt-about-subtitle{margin:0;color:#7a8898;font-size:12px}
+.nt-about-wordmark{font-weight:780;font-size:25px;letter-spacing:-.05em;color:#143180}
+.nt-about-wordmark strong{font-weight:780}
+.nt-about-body>a,.nt-about-detail button{border:0;background:none;color:#1d4ed8;cursor:pointer;font-size:13px;text-decoration:none}
+.nt-about-body>p:not(.nt-about-subtitle){font-size:13px;line-height:1.6}
+.nt-about-detail{display:flex;flex-direction:column;width:100%;gap:5px;padding:12px;border:1px solid #e0e4e9;border-radius:8px;font-size:13px}
+.nt-about-detail>span{font-size:10px;color:#8a95a3}
+.nt-about-detail>small{color:#64748b}
+.nt-about-body .nt-about-note{font-size:11px!important;color:#98a2b3}
+.nt-about-close{align-self:flex-end;margin-top:4px;padding:9px 18px;border:1px solid #cfd8e3;border-radius:7px;background:#fff;cursor:pointer}
+.nt-shortcut-card button:focus-visible,.nt-dialog-close:focus-visible,.nt-theme-choice:focus-visible{outline:3px solid #3057ac;outline-offset:2px}
+@media(max-width:650px){.nt-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nt-shortcuts-scroll{padding:9px 15px 20px}.nt-shell-modal-header{padding:12px 16px}}
+@media(max-width:390px){.nt-shortcut-grid{grid-template-columns:1fr}.nt-shortcut-card{min-height:75px}}

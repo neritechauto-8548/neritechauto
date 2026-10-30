@@ -72,4 +72,22 @@ describe('Header global search navigation', () => {
     expect(header.searchResults).toEqual([]);
     expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
+  it('lista somente destinos permitidos no menu Aplicativos sem criar rotas', () => {
+    header.appTab = 'system';
+    expect(header.appEntries.map(entry => entry.route)).toContain('/cliente/listar');
+    expect(header.appEntries.map(entry => entry.route)).not.toContain('/cliente/crm');
+    header.appTab = 'crm';
+    expect(header.appEntries).toEqual([]);
+  });
+
+  it('abre e fecha Aplicativos e Plano sem sobrepor os dois menus', () => {
+    header.toggleApps();
+    expect(header.appMenuOpen).toBeTrue();
+    header.togglePlan();
+    expect(header.appMenuOpen).toBeFalse();
+    expect(header.planMenuOpen).toBeTrue();
+    header.closeMenus();
+    expect(header.planMenuOpen).toBeFalse();
+  });
+
 });

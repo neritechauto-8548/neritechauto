@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, DestroyRef, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '@env/environment';
 import { CommonModule } from '@angular/common';
@@ -11,115 +11,8 @@ import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-notification',
-  template: `
-    <button mat-icon-button [matMenuTriggerFor]="menu" (click)="loadNotifications()" aria-label="Abrir notificações"
-      class="!text-inherit hover:!bg-black/10 dark:hover:!bg-white/10 !transition-colors !duration-200">
-      <span class="nt-notification-icon" [attr.data-count]="unreadCount" [class.has-count]="unreadCount > 0" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg></span>
-    </button>
-
-    <mat-menu #menu="matMenu" backdropClass="stripe-menu-backdrop" class="!rounded-2xl !border !border-slate-200 !shadow-[0_20px_50px_rgba(0,0,0,0.1)] !py-0 !overflow-hidden">
-      <div class="min-w-[320px] max-w-[360px] flex flex-col bg-white" (click)="$event.stopPropagation()">
-        
-        <!-- Header -->
-        <div class="px-4 py-3.5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-bold text-slate-900">Notificações</span>
-            @if (unreadCount > 0) {
-              <span class="px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold">{{ unreadCount }} novas</span>
-            }
-          </div>
-          @if (!uxPreview && unreadCount > 0) {
-            <button type="button" (click)="markAllAsRead()" [disabled]="loading" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors disabled:opacity-50">Marcar todas como lidas</button>
-          }
-        </div>
-
-        <!-- Notification List -->
-        @if (actionError) {
-          <div class="px-4 py-2 text-xs text-rose-700 bg-rose-50" role="alert">{{ actionError }}</div>
-        }
-        <div class="max-h-[350px] overflow-y-auto custom-scrollbar">
-          @if (uxPreview) {
-            <div class="p-5 text-sm text-slate-600" role="status">Prévia visual — notificações reais indisponíveis sem autenticação e backend. Nenhuma ação será registrada.</div>
-          } @else if (!usuarioId) {
-            <div class="p-5 text-sm text-slate-600" role="status">Entre na sua conta para consultar notificações.</div>
-          } @else if (loading) {
-            <div class="py-12 flex flex-col items-center justify-center gap-2">
-               <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-               <span class="text-[11px] text-slate-400 font-medium">Carregando...</span>
-            </div>
-          } @else if (errorMessage) {
-            <div class="p-5 text-sm text-rose-700" role="alert">{{ errorMessage }}</div>
-          } @else if (notifications.length > 0) {
-            @for (item of notifications; track item.id) {
-              <button type="button" (click)="markAsRead(item)"
-                [disabled]="item.lida || pendingIds.has(item.id)" 
-                [attr.aria-label]="(item.lida ? 'Notificação lida: ' : 'Marcar notificação como lida: ') + item.titulo"
-                [class]="!item.lida ? 'bg-slate-50/40' : 'hover:bg-slate-50/60'"
-                class="w-full text-left px-4 py-3 border-0 border-b border-slate-100 last:border-0 flex gap-3 cursor-pointer transition-all relative group focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:cursor-default">
-                
-                <!-- Status Dot -->
-                @if (!item.lida) {
-                  <span class="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-indigo-600 rounded-full shadow-[0_0_8px_rgba(79,70,229,0.5)]"></span>
-                }
-
-                <!-- Icon Container -->
-                <div [class]="getIconBg(item.tipoNotificacao)" 
-                  class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-black/5">
-                  <svg class="nt-inline-icon" [class]="getIconColor(item.tipoNotificacao)" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg>
-                </div>
-
-                <!-- Content -->
-                <div class="flex flex-col gap-0.5 overflow-hidden">
-                  <div class="flex items-center justify-between gap-2">
-                    <span [class] ="!item.lida ? 'font-bold text-slate-800' : 'font-medium text-slate-600'" 
-                      class="text-[13px] leading-tight truncate">{{ item.titulo }}</span>
-                    <span class="text-[9px] text-slate-400 font-medium shrink-0">{{ formatTime(item.dataCadastro) }}</span>
-                  </div>
-                  <span class="text-[11.5px] text-slate-500 leading-snug line-clamp-2">{{ item.mensagem }}</span>
-                </div>
-              </button>
-            }
-          } @else {
-            <div class="py-12 flex flex-col items-center justify-center gap-3">
-              <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center">
-                <svg class="nt-empty-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path></svg>
-              </div>
-              <span class="text-xs text-slate-400 font-medium">Nenhuma nova notificação</span>
-            </div>
-          }
-        </div>
-
-        @if (!uxPreview && usuarioId) {
-          <div class="p-1 px-4 py-2 border-t border-slate-100 bg-slate-50/30 flex items-center justify-center">
-            <button type="button" (click)="loadNotifications()" [disabled]="loading" mat-button class="!text-[11.5px] !font-bold !text-slate-500 hover:!text-indigo-600 !w-full !rounded-lg">Atualizar notificações</button>
-          </div>
-        }
-      </div>
-    </mat-menu>
-  `,
-  styles: [`
-    :host ::ng-deep .mat-badge-content {
-      background-color: #ef4444; /* Tailwind Red 500 */
-      font-size: 9px;
-      font-weight: 800;
-      width: 16px;
-      height: 16px;
-      line-height: 16px;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #e2e8f0;
-      border-radius: 10px;
-    }
-    .nt-notification-icon{position:relative;display:grid;place-items:center}.nt-notification-icon svg,.nt-inline-icon,.nt-empty-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.nt-notification-icon.has-count::after{content:attr(data-count);position:absolute;top:-6px;right:-7px;min-width:14px;height:14px;padding:0 3px;border:2px solid #fff;border-radius:999px;background:#dc2626;color:#fff;font:800 8px/10px Inter,sans-serif;display:grid;place-items:center}.nt-empty-icon{width:20px;height:20px;color:#cbd5e1}.line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  `],
+  templateUrl: './notification-button.html',
+  styleUrl: './notification-button.scss',
   standalone: true,
   imports: [CommonModule, MatBadgeModule, MatButtonModule, MatMenuModule],
 })
@@ -138,6 +31,99 @@ export class NotificationButton implements OnInit, OnDestroy {
   errorMessage = '';
   actionError = '';
   usuarioId?: number | string | null;
+  panelOpen = false;
+  settingsOpen = false;
+  exampleVisible = false;
+  showHistory = false;
+  category: 'system' | 'schedule' = 'system';
+  soundEnabled = true;
+  balloonEnabled = true;
+  browserEnabled = false;
+  permissionMessage = '';
+
+  get filteredNotifications(): NotificacaoSistemaResponse[] {
+    return this.notifications.filter(item => {
+      const schedule = /AGEND|SOLICIT/i.test(item.categoria ?? '');
+      return (this.category === 'schedule' ? schedule : !schedule) && (this.showHistory || !item.lida);
+    });
+  }
+
+  togglePanel(): void {
+    this.panelOpen = !this.panelOpen;
+    if (this.panelOpen) this.loadNotifications();
+    else this.settingsOpen = false;
+  }
+  closePanel(): void { this.panelOpen = false; this.settingsOpen = false; this.exampleVisible = false; }
+  toggleHistory(): void { this.showHistory = !this.showHistory; this.loadNotifications(); }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyboard(event: KeyboardEvent): void {
+    const el = event.target as HTMLElement | null;
+    const editing = el?.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el?.tagName ?? '');
+    if (event.key === 'Escape' && (this.settingsOpen || this.panelOpen)) {
+      event.preventDefault();
+      if (this.settingsOpen) this.settingsOpen = false;
+      else this.closePanel();
+      return;
+    }
+    if (!editing && event.shiftKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'n') {
+      event.preventDefault(); this.togglePanel();
+    }
+  }
+
+  private prefKey(): string { return `nt-notifications-${this.usuarioId ?? 'guest'}`; }
+  private restorePreferences(): void {
+    this.soundEnabled = true; this.balloonEnabled = true; this.browserEnabled = false;
+    if (!this.usuarioId || typeof window === 'undefined') return;
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(this.prefKey()) ?? '{}');
+      if (typeof saved.sound === 'boolean') this.soundEnabled = saved.sound;
+      if (typeof saved.balloon === 'boolean') this.balloonEnabled = saved.balloon;
+      this.browserEnabled = saved.browser === true && 'Notification' in window && Notification.permission === 'granted';
+    } catch { /* Navegação privada ou armazenamento bloqueado. */ }
+  }
+  private savePreferences(): void {
+    if (!this.usuarioId || typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(this.prefKey(), JSON.stringify({sound:this.soundEnabled,balloon:this.balloonEnabled,browser:this.browserEnabled}));
+    } catch { this.permissionMessage = 'As preferências não puderam ser salvas neste navegador.'; }
+  }
+  setPreference(key: 'sound' | 'balloon', enabled: boolean): void {
+    if (key === 'sound') this.soundEnabled = enabled;
+    else this.balloonEnabled = enabled;
+    this.savePreferences();
+  }
+  showExample(): void { if (this.balloonEnabled) this.exampleVisible = true; }
+  playSample(): void {
+    if (!this.soundEnabled || typeof window === 'undefined') return;
+    try {
+      const AudioContextClass = window.AudioContext;
+      if (!AudioContextClass) { this.permissionMessage = 'Este navegador não permite reproduzir áudio.'; return; }
+      const context = new AudioContextClass();
+      const oscillator = context.createOscillator(); const gain = context.createGain();
+      oscillator.type = 'sine'; oscillator.frequency.value = 740;
+      gain.gain.setValueAtTime(0.09, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.18);
+      oscillator.connect(gain); gain.connect(context.destination);
+      oscillator.start(); oscillator.stop(context.currentTime + 0.18);
+      oscillator.onended = () => { void context.close(); };
+    } catch { this.permissionMessage = 'Não foi possível reproduzir o som neste navegador.'; }
+  }
+  async requestBrowserNotifications(enabled: boolean): Promise<void> {
+    this.permissionMessage = '';
+    if (!enabled) { this.browserEnabled = false; this.savePreferences(); return; }
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      this.browserEnabled = false;
+      this.permissionMessage = 'Notificações do navegador indisponíveis neste ambiente.'; return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      this.browserEnabled = permission === 'granted';
+      if (!this.browserEnabled) this.permissionMessage = 'Permissão não concedida. Altere a permissão nas configurações do navegador.';
+      this.savePreferences();
+    } catch { this.browserEnabled = false; this.permissionMessage = 'O navegador não conseguiu solicitar a permissão.'; }
+  }
+
 
   ngOnInit(): void {
     this.auth.user().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
@@ -152,6 +138,10 @@ export class NotificationButton implements OnInit, OnDestroy {
       this.errorMessage = '';
       this.actionError = '';
       this.loading = false;
+      this.panelOpen = false;
+      this.settingsOpen = false;
+      this.showHistory = false;
+      this.restorePreferences();
       if (nextId && !this.uxPreview) {
         this.loadNotifications();
         this.pollingSub = interval(120000)
@@ -172,7 +162,7 @@ export class NotificationButton implements OnInit, OnDestroy {
     this.loading = showLoading;
     this.errorMessage = '';
     const currentId = this.usuarioId;
-    this.fetchSub = this.notificationService.findMine()
+    this.fetchSub = this.notificationService.findMine(0, this.showHistory ? 50 : 20)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: res => {

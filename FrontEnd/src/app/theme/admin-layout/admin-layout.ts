@@ -3,7 +3,7 @@ import { BidiModule } from '@angular/cdk/bidi';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { MatSidenav, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgProgressbar } from 'ngx-progressbar';
 import { NgProgressRouter } from 'ngx-progressbar/router';
 import { Subscription, filter } from 'rxjs';
@@ -27,6 +27,8 @@ const MONITOR_MEDIAQUERY = 'screen and (min-width: 960px)';
   encapsulation: ViewEncapsulation.None,
   imports: [
     RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
     BidiModule,
     MatSidenavModule,
     NgProgressbar,
@@ -40,6 +42,7 @@ const MONITOR_MEDIAQUERY = 'screen and (min-width: 960px)';
   ],
   host: {
     '[class.matero-content-width-fix]': 'contentWidthFix',
+    '[class.nt-crm-mode]': 'isCrmRoute',
     '[class.matero-sidenav-collapsed-fix]': 'collapsedWidthFix',
   },
 })
@@ -58,6 +61,8 @@ export class AdminLayout implements OnDestroy {
     return this.settings.getThemeColor();
   }
 
+  get isCrmRoute(): boolean { return this.router.url.startsWith('/cliente/crm'); }
+
   get isHomeRoute(): boolean {
     const path = this.router.url.split('?')[0].split('#')[0];
     return path === '/home' || path === '/';
@@ -73,7 +78,7 @@ export class AdminLayout implements OnDestroy {
 
   get contentWidthFix() {
     return (
-      this.isContentWidthFixed &&
+      !this.isCrmRoute && this.isContentWidthFixed &&
       this.options.navPos === 'side' &&
       this.options.sidenavOpened &&
       !this.isOver &&
@@ -83,7 +88,7 @@ export class AdminLayout implements OnDestroy {
 
   get collapsedWidthFix() {
     return (
-      this.isCollapsedWidthFixed &&
+      !this.isCrmRoute && this.isCollapsedWidthFixed &&
       (this.options.navPos === 'top' || (this.options.sidenavOpened && this.isOver))
     );
   }
@@ -187,7 +192,7 @@ export class AdminLayout implements OnDestroy {
 
   onSidenavOpenedChange(isOpened: boolean) {
     this.isCollapsedWidthFixed = !this.isOver;
-    if (!this.isOver) {
+    if (!this.isOver && !this.isCrmRoute) {
       this.options.sidenavOpened = isOpened;
       this.settings.setOptions(this.options);
     }

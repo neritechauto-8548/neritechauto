@@ -52,6 +52,50 @@ export class Header {
   pageTitle = 'Dashboard';
   searchTerm = '';
   searchResults: Array<{ name: string; route: string }> = [];
+  appMenuOpen = false;
+  planMenuOpen = false;
+  appTab: 'system' | 'crm' = 'system';
+
+  get appEntries(): Array<{ name: string; group: string; route: string }> {
+    const entries: Array<{ name: string; group: string; route: string }> = [];
+    const walk = (items: Array<Menu | MenuChildrenItem>, group: string, parentRoutes: string[]) => {
+      for (const item of items) {
+        if (item.disabled) continue;
+        const name = this.prettyName(item.name);
+        const prefix = item.route ? [...parentRoutes, item.route] : parentRoutes;
+        if (item.type === 'link' && item.route) {
+          const route = this.menu.buildRoute(prefix);
+          const isCrm = route.startsWith('/cliente/crm');
+          if ((this.appTab === 'crm') === isCrm && !entries.some(entry => entry.route === route)) {
+            const entryName = route === '/cliente/crm' ? 'Oportunidades' :
+              route.endsWith('/comunicacao') && isCrm ? 'E-mails e comunicação' :
+              route.endsWith('/pesquisa') && isCrm ? 'Pesquisas' : name;
+            entries.push({ name: entryName, group: isCrm ? 'CRM' : group, route });
+          }
+        }
+        if (item.children?.length) walk(item.children, group || name, prefix);
+      }
+    };
+    for (const item of this.menuItems) walk([item], this.prettyName(item.name), []);
+    return entries;
+  }
+
+  prettyName(key: string): string {
+    const translated = this.translate.instant(key);
+    if (typeof translated === 'string' && translated !== key) return translated;
+    return key.replace(/^menu\./, '').split('.').pop() || key;
+  }
+
+  toggleApps(): void { this.appMenuOpen = !this.appMenuOpen; this.planMenuOpen = false; }
+  togglePlan(): void { this.planMenuOpen = !this.planMenuOpen; this.appMenuOpen = false; }
+  closeMenus(): void { this.appMenuOpen = false; this.planMenuOpen = false; }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.nt-apps-wrap, .nt-apps-popover, .nt-plan-wrap')) this.closeMenus();
+  }
+
   private menuItems: Menu[] = [];
 
   /** Busca global com nomes traduzidos e rotas completas de módulos e submódulos. */
@@ -137,6 +181,7 @@ export class Header {
   }
 
   navigateSearch(route: string): void {
+    this.closeMenus();
     this.clearSearch();
     if (route.startsWith('http')) window.open(route, '_blank', 'noopener,noreferrer');
     else this.router.navigateByUrl(route);
@@ -148,6 +193,9 @@ export class Header {
       event.preventDefault();
       this.mobileSearchOpen = true;
       queueMicrotask(() => this.globalSearchInput?.nativeElement.focus());
+    }
+    if (event.key === 'Escape' && (this.appMenuOpen || this.planMenuOpen)) {
+      this.closeMenus();
     }
     if (event.key === 'Escape' && (this.mobileSearchOpen || this.searchResults.length)) {
       this.clearSearch();

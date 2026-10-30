@@ -11,13 +11,46 @@
   </div>
 
   <nav class="nt-reference-navigation" aria-label="Acessos principais">
-    <a routerLink="/home">Aplicativos</a>
+    <div class="nt-apps-wrap"><button type="button" (click)="toggleApps()" [attr.aria-expanded]="appMenuOpen" aria-controls="nt-apps-popover">▦ &nbsp; Aplicativos</button></div>
     <a routerLink="/configuracoes/empresa">Empresas</a>
     <a routerLink="/configuracoes/usuarios">Usuários</a>
     <a routerLink="/configuracoes/preferencias">Integrações</a>
     <button type="button" (click)="abrirAjuda()">Informativos</button>
-    <a class="nt-master-link" routerLink="/configuracoes/assinatura">Master</a>
+    <div class="nt-plan-wrap"><button type="button" class="nt-master-link" (click)="togglePlan()" [attr.aria-expanded]="planMenuOpen" aria-controls="nt-plan-popover">◇ &nbsp; Master</button></div>
   </nav>
+
+  @if (appMenuOpen) {
+    <div id="nt-apps-popover" class="nt-apps-popover" role="dialog" aria-label="Aplicativos disponíveis">
+      <aside class="nt-apps-rail" aria-label="Selecionar aplicativo">
+        <button type="button" [class.selected]="appTab === 'system'" (click)="appTab = 'system'">Sistema NERITECH</button>
+        <button type="button" [class.selected]="appTab === 'crm'" (click)="appTab = 'crm'">CRM</button>
+      </aside>
+      <section class="nt-apps-content">
+        <header><strong>{{ appTab === 'system' ? 'Sistema NERITECH' : 'CRM' }}</strong><a [routerLink]="appTab === 'system' ? '/home' : '/cliente/crm'" (click)="closeMenus()">Navegar &nbsp; →</a></header>
+        @if (appEntries.length) {
+          <div class="nt-apps-grid">
+            @for (entry of appEntries; track entry.route; let i = $index) {
+              @if (i === 0 || appEntries[i-1].group !== entry.group) {
+                <div class="nt-apps-group">{{ entry.group }}</div>
+              }
+              <a class="nt-apps-item" [routerLink]="entry.route" (click)="closeMenus()">
+                <span class="nt-apps-item-icon" aria-hidden="true">▣</span>
+                <span><strong>{{ entry.name }}</strong><small>Abrir módulo</small></span>
+              </a>
+            }
+          </div>
+        } @else {
+          <p class="nt-apps-empty">Nenhum módulo disponível para este perfil.</p>
+        }
+      </section>
+    </div>
+  }
+  @if (planMenuOpen) {
+    <div id="nt-plan-popover" class="nt-plan-popover" role="dialog" aria-label="Plano de assinatura">
+      <span>Plano</span>
+      <a routerLink="/configuracoes/assinatura" (click)="closeMenus()"><span class="nt-plan-icon">◇</span><span><strong>Minha assinatura</strong><small>Consultar plano atual</small></span><span>›</span></a>
+    </div>
+  }
 
   <div class="nt-global-search" [class.nt-mobile-search-open]="mobileSearchOpen">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
