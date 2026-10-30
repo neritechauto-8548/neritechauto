@@ -361,3 +361,12 @@ Sete campos na ordem e grid 2 colunas da captura: CPF/CNPJ, Nome fantasia, Conta
 - A pipeline de produção backend `41109270395` também compilou com sucesso após corrigir importação de `PdfPTable`.
 - Testes Java direcionados foram ampliados com verificação de PDF real, encaminhamento dos filtros autorizados e rejeição de vínculo com cliente de outra empresa. Executar no próximo build.
 - Ainda pendentes: teste de integração HTTP/PostgreSQL A/B, comparação visual pixel a pixel em navegador real, foco e reflow 200%, e verificação do PDF com volume real.
+
+
+### Revisão de qualidade — Histórico de veículos
+
+- A personalização de colunas não grava preferências genéricas sem ID de empresa válido. IDs numéricos e estruturas de sessão com `id` são suportados. Em sessão desconhecida, o componente usa somente as colunas padrão/estado em memória.
+- O controle do cartão do cliente passa a abrir a edição real do cliente, onde sua categoria poderá ser gerenciada; não é um seletor improvisado sem backend.
+- Relatórios: controle de expandir/restaurar a janela, mantendo os filtros e a lista enquanto alterna o tamanho.
+- Contrato HTTP Angular coberto por testes focados: busca/paginação, veículo, OS fechadas/autorizadas, parâmetros PDF e propagação de 404 sem mocks de produção.
+- A homologação pixel a pixel continua pendente de capturas renderizadas no mesmo viewport, e o teste E2E completo com dados A/B continua distinto dos testes de serviço/controlador executados em CI.

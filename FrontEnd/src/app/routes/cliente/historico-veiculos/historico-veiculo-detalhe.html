@@ -11,7 +11,7 @@
       <div class="hv-summary-client">
         <div class="hv-avatar" aria-hidden="true">{{initials}}</div>
         <div><a [routerLink]="['/cliente/editar',veiculo.clienteId]">{{veiculo.cliente}}</a><small>{{veiculo.documento || 'Sem documento'}}</small>
-          <span class="hv-category-placeholder" title="Categoria gerenciada no cadastro de clientes">▦ &nbsp; Selecionar</span>
+          <a class="hv-category-placeholder" [routerLink]="['/cliente/editar',veiculo.clienteId]" title="Abrir cadastro do cliente para gerenciar sua categoria">▦ &nbsp; Selecionar</a>
         </div>
       </div>
       <div class="hv-summary-car">

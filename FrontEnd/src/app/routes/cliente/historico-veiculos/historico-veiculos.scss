@@ -133,3 +133,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .hv-more{padding:12px;text-align:center}
 @media(max-width:850px){.hv-page{padding:13px}.hv-detail-filters{grid-template-columns:1fr 130px}.hv-segmented{grid-column:1/-1;justify-self:start}.hv-summary{flex-wrap:wrap}.hv-summary-client{width:50%}.hv-summary-car{min-width:180px}}
 @media(max-width:620px){.hv-toolbar{flex-wrap:wrap}.hv-search{flex-basis:100%}.hv-toolbar select{flex:1}.hv-page h1{font-size:18px}.hv-table-top{flex-wrap:wrap}.hv-table th:first-child,.hv-table td:first-child{width:auto}.hv-mask{padding:5px}.hv-columns-content{grid-template-columns:1fr;overflow-y:auto}.hv-columns-content>section+section{border-left:0;border-top:1px solid #d9e0e8}.hv-columns-dialog{max-height:calc(100dvh - 10px)}.hv-report{height:calc(100dvh - 10px)}.hv-report-side{width:145px;flex-basis:145px;padding-left:4px}.hv-report-main{padding:10px}.hv-report-option-grid{grid-template-columns:1fr}.hv-report>footer{flex-wrap:wrap}.hv-summary-client{width:100%;border-right:0;border-bottom:1px solid #dfe4e9;padding-bottom:8px}.hv-detail-filters{grid-template-columns:1fr}.hv-segmented{grid-column:auto}.hv-print{margin-left:auto}}
+
+/* Comportamentos complementares da referência: expandir relatórios e editar categoria. */
+.hv-report-head-actions{display:flex;align-items:center;gap:7px}
+.hv-report-head-actions .hv-report-expand{height:26px;width:26px;border:1px solid #cbd7e4;border-radius:5px;display:grid;place-items:center;font-size:16px;line-height:1}
+.hv-report-fullscreen{width:calc(100vw - 16px);height:calc(100dvh - 16px)}
+.hv-category-placeholder{text-decoration:none;cursor:pointer}
+.hv-category-placeholder:hover{background:#e7effb;color:#20428b}

@@ -32,6 +32,7 @@ export class HistoricoVeiculos implements OnInit {
   columnsOpen = false;
   filterOpen = false;
   reportOpen = false;
+  reportFullscreen = false;
   columnSearch = '';
   selectedColumnSearch = '';
   readonly options: {key:ColunaHistorico,label:string}[] = [
@@ -111,26 +112,35 @@ export class HistoricoVeiculos implements OnInit {
     next.splice(index,0,this.dragging);this.draftColumns=next;this.dragging=null;
   }
   restoreDefault():void {this.draftColumns=['cliente','placa'];}
-  private scopedColumnsKey():string {
-    const value=this.storage.get('tenantId') || this.storage.get('empresaId');
-    const id=typeof value==='number' || typeof value==='string' ? String(value) : 'local';
-    return this.columnsKey+id;
+  /** Personalização local nunca atravessa empresas nem é gravada sem tenant confiável. */
+  private scopedColumnsKey(): string | null {
+    const value = this.storage.get('tenantId') || this.storage.get('empresaId');
+    const candidate = value && typeof value === 'object'
+      ? (value as {id?: unknown}).id : value;
+    const id = typeof candidate === 'number' || typeof candidate === 'string'
+      ? String(candidate).trim() : '';
+    return /^\\d+$/.test(id) && Number(id)>0 ? this.columnsKey+id : null;
   }
   restoreColumns():void {
     try {
-      const raw=JSON.parse(localStorage.getItem(this.scopedColumnsKey())||'null');
+      const key=this.scopedColumnsKey();
+      if(!key)return;
+      const raw=JSON.parse(localStorage.getItem(key)||'null');
       if(Array.isArray(raw) && raw.includes('cliente') && raw.every(x=>x==='cliente'||x==='placa'))
         this.selectedColumns=['cliente',...(raw.filter(x=>x==='placa') as ColunaHistorico[])];
     } catch {}
   }
   saveColumns():void {
     this.selectedColumns=[...this.draftColumns];
-    try {localStorage.setItem(this.scopedColumnsKey(),JSON.stringify(this.selectedColumns));}catch{}
+    try {
+      const key=this.scopedColumnsKey();
+      if(key)localStorage.setItem(key,JSON.stringify(this.selectedColumns));
+    }catch{}
     this.columnsOpen=false;
   }
   openReport():void {
     this.reportSearch='';this.reportAuthorized=false;this.reportCommissioned=false;
-    this.reportValues=false;this.reportError='';this.reportOpen=true;
+    this.reportValues=false;this.reportError='';this.reportFullscreen=false;this.reportOpen=true;
   }
   readonly reportGroups = [
     {title:'Orçamentos & Serv.',items:[] as string[]},
