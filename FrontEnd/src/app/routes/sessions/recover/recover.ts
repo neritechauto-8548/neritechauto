@@ -20,6 +20,7 @@ export class Recover {
   isSubmitting = false;
   emailSent = false;
   errorMessage = '';
+  showLoginHelp = false;
 
   recoverForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

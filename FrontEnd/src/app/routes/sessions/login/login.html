@@ -1,172 +1,75 @@
-<main class="auth-page">
-  <section class="auth-visual" aria-label="NERITECH AUTO">
-    <div class="visual-grid" aria-hidden="true"></div>
-    <div class="visual-glow visual-glow-one" aria-hidden="true"></div>
-    <div class="visual-glow visual-glow-two" aria-hidden="true"></div>
-
-    <div class="visual-content">
-      <div class="visual-brand">
-        <div class="brand-mark" aria-hidden="true">N</div>
-        <div>
-          <span class="brand-name">NERITECH</span>
-          <span class="brand-product">AUTO</span>
-        </div>
-      </div>
-
-      <div class="visual-copy">
-        <span class="visual-eyebrow">GESTÃO INTELIGENTE PARA OFICINAS</span>
-        <h2>Do orçamento à entrega, sua oficina em um só lugar.</h2>
-        <p>Uma operação mais clara, rápida e conectada para quem vive o dia a dia automotivo.</p>
-      </div>
-
-      <div class="visual-illustration" aria-hidden="true">
-        <svg viewBox="0 0 760 420" role="presentation">
-          <defs>
-            <linearGradient id="car-stroke" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="#60a5fa" stop-opacity=".95"></stop>
-              <stop offset="1" stop-color="#a5b4fc" stop-opacity=".45"></stop>
-            </linearGradient>
-            <linearGradient id="car-fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stop-color="#1e3a8a" stop-opacity=".62"></stop>
-              <stop offset="1" stop-color="#0f172a" stop-opacity=".08"></stop>
-            </linearGradient>
-          </defs>
-          <path
-            d="M92 270c28-6 52-23 74-50l62-77c15-19 37-30 61-31l165-5c30-1 58 10 79 31l66 67c16 16 37 26 61 31l36 8c20 5 34 23 34 44v17H86v-18c0-8 2-14 6-17Z"
-            fill="url(#car-fill)"
-            stroke="url(#car-stroke)"
-            stroke-width="4"
-          ></path>
-          <path d="M238 116l-46 78h195l17-82" fill="none" stroke="#93c5fd" stroke-opacity=".65" stroke-width="3"></path>
-          <path d="M420 112l9 82h115l-76-76c-13-12-30-18-48-18Z" fill="none" stroke="#93c5fd" stroke-opacity=".65" stroke-width="3"></path>
-          <path d="M94 278h608" stroke="#60a5fa" stroke-opacity=".38" stroke-width="2"></path>
-          <path d="M137 298c0 30 24 54 54 54s54-24 54-54M522 298c0 30 24 54 54 54s54-24 54-54" fill="#0f172a" stroke="#93c5fd" stroke-opacity=".8" stroke-width="4"></path>
-          <circle cx="191" cy="298" r="21" fill="#020617" stroke="#60a5fa" stroke-opacity=".55" stroke-width="3"></circle>
-          <circle cx="576" cy="298" r="21" fill="#020617" stroke="#60a5fa" stroke-opacity=".55" stroke-width="3"></circle>
-          <path d="M118 247h-43M670 247h-34" stroke="#60a5fa" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"></path>
-          <path d="M274 233h215" stroke="#bfdbfe" stroke-opacity=".28" stroke-width="2"></path>
-        </svg>
-      </div>
-      <div class="visual-journey" aria-hidden="true">
-        <span><b>01</b> Atendimento</span>
-        <i></i><span><b>02</b> Orçamento</span>
-        <i></i><span><b>03</b> Serviço</span>
-        <i></i><span><b>04</b> Entrega</span>
-      </div>
-    </div>
-
-    <div class="visual-footer" aria-hidden="true">
-      <span>OPERACIONAL</span>
-      <span>•</span>
-      <span>FINANCEIRO</span>
-      <span>•</span>
-      <span>FISCAL</span>
-    </div>
-  </section>
-
+<main class="auth-page auth-page-login">
   <section class="auth-panel" aria-labelledby="login-title">
     <div class="auth-content">
-      <header class="auth-brand-mobile">
-        <div class="brand-mark" aria-hidden="true">N</div>
-        <div>
-          <span class="brand-name">NERITECH</span>
-          <span class="brand-product">AUTO</span>
-        </div>
+      <header class="auth-brand" aria-label="NERITECH AUTO">
+        <span class="auth-wordmark">neritech<span>auto</span></span>
+        <span class="auth-tagline">Gestão inteligente para oficinas</span>
       </header>
 
       <div class="auth-header">
-        <span class="auth-eyebrow">ACESSO SEGURO</span>
-        <h1 id="login-title">Entrar no NERITECH AUTO</h1>
-        <p>Acesse sua operação de oficina com segurança.</p>
+        <h1 id="login-title">Área de acesso</h1>
+        <p>Gerencie sua oficina de forma fácil e aumente sua lucratividade.</p>
       </div>
 
       @if (loginError) {
         <p class="auth-error" role="alert" aria-live="assertive">{{ loginError }}</p>
       }
+
       <form [formGroup]="loginForm" (ngSubmit)="login()" class="auth-form" [attr.aria-busy]="isSubmitting" novalidate>
         <div class="field">
-          <label for="email">E-mail</label>
-          <input
-            id="email"
-            autofocus
-            type="email"
-            formControlName="username"
-            autocomplete="username"
-            placeholder="voce@empresa.com"
-            [attr.aria-invalid]="username.invalid && (username.dirty || username.touched)"
-            [attr.aria-describedby]="username.invalid && (username.dirty || username.touched) ? 'email-error' : null"
-          />
-          <p
-            *ngIf="username.invalid && (username.dirty || username.touched)"
-            id="email-error"
-            class="field-error"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <span *ngIf="username.errors?.['required']">Informe seu e-mail.</span>
+          <label for="email">Usuário <span class="field-qualifier">(e-mail de acesso)</span></label>
+          <div class="input-wrap">
+            <svg class="field-leading-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="9" r="3"></circle><path d="M6.8 18c1.1-2.3 2.9-3.3 5.2-3.3s4.1 1 5.2 3.3"></path></svg>
+            <input id="email" type="email" formControlName="username" autocomplete="username" placeholder="Informe seu e-mail de acesso" autofocus
+              [attr.aria-invalid]="username.invalid && (username.dirty || username.touched)"
+              [attr.aria-describedby]="username.invalid && (username.dirty || username.touched) ? 'email-error' : null" />
+          </div>
+          <p *ngIf="username.invalid && (username.dirty || username.touched)" id="email-error" class="field-error" aria-live="polite">
+            <span *ngIf="username.errors?.['required']">Informe seu e-mail de acesso.</span>
             <span *ngIf="username.errors?.['email']">Informe um e-mail válido.</span>
             <span *ngIf="username.errors?.['remote']">{{ username.errors?.['remote'] }}</span>
           </p>
         </div>
 
         <div class="field">
-          <div class="field-label-row">
-            <label for="password">Senha</label>
-            <a routerLink="/auth/recover">Esqueci minha senha</a>
-          </div>
-
-          <div class="password-field">
-            <input
-              id="password"
-              [type]="showPassword ? 'text' : 'password'"
-              formControlName="password"
-              autocomplete="current-password"
-              placeholder="Digite sua senha"
+          <label for="password">Senha</label>
+          <div class="input-wrap password-field">
+            <nt-icon class="field-leading-icon" name="lock" [size]="17" />
+            <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="current-password"
+              placeholder="Informe sua senha"
               [attr.aria-invalid]="password.invalid && (password.dirty || password.touched)"
-              [attr.aria-describedby]="password.invalid && (password.dirty || password.touched) ? 'password-error' : null"
-            />
-            <button
-              type="button"
-              class="password-toggle"
-              (click)="togglePasswordVisibility()"
-              [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
-              [attr.aria-pressed]="showPassword"
-            >
-              <nt-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18" />
+              [attr.aria-describedby]="password.invalid && (password.dirty || password.touched) ? 'password-error' : null" />
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'" [attr.aria-pressed]="showPassword">
+              <nt-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="19" />
             </button>
           </div>
-
-          <p
-            *ngIf="password.invalid && (password.dirty || password.touched)"
-            id="password-error"
-            class="field-error"
-            aria-live="polite"
-            aria-atomic="true"
-          >
+          <p *ngIf="password.invalid && (password.dirty || password.touched)" id="password-error" class="field-error" aria-live="polite">
             <span *ngIf="password.errors?.['required']">Informe sua senha.</span>
             <span *ngIf="password.errors?.['remote']">{{ password.errors?.['remote'] }}</span>
           </p>
         </div>
 
-        <label class="remember-field">
-          <input type="checkbox" formControlName="rememberMe" />
-          <span>Manter meu e-mail preenchido</span>
-        </label>
+        <div class="auth-assist-row">
+          <a class="auth-link" routerLink="/auth/recover">Esqueci minha senha</a>
+          <label class="remember-field"><input type="checkbox" formControlName="rememberMe" /><span>Lembrar e-mail</span></label>
+        </div>
 
         <button type="submit" class="auth-primary" [disabled]="isSubmitting" [attr.aria-disabled]="isSubmitting">
-          <span *ngIf="!isSubmitting">Entrar</span>
-          <span *ngIf="isSubmitting" class="loading-content" role="status" aria-live="polite">
-            <span class="spinner" aria-hidden="true"></span>
-            Entrando...
-          </span>
+          <span *ngIf="!isSubmitting">Acessar <span class="button-arrow" aria-hidden="true">›</span></span>
+          <span *ngIf="isSubmitting" class="loading-content" role="status" aria-live="polite"><span class="spinner" aria-hidden="true"></span>Entrando...</span>
         </button>
+
+        <a class="auth-secondary" href="https://neritechauto.com.br/teste-gratis">Criar conta / Teste grátis</a>
       </form>
 
-      <footer class="auth-footer">
-        <span>NERITECH AUTO</span>
-        <span aria-hidden="true">•</span>
-        <span>Gestão inteligente para oficinas</span>
-      </footer>
+      <a class="auth-help-link" href="https://neritechauto.atlassian.net/servicedesk/customer/portal/1" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h8M8 13h5"></path></svg>
+        Central de ajuda
+      </a>
     </div>
+    <footer class="auth-legal">Ao acessar esta aplicação, você concorda com nossa <a href="https://neritechauto.com.br/politica-de-privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</a></footer>
   </section>
+
+  <aside class="auth-visual" aria-hidden="true"></aside>
 </main>
