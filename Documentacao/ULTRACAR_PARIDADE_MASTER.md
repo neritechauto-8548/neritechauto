@@ -102,7 +102,7 @@ Registrar uma linha por nova tela, com todos os estados visuais (listagem, ediç
 
 **Limitações explicitamente preservadas:**
 - O backend só fornece notificações por `GET /v1/comunicacao/notificacoes/me` e `PATCH /{id}/ler`, não fornece histórico de solicitações separado nem endpoint de preferências; classificação de agendamento é feita por categoria do registro e o histórico usa lista paginada. A operação “Marcar todos” aplica-se apenas aos registros carregados; não foi inventada uma API de operação em lote.
-- Preferências (som/balão/permissão do navegador) ficam no armazenamento local por usuário, não sincronizadas entre aparelhos nem substituem push servidor. Push remoto real depende de infraestrutura, subscription e endpoint próprios.
+- Preferências (som/balão/permissão do navegador) ficam no armazenamento local por usuário, não sincronizadas entre aparelhos nem substituem push servidor. A aplicação agora detecta notificações novas durante o polling (após a primeira carga), podendo mostrar balão, reproduzir um som original e solicitar uma notificação nativa quando o navegador concedeu permissão. Push remoto com a aba fechada ainda depende de service worker, subscription e endpoint próprios.
 - Métricas CRM dependem de consultas de vendas, OS, revisões e comunicação filtradas por empresa. Os cinco valores são exibidos como indisponíveis (`—`), não como zero/contagens falsas, e envio em massa permanece desabilitado.
 - A página de assinatura é uma rota real existente; preço, plano contratado e versão do produto só devem ser apresentados após leitura de dados verificados.
 - As imagens não confirmam regras internas de criação de campanhas, atalhos de cadastro por fora das telas observadas ou API de preferências.

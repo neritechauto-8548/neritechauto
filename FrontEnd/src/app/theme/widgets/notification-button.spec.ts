@@ -99,4 +99,19 @@ describe('NotificationButton global shell', () => {
     expect(widget.panelOpen).toBeFalse();
   });
 
+  it('anuncia apenas notificações novas após a primeira leitura, sem dados fictícios', () => {
+    Object.defineProperty(widget, 'uxPreview', { value: false });
+    widget.ngOnInit(); user$.next({ id: 2 });
+    widget.setPreference('sound', false);
+    expect(widget.exampleVisible).toBeFalse();
+    service.findMine.and.returnValue(of({
+      content: [notification(), { ...notification(), id: 11, titulo: 'Nova OS', mensagem: 'Atualização real', lida: false }],
+      totalElements: 2, totalPages: 1, size: 20, number: 0,
+    }));
+    widget.loadNotifications();
+    expect(widget.exampleVisible).toBeTrue();
+    expect(widget.exampleTitle).toBe('Nova OS');
+    expect(widget.exampleMessage).toBe('Atualização real');
+  });
+
 });

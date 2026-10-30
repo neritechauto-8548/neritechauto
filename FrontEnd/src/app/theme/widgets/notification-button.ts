@@ -34,6 +34,10 @@ export class NotificationButton implements OnInit, OnDestroy {
   panelOpen = false;
   settingsOpen = false;
   exampleVisible = false;
+  exampleTitle = 'Notificação';
+  exampleMessage = 'Mensagem de notificação de exemplo';
+  private knownNotifications = new Set<number>();
+  private receivedInitialPage = false;
   showHistory = false;
   category: 'system' | 'schedule' = 'system';
   soundEnabled = true;
@@ -93,7 +97,24 @@ export class NotificationButton implements OnInit, OnDestroy {
     else this.balloonEnabled = enabled;
     this.savePreferences();
   }
-  showExample(): void { if (this.balloonEnabled) this.exampleVisible = true; }
+  showExample(): void {
+    if (!this.balloonEnabled) return;
+    this.exampleTitle = 'Notificação';
+    this.exampleMessage = 'Mensagem de notificação de exemplo';
+    this.exampleVisible = true;
+  }
+  private announceNew(item: NotificacaoSistemaResponse): void {
+    if (this.balloonEnabled) {
+      this.exampleTitle = item.titulo;
+      this.exampleMessage = item.mensagem;
+      this.exampleVisible = true;
+    }
+    if (this.soundEnabled) this.playSample();
+    if (this.browserEnabled && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try { new Notification(item.titulo, { body: item.mensagem.slice(0, 150) }); }
+      catch { /* Notificação nativa pode ser bloqueada pelo navegador. */ }
+    }
+  }
   playSample(): void {
     if (!this.soundEnabled || typeof window === 'undefined') return;
     try {
@@ -133,6 +154,8 @@ export class NotificationButton implements OnInit, OnDestroy {
       this.fetchSub?.unsubscribe();
       this.usuarioId = nextId;
       this.notifications = [];
+      this.knownNotifications.clear();
+      this.receivedInitialPage = false;
       this.unreadCount = 0;
       this.pendingIds.clear();
       this.errorMessage = '';
@@ -167,8 +190,14 @@ export class NotificationButton implements OnInit, OnDestroy {
       .subscribe({
         next: res => {
           if (currentId !== this.usuarioId) return;
-          this.notifications = res?.content ?? [];
+          const nextItems = res?.content ?? [];
+          const newItems = this.receivedInitialPage && !this.showHistory
+            ? nextItems.filter(n => !n.lida && !this.knownNotifications.has(n.id)) : [];
+          nextItems.forEach(item => this.knownNotifications.add(item.id));
+          this.receivedInitialPage = true;
+          this.notifications = nextItems;
           this.unreadCount = this.notifications.filter(n => !n.lida).length;
+          if (newItems.length) this.announceNew(newItems[0]);
           this.loading = false;
         },
         error: () => {

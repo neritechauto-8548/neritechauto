@@ -74,7 +74,7 @@
 @if (exampleVisible) {
   <div class="nt-notification-example" role="status">
     <span class="nt-example-icon" aria-hidden="true">♧</span>
-    <span><strong>Notificação</strong><small>Mensagem de notificação de exemplo</small></span>
+    <span><strong>{{ exampleTitle }}</strong><small>{{ exampleMessage }}</small></span>
     <button type="button" (click)="exampleVisible = false" aria-label="Fechar notificação de exemplo">×</button>
   </div>
 }
