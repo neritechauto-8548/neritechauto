@@ -172,7 +172,7 @@ class JwtAuthenticationFilterTest {
                 .when(filterChain).doFilter(request, response);
 
         assertThatThrownBy(() -> new JwtAuthenticationFilter(
-                jwtService, userDetailsService, sessaoUsuarioRepository)
+                jwtService, userDetailsService, sessaoUsuarioRepository, assinaturaEmpresaRepository)
                 .doFilter(request, response, filterChain))
                 .isInstanceOf(ServletException.class);
         assertThat(TenantContext.getCurrentTenant()).isNull();
