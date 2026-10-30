@@ -25,7 +25,7 @@ export class DashboardComponentPicker {
   readonly items=WIDGET_ITEMS;
   expanded=new Set<string>(['os']);
   modal:'nenhum'|'modelos'|'confirmacao'='nenhum';
-  selectedPreset=(typeof WIDGET_PRESETS)[number] | null=null;
+  selectedPreset: (typeof WIDGET_PRESETS)[number] | null = null;
   configuring:string | null=null;
   tipo:WidgetType='indicador';
   colunas=1;

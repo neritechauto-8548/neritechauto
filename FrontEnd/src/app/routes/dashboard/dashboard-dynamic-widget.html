@@ -1,6 +1,6 @@
 <article class="dw-card">
   <header class="dw-head">
-    <span class="dw-icon"><nt-icon [name]="meta?.icone || 'layout-grid'" [size]="19"/></span>
+    <span class="dw-icon"><nt-dashboard-icon [name]="meta?.icone || 'layout-grid'" [size]="19"/></span>
     <div class="dw-heading"><h2>{{meta?.nome}}</h2><p>{{meta?.descricao}}</p></div>
     <div class="dw-actions">
       <button type="button" [attr.aria-label]="'Sobre '+meta?.nome" (click)="info=!info">ⓘ</button>

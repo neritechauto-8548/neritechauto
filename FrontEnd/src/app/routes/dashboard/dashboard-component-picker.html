@@ -51,14 +51,14 @@
             <button type="button" class="cp-group-head" [attr.aria-expanded]="expanded.has(group.id)"
               [attr.aria-controls]="'cp-group-'+group.id" (click)="toggle(group.id)">
               <span><strong>{{group.nome}}</strong><small>{{group.descricao}}</small></span>
-              <nt-icon [name]="expanded.has(group.id)?'chevron-up':'chevron-down'" [size]="17"/>
+              <nt-dashboard-icon [name]="expanded.has(group.id)?'chevron-up':'chevron-down'" [size]="17"/>
             </button>
             @if(expanded.has(group.id)){
               <div class="cp-group-body" [id]="'cp-group-'+group.id">
                 @for(option of group.itens;track option.id){
                   <button type="button" class="cp-item" [class.cp-item-selected]="isSelected(option.id)"
                     (click)="configure(option.id)">
-                    <span class="cp-item-icon"><nt-icon [name]="option.icone" [size]="18"/></span>
+                    <span class="cp-item-icon"><nt-dashboard-icon [name]="option.icone" [size]="18"/></span>
                     <span class="cp-item-text"><strong>{{option.nome}}</strong><small>{{option.descricao}}</small></span>
                     @if(isSelected(option.id)){<span class="cp-added">Adicionado</span>}
                   </button>
@@ -83,7 +83,7 @@
         <div class="cp-model-list">
           @for(model of presets;track model.id){
             <button type="button" class="cp-model" (click)="choosePreset(model.id)">
-              <span class="cp-model-icon"><nt-icon [name]="model.icone" [size]="19"/></span>
+              <span class="cp-model-icon"><nt-dashboard-icon [name]="model.icone" [size]="19"/></span>
               <span><strong>{{model.nome}}</strong><small>{{model.descricao}}</small></span>
             </button>
           }
