@@ -2,6 +2,7 @@ package com.neritech.saas.security;
 
 import com.neritech.saas.common.tenancy.TenantContext;
 import com.neritech.saas.gestaoUsuarios.repository.SessaoUsuarioRepository;
+import com.neritech.saas.empresa.repository.AssinaturaEmpresaRepository;
 import com.neritech.saas.gestaoUsuarios.domain.SessaoUsuario;
 import com.neritech.saas.gestaoUsuarios.domain.Usuario;
 import jakarta.servlet.FilterChain;
@@ -36,6 +37,7 @@ class JwtAuthenticationFilterTest {
     @Mock JwtService jwtService;
     @Mock UserDetailsService userDetailsService;
     @Mock SessaoUsuarioRepository sessaoUsuarioRepository;
+    @Mock AssinaturaEmpresaRepository assinaturaEmpresaRepository;
     @Mock FilterChain filterChain;
 
     private final String testJwt = "jwt-de-teste";
@@ -75,7 +77,7 @@ class JwtAuthenticationFilterTest {
             return null;
         }).when(filterChain).doFilter(request, response);
 
-        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository)
+        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository, assinaturaEmpresaRepository)
                 .doFilter(request, response, filterChain);
         assertThat(TenantContext.getCurrentTenant()).isNull();
     }
@@ -95,7 +97,7 @@ class JwtAuthenticationFilterTest {
             return null;
         }).when(filterChain).doFilter(request, response);
 
-        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository)
+        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository, assinaturaEmpresaRepository)
                 .doFilter(request, response, filterChain);
         assertThat(TenantContext.getCurrentTenant()).isNull();
     }
@@ -118,7 +120,7 @@ class JwtAuthenticationFilterTest {
             return null;
         }).when(filterChain).doFilter(request, response);
 
-        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository)
+        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository, assinaturaEmpresaRepository)
                 .doFilter(request, response, filterChain);
         assertThat(TenantContext.getCurrentTenant()).isNull();
     }
@@ -134,7 +136,7 @@ class JwtAuthenticationFilterTest {
             return null;
         }).when(filterChain).doFilter(request, response);
 
-        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository)
+        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository, assinaturaEmpresaRepository)
                 .doFilter(request, response, filterChain);
         assertThat(TenantContext.getCurrentTenant()).isNull();
     }
@@ -155,7 +157,7 @@ class JwtAuthenticationFilterTest {
             return null;
         }).when(filterChain).doFilter(request, response);
 
-        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository)
+        new JwtAuthenticationFilter(jwtService, userDetailsService, sessaoUsuarioRepository, assinaturaEmpresaRepository)
                 .doFilter(request, response, filterChain);
 
         assertThat(TenantContext.getCurrentTenant()).isNull();
