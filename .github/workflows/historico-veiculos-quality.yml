@@ -1,0 +1,52 @@
+name: Histórico de Veículos - Qualidade
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "FrontEnd/src/app/routes/cliente/historico-veiculos/**"
+      - "FrontEnd/src/app/routes/cliente/cliente.routes.ts"
+      - "FrontEnd/public/data/menu.json"
+      - "backend/src/main/java/com/neritech/saas/veiculo/controller/HistoricoVeiculoController.java"
+      - "backend/src/main/java/com/neritech/saas/ordemservico/repository/OrdemServicoRepository.java"
+      - "backend/src/test/java/com/neritech/saas/veiculo/HistoricoVeiculoControllerTest.java"
+      - ".github/workflows/historico-veiculos-quality.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: historico-veiculos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  angular:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Build Angular
+        run: yarn build
+
+  java:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Testes direcionados - permissões e isolamento
+        run: mvn -B test -Dtest=HistoricoVeiculoControllerTest
+        env:
+          SPRING_PROFILES_ACTIVE: test
