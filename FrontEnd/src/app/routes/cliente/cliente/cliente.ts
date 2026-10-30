@@ -164,13 +164,15 @@ export class Cliente implements OnInit {
     iframe.style.position = 'fixed'; iframe.style.width = '0'; iframe.style.height = '0';
     iframe.style.border = '0'; iframe.style.opacity = '0';
     iframe.onload = () => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
+      const preview = iframe.contentWindow;
+      if (!preview) return;
+      // Print only when the isolated document has loaded, then release resources.
+      preview.addEventListener('afterprint', () => iframe.remove(), { once: true });
+      preview.focus();
+      preview.print();
     };
-    document.body.appendChild(iframe);
     iframe.srcdoc = markup;
-    // Retain until the native print dialog has closed (or browser tab is closed).
-    iframe.contentWindow?.addEventListener('afterprint', () => iframe.remove(), {once:true});
+    document.body.appendChild(iframe);
   }
   downloadCsvTemplate(): void {
     const header = 'tipoCliente;nomeCompleto;razaoSocial;nomeFantasia;cpf;cnpj;email;status\r\n';
