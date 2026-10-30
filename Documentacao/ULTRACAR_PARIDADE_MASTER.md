@@ -234,3 +234,48 @@ Nenhum endpoint está aberto anonimamente. O acesso temporário `uxPreview=1` s�
 - **Não declarar 100% de equivalência** sem testes executados, integração e medição visual.
 
 **Critério de homologação:** dados persistidos e recuperados ao editar; consentimento `null/true/false` preservado; criação com cliente correto; 404 para placa não existente, sem consulta externa; duplicidade protegida no servidor.
+
+---
+
+## Lote 06 — Revisão visual após rejeição de fidelidade (30/10/2026)
+
+O usuário relatou que a implementação anterior **não estava fiel** às imagens. Esta revisão confronta novamente os anexos de 30/10 com os componentes existentes, corrige proporções e preenche o contrato técnico de veículos. **Referência visual não é código-fonte do fornecedor.**
+
+### Referências dimensionais — viewport onde a medida é observável
+
+| Tela | Medida observada | Diretriz aplicada |
+|---|---|---|
+| Cadastro de cliente no drawer (Screenshot_13(2)) | Drawer começa em x=565/1149; largura aprox. **584 px**; header de **57 px**, rodapé de **48 px**; cartões com recuo de 24/25 px; inputs **32 px**; gap de coluna **12 px** | PrimeNG dialog width 585, body sem segunda rolagem, header + subtitle, footer fixo; form grid 2 cols, labels 11 px |
+| Listagem de clientes (FireShot 140) | Tabela ocupa superfície principal; linha de cerca de **51 px**, headers ~**43 px**, comandos acima da tabela | lista de clientes com 5 colunas padrão, categoria como seleção que abre cadastro, badges de tipo, fonte 11 px, CTA verde |
+| Colunas de clientes (01-cliente) | Modal **672×489**, cabeçalho ~**58 px**, faixa azul de **42 px**, duas colunas 50/50 separadas por borda | busca em ambas as colunas; seleção e remoção; ordem com botões de mover; coluna Cliente fixa; configuração persistida no navegador |
+| Veículos (FireShot 142) | Listagem em linhas ~**84 px**; thumbnails ~**65×65**; detalhes de modelo/placa/marca/cliente | tabela e paginação `Carregar mais` com lista cumulativa |
+| Indicadores (FireShot 143) | 2×3 indicadores (seis cartões); linhas de série temporal; dois gráficos inferiores (gênero/idade) | seis KPIs e quatro séries em SVG, distribuição e barras; valores reais por empresa |
+| Cadastro de veículo (FireShot 144) | Uma coluna larga de cartões; dentro, grids de duas colunas, hero de foto, blocos obrigatórios/técnicos/opcionais | cliente primeiro; consulta interna por placa; imagem do modelo quando existir; dados gerais, motor, complementares e rodapé fixo |
+| Etiquetas (prints 1–14) | Modal aprox. **970×535** com controles à esquerda e visualizador escuro à direita; personalização aprox. **755×612** | acordeões, margens, fonte, alinhamento, espaçamento, orientação; print isolado com controle de campos; salvamento local das preferências |
+
+### Integração e regras
+
+- V291 adiciona os 18 campos manuais de veículo ao banco, à entidade e aos DTOs: geração, frota, tipo, acessórios, cilindrada, quantidade de válvulas/cilindros, nome/código do motor, potências CV, linha, entrada de ar, freios, tração, injeção, configuração e freios dianteiro/traseiro.
+- O mapeador MapStruct usa o mesmo contrato; conservar um construtor retrocompatível para consumidores do DTO `VeiculoResponse` e `VeiculoRequest` que ainda não fornecem tais campos.
+- `cadastro-veiculo` envia agora todos os campos opcionais, inclusive direção, câmbio, ar, portas, antes omitidos do `requestBody`.
+- A pesquisa interna por placa continua com isolamento de `empresaId` e sem consultar a API externa legada.
+- A configuração de etiquetas aplica-se **apenas aos clientes da página carregada**, e o controle Salvar PDF abre a impressão do navegador (opção Salvar como PDF); não inventar PDF gerado por API.
+- Filtros de estado, cidade, marca, modelo, aniversário, recomendações foram explicitamente **desabilitados**, pois dependem de consulta específica de toda a base e não podem ser simulados. Tipo, situação, gênero e período de cadastro filtram os dados carregados.
+- Dados identificadores da empresa (logo, razão social, CNPJ, endereço) no cabeçalho de relatórios não foram ativados sem leitura do cadastro real da empresa.
+
+### Controle de qualidade / impedimentos
+
+- Revisão do contrato e do diff é **estática**; sem acesso a um navegador autenticado de homologação e sem execução local do Angular, não afirmar match pixel a pixel, WCAG ou responsividade aprovada.
+- O workflow de backend do commit `e3319264` falhou; o log apontou anotação `@Transactional` duplicada na consulta de placa (corrigida neste lote) **e dezenas de incompatibilidades pré-existentes de `RelatorioImpressaoController`, `AdminDashboardService` com DTOs/entidades financeiras**. Não tratar CI verde sem que esses erros adicionais sejam resolvidos.
+- Necessário verificar Angular `ng build`, Maven, migrar banco de teste, comparar screenshots em 1366/768/320, rodar testes e validar locatário/permissões.
+- Nenhum logotipo, código-fonte ou imagem do concorrente é incorporado. Marcas e dados exibidos continuam NERITECH e da oficina autenticada.
+
+### Checklist de aceite visual
+
+- [ ] Um drawer apenas, scroll único; cabeçalho e rodapé imóveis em viewport 599 px
+- [ ] Cadastro físico/jurídico exibe os mesmos campos e requer os mesmos obrigatórios da captura
+- [ ] Modal de colunas 672×489 e listagem de clientes com as proporções conferidas no navegador
+- [ ] Indicadores 6 KPIs + série temporal + dois painéis inferiores com dados reais
+- [ ] Cadastro técnico persistido sem perda dos novos campos e sem enriquecimento externo fictício
+- [ ] Etiquetas acompanham ajustes de margem, fonte e grid; impressão testada
+- [ ] Build Angular/Maven e deploy aprovados

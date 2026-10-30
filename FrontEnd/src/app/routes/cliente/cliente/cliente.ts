@@ -108,14 +108,96 @@ export class Cliente implements OnInit {
   selectedColumns: string[] = ['cliente','cpf','categoria','tipo','criacao'];
   draftColumns: string[] = [];
   columnsSearch = '';
+  selectedColumnsSearch = '';
   labelsOpen = false;
   labelsColumns = 3;
   labelsFontSize = 9;
   labelsMargin = 10;
+  labelsMarginTop=10;
+  labelsMarginBottom=10;
+  labelsMarginLeft=10;
+  labelsMarginRight=10;
+  labelsZoom=100;
   labelsShowDocument = true;
   labelsWithBorder = true;
+  labelsConfigOpen = false;
+  labelsOpenSection: 'filters'|'page'|'margins'|'content' = 'filters';
+  labelsType: TipoCliente | '' = '';
+  labelsStatus: StatusCliente | '' = StatusCliente.ATIVO;
+  labelsGender: 'M'|'F'|'N'|'' = '';
+  labelsDateFrom = '';
+  labelsDateTo = '';
+  labelsSheet: 'A4'|'CARTA' = 'A4';
+  labelsOrientation: 'portrait'|'landscape' = 'portrait';
+  labelsGap = 4;
+  labelsAlign: 'left'|'center'|'right' = 'left';
+  labelsNameChars = 40;
+  labelsAddressColumns = 2;
+  labelsAutomaticHeight = true;
+  labelsHeight = 30;
+  labelsShowDate = false;
+  labelsHeaderDivider = true;
+  labelsLayoutType: 'dividido'|'centralizado' = 'dividido';
+  labelsHeaderSize: 'P'|'M'|'G' = 'M';
+  labelsHighlight = '#18328a';
+  get labelRowsCount():number { return this.labelRows.length; }
+  get labelRowsFiltered() {
+    return this.pagedData.filter(row =>
+      (!this.labelsType || row.tipo === this.labelsType) &&
+      (!this.labelsStatus || row.status === this.labelsStatus) &&
+      (!this.labelsGender || (this.labelsGender === 'N' ? !row.sexo : row.sexo === this.labelsGender)) &&
+      (!this.labelsDateFrom || (row.dataCadastro || '').slice(0,10) >= this.labelsDateFrom) &&
+      (!this.labelsDateTo || (row.dataCadastro || '').slice(0,10) <= this.labelsDateTo));
+  }
+  resetLabelsFilters():void {
+    this.labelsType='';this.labelsStatus=StatusCliente.ATIVO;this.labelsGender='';this.labelsDateFrom='';this.labelsDateTo='';
+  }
+  restoreLabels():void {
+    this.labelsColumns=3;this.labelsMargin=10;this.labelsMarginTop=10;this.labelsMarginBottom=10;this.labelsMarginLeft=10;this.labelsMarginRight=10;this.labelsZoom=100;this.labelsFontSize=9;this.labelsWithBorder=true;this.labelsShowDocument=true;
+    this.labelsSheet='A4';this.labelsOrientation='portrait';this.labelsGap=4;this.labelsAlign='left';
+    this.labelsNameChars=40;this.labelsAddressColumns=2;this.labelsAutomaticHeight=true;this.labelsHeight=30;
+  }
+  saveLabelSettings():void {
+    const data = {columns:this.labelsColumns,margin:this.labelsMargin,top:this.labelsMarginTop,bottom:this.labelsMarginBottom,left:this.labelsMarginLeft,right:this.labelsMarginRight,font:this.labelsFontSize,border:this.labelsWithBorder,
+      document:this.labelsShowDocument,sheet:this.labelsSheet,orientation:this.labelsOrientation,gap:this.labelsGap,
+      align:this.labelsAlign,nameChars:this.labelsNameChars,addressColumns:this.labelsAddressColumns,
+      automaticHeight:this.labelsAutomaticHeight,height:this.labelsHeight,showDate:this.labelsShowDate,
+      headerDivider:this.labelsHeaderDivider,layoutType:this.labelsLayoutType,headerSize:this.labelsHeaderSize,
+      highlight:this.labelsHighlight};
+    try { localStorage.setItem('neritech-client-label-layout-v1',JSON.stringify(data)); }catch{}
+    this.labelsConfigOpen=false;
+  }
+  loadLabelSettings():void {
+    try {
+      const text=localStorage.getItem('neritech-client-label-layout-v1');
+      if(!text)return;
+      const raw=JSON.parse(text);
+      if(Number.isInteger(raw.columns)&&raw.columns>=1&&raw.columns<=4)this.labelsColumns=raw.columns;
+      if(Number.isFinite(raw.margin)&&raw.margin>=0&&raw.margin<=30)this.labelsMargin=raw.margin;
+      for(const [name,target] of [['top','labelsMarginTop'],['bottom','labelsMarginBottom'],['left','labelsMarginLeft'],['right','labelsMarginRight']] as const){
+        if(Number.isFinite(raw[name])&&raw[name]>=0&&raw[name]<=30)this[target]=raw[name];
+      }
+      if(Number.isFinite(raw.font)&&raw.font>=7&&raw.font<=18)this.labelsFontSize=raw.font;
+      if(typeof raw.border==='boolean')this.labelsWithBorder=raw.border;
+      if(typeof raw.document==='boolean')this.labelsShowDocument=raw.document;
+      if(['A4','CARTA'].includes(raw.sheet))this.labelsSheet=raw.sheet;
+      if(['portrait','landscape'].includes(raw.orientation))this.labelsOrientation=raw.orientation;
+      if(Number.isFinite(raw.gap)&&raw.gap>=0&&raw.gap<=30)this.labelsGap=raw.gap;
+      if(['left','center','right'].includes(raw.align))this.labelsAlign=raw.align;
+      if(Number.isInteger(raw.nameChars)&&raw.nameChars>=10&&raw.nameChars<=255)this.labelsNameChars=raw.nameChars;
+      if(Number.isInteger(raw.addressColumns)&&raw.addressColumns>=1&&raw.addressColumns<=3)this.labelsAddressColumns=raw.addressColumns;
+      if(typeof raw.automaticHeight==='boolean')this.labelsAutomaticHeight=raw.automaticHeight;
+      if(Number.isFinite(raw.height)&&raw.height>=10&&raw.height<=200)this.labelsHeight=raw.height;
+      if(typeof raw.showDate==='boolean')this.labelsShowDate=raw.showDate;
+      if(typeof raw.headerDivider==='boolean')this.labelsHeaderDivider=raw.headerDivider;
+      if(['dividido','centralizado'].includes(raw.layoutType))this.labelsLayoutType=raw.layoutType;
+      if(['P','M','G'].includes(raw.headerSize))this.labelsHeaderSize=raw.headerSize;
+      if(typeof raw.highlight==='string'&&/^#[0-9a-f]{6}$/i.test(raw.highlight))this.labelsHighlight=raw.highlight;
+    }catch{}
+  }
 
-  openColumns(): void { this.draftColumns = [...this.selectedColumns]; this.columnsSearch = ''; this.columnsOpen = true; }
+
+  openColumns(): void { this.draftColumns = [...this.selectedColumns]; this.columnsSearch = ''; this.selectedColumnsSearch = ''; this.columnsOpen = true; }
   toggleColumn(key: string): void {
     if (key === 'cliente') return;
     this.draftColumns = this.draftColumns.includes(key)
@@ -137,9 +219,16 @@ export class Cliente implements OnInit {
     const term = this.columnsSearch.toLocaleLowerCase('pt-BR').trim();
     return this.columnOptions.filter(col => col.label.toLocaleLowerCase('pt-BR').includes(term));
   }
+  get visibleDraftColumns(): string[] {
+    const q = this.selectedColumnsSearch.trim().toLocaleLowerCase('pt-BR');
+    return q ? this.draftColumns.filter(k => this.columnLabel(k).toLocaleLowerCase('pt-BR').includes(q)) : this.draftColumns;
+  }
+  openCategory(row: { uuid: number | string }): void {
+    this.navigateToEdit(row);
+  }
   columnLabel(key: string): string { return this.columnOptions.find(c => c.key === key)?.label || key; }
-  get labelRows() { return this.pagedData; }
-  openLabels(): void { this.labelsOpen = true; }
+  get labelRows() { return this.labelRowsFiltered; }
+  openLabels(): void { this.loadLabelSettings(); this.labelsOpen = true; }
   printLabels(): void {
     if (!this.labelRows.length) return;
     // Isolated print document; escape all customer-supplied text to avoid HTML injection.
@@ -147,18 +236,26 @@ export class Cliente implements OnInit {
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'} as Record<string,string>)[char]);
     const columns = Math.min(4, Math.max(1, Number(this.labelsColumns) || 3));
     const font = Math.min(18, Math.max(7, Number(this.labelsFontSize) || 9));
-    const margin = Math.min(30, Math.max(0, Number(this.labelsMargin) || 10));
+    const top = Math.min(30, Math.max(0, Number(this.labelsMarginTop) || 0));
+    const right = Math.min(30, Math.max(0, Number(this.labelsMarginRight) || 0));
+    const bottom = Math.min(30, Math.max(0, Number(this.labelsMarginBottom) || 0));
+    const left = Math.min(30, Math.max(0, Number(this.labelsMarginLeft) || 0));
+    const gap = Math.min(30, Math.max(0, Number(this.labelsGap) || 0));
     const cells = this.labelRows.map(item =>
-      '<article><strong>'+escape(item.nome)+'</strong>' +
+      '<article><strong>'+escape(item.nome.slice(0,this.labelsNameChars))+'</strong>' +
       (this.labelsShowDocument && item.cpfCnpj ? '<span>'+escape(this.formatCpfCnpj(item.cpfCnpj))+'</span>' : '') +
       '</article>').join('');
     const markup = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiquetas NERITECH AUTO</title>' +
-      '<style>@page{size:A4 portrait;margin:'+margin+'mm}body{margin:0;font-family:Arial,sans-serif}' +
-      'main{display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));gap:3mm}' +
-      'article{box-sizing:border-box;min-height:20mm;padding:3mm;border:'+
+      '<style>@page{size:'+this.labelsSheet+' '+this.labelsOrientation+';margin:'+top+'mm '+right+'mm '+bottom+'mm '+left+'mm}body{margin:0;font-family:Arial,sans-serif}' +
+      'main{display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));gap:'+gap+'mm}' +
+      'article{box-sizing:border-box;min-height:'+(this.labelsAutomaticHeight ? 'auto' : Math.min(200,Math.max(10,Number(this.labelsHeight)))+'mm')+';padding:3mm;text-align:'+this.labelsAlign+';border:'+
         (this.labelsWithBorder ? '1px solid #b9c0c9' : '1px solid transparent')+
         ';font-size:'+font+'pt;break-inside:avoid;overflow-wrap:anywhere}' +
-      'strong,span{display:block}span{margin-top:2mm;font-size:.9em}</style></head><body><main>'+cells+'</main></body></html>';
+      'strong,span{display:block}span{margin-top:2mm;font-size:.9em}</style></head><body>' +
+      (this.labelsShowDate ? '<header style="font-size:9pt;text-align:'+this.labelsAlign+';color:'+this.labelsHighlight+
+        ';border-bottom:'+(this.labelsHeaderDivider?'1px solid '+this.labelsHighlight:'none')+
+        ';padding:0 0 2mm;margin:0 0 3mm">Emitido em '+escape(new Date().toLocaleString('pt-BR'))+'</header>' : '') +
+      '<main>'+cells+'</main></body></html>';
     const iframe = document.createElement('iframe');
     iframe.setAttribute('title', 'Impressão de etiquetas');
     iframe.style.position = 'fixed'; iframe.style.width = '0'; iframe.style.height = '0';
@@ -173,6 +270,12 @@ export class Cliente implements OnInit {
     };
     iframe.srcdoc = markup;
     document.body.appendChild(iframe);
+  }
+  labelZoomIn():void { this.labelsZoom=Math.min(150,this.labelsZoom+10); }
+  labelZoomOut():void { this.labelsZoom=Math.max(70,this.labelsZoom-10); }
+  setUniformLabelMargin(value: number):void {
+    const n=Math.min(30,Math.max(0,Number(value)||0));
+    this.labelsMarginTop=n;this.labelsMarginBottom=n;this.labelsMarginLeft=n;this.labelsMarginRight=n;
   }
   downloadCsvTemplate(): void {
     const header = 'tipoCliente;nomeCompleto;razaoSocial;nomeFantasia;cpf;cnpj;email;status\r\n';
@@ -235,6 +338,7 @@ export class Cliente implements OnInit {
     quantidadeVeiculos: number | null;
     email: string;
     categoria: string;
+    sexo?: string;
   }[] = [];
   backendPage: Page<ClienteResponseDTO> | null = null;
 
@@ -507,6 +611,7 @@ export class Cliente implements OnInit {
       status,
       email: dto.email || '',
       categoria: dto.categoria || '',
+      sexo: dto.sexo || '',
       contato: '', // Placeholder
       dataCadastro: dto.dataCadastro,
       quantidadeVeiculos: null,

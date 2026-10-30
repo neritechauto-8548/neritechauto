@@ -107,6 +107,24 @@ export interface VeiculoRequest {
   proximaRevisaoData?: string; // YYYY-MM-DD
   status?: StatusVeiculo;
   observacoes?: string;
+  geracao?: string;
+  frota?: string;
+  tipoVeiculo?: string;
+  acessorios?: string;
+  cilindrada?: number;
+  quantidadeValvulas?: number;
+  quantidadeCilindros?: number;
+  nomeMotor?: string;
+  codigoMotor?: string;
+  potenciasCv?: string;
+  linha?: string;
+  entradaAr?: string;
+  sistemaFreios?: string;
+  sistemaTracao?: string;
+  sistemaInjecao?: string;
+  configuracaoMotor?: string;
+  freioDianteiro?: string;
+  freioTraseiro?: string;
 }
 
 export interface VeiculoResponse extends VeiculoRequest {

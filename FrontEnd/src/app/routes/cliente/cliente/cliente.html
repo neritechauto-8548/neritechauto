@@ -45,7 +45,7 @@
       <div><h2>Listagem de clientes</h2><p>@if (isLoading) { Carregando… } @else { {{ totalRecords }} clientes encontrados }</p></div>
       <div class="nt-ref-table-actions">
         <button type="button" class="nt-clients-outline" (click)="openLabels()" [disabled]="!clients.length || isLoading">◇ &nbsp; Etiquetas</button>
-        <button type="button" class="nt-clients-outline" (click)="downloadCsvTemplate()" title="Baixa o modelo de CSV; importação com validação em lote requer API própria">↓ &nbsp; Modelo CSV</button>
+        <button type="button" class="nt-clients-outline" (click)="downloadCsvTemplate()" title="Baixa modelo CSV. A importação de dados em lote exige API de validação.">↓ &nbsp; Modelo CSV</button>
         <a class="nt-clients-outline" routerLink="/relatorios/relatorio-clientes">▤ &nbsp; Relatórios</a>
         <button type="button" class="nt-clients-outline" (click)="openColumns()">▥ &nbsp; Colunas</button>
       </div>
@@ -88,9 +88,9 @@
                         } @else { <strong>{{ row.nome }}</strong> }
                       }
                       @case ('cpf') { <span class="nt-clients-muted">{{ formatCpfCnpj(row.cpfCnpj) || 'Não informado' }}</span> }
-                      @case ('categoria') { <span class="nt-clients-muted">{{ row.categoria || 'Selecionar' }}</span> }
+                      @case ('categoria') { <button type="button" class="nt-ref-category-picker" (click)="openCategory(row)" [disabled]="!canOpenClient">▦ <span>{{ row.categoria || 'Selecionar' }}</span>⌄</button> }
                       @case ('tipo') { <span class="nt-reference-type" [class.is-company]="row.tipo === TipoCliente.PESSOA_JURIDICA">{{ getTipoClienteLabel(row.tipo) }}</span> }
-                      @case ('criacao') { <span class="nt-clients-muted">{{ formatDataCadastro(row.dataCadastro) }}</span> }
+                      @case ('criacao') { <span class="nt-ref-date-value">{{ formatDataCadastro(row.dataCadastro) }}</span> }
                       @case ('contato') { <span class="nt-clients-muted">{{ row.contato || row.email || '—' }}</span> }
                       @case ('veiculos') {
                         @if (canOpenVehicles) { <button type="button" class="nt-clients-vehicles" (click)="abrirVeiculos(row)">{{ row.quantidadeVeiculos ?? '—' }} veículos</button> }
@@ -101,7 +101,7 @@
                   </td>
                 }
                 <td>
-                  <button type="button" class="nt-row-action" [attr.aria-label]="'Ações para ' + row.nome"
+                  <button type="button" class="nt-row-action nt-ref-row-actions" [attr.aria-label]="'Ações para ' + row.nome"
                     (click)="toggleMenu(row, $event, menu)">⋮</button>
                 </td>
               </tr>
@@ -168,8 +168,14 @@
 
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
 <p-dialog [(visible)]="isQuickFormOpen" [modal]="true" [draggable]="false" [resizable]="false"
-  [style]="{ width: 'min(640px, 100vw)', height: '100dvh', maxHeight: '100dvh' }" position="right"
-  styleClass="nt-client-quick-dialog nt-reference-client-drawer" header="Cadastro de cliente">
+  [style]="{ width: 'min(585px, 100vw)', height: '100dvh', maxHeight: '100dvh' }" position="right"
+  styleClass="nt-client-quick-dialog nt-reference-client-drawer">
+  <ng-template pTemplate="header">
+    <div class="nt-reference-drawer-heading">
+      <strong>Cadastro de cliente</strong>
+      <small>Preencha as informações para registrar um novo cliente</small>
+    </div>
+  </ng-template>
   <cadastro-cliente [modalMode]="true" (saved)="onQuickClientSaved()" (canceled)="onQuickClientCanceled()" />
 </p-dialog>
 
@@ -202,8 +208,8 @@
 @if (columnsOpen) {
   <div class="nt-ref-modal-mask" (click)="columnsOpen = false">
     <section class="nt-ref-columns-dialog" role="dialog" aria-modal="true" aria-label="Colunas de clientes" (click)="$event.stopPropagation()">
-      <header><div><h2>Colunas de clientes</h2><p>Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div><button type="button" (click)="columnsOpen = false" aria-label="Fechar">×</button></header>
-      <div class="nt-ref-columns-info">ⓘ &nbsp; Personalize e salve a ordem das colunas neste navegador.</div>
+      <header><div><h2><span aria-hidden="true">▥</span> Colunas de clientes</h2><p>Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div><button type="button" (click)="columnsOpen = false" aria-label="Fechar">×</button></header>
+      <div class="nt-ref-columns-info">ⓘ &nbsp; Exibindo todas as colunas (padrão). Personalize e salve para criar sua configuração.</div>
       <div class="nt-ref-columns-content">
         <section><h3>Opções de colunas</h3><input type="search" [(ngModel)]="columnsSearch" placeholder="Buscar coluna..." aria-label="Buscar coluna" />
           @for (item of filteredColumnOptions; track item.key) {
@@ -211,9 +217,9 @@
               (change)="toggleColumn(item.key)" /> {{ item.label }}</label>
           }
         </section>
-        <section><h3>Colunas selecionadas <small>{{ draftColumns.length }}</small></h3>
-          @for (key of draftColumns; track key; let i = $index) {
-            <div class="nt-ref-column-choice"><span>{{ columnLabel(key) }}</span>
+        <section><h3>Colunas selecionadas <small>{{ draftColumns.length }}</small></h3><input type="search" [(ngModel)]="selectedColumnsSearch" placeholder="Buscar coluna..." aria-label="Buscar colunas selecionadas" />
+          @for (key of visibleDraftColumns; track key; let i = $index) {
+            <div class="nt-ref-column-choice"><span class="nt-ref-drag-handle" aria-hidden="true">⠿</span><span>{{ columnLabel(key) }}</span>
               @if (key !== 'cliente') {
                 <button type="button" (click)="shiftColumn(key,-1)" [disabled]="i < 2" [attr.aria-label]="'Mover ' + columnLabel(key) + ' para cima'">↑</button>
                 <button type="button" (click)="shiftColumn(key,1)" [disabled]="i === draftColumns.length - 1" [attr.aria-label]="'Mover ' + columnLabel(key) + ' para baixo'">↓</button>
@@ -231,30 +237,125 @@
 @if (labelsOpen) {
   <div class="nt-ref-modal-mask nt-ref-label-modal" (click)="labelsOpen = false">
     <section class="nt-ref-label-dialog" role="dialog" aria-modal="true" aria-label="Etiquetas de clientes" (click)="$event.stopPropagation()">
-      <header><div><h2>Etiquetas de clientes</h2><p>Personalize, visualize e imprima etiquetas da página atual.</p></div><button type="button" (click)="labelsOpen = false" aria-label="Fechar">×</button></header>
+      <header><div><h2>Etiquetas de clientes</h2><p>Filtre os clientes, ajuste o layout e imprima as etiquetas.</p></div><button type="button" (click)="labelsOpen = false" aria-label="Fechar">×</button></header>
       <div class="nt-ref-label-body">
         <aside class="nt-ref-label-controls">
-          <p><strong>{{ labelRows.length }} clientes nesta impressão</strong></p>
-          <label>Colunas <input type="number" min="1" max="4" [(ngModel)]="labelsColumns" /></label>
-          <label>Margem da folha (mm) <input type="number" min="0" max="30" [(ngModel)]="labelsMargin" /></label>
-          <label>Fonte (pt) <input type="number" min="7" max="18" [(ngModel)]="labelsFontSize" /></label>
-          <label class="nt-ref-check"><input type="checkbox" [(ngModel)]="labelsShowDocument" /> Exibir CPF/CNPJ</label>
-          <label class="nt-ref-check"><input type="checkbox" [(ngModel)]="labelsWithBorder" /> Borda da etiqueta</label>
-          <p class="nt-ref-note">Somente os registros carregados na página atual. Para mais clientes, aumente a paginação. A impressão do navegador permite salvar como PDF.</p>
-        </aside>
-        <div class="nt-ref-label-preview" aria-label="Pré-visualização das etiquetas">
-          <div class="nt-ref-print-sheet" [style.padding.mm]="labelsMargin"
-            [style.gridTemplateColumns]="'repeat(' + labelsColumns + ', minmax(0,1fr))'">
-            @for (item of labelRows; track item.uuid) {
-              <article class="nt-ref-label-cell" [class.no-border]="!labelsWithBorder" [style.fontSize.pt]="labelsFontSize">
-                <strong>{{ item.nome }}</strong>
-                @if (labelsShowDocument && item.cpfCnpj) { <span>{{ formatCpfCnpj(item.cpfCnpj) }}</span> }
-              </article>
+          <strong class="nt-ref-label-counter">{{labelRowsCount}} clientes nas etiquetas</strong>
+          <div class="nt-ref-label-tools">
+            <button type="button" class="nt-clients-primary" (click)="atualizar()">⌕ &nbsp; Atualizar</button>
+            <button type="button" class="nt-ref-label-outline" (click)="resetLabelsFilters()">⚲ &nbsp; Limpar filtros</button>
+            <button type="button" class="nt-ref-label-outline" (click)="restoreLabels()">⟲ &nbsp; Padrões</button>
+          </div>
+          <p class="nt-ref-note">Registros da página atual. Situação: {{labelsStatus==='ATIVO'?'Ativos':labelsStatus==='INATIVO'?'Inativos':'Todos'}}.</p>
+          <div class="nt-ref-label-accordion">
+            <button type="button" (click)="labelsOpenSection=labelsOpenSection==='filters'?'page':'filters'" [attr.aria-expanded]="labelsOpenSection==='filters'">⚲ &nbsp; Filtros dos clientes <span>⌄</span></button>
+            @if(labelsOpenSection==='filters'){
+              <div class="nt-ref-label-panel nt-ref-label-fields">
+                <label>Tipo de pessoa<select [(ngModel)]="labelsType"><option value="">Selecione um tipo</option><option [ngValue]="TipoCliente.PESSOA_FISICA">Pessoa física</option><option [ngValue]="TipoCliente.PESSOA_JURIDICA">Pessoa jurídica</option></select></label>
+                <label>Situação<select [(ngModel)]="labelsStatus"><option value="">Todas</option><option [ngValue]="StatusCliente.ATIVO">Ativado</option><option [ngValue]="StatusCliente.INATIVO">Inativo</option><option [ngValue]="StatusCliente.BLOQUEADO">Bloqueado</option></select></label>
+                <label class="wide">Gênero<select [(ngModel)]="labelsGender"><option value="">Selecione um gênero</option><option value="M">Masculino</option><option value="F">Feminino</option><option value="N">Não especificado</option></select></label>
+                <label>Estado<select disabled title="Filtro exige consulta completa de endereços"><option>Selecionar estado</option></select></label>
+                <label>Cidade<select disabled title="Filtro exige consulta completa de endereços"><option>Escolha o estado</option></select></label>
+                <label>Marca<select disabled title="Filtro exige relacionamento de veículos completo"><option>Selecionar marca</option></select></label>
+                <label>Modelo<select disabled title="Filtro exige relacionamento de veículos completo"><option>Escolha a marca</option></select></label>
+                <label class="wide">Data de cadastro (início)<input type="date" [(ngModel)]="labelsDateFrom" /></label>
+                <label class="wide">Data de cadastro (fim)<input type="date" [(ngModel)]="labelsDateTo" /></label>
+                <label class="wide">Aniversário<input disabled placeholder="MM/DD - MM/DD" title="Filtro por dia e mês requer consulta própria" /></label>
+                <label class="wide">Recomendações<select disabled><option>Selecione as recomendações</option></select></label>
+                <p class="nt-ref-note wide">Filtros desabilitados dependem de consultas específicas no servidor. Os demais funcionam sobre os registros exibidos.</p>
+              </div>
             }
+          </div>
+          <div class="nt-ref-label-accordion">
+            <button type="button" (click)="labelsOpenSection=labelsOpenSection==='page'?'filters':'page'" [attr.aria-expanded]="labelsOpenSection==='page'">▦ &nbsp; Layout da página <span>⌄</span></button>
+            @if(labelsOpenSection==='page'){
+              <div class="nt-ref-label-panel nt-ref-label-fields">
+                <label class="wide">Modo de impressão<select [(ngModel)]="labelsSheet"><option value="A4">Folha A4</option><option value="CARTA">Folha Carta</option></select></label>
+                <label>Tipo de impressão<select [(ngModel)]="labelsSheet"><option value="A4">A4</option><option value="CARTA">Carta</option></select></label>
+                <label>Orientação<select [(ngModel)]="labelsOrientation"><option value="portrait">Retrato</option><option value="landscape">Paisagem</option></select></label>
+                <label>Largura (mm)<input disabled [value]="labelsSheet==='A4'?210:216" /></label>
+                <label>Altura (mm)<input disabled [value]="labelsSheet==='A4'?297:279" /></label>
+                <label>Colunas<input type="number" min="1" max="4" [(ngModel)]="labelsColumns" /></label>
+                <label class="wide">Espaço entre colunas (mm)<input type="number" min="0" max="30" step=".5" [(ngModel)]="labelsGap" /></label>
+              </div>
+            }
+          </div>
+          <div class="nt-ref-label-accordion">
+            <button type="button" (click)="labelsOpenSection=labelsOpenSection==='margins'?'filters':'margins'" [attr.aria-expanded]="labelsOpenSection==='margins'">▱ &nbsp; Margens da folha <span>⌄</span></button>
+            @if(labelsOpenSection==='margins'){
+              <div class="nt-ref-label-panel nt-ref-label-fields">
+                <label class="wide">Todos os lados (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMargin" (ngModelChange)="setUniformLabelMargin($event)" /></label>
+                <label>Superior (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginTop" /></label>
+                <label>Inferior (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginBottom" /></label>
+                <label>Esquerda (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginLeft" /></label>
+                <label>Direita (mm)<input type="number" min="0" max="30" [(ngModel)]="labelsMarginRight" /></label>
+              </div>
+            }
+          </div>
+          <div class="nt-ref-label-accordion">
+            <button type="button" (click)="labelsOpenSection=labelsOpenSection==='content'?'filters':'content'" [attr.aria-expanded]="labelsOpenSection==='content'">☷ &nbsp; Conteúdo da etiqueta <span>⌄</span></button>
+            @if(labelsOpenSection==='content'){
+              <div class="nt-ref-label-panel nt-ref-label-fields">
+                <label>Alinhamento<select [(ngModel)]="labelsAlign"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></label>
+                <label>Texto (pt)<input type="number" min="7" max="18" [(ngModel)]="labelsFontSize" /></label>
+                <label>Caracteres do nome<input type="number" min="10" max="255" [(ngModel)]="labelsNameChars" /></label>
+                <label>Colunas do endereço<input type="number" min="1" max="3" [(ngModel)]="labelsAddressColumns" disabled title="Endereços ainda não fazem parte da impressão" /></label>
+                <label class="check"><input type="checkbox" [(ngModel)]="labelsAutomaticHeight" /> Altura automática</label>
+                <label class="check"><input type="checkbox" [(ngModel)]="labelsWithBorder" /> Borda na etiqueta</label>
+                <label class="wide">Altura da etiqueta (mm)<input type="number" min="10" max="200" [(ngModel)]="labelsHeight" [disabled]="labelsAutomaticHeight" /></label>
+                <label class="check wide"><input type="checkbox" [(ngModel)]="labelsShowDocument" /> Exibir CPF/CNPJ</label>
+              </div>
+            }
+          </div>
+        </aside>
+        <div class="nt-ref-label-viewer">
+          <div class="nt-ref-label-viewer-toolbar" aria-label="Ferramentas de pré-visualização">
+            <span>☰ &nbsp; 1 &nbsp; / &nbsp; 1</span>
+            <button type="button" (click)="labelZoomOut()" aria-label="Reduzir zoom">−</button><span>{{labelsZoom}}%</span><button type="button" (click)="labelZoomIn()" aria-label="Ampliar zoom">＋</button>
+            <span class="nt-ref-viewer-divider"></span><button type="button" (click)="printLabels()" aria-label="Imprimir etiquetas">▤</button>
+          </div>
+          <div class="nt-ref-label-preview" aria-label="Pré-visualização das etiquetas">
+            <div class="nt-ref-print-sheet" [style.paddingTop.mm]="labelsMarginTop" [style.paddingBottom.mm]="labelsMarginBottom" [style.paddingLeft.mm]="labelsMarginLeft" [style.paddingRight.mm]="labelsMarginRight"
+              [style.gridTemplateColumns]="'repeat('+labelsColumns+',minmax(0,1fr))'" [style.gap.mm]="labelsGap" [style.fontSize.pt]="labelsFontSize" [style.zoom]="labelsZoom / 100">
+              @for(item of labelRows;track item.uuid){
+                <article class="nt-ref-label-cell" [class.no-border]="!labelsWithBorder" [style.textAlign]="labelsAlign" [style.minHeight.mm]="labelsAutomaticHeight?null:labelsHeight">
+                  <strong>{{item.nome | slice:0:labelsNameChars}}</strong>
+                  @if(labelsShowDocument && item.cpfCnpj){<span>{{formatCpfCnpj(item.cpfCnpj)}}</span>}
+                </article>
+              }
+            </div>
           </div>
         </div>
       </div>
-      <footer><button type="button" (click)="labelsOpen = false">Fechar</button><button type="button" class="nt-clients-primary" (click)="printLabels()" [disabled]="!labelRows.length">Imprimir / Salvar PDF</button></footer>
+      <footer>
+        <button type="button" class="nt-ref-layout-trigger" (click)="labelsConfigOpen=true">⚙ &nbsp; Personalizar layout</button>
+        <span></span><button type="button" (click)="labelsOpen=false">Fechar</button>
+        <button type="button" (click)="printLabels()" [disabled]="!labelRows.length">▤ &nbsp; Imprimir</button>
+        <button type="button" class="nt-clients-primary" (click)="printLabels()" [disabled]="!labelRows.length" title="Na caixa de impressão, escolha Salvar como PDF">↓ &nbsp; Salvar PDF</button>
+      </footer>
     </section>
+    @if(labelsConfigOpen){
+      <div class="nt-ref-label-config-mask" (click)="labelsConfigOpen=false">
+        <section class="nt-ref-label-config" role="dialog" aria-modal="true" aria-label="Personalizar layout" (click)="$event.stopPropagation()">
+          <header><div><h2>Personalizar layout</h2><p>O topo do relatório gerado pelo sistema</p></div><button type="button" (click)="labelsConfigOpen=false" aria-label="Fechar personalização">×</button></header>
+          <div class="nt-ref-label-config-body">
+            <section class="nt-ref-label-config-list">
+              <h3>▤ &nbsp; Cabeçalho</h3>
+              <h4>Dados da empresa</h4><p>O que identifica a oficina no documento</p>
+              <p class="nt-ref-note">Os dados de empresa não são incluídos em etiquetas sem vínculo validado com o cadastro da matriz.</p>
+              <h4>Emissão</h4>
+              <div class="nt-ref-config-row"><label>Data e hora de emissão</label><input type="checkbox" [(ngModel)]="labelsShowDate" /></div>
+              <div class="nt-ref-config-row"><label>Linha divisória</label><input type="checkbox" [(ngModel)]="labelsHeaderDivider" /></div>
+              <h4>Aparência</h4>
+              <div class="nt-ref-label-segment"><button type="button" [class.selected]="labelsLayoutType==='dividido'" (click)="labelsLayoutType='dividido'">Dividido</button><button type="button" [class.selected]="labelsLayoutType==='centralizado'" (click)="labelsLayoutType='centralizado'">Centralizado</button></div>
+              <div class="nt-ref-label-segment">@for(size of ['P','M','G'];track size){<button type="button" [class.selected]="labelsHeaderSize===size" (click)="labelsHeaderSize=$any(size)">{{size}}</button>}</div>
+              <label class="nt-ref-highlight">Cor de destaque <input type="color" [(ngModel)]="labelsHighlight" /></label>
+            </section>
+            <section class="nt-ref-label-config-preview"><h3>Pré-visualização</h3><div class="nt-ref-layout-paper"><span [style.background]="labelsHighlight"></span><div><strong>NERITECH AUTO — etiquetas</strong><small>Layout de impressão configurado para {{labelsSheet}}</small></div></div><p>A prévia utiliza a identidade NERITECH. Os dados da matriz só serão mostrados quando integrados ao cadastro.</p></section>
+          </div>
+          <footer><button type="button" class="nt-ref-layout-trigger" (click)="restoreLabels()">Restaurar padrão</button><span></span><button type="button" (click)="labelsConfigOpen=false">Cancelar</button><button type="button" class="nt-clients-primary" (click)="saveLabelSettings()">Salvar</button></footer>
+        </section>
+      </div>
+    }
   </div>
 }

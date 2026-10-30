@@ -70,12 +70,12 @@ export class Veiculo implements OnInit {
     this.filterMarca = this.draftMarca.trim().toLocaleLowerCase('pt-BR');
     this.filterModelo = this.draftModelo.trim().toLocaleLowerCase('pt-BR');
     this.filterPlaca = this.draftPlaca.trim().toLocaleLowerCase('pt-BR');
-    this.first = 0; this.filterOpen = false;
+    this.first = 0; this.visibleCount = 10; this.filterOpen = false;
   }
   resetFilters(): void {
     this.draftCliente = this.draftMarca = this.draftModelo = this.draftPlaca = '';
     this.filterCliente = this.filterMarca = this.filterModelo = this.filterPlaca = '';
-    this.first = 0;
+    this.first = 0; this.visibleCount = 10;
   }
   filterByCustomerId?: number;
 
@@ -85,6 +85,7 @@ export class Veiculo implements OnInit {
   // Paginação
   rows = 10;
   first = 0;
+  visibleCount = 10;
 
   get totalRecords() {
     return this.filtered.length;
@@ -127,6 +128,7 @@ export class Veiculo implements OnInit {
           list = res.data;
         }
         this.vehicles = list;
+        this.visibleCount=10;
         this.loading = false;
       },
       error: (err) => {
@@ -154,11 +156,15 @@ export class Veiculo implements OnInit {
 
   get pagedData() {
     const data = Array.isArray(this.filtered) ? this.filtered : [];
-    return data.slice(this.first, this.first + this.rows);
+    return data.slice(0, this.visibleCount);
   }
 
   onSearch() {
     this.first = 0;
+    this.visibleCount = 10;
+  }
+  loadMore(): void {
+    this.visibleCount = Math.min(this.totalRecords, this.visibleCount + 10);
   }
 
   goPrev() {

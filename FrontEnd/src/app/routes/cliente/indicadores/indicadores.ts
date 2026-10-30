@@ -35,6 +35,19 @@ export class ClientesIndicadores implements OnInit {
   avgMale: number | null = null; avgFemale: number | null = null;
   avgUnknown: number | null = null; avgOverall: number | null = null;
   bars: Array<{label:string;count:number;height:number}> = [];
+  points: Array<{label:string;total:number;male:number;female:number;unknown:number;x:number;maleY:number;femaleY:number;unknownY:number;totalY:number}> = [];
+  series: {male:string;female:string;unknown:string;total:string} = {male:'',female:'',unknown:'',total:''};
+  percent(kind:'male'|'female'|'unknown'):number {
+    const total=this.male+this.female+this.unknown;
+    return total ? (this[kind]/total)*100 : 0;
+  }
+  get pieGradient():string {
+    const male=this.percent('male'), female=this.percent('female');
+    return `conic-gradient(#3496ee 0 ${male}%,#fb6096 ${male}% ${male+female}%,#a9b1ba ${male+female}% 100%)`;
+  }
+  get periodDescription():string {
+    return {dia:'dia',semana:'semana',mes:'mês',ano:'ano'}[this.grouping];
+  }
   get totalEligible(): number { return Math.max(1, this.male + this.female + this.unknown); }
   private fetchVersion = 0;
 
@@ -55,7 +68,7 @@ export class ClientesIndicadores implements OnInit {
       return;
     }
     const current = ++this.fetchVersion;
-    this.loading = true; this.error = ''; this.total = null; this.bars = [];
+    this.loading = true; this.error = ''; this.total = null; this.bars = []; this.points=[];
     const filters = { dataInicio:this.from, dataFim:this.to, page:0, size:100, sort:'dataCadastro,asc' };
     this.clientService.list(filters).subscribe({
       next: first => {
@@ -122,14 +135,26 @@ export class ClientesIndicadores implements OnInit {
     this.male=maleRows.length;this.female=femaleRows.length;this.unknown=unknownRows.length;
     this.avgMale=this.average(maleRows);this.avgFemale=this.average(femaleRows);
     this.avgUnknown=this.average(unknownRows);this.avgOverall=this.average(eligible);
-    const grouped = new Map<string,number>();
+    const grouped=new Map<string,{male:number;female:number;unknown:number;total:number}>();
     for (const item of eligible) {
-      const key = item.dataCadastro ? this.periodKey(item.dataCadastro) : '';
-      if(key) grouped.set(key,(grouped.get(key)||0)+1);
+      const key=item.dataCadastro?this.periodKey(item.dataCadastro):'';
+      if(!key)continue;
+      const counts=grouped.get(key)||{male:0,female:0,unknown:0,total:0};
+      if(item.sexo==='M')counts.male++;
+      else if(item.sexo==='F')counts.female++;
+      else counts.unknown++;
+      counts.total++;
+      grouped.set(key,counts);
     }
-    const max = Math.max(1,...grouped.values());
-    this.bars=[...grouped].sort(([a],[b])=>a.localeCompare(b)).map(([label,count])=>({
-      label,count,height:Math.round(count/max*100),
-    }));
+    const ordered=[...grouped].sort(([a],[b])=>a.localeCompare(b));
+    const max=Math.max(1,...ordered.map(([,value])=>value.total));
+    this.bars=ordered.map(([label,counts])=>({label,count:counts.total,height:Math.round(counts.total/max*100)}));
+    this.points=ordered.map(([label,counts],i)=>{
+      const x=ordered.length===1?500:45+(i*910/(ordered.length-1));
+      const y=(count:number)=>235-Math.round(count/max*200);
+      return {label,...counts,x,maleY:y(counts.male),femaleY:y(counts.female),unknownY:y(counts.unknown),totalY:y(counts.total)};
+    });
+    const line=(kind:'maleY'|'femaleY'|'unknownY'|'totalY')=>this.points.map(p=>p.x+','+p[kind]).join(' ');
+    this.series={male:line('maleY'),female:line('femaleY'),unknown:line('unknownY'),total:line('totalY')};
   }
 }

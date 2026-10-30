@@ -102,6 +102,96 @@ public class Veiculo extends TenantEntity {
     @JoinColumn(name = "combustivel_id")
     private TipoCombustivel tipoCombustivel;
 
+    @Column(name = "geracao", length = 40)
+    private String geracao;
+    public String getGeracao() { return geracao; }
+    public void setGeracao(String value) { this.geracao = value; }
+
+    @Column(name = "frota", length = 80)
+    private String frota;
+    public String getFrota() { return frota; }
+    public void setFrota(String value) { this.frota = value; }
+
+    @Column(name = "tipo_veiculo", length = 80)
+    private String tipoVeiculo;
+    public String getTipoVeiculo() { return tipoVeiculo; }
+    public void setTipoVeiculo(String value) { this.tipoVeiculo = value; }
+
+    @Column(name = "acessorios", length = 2000)
+    private String acessorios;
+    public String getAcessorios() { return acessorios; }
+    public void setAcessorios(String value) { this.acessorios = value; }
+
+    @Column(name = "cilindrada", precision = 5, scale = 2)
+    private BigDecimal cilindrada;
+    public BigDecimal getCilindrada() { return cilindrada; }
+    public void setCilindrada(BigDecimal value) { this.cilindrada = value; }
+
+    @Column(name = "quantidade_valvulas")
+    private Integer quantidadeValvulas;
+    public Integer getQuantidadeValvulas() { return quantidadeValvulas; }
+    public void setQuantidadeValvulas(Integer value) { this.quantidadeValvulas = value; }
+
+    @Column(name = "quantidade_cilindros")
+    private Integer quantidadeCilindros;
+    public Integer getQuantidadeCilindros() { return quantidadeCilindros; }
+    public void setQuantidadeCilindros(Integer value) { this.quantidadeCilindros = value; }
+
+    @Column(name = "nome_motor", length = 100)
+    private String nomeMotor;
+    public String getNomeMotor() { return nomeMotor; }
+    public void setNomeMotor(String value) { this.nomeMotor = value; }
+
+    @Column(name = "codigo_motor", length = 80)
+    private String codigoMotor;
+    public String getCodigoMotor() { return codigoMotor; }
+    public void setCodigoMotor(String value) { this.codigoMotor = value; }
+
+    @Column(name = "potencias_cv", length = 180)
+    private String potenciasCv;
+    public String getPotenciasCv() { return potenciasCv; }
+    public void setPotenciasCv(String value) { this.potenciasCv = value; }
+
+    @Column(name = "linha", length = 80)
+    private String linha;
+    public String getLinha() { return linha; }
+    public void setLinha(String value) { this.linha = value; }
+
+    @Column(name = "entrada_ar", length = 80)
+    private String entradaAr;
+    public String getEntradaAr() { return entradaAr; }
+    public void setEntradaAr(String value) { this.entradaAr = value; }
+
+    @Column(name = "sistema_freios", length = 80)
+    private String sistemaFreios;
+    public String getSistemaFreios() { return sistemaFreios; }
+    public void setSistemaFreios(String value) { this.sistemaFreios = value; }
+
+    @Column(name = "sistema_tracao", length = 80)
+    private String sistemaTracao;
+    public String getSistemaTracao() { return sistemaTracao; }
+    public void setSistemaTracao(String value) { this.sistemaTracao = value; }
+
+    @Column(name = "sistema_injecao", length = 80)
+    private String sistemaInjecao;
+    public String getSistemaInjecao() { return sistemaInjecao; }
+    public void setSistemaInjecao(String value) { this.sistemaInjecao = value; }
+
+    @Column(name = "configuracao_motor", length = 80)
+    private String configuracaoMotor;
+    public String getConfiguracaoMotor() { return configuracaoMotor; }
+    public void setConfiguracaoMotor(String value) { this.configuracaoMotor = value; }
+
+    @Column(name = "freio_dianteiro", length = 80)
+    private String freioDianteiro;
+    public String getFreioDianteiro() { return freioDianteiro; }
+    public void setFreioDianteiro(String value) { this.freioDianteiro = value; }
+
+    @Column(name = "freio_traseiro", length = 80)
+    private String freioTraseiro;
+    public String getFreioTraseiro() { return freioTraseiro; }
+    public void setFreioTraseiro(String value) { this.freioTraseiro = value; }
+
     public Veiculo() {
     }
 

@@ -153,3 +153,38 @@
 .nt-ref-contact-footer{display:flex;justify-content:flex-end;gap:9px;padding:12px 0 0}
 .nt-ref-preview{margin:0;padding:8px 15px;color:#2d4b83;background:#edf5ff;font-size:11px}
 @media(max-width:550px){.nt-ref-form-grid{grid-template-columns:1fr}.nt-ref-client-section{padding:13px}.nt-ref-client-scroll{padding:10px}.nt-ref-client-section .nt-ref-legal-row{align-items:flex-start;flex-direction:column;padding:7px 0}.nt-ref-client-modal{max-height:calc(100dvh - 75px)}}
+
+/* Retificação dimensional do drawer de 585px: header 57, footer 48,
+   padding horizontal 24, cartões 536 e inputs 32 no viewport da referência. */
+:host:has(.nt-ref-client-modal){display:flex!important;flex:1 1 auto!important;min-height:0!important;height:100%!important;overflow:hidden!important;width:100%}
+.nt-client-form-page:has(.nt-ref-client-modal){display:flex!important;flex:1!important;height:100%!important;min-height:0!important;max-width:none!important;width:100%!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff!important}
+.nt-ref-client-modal{height:100%!important;max-height:none!important;min-height:0!important;flex:1!important;overflow:hidden!important;font:400 11px/1.4 Inter,Arial,sans-serif!important;color:#101a29}
+.nt-ref-client-scroll{padding:14px 24px 16px!important;gap:12px;scrollbar-gutter:stable;overscroll-behavior:contain;background:#fff}
+.nt-ref-client-section{padding:16px 15px 15px!important;border:1px solid #dbe2e9!important;border-radius:7px!important;box-shadow:none!important;background:#fff}
+.nt-ref-client-section h2{font-size:11px!important;margin:0 0 15px!important;font-weight:650!important;color:#8a96a6!important;line-height:16px}
+.nt-ref-segment{height:27px;margin:0 0 11px!important;padding:3px 4px;box-sizing:border-box;gap:2px;border-radius:5px}
+.nt-ref-segment button{height:21px;min-height:21px;min-width:115px;line-height:21px;padding:0 9px!important;border-radius:4px;font-size:10px!important;letter-spacing:0}
+.nt-ref-form-grid{gap:11px 12px!important;grid-template-columns:repeat(2,minmax(0,1fr))}
+.nt-ref-form-grid label{gap:4px!important;font-size:11px!important;font-weight:650!important;line-height:17px;color:#111826}
+.nt-ref-form-grid input:not([type=checkbox]),.nt-ref-form-grid select,.nt-ref-form-grid textarea{display:block;width:100%;height:32px;min-height:32px!important;line-height:17px;box-sizing:border-box;border-radius:5px!important;border:1px solid #cbd6e2!important;padding:6px 10px!important;font:400 11px Inter,Arial,sans-serif!important;letter-spacing:0;box-shadow:none}
+.nt-ref-form-grid select{padding-right:17px!important;appearance:auto}
+.nt-ref-form-grid textarea{height:50px!important;min-height:50px!important;resize:vertical}
+.nt-ref-form-grid .nt-ref-check{line-height:18px;margin-top:2px}
+.nt-ref-form-grid .nt-ref-check input[type=checkbox]{min-height:14px!important;width:14px;height:14px;margin:0 6px 0 0;accent-color:#1e3887}
+.nt-ref-client-section .nt-ref-legal-row{font-size:11px;min-height:40px!important;line-height:16px;padding:0!important}
+.nt-ref-choices{padding:2px;min-height:25px;align-items:center;border-radius:5px;flex-shrink:0}
+.nt-ref-choices button{height:22px;padding:2px 8px;font-size:10px!important;line-height:18px}
+.nt-ref-client-footer{flex:0 0 48px!important;height:48px!important;min-height:48px!important;box-sizing:border-box;justify-content:flex-end!important;padding:7px 24px!important;gap:10px!important;border-top:1px solid #d3dbe5}
+.nt-ref-client-footer button{height:32px!important;min-height:32px!important;line-height:18px!important;padding:6px 15px!important;border-radius:6px!important;font-size:11px!important}
+.nt-ref-client-footer button:disabled{background:#e8ecf0!important;border-color:#e8ecf0!important;color:#aab5c3!important;opacity:1!important}
+.nt-ref-client-footer .nt-ref-save:not(:disabled){background:#8bf24d;border-color:#8bf24d;color:#13220e}
+.nt-ref-birth-date,.nt-ref-birth-date .p-datepicker-input{width:100%!important;max-width:100%!important}
+.nt-ref-birth-date .nt-ref-date-input{height:32px!important;min-height:32px!important;font-size:11px!important;border-radius:5px!important;border-color:#cbd6e2!important}
+.nt-ref-birth-date .p-datepicker-dropdown{width:30px;background:transparent;border:0;position:absolute;left:0;top:0;bottom:0}
+.nt-ref-birth-date .p-datepicker-input{padding-left:28px!important}
+.nt-ref-vehicle-hint{font-size:10px}
+.nt-ref-contact-editor{padding:6px 0 10px}
+.nt-ref-contact-editor h3{font-size:11px!important;font-weight:650!important;margin-bottom:12px!important}
+.nt-ref-contact-footer{border-top:1px solid #d7e0ea;margin:12px -16px -12px;padding:10px 16px;min-height:50px;box-sizing:border-box}
+@media(max-width:600px){.nt-ref-client-scroll{padding:12px 14px 16px!important}.nt-ref-client-section{padding:12px!important}.nt-ref-client-footer{padding:7px 14px!important}}
+@media(max-width:390px){.nt-ref-form-grid{grid-template-columns:1fr}.nt-ref-client-section .nt-ref-legal-row{flex-direction:column;align-items:flex-start;padding:7px 0!important}}

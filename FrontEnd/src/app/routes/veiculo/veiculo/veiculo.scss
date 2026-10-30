@@ -55,3 +55,44 @@
 .nt-vehicle-toolbar button:focus-visible,.nt-vehicle-table button:focus-visible,.nt-vehicle-filter button:focus-visible{outline:3px solid #315daf;outline-offset:2px}
 @media(max-width:850px){.nt-vehicle-page{padding:14px 16px 26px}.nt-vehicle-head h1{font-size:20px}.nt-vehicle-filter-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.nt-vehicle-toolbar{flex-wrap:wrap}.nt-vehicle-toolbar input{flex:1 0 100%}.nt-vehicle-table{min-width:750px}.nt-vehicle-head{flex-wrap:wrap}}
+
+/* Referência de Gerenciar veículos: alinhamentos e densidade do screenshot 1366px. */
+.nt-vehicle-page{gap:11px;padding:14px 24px 28px;background:#f7f8fa;font-size:11px}
+.nt-vehicle-path{font-size:10px;color:#8292a6}
+.nt-vehicle-head{margin-top:2px}
+.nt-vehicle-head h1{font-size:22px;letter-spacing:-.02em;color:#050b17}
+.nt-vehicle-head h1 small{font-size:13px;color:#203f90}
+.nt-vehicle-primary{height:33px;min-height:33px;font-size:11px;padding:6px 13px;background:#8ef14f;border-color:#8ef14f;color:#0c1e0c;border-radius:6px}
+.nt-vehicle-toolbar{gap:11px}
+.nt-vehicle-toolbar input{height:33px;font-size:11px;border-radius:6px}
+.nt-vehicle-toolbar button,.nt-vehicle-outline{height:33px;min-height:33px;padding:6px 14px;font-size:11px;border-radius:6px}
+.nt-vehicle-results{border-radius:8px;border-color:#e2e7ed}
+.nt-vehicle-results-bar{height:47px;min-height:47px;color:#8b99aa;font-size:11px;padding:6px 12px}
+.nt-vehicle-table{width:100%;border-collapse:collapse}
+.nt-vehicle-table th{height:37px;padding:10px 13px!important;font-size:11px;font-weight:500;color:#8090a5}
+.nt-vehicle-table td{height:84px;padding:8px 13px!important;border-bottom:1px solid #e4eaf0;font-size:11px;color:#1d2637}
+.nt-vehicle-table th:first-child,.nt-vehicle-table td:first-child{width:34%}
+.nt-vehicle-table td strong{font-size:11px!important;color:#151d29}
+.nt-vehicle-model{gap:23px}
+.nt-vehicle-model img,.nt-vehicle-no-image{width:65px;height:65px;border-radius:6px;object-fit:contain;border-color:#dce3e9}
+.nt-vehicle-no-image{display:flex;justify-content:center;align-items:center;color:#1b2937;background:#f0f3f5}
+.nt-vehicle-model div{gap:3px}
+.nt-vehicle-model button{font:500 11px/1.4 Inter,Arial,sans-serif;color:#133692}
+.nt-vehicle-model small{font-size:10px;color:#9aabba}
+.nt-vehicle-brand-type{display:block;color:#8b9bad;font-size:10px;font-weight:400;margin-top:4px}
+.nt-vehicle-table td>a{color:#101f35;font-size:11px;font-weight:550}
+.nt-vehicle-paging{display:flex;justify-content:center;align-items:center;min-height:46px;padding:9px}
+.nt-vehicle-paging button{height:28px;padding:5px 15px;border:1px solid #d0dbe7;border-radius:6px;background:#fff;color:#1c2a3c;font-size:11px;cursor:pointer}
+.nt-vehicle-pages-done{font-size:10px;color:#9aabba}
+.nt-vehicle-filter{width:min(464px,100vw)}
+.nt-vehicle-filter header{min-height:57px;height:57px;box-sizing:border-box;padding:13px 15px}
+.nt-vehicle-filter-body{padding:15px 16px}
+.nt-vehicle-filter-grid{gap:11px 12px}
+.nt-vehicle-filter-grid label{gap:4px;font-size:11px}
+.nt-vehicle-filter-grid input{height:32px;font-size:11px;border-radius:5px}
+.nt-vehicle-filter footer{height:62px;min-height:62px;box-sizing:border-box;padding:13px 16px}
+.nt-vehicle-filter footer button{height:32px;font-size:11px}
+.nt-vehicle-create-panel{width:min(585px,100vw);overflow:hidden}
+.nt-vehicle-create-panel cadastro-veiculo{height:100%;display:flex;min-height:0;flex:1}
+.nt-vehicle-create-panel cadastro-veiculo>div{min-height:0!important}
+@media(max-width:700px){.nt-vehicle-page{padding:12px}.nt-vehicle-model{gap:12px}.nt-vehicle-table{min-width:760px}}

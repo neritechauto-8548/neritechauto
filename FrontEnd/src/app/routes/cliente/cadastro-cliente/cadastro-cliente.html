@@ -15,8 +15,8 @@
             <label>{{ model.tipoPessoa === 'Física' ? 'CPF' : 'CNPJ' }}
               <input type="text" pInputText [(ngModel)]="model.cpfCnpj" (blur)="onDocumentoBlur()" [maxlength]="model.tipoPessoa === 'Física' ? 14 : 18" [placeholder]="model.tipoPessoa === 'Física' ? 'Informe um CPF' : 'Informe um CNPJ'" autocomplete="off" />
             </label>
-            <label>Documento de identificação estrangeiro
-              <input pInputText [(ngModel)]="model.documentoEstrangeiro" maxlength="80" placeholder="Número de identificação" />
+            <label>Doc. identificação estrangeiro
+              <input pInputText [(ngModel)]="model.documentoEstrangeiro" maxlength="80" placeholder="Informe um Doc. identificação estrangeiro" />
             </label>
             @if (model.tipoPessoa === 'Física') {
               <label>Nome completo <em>*</em>
@@ -28,10 +28,10 @@
               </label>
             }
             <label>País
-              <input pInputText [(ngModel)]="model.pais" maxlength="80" placeholder="Brasil" />
+              <select [(ngModel)]="model.pais" aria-label="País do cliente"><option value="Brasil">Brasil</option><option value="Portugal">Portugal</option><option value="Argentina">Argentina</option><option value="Uruguai">Uruguai</option><option value="Paraguai">Paraguai</option><option value="Chile">Chile</option><option value="Outro">Outro</option></select>
             </label>
             @if (model.tipoPessoa === 'Jurídica') {
-              <label>Nome fantasia
+              <label>Nome fantasia <em>*</em>
                 <input pInputText [(ngModel)]="model.nomeFantasia" maxlength="255" placeholder="Informe o nome fantasia" />
               </label>
               <label>Tipo de contribuinte
@@ -41,10 +41,10 @@
               </label>
             } @else {
               <label>Data de nascimento
-                <input type="date" [ngModel]="formatDateForInput(model.dataNascimento)" (ngModelChange)="onBirthDateInput($event)" />
+                <p-datepicker [(ngModel)]="model.dataNascimento" dateFormat="dd/mm/yy" [showIcon]="true" [iconDisplay]="'input'" appendTo="body" placeholder="DD/MM/AAAA" styleClass="nt-ref-birth-date" inputStyleClass="nt-ref-date-input" />
               </label>
               <label>RG (apenas números)
-                <input pInputText [(ngModel)]="model.rg" maxlength="30" inputmode="numeric" placeholder="Informe o RG" />
+                <input pInputText [(ngModel)]="model.rg" maxlength="30" inputmode="numeric" placeholder="Informe um RG" />
               </label>
               <label>Estado civil
                 <select [(ngModel)]="model.estadoCivil">
@@ -60,7 +60,7 @@
               </label>
             }
             <label class="nt-ref-full">Observações
-              <textarea [(ngModel)]="model.observacao" rows="2" placeholder="Informe uma observação"></textarea>
+              <textarea [(ngModel)]="model.observacao" rows="2" placeholder="Informe uma Observação"></textarea>
             </label>
           </div>
         </section>
@@ -74,7 +74,7 @@
               <label>Inscrição estadual <input pInputText [(ngModel)]="model.inscricaoEstadual" maxlength="20" /></label>
             }
             <label>Número apólice <input pInputText [(ngModel)]="model.numeroApolice" maxlength="80" placeholder="Informe o número da apólice" /></label>
-            <label>Limite de crédito (R$) <input type="number" min="0" step="0.01" pInputText [(ngModel)]="model.limiteCredito" placeholder="0,00" /></label>
+            <label>Limite de crédito <input type="number" min="0" step="0.01" pInputText [(ngModel)]="model.limiteCredito" placeholder="0,00" /></label>
             <label>Como nos conheceu?
               <select [(ngModel)]="model.comoNosConheceu">
                 <option value="">Selecione</option>

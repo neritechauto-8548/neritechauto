@@ -181,7 +181,6 @@ public class VeiculoService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     /** Consulta apenas registros da empresa autenticada, sem serviços externos. */
     @Transactional(readOnly = true)
     public Optional<VeiculoResponse> findInternoByPlaca(String placa) {

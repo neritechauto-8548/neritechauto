@@ -17,8 +17,8 @@
         <section class="nt-ref-vehicle-block">
           <h3>Veículo <small>consulta interna</small></h3>
           <p>Busque por placa antes de preencher os dados manualmente.</p>
-          <div class="nt-ref-lookup-banner"><strong>Base cadastrada na NERITECH AUTO</strong>
-            <span>As integrações externas por placa/chassi não estão configuradas. Nenhuma consulta a fornecedores externos será realizada.</span></div>
+          <div class="nt-ref-lookup-banner"><strong>Base técnica / Consulta de dados</strong><span>Preencha identificação, motor e complementares manualmente ou consulte os veículos da sua própria empresa.</span>
+            <div class="nt-ref-capability-grid"><span><strong>◧ &nbsp; Identificação</strong><small>Marca, modelo, ano</small></span><span><strong>⚙ &nbsp; Motor</strong><small>Cilindrada, válvulas e potência</small></span><span><strong>ⓘ &nbsp; Complementares</strong><small>Linha, transmissão, tração</small></span></div></div>
           <h4>Localizar veículo</h4>
           <div class="nt-ref-vehicle-segment" role="group" aria-label="Tipo de busca">
             <button type="button" [class.active]="searchMode === 'placa'" (click)="searchMode='placa';lookupState='idle'">Placa</button>
@@ -37,6 +37,10 @@
         </section>
         <section class="nt-ref-vehicle-block">
           <h3>Dados gerais <small>obrigatório</small></h3>
+          <div class="nt-ref-vehicle-image">
+            @if (selectedModelImage) { <img [src]="selectedModelImage" alt="Imagem cadastrada do modelo selecionado" loading="lazy" /> }
+            @else { <div class="nt-ref-vehicle-image-empty" role="img" aria-label="Imagem não cadastrada"><svg viewBox="0 0 80 50" width="90" height="60" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 31h64l-8-15H17L8 31Z"/><path d="M8 31v10h12m40 0h12V31"/><circle cx="23" cy="41" r="6"/><circle cx="57" cy="41" r="6"/></svg><small>Imagem não cadastrada para este modelo</small></div> }
+          </div>
           <div class="nt-ref-vehicle-fields">
             <label>Placa * <input pInputText [(ngModel)]="form.placa" maxlength="7" placeholder="ABC1D23" (ngModelChange)="existingVehicleId=null" /></label>
             <label>Chassi <input pInputText [(ngModel)]="form.chassi" maxlength="17" placeholder="Informe o chassi" /></label>
@@ -54,22 +58,39 @@
               @for(fuel of combustiveis;track fuel.id){<option [ngValue]="fuel.id">{{fuel.nome}}</option>}</select></label>
             <label>Cor <input pInputText [(ngModel)]="form.corExterna" maxlength="50" /></label>
             <label>RENAVAM <input pInputText [(ngModel)]="form.renavam" maxlength="11" inputmode="numeric" /></label>
+            <label>Geração <input pInputText [(ngModel)]="form.geracao" maxlength="40" placeholder="G 5" /></label>
             <label>Média de KM no cadastro <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemCadastro" /></label>
             <label>KM atual <input type="number" min="0" pInputText [(ngModel)]="form.quilometragemAtual" /></label>
+            <label>Frota <input pInputText [(ngModel)]="form.frota" maxlength="80" placeholder="Identificação da frota" /></label>
+            <label>Tipo de veículo <input pInputText [(ngModel)]="form.tipoVeiculo" maxlength="80" placeholder="Selecione o tipo de veículo" /></label>
+            <label class="nt-ref-wide">Acessórios <input pInputText [(ngModel)]="form.acessorios" maxlength="2000" placeholder="Informe os acessórios do veículo" /></label>
           </div>
         </section>
         <section class="nt-ref-vehicle-block">
           <h3>Dados do motor <small>técnico</small></h3>
           <div class="nt-ref-vehicle-fields">
-            <label>Número do motor <input pInputText [(ngModel)]="form.numeroMotor" maxlength="50" /></label>
+            <label>Cilindrada <input type="number" min="0" max="99.99" step="0.01" pInputText [(ngModel)]="form.cilindrada" placeholder="Ex.: 1.6" /></label>
+            <label>Nº de válvulas <input type="number" min="0" max="99" pInputText [(ngModel)]="form.quantidadeValvulas" placeholder="Ex.: 8" /></label>
+            <label>Nº de cilindros <input type="number" min="0" max="99" pInputText [(ngModel)]="form.quantidadeCilindros" placeholder="Ex.: 4" /></label>
+            <label>Nome do motor <input pInputText [(ngModel)]="form.nomeMotor" maxlength="100" placeholder="Ex.: EA111 VHT" /></label>
+            <label>Código do motor <input pInputText [(ngModel)]="form.codigoMotor" maxlength="80" placeholder="Informe o código" /></label>
+            <label>Potência CV <input pInputText [(ngModel)]="form.potenciasCv" maxlength="180" placeholder="Ex.: 101, 104" /></label>
+            <label class="nt-ref-wide">Número do motor <input pInputText [(ngModel)]="form.numeroMotor" maxlength="50" /></label>
           </div>
-          <p>Potência, cilindrada, válvulas e código técnico dependem de expansão do contrato do veículo. Esses campos não serão simulados nem perdidos silenciosamente.</p>
         </section>
         <section class="nt-ref-vehicle-block">
           <h3>Dados complementares <small>opcional</small></h3>
           <div class="nt-ref-vehicle-fields">
             <label>Direção <select [(ngModel)]="form.direcao"><option [ngValue]="undefined">Selecione</option><option value="HIDRAULICA">Hidráulica</option><option value="ELETRICA">Elétrica</option><option value="MECANICA">Mecânica</option></select></label>
             <label>Transmissão <select [(ngModel)]="form.cambio"><option [ngValue]="undefined">Selecione</option><option value="MANUAL">Manual</option><option value="AUTOMATICO">Automático</option><option value="AUTOMATIZADO">Automatizado</option><option value="CVT">CVT</option></select></label>
+            <label>Linha <input pInputText [(ngModel)]="form.linha" maxlength="80" placeholder="Sedan, Hatch, SUV..." /></label>
+            <label>Entrada de ar <input pInputText [(ngModel)]="form.entradaAr" maxlength="80" placeholder="Natural, Turbo..." /></label>
+            <label>Sistema de freios <input pInputText [(ngModel)]="form.sistemaFreios" maxlength="80" placeholder="ABS, disco ventilado..." /></label>
+            <label>Sistema de tração <input pInputText [(ngModel)]="form.sistemaTracao" maxlength="80" placeholder="Dianteira, Traseira, Integral..." /></label>
+            <label>Sistema de injeção <input pInputText [(ngModel)]="form.sistemaInjecao" maxlength="80" placeholder="Multiponto, Direta..." /></label>
+            <label>Configuração do motor <input pInputText [(ngModel)]="form.configuracaoMotor" maxlength="80" placeholder="V6, V8, Inline 4..." /></label>
+            <label>Freio dianteiro <input pInputText [(ngModel)]="form.freioDianteiro" maxlength="80" placeholder="Disco ventilado..." /></label>
+            <label>Freio traseiro <input pInputText [(ngModel)]="form.freioTraseiro" maxlength="80" placeholder="Tambor ou disco..." /></label>
             <label>Portas <input type="number" min="2" max="6" pInputText [(ngModel)]="form.portas" /></label>
             <label>Ar-condicionado <select [(ngModel)]="form.arCondicionado"><option [ngValue]="undefined">Não informado</option><option [ngValue]="true">Sim</option><option [ngValue]="false">Não</option></select></label>
             <label class="nt-ref-wide">Observações <textarea [(ngModel)]="form.observacoes" rows="3"></textarea></label>

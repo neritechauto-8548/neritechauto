@@ -70,6 +70,8 @@ export class CadastroVeiculo implements OnInit {
   lookupMessage = '';
   existingVehicleId: number | null = null;
 
+  get selectedModelImage(): string | undefined { return this.modelos.find(m => m.id === this.form.modeloId)?.imagemUrl; }
+
   get canSaveModal(): boolean {
     return !!this.selectedCliente?.id && /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test((this.form.placa || '').trim().toUpperCase())
       && !!this.form.marcaId && !!this.form.modeloId && !!this.form.anoModeloId
@@ -427,7 +429,29 @@ export class CadastroVeiculo implements OnInit {
       dataUltimaRevisao: this.form.dataUltimaRevisao,
       proximaRevisaoData: this.form.proximaRevisaoData,
       proximaRevisaoKm: this.form.proximaRevisaoKm,
-      observacoes: this.form.observacoes
+      observacoes: this.form.observacoes,
+      geracao: this.form.geracao,
+      frota: this.form.frota,
+      tipoVeiculo: this.form.tipoVeiculo,
+      acessorios: this.form.acessorios,
+      cilindrada: this.form.cilindrada,
+      quantidadeValvulas: this.form.quantidadeValvulas,
+      quantidadeCilindros: this.form.quantidadeCilindros,
+      nomeMotor: this.form.nomeMotor,
+      codigoMotor: this.form.codigoMotor,
+      potenciasCv: this.form.potenciasCv,
+      linha: this.form.linha,
+      entradaAr: this.form.entradaAr,
+      sistemaFreios: this.form.sistemaFreios,
+      sistemaTracao: this.form.sistemaTracao,
+      sistemaInjecao: this.form.sistemaInjecao,
+      configuracaoMotor: this.form.configuracaoMotor,
+      freioDianteiro: this.form.freioDianteiro,
+      freioTraseiro: this.form.freioTraseiro,
+      direcao: this.form.direcao,
+      cambio: this.form.cambio,
+      arCondicionado: this.form.arCondicionado,
+      portas: this.form.portas
     };
 
     const request = this.id

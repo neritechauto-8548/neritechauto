@@ -93,8 +93,6 @@ export interface ClienteRequest {
   rg?: string;
   documentoEstrangeiro?: string;
   pais?: string;
-  estadoCivil?: EstadoCivil;
-  profissao?: string;
   numeroApolice?: string;
   limiteCredito?: number;
   comoNosConheceu?: string;

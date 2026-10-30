@@ -1,54 +1,72 @@
 <main class="nt-ci-page">
   <div class="nt-ci-path">NERITECH AUTO <span>›</span> Clientes <span>›</span> Indicadores</div>
   <nt-clientes-nav />
-  <h1>Indicadores <small title="Indicadores calculados de clientes com data de nascimento válida">ⓘ</small></h1>
-  @if (isUxPreview) { <p class="nt-ci-preview" role="status">Prévia de interface · somente dados demonstrativos</p> }
-  <form class="nt-ci-filters" (submit)="$event.preventDefault(); refresh()">
+  <h1>Indicadores <small title="Dados calculados da carteira de clientes da empresa" aria-label="Ajuda sobre indicadores">ⓘ</small></h1>
+  <form class="nt-ci-filters" (submit)="$event.preventDefault();refresh()">
     <label>Agrupamento
       <select [(ngModel)]="grouping" name="grouping" (ngModelChange)="refresh()">
-        @for (option of groupOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }
+        @for(option of groupOptions;track option.value){<option [value]="option.value">{{option.label}}</option>}
       </select>
     </label>
-    <label>Data inicial <input type="date" [(ngModel)]="from" name="from" (change)="refresh()" /></label>
-    <label>Data final <input type="date" [(ngModel)]="to" name="to" (change)="refresh()" /></label>
-    <button type="submit" [disabled]="loading">Atualizar</button>
+    <label>Data inicial<input type="date" [(ngModel)]="from" name="from" (change)="refresh()" /></label>
+    <label>Data final<input type="date" [(ngModel)]="to" name="to" (change)="refresh()" /></label>
   </form>
-  <p class="nt-ci-note">ⓘ &nbsp; Para a distribuição e a idade média, são considerados exclusivamente clientes com data de nascimento válida. O período filtra pela data de cadastro.</p>
-  @if(error) { <div class="nt-ci-error" role="alert">{{ error }} <button type="button" (click)="refresh()">Tentar novamente</button></div> }
-  @if(loading) { <div class="nt-ci-loading" role="status">Consultando informações de clientes…</div> }
-  @if(!loading && !error) {
-    <section class="nt-ci-summary" aria-label="Resumo dos clientes por gênero e idade">
-      <article class="blue"><div><span>Masculino</span><span>♂</span></div><strong>{{ male }}</strong><small>Período selecionado</small><hr/><small>Idade média</small><b>{{ avgMale === null ? 'Sem dados' : avgMale + ' anos' }}</b></article>
-      <article class="pink"><div><span>Feminino</span><span>♀</span></div><strong>{{ female }}</strong><small>Período selecionado</small><hr/><small>Idade média</small><b>{{ avgFemale === null ? 'Sem dados' : avgFemale + ' anos' }}</b></article>
-      <article class="grey"><div><span>Não especificado</span><span>?</span></div><strong>{{ unknown }}</strong><small>Período selecionado</small><hr/><small>Idade média</small><b>{{ avgUnknown === null ? 'Sem dados' : avgUnknown + ' anos' }}</b></article>
+  <p class="nt-ci-note"><span aria-hidden="true">ⓘ</span> Para a composição deste dashboard, são considerados exclusivamente os clientes que possuem a data de aniversário cadastrada no sistema.</p>
+  @if(isUxPreview){<p class="nt-ci-preview">Dados demonstrativos na prévia; valores reais exigem autenticação.</p>}
+  @if(error){<div class="nt-ci-error" role="alert">{{error}} <button type="button" (click)="refresh()">Tentar novamente</button></div>}
+  @if(loading){<div class="nt-ci-loading" role="status">Consultando os indicadores…</div>}
+  @if(!loading && !error){
+    <section class="nt-ci-summary" aria-label="Indicadores de clientes">
+      <article class="blue"><header><span>MASCULINO</span><span class="nt-ci-gender-icon">♂</span></header><small class="nt-ci-pill">● Período selecionado</small><strong>{{male}}</strong><div class="nt-ci-card-rule"></div><small class="nt-ci-pill nt-ci-neutral">Total no sistema</small><b>{{male}}</b></article>
+      <article class="pink"><header><span>FEMININO</span><span class="nt-ci-gender-icon">♀</span></header><small class="nt-ci-pill">● Período selecionado</small><strong>{{female}}</strong><div class="nt-ci-card-rule"></div><small class="nt-ci-pill nt-ci-neutral">Total no sistema</small><b>{{female}}</b></article>
+      <article class="grey"><header><span>NÃO ESPECIFICADO</span><span class="nt-ci-gender-icon">?</span></header><small class="nt-ci-pill">● Período selecionado</small><strong>{{unknown}}</strong><div class="nt-ci-card-rule"></div><small class="nt-ci-pill nt-ci-neutral">Total no sistema</small><b>{{unknown}}</b></article>
+      <article class="blue"><header><span>IDADE MÉDIA — MASCULINO</span><span class="nt-ci-gender-icon">♂</span></header><small class="nt-ci-pill">● Período selecionado</small><strong>{{avgMale===null?'—':avgMale}} <small>anos</small></strong><div class="nt-ci-card-rule"></div><small class="nt-ci-pill nt-ci-neutral">Total no sistema</small><b>{{avgMale===null?'—':avgMale}} anos</b></article>
+      <article class="pink"><header><span>IDADE MÉDIA — FEMININO</span><span class="nt-ci-gender-icon">♀</span></header><small class="nt-ci-pill">● Período selecionado</small><strong>{{avgFemale===null?'—':avgFemale}} <small>anos</small></strong><div class="nt-ci-card-rule"></div><small class="nt-ci-pill nt-ci-neutral">Total no sistema</small><b>{{avgFemale===null?'—':avgFemale}} anos</b></article>
+      <article class="grey"><header><span>IDADE MÉDIA — NÃO ESPEC.</span><span class="nt-ci-gender-icon">?</span></header><small class="nt-ci-pill">● Período selecionado</small><strong>{{avgUnknown===null?'—':avgUnknown}} <small>anos</small></strong><div class="nt-ci-card-rule"></div><small class="nt-ci-pill nt-ci-neutral">Total no sistema</small><b>{{avgUnknown===null?'—':avgUnknown}} anos</b></article>
     </section>
     <section class="nt-ci-chart" aria-label="Clientes por período">
-      <header><h2>Clientes por Período</h2><p>Agrupado por {{ grouping }}</p></header>
-      @if(bars.length) {
-        <div class="nt-ci-bars">
-          @for(bar of bars; track bar.label) {
-            <div class="nt-ci-bar-item" [attr.aria-label]="bar.label + ': ' + bar.count + ' clientes'">
-              <span>{{ bar.count }}</span><div class="nt-ci-bar" [style.height.%]="bar.height"></div><small>{{ bar.label }}</small>
-            </div>
+      <header><div><h2>Clientes por Período</h2><p>Agrupado por {{periodDescription}}</p></div><div class="nt-ci-legend"><span class="blue-dot">Masculino</span><span class="pink-dot">Feminino</span><span class="grey-dot">Não definido</span><span class="green-dot">Total</span></div></header>
+      @if(points.length) {
+        <svg class="nt-ci-line-svg" viewBox="0 0 1000 275" preserveAspectRatio="none" role="img" aria-label="Séries temporais de clientes cadastrados por gênero">
+          <line x1="45" y1="235" x2="955" y2="235" stroke="#e2e9f1" stroke-dasharray="4 5" />
+          <line x1="45" y1="185" x2="955" y2="185" stroke="#e9edf3" stroke-dasharray="4 5" />
+          <line x1="45" y1="135" x2="955" y2="135" stroke="#e9edf3" stroke-dasharray="4 5" />
+          <line x1="45" y1="85" x2="955" y2="85" stroke="#e9edf3" stroke-dasharray="4 5" />
+          <line x1="45" y1="35" x2="955" y2="35" stroke="#e9edf3" stroke-dasharray="4 5" />
+          <polyline [attr.points]="series.total" fill="none" stroke="#4cc966" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <polyline [attr.points]="series.unknown" fill="none" stroke="#a6afb9" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <polyline [attr.points]="series.male" fill="none" stroke="#3496ee" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <polyline [attr.points]="series.female" fill="none" stroke="#fb6096" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          @for(point of points;track point.label){
+            <circle [attr.cx]="point.x" [attr.cy]="point.totalY" r="4" fill="#4cc966"><title>{{point.label}}: {{point.total}} no total</title></circle>
+            <circle [attr.cx]="point.x" [attr.cy]="point.unknownY" r="4" fill="#a6afb9"><title>{{point.label}}: {{point.unknown}} não especificados</title></circle>
+            <circle [attr.cx]="point.x" [attr.cy]="point.maleY" r="4" fill="#3496ee"><title>{{point.label}}: {{point.male}} homens</title></circle>
+            <circle [attr.cx]="point.x" [attr.cy]="point.femaleY" r="4" fill="#fb6096"><title>{{point.label}}: {{point.female}} mulheres</title></circle>
+            <text [attr.x]="point.x" y="260" font-size="12" text-anchor="middle" fill="#8494a8">{{point.label}}</text>
           }
-        </div>
-      } @else { <p class="nt-ci-empty">Nenhum cliente com nascimento informado e data de cadastro válida neste período.</p> }
+        </svg>
+      } @else { <p class="nt-ci-empty">Sem dados no período selecionado.</p> }
+      <p class="nt-ci-axis-label">Período em {{periodDescription}}</p>
     </section>
     <section class="nt-ci-bottom">
-      <article><h2>Clientes por gênero</h2><p>Distribuição no período selecionado</p>
+      <article><header><h2>Clientes por gênero</h2><p>Distribuição no período selecionado</p></header>
+        @if(male+female+unknown>0){
+          <div class="nt-ci-pie-wrap"><div class="nt-ci-pie" [style.background]="pieGradient" role="img" [attr.aria-label]="'Masculino '+male+', feminino '+female+', não especificado '+unknown"></div></div>
+        } @else {<p class="nt-ci-empty">Sem dados disponíveis.</p>}
         <div class="nt-ci-breakdown">
-          <div><span>Masculino</span><strong>{{ male }}</strong></div><meter [min]="0" [max]="totalEligible" [value]="male">Masculino</meter>
-          <div><span>Feminino</span><strong>{{ female }}</strong></div><meter [min]="0" [max]="totalEligible" [value]="female">Feminino</meter>
-          <div><span>Não especificado</span><strong>{{ unknown }}</strong></div><meter [min]="0" [max]="totalEligible" [value]="unknown">Não especificado</meter>
+          <div><span class="blue-dot">Masculino</span><strong>{{male}} &nbsp; {{percent('male') | number:'1.2-2'}}%</strong></div>
+          <div><span class="pink-dot">Feminino</span><strong>{{female}} &nbsp; {{percent('female') | number:'1.2-2'}}%</strong></div>
+          <div><span class="grey-dot">Não especificados</span><strong>{{unknown}} &nbsp; {{percent('unknown') | number:'1.2-2'}}%</strong></div>
         </div>
       </article>
-      <article><h2>Média de idade</h2><p>Clientes com data de nascimento cadastrada</p>
-        <div class="nt-ci-age">
-          <div><span>Masculino</span><strong>{{ avgMale === null ? '—' : avgMale + ' anos' }}</strong></div>
-          <div><span>Feminino</span><strong>{{ avgFemale === null ? '—' : avgFemale + ' anos' }}</strong></div>
-          <div><span>Não especificado</span><strong>{{ avgUnknown === null ? '—' : avgUnknown + ' anos' }}</strong></div>
-          <div><span>Média geral</span><strong>{{ avgOverall === null ? '—' : avgOverall + ' anos' }}</strong></div>
+      <article><header><h2>Média de idade</h2><p>Idade média por gênero no período</p></header>
+        <div class="nt-ci-age-chart">
+          <div><span [style.height.%]="avgMale===null?0:(avgMale/120)*100" class="age-blue"></span><small>Homens</small></div>
+          <div><span [style.height.%]="avgFemale===null?0:(avgFemale/120)*100" class="age-pink"></span><small>Mulheres</small></div>
+          <div><span [style.height.%]="avgUnknown===null?0:(avgUnknown/120)*100" class="age-grey"></span><small>Não espec.</small></div>
+          <div><span [style.height.%]="avgOverall===null?0:(avgOverall/120)*100" class="age-green"></span><small>Média geral</small></div>
         </div>
+        <div class="nt-ci-age-summary"><span>Homens <b>{{avgMale===null?'—':avgMale}} anos</b></span><span>Mulheres <b>{{avgFemale===null?'—':avgFemale}} anos</b></span><span>Não espec. <b>{{avgUnknown===null?'—':avgUnknown}} anos</b></span><span>Média geral <b>{{avgOverall===null?'—':avgOverall}} anos</b></span></div>
       </article>
     </section>
   }

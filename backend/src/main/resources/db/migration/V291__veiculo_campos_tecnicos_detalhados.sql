@@ -1,0 +1,20 @@
+-- Dados técnicos capturados na criação de veículos; sem suposições de catálogo externo.
+ALTER TABLE veiculos
+    ADD COLUMN IF NOT EXISTS geracao VARCHAR(40),
+    ADD COLUMN IF NOT EXISTS frota VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS tipo_veiculo VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS acessorios VARCHAR(2000),
+    ADD COLUMN IF NOT EXISTS cilindrada NUMERIC(5,2),
+    ADD COLUMN IF NOT EXISTS quantidade_valvulas INTEGER,
+    ADD COLUMN IF NOT EXISTS quantidade_cilindros INTEGER,
+    ADD COLUMN IF NOT EXISTS nome_motor VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS codigo_motor VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS potencias_cv VARCHAR(180),
+    ADD COLUMN IF NOT EXISTS linha VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS entrada_ar VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS sistema_freios VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS sistema_tracao VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS sistema_injecao VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS configuracao_motor VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS freio_dianteiro VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS freio_traseiro VARCHAR(80);

@@ -9,9 +9,9 @@
   @if (isUxPreview) { <p class="nt-vehicle-preview" role="status">Prévia de interface · dados fictícios e operações de API bloqueadas</p> }
   <section class="nt-vehicle-toolbar" aria-label="Pesquisa e filtros">
     <input type="search" [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" aria-label="Pesquisar veículos"
-      placeholder="⌕  Pesquisar veículos" />
+      placeholder="Pesquisar veículos" />
     <button type="button" (click)="filterOpen = true" [attr.aria-expanded]="filterOpen">⚲ Filtrar</button>
-    <button type="button" (click)="loadVehicles(filterByCustomerId)" [disabled]="loading" aria-label="Atualizar veículos">⟳</button>
+    
   </section>
   <section class="nt-vehicle-results">
     <div class="nt-vehicle-results-bar"><span>Listagem de veículos</span>
@@ -37,11 +37,11 @@
                   <div class="nt-vehicle-model">
                     @if (row.modeloImagemUrl) {
                       <img [src]="row.modeloImagemUrl" [alt]="'Imagem do veículo ' + (row.modeloNome || row.placa)" loading="lazy" />
-                    } @else { <span class="nt-vehicle-no-image" aria-hidden="true">♧</span> }
+                    } @else { <span class="nt-vehicle-no-image" aria-hidden="true"><svg viewBox="0 0 64 48" width="34" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29h48l-6-14H17l-9 14Z"/><path d="M8 29v10h7m34 0h7V29M19 29l4-14m20 14-4-14"/><circle cx="19" cy="39" r="5"/><circle cx="45" cy="39" r="5"/></svg></span> }
                     <div><button type="button" (click)="editarVeiculo(row)">{{ row.modeloNome || 'Modelo não informado' }}</button><small>{{ row.placa }}</small></div>
                   </div>
                 </td>
-                <td><strong>{{ row.marcaNome || 'Marca não informada' }}</strong></td>
+                <td><strong>{{ row.marcaNome || 'Marca não informada' }}</strong><small class="nt-vehicle-brand-type">{{ row.combustivelNome || '—' }}</small></td>
                 <td>{{ row.anoFabricacao || '—' }}@if(row.anoModelo && row.anoModelo !== row.anoFabricacao){/{{ row.anoModelo }}}</td>
                 <td><a [routerLink]="['/cliente/editar',row.clienteId]">{{ row.clienteNome || 'Ver cliente vinculado' }}</a></td>
                 <td><button type="button" class="nt-vehicle-more" [attr.aria-label]="'Ações do veículo ' + row.placa" (click)="toggleMenu(row,$event,menu)">⋮</button></td>
@@ -52,7 +52,7 @@
       </div>
     }
     @if (totalRecords > 0) {
-      <footer class="nt-vehicle-paging"><span>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalRecords }}</span><nav aria-label="Páginas de veículos"><button type="button" (click)="goPrev()" [disabled]="first === 0">Anterior</button><span>Página {{ currentPage }}</span><button type="button" (click)="goNext()" [disabled]="first+rows >= totalRecords">Próxima</button></nav></footer>
+      <footer class="nt-vehicle-paging">@if (pagedData.length < totalRecords) { <button type="button" (click)="loadMore()">Carregar mais</button> } @else { <span class="nt-vehicle-pages-done">Exibindo {{totalRecords}} veículos</span> }</footer>
     }
   </section>
 </main>
