@@ -7,6 +7,10 @@ export const routes: Routes = [
   { path: 'listar', component: Cliente, data: { title: 'Clientes' } },
   { path: 'cadastro', component: CadastroCliente, data: { title: 'Novo Cliente' } },
   { path: 'editar/:uuid', component: CadastroCliente, data: { title: 'Editar Cliente' } },
+  { path: 'historico-veiculos', loadComponent: () => import('./historico-veiculos/historico-veiculos').then(m => m.HistoricoVeiculos),
+    data: { title: 'Histórico de veículos', requiredPermissions: ['GERAL_USUARIO','ADMIN'], permissionMode: 'any' } },
+  { path: 'historico-veiculos/:id', loadComponent: () => import('./historico-veiculos/historico-veiculo-detalhe').then(m => m.HistoricoVeiculoDetalhe),
+    data: { title: 'Histórico do veículo', requiredPermissions: ['GERAL_USUARIO','ADMIN'], permissionMode: 'any' } },
   { path: 'indicadores', loadComponent: () => import('./indicadores/indicadores').then(m => m.ClientesIndicadores), data: { title: 'Indicadores de Clientes' } },
   {
     path: 'crm',

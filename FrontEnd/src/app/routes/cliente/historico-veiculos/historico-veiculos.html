@@ -1,0 +1,153 @@
+<main class="hv-page" aria-labelledby="hv-title">
+  <nav class="hv-breadcrumb" aria-label="Caminho da página">
+    <a routerLink="/home">NERITECH AUTO</a><span>›</span>
+    <a routerLink="/cliente/listar">Clientes</a><span>›</span><span>Histórico de veículos</span>
+  </nav>
+  <h1 id="hv-title">Histórico de veículos <span class="hv-help" title="Histórico de ordens de serviço dos veículos cadastrados na sua empresa">ⓘ</span></h1>
+  <div class="hv-toolbar">
+    <label class="hv-search"><span aria-hidden="true">⌕</span>
+      <input type="search" [ngModel]="busca" (ngModelChange)="inputSearch($event)"
+        placeholder="Pesquisar veículos" aria-label="Pesquisar cliente, modelo ou placa" />
+    </label>
+    <select [(ngModel)]="ordem" (ngModelChange)="refresh()" aria-label="Ordenar histórico">
+      <option value="AZ">↕ &nbsp; Ordem alfabética (A - Z)</option>
+      <option value="ZA">Ordem alfabética (Z - A)</option>
+      <option value="PLACA">Placa</option>
+    </select>
+    <button type="button" class="hv-secondary" (click)="filterOpen=true">⚲ &nbsp; Filtrar</button>
+  </div>
+  <section class="hv-table" aria-label="Listagem de histórico de veículos">
+    <header class="hv-table-top">
+      <h2>Listagem de histórico de veículos</h2>
+      <div class="hv-table-actions">
+        <button type="button" class="hv-secondary" (click)="openReport()">▤ &nbsp; Relatórios</button>
+        <button type="button" class="hv-secondary" (click)="openColumns()">▥ &nbsp; Colunas</button>
+      </div>
+    </header>
+    <div class="hv-overflow">
+      <table>
+        <thead><tr>
+          @for(column of selectedColumns;track column){
+            <th scope="col">{{label(column)}}</th>
+          }
+        </tr></thead>
+        <tbody>
+          @for(row of rows;track row.id){
+            <tr>
+              @for(column of selectedColumns;track column){
+                <td>
+                  @if(column==='cliente'){
+                    <a [routerLink]="['/cliente/historico-veiculos',row.id]">{{row.cliente}}</a>
+                  } @else {
+                    <a class="hv-vehicle-link" [routerLink]="['/cliente/historico-veiculos',row.id]">
+                      <strong>{{row.modelo || row.marca || 'Veículo'}}</strong>
+                      <small>{{row.placa}}</small>
+                    </a>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if(loading && !rows.length){<div class="hv-status" role="status">Carregando histórico de veículos…</div>}
+    @else if(error){<div class="hv-status hv-error" role="alert">{{error}} <button (click)="load()">Tentar novamente</button></div>}
+    @else if(!rows.length){<div class="hv-status">Nenhum veículo encontrado para os filtros informados.</div>}
+    <footer class="hv-table-footer">
+      @if(total>0){<span>{{rows.length}} de {{total}} veículo(s)</span>}
+      @if(hasMore){<button type="button" class="hv-secondary" [disabled]="loading" (click)="loadMore()">{{loading?'Carregando…':'Carregar mais'}}</button>}
+    </footer>
+  </section>
+</main>
+
+@if(filterOpen){
+  <div class="hv-mask" (click)="filterOpen=false">
+    <aside class="hv-filter" role="dialog" aria-modal="true" aria-labelledby="hv-filter-title" (click)="$event.stopPropagation()">
+      <header><div><h2 id="hv-filter-title">Filtro avançado de veículos</h2><p>Pesquisa na base da sua empresa</p></div><button type="button" (click)="filterOpen=false" aria-label="Fechar filtro">×</button></header>
+      <div class="hv-filter-body">
+        <label>Cliente, modelo ou placa <input type="search" [(ngModel)]="busca" placeholder="Pesquisar veículos" /></label>
+        <label>Ordenação <select [(ngModel)]="ordem"><option value="AZ">Ordem alfabética (A - Z)</option><option value="ZA">Ordem alfabética (Z - A)</option><option value="PLACA">Placa</option></select></label>
+      </div>
+      <footer><button class="hv-secondary" (click)="filterOpen=false">Cancelar</button><button class="hv-danger" (click)="clearFilter()">Resetar</button><button class="hv-primary" (click)="filterOpen=false;refresh()">⚲ Filtrar</button></footer>
+    </aside>
+  </div>
+}
+@if(columnsOpen){
+  <div class="hv-mask" (click)="columnsOpen=false">
+    <section class="hv-columns-dialog" role="dialog" aria-modal="true" aria-labelledby="hv-columns-title" (click)="$event.stopPropagation()">
+      <header><div><h2 id="hv-columns-title">▥ &nbsp; Colunas de histórico de veículos</h2><p>Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div><button type="button" (click)="columnsOpen=false" aria-label="Fechar">×</button></header>
+      <div class="hv-columns-note">ⓘ &nbsp; Personalize e salve para criar sua configuração de colunas.</div>
+      <div class="hv-columns-content">
+        <section><h3>Opções de colunas</h3><input type="search" [(ngModel)]="columnSearch" placeholder="Buscar coluna..." aria-label="Buscar opções de coluna" />
+          @for(item of filteredColumnOptions;track item.key){
+            <label><input type="checkbox" [checked]="draftColumns.includes(item.key)" [disabled]="item.key==='cliente'"
+              (change)="toggleColumn(item.key)" /> {{item.label}}</label>
+          }
+        </section>
+        <section><h3>Colunas selecionadas <small>{{draftColumns.length}}</small></h3>
+          <input type="search" [(ngModel)]="selectedColumnSearch" placeholder="Buscar coluna..." aria-label="Buscar colunas selecionadas"/>
+          @for(key of filteredSelectedColumns;track key){
+            <div class="hv-col-choice" [attr.draggable]="key!=='cliente'"
+              (dragstart)="dragging=key" (dragover)="$event.preventDefault()" (drop)="dropColumn(key)" (dragend)="dragging=null">
+              <span aria-hidden="true" class="hv-handle">⠿</span><span>{{label(key)}}</span>
+              @if(key==='cliente'){<span class="hv-lock" title="Coluna obrigatória">♙</span>}
+              @else {
+                <button type="button" (click)="moveColumn(key,-1)" title="Mover para cima" aria-label="Mover coluna para cima">↑</button>
+                <button type="button" (click)="moveColumn(key,1)" title="Mover para baixo" aria-label="Mover coluna para baixo">↓</button>
+                <button type="button" (click)="toggleColumn(key)" title="Remover coluna" aria-label="Remover coluna">×</button>
+              }
+            </div>
+          }
+        </section>
+      </div>
+      <footer><button type="button" class="hv-link-button" (click)="restoreDefault()">Restaurar padrão</button><span></span><button class="hv-secondary" (click)="columnsOpen=false">Cancelar</button><button class="hv-primary" (click)="saveColumns()">▣ &nbsp; Salvar</button></footer>
+    </section>
+  </div>
+}
+@if(reportOpen){
+  <div class="hv-mask hv-report-mask" (click)="reportOpen=false">
+    <section class="hv-report" role="dialog" aria-modal="true" aria-labelledby="hv-report-title" (click)="$event.stopPropagation()">
+      <header><div><h2 id="hv-report-title">▤ &nbsp; Relatórios <span title="Relatórios NERITECH AUTO">ⓘ</span></h2><p>Navegue pelos relatórios disponíveis na sua empresa</p></div><div><button type="button" (click)="reportOpen=false" aria-label="Fechar relatórios">×</button></div></header>
+      <div class="hv-report-search"><label><span aria-hidden="true">⌕</span><input type="search" [(ngModel)]="reportSearch" placeholder="Buscar relatório..." aria-label="Buscar relatório" /></label></div>
+      <div class="hv-report-content">
+        <nav class="hv-report-side" aria-label="Categorias de relatórios">
+          @for(group of reportGroups;track group.title){
+            <button type="button" class="hv-report-group" [class.active]="reportCategory===group.title" (click)="reportCategory=group.title">
+              <span>♧</span>{{group.title}}<span class="hv-chevron">{{reportCategory===group.title?'⌄':'›'}}</span>
+            </button>
+            @if(reportCategory===group.title){
+              @for(item of group.items;track item){
+                @if(!reportSearch || item.toLocaleLowerCase('pt-BR').includes(reportSearch.toLocaleLowerCase('pt-BR'))){
+                  <button type="button" class="hv-report-item" [class.active]="item===reportName" [disabled]="item!==reportName">{{item}}</button>
+                }
+              }
+            }
+          }
+        </nav>
+        <div class="hv-report-main">
+          @if(reportCategory==='Clientes' && reportVisible){
+            <h3>Histórico de veículos</h3><p>Histórico de veículos das ordens de serviço</p>
+            <div class="hv-report-divider"></div>
+            <section class="hv-report-options">
+              <header><div class="hv-report-option-icon">▣</div><div><strong>Conteúdo do relatório</strong><small>Escolha o que deve aparecer no histórico dos veículos</small></div></header>
+              <div class="hv-report-option-grid">
+                <label><input type="checkbox" [(ngModel)]="reportAuthorized" /><span><b>Somente O.S. autorizadas</b><small>Considera apenas ordens de serviço autorizadas.</small></span></label>
+                <label><input type="checkbox" [(ngModel)]="reportCommissioned" /><span><b>Exibir produtivo comissionado</b><small>Identificador do profissional por item, quando cadastrado.</small></span></label>
+                <label><input type="checkbox" [(ngModel)]="reportValues" /><span><b>Exibir valores</b><small>Preço unitário, desconto e total de cada item.</small></span></label>
+              </div>
+            </section>
+            <p class="hv-report-scope">Relatório gerado dos veículos e OS existentes, com os filtros atuais da listagem. Limite de 100 veículos por arquivo.</p>
+          } @else {
+            <div class="hv-report-empty">Nenhum relatório disponível nesta categoria com os filtros informados.</div>
+          }
+        </div>
+      </div>
+      <footer><button type="button" class="hv-link-button" (click)="reportReset()">⚲ &nbsp; Resetar filtros</button><span></span>
+        @if(reportError){<p class="hv-report-error" role="alert">{{reportError}}</p>}
+        <button class="hv-secondary" [disabled]="reportLoading||reportCategory!=='Clientes'||!reportVisible" (click)="reportAction('visualizar')">◉ &nbsp; Visualizar</button>
+        <button class="hv-primary" [disabled]="reportLoading||reportCategory!=='Clientes'||!reportVisible" (click)="reportAction('baixar')">{{reportLoading?'Gerando PDF…':'▣ &nbsp; Baixar PDF'}}</button>
+      </footer>
+    </section>
+  </div>
+}

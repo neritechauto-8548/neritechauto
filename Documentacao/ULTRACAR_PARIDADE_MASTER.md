@@ -332,3 +332,24 @@ Sete campos na ordem e grid 2 colunas da captura: CPF/CNPJ, Nome fantasia, Conta
 - [ ] Validar consultas de contato/placa, gênero e nome fantasia com tenants A/B e registros reais.
 - [ ] Verificar impressão de etiquetas com margens 10,00 e altura, além de logotipo e cabeçalho de empresa autorizada.
 - [ ] Completar integrações licenciadas Fraga/visão e relatórios em lote quando houver contrato/API; não simular sucesso.
+
+
+---
+
+## Lote 08 — Histórico de veículos e modal de relatórios (30/10/2026)
+
+**Referências anexadas:** Screenshot_24.png, FireShot Capture 146, Screenshot_1(3), Screenshot_2(2), Screenshot_3(2). As capturas são referência visual; funcionalidades que elas não demonstram foram implementadas a partir do modelo real do sistema, sem afirmar equivalência operacional com o concorrente.
+
+**Navegação:** `/cliente/historico-veiculos` (lista), `/cliente/historico-veiculos/:id` (detalhes). A entrada existente do menu Clientes foi direcionada à nova rota; a lista de cadastro de veículos permanece no módulo Veículos.
+
+**Listagem:** título, breadcrumb, busca por cliente/modelo/placa, ordenação alfabética A/Z e por placa, filtros de pesquisa, tabela Cliente/Placa, carregamento adicional por página de 10 e diálogo de colunas. Cliente é obrigatório e não removível; preferências de colunas salvas localmente por empresa, sem modificar segurança da API.
+
+**Detalhes:** identificação do cliente (nome/documento), veículo (placa, marca/modelo, ano, combustível e cilindrada), pesquisa de OS e itens, ordenação por OS/entrada, selecionador Fechados ou Fechados / Autorizados, vazio real caso não haja OS, paginação e visualização do PDF. O botão de impressão depende de OS existentes, sem conteúdo fictício.
+
+**Relatórios:** modal com categorias de referência; apenas Histórico de veículos é executável neste lote. As três opções operam sobre dados efetivos: somente OS autorizadas, exibir identificador do produtivo (se houver) e exibir valores reais. PDF gerado no Spring Boot com OpenPDF, com erros HTTP e limite de volume, não um arquivo simulado. A busca da lista também restringe a emissão quando há termo pesquisado. Não foi implementada conexão com outros relatórios que as imagens apenas exibem como itens de navegação.
+
+**API:** `GET /v1/historicos-veiculos`, `GET /v1/historicos-veiculos/:id`, `GET /v1/historicos-veiculos/:id/ordens`, `GET /v1/historicos-veiculos/relatorio`. Sem novas tabelas: leitura de Veiculo, Cliente, OrdemServico, ItemOSServico e ItemOSProduto; predicados de tenant obrigatórios. O backend impede uso de IDs de outros clientes/veículos e busca a OS pelo `empresaId` do JWT autenticado, nunca por empresaId fornecido no parâmetro.
+
+**Limitações verificáveis:** nomes de comissionados não estão resolvidos por esta tela (exibe ID do responsável, não inventa nome); o relatório PDF limita 100 veículos e 700 OS e retorna 422 ao exceder; as demais categorias do modal são informativas até integração autorizada. A imagem do concorrente não fornece contrato de impressão, logo há uma implementação NERITECH própria, não afirmação de correspondência de template Jasper.
+
+**QA:** teste unitário do controlador cobre empresa ausente, ID estrangeiro, paginação inválida e consulta vazia; build Angular/Maven, testes integrados A/B e comparação pixel a pixel permanecem dependentes de resultados da CI e homologação visual da tela renderizada.

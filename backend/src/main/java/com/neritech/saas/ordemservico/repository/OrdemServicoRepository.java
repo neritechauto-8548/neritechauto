@@ -36,6 +36,40 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
     Page<OrdemServico> findByClienteIdAndEmpresaId(Long clienteId, Long empresaId, Pageable pageable);
     Page<OrdemServico> findByVeiculoId(Long veiculoId, Pageable pageable);
 
+    /** Acesso à linha do tempo de um veículo restrito à empresa autenticada.
+     *  Busca também descrições de serviços/produtos, sem consultar outras empresas.
+     */
+    @org.springframework.data.jpa.repository.Query(
+        value = "select o from OrdemServico o where o.empresaId = :empresaId and o.veiculoId = :veiculoId " +
+            "and (:soAutorizadas = false or o.aprovadoCliente = true) " +
+            "and ((:incluirAutorizados = true and (o.status.finalizaOS = true or o.aprovadoCliente = true)) " +
+            "or (:incluirAutorizados = false and o.status.finalizaOS = true)) " +
+            "and (:busca = '' or lower(o.numeroOS) like lower(concat('%', :busca, '%')) " +
+            "or lower(coalesce(o.problemaRelatado, '')) like lower(concat('%', :busca, '%')) " +
+            "or exists (select i.id from ItemOSServico i where i.ordemServico = o " +
+            "and lower(coalesce(i.descricao, '')) like lower(concat('%', :busca, '%'))) " +
+            "or exists (select p.id from ItemOSProduto p where p.ordemServico = o " +
+            "and lower(coalesce(p.descricao, '')) like lower(concat('%', :busca, '%'))))",
+        countQuery = "select count(o) from OrdemServico o where o.empresaId = :empresaId and o.veiculoId = :veiculoId " +
+            "and (:soAutorizadas = false or o.aprovadoCliente = true) " +
+            "and ((:incluirAutorizados = true and (o.status.finalizaOS = true or o.aprovadoCliente = true)) " +
+            "or (:incluirAutorizados = false and o.status.finalizaOS = true)) " +
+            "and (:busca = '' or lower(o.numeroOS) like lower(concat('%', :busca, '%')) " +
+            "or lower(coalesce(o.problemaRelatado, '')) like lower(concat('%', :busca, '%')) " +
+            "or exists (select i.id from ItemOSServico i where i.ordemServico = o " +
+            "and lower(coalesce(i.descricao, '')) like lower(concat('%', :busca, '%'))) " +
+            "or exists (select p.id from ItemOSProduto p where p.ordemServico = o " +
+            "and lower(coalesce(p.descricao, '')) like lower(concat('%', :busca, '%'))))"
+    )
+    Page<OrdemServico> historicoPorVeiculo(
+        @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+        @org.springframework.data.repository.query.Param("veiculoId") Long veiculoId,
+        @org.springframework.data.repository.query.Param("incluirAutorizados") boolean incluirAutorizados,
+        @org.springframework.data.repository.query.Param("soAutorizadas") boolean soAutorizadas,
+        @org.springframework.data.repository.query.Param("busca") String busca,
+        Pageable pageable);
+
+
     @org.springframework.data.jpa.repository.Query("SELECT o FROM OrdemServico o WHERE o.empresaId = :empresaId AND o.numeroOS = :numeroOS AND o.clienteId IN (SELECT c.id FROM Cliente c WHERE c.empresaId = :empresaId AND c.cpf = :cpf)")
     java.util.Optional<OrdemServico> findByCpfAndNumeroOS(@org.springframework.data.repository.query.Param("cpf") String cpf,
                                                            @org.springframework.data.repository.query.Param("numeroOS") String numeroOS,

@@ -87,7 +87,7 @@
         },
         {
           "name": "Histórico de veículos",
-          "route": "veiculo",
+          "route": "cliente/historico-veiculos",
           "type": "link",
           "icon": "car"
         },

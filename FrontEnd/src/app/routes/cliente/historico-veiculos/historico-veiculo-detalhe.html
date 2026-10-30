@@ -1,0 +1,75 @@
+<main class="hv-page hv-detail" aria-labelledby="hv-detail-title">
+  <nav class="hv-breadcrumb" aria-label="Caminho da página">
+    <a routerLink="/home">NERITECH AUTO</a><span>›</span>
+    <a routerLink="/cliente/listar">Clientes</a><span>›</span>
+    <a routerLink="/cliente/historico-veiculos">Histórico de veículos</a><span>›</span><span>Detalhes</span>
+  </nav>
+  @if(carregandoVeiculo){<div class="hv-status" role="status">Carregando dados do veículo…</div>}
+  @else if(erroVeiculo){<div class="hv-status hv-error" role="alert">{{erroVeiculo}} <a routerLink="/cliente/historico-veiculos">Voltar</a></div>}
+  @else if(veiculo){
+    <section class="hv-summary" aria-label="Resumo do cliente e veículo">
+      <div class="hv-summary-client">
+        <div class="hv-avatar" aria-hidden="true">{{initials}}</div>
+        <div><a [routerLink]="['/cliente/editar',veiculo.clienteId]">{{veiculo.cliente}}</a><small>{{veiculo.documento || 'Sem documento'}}</small>
+          <span class="hv-category-placeholder" title="Categoria gerenciada no cadastro de clientes">▦ &nbsp; Selecionar</span>
+        </div>
+      </div>
+      <div class="hv-summary-car">
+        <div class="hv-car-icon" aria-hidden="true">▰</div>
+        <div><h1 id="hv-detail-title">{{veiculo.placa}} · {{veiculo.marca || 'Marca não informada'}}</h1>
+          <p>{{veiculo.marca || '—'}} {{veiculo.modelo || 'Modelo não informado'}}</p>
+          <div class="hv-chips">
+            <span>▦ &nbsp; Ano: {{veiculo.anoFabricacao || '—'}}/{{veiculo.anoModelo || '—'}}</span>
+            <span>▣ &nbsp; Combustível: {{veiculo.combustivel || 'Não informado'}}</span>
+            <span>ⓘ &nbsp; {{veiculo.cilindrada ? 'Cilindrada: '+veiculo.cilindrada : 'Não informado: cilindrada'}}</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="hv-secondary hv-print" (click)="imprimir()" [disabled]="!total || imprimindo"
+        title="Imprime o histórico com OS disponíveis">{{imprimindo?'Gerando…':'▤ &nbsp; Imprimir'}}</button>
+    </section>
+    @if(erroImpressao){<p class="hv-error" role="alert">{{erroImpressao}}</p>}
+    <section class="hv-history-panel" aria-label="Históricos">
+      <h2>Históricos</h2>
+      <div class="hv-detail-filters">
+        <input type="search" [ngModel]="busca" (ngModelChange)="buscaAlterada($event)"
+          placeholder="Pesquisar pela descrição dos itens" aria-label="Pesquisar descrições e OS" />
+        <select [(ngModel)]="ordenar" (ngModelChange)="reload()" aria-label="Ordenar por">
+          <option value="OS">OS</option><option value="ENTRADA">Data de entrada</option>
+        </select>
+        <div class="hv-segmented" role="group" aria-label="Situação das ordens">
+          <button type="button" [class.active]="!incluirAutorizados" (click)="incluirAutorizados=false;reload()">Fechados</button>
+          <button type="button" [class.active]="incluirAutorizados" (click)="incluirAutorizados=true;reload()">Fechados / Autorizados</button>
+        </div>
+      </div>
+      <div class="hv-history-list">
+        @if(carregandoOS && !rows.length){<div class="hv-status" role="status">Carregando ordens de serviço…</div>}
+        @else if(erroOS){<div class="hv-status hv-error" role="alert">{{erroOS}} <button type="button" (click)="load()">Tentar novamente</button></div>}
+        @else if(!rows.length){<div class="hv-history-empty"><span aria-hidden="true">▣</span><p>Não há dados de passagem do veículo</p></div>}
+        @for(os of rows;track os.id){
+          <article class="hv-os-card">
+            <header>
+              <div><strong>OS {{os.numero}}</strong><span class="hv-os-status">{{os.status}}</span>
+                @if(os.autorizada){<span class="hv-os-authorized">Autorizada</span>}
+                <small>Entrada: {{formatDate(os.dataAbertura)}} · Entrega: {{formatDate(os.dataEntrega)}}</small>
+              </div>
+              <a class="hv-secondary" [routerLink]="['/os/cadastro',os.id]">Abrir OS</a>
+            </header>
+            @if(os.problema){<p><b>Relato:</b> {{os.problema}}</p>}
+            @if(os.solucao){<p><b>Solução:</b> {{os.solucao}}</p>}
+            @if(os.itens.length){
+              <div class="hv-os-items">
+                @for(item of os.itens;track item.tipo+'-'+item.id){
+                  <div><span>{{item.tipo==='SERVICO'?'Serviço':'Peça'}} · {{item.descricao || 'Sem descrição'}}</span>
+                    <span>{{currency(item.valorFinal)}}</span></div>
+                }
+              </div>
+            }
+            <footer>Valor total: <b>{{currency(os.valorTotal)}}</b></footer>
+          </article>
+        }
+        @if(hasMore){<div class="hv-more"><button type="button" class="hv-secondary" [disabled]="carregandoOS" (click)="loadMore()">{{carregandoOS?'Carregando…':'Carregar mais'}}</button></div>}
+      </div>
+    </section>
+  }
+</main>
