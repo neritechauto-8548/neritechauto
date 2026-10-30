@@ -140,3 +140,53 @@ Registrar uma linha por nova tela, com todos os estados visuais (listagem, ediç
 - [ ] Confirmar no DevTools Network que todas as chamadas `/api/` são bloqueadas localmente, sem HTTP ao servidor.
 - [ ] Testar navegação via menu, dashboard, CRM, logout da prévia e recarga sem parâmetro.
 - [ ] Retirar esta exceção temporária de `environment.prod.ts` e o botão público antes da disponibilização comercial da versão autenticada.
+
+---
+
+## Lote 04 — Clientes e Veículos (capturas de 30/10/2026)
+
+### Imagens analisadas
+
+`01 - cliente.png`, `FireShot Capture 140`, `142`, `143`, `144`, `Screenshot_1(1)`, `Screenshot_2` a `Screenshot_13`.
+
+### Fluxos efetivamente observados
+
+1. Workspace de Clientes com 3 abas (Clientes, Veículos, Indicadores), breadcrumb, busca e botão de ação verde.
+2. Listagem de clientes com cabeçalho, colunas configuráveis (Cliente, CPF/CNPJ, Categoria, Tipo de pessoa, Criação), filtros avançados em drawer e cadastro completo em drawer.
+3. Filtros vistos: CPF/CNPJ, Nome fantasia, Contato, Tipo de pessoa, Gênero, Placa, Situação. A API real implementa busca textual, CPF/CNPJ, tipo, status e intervalo de cadastro. **Contato, gênero e placa NÃO são filtros remotos comprovados na API**.
+4. Veículos: tabela de modelo, placa, marca, ano e vínculo de cliente, filtro (cliente, marca, modelo, placa) e cadastro com identificação, dados gerais, motor e complementos.
+5. Indicadores: dia (30d), semana (90d), mês (12m), ano (5a); distribuição por gênero, médias de idade e séries temporais. Captura referencia nascimentos cadastrados.
+6. Etiquetas: impressão, filtros, opções de página, margens, fontes, bordas, personalização visual e impressão/PDF pelo navegador.
+7. Importação CSV: escolher domínio, validar arquivo, revisar e só depois confirmar. Não usar importação cega por múltiplos POSTs sem transação e política de duplicidade.
+8. Personalização global de relatórios com cabeçalho e identidade da empresa, prévia e configuração persistida por empresa/matriz — **ainda não implementada**.
+
+### Implementação do lote no código
+
+- `FrontEnd/src/app/routes/cliente/clientes-nav.ts`: navegação contextual reutilizada em Clientes, Veículos e Indicadores.
+- `cliente/cliente/cliente.{ts,html,scss}`: identidade/layout ajustados, filtros em drawer, consulta server-side, controle de ordenação e visibilidade das colunas (preferência apenas neste navegador), impressão de etiquetas via documento isolado seguro com texto HTML escapado. Cadastro reutiliza `CadastroCliente` existente no drawer PrimeNG, sem duplicar DTO ou API. Exporta modelo CSV **sem afirmar que importa**.
+- `cliente/cliente/cliente.service.ts`: prévia respeita filtros avançados simulados em memória, sem alterar cliente real.
+- `cliente/indicadores/indicadores.{ts,html,scss}`: nova aba; para bases de até 1.000 registros no intervalo, lê as páginas completas com a API autenticada, calcula idades e categorias apenas com nascimento válido e renderiza barras de registro agrupado. Com mais de dez páginas de cem registros, bloqueia estatísticas parciais e pede API agregada tenant-scoped. Gráficos só são exibidos quando a coleta está completa.
+- `veiculo/veiculo/veiculo.{ts,html,scss}`: layout da listagem, busca e filtro por placa/marca/modelo/cliente sobre o conjunto retornado de `/v1/veiculos`; cadastro reutilizado no drawer, ações anteriores preservadas.
+- `veiculo/cadastro-veiculo/cadastro-veiculo.ts`: suporte ao modo drawer e eventos de salvar/cancelar; permanece com guard de permissão no frontend e backend.
+- `backend/cliente/repository/ClienteSpecification.java`: corrige descarte de filtros avançados quando `busca` também está preenchida (agora são condições independentes e combinadas por AND). Mantém predicado de tenant obrigatório.
+- `FrontEnd/public/data/menu.json`: entrada Indicadores em Clientes, sem apagar Histórico de veículos.
+- Testes focados adicionados para filtros, colunas, veículos e cálculo sem valores inventados. **Não executados neste ambiente.**
+
+### Pendências e diferenças declaradas
+
+- [ ] Build Maven/Angular e execução de testes E2E e dirigidos; conferir eventual regressão.
+- [ ] Captura da implementação a 1440 px comparada pixel a pixel com as referências.
+- [ ] Filtros reais por contatos, gênero e placa no endpoint de Clientes; não fazer pós-filtragem de apenas uma página.
+- [ ] Indicadores agregados por banco para qualquer tamanho de base; frontend paginado de até 1.000 é provisório.
+- [ ] Impressão de etiquetas: modo multi-página/banco inteiro, inclusão de endereço e regras de papel configurável (atualmente só a página carregada, nome e documento).
+- [ ] Importação CSV transacional com serviço de validação, revisão, prevenção de duplicidade e auditoria; o botão disponível atualmente baixa apenas o modelo.
+- [ ] Personalização global de relatórios por empresa, uso de marca e identidade autorizadas, log de emissão, prévia PDF; não implementada.
+- [ ] Integração externa de placa/chassi (Fraga/Ultra Vision) requer contratação/licença e API própria. Não copiar dados, fotos ou credenciais da referência.
+- [ ] Campos avançados de motor/transmissão do cadastro de veículo precisam de entidades e DTOs versionados; atualmente persistem somente os campos suportados pelo contrato real.
+- [ ] Homologação multiempresa, 403/422/409, responsividade, teclado, foco e acessibilidade WCAG 2.2 AA.
+
+### Segurança e fidelidade
+
+Nenhum endpoint está aberto anonimamente. O acesso temporário `uxPreview=1` só mostra interface e mantém chamadas HTTP de backend bloqueadas pelo interceptor de prévia. Os números e nomes do UltraCar não são persistidos ou reaproveitados. A API existente segue sujeita a JWT, permissões do backend e isolamento por empresa.
+
+**Status do lote:** execução de código entregue para commit; equivalência total e execução de testes ainda não confirmadas.

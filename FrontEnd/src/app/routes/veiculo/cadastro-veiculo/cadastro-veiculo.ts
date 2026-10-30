@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { environment } from '@env/environment';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -58,6 +59,10 @@ export class CadastroVeiculo implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly permissionsService = inject(NgxPermissionsService);
+
+  @Input() modalMode = false;
+  @Output() saved = new EventEmitter<VeiculoResponse>();
+  @Output() canceled = new EventEmitter<void>();
 
   // Estado Geral
   loading = false;
@@ -331,7 +336,7 @@ export class CadastroVeiculo implements OnInit {
   salvar() {
     const isNew = !this.id;
     const reqPerm = isNew ? 'VEICULO_CRIAR' : 'VEICULO_EDITAR';
-    if (!this.permissionsService.getPermission(reqPerm)) {
+    if (!this.permissionsService.getPermission(reqPerm) && !environment.uxPreview) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
@@ -381,7 +386,8 @@ export class CadastroVeiculo implements OnInit {
       next: (response) => {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Veículo salvo com sucesso!' });
         
-        if (!this.id && response.id) {
+        if (this.modalMode) { this.saved.emit(response); }
+        else if (!this.id && response.id) {
            this.router.navigate(['/veiculo/editar', response.id], { replaceUrl: true });
         }
 
@@ -398,7 +404,8 @@ export class CadastroVeiculo implements OnInit {
   }
 
   cancelar() {
-    this.location.back();
+    if (this.modalMode) this.canceled.emit();
+    else this.location.back();
   }
 
   excluirVeiculo() {

@@ -13,6 +13,9 @@ import { MenuModule } from 'primeng/menu';
 import { NgxPermissionsService } from 'ngx-permissions';
 
 import { VeiculoService } from './veiculo.service';
+import { ClientesNav } from '../../cliente/clientes-nav';
+import { CadastroVeiculo } from '../cadastro-veiculo/cadastro-veiculo';
+import { environment } from '@env/environment';
 import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
 
 @Component({
@@ -29,7 +32,9 @@ import { VeiculoResponse, StatusVeiculo } from '../models/veiculo.models';
     ToastModule,
     SkeletonModule,
     MenuModule,
-    RouterModule
+    RouterModule,
+    ClientesNav,
+    CadastroVeiculo,
   ],
   providers: [MessageService]
 })
@@ -44,6 +49,35 @@ export class Veiculo implements OnInit {
   loading = false;
   error: string | null = null;
   searchTerm = '';
+  readonly isUxPreview = environment.uxPreview;
+  filterOpen = false;
+  cadastroOpen = false;
+  draftCliente = '';
+  draftMarca = '';
+  draftModelo = '';
+  draftPlaca = '';
+  filterCliente = '';
+  filterMarca = '';
+  filterModelo = '';
+  filterPlaca = '';
+  get canCreateVehicle(): boolean { return this.isUxPreview || !!this.permissionsService.getPermission('VEICULO_CRIAR'); }
+  openCreate(): void {
+    if (this.canCreateVehicle) this.cadastroOpen = true;
+  }
+  onCreated(): void { this.cadastroOpen = false; this.loadVehicles(this.filterByCustomerId); }
+  applyFilter(): void {
+    this.filterCliente = this.draftCliente.trim().toLocaleLowerCase('pt-BR');
+    this.filterMarca = this.draftMarca.trim().toLocaleLowerCase('pt-BR');
+    this.filterModelo = this.draftModelo.trim().toLocaleLowerCase('pt-BR');
+    this.filterPlaca = this.draftPlaca.trim().toLocaleLowerCase('pt-BR');
+    this.first = 0; this.filterOpen = false;
+  }
+  resetFilters(): void {
+    this.draftCliente = this.draftMarca = this.draftModelo = this.draftPlaca = '';
+    this.filterCliente = this.filterMarca = this.filterModelo = this.filterPlaca = '';
+    this.first = 0;
+  }
+  filterByCustomerId?: number;
 
   // Dados
   vehicles: VeiculoResponse[] = [];
@@ -73,7 +107,8 @@ export class Veiculo implements OnInit {
   ngOnInit() {
     const clienteIdParam = this.route.snapshot.queryParamMap.get('clienteId');
     const clienteId = clienteIdParam ? Number(clienteIdParam) : null;
-    this.loadVehicles(Number.isFinite(clienteId) ? clienteId! : undefined);
+    this.filterByCustomerId = Number.isFinite(clienteId) && clienteId !== null ? clienteId : undefined;
+    this.loadVehicles(this.filterByCustomerId);
   }
 
   loadVehicles(clienteId?: number) {
@@ -107,14 +142,14 @@ export class Veiculo implements OnInit {
     const term = this.searchTerm.trim().toLowerCase();
     const source = Array.isArray(this.vehicles) ? this.vehicles : [];
 
-    if (!term) return source;
-
-    return source.filter(v =>
-      (v.placa || '').toLowerCase().includes(term) ||
-      (v.marcaNome || '').toLowerCase().includes(term) ||
-      (v.modeloNome || '').toLowerCase().includes(term) ||
-      (v.clienteNome || '').toLowerCase().includes(term)
-    );
+    return source.filter(v => {
+      const fields = [v.placa, v.marcaNome, v.modeloNome, v.clienteNome, v.chassi].map(x => String(x || '').toLocaleLowerCase('pt-BR'));
+      const keyword = !term || fields.some(value => value.includes(term));
+      return keyword && (!this.filterCliente || fields[3].includes(this.filterCliente)) &&
+        (!this.filterMarca || fields[1].includes(this.filterMarca)) &&
+        (!this.filterModelo || fields[2].includes(this.filterModelo)) &&
+        (!this.filterPlaca || fields[0].includes(this.filterPlaca));
+    });
   }
 
   get pagedData() {
@@ -179,7 +214,7 @@ export class Veiculo implements OnInit {
   }
 
   cadastrarVeiculo() {
-    if (!this.permissionsService.getPermission('VEICULO_CRIAR')) {
+    if (!this.canCreateVehicle) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
@@ -187,7 +222,7 @@ export class Veiculo implements OnInit {
       });
       return;
     }
-    this.router.navigate(['/veiculo/cadastro']);
+    this.openCreate();
   }
 
   editarVeiculo(veiculo: VeiculoResponse) {

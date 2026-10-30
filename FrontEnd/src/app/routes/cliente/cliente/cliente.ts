@@ -19,6 +19,7 @@ import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
 import { ClientesService, ClienteResponseDTO, Page } from './cliente.service';
 import { CadastroCliente } from '../cadastro-cliente/cadastro-cliente';
+import { ClientesNav } from '../clientes-nav';
 import { ContatoClienteResponse, TipoContato } from '../models/cliente.models';
 import { forkJoin, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
@@ -52,6 +53,7 @@ import {
     MenuModule,
     DialogModule,
     CadastroCliente,
+    ClientesNav,
     RouterModule,
   ],
 })
@@ -87,6 +89,114 @@ export class Cliente implements OnInit {
     this.activeMenuItems = this.menuItemsFor(row);
     menu.toggle(event);
   }
+  // Advanced filters use tenant-scoped server queries.
+  advancedOpen = false;
+  advancedDocument = '';
+  advancedName = '';
+  advancedFrom = '';
+  advancedTo = '';
+  advancedError = '';
+
+  // Browser-only column preferences. Never alter server-side permissions.
+  columnsOpen = false;
+  readonly columnOptions = [
+    { key: 'cliente', label: 'Cliente' }, { key: 'cpf', label: 'CPF/CNPJ' },
+    { key: 'categoria', label: 'Categoria' }, { key: 'tipo', label: 'Tipo de pessoa' },
+    { key: 'criacao', label: 'Criação' }, { key: 'contato', label: 'Contato' },
+    { key: 'veiculos', label: 'Veículos' }, { key: 'situacao', label: 'Situação' },
+  ];
+  selectedColumns: string[] = ['cliente','cpf','categoria','tipo','criacao'];
+  draftColumns: string[] = [];
+  columnsSearch = '';
+  labelsOpen = false;
+  labelsColumns = 3;
+  labelsFontSize = 9;
+  labelsMargin = 10;
+  labelsShowDocument = true;
+  labelsWithBorder = true;
+
+  openColumns(): void { this.draftColumns = [...this.selectedColumns]; this.columnsSearch = ''; this.columnsOpen = true; }
+  toggleColumn(key: string): void {
+    if (key === 'cliente') return;
+    this.draftColumns = this.draftColumns.includes(key)
+      ? this.draftColumns.filter(value => value !== key) : [...this.draftColumns, key];
+  }
+  shiftColumn(key: string, delta: number): void {
+    const index = this.draftColumns.indexOf(key);
+    const next = index + delta;
+    if (key === 'cliente' || next < 1 || next >= this.draftColumns.length) return;
+    [this.draftColumns[index], this.draftColumns[next]] = [this.draftColumns[next], this.draftColumns[index]];
+  }
+  restoreColumns(): void { this.draftColumns = ['cliente','cpf','categoria','tipo','criacao']; }
+  saveColumns(): void {
+    this.selectedColumns = [...this.draftColumns];
+    try { window.localStorage.setItem('neritech-clients-column-order', JSON.stringify(this.selectedColumns)); } catch {}
+    this.columnsOpen = false;
+  }
+  get filteredColumnOptions() {
+    const term = this.columnsSearch.toLocaleLowerCase('pt-BR').trim();
+    return this.columnOptions.filter(col => col.label.toLocaleLowerCase('pt-BR').includes(term));
+  }
+  columnLabel(key: string): string { return this.columnOptions.find(c => c.key === key)?.label || key; }
+  get labelRows() { return this.pagedData; }
+  openLabels(): void { this.labelsOpen = true; }
+  printLabels(): void {
+    if (!this.labelRows.length) return;
+    // Isolated print document; escape all customer-supplied text to avoid HTML injection.
+    const escape = (value: string) => String(value).replace(/[&<>"']/g, char =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'} as Record<string,string>)[char]);
+    const columns = Math.min(4, Math.max(1, Number(this.labelsColumns) || 3));
+    const font = Math.min(18, Math.max(7, Number(this.labelsFontSize) || 9));
+    const margin = Math.min(30, Math.max(0, Number(this.labelsMargin) || 10));
+    const cells = this.labelRows.map(item =>
+      '<article><strong>'+escape(item.nome)+'</strong>' +
+      (this.labelsShowDocument && item.cpfCnpj ? '<span>'+escape(this.formatCpfCnpj(item.cpfCnpj))+'</span>' : '') +
+      '</article>').join('');
+    const markup = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiquetas NERITECH AUTO</title>' +
+      '<style>@page{size:A4 portrait;margin:'+margin+'mm}body{margin:0;font-family:Arial,sans-serif}' +
+      'main{display:grid;grid-template-columns:repeat('+columns+',minmax(0,1fr));gap:3mm}' +
+      'article{box-sizing:border-box;min-height:20mm;padding:3mm;border:'+
+        (this.labelsWithBorder ? '1px solid #b9c0c9' : '1px solid transparent')+
+        ';font-size:'+font+'pt;break-inside:avoid;overflow-wrap:anywhere}' +
+      'strong,span{display:block}span{margin-top:2mm;font-size:.9em}</style></head><body><main>'+cells+'</main></body></html>';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('title', 'Impressão de etiquetas');
+    iframe.style.position = 'fixed'; iframe.style.width = '0'; iframe.style.height = '0';
+    iframe.style.border = '0'; iframe.style.opacity = '0';
+    iframe.onload = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    };
+    document.body.appendChild(iframe);
+    iframe.srcdoc = markup;
+    // Retain until the native print dialog has closed (or browser tab is closed).
+    iframe.contentWindow?.addEventListener('afterprint', () => iframe.remove(), {once:true});
+  }
+  downloadCsvTemplate(): void {
+    const header = 'tipoCliente;nomeCompleto;razaoSocial;nomeFantasia;cpf;cnpj;email;status\r\n';
+    const blob = new Blob(['\uFEFF' + header], { type: 'text/csv;charset=utf-8' });
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl; link.download = 'neritech-modelo-clientes.csv'; link.click();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  }
+  applyAdvancedFilters(): void {
+    if (this.advancedFrom && this.advancedTo && this.advancedFrom > this.advancedTo) {
+      this.advancedError = 'A data inicial deve ser anterior ou igual à data final.';
+      return;
+    }
+    this.advancedError = '';
+    this.advancedOpen = false;
+    this.first = 0;
+    this.fetchPage();
+  }
+  resetAdvancedFilters(): void {
+    this.advancedDocument = ''; this.advancedName = '';
+    this.advancedFrom = ''; this.advancedTo = ''; this.advancedError = '';
+    this.selectedTipo = null; this.selectedStatus = null;
+    this.first = 0; this.fetchPage();
+  }
+
   selectedTipo: TipoCliente | null = null;
   selectedStatus: StatusCliente | null = null;
   sort = 'nomeCompleto,asc';
@@ -122,6 +232,7 @@ export class Cliente implements OnInit {
     dataCadastro?: string;
     quantidadeVeiculos: number | null;
     email: string;
+    categoria: string;
   }[] = [];
   backendPage: Page<ClienteResponseDTO> | null = null;
 
@@ -209,12 +320,17 @@ export class Cliente implements OnInit {
     this.searchTerm = '';
     this.selectedTipo = null;
     this.selectedStatus = null;
+    this.advancedDocument = '';
+    this.advancedName = '';
+    this.advancedFrom = '';
+    this.advancedTo = '';
     this.first = 0;
     this.fetchPage();
   }
 
   get hasFilters(): boolean {
-    return !!this.searchTerm.trim() || !!this.selectedTipo || !!this.selectedStatus;
+    return !!this.searchTerm.trim() || !!this.selectedTipo || !!this.selectedStatus ||
+      !!this.advancedDocument.trim() || !!this.advancedName.trim() || !!this.advancedFrom || !!this.advancedTo;
   }
 
   goPrev() {
@@ -350,6 +466,10 @@ export class Cliente implements OnInit {
     const statusParam = qp.get('status') as StatusCliente | null;
     const tipoParam = qp.get('tipo') as TipoCliente | null;
     this.searchTerm = qp.get('busca') || '';
+    this.advancedDocument = qp.get('doc') || '';
+    this.advancedName = qp.get('nome') || '';
+    this.advancedFrom = qp.get('de') || '';
+    this.advancedTo = qp.get('ate') || '';
     const page = Number(qp.get('page'));
     const size = Number(qp.get('size'));
     this.first = Number.isInteger(page) && page >= 0 ? page * (this.pageSizes.includes(size) ? size : this.rows) : 0;
@@ -362,6 +482,11 @@ export class Cliente implements OnInit {
     if (tipoParam && Object.values(TipoCliente).includes(tipoParam)) {
       this.selectedTipo = tipoParam;
     }
+    try {
+      const stored = JSON.parse(window.localStorage.getItem('neritech-clients-column-order') || 'null');
+      const valid = new Set(this.columnOptions.map(c => c.key));
+      if (Array.isArray(stored) && stored[0] === 'cliente' && stored.every(key => typeof key === 'string' && valid.has(key)) && new Set(stored).size === stored.length) this.selectedColumns = stored;
+    } catch { /* Local preferences are optional. */ }
     this.fetchPage();
   }
 
@@ -379,6 +504,7 @@ export class Cliente implements OnInit {
       tipo,
       status,
       email: dto.email || '',
+      categoria: dto.categoria || '',
       contato: '', // Placeholder
       dataCadastro: dto.dataCadastro,
       quantidadeVeiculos: null,
@@ -413,6 +539,10 @@ export class Cliente implements OnInit {
     if (this.selectedStatus) {
       filters.status = this.selectedStatus;
     }
+    if (this.advancedDocument.trim()) filters.cpf = this.advancedDocument.trim();
+    if (this.advancedName.trim()) filters.nomeCompleto = this.advancedName.trim();
+    if (this.advancedFrom) filters.dataInicio = this.advancedFrom;
+    if (this.advancedTo) filters.dataFim = this.advancedTo;
 
     this.clientesService.list(filters).subscribe({
       next: (res: Page<ClienteResponseDTO>) => {
@@ -454,6 +584,10 @@ export class Cliente implements OnInit {
       page: this.first ? Math.floor(this.first / this.rows) : null,
       size: this.rows === 10 ? null : this.rows,
       sort: this.sort === 'nomeCompleto,asc' ? null : this.sort,
+      doc: this.advancedDocument || null,
+      nome: this.advancedName || null,
+      de: this.advancedFrom || null,
+      ate: this.advancedTo || null,
     };
   }
 

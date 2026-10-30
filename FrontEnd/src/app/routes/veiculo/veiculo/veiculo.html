@@ -1,149 +1,82 @@
-<div class="flex flex-col h-full gap-6">
+<main class="nt-vehicle-page">
   <p-toast />
-
-  <!-- Actions Bar -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-       <!-- Search -->
-       <div class="relative w-full sm:max-w-md group">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors pointer-events-none"></i>
-            <input
-                pInputText
-                [(ngModel)]="searchTerm"
-                (ngModelChange)="onSearch()"
-                placeholder="Buscar por placa, marca, modelo ou cliente..."
-                class="w-full !pl-10 !pr-12 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-            />
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">⌘K</div>
-       </div>
-
-       <!-- New Button -->
-       <button (click)="cadastrarVeiculo()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <i class="pi pi-plus text-[14px]"></i>
-          <span>Novo Veículo</span>
-       </button>
-   </div>
-
-  <!-- Data Table -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-      <div class="overflow-x-auto flex-1">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Veículo</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[35%] align-middle">Cliente</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left w-[20%] align-middle">Status</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-[10%] align-middle"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @if (loading) {
-                    @for (i of [1, 2, 3, 4, 5]; track i) {
-                        <tr>
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <p-skeleton shape="circle" size="2.25rem"></p-skeleton>
-                                    <div class="flex flex-col gap-1.5">
-                                        <p-skeleton width="120px" height="1rem"></p-skeleton>
-                                        <p-skeleton width="80px" height="0.75rem"></p-skeleton>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="150px" height="1rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle">
-                                <p-skeleton width="80px" height="1.25rem"></p-skeleton>
-                            </td>
-                            <td class="py-2.5 px-6 align-middle text-right pr-4">
-                                <p-skeleton shape="circle" size="1.75rem" styleClass="inline-block"></p-skeleton>
-                            </td>
-                        </tr>
-                    }
-                } @else {
-                    @for (row of pagedData; track row.id) {
-                        <tr class="group hover:bg-gray-50 transition-colors duration-200">
-                            <!-- Veículo -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                        <i class="pi pi-car text-slate-500 text-base"></i>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" (click)="editarVeiculo(row)">{{ row.placa }}</span>
-                                        <span class="text-[11px] text-slate-500">{{ row.marcaNome }} {{ row.modeloNome }} • {{ row.combustivelNome || 'Combustível N/D' }}</span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <!-- Cliente -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <div class="flex items-center gap-2 text-sm text-slate-600">
-                                    <i class="pi pi-user text-slate-400 text-xs"></i>
-                                    {{ row.clienteNome || 'Sem cliente' }}
-                                </div>
-                            </td>
-
-                            <!-- Status -->
-                            <td class="py-2.5 px-6 align-middle">
-                                <span [class]="getStatusBadgeClass(row.status)">
-                                    {{ row.status }}
-                                </span>
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="py-2.5 px-6 align-middle text-right">
-                                <button pButton icon="pi pi-ellipsis-v" class="p-button-text p-button-rounded p-button-secondary w-8 h-8 flex items-center justify-center" (click)="toggleMenu(row, $event, menu)"></button>
-                            </td>
-                        </tr>
-                    }
-
-                    @if (pagedData.length === 0) {
-                        <tr>
-                             <td colspan="4" class="py-12 text-center text-slate-500 text-sm">
-                                <div class="flex flex-col items-center gap-3 text-slate-400">
-                                  <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                                     <i class="pi pi-search text-xl text-slate-400"></i>
-                                  </div>
-                                  <p class="text-sm font-medium text-slate-500">Nenhum veículo encontrado</p>
-                                  <button (click)="cadastrarVeiculo()" class="text-xs text-blue-600 font-bold hover:underline">
-                                      Cadastrar novo veículo
-                                  </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
+  <div class="nt-vehicle-path">NERITECH AUTO <span>›</span> Clientes <span>›</span> Gerenciar veículos</div>
+  <nt-clientes-nav />
+  <header class="nt-vehicle-head">
+    <h1>Gerenciar veículos <small title="Veículos vinculados aos clientes da oficina">ⓘ</small></h1>
+    @if (canCreateVehicle) { <button type="button" class="nt-vehicle-primary" (click)="openCreate()">＋ Novo veículo</button> }
+  </header>
+  @if (isUxPreview) { <p class="nt-vehicle-preview" role="status">Prévia de interface · dados fictícios e operações de API bloqueadas</p> }
+  <section class="nt-vehicle-toolbar" aria-label="Pesquisa e filtros">
+    <input type="search" [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" aria-label="Pesquisar veículos"
+      placeholder="⌕  Pesquisar veículos" />
+    <button type="button" (click)="filterOpen = true" [attr.aria-expanded]="filterOpen">⚲ Filtrar</button>
+    <button type="button" (click)="loadVehicles(filterByCustomerId)" [disabled]="loading" aria-label="Atualizar veículos">⟳</button>
+  </section>
+  <section class="nt-vehicle-results">
+    <div class="nt-vehicle-results-bar"><span>Listagem de veículos</span>
+      <a routerLink="/relatorios/relatorio-clientes" class="nt-vehicle-outline">▤ Relatórios</a>
+    </div>
+    @if (error) {
+      <div class="nt-vehicle-message" role="alert">{{ error }}
+        <button type="button" (click)="loadVehicles(filterByCustomerId)">Tentar novamente</button>
+      </div>
+    } @else if (loading) {
+      <div class="nt-vehicle-message" role="status">Carregando veículos…</div>
+    } @else if (pagedData.length === 0) {
+      <div class="nt-vehicle-message" role="status">Nenhum veículo encontrado para os filtros informados.</div>
+    } @else {
+      <div class="nt-vehicle-table-wrap">
+        <table class="nt-vehicle-table">
+          <caption class="sr-only">Lista de veículos carregados da empresa autenticada</caption>
+          <thead><tr><th scope="col">Modelo do veículo</th><th scope="col">Marca</th><th scope="col">Ano fab. / Modelo</th><th scope="col">Cliente</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+          <tbody>
+            @for (row of pagedData; track row.id) {
+              <tr>
+                <td>
+                  <div class="nt-vehicle-model">
+                    @if (row.modeloImagemUrl) {
+                      <img [src]="row.modeloImagemUrl" [alt]="'Imagem do veículo ' + (row.modeloNome || row.placa)" loading="lazy" />
+                    } @else { <span class="nt-vehicle-no-image" aria-hidden="true">♧</span> }
+                    <div><button type="button" (click)="editarVeiculo(row)">{{ row.modeloNome || 'Modelo não informado' }}</button><small>{{ row.placa }}</small></div>
+                  </div>
+                </td>
+                <td><strong>{{ row.marcaNome || 'Marca não informada' }}</strong></td>
+                <td>{{ row.anoFabricacao || '—' }}@if(row.anoModelo && row.anoModelo !== row.anoFabricacao){/{{ row.anoModelo }}}</td>
+                <td><a [routerLink]="['/cliente/editar',row.clienteId]">{{ row.clienteNome || 'Ver cliente vinculado' }}</a></td>
+                <td><button type="button" class="nt-vehicle-more" [attr.aria-label]="'Ações do veículo ' + row.placa" (click)="toggleMenu(row,$event,menu)">⋮</button></td>
+              </tr>
+            }
+          </tbody>
         </table>
       </div>
-
-       <!-- Pagination -->
-       @if (totalRecords > 0) {
-          <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10">
-            <div class="text-xs text-slate-500">
-                Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
-            </div>
-            <div class="flex gap-2">
-                <button
-                    [disabled]="first === 0 || loading"
-                    (click)="goPrev()"
-                    class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-                >
-                    <i class="pi pi-chevron-left text-xs"></i> Anterior
-                </button>
-                <button
-                    [disabled]="first + rows >= totalRecords || loading"
-                    (click)="goNext()"
-                    class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-                >
-                    Próximo <i class="pi pi-chevron-right text-xs"></i>
-                </button>
-            </div>
-          </div>
-       }
+    }
+    @if (totalRecords > 0) {
+      <footer class="nt-vehicle-paging"><span>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalRecords }}</span><nav aria-label="Páginas de veículos"><button type="button" (click)="goPrev()" [disabled]="first === 0">Anterior</button><span>Página {{ currentPage }}</span><button type="button" (click)="goNext()" [disabled]="first+rows >= totalRecords">Próxima</button></nav></footer>
+    }
+  </section>
+</main>
+<p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body" />
+@if(filterOpen) {
+  <div class="nt-vehicle-filter-mask" (click)="filterOpen = false">
+    <section class="nt-vehicle-filter" role="dialog" aria-modal="true" aria-label="Filtro avançado de veículos" (click)="$event.stopPropagation()">
+      <header><div><h2>Filtro avançado de veículos</h2><p>Filtro de listagem avançado</p></div><button type="button" (click)="filterOpen = false" aria-label="Fechar filtro">×</button></header>
+      <div class="nt-vehicle-filter-body"><div class="nt-vehicle-filter-grid">
+        <label>Cliente <input [(ngModel)]="draftCliente" placeholder="Informe um cliente" /></label>
+        <label>Marca <input [(ngModel)]="draftMarca" placeholder="Informe uma marca" /></label>
+        <label>Modelo <input [(ngModel)]="draftModelo" placeholder="Informe um modelo" /></label>
+        <label>Placa <input [(ngModel)]="draftPlaca" placeholder="Informe uma placa" /></label>
+      </div>
+        <p class="nt-vehicle-filter-info">Os filtros são aplicados à lista retornada pela API da empresa. Não alteram registros.</p>
+      </div>
+      <footer><button type="button" (click)="filterOpen = false">Cancelar</button><button type="button" class="nt-vehicle-reset" (click)="resetFilters()">Resetar</button><button type="button" class="nt-vehicle-primary" (click)="applyFilter()">⚲ Filtrar</button></footer>
+    </section>
   </div>
-
-</div>
-
-<!-- Popup menu -->
-<p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
+}
+@if(cadastroOpen) {
+  <div class="nt-vehicle-filter-mask" (click)="cadastroOpen = false">
+    <section class="nt-vehicle-create-panel" role="dialog" aria-modal="true" aria-label="Cadastro de veículo" (click)="$event.stopPropagation()">
+      <cadastro-veiculo [modalMode]="true" (saved)="onCreated()" (canceled)="cadastroOpen = false" />
+    </section>
+  </div>
+}

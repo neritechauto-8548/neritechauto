@@ -57,6 +57,10 @@ export class ClientesService {
       const filtered = this.previewClientes
         .filter(c => !term || [c.nomeCompleto, c.nomeFantasia, c.razaoSocial, c.cpf, c.cnpj, c.email]
           .some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(term)))
+        .filter(c => !filters?.['nomeCompleto'] || [c.nomeCompleto,c.nomeFantasia,c.razaoSocial]
+          .some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(String(filters['nomeCompleto']).trim().toLocaleLowerCase('pt-BR'))))
+        .filter(c => !filters?.['cpf'] || [c.cpf,c.cnpj]
+          .some(v => String(v || '').replace(/[^a-zA-Z0-9]/g, '') === String(filters['cpf']).replace(/[^a-zA-Z0-9]/g, '')))
         .filter(c => !tipo || c.tipoCliente === tipo)
         .filter(c => !status || c.status === status)
         .filter(c => !dataInicio || !!c.dataCadastro && c.dataCadastro.slice(0, 10) >= dataInicio)

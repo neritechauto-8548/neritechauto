@@ -1,0 +1,55 @@
+<main class="nt-ci-page">
+  <div class="nt-ci-path">NERITECH AUTO <span>›</span> Clientes <span>›</span> Indicadores</div>
+  <nt-clientes-nav />
+  <h1>Indicadores <small title="Indicadores calculados de clientes com data de nascimento válida">ⓘ</small></h1>
+  @if (isUxPreview) { <p class="nt-ci-preview" role="status">Prévia de interface · somente dados demonstrativos</p> }
+  <form class="nt-ci-filters" (submit)="$event.preventDefault(); refresh()">
+    <label>Agrupamento
+      <select [(ngModel)]="grouping" name="grouping" (ngModelChange)="refresh()">
+        @for (option of groupOptions; track option.value) { <option [value]="option.value">{{ option.label }}</option> }
+      </select>
+    </label>
+    <label>Data inicial <input type="date" [(ngModel)]="from" name="from" (change)="refresh()" /></label>
+    <label>Data final <input type="date" [(ngModel)]="to" name="to" (change)="refresh()" /></label>
+    <button type="submit" [disabled]="loading">Atualizar</button>
+  </form>
+  <p class="nt-ci-note">ⓘ &nbsp; Para a distribuição e a idade média, são considerados exclusivamente clientes com data de nascimento válida. O período filtra pela data de cadastro.</p>
+  @if(error) { <div class="nt-ci-error" role="alert">{{ error }} <button type="button" (click)="refresh()">Tentar novamente</button></div> }
+  @if(loading) { <div class="nt-ci-loading" role="status">Consultando informações de clientes…</div> }
+  @if(!loading && !error) {
+    <section class="nt-ci-summary" aria-label="Resumo dos clientes por gênero e idade">
+      <article class="blue"><div><span>Masculino</span><span>♂</span></div><strong>{{ male }}</strong><small>Período selecionado</small><hr/><small>Idade média</small><b>{{ avgMale === null ? 'Sem dados' : avgMale + ' anos' }}</b></article>
+      <article class="pink"><div><span>Feminino</span><span>♀</span></div><strong>{{ female }}</strong><small>Período selecionado</small><hr/><small>Idade média</small><b>{{ avgFemale === null ? 'Sem dados' : avgFemale + ' anos' }}</b></article>
+      <article class="grey"><div><span>Não especificado</span><span>?</span></div><strong>{{ unknown }}</strong><small>Período selecionado</small><hr/><small>Idade média</small><b>{{ avgUnknown === null ? 'Sem dados' : avgUnknown + ' anos' }}</b></article>
+    </section>
+    <section class="nt-ci-chart" aria-label="Clientes por período">
+      <header><h2>Clientes por Período</h2><p>Agrupado por {{ grouping }}</p></header>
+      @if(bars.length) {
+        <div class="nt-ci-bars">
+          @for(bar of bars; track bar.label) {
+            <div class="nt-ci-bar-item" [attr.aria-label]="bar.label + ': ' + bar.count + ' clientes'">
+              <span>{{ bar.count }}</span><div class="nt-ci-bar" [style.height.%]="bar.height"></div><small>{{ bar.label }}</small>
+            </div>
+          }
+        </div>
+      } @else { <p class="nt-ci-empty">Nenhum cliente com nascimento informado e data de cadastro válida neste período.</p> }
+    </section>
+    <section class="nt-ci-bottom">
+      <article><h2>Clientes por gênero</h2><p>Distribuição no período selecionado</p>
+        <div class="nt-ci-breakdown">
+          <div><span>Masculino</span><strong>{{ male }}</strong></div><meter [min]="0" [max]="totalEligible" [value]="male">Masculino</meter>
+          <div><span>Feminino</span><strong>{{ female }}</strong></div><meter [min]="0" [max]="totalEligible" [value]="female">Feminino</meter>
+          <div><span>Não especificado</span><strong>{{ unknown }}</strong></div><meter [min]="0" [max]="totalEligible" [value]="unknown">Não especificado</meter>
+        </div>
+      </article>
+      <article><h2>Média de idade</h2><p>Clientes com data de nascimento cadastrada</p>
+        <div class="nt-ci-age">
+          <div><span>Masculino</span><strong>{{ avgMale === null ? '—' : avgMale + ' anos' }}</strong></div>
+          <div><span>Feminino</span><strong>{{ avgFemale === null ? '—' : avgFemale + ' anos' }}</strong></div>
+          <div><span>Não especificado</span><strong>{{ avgUnknown === null ? '—' : avgUnknown + ' anos' }}</strong></div>
+          <div><span>Média geral</span><strong>{{ avgOverall === null ? '—' : avgOverall + ' anos' }}</strong></div>
+        </div>
+      </article>
+    </section>
+  }
+</main>

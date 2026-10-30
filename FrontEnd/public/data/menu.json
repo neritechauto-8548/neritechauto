@@ -90,6 +90,12 @@
           "route": "veiculo",
           "type": "link",
           "icon": "car"
+        },
+        {
+          "name": "Indicadores",
+          "route": "cliente/indicadores",
+          "type": "link",
+          "icon": "analytics"
         }
       ]
     },

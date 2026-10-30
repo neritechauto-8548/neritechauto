@@ -42,7 +42,10 @@ public class ClienteSpecification {
                 }
 
                 predicates.add(criteriaBuilder.or(searchPredicates.toArray(new Predicate[0])));
-            } else {
+            }
+            // Independent advanced filters must be applied WITH the global search,
+            // not silently discarded when busca is present.
+            {
                 if (nomeCompleto != null && !nomeCompleto.isBlank()) {
                     String term = "%" + nomeCompleto.toLowerCase() + "%";
                     predicates.add(criteriaBuilder.or(

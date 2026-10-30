@@ -7,6 +7,7 @@ export const routes: Routes = [
   { path: 'listar', component: Cliente, data: { title: 'Clientes' } },
   { path: 'cadastro', component: CadastroCliente, data: { title: 'Novo Cliente' } },
   { path: 'editar/:uuid', component: CadastroCliente, data: { title: 'Editar Cliente' } },
+  { path: 'indicadores', loadComponent: () => import('./indicadores/indicadores').then(m => m.ClientesIndicadores), data: { title: 'Indicadores de Clientes' } },
   {
     path: 'crm',
     children: [

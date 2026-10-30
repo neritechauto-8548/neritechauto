@@ -1,65 +1,33 @@
 <main class="nt-clients-page" id="conteudo">
+  <div class="nt-clients-breadcrumb">NERITECH AUTO <span>›</span> Clientes <span>›</span> Gerenciar clientes</div>
+  <nt-clientes-nav />
   <header class="nt-clients-heading">
     <div class="nt-clients-heading-copy">
-      <span class="nt-clients-eyebrow">Gestão de relacionamento</span>
-      <h1>Clientes</h1>
-      <p>Centralize seus contatos, acompanhe os veículos vinculados e encontre cada cadastro.</p>
+      
+      <h1>Gerenciar clientes <span class="nt-reference-help" title="Lista de clientes da sua oficina">ⓘ</span></h1>
+      
       @if (isUxPreview) {
         <span class="nt-clients-preview" role="status">Homologação · dados demonstrativos</span>
       }
     </div>
     <div class="nt-clients-heading-actions">
       @if (canCreateClient) {
-        <button type="button" class="nt-clients-primary" (click)="cadastrarCliente()">
+        <button type="button" class="nt-clients-primary" (click)="abrirCadastroRapido()">
           <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Novo cliente
         </button>
       }
     </div>
   </header>
 
-  <section class="nt-clients-overview" aria-label="Resumo da listagem">
-    <div class="nt-clients-overview-icon"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></div>
-    <div class="nt-clients-overview-copy">
-      <strong>@if (isLoading) { Consultando clientes… } @else if (loadError) { Consulta indisponível } @else { {{ totalRecords }} {{ totalRecords === 1 ? 'cliente encontrado' : 'clientes encontrados' }} }</strong>
-      <span>@if (hasFilters) { Resultados dos filtros aplicados } @else { Base de clientes da sua oficina }</span>
+  <section class="nt-clients-toolbar nt-reference-toolbar" aria-label="Pesquisa e filtros">
+    <div class="nt-clients-search-control">
+      <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+      <input id="nt-client-search" pInputText [(ngModel)]="searchTerm" (ngModelChange)="onSearchTermChange($event)"
+        (keyup.enter)="onSearch()" type="search" autocomplete="off" placeholder="Pesquisar clientes" class="nt-clients-input"
+        aria-label="Pesquisar clientes" />
     </div>
-    <button type="button" class="nt-clients-refresh" (click)="atualizar()" [disabled]="isLoading" aria-label="Atualizar listagem">
-      <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.2-5L3 9"/><path d="M3 4v5h5M4 13a8 8 0 0 0 14.2 5L21 15"/><path d="M21 20v-5h-5"/></svg> <span>Atualizar</span>
-    </button>
-  </section>
-
-  <section class="nt-clients-toolbar" aria-label="Pesquisa e filtros">
-    <div class="nt-clients-field nt-clients-search">
-      <label for="nt-client-search">Pesquisar cliente</label>
-      <div class="nt-clients-search-control">
-        <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
-        <input id="nt-client-search" pInputText [(ngModel)]="searchTerm" (ngModelChange)="onSearchTermChange($event)"
-          (keyup.enter)="onSearch()" type="search" autocomplete="off"
-          placeholder="Nome, razão social ou CPF/CNPJ" class="nt-clients-input" />
-      </div>
-    </div>
-    <div class="nt-clients-field nt-clients-filter">
-      <label for="nt-client-type">Tipo de pessoa</label>
-      <p-select inputId="nt-client-type" [options]="tipoOptions" [(ngModel)]="selectedTipo"
-        optionLabel="label" optionValue="value" [showClear]="false"
-        (onChange)="onFilterChange()" styleClass="nt-clients-select" />
-    </div>
-    <div class="nt-clients-field nt-clients-filter">
-      <label for="nt-client-status">Situação</label>
-      <p-select inputId="nt-client-status" [options]="statusOptions" [(ngModel)]="selectedStatus"
-        optionLabel="label" optionValue="value" [showClear]="false"
-        (onChange)="onFilterChange()" styleClass="nt-clients-select" />
-    </div>
-    <div class="nt-clients-field nt-clients-filter nt-clients-sort">
-      <label for="nt-client-sort">Ordenar por</label>
-      <p-select inputId="nt-client-sort" [options]="sortOptions" [(ngModel)]="sort"
-        optionLabel="label" optionValue="value" (onChange)="onSortChange()"
-        styleClass="nt-clients-select" />
-    </div>
-    <button type="button" class="nt-clients-search-button" (click)="onSearch()">Buscar</button>
-    @if (hasFilters) {
-      <button type="button" class="nt-clients-clear" (click)="limparFiltros()">Limpar filtros</button>
-    }
+    <button type="button" class="nt-clients-outline" (click)="advancedOpen = true" [attr.aria-expanded]="advancedOpen">⚲ &nbsp; Filtrar</button>
+    @if (hasFilters) { <button type="button" class="nt-clients-outline" (click)="limparFiltros()">Limpar filtros</button> }
   </section>
 
   @if (loadError) {
@@ -74,8 +42,13 @@
 
   <section class="nt-clients-results" aria-label="Clientes cadastrados">
     <div class="nt-clients-results-top">
-      <div><h2>Lista de clientes</h2><p>Selecione um cliente para consultar ou editar seus dados.</p></div>
-      <span class="nt-clients-results-caption">Dados da empresa atual</span>
+      <div><h2>Listagem de clientes</h2><p>@if (isLoading) { Carregando… } @else { {{ totalRecords }} clientes encontrados }</p></div>
+      <div class="nt-ref-table-actions">
+        <button type="button" class="nt-clients-outline" (click)="openLabels()" [disabled]="!clients.length || isLoading">◇ &nbsp; Etiquetas</button>
+        <button type="button" class="nt-clients-outline" (click)="downloadCsvTemplate()" title="Baixa o modelo de CSV; importação com validação em lote requer API própria">↓ &nbsp; Modelo CSV</button>
+        <a class="nt-clients-outline" routerLink="/relatorios/relatorio-clientes">▤ &nbsp; Relatórios</a>
+        <button type="button" class="nt-clients-outline" (click)="openColumns()">▥ &nbsp; Colunas</button>
+      </div>
     </div>
 
     @if (isLoading) {
@@ -99,51 +72,37 @@
       <div class="nt-clients-table-wrap">
         <table class="nt-clients-table">
           <caption class="sr-only">Lista de clientes da empresa, ordenada e paginada pelo servidor</caption>
-          <thead>
-            <tr>
-              <th scope="col">Cliente</th>
-              <th scope="col">Documento</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Contato</th>
-              <th scope="col">Veículos</th>
-              <th scope="col">Cadastro</th>
-              <th scope="col">Situação</th>
-              <th scope="col"><span class="sr-only">Ações</span></th>
-            </tr>
-          </thead>
+          <thead><tr>
+            @for (col of selectedColumns; track col) { <th scope="col">{{ columnLabel(col) }}</th> }
+            <th scope="col"><span class="sr-only">Ações</span></th>
+          </tr></thead>
           <tbody>
             @for (row of pagedData; track row.uuid) {
               <tr>
-                <td>
-                  <div class="nt-clients-person">
-                    <span class="nt-clients-avatar" aria-hidden="true">{{ row.nome.charAt(0).toUpperCase() || 'C' }}</span>
-                    <span class="nt-clients-person-copy">
-                      @if (canOpenClient) {
-                        <button type="button" class="nt-clients-person-name" (click)="navigateToEdit(row)">{{ row.nome }}</button>
-                      } @else { <strong>{{ row.nome }}</strong> }
-                      <small>{{ row.email || 'E-mail não cadastrado' }}</small>
-                    </span>
-                  </div>
-                </td>
-                <td class="nt-clients-muted">{{ formatCpfCnpj(row.cpfCnpj) || '—' }}</td>
-                <td class="nt-clients-muted">{{ getTipoClienteLabel(row.tipo) }}</td>
-                <td class="nt-clients-muted">{{ row.contato || '—' }}</td>
-                <td>
-                  @if (canOpenVehicles) {
-                    <button type="button" class="nt-clients-vehicles" (click)="abrirVeiculos(row)"
-                      [attr.aria-label]="'Ver veículos de ' + row.nome">
-                      <svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 16-1.5 2v2h3v-2h11v2h3v-2L19 16l-2-7H7l-2 7Z"/><path d="M5 16h14M7 12h10M7.5 16h.01M16.5 16h.01"/></svg> {{ row.quantidadeVeiculos ?? '—' }}
-                    </button>
-                  } @else { <span class="nt-clients-muted">{{ row.quantidadeVeiculos ?? '—' }}</span> }
-                </td>
-                <td class="nt-clients-muted">{{ formatDataCadastro(row.dataCadastro) }}</td>
-                <td><span class="nt-clients-status"
-                  [class.nt-clients-status-active]="row.status === StatusCliente.ATIVO"
-                  [class.nt-clients-status-inactive]="row.status === StatusCliente.INATIVO"
-                  [class.nt-clients-status-blocked]="row.status === StatusCliente.BLOQUEADO">{{ getStatusLabel(row.status) }}</span></td>
+                @for (col of selectedColumns; track col) {
+                  <td>
+                    @switch (col) {
+                      @case ('cliente') {
+                        @if (canOpenClient) {
+                          <button type="button" class="nt-clients-person-name" (click)="navigateToEdit(row)">{{ row.nome }}</button>
+                        } @else { <strong>{{ row.nome }}</strong> }
+                      }
+                      @case ('cpf') { <span class="nt-clients-muted">{{ formatCpfCnpj(row.cpfCnpj) || 'Não informado' }}</span> }
+                      @case ('categoria') { <span class="nt-clients-muted">{{ row.categoria || 'Selecionar' }}</span> }
+                      @case ('tipo') { <span class="nt-reference-type" [class.is-company]="row.tipo === TipoCliente.PESSOA_JURIDICA">{{ getTipoClienteLabel(row.tipo) }}</span> }
+                      @case ('criacao') { <span class="nt-clients-muted">{{ formatDataCadastro(row.dataCadastro) }}</span> }
+                      @case ('contato') { <span class="nt-clients-muted">{{ row.contato || row.email || '—' }}</span> }
+                      @case ('veiculos') {
+                        @if (canOpenVehicles) { <button type="button" class="nt-clients-vehicles" (click)="abrirVeiculos(row)">{{ row.quantidadeVeiculos ?? '—' }} veículos</button> }
+                        @else { <span>{{ row.quantidadeVeiculos ?? '—' }}</span> }
+                      }
+                      @case ('situacao') { <span class="nt-clients-status">{{ getStatusLabel(row.status) }}</span> }
+                    }
+                  </td>
+                }
                 <td>
                   <button type="button" class="nt-row-action" [attr.aria-label]="'Ações para ' + row.nome"
-                    (click)="toggleMenu(row, $event, menu)"><svg class="nt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></button>
+                    (click)="toggleMenu(row, $event, menu)">⋮</button>
                 </td>
               </tr>
             }
@@ -209,7 +168,93 @@
 
 <p-menu #menu [popup]="true" [model]="activeMenuItems" appendTo="body"></p-menu>
 <p-dialog [(visible)]="isQuickFormOpen" [modal]="true" [draggable]="false" [resizable]="false"
-  [style]="{ width: 'min(960px, 96vw)' }" [breakpoints]="{'720px': '96vw'}"
-  styleClass="nt-client-quick-dialog" header="Cadastro rápido de cliente">
+  [style]="{ width: 'min(640px, 100vw)', height: '100dvh', maxHeight: '100dvh' }" position="right"
+  styleClass="nt-client-quick-dialog nt-reference-client-drawer" header="Cadastro de cliente">
   <cadastro-cliente [modalMode]="true" (saved)="onQuickClientSaved()" (canceled)="onQuickClientCanceled()" />
 </p-dialog>
+
+
+@if (advancedOpen) {
+  <div class="nt-ref-drawer-mask" (click)="advancedOpen = false">
+    <section class="nt-ref-filter-drawer" role="dialog" aria-modal="true" aria-label="Filtro avançado de clientes" (click)="$event.stopPropagation()">
+      <header><div><h2>Filtro avançado de clientes</h2><p>Filtro de listagem avançado</p></div><button type="button" (click)="advancedOpen = false" aria-label="Fechar filtro">×</button></header>
+      <div class="nt-ref-filter-body">
+        <div class="nt-ref-fields">
+          <label>CPF/CNPJ <input [(ngModel)]="advancedDocument" placeholder="Informe um CPF ou CNPJ" /></label>
+          <label>Nome ou nome fantasia <input [(ngModel)]="advancedName" placeholder="Informe um nome" /></label>
+          <label>Tipo de pessoa <select [(ngModel)]="selectedTipo"><option [ngValue]="null">Todos</option>
+            @for (item of tipoOptionsFiltered; track item.value) { <option [ngValue]="item.value">{{ item.label }}</option> }
+          </select></label>
+          <label>Situação <select [(ngModel)]="selectedStatus"><option [ngValue]="null">Todas</option>
+            @for (item of statusOptions; track item.label) { <option [ngValue]="item.value">{{ item.label }}</option> }
+          </select></label>
+          <label>Cadastro de <input type="date" [(ngModel)]="advancedFrom" /></label>
+          <label>Cadastro até <input type="date" [(ngModel)]="advancedTo" /></label>
+        </div>
+        <p class="nt-ref-note">Contato, placa e gênero exigem filtros específicos no servidor para pesquisar toda a base. Não são aplicados nesta versão.</p>
+        @if (advancedError) { <p role="alert" class="nt-ref-error">{{ advancedError }}</p> }
+      </div>
+      <footer><button type="button" class="nt-clients-outline" (click)="advancedOpen = false">Cancelar</button><button type="button" class="nt-ref-reset" (click)="resetAdvancedFilters()">Resetar</button><button type="button" class="nt-clients-primary" (click)="applyAdvancedFilters()">⚲ &nbsp; Filtrar</button></footer>
+    </section>
+  </div>
+}
+
+@if (columnsOpen) {
+  <div class="nt-ref-modal-mask" (click)="columnsOpen = false">
+    <section class="nt-ref-columns-dialog" role="dialog" aria-modal="true" aria-label="Colunas de clientes" (click)="$event.stopPropagation()">
+      <header><div><h2>Colunas de clientes</h2><p>Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div><button type="button" (click)="columnsOpen = false" aria-label="Fechar">×</button></header>
+      <div class="nt-ref-columns-info">ⓘ &nbsp; Personalize e salve a ordem das colunas neste navegador.</div>
+      <div class="nt-ref-columns-content">
+        <section><h3>Opções de colunas</h3><input type="search" [(ngModel)]="columnsSearch" placeholder="Buscar coluna..." aria-label="Buscar coluna" />
+          @for (item of filteredColumnOptions; track item.key) {
+            <label><input type="checkbox" [checked]="draftColumns.includes(item.key)" [disabled]="item.key === 'cliente'"
+              (change)="toggleColumn(item.key)" /> {{ item.label }}</label>
+          }
+        </section>
+        <section><h3>Colunas selecionadas <small>{{ draftColumns.length }}</small></h3>
+          @for (key of draftColumns; track key; let i = $index) {
+            <div class="nt-ref-column-choice"><span>{{ columnLabel(key) }}</span>
+              @if (key !== 'cliente') {
+                <button type="button" (click)="shiftColumn(key,-1)" [disabled]="i < 2" [attr.aria-label]="'Mover ' + columnLabel(key) + ' para cima'">↑</button>
+                <button type="button" (click)="shiftColumn(key,1)" [disabled]="i === draftColumns.length - 1" [attr.aria-label]="'Mover ' + columnLabel(key) + ' para baixo'">↓</button>
+                <button type="button" (click)="toggleColumn(key)" [attr.aria-label]="'Remover ' + columnLabel(key)">×</button>
+              } @else { <span aria-label="Coluna fixa">♙</span> }
+            </div>
+          }
+        </section>
+      </div>
+      <footer><button type="button" (click)="restoreColumns()">Restaurar padrão</button><span></span><button type="button" (click)="columnsOpen = false">Cancelar</button><button type="button" class="nt-clients-primary" (click)="saveColumns()">Salvar</button></footer>
+    </section>
+  </div>
+}
+
+@if (labelsOpen) {
+  <div class="nt-ref-modal-mask nt-ref-label-modal" (click)="labelsOpen = false">
+    <section class="nt-ref-label-dialog" role="dialog" aria-modal="true" aria-label="Etiquetas de clientes" (click)="$event.stopPropagation()">
+      <header><div><h2>Etiquetas de clientes</h2><p>Personalize, visualize e imprima etiquetas da página atual.</p></div><button type="button" (click)="labelsOpen = false" aria-label="Fechar">×</button></header>
+      <div class="nt-ref-label-body">
+        <aside class="nt-ref-label-controls">
+          <p><strong>{{ labelRows.length }} clientes nesta impressão</strong></p>
+          <label>Colunas <input type="number" min="1" max="4" [(ngModel)]="labelsColumns" /></label>
+          <label>Margem da folha (mm) <input type="number" min="0" max="30" [(ngModel)]="labelsMargin" /></label>
+          <label>Fonte (pt) <input type="number" min="7" max="18" [(ngModel)]="labelsFontSize" /></label>
+          <label class="nt-ref-check"><input type="checkbox" [(ngModel)]="labelsShowDocument" /> Exibir CPF/CNPJ</label>
+          <label class="nt-ref-check"><input type="checkbox" [(ngModel)]="labelsWithBorder" /> Borda da etiqueta</label>
+          <p class="nt-ref-note">Somente os registros carregados na página atual. Para mais clientes, aumente a paginação. A impressão do navegador permite salvar como PDF.</p>
+        </aside>
+        <div class="nt-ref-label-preview" aria-label="Pré-visualização das etiquetas">
+          <div class="nt-ref-print-sheet" [style.padding.mm]="labelsMargin"
+            [style.gridTemplateColumns]="'repeat(' + labelsColumns + ', minmax(0,1fr))'">
+            @for (item of labelRows; track item.uuid) {
+              <article class="nt-ref-label-cell" [class.no-border]="!labelsWithBorder" [style.fontSize.pt]="labelsFontSize">
+                <strong>{{ item.nome }}</strong>
+                @if (labelsShowDocument && item.cpfCnpj) { <span>{{ formatCpfCnpj(item.cpfCnpj) }}</span> }
+              </article>
+            }
+          </div>
+        </div>
+      </div>
+      <footer><button type="button" (click)="labelsOpen = false">Fechar</button><button type="button" class="nt-clients-primary" (click)="printLabels()" [disabled]="!labelRows.length">Imprimir / Salvar PDF</button></footer>
+    </section>
+  </div>
+}
