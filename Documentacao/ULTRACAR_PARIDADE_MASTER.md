@@ -388,3 +388,5 @@ Sete campos na ordem e grid 2 colunas da captura: CPF/CNPJ, Nome fantasia, Conta
 - Os quatro dashboards legados (Padrão/Gerencial/Financeiro/Orçamento) continuam disponíveis; a personalização concentra-se na aba Padrão, que é a Visão geral mostrada nas capturas.
 - UI feita com SVGs próprios, modo claro e texto NERITECH. Acessibilidade: teclado, Esc, `cdkTrapFocus`, estados de carregamento/erro; mobile com drawer responsivo.
 - Critérios ainda pendentes: teste de migração V292 em Postgres real, E2E multiusuário A/B, comparação screenshot no mesmo viewport (com largura do menu, topo, drawer e cartões), integração das fontes ausentes e recálculo de ticket médio mensal/tipo de OS. Não declarar paridade integral até validar estes itens.
+
+- **Evidência de CI do lote 09 (30/10/2026)**: workflow HOME-001 `41116009122` concluído com sucesso na `master`; build Angular aprovado; 8 testes Angular ChromeHeadless aprovados; 4 testes Java focados aprovados. Evidência: `https://github.com/neritechauto-8548/neritechauto/actions/runs/41116009122`. Ainda não constitui homologação pixel a pixel ou execução de Flyway em banco Postgres de homologação.
