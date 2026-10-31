@@ -12,6 +12,7 @@ export interface ComissaoLinha {
   funcionarioNome: string;
   ordemServicoId?: number;
   numeroOs?: string;
+  situacaoOs?: string;
   placa?: string;
   clienteNome?: string;
   empresaNome?: string;
