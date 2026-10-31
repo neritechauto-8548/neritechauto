@@ -43,6 +43,37 @@ public class FuncionarioService {
                 .map(mapper::toResponse);
     }
 
+    /**
+     * Filtros independentes da listagem de funcionários. Preserva a busca geral legada
+     * e escopa todo o resultado ao tenant autenticado.
+     */
+    public Page<FuncionarioResponse> findAllAdvanced(Long empresaId, String query,
+            com.neritech.saas.rh.domain.enums.StatusFuncionario status, Long cargoId,
+            Long departamentoId, String nome, String funcao, String registro, Pageable pageable) {
+        if (!java.util.List.of(20, 50, 100).contains(pageable.getPageSize())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY, "Paginação inválida");
+        }
+        String nomeFiltro = normalizeFilter(nome);
+        String funcaoFiltro = normalizeFilter(funcao);
+        String registroFiltro = normalizeFilter(registro);
+        String buscaGeral = normalizeFilter(query);
+        return repository.searchAdvanced(TenantAccess.require(empresaId), buscaGeral, status,
+                cargoId, departamentoId, nomeFiltro, funcaoFiltro, registroFiltro, pageable)
+                .map(mapper::toResponse);
+    }
+
+    private String normalizeFilter(String value) {
+        if (value == null || value.isBlank()) return null;
+        String normalized = value.trim();
+        if (normalized.length() > 120) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY, "Filtro ultrapassa 120 caracteres");
+        }
+        // Escape characters used by SQL LIKE, preserving literal search semantics.
+        return normalized.replace("!", "!!").replace("%", "!%").replace("_", "!_");
+    }
+
     public FuncionarioResponse findById(Long id) {
         return mapper.toResponse(findOwned(id));
     }
