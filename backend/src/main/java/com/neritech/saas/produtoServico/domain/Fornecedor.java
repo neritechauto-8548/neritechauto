@@ -96,7 +96,7 @@ public class Fornecedor extends TenantEntity {
     private String bancoPix;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "classificacao", length = 1)
+    @Column(name = "classificacao", length = 20)
     private ClassificacaoFornecedor classificacao;
 
     @Column(name = "observacoes", columnDefinition = "TEXT")
