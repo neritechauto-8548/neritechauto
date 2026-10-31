@@ -16,7 +16,7 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
     Page<Funcionario> findByEmpresaId(Long empresaId, Pageable pageable);
 
     @org.springframework.data.jpa.repository.Query("select f from Funcionario f left join f.cargo c left join f.departamento d " +
-            "where f.empresaId=:empresaId and (:q is null or lower(f.nomeCompleto) like lower(concat('%',:q,'%')) " +
+            "where f.empresaId=:empresaId and (:q = '' or lower(f.nomeCompleto) like lower(concat('%',:q,'%')) " +
             "or lower(f.matricula) like lower(concat('%',:q,'%'))) " +
             "and (:status is null or f.status=:status) and (:cargoId is null or f.cargoId=:cargoId) " +
             "and (:departamentoId is null or f.departamentoId=:departamentoId)")
@@ -32,9 +32,9 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
             "where f.empresaId=:empresaId " +
             "and (:q is null or lower(f.nomeCompleto) like lower(concat('%',:q,'%')) escape '!' " +
             "or lower(f.matricula) like lower(concat('%',:q,'%')) escape '!') " +
-            "and (:nome is null or lower(f.nomeCompleto) like lower(concat('%',:nome,'%')) escape '!') " +
-            "and (:funcao is null or lower(c.nome) like lower(concat('%',:funcao,'%')) escape '!') " +
-            "and (:registro is null or lower(f.matricula) like lower(concat('%',:registro,'%')) escape '!') " +
+            "and (:nome = '' or lower(f.nomeCompleto) like lower(concat('%',:nome,'%')) escape '!') " +
+            "and (:funcao = '' or lower(c.nome) like lower(concat('%',:funcao,'%')) escape '!') " +
+            "and (:registro = '' or lower(f.matricula) like lower(concat('%',:registro,'%')) escape '!') " +
             "and (:status is null or f.status=:status) " +
             "and (:cargoId is null or f.cargoId=:cargoId) " +
             "and (:departamentoId is null or f.departamentoId=:departamentoId)")
