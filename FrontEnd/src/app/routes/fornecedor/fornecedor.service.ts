@@ -8,7 +8,7 @@ import { Page, FornecedorRequest, FornecedorResponse, HistoricoFornecedor } from
 export interface CanalFornecedor { id?: number; tipo: 'EMAIL' | 'CELULAR' | 'TELEFONE'; valor: string; whatsapp: boolean; }
 export interface ContatoFornecedor {
   id?: number; nome: string; sexo: string; dataNascimento?: string | null;
-  contatoPrincipal: boolean; meios: CanalFornecedor[];
+  contatoPrincipal: boolean; estrangeiro?: boolean; meios: CanalFornecedor[];
 }
 export interface DevolucaoFornecedor {
   id: number; empresa: string; compra: number; descricao: string; chaveNfe: string | null; quantidade: number; valor: number;
