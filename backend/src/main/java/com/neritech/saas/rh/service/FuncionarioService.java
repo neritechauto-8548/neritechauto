@@ -227,7 +227,7 @@ public class FuncionarioService {
         // Endereço opcional na etapa inicial, respeitando os campos sem asterisco da referência.
         // Se preenchido, todos os dados informados continuam validados.
         if (request.cep() != null && !request.cep().isBlank()
-                && !request.cep().replaceAll("\\\\D", "").matches("\\\\d{8}")) {
+                && !request.cep().replaceAll("\\D", "").matches("\\d{8}")) {
             throw new IllegalArgumentException("CEP inválido");
         }
         if (request.estado() != null && !request.estado().isBlank()
