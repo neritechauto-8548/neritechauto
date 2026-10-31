@@ -135,9 +135,9 @@ export class FornecedorReferenciaComponent implements OnInit {
     if(reset)this.page=0;
     this.loading=true;this.erro='';
     const n=++this.ultimaBusca;
-    const query=[this.busca,this.filtroDocumento,this.filtroNome].filter(x=>x.trim()).join(' ');
     this.api.list({page:this.page,size:this.size,sort:'id,desc',
-      search:query,ativo:this.filtroSituacao===''?undefined:this.filtroSituacao==='true'})
+      search:this.busca,documento:this.filtroDocumento,nome:this.filtroNome,
+      ativo:this.filtroSituacao===''?undefined:this.filtroSituacao==='true'})
       .pipe(finalize(()=>{if(n===this.ultimaBusca)this.loading=false;}))
       .subscribe({
         next:r=>{if(n!==this.ultimaBusca)return;this.itens=r.content||[];this.total=r.totalElements||0;},
@@ -198,6 +198,14 @@ export class FornecedorReferenciaComponent implements OnInit {
   alterarSituacao(ativo:boolean):void {
     if(!this.selecionado||this.saving)return;
     this.form.ativo=ativo;this.salvar();
+  }
+  removerLista(item:FornecedorResponse):void {
+    if(this.saving||!item.ativo||!window.confirm('Desativar '+this.labelLinha(item)+'? Pedidos e documentos serão preservados.'))return;
+    this.saving=true;
+    this.api.delete(item.id).pipe(finalize(()=>this.saving=false)).subscribe({
+      next:()=>{this.aviso='Fornecedor desativado.';this.listar();},
+      error:e=>this.erro=this.descreverErro(e)
+    });
   }
   excluir():void {
     if(!this.selecionado||this.saving)return;
@@ -278,10 +286,10 @@ export class FornecedorReferenciaComponent implements OnInit {
     if(this.exporting)return;this.exporting=true;
     try {
       const lista:FornecedorResponse[]=[];let pag=0;
-      const query=[this.busca,this.filtroDocumento,this.filtroNome].filter(x=>x.trim()).join(' ');
       while(true){
         const r=await firstValueFrom(this.api.list({page:pag,size:100,sort:'id,desc',
-          search:query,ativo:this.filtroSituacao===''?undefined:this.filtroSituacao==='true'}));
+          search:this.busca,documento:this.filtroDocumento,nome:this.filtroNome,
+          ativo:this.filtroSituacao===''?undefined:this.filtroSituacao==='true'}));
         lista.push(...(r.content||[]));pag++;
         if(pag>=r.totalPages)break;
       }
