@@ -41,7 +41,10 @@ class ComissaoQuitacaoTenantIntegrationTest extends AbstractIntegrationTest {
         mvc.perform(get("/v1/financeiro/comissoes").param("empresaId", Long.toString(a))
                 .param("size", "20").header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(1))
-                .andExpect(jsonPath("$.data.content[0].pago").value(false));
+                .andExpect(jsonPath("$.data.content[0].pago").value(false))
+                .andExpect(jsonPath("$.data.content[0].empresaNome").exists())
+                .andExpect(jsonPath("$.data.content[0].empresaCnpj").exists())
+                .andExpect(jsonPath("$.data.content[0].valorLiquido").exists());
         mvc.perform(get("/v1/financeiro/comissoes").param("empresaId", Long.toString(a))
                 .param("paga", "true").param("size", "20").header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalElements").value(0));
