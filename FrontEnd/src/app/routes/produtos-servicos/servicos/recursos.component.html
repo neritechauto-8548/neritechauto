@@ -51,7 +51,7 @@
             <tr *ngFor="let row of areas">
               <td><button class="text-link" (click)="editarArea(row)">{{ row.descricao }}</button></td>
               <td><span class="pill" [class.off]="!row.ativo">{{ row.ativo?'Sim':'Não' }}</span></td>
-              <td class="action-cell"><button title="Desativar área" class="delete-icon" [disabled]="!row.ativo" (click)="excluirArea(row)">♧</button></td>
+              <td class="action-cell"><button title="Desativar área" class="delete-icon" [disabled]="!row.ativo" (click)="excluirArea(row)"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button></td>
             </tr>
             <tr *ngIf="!areas.length && !carregando"><td colspan="3" class="empty-row">Nenhuma área encontrada.</td></tr>
           </tbody>
@@ -69,7 +69,7 @@
                   <button *ngSwitchCase="'descricao'" class="text-link" (click)="editarServico(row)">{{ row.descricao }}</button>
                   <span *ngSwitchCase="'codigoTempario'">{{ row.codigoTempario || '—' }}</span>
                   <span *ngSwitchCase="'area'">{{ row.area }}</span>
-                  <span *ngSwitchCase="'preco'" class="price-cell">
+                  <div *ngSwitchCase="'preco'" class="price-cell">
                     <button class="text-link price-link" (click)="precoVisualizado=precoVisualizado===row.id?null:row.id">$ &nbsp; Visualizar</button>
                     <div *ngIf="precoVisualizado===row.id" class="price-popover">
                       <strong>Preços por empresa</strong><p class="muted small">Valores configurados para este serviço</p>
@@ -79,10 +79,10 @@
                         <div><small>Comissão</small><b>{{ row.comissao | number:'1.2-2' }}%</b></div>
                       </div></div>
                     </div>
-                  </span>
+                  </div>
                 </ng-container>
               </td>
-              <td class="action-cell"><button class="delete-icon" title="Desativar serviço" [disabled]="!row.ativo" (click)="excluirServico(row)">♧</button></td>
+              <td class="action-cell"><button class="delete-icon" title="Desativar serviço" [disabled]="!row.ativo" (click)="excluirServico(row)"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button></td>
             </tr>
             <tr *ngIf="!servicos.length && !carregando"><td [attr.colspan]="colunas.length+1" class="empty-row">Nenhum serviço encontrado.</td></tr>
           </tbody>
@@ -102,7 +102,7 @@
                   <span *ngSwitchCase="'ativo'" class="pill" [class.off]="!row.ativo">{{ row.ativo?'Sim':'Não' }}</span>
                 </ng-container>
               </td>
-              <td class="action-cell"><button class="delete-icon" title="Desativar acessório" [disabled]="!row.ativo" (click)="excluirAcessorio(row)">♧</button></td>
+              <td class="action-cell"><button class="delete-icon" title="Desativar acessório" [disabled]="!row.ativo" (click)="excluirAcessorio(row)"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button></td>
             </tr>
             <tr *ngIf="!acessorios.length && !carregando"><td [attr.colspan]="colunas.length+1" class="empty-row">Nenhum acessório encontrado.</td></tr>
           </tbody>
@@ -191,7 +191,7 @@
               <tr *ngFor="let item of aplicacoes">
                 <td>{{item.marca}}</td><td>{{item.modelo}}</td>
                 <td><div class="time-input"><input type="number" [(ngModel)]="item.tempo" min="0.01" step="0.01" aria-label="Tempo do modelo"/><button class="btn primary compact" title="Salvar tempo" (click)="salvarTempoAplicacao(item)">▣</button></div></td>
-                <td><button class="delete-icon" title="Remover aplicação" (click)="removerAplicacao(item)">♧</button></td>
+                <td><button class="delete-icon" title="Remover aplicação" (click)="removerAplicacao(item)"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button></td>
               </tr>
               <tr>
                 <td><select [(ngModel)]="marcaId" (ngModelChange)="escolherMarca()"><option [ngValue]="null">Selecionar montadora</option><option *ngFor="let m of marcas" [ngValue]="m.id">{{m.nome}}</option></select></td>
@@ -223,7 +223,7 @@
               <div class="subarea-row" *ngFor="let sub of areaDraft.subareas;let i=index">
                 <input [(ngModel)]="sub.descricao" maxlength="200" aria-label="Descrição da subárea"/>
                 <div class="segment small-segment"><button [class.selected]="sub.ativo" (click)="sub.ativo=true">Ativa</button><button [class.selected]="!sub.ativo" (click)="sub.ativo=false">Desativada</button></div>
-                <button class="delete-icon" (click)="removerSubarea(i)" aria-label="Remover subárea">♧</button>
+                <button class="delete-icon" (click)="removerSubarea(i)" aria-label="Remover subárea"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button>
               </div>
               <div class="nested-footer"><button class="btn primary block" (click)="adicionarSubarea()">＋ &nbsp; Adicionar subárea</button></div>
             </section>
