@@ -1,0 +1,30 @@
+-- Contrato visual de Funcionários (14 capturas): exclusão expressamente autorizada.
+-- Campos técnicos e vínculos com OS, Financeiro, segurança e auditoria permanecem.
+-- Migração destrutiva intencional para projeto sem dados de produção.
+ALTER TABLE funcionarios
+  DROP COLUMN IF EXISTS estado_civil,
+  DROP COLUMN IF EXISTS nacionalidade,
+  DROP COLUMN IF EXISTS naturalidade,
+  DROP COLUMN IF EXISTS nome_mae,
+  DROP COLUMN IF EXISTS nome_pai,
+  DROP COLUMN IF EXISTS profissao,
+  DROP COLUMN IF EXISTS vale_alimentacao,
+  DROP COLUMN IF EXISTS plano_saude,
+  DROP COLUMN IF EXISTS plano_odontologico,
+  DROP COLUMN IF EXISTS endereco_completo,
+  DROP COLUMN IF EXISTS pais,
+  DROP COLUMN IF EXISTS telefone_principal,
+  DROP COLUMN IF EXISTS telefone_emergencia,
+  DROP COLUMN IF EXISTS contato_emergencia_nome,
+  DROP COLUMN IF EXISTS contato_emergencia_parentesco,
+  DROP COLUMN IF EXISTS email_pessoal,
+  DROP COLUMN IF EXISTS banco_codigo,
+  DROP COLUMN IF EXISTS banco_agencia,
+  DROP COLUMN IF EXISTS banco_conta,
+  DROP COLUMN IF EXISTS banco_tipo_conta,
+  DROP COLUMN IF EXISTS titulo_eleitor,
+  DROP COLUMN IF EXISTS certificado_reservista,
+  DROP COLUMN IF EXISTS cnh_numero,
+  DROP COLUMN IF EXISTS cnh_categoria,
+  DROP COLUMN IF EXISTS cnh_validade,
+  DROP COLUMN IF EXISTS comissao_percentual;
