@@ -368,7 +368,7 @@ export class RecursosComponent implements OnInit {
         const val=parse(line);const areaNome=val[ai]??'';
         const area=this.areas.find(a=>a.descricao.toLocaleLowerCase('pt-BR')===areaNome.toLocaleLowerCase('pt-BR'));
         if(!area)throw new Error('Linha '+(i+2)+': área não cadastrada: '+areaNome);
-        const number=(raw:string|undefined)=>Number((raw??'0').replace(/\./g,'').replace(',','.'));
+        const number=(raw:string|undefined)=>{ const s=(raw??'0').trim(); return Number(s.includes(',') ? s.replace(/\./g,'').replace(',','.') : s); };
         return {codigo:val[ci],descricao:val[di],areaId:area.id,unidade:val[ui],
           tempo:ti>=0&&val[ti]?number(val[ti]):1,preco:pi>=0?number(val[pi]):0};
       });
