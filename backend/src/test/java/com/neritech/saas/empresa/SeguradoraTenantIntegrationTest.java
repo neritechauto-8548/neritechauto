@@ -38,7 +38,8 @@ class SeguradoraTenantIntegrationTest extends AbstractIntegrationTest {
         mvc.perform(post("/v1/seguradoras").header("Authorization", "Bearer " + tokenA)
                 .contentType(MediaType.APPLICATION_JSON).content(request("11222333000181")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.registroSusepVerificado").value(false));
+                .andExpect(jsonPath("$.data.razaoSocial").value("Seguradora Teste Ltda"))
+                .andExpect(jsonPath("$.data.retencaoIss").value(true));
         long id = jdbc.queryForObject("SELECT id FROM seguradoras WHERE empresa_id=?", Long.class, a);
 
         mvc.perform(post("/v1/seguradoras").header("Authorization", "Bearer " + tokenA)
@@ -52,8 +53,23 @@ class SeguradoraTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isUnprocessableEntity());
         mvc.perform(post("/v1/seguradoras").header("Authorization", "Bearer " + tokenA)
                 .contentType(MediaType.APPLICATION_JSON).content(
-                    json.writeValueAsString(Map.of("nomeFantasia", "Teste", "email", "invalido"))))
+                    json.writeValueAsString(Map.of("cnpj", "11222333000181",
+                        "razaoSocial", "Teste", "email", "invalido"))))
                 .andExpect(status().is4xxClientError());
+
+        assertThat(jdbc.queryForObject("""
+                SELECT retencao_iss FROM seguradoras WHERE empresa_id=? AND id=?
+                """, Boolean.class, a, id)).isTrue();
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM seguradoras WHERE empresa_id=? AND cnpj=?
+                """, Long.class, a, "11222333000181")).isEqualTo(1L);
+        mvc.perform(get("/v1/seguradoras")
+                .header("Authorization", "Bearer " + tokenA)
+                .param("nome", "Seguradora Teste Ltda")
+                .param("nomeFantasia", "Seguradora Teste")
+                .param("cnpj", "11.222.333/0001-81")
+                .param("ativo", "true")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].razaoSocial").value("Seguradora Teste Ltda"));
 
         mvc.perform(get("/v1/seguradoras/{id}", id).header("Authorization", "Bearer " + tokenB))
                 .andExpect(status().isForbidden());
@@ -117,11 +133,16 @@ class SeguradoraTenantIntegrationTest extends AbstractIntegrationTest {
     }
 
     private String request(String cnpj) throws Exception {
-        return json.writeValueAsString(Map.of("nomeFantasia", "Seguradora Teste",
-                "razaoSocial", "Seguradora Teste Ltda", "cnpj", cnpj,
-                "nomeContato", "Atendimento", "telefone", "81999999999",
-                "email", "contato@teste.com", "tipoConvenio", "CONVENIO",
-                "registroSusep", "DECLARADO-NÃO-VERIFICADO"));
+        return json.writeValueAsString(Map.of(
+                "cnpj", cnpj, "razaoSocial", "Seguradora Teste Ltda",
+                "nomeFantasia", "Seguradora Teste",
+                "inscricaoEstadual", "123456789",
+                "inscricaoMunicipal", "987654321",
+                "email", "contato@teste.com",
+                "observacoes", "Cadastro de referência",
+                "margemRefatoramento", 12.5,
+                "site", "https://seguradora.example.com",
+                "retencaoIss", true));
     }
 
     private long company(String suffix) {
