@@ -63,7 +63,8 @@ public class ComissaoFuncionarioController {
     }
 
     public record QuitarRequest(@jakarta.validation.constraints.NotNull java.time.LocalDate dataPagamento,
-            String observacao, Boolean gerarContaPagar) {}
+            String observacao, Boolean gerarContaPagar, Boolean liquidarContaPagar, Long planoContaId,
+            com.neritech.saas.financeiro.domain.enums.TipoTitulo tipoDocumento) {}
 
     @PostMapping("/{id}/aprovar")
     public ResponseEntity<ComissaoFuncionarioResponse> aprovar(@PathVariable Long id, @RequestParam Long empresaId) {
@@ -73,11 +74,9 @@ public class ComissaoFuncionarioController {
     @PostMapping("/{id}/quitar")
     public ResponseEntity<ComissaoFuncionarioResponse> quitar(@PathVariable Long id, @RequestParam Long empresaId,
             @Valid @RequestBody QuitarRequest request) {
-        if (Boolean.TRUE.equals(request.gerarContaPagar())) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                HttpStatus.UNPROCESSABLE_ENTITY, "Geração de contas a pagar ainda não integrada; operação recusada");
-        }
-        return ResponseEntity.ok(service.quitar(id, empresaId, request.dataPagamento(), request.observacao()));
+        return ResponseEntity.ok(service.quitar(id, empresaId, request.dataPagamento(), request.observacao(),
+                Boolean.TRUE.equals(request.gerarContaPagar()), request.planoContaId(),
+                request.tipoDocumento(), Boolean.TRUE.equals(request.liquidarContaPagar())));
     }
 
     @PostMapping("/{id}/estornar")
