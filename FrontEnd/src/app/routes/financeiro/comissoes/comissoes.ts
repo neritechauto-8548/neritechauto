@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { RelatoriosService } from '../../relatorios/relatorios.service';
 import { ComissaoFinanceiraService, ComissaoLinha, FiltrosComissoes, PlanoContaComissao } from './comissao-financeira.service';
 
@@ -146,7 +146,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
       this.operacaoErro = 'A liquidação automática exige pagamento financeiro comprovado; utilize Contas a Pagar.'; return;
     }
     this.busy = true; this.operacaoErro = '';
-    const op = this.operacao === 'quitar'
+    const op: Observable<unknown> = this.operacao === 'quitar'
       ? (this.lote ? this.service.quitarLote([...this.selecionados], this.dataPagamento, this.observacao,
           { gerarContaPagar:this.gerarContaPagar, liquidarContaPagar:false,
             planoContaId:this.gerarContaPagar?(this.planoContaId||undefined):undefined,
@@ -165,7 +165,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
           : 'Quitação estornada e registrada em auditoria.';
         this.carregar();
       },
-      error: err => { this.busy = false; this.operacaoErro = this.fail(err); }
+      error: (err: unknown) => { this.busy = false; this.operacaoErro = this.fail(err); }
     });
   }
   private fail(err: any): string {
