@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Epi, EpiRequest, EpiService } from './epi.service';
 
 @Component({
@@ -15,6 +15,9 @@ import { Epi, EpiRequest, EpiService } from './epi.service';
 export class EpisComponent implements OnInit, OnDestroy {
   private readonly service = inject(EpiService);
   private listSub?: Subscription;
+  private readonly pesquisa$ = new Subject<string>();
+  private readonly buscaSub = this.pesquisa$.pipe(debounceTime(250), distinctUntilChanged()).subscribe(() => this.pesquisar());
+  alterarPesquisa(valor: string): void { this.pesquisa = valor; this.pesquisa$.next(valor); }
   registros: Epi[] = [];
   pesquisa = '';
   loading = false;
@@ -30,7 +33,7 @@ export class EpisComponent implements OnInit, OnDestroy {
   formError = '';
 
   ngOnInit(): void { this.carregar(); }
-  ngOnDestroy(): void { this.listSub?.unsubscribe(); }
+  ngOnDestroy(): void { this.listSub?.unsubscribe(); this.buscaSub.unsubscribe(); this.pesquisa$.complete(); }
   carregar(): void {
     this.listSub?.unsubscribe();
     this.loading = true;
