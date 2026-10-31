@@ -29,6 +29,9 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             @org.springframework.data.repository.query.Param("excluding") Long excluding);
 
 
+    java.util.Optional<Fornecedor> findByEmpresaIdAndCpf(Long empresaId, String cpf);
+    java.util.Optional<Fornecedor> findByEmpresaIdAndCnpj(Long empresaId, String cnpj);
+
     boolean existsByEmpresaIdAndCpf(Long empresaId, String cpf);
 
     boolean existsByEmpresaIdAndCnpj(Long empresaId, String cnpj);
