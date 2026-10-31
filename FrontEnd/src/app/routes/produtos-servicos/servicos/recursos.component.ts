@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -22,6 +23,7 @@ type ChaveColuna = 'descricao' | 'codigoTempario' | 'area' | 'preco' | 'checklis
 export class RecursosComponent implements OnInit {
   private readonly api = inject(RecursosApi);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly route = inject(ActivatedRoute);
   aba: AbaRecurso = 'servicos';
   drawer: DrawerRecurso = null;
   modal: ModalRecurso = null;
@@ -68,6 +70,8 @@ export class RecursosComponent implements OnInit {
   readonly colunasAcessorios: ChaveColuna[] = ['descricao','checklist','padrao','ativo'];
 
   ngOnInit() {
+    // Cadastros abre Áreas; a URL legada de Serviços mantém sua aba inicial.
+    this.aba = this.route.snapshot.routeConfig?.path === 'recursos' ? 'areas' : 'servicos';
     this.recuperarColunas();
     this.carregarAreas();
     this.carregar();
