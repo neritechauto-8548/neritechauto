@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public record FuncionarioRequest(
         @NotNull Long empresaId,
         Long usuarioId,
-        @NotBlank @Size(max = 20) String matricula,
+        @Size(max = 20) String matricula,
         @NotBlank @Size(max = 255) String nomeCompleto,
         @NotBlank @Size(max = 14) String cpf,
         @Size(max = 20) String rg,
@@ -29,7 +29,7 @@ public record FuncionarioRequest(
         @Size(max = 100) String profissao,
         Long cargoId,
         Long departamentoId,
-        @NotNull LocalDate dataAdmissao,
+        LocalDate dataAdmissao,
         LocalDate dataDemissao,
         TipoContrato tipoContrato,
         BigDecimal salarioBase,
@@ -67,5 +67,11 @@ public record FuncionarioRequest(
         LocalDate cnhValidade,
         @Size(max = 500) String fotoFuncionarioUrl,
         String observacoes,
-        Integer versao) {
+        Integer versao,
+        @Size(max = 80) String registroProfissional,
+        @Size(max = 80) String tipoProfissional,
+        @Size(max = 100) String areaAtuacao,
+        @DecimalMin("0.00") @DecimalMax("100.00") BigDecimal comissaoPecas,
+        @DecimalMin("0.00") @DecimalMax("100.00") BigDecimal comissaoServicos,
+        @Size(max = 255) String linhasTransporte) {
 }
