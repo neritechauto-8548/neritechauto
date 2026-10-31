@@ -1,241 +1,223 @@
-<main class="mx-auto w-full max-w-7xl p-4 sm:p-6 space-y-5">
-  <header class="flex flex-wrap items-center justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-900">Seguradoras</h1>
-      <p class="text-sm text-slate-600">Cadastro de parceiros e vínculo manual com ordens de serviço.</p>
-    </div>
-    <button type="button" (click)="novo()"
-      class="rounded-lg bg-blue-700 px-4 py-3 text-white font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+<main class="seguradoras-page">
+  <nav class="breadcrumb" aria-label="Caminho de navegação">
+    <span>NERITECH AUTO</span><span class="separator">›</span>
+    <span>Gestão de recursos</span><span class="separator">›</span>
+    <span class="current">Seguradoras</span>
+  </nav>
+
+  <header class="page-heading">
+    <h1>Seguradoras <span class="help-icon" title="Cadastros de seguradoras">?</span></h1>
+    <button type="button" class="btn primary new-button" (click)="novo()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       Nova seguradora
     </button>
   </header>
 
-  @if (notice) { <p role="status" aria-live="polite" class="rounded-lg border border-green-200 p-3 text-green-800">{{ notice }}</p> }
-
-  <section class="rounded-xl bg-white border border-slate-200 p-4 space-y-4" aria-label="Lista de seguradoras">
-    <div class="flex flex-wrap items-end gap-3">
-      <label class="flex-1 min-w-48 text-sm font-medium">Buscar nome ou documento
-        <input class="mt-1 block w-full border border-slate-300 rounded-lg px-3 py-2 min-h-11" type="search"
-          [(ngModel)]="busca" (keyup.enter)="filtrar()" maxlength="255" placeholder="Nome ou CNPJ" />
-      </label>
-      <label class="text-sm font-medium">Situação
-        <select class="mt-1 block border border-slate-300 rounded-lg px-3 py-2 min-h-11"
-          [(ngModel)]="status" (change)="filtrar()">
-          <option value="todos">Todas</option><option value="ativos">Ativas</option>
-          <option value="inativos">Inativas</option>
-        </select>
-      </label>
-      <label class="text-sm font-medium">Por página
-        <select class="mt-1 block border border-slate-300 rounded-lg px-3 py-2 min-h-11"
-          [ngModel]="size" (ngModelChange)="mudarTamanho($event)">
-          <option [ngValue]="20">20</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option>
-        </select>
-      </label>
-      <button type="button" (click)="filtrar()" [disabled]="loading"
-        class="border border-slate-300 rounded-lg px-4 py-2 min-h-11">Buscar</button>
-    </div>
-
-    @if (loading) { <p role="status" aria-live="polite">Carregando seguradoras...</p> }
-    @if (error) {
-      <div class="rounded-lg border border-red-200 p-4 text-red-700" role="alert">
-        <p>{{ error }}</p><button type="button" class="underline mt-2" (click)="listar()">Tentar novamente</button>
-      </div>
-    }
-
-    @if (!loading && !error) {
-      @if (!items.length) {
-        <div class="text-center py-10 text-slate-600" role="status">
-          Nenhuma seguradora encontrada. Utilize “Nova seguradora” para cadastrar.
-        </div>
-      } @else {
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Seguradoras com rolagem horizontal">
-          <table class="w-full min-w-[780px] text-sm text-left">
-            <caption class="sr-only">Seguradoras da empresa autenticada</caption>
-            <thead><tr class="border-b border-slate-200 text-slate-700">
-              <th scope="col" class="p-3">Seguradora</th><th scope="col" class="p-3">CNPJ</th>
-              <th scope="col" class="p-3">Contato</th><th scope="col" class="p-3">Telefone</th>
-              <th scope="col" class="p-3">Convênio</th><th scope="col" class="p-3">OS</th>
-              <th scope="col" class="p-3">Situação</th><th scope="col" class="p-3">Ação</th>
-            </tr></thead>
-            <tbody>
-              @for (item of items; track item.id) {
-                <tr class="border-b border-slate-100 hover:bg-slate-50">
-                  <th scope="row" class="p-3 font-semibold">{{ item.nomeFantasia }}</th>
-                  <td class="p-3">{{ item.cnpj || '—' }}</td>
-                  <td class="p-3">{{ item.nomeContato || item.email || '—' }}</td>
-                  <td class="p-3">{{ item.telefone || '—' }}</td>
-                  <td class="p-3">{{ item.tipoConvenio || '—' }}</td>
-                  <td class="p-3">{{ item.totalOS }}</td>
-                  <td class="p-3">{{ item.ativo ? 'Ativa' : 'Inativa' }}</td>
-                  <td class="p-3"><button type="button" class="text-blue-700 font-medium underline"
-                    (click)="editar(item)" [attr.aria-label]="'Editar seguradora ' + item.nomeFantasia">Detalhes</button></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <nav aria-label="Páginas de seguradoras" class="flex flex-wrap gap-4 items-center">
-          <span class="text-sm text-slate-600 mr-auto">{{ total }} registros — página {{ page + 1 }}</span>
-          <button type="button" [disabled]="loading || page === 0" (click)="proxima(-1)"
-            class="border border-slate-300 rounded-lg min-h-11 px-4 disabled:opacity-50">Anterior</button>
-          <button type="button" [disabled]="loading || (page + 1) * size >= total" (click)="proxima(1)"
-            class="border border-slate-300 rounded-lg min-h-11 px-4 disabled:opacity-50">Próxima</button>
-        </nav>
-      }
-    }
+  <section class="search-actions" aria-label="Pesquisa e filtros">
+    <label class="search-box">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 5 5"/></svg>
+      <input type="search" name="busca" [(ngModel)]="busca" (ngModelChange)="buscaDigitada()"
+        (keyup.enter)="listar(true)" maxlength="255" placeholder="Pesquisar seguradoras"
+        aria-label="Pesquisar seguradoras"/>
+    </label>
+    <button class="btn outline" type="button" (click)="abrirFiltro()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.5V19l-3 2v-8.5z"/></svg>
+      Filtrar
+    </button>
   </section>
 
-  @if (formVisible) {
-    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 space-y-5"
-      aria-labelledby="seguradora-edicao-titulo">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="seguradora-edicao-titulo" class="text-xl font-semibold">
-          {{ selected ? 'Editar seguradora' : 'Nova seguradora' }}
-        </h2>
-        <button type="button" class="text-slate-700 underline p-2" (click)="fechar()">Fechar</button>
+  @if (notice) {
+    <div role="status" class="notice success">{{ notice }}
+      <button type="button" aria-label="Fechar aviso" (click)="notice=''">×</button></div>
+  }
+
+  <section class="listing-card" aria-label="Listagem de seguradoras">
+    <div class="listing-toolbar">
+      <h2>Listagem de seguradoras</h2>
+      <button type="button" class="btn outline" [disabled]="exporting || loading" (click)="relatorio()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v6h5M10 13h6M10 17h6"/></svg>
+        {{ exporting ? 'Gerando...' : 'Relatórios' }}
+      </button>
+    </div>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Tabela de seguradoras">
+      <table>
+        <thead><tr><th scope="col">Seguradora</th><th scope="col">CNPJ</th>
+          <th scope="col">E-mail</th><th scope="col">Website</th></tr></thead>
+        <tbody>
+          @for (item of items; track item.id) {
+            <tr (click)="editar(item)" (keydown.enter)="editar(item)" tabindex="0"
+              [attr.aria-label]="'Editar seguradora '+(item.nomeFantasia || item.razaoSocial)">
+              <td><button type="button" class="row-link" (click)="editar(item);$event.stopPropagation()">
+                {{ item.nomeFantasia || item.razaoSocial }}</button></td>
+              <td>{{ formatarCnpj(item.cnpj) }}</td>
+              <td>{{ item.email || '—' }}</td>
+              <td>
+                @if (item.site) {
+                  <a class="website" [href]="item.site" target="_blank" rel="noopener noreferrer"
+                    (click)="$event.stopPropagation()">{{item.site}}</a>
+                } @else { — }
+              </td>
+            </tr>
+          }
+          @if (!loading && !error && !items.length) {
+            <tr><td class="empty-state" colspan="4">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="m4 13 6 4 4-4 6 0"/></svg>
+              Não há dados
+            </td></tr>
+          }
+          @if (loading) {
+            <tr><td colspan="4" class="empty-state" role="status">Carregando seguradoras...</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (error) {
+      <div class="error-state" role="alert">{{error}}
+        <button type="button" class="btn outline" (click)="listar()">Tentar novamente</button>
       </div>
-      @if (formError) { <p role="alert" class="rounded-lg border border-red-300 p-3 text-red-700">{{ formError }}</p> }
-      <form (ngSubmit)="salvar()" #seguradoraForm="ngForm" class="space-y-5">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label class="text-sm font-medium">Nome da seguradora *
-            <input name="nomeFantasia" [(ngModel)]="form.nomeFantasia" required maxlength="255"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium">Razão social
-            <input name="razaoSocial" [(ngModel)]="form.razaoSocial" maxlength="255"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium">CNPJ (quando aplicável)
-            <input name="cnpj" [(ngModel)]="form.cnpj" maxlength="18" inputmode="text"
-              placeholder="00.000.000/0000-00"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium">Registro SUSEP (opcional)
-            <input name="registroSusep" [(ngModel)]="form.registroSusep" maxlength="60"
-              aria-describedby="susep-disclaimer"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <p id="susep-disclaimer" class="sm:col-span-2 text-xs text-amber-800">
-            Registro informado pelo usuário, pendente de verificação. Nenhuma consulta à SUSEP é realizada.
-          </p>
-          <label class="text-sm font-medium">Nome do contato
-            <input name="nomeContato" [(ngModel)]="form.nomeContato" maxlength="255"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium">Telefone
-            <input name="telefone" [(ngModel)]="form.telefone" maxlength="20" type="tel"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium">E-mail
-            <input name="email" [(ngModel)]="form.email" maxlength="255" type="email"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium">Tipo de convênio
-            <select name="tipoConvenio" [(ngModel)]="form.tipoConvenio"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
-              <option [ngValue]="null">Não informado</option>
-              <option value="CONVENIO">Convênio</option><option value="REEMBOLSO">Reembolso</option>
-              <option value="AMBOS">Ambos</option>
-            </select>
-          </label>
-          <label class="text-sm font-medium sm:col-span-2">Endereço
-            <input name="endereco" [(ngModel)]="form.endereco" maxlength="500"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11" />
-          </label>
-          <label class="text-sm font-medium sm:col-span-2">Notas internas
-            <textarea name="notas" [(ngModel)]="form.notas" maxlength="4000" rows="3"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2"></textarea>
-          </label>
-          <label class="text-sm font-medium">Situação
-            <select name="ativo" [(ngModel)]="form.ativo"
-              class="block w-full mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
-              <option [ngValue]="true">Ativa</option><option [ngValue]="false">Inativa</option>
-            </select>
-          </label>
+    }
+    @if (total > size) {
+      <footer class="pagination">
+        <span>{{total}} registros — Página {{page + 1}}</span>
+        <button type="button" class="btn outline" [disabled]="page === 0 || loading" (click)="mudarPagina(-1)">Anterior</button>
+        <button type="button" class="btn outline" [disabled]="(page + 1) * size >= total || loading" (click)="mudarPagina(1)">Próxima</button>
+      </footer>
+    }
+  </section>
+</main>
+
+@if (drawer) {
+  <div class="drawer-backdrop" (click)="fechar()" aria-hidden="true"></div>
+  <aside class="drawer" [class.wide-drawer]="drawer==='cadastro'" role="dialog" aria-modal="true"
+    [attr.aria-label]="drawer==='cadastro'?'Cadastro de seguradora':'Filtro avançado de seguradoras'"
+    (keydown.escape)="fechar()">
+    @if (drawer === 'cadastro') {
+      <header class="drawer-heading">
+        <div>
+          <h2>{{ selected ? 'Edição de seguradora' : 'Cadastro de seguradora' }}</h2>
+          <p>{{selected?'Altere os dados da seguradora':'Preencha as informações para registrar uma nova seguradora'}}</p>
         </div>
-        <div class="flex flex-wrap gap-3 items-center">
-          <button type="submit" [disabled]="saving || seguradoraForm.invalid"
-            class="bg-blue-700 text-white rounded-lg px-5 py-3 font-semibold disabled:opacity-50">
-            {{ saving ? 'Salvando...' : 'Salvar seguradora' }}
-          </button>
-          @if (selected?.ativo && !confirmInactivate) {
-            <button type="button" class="border border-red-300 rounded-lg px-4 py-3 text-red-700"
-              (click)="confirmInactivate = true">Inativar</button>
-          }
-          @if (confirmInactivate) {
-            <p class="text-sm text-red-800">Inativar sem excluir OS vinculadas?</p>
-            <button type="button" class="bg-red-700 text-white rounded-lg px-4 py-3"
-              [disabled]="saving" (click)="inativar()">Confirmar inativação</button>
-            <button type="button" class="underline p-2" (click)="confirmInactivate = false">Cancelar</button>
-          }
+        <button type="button" class="close-button" (click)="fechar()" aria-label="Fechar cadastro">×</button>
+      </header>
+
+      <form class="drawer-form" id="seguradora-form" (ngSubmit)="salvar()" #cadastroForm="ngForm">
+        <section class="form-panel">
+          <h3>Dados gerais</h3>
+          <div class="fields two-cols">
+            <label class="field full-width">CNPJ <span class="required">*</span>
+              <input #cnpjInput name="cnpj" type="text" inputmode="numeric" autocomplete="off"
+                [(ngModel)]="form.cnpj" (ngModelChange)="alterarCnpj($event)" maxlength="18"
+                placeholder="Informe um CNPJ" required [attr.aria-invalid]="form.cnpj && !cnpjValido"/>
+            </label>
+            <label class="field">Razão social <span class="required">*</span>
+              <input name="razaoSocial" [(ngModel)]="form.razaoSocial" maxlength="255"
+                placeholder="Informe uma razão social" required/>
+            </label>
+            <label class="field">Nome fantasia
+              <input name="nomeFantasia" [(ngModel)]="form.nomeFantasia" maxlength="255"
+                placeholder="Informe um nome fantasia"/>
+            </label>
+            <label class="field">Inscrição estadual
+              <input name="inscricaoEstadual" [(ngModel)]="form.inscricaoEstadual" maxlength="50"
+                placeholder="Informe uma inscrição estadual"/>
+            </label>
+            <label class="field">Inscrição municipal
+              <input name="inscricaoMunicipal" [(ngModel)]="form.inscricaoMunicipal" maxlength="50"
+                placeholder="Informe uma inscrição municipal"/>
+            </label>
+            <label class="field full-width">Email
+              <input name="email" [(ngModel)]="form.email" type="email" maxlength="255"
+                placeholder="Informe um email" email/>
+            </label>
+            <label class="field full-width">Observações
+              <textarea name="observacoes" [(ngModel)]="form.observacoes" maxlength="4000"
+                placeholder="Informe uma observação" rows="2"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-panel extra-panel">
+          <h3>Informações complementares</h3>
+          <div class="fields two-cols">
+            <label class="field">Margem de refatoramento %
+              <div class="with-prefix"><span aria-hidden="true">%</span>
+                <input name="margemRefatoramento" type="number" min="0" max="100"
+                  step="0.01" [(ngModel)]="form.margemRefatoramento"
+                  placeholder="Informe uma margem de refatoramento"/>
+              </div>
+            </label>
+            <label class="field">Site
+              <div class="with-prefix"><span aria-hidden="true">↗</span>
+                <input name="site" type="url" [(ngModel)]="form.site"
+                  maxlength="500" placeholder="https://meusite.com"/>
+              </div>
+            </label>
+            <div class="iss-row full-width">
+              <span>Haverá retenção de ISS para esta seguradora?</span>
+              <div class="segmented" role="group" aria-label="Retenção de ISS">
+                <button type="button" [class.selected]="form.retencaoIss"
+                  (click)="form.retencaoIss=true">Sim</button>
+                <button type="button" [class.selected]="!form.retencaoIss"
+                  (click)="form.retencaoIss=false">Não</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        @if (selected) {
+          <div class="active-row">
+            <span>Situação</span>
+            <div class="segmented" role="group" aria-label="Situação da seguradora">
+              <button type="button" [class.selected]="form.ativo" (click)="form.ativo=true">Ativa</button>
+              <button type="button" [class.selected]="!form.ativo" (click)="form.ativo=false">Desativada</button>
+            </div>
+          </div>
+        }
+        @if (formError) { <div role="alert" class="form-error">{{formError}}</div> }
+      </form>
+      <footer class="drawer-footer">
+        <button type="button" class="btn outline" (click)="fechar()">Cancelar</button>
+        <button type="submit" form="seguradora-form" class="btn primary" [disabled]="saving || !formularioValido || cadastroForm.invalid">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          {{ saving ? 'Salvando...' : selected ? 'Salvar seguradora' : 'Cadastrar seguradora' }}
+        </button>
+      </footer>
+    } @else {
+      <header class="drawer-heading">
+        <div><h2>Filtro avançado de seguradoras</h2><p>Filtro de listagem avançado</p></div>
+        <button type="button" class="close-button" (click)="fechar()" aria-label="Fechar filtro">×</button>
+      </header>
+      <form class="drawer-form filter-form" id="seguradora-filtros" (ngSubmit)="aplicarFiltro()">
+        <div class="fields two-cols">
+          <label class="field">CNPJ
+            <input name="filtroCnpj" [(ngModel)]="filtroCnpj"
+              (ngModelChange)="alterarFiltroCnpj($event)" maxlength="18" inputmode="numeric"
+              placeholder=""/>
+          </label>
+          <label class="field">Nome
+            <input name="filtroNome" [(ngModel)]="filtroNome" maxlength="255" placeholder="Informe um nome"/>
+          </label>
+          <label class="field">Nome fantasia
+            <input name="filtroFantasia" [(ngModel)]="filtroFantasia" maxlength="255"
+              placeholder="Informe um nome fantasia"/>
+          </label>
+          <label class="field">Situação
+            <select name="filtroSituacao" [(ngModel)]="filtroSituacao">
+              <option value="">Selecionar situação</option>
+              <option value="ativo">Ativado</option>
+              <option value="inativo">Desativado</option>
+            </select>
+          </label>
         </div>
       </form>
-
-      @if (selected) {
-        <section class="pt-5 border-t border-slate-200 space-y-3" aria-labelledby="seguradora-os-titulo">
-          <h3 id="seguradora-os-titulo" class="text-lg font-semibold">Vínculo com atendimento / OS</h3>
-          <p class="text-sm text-slate-600">Informe o ID da OS existente. Nenhum sinistro ou apólice será gerado automaticamente.</p>
-          <div class="flex flex-wrap items-end gap-3">
-            <label class="text-sm font-medium">ID da OS
-              <input type="number" min="1" [(ngModel)]="osInput" class="block mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11 w-36" />
-            </label>
-            <label class="text-sm font-medium">Tipo de vínculo
-              <select [(ngModel)]="osTipo" class="block mt-1 border border-slate-300 rounded-lg px-3 py-2 min-h-11">
-                <option value="CONVENIO">Convênio</option><option value="REEMBOLSO">Reembolso</option>
-              </select>
-            </label>
-            <button type="button" class="border border-slate-300 rounded-lg px-4 py-2 min-h-11"
-              [disabled]="linking || !osInput" (click)="consultarOS()">Consultar OS</button>
-            <button type="button" class="bg-blue-700 text-white rounded-lg px-4 py-2 min-h-11 disabled:opacity-50"
-              [disabled]="linking || !osInput || !selected.ativo || !!osLink" (click)="vincularOS()">Vincular</button>
-          </div>
-          @if (osError) { <p role="alert" class="text-red-700">{{ osError }}</p> }
-          @if (osLink) {
-            <div class="flex flex-wrap gap-3 items-center">
-              <span role="status">OS #{{ osLink.ordemServicoId }} vinculada a {{ osLink.seguradora }} ({{ osLink.tipoVinculo }}).</span>
-              @if (osLink.seguradoraId === selected.id) {
-                <button type="button" class="underline text-red-700" (click)="desvincularOS()" [disabled]="linking">Remover vínculo</button>
-              }
-            </div>
-          }
-        </section>
-
-        <section class="pt-5 border-t border-slate-200 space-y-3" aria-labelledby="seguradora-historico-titulo">
-          <h3 id="seguradora-historico-titulo" class="text-lg font-semibold">Histórico auditado</h3>
-          @if (historyLoading) { <p role="status">Carregando histórico...</p> }
-          @if (historyError) {
-            <div role="alert"><p>{{ historyError }}</p>
-              <button type="button" class="underline" (click)="carregarHistorico(historyPage)">Tentar novamente</button></div>
-          }
-          @if (!historyLoading && !historyError && !history.length) { <p class="text-slate-600">Sem alterações registradas.</p> }
-          @if (history.length) {
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Histórico com rolagem">
-              <table class="min-w-[620px] w-full text-sm text-left">
-                <thead><tr class="border-b">
-                  <th scope="col" class="p-2">Campo</th><th scope="col" class="p-2">Anterior</th>
-                  <th scope="col" class="p-2">Novo</th><th scope="col" class="p-2">Usuário</th>
-                  <th scope="col" class="p-2">Data</th><th scope="col" class="p-2">Versão</th>
-                </tr></thead>
-                <tbody>@for (event of history; track $index) {
-                  <tr class="border-b"><th scope="row" class="p-2">{{ event.campo }}</th>
-                    <td class="p-2">{{ event.anterior }}</td><td class="p-2">{{ event.novo }}</td>
-                    <td class="p-2">#{{ event.autor }}</td>
-                    <td class="p-2">{{ event.data | date:'dd/MM/yyyy HH:mm' }}</td>
-                    <td class="p-2">{{ event.versao }}</td>
-                  </tr>
-                }</tbody>
-              </table>
-            </div>
-            <nav aria-label="Paginação do histórico" class="flex gap-3 items-center">
-              <span class="text-sm text-slate-600 mr-auto">{{ historyTotal }} alterações</span>
-              <button type="button" class="border rounded-lg p-3" (click)="carregarHistorico(historyPage - 1)"
-                [disabled]="historyLoading || historyPage === 0">Anterior</button>
-              <button type="button" class="border rounded-lg p-3" (click)="carregarHistorico(historyPage + 1)"
-                [disabled]="historyLoading || (historyPage + 1) * 20 >= historyTotal">Próxima</button>
-            </nav>
-          }
-        </section>
-      }
-    </section>
-  }
-</main>
+      <footer class="drawer-footer filter-footer">
+        <button type="button" class="btn outline" (click)="fechar()">Cancelar</button>
+        <div class="right-actions">
+          <button type="button" class="btn reset" (click)="resetarFiltro()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M20 20v-6h-6M5.5 14A7 7 0 0 0 18 17M18.5 10A7 7 0 0 0 6 7"/></svg> Resetar</button>
+          <button type="submit" class="btn primary" form="seguradora-filtros">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.5V19l-3 2v-8.5z"/></svg>Filtrar</button>
+        </div>
+      </footer>
+    }
+  </aside>
+}
