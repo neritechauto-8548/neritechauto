@@ -731,8 +731,9 @@ export class CadastroColaborador implements OnInit {
                   },
                   error: (err) => {
                     console.error('Erro ao vincular usuario ao funcionario', err);
+                    this.loading = false;
                     this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário e usuário criados, mas houve um erro ao vinculá-los.' });
-                    this.finishSave(funcionarioId);
+                    // Evita anunciar conclusão quando a associação funcionário/usuário falhou.
                   }
                 });
               } else {
@@ -743,7 +744,7 @@ export class CadastroColaborador implements OnInit {
             error: (err: any) => {
               this.loading = false;
               this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário salvo, mas erro ao salvar acesso: ' + (err?.error?.message || '') });
-              this.finishSave(funcionarioId);
+              // Manter o formulário aberto para permitir diagnóstico de vínculo de acesso parcial.
             },
           });
         } else {
@@ -775,9 +776,9 @@ export class CadastroColaborador implements OnInit {
     if (!this.funcionarioId) return;
 
     this.confirmationService.confirm({
-      title: 'Excluir Colaborador',
-      message: `Tem certeza que deseja excluir o colaborador <span class="font-semibold text-slate-900">${this.form.nomeCompleto || ''}</span>? Esta ação não pode ser desfeita.`,
-      confirmText: 'Excluir',
+      title: 'Inativar funcionário',
+      message: 'Deseja inativar este funcionário? Os históricos de serviços, agenda e comissões serão preservados.',
+      confirmText: 'Inativar',
       cancelText: 'Cancelar',
       type: 'danger',
       icon: 'warning'
@@ -786,7 +787,7 @@ export class CadastroColaborador implements OnInit {
         this.loading = true;
         this.funcionarioService.delete(this.funcionarioId!).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Colaborador excluído com sucesso!' });
+            this.messageService.add({ severity: 'success', summary: 'Inativado', detail: 'Funcionário inativado com sucesso!' });
             if (this.drawerMode) this.drawerClosed.emit(true);
             else this.router.navigate(['/configuracoes/colaboradores']);
           },
