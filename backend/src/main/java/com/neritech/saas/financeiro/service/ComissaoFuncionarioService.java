@@ -160,9 +160,10 @@ public class ComissaoFuncionarioService {
 
     private ComissaoFuncionarioResponse resposta(ComissaoFuncionario entidade) {
         var base = mapper.toResponse(entidade);
-        String empresa = jdbc.queryForObject(
-            "select coalesce(nome_fantasia,razao_social) from empresa where id=?",
-            String.class,entidade.getEmpresaId());
+        record EmpresaResumo(String nome, String cnpj) {}
+        EmpresaResumo empresa = jdbc.queryForObject(
+            "select coalesce(nullif(nome_fantasia,''),razao_social),cnpj from empresa where id=?",
+            (rs,linha)->new EmpresaResumo(rs.getString(1),rs.getString(2)),entidade.getEmpresaId());
         ContextoOs contexto = null;
         if (entidade.getOrdemServicoId() != null) {
             var resultados = jdbc.query("""
@@ -185,10 +186,11 @@ public class ComissaoFuncionarioService {
             base.itemFaturaId(),base.itemFaturaDescricao(),base.dataReferencia(),base.valorBase(),
             base.percentualComissao(),base.valorComissao(),base.tipoComissao(),base.pago(),
             base.dataPagamento(),base.observacoes(),base.createdAt(),base.updatedAt(),base.aprovado(),
-            contexto==null?null:contexto.placa(),contexto==null?null:contexto.cliente(),empresa,
+            contexto==null?null:contexto.placa(),contexto==null?null:contexto.cliente(),
+            empresa==null?null:empresa.nome(),
             contexto==null?null:contexto.autorizacao(),contexto==null?null:contexto.fechamento(),
             base.valorBase(),contexto==null?null:contexto.numero(),
-            contexto==null?null:contexto.situacao());
+            contexto==null?null:contexto.situacao(),empresa==null?null:empresa.cnpj());
     }
 
     @Transactional(readOnly = true)
