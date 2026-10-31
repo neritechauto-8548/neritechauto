@@ -1,222 +1,261 @@
-<main class="min-h-screen space-y-4 bg-[#f7f8fa] px-4 py-5 sm:px-6 lg:px-8">
-  <nav aria-label="Caminho de navegação" class="text-xs text-slate-500">NERITECH AUTO › Gestão de pessoas › Comissões</nav>
-  <nav aria-label="Gestão de pessoas" class="flex flex-wrap items-center gap-1 rounded-lg border border-[#e1e5eb] bg-white p-1 shadow-sm">
-    <a routerLink="/configuracoes/colaboradores" class="rounded-lg px-3 py-2 text-sm hover:bg-slate-50">Funcionários</a>
-    <a routerLink="/configuracoes/cargos" class="rounded-lg px-3 py-2 text-sm hover:bg-slate-50">Cargos</a>
-    <a routerLink="/configuracoes/epis" class="rounded-lg px-3 py-2 text-sm hover:bg-slate-50">EPIs</a>
-    <span aria-current="page" class="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-[#18328A]">Comissões</span>
+<main class="com-page">
+  <nav class="com-crumbs" aria-label="Caminho de navegação">
+    <span>NERITECH AUTO</span><span aria-hidden="true">›</span><span>Gestão de pessoas</span><span aria-hidden="true">›</span><span>Comissões</span>
   </nav>
-  <header class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-[28px] font-semibold tracking-tight text-[#101828]">Comissões <span title="Gestão de comissões" class="text-[15px] text-[#18328A]">⬡</span></h1>
-    <button type="button" (click)="imprimirRelatorio()" [disabled]="pdfLoading"
-      class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40">{{ pdfLoading ? 'Gerando PDF...' : 'Relatório' }}</button>
+
+  <nav class="com-navigation" aria-label="Gestão de pessoas">
+    <a routerLink="/configuracoes/colaboradores">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 4a3 3 0 0 1 0 6m2 3a5 5 0 0 1 2 4v3"/></svg>Funcionários
+    </a>
+    <a routerLink="/configuracoes/cargos">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12c5 4 13 4 18 0"/></svg>Cargos
+    </a>
+    <a routerLink="/configuracoes/epis">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 8 4v5c0 6-4.5 9-8 11-3.5-2-8-5-8-11V6z"/></svg>EPIs
+    </a>
+    <a class="active" routerLink="/financeiro/comissoes" aria-current="page">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="3"/><path d="M7 21v-5a5 5 0 0 1 10 0v5M19 10h2m-1-1v3m-1 2h3"/></svg>Comissões
+    </a>
+  </nav>
+
+  <header class="com-heading">
+    <h1>Comissões <svg class="com-icon help-icon" role="img" aria-label="Informações sobre comissões" viewBox="0 0 24 24"><path d="M8 3h8l5 9-5 9H8l-5-9z"/><path d="M9.5 9a2.5 2.5 0 1 1 4.5 1.5c-1 1-2 1.2-2 3"/><path d="M12 17h.01"/></svg></h1>
+    <button class="com-btn" type="button" (click)="imprimirRelatorio()" [disabled]="pdfLoading">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/></svg>
+      {{ pdfLoading ? 'Gerando...' : 'Relatório' }}
+    </button>
   </header>
-  <div class="flex flex-col gap-2 sm:flex-row">
-    <label class="sr-only" for="comissao-busca">Pesquisar funcionário</label>
-    <input id="comissao-busca" type="search" [(ngModel)]="busca" (keyup.enter)="pesquisar()" placeholder="Pesquisar funcionário"
-      class="h-10 min-w-0 flex-1 rounded-lg border border-[#cbd4df] bg-white px-4 text-[13px] focus:border-[#18328A]" />
-    <button type="button" (click)="abrirFiltros()" class="rounded-lg border border-slate-300 bg-white px-4 text-sm">Filtrar</button>
+
+  <div class="com-toolbar">
+    <label class="com-search">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"/><path d="m16 16 5 5"/></svg>
+      <span class="sr-only">Pesquisar funcionário</span>
+      <input type="search" [ngModel]="busca" (ngModelChange)="alterarBusca($event)" (keyup.enter)="pesquisar()" placeholder="Pesquisar funcionário" />
+    </label>
+    <button class="com-btn" type="button" (click)="abrirFiltros()" aria-haspopup="dialog">
+      <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7.2 8v5.5l-4 2V13z"/></svg>Filtrar
+    </button>
   </div>
-  <p *ngIf="notice" role="status" class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{{ notice }}</p>
-  <div *ngIf="error" role="alert" class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-    {{ error }} <button type="button" (click)="carregar()" class="ml-2 underline">Tentar novamente</button>
-  </div>
-  <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white shadow-sm" aria-labelledby="comissoes-title">
-    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-      <h2 id="comissoes-title" class="text-sm font-medium text-slate-600">Listagem de comissões</h2>
-      <button type="button" (click)="abrirQuitacaoLote()" [disabled]="selecionados.size===0||busy"
-        class="rounded-lg px-4 py-2.5 text-[13px] disabled:bg-[#ebedf0] disabled:text-[#9ba6b4]"
-        [class.bg-[#83ef47]]="selecionados.size>0" [class.text-[#102000]]="selecionados.size>0">▧ &nbsp;Quitar selecionadas</button>
-    </header>
-    <div *ngIf="loading" role="status" class="p-12 text-center text-sm text-slate-500">Carregando comissões...</div>
-    <div *ngIf="!loading" class="overflow-x-auto">
-      <table class="w-full min-w-[1570px] text-left text-[13px]">
-        <thead class="border-b border-slate-200 text-slate-500"><tr>
-          <th scope="col" class="px-3 py-4 font-medium">
-            <input aria-label="Selecionar todas as comissões pendentes nesta página" type="checkbox"
-                [checked]="todosSelecionados" (change)="selecionarTodos($any($event.target).checked)" />
-          </th>
-          <th scope="col" class="px-4 py-4 font-medium">Funcionário</th>
-          <th scope="col" class="px-4 py-4 font-medium">O.S.</th>
-          <th scope="col" class="px-4 py-4 font-medium">Placa</th>
-          <th scope="col" class="px-4 py-4 font-medium">Empresa</th>
-          <th scope="col" class="px-4 py-4 font-medium">Cliente</th>
-          <th scope="col" class="px-4 py-4 font-medium">Autorização</th>
-          <th scope="col" class="px-4 py-4 font-medium">Fechamento</th>
-          <th scope="col" class="px-4 py-4 text-right font-medium">Valor Líq.</th>
-          <th scope="col" class="px-4 py-4 text-right font-medium">Valor base</th>
-          <th scope="col" class="px-4 py-4 text-right font-medium">Comissão</th>
-          <th scope="col" class="px-4 py-4 font-medium">Situação</th>
-          <th scope="col" class="px-4 py-4 text-right font-medium">Ações</th>
-        </tr></thead>
-        <tbody class="divide-y divide-slate-200">
-          <tr *ngFor="let item of registros" class="hover:bg-slate-50">
-            <td class="px-3 py-4"><input type="checkbox" [disabled]="item.pago" [checked]="selecionados.has(item.id)"
+
+  <div *ngIf="notice" class="com-notice" role="status">{{ notice }}</div>
+  <div *ngIf="error" class="com-notice error" role="alert">{{ error }} <button type="button" (click)="carregar()">Tentar novamente</button></div>
+
+  <section class="com-card" aria-label="Listagem de comissões">
+    <div class="com-card-head">
+      <span>Listagem de comissões</span>
+      <button class="com-btn" type="button" (click)="abrirQuitacaoLote()" [disabled]="selecionados.size === 0 || busy || loading"
+        [class.com-btn-primary]="selecionados.size > 0">
+        <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 2v6m8-6v6M4 11h16m-12 5 2 2 5-5"/></svg>
+        Quitar selecionadas
+      </button>
+    </div>
+    <p *ngIf="loading" class="com-empty" role="status" style="display:grid;place-items:center">Carregando comissões...</p>
+    <div class="com-table-scroller" *ngIf="!loading">
+      <table class="com-table">
+        <thead>
+          <tr>
+            <th scope="col" class="cell-select"><input type="checkbox" aria-label="Selecionar todas as comissões pendentes da página"
+              [checked]="todosSelecionados" [disabled]="totalSelecionaveis === 0 || busy" (change)="selecionarTodos($any($event.target).checked)"/></th>
+            <th scope="col" class="cell-employee">Funcionário</th>
+            <th scope="col" class="cell-os">O.S.</th>
+            <th scope="col" class="cell-plate">Placa</th>
+            <th scope="col" class="cell-company">Empresa</th>
+            <th scope="col" class="cell-client">Cliente</th>
+            <th scope="col" class="cell-date">Autorização</th>
+            <th scope="col" class="cell-date">Fechamento</th>
+            <th scope="col" class="cell-money">Valor Líq.</th>
+            <th scope="col" class="cell-money">Valor Base</th>
+            <th scope="col" class="cell-money">Comissão</th>
+            <th scope="col" class="cell-state"><span class="sr-only">Situação</span></th>
+            <th scope="col" class="cell-action"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of registros; trackBy: acompanharComissao">
+            <td class="cell-select">
+              <input type="checkbox" [checked]="selecionados.has(item.id)" [disabled]="item.pago || busy"
                 (change)="selecionar(item.id,$any($event.target).checked)"
-                [attr.aria-label]="'Selecionar comissão de ' + item.funcionarioNome" /></td>
-            <td class="px-4 py-4 font-medium text-slate-950">{{ item.funcionarioNome || 'Não informado' }}</td>
-            <td class="px-4 py-4 text-slate-700">{{ item.numeroOs || item.ordemServicoId || 'Não vinculada' }}</td>
-            <td class="px-4 py-4 text-slate-700">{{ item.placa || '—' }}</td>
-            <td class="px-4 py-4 text-slate-700">{{ item.empresaNome || '—' }}</td>
-            <td class="px-4 py-4 text-slate-700">{{ item.clienteNome || '—' }}</td>
-            <td class="px-4 py-4 text-slate-600">{{ item.dataAutorizacao ? (item.dataAutorizacao | date:'dd/MM/yyyy') : 'Sem informação' }}</td>
-            <td class="px-4 py-4 text-slate-600">{{ item.dataFechamento ? (item.dataFechamento | date:'dd/MM/yyyy') : 'Sem informação' }}</td>
-            <td class="px-4 py-4 text-right text-slate-800">{{ item.valorLiquido == null ? '—' : formatarMoeda(item.valorLiquido) }}</td>
-            <td class="px-4 py-4 text-right text-slate-800">{{ formatarMoeda(item.valorBase) }}</td>
-            <td class="px-4 py-4 text-right font-semibold">{{ formatarMoeda(item.valorComissao) }}</td>
-            <td class="px-4 py-4">
-              <span [class]="item.pago ? 'rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800' : 'rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-900'">
-                {{ item.pago ? 'Quitada' : (item.aprovado ? 'Aprovada' : 'Pendente') }}
-              </span>
-              <p *ngIf="item.pago && item.dataPagamento" class="mt-2 text-xs text-slate-500">{{ item.dataPagamento | date:'dd/MM/yyyy' }}</p>
+                [attr.aria-label]="'Selecionar comissão de ' + (item.funcionarioNome || 'funcionário')" />
             </td>
-            <td class="px-4 py-4 text-right">
-              <button type="button" *ngIf="!item.pago" (click)="abrirQuitacao(item)" [disabled]="busy"
-                [attr.aria-label]="'Quitar comissão de ' + item.funcionarioNome"
-                class="rounded-md bg-[#d9fbe0] px-3 py-2 text-xs font-semibold text-[#228a48] disabled:opacity-40">✓</button>
-              <button type="button" *ngIf="item.pago" (click)="abrirEstorno(item)" [disabled]="busy"
-                class="rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700 disabled:opacity-40">Estornar</button>
+            <td class="cell-employee">{{ item.funcionarioNome || 'Não informado' }}</td>
+            <td class="cell-os">
+              <span>{{ item.numeroOs || 'Não vinculada' }}</span>
+              <small class="com-sub">{{ item.situacaoOs || 'Sem informação' }}</small>
+            </td>
+            <td class="cell-plate">{{ item.placa || '—' }}</td>
+            <td class="cell-company">{{ item.empresaNome || '—' }}</td>
+            <td class="cell-client">{{ item.clienteNome || '—' }}</td>
+            <td class="cell-date"><span [class.com-muted]="!item.dataAutorizacao">{{ item.dataAutorizacao ? (item.dataAutorizacao | date:'dd/MM/yyyy') : 'Sem informação' }}</span></td>
+            <td class="cell-date"><span [class.com-muted]="!item.dataFechamento">{{ item.dataFechamento ? (item.dataFechamento | date:'dd/MM/yyyy') : 'Sem informação' }}</span></td>
+            <td class="cell-money com-money">{{ item.valorLiquido == null ? '—' : formatarValor(item.valorLiquido) }}</td>
+            <td class="cell-money com-money">{{ formatarValor(item.valorBase) }}</td>
+            <td class="cell-money com-money">{{ formatarValor(item.valorComissao) }}</td>
+            <td class="cell-state"><span class="com-pill" [class.paid]="item.pago">{{ item.pago ? 'Quitado' : 'Pendente' }}</span></td>
+            <td class="cell-action">
+              <button *ngIf="!item.pago" class="com-icon-btn" type="button" (click)="abrirQuitacao(item)" [disabled]="busy"
+                [attr.aria-label]="'Quitar comissão de ' + item.funcionarioNome" title="Quitar comissão">
+                <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
+              </button>
+              <button *ngIf="item.pago" class="com-icon-btn reverse" type="button" (click)="abrirEstorno(item)" [disabled]="busy"
+                [attr.aria-label]="'Estornar comissão de ' + item.funcionarioNome" title="Estornar comissão">
+                <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10H2l4-4 4 4H7a8 8 0 1 1-1 7"/></svg>
+              </button>
             </td>
           </tr>
-          <tr *ngIf="registros.length === 0 && !error">
-            <td colspan="13" class="p-12 text-center text-sm text-slate-500">Nenhuma comissão encontrada para esta empresa e os filtros selecionados.</td>
-          </tr>
+          <tr *ngIf="!registros.length && !error"><td class="com-empty" colspan="13">Nenhuma comissão encontrada</td></tr>
         </tbody>
       </table>
     </div>
   </section>
-  <nav aria-label="Paginação de comissões" class="flex items-center justify-between gap-3">
-    <span class="text-xs text-slate-500">{{ total }} registro(s) · Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
-    <div class="flex gap-2">
-      <button type="button" (click)="mudarPagina(-1)" [disabled]="loading || pagina === 0" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm disabled:opacity-40">Anterior</button>
-      <button type="button" (click)="mudarPagina(1)" [disabled]="loading || pagina + 1 >= totalPaginas" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm disabled:opacity-40">Próximo</button>
+  <nav *ngIf="totalPaginas > 1" class="com-pager" aria-label="Paginação de comissões">
+    <span>{{ total }} registros · Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
+    <div class="com-pager-controls">
+      <button class="com-btn" type="button" [disabled]="pagina === 0 || loading" (click)="mudarPagina(-1)">Anterior</button>
+      <button class="com-btn" type="button" [disabled]="pagina + 1 >= totalPaginas || loading" (click)="mudarPagina(1)">Próximo</button>
     </div>
   </nav>
 
-  <div *ngIf="filtroAberto" class="fixed inset-0 z-[70]">
-    <button type="button" (click)="filtroAberto = false" class="absolute inset-0 h-full w-full bg-black/30" aria-label="Fechar filtros"></button>
-    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="filtro-comissoes-titulo"
-      (keydown.escape)="filtroAberto = false" class="absolute inset-y-0 right-0 flex w-full max-w-[580px] flex-col border-l border-slate-200 bg-white shadow-2xl">
-      <header class="flex items-center justify-between border-b border-slate-200 p-5">
-        <div><h2 id="filtro-comissoes-titulo" class="font-semibold text-slate-900">Filtro avançado</h2>
-          <p class="text-xs text-slate-500">Filtrar comissões de funcionários da empresa atual</p></div>
-        <button type="button" (click)="filtroAberto = false" aria-label="Fechar" class="p-2">✕</button>
+  <div *ngIf="filtroAberto" class="com-overlay">
+    <button class="com-dismiss" type="button" (click)="fecharFiltros()" aria-label="Fechar filtros"></button>
+    <section class="com-drawer filter" role="dialog" aria-modal="true" aria-labelledby="com-filtro-titulo"
+      cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="fecharFiltros()">
+      <header class="com-drawer-header">
+        <div><h2 id="com-filtro-titulo">Filtro avançado</h2><p>Filtrar comissões de funcionários</p></div>
+        <button class="com-close" type="button" (click)="fecharFiltros()" aria-label="Fechar filtro">×</button>
       </header>
-      <div class="flex-1 space-y-6 overflow-y-auto p-5">
-        <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <legend class="mb-3 text-xs text-slate-500">Ordem de serviço</legend>
-          <label class="flex flex-col gap-2 text-sm">O.S.
-            <input name="osFiltro" [(ngModel)]="rascunho.os" inputmode="numeric" placeholder="Número da ordem de serviço" class="h-11 rounded-lg border border-slate-300 px-3" />
-          </label>
-          <label class="flex flex-col gap-2 text-sm">Situação
-            <select name="situacao" [(ngModel)]="rascunho.paga" class="h-11 rounded-lg border border-slate-300 bg-white px-3">
-              <option value="">Todas</option><option value="false">Não quitadas</option><option value="true">Quitadas</option>
-            </select>
+      <div class="com-drawer-body">
+        <fieldset class="com-filter-group">
+          <legend><span>Ordem de serviço</span></legend>
+          <div class="com-fields">
+            <label class="com-field">O.S.
+              <input type="text" [(ngModel)]="rascunho.os" maxlength="20" placeholder="Número da ordem de serviço"/>
+            </label>
+            <label class="com-field">Situação
+              <select [(ngModel)]="rascunho.paga" aria-label="Situação da comissão">
+                <option value="">Selecione uma situação</option><option value="false">Pendente</option><option value="true">Quitado</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="com-filter-group">
+          <legend><span>Cliente e veículo</span></legend>
+          <div class="com-fields">
+            <label class="com-field">Cliente<input type="text" [(ngModel)]="rascunho.cliente" maxlength="150" placeholder="Nome do cliente"/></label>
+            <label class="com-field">Placa<input type="text" [(ngModel)]="rascunho.placa" maxlength="10" placeholder="Placa do veículo"/></label>
+          </div>
+        </fieldset>
+        <fieldset class="com-filter-group">
+          <legend><span>Período</span></legend>
+          <div class="com-fields">
+            <label class="com-field">De<input type="date" [(ngModel)]="rascunho.inicio" aria-label="Data inicial"/></label>
+            <label class="com-field">Até<input type="date" [(ngModel)]="rascunho.fim" aria-label="Data final"/></label>
+          </div>
+        </fieldset>
+        <fieldset class="com-filter-group">
+          <legend><span>Empresa</span></legend>
+          <label class="com-field">Empresa
+            <div class="com-company">
+              <span class="monogram" aria-hidden="true">Co</span>
+              <span>{{ empresaExibicao }}</span>
+            </div>
+            <small class="com-inline-help">Empresa definida pela sessão autenticada</small>
           </label>
         </fieldset>
-        <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <legend class="mb-3 text-xs text-slate-500">Cliente e veículo</legend>
-          <label class="flex flex-col gap-2 text-[13px] font-medium">Cliente
-            <input name="clienteFiltro" [(ngModel)]="rascunho.cliente" maxlength="150" placeholder="Nome do cliente"
-              class="h-11 rounded-lg border border-[#cbd4df] px-3 font-normal" />
-          </label>
-          <label class="flex flex-col gap-2 text-[13px] font-medium">Placa
-            <input name="placaFiltro" [(ngModel)]="rascunho.placa" maxlength="10" placeholder="Placa do veículo"
-              class="h-11 rounded-lg border border-[#cbd4df] px-3 font-normal" />
-          </label>
-        </fieldset>
-        <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <legend class="mb-3 text-xs text-slate-500">Período</legend>
-          <label class="flex flex-col gap-2 text-sm">De <input type="date" [(ngModel)]="rascunho.inicio" class="h-11 rounded-lg border border-slate-300 px-3" /></label>
-          <label class="flex flex-col gap-2 text-sm">Até <input type="date" [(ngModel)]="rascunho.fim" class="h-11 rounded-lg border border-slate-300 px-3" /></label>
-        </fieldset>
-        <fieldset class="rounded-lg border-t border-[#e1e5eb] pt-3">
-          <legend class="mb-3 text-xs text-[#8c98a8]">Empresa</legend>
-          <p class="rounded-lg border border-[#cbd4df] bg-[#f7f8fa] p-3 text-[13px]">Empresa autenticada · dados restritos à sessão</p>
-        </fieldset>
+        <p *ngIf="erroFiltros" class="com-notice error" role="alert">{{ erroFiltros }}</p>
       </div>
-      <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-4">
-        <button type="button" (click)="filtroAberto = false" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
-        <div class="flex gap-2">
-          <button type="button" (click)="limparFiltros()" class="rounded-lg bg-[#ffe6e6] px-4 py-2.5 text-sm text-[#e23c4d]">Resetar</button>
-          <button type="button" (click)="aplicarFiltros()" class="rounded-lg bg-[#83ef47] px-4 py-2.5 text-sm font-semibold text-[#102000]">Filtrar</button>
-        </div>
+      <footer class="com-drawer-footer">
+        <button class="com-btn" type="button" (click)="fecharFiltros()">Cancelar</button>
+        <div style="flex:1"></div>
+        <button class="com-btn com-btn-soft-danger" type="button" (click)="limparFiltros()">Resetar</button>
+        <button class="com-btn com-btn-primary" type="button" (click)="aplicarFiltros()">
+          <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7.2 8v5.5l-4 2V13z"/></svg>Filtrar
+        </button>
       </footer>
     </section>
   </div>
 
-  <div *ngIf="operacao === 'quitar' && selecionada" class="fixed inset-0 z-[80]">
-    <button type="button" (click)="fecharOperacao()" class="absolute inset-0 h-full w-full bg-black/30" aria-label="Fechar quitação"></button>
-    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="quitar-titulo"
-      (keydown.escape)="fecharOperacao()" class="absolute inset-y-0 right-0 flex w-full max-w-[680px] flex-col bg-white shadow-2xl">
-      <header class="flex items-center justify-between border-b border-slate-200 p-4"><h2 id="quitar-titulo" class="font-semibold text-slate-900">{{ lote ? 'Quitar comissões selecionadas ('+selecionados.size+')' : 'Quitar comissão' }}</h2>
-        <button type="button" (click)="fecharOperacao()" aria-label="Fechar quitação">✕</button></header>
-      <form (ngSubmit)="confirmarOperacao()" id="quitar-form" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
-        <p class="text-[13px] text-[#8a96a6]">Informe os dados necessários para realizar a quitação desta comissão. Verifique as informações antes de confirmar o pagamento.</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label class="flex flex-col gap-2 text-sm">Data do pagamento <span class="text-red-600">*</span>
-            <input type="date" name="dataPagamento" required [(ngModel)]="dataPagamento" class="h-11 rounded-lg border border-slate-300 px-3" />
+  <div *ngIf="operacao === 'quitar' && selecionada" class="com-overlay">
+    <button class="com-dismiss" type="button" (click)="fecharOperacao()" aria-label="Fechar quitação"></button>
+    <section class="com-drawer" role="dialog" aria-modal="true" aria-labelledby="com-quitar-titulo"
+      cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="fecharOperacao()">
+      <header class="com-drawer-header">
+        <h2 id="com-quitar-titulo">{{ lote ? 'Quitar comissões selecionadas' : 'Quitar comissão' }}</h2>
+        <button class="com-close" type="button" (click)="fecharOperacao()" aria-label="Fechar quitação">×</button>
+      </header>
+      <form id="com-form-quitar" class="com-drawer-body" (ngSubmit)="confirmarOperacao()">
+        <p class="com-help">Informe os dados necessários para realizar a quitação desta comissão. Verifique as informações antes de confirmar o pagamento.</p>
+        <p *ngIf="lote" class="com-inline-help">{{ selecionados.size }} comissões selecionadas para quitação</p>
+        <div class="com-fields">
+          <label class="com-field">Data pagamento <span class="req">*</span>
+            <input type="date" name="dataPagamento" required [(ngModel)]="dataPagamento" [max]="hoje"/>
           </label>
-          <label class="flex flex-col gap-2 text-sm">Observação
-            <input name="observacao" [(ngModel)]="observacao" maxlength="2000" placeholder="Adicione uma observação" class="h-11 rounded-lg border border-slate-300 px-3" />
+          <label class="com-field">Observação
+            <input type="text" name="observacao" [(ngModel)]="observacao" maxlength="2000" placeholder="Adicione uma observação"/>
           </label>
         </div>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 text-[13px]">
-            <input type="checkbox" name="gerarContaPagar" [(ngModel)]="gerarContaPagar" (ngModelChange)="aoMarcarConta()"
-              class="h-4 w-4 accent-[#18328A]" /> Gerar conta a pagar automaticamente
+        <div class="com-check-row">
+          <label class="com-check"><input type="checkbox" name="gerarContaPagar" [(ngModel)]="gerarContaPagar" (ngModelChange)="aoMarcarConta()"/>
+            <span class="com-check-text">Gerar conta a pagar automaticamente
+              <small>Cria lançamento financeiro pendente após quitar comissão</small>
+            </span>
           </label>
-          <p class="pl-7 text-[11px] text-[#8a96a6]">Cria lançamento financeiro pendente após quitar a comissão</p>
-          <label *ngIf="gerarContaPagar" class="flex items-center gap-2 text-[13px]">
-            <input type="checkbox" name="liquidarContaPagar" [(ngModel)]="liquidarContaPagar"
-              class="h-4 w-4 accent-[#18328A]" /> Liquidar contas a pagar automaticamente
+          <label *ngIf="gerarContaPagar" class="com-check"><input type="checkbox" name="liquidarContaPagar" [(ngModel)]="liquidarContaPagar"/>
+            <span class="com-check-text">Liquidar contas a pagar automaticamente
+              <small>As parcelas geradas a partir da comissão já serão criadas como liquidadas</small>
+            </span>
           </label>
-          <p *ngIf="gerarContaPagar" class="pl-7 text-[11px] text-[#8a96a6]">A liquidação exige pagamento confirmado pelo módulo financeiro</p>
         </div>
-        <div *ngIf="gerarContaPagar" class="rounded-lg bg-[#fff2bd] p-4 text-[13px] text-[#7d5200]">
-          <p class="mb-2 font-semibold">⚠ Conta a pagar será criada</p>
-          <p>O documento ficará como <strong>aberto</strong>. O pagamento deverá ser realizado posteriormente no módulo financeiro.</p>
+        <div *ngIf="gerarContaPagar" class="com-warning" role="note">
+          <strong>⚠ &nbsp;Conta a pagar será criada</strong>
+          <p>Ao gerar contas a pagar, o documento ficará como <b>aberto</b>. O pagamento deverá ser realizado posteriormente pelo módulo financeiro.</p>
         </div>
-        <div *ngIf="gerarContaPagar" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label class="flex flex-col gap-2 text-[13px] font-medium">Plano de contas <span class="text-red-500">*</span>
-            <select name="planoContaId" [(ngModel)]="planoContaId" [disabled]="carregandoPlanos"
-              class="h-11 rounded-lg border border-[#cbd4df] bg-white px-3 font-normal">
-              <option [ngValue]="null">Selecionar plano de contas</option>
+        <div *ngIf="gerarContaPagar" class="com-fields">
+          <label class="com-field">Plano de contas <span class="req">*</span>
+            <select name="planoContaId" [(ngModel)]="planoContaId" [disabled]="carregandoPlanos" required>
+              <option [ngValue]="null">{{ carregandoPlanos ? 'Carregando planos...' : 'Selecionar plano de contas' }}</option>
               <option *ngFor="let plano of planosContas" [ngValue]="plano.id">{{ plano.codigo }} — {{ plano.nome }}</option>
             </select>
           </label>
-          <label class="flex flex-col gap-2 text-[13px] font-medium">Tipo de documento <span class="text-red-500">*</span>
-            <select name="tipoDocumento" [(ngModel)]="tipoDocumento"
-              class="h-11 rounded-lg border border-[#cbd4df] bg-white px-3 font-normal">
+          <label class="com-field">Tipo de documento <span class="req">*</span>
+            <select name="tipoDocumento" [(ngModel)]="tipoDocumento" required>
               <option value="">Selecionar tipo de documento</option>
-              <option value="BOLETO">Boleto</option><option value="CHEQUE">Cheque</option>
               <option value="DUPLICATA">Duplicata</option><option value="PROMISSORIA">Promissória</option>
-              <option value="OUTROS">Outros</option>
+              <option value="CHEQUE">Cheque</option><option value="CONVENIO">Convênio</option>
+              <option value="BOLETO">Boleto</option><option value="OS">Ordem de serviço</option>
+              <option value="VENDA_BALCAO">Venda balcão</option><option value="OUTROS">Outros</option>
             </select>
           </label>
         </div>
-        <p *ngIf="operacaoErro" role="alert" class="text-sm text-red-700">{{ operacaoErro }}</p>
+        <p *ngIf="gerarContaPagar && liquidarContaPagar" role="alert" class="com-notice error">
+          A liquidação automática está indisponível sem confirmação de pagamento em caixa ou banco. Desmarque a opção para criar o título em aberto.
+        </p>
+        <p *ngIf="operacaoErro" role="alert" class="com-notice error">{{ operacaoErro }}</p>
       </form>
-      <footer class="flex justify-end gap-3 border-t border-slate-200 p-4">
-        <button type="button" (click)="fecharOperacao()" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
-        <button type="submit" form="quitar-form" [disabled]="busy || !dataPagamento || !planoSelecionado || liquidarContaPagar"
-          class="rounded-lg bg-[#83ef47] px-5 py-2.5 text-[13px] font-semibold text-[#102000] disabled:opacity-40">{{ busy ? 'Salvando...' : '✓ Quitar comissão' }}</button>
+      <footer class="com-drawer-footer">
+        <button class="com-btn" type="button" (click)="fecharOperacao()" [disabled]="busy">Cancelar</button>
+        <button class="com-btn com-btn-primary" type="submit" form="com-form-quitar"
+          [disabled]="busy || !dataPagamento || !planoSelecionado || liquidarContaPagar || carregandoPlanos">
+          <svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
+          {{ busy ? 'Salvando...' : 'Quitar comissão' }}
+        </button>
       </footer>
     </section>
   </div>
 
-  <div *ngIf="operacao === 'estornar' && selecionada" class="fixed inset-0 z-[80] flex items-center justify-center p-4">
-    <button type="button" (click)="fecharOperacao()" class="absolute inset-0 bg-black/55" aria-label="Fechar estorno"></button>
-    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="estornar-titulo" (keydown.escape)="fecharOperacao()"
-      class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-      <h2 id="estornar-titulo" class="font-semibold text-slate-900">🟠 &nbsp;Estornar comissão</h2>
-      <p class="mt-4 text-sm text-slate-700">Deseja estornar o registro de quitação da comissão de <strong>{{ selecionada.funcionarioNome }}</strong>?</p>
-      <p class="mt-2 text-xs text-slate-500">Essa ação reabre a comissão, com auditoria. Não estorna pagamentos bancários nem lançamentos financeiros externos.</p>
-      <p *ngIf="operacaoErro" role="alert" class="mt-3 text-sm text-red-700">{{ operacaoErro }}</p>
-      <footer class="mt-6 flex justify-end gap-3">
-        <button type="button" (click)="fecharOperacao()" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
-        <button type="button" (click)="confirmarOperacao()" [disabled]="busy" class="rounded-lg bg-[#ffe5c7] px-5 py-2.5 text-sm font-semibold text-[#ed5c16] disabled:opacity-40">Estornar</button>
-      </footer>
+  <div *ngIf="operacao === 'estornar' && selecionada" class="com-overlay dark">
+    <button class="com-dismiss" type="button" (click)="fecharOperacao()" aria-label="Cancelar estorno"></button>
+    <section class="com-dialog" role="dialog" aria-modal="true" aria-labelledby="com-estorno-titulo"
+      cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="fecharOperacao()">
+      <div class="com-dialog-title" id="com-estorno-titulo">
+        <span class="com-dialog-icon"><svg class="com-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7-5 5 5 5M4 12h10a6 6 0 0 1 0 12"/></svg></span>
+        Estornar comissão
+      </div>
+      <p>Deseja realmente estornar a comissão quitada do funcionário <strong>{{ selecionada.funcionarioNome }}</strong>?</p>
+      <p *ngIf="operacaoErro" role="alert" class="com-notice error">{{ operacaoErro }}</p>
+      <div class="com-dialog-actions">
+        <button class="com-btn" type="button" (click)="fecharOperacao()" [disabled]="busy">Cancelar</button>
+        <button class="com-btn com-btn-orange" type="button" (click)="confirmarOperacao()" [disabled]="busy">{{ busy ? 'Estornando...' : 'Estornar' }}</button>
+      </div>
     </section>
   </div>
 </main>
