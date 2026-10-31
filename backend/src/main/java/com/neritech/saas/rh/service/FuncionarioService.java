@@ -151,7 +151,8 @@ public class FuncionarioService {
             if (cargo == null || !empresaId.equals(cargo.getEmpresaId()) || !Boolean.TRUE.equals(cargo.getAtivo())) {
                 throw new ResourceNotFoundException("Cargo não encontrado");
             }
-            if (request.comissaoPercentual() != null && request.comissaoPercentual().signum() > 0
+            if ((request.comissaoPecas() != null && request.comissaoPecas().signum() > 0
+                    || request.comissaoServicos() != null && request.comissaoServicos().signum() > 0)
                     && !Boolean.TRUE.equals(cargo.getTemComissao())) {
                 throw new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
@@ -188,21 +189,6 @@ public class FuncionarioService {
             }
         }
 
-        // Validação de Datas de Vínculo
-        if (request.dataDemissao() != null && request.dataAdmissao() != null) {
-            if (request.dataDemissao().isBefore(request.dataAdmissao())) {
-                throw new IllegalArgumentException("A data de demissão não pode ser anterior à data de admissão");
-            }
-        }
-
-        // Validação de Motivo de Inativação
-        if ((request.status() == com.neritech.saas.rh.domain.enums.StatusFuncionario.INATIVO ||
-             request.status() == com.neritech.saas.rh.domain.enums.StatusFuncionario.DEMITIDO ||
-             request.status() == com.neritech.saas.rh.domain.enums.StatusFuncionario.AFASTADO) &&
-            (request.motivoInativacao() == null || request.motivoInativacao().isBlank())) {
-                throw new IllegalArgumentException("O motivo de inativação é obrigatório para o status selecionado");
-        }
-
         // Validação Financeira
         if (request.salarioBase() != null && request.salarioBase().compareTo(java.math.BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("O salário base não pode ser negativo");
@@ -210,20 +196,6 @@ public class FuncionarioService {
         if (request.valeTransporte() != null && request.valeTransporte().compareTo(java.math.BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("O vale transporte não pode ser negativo");
         }
-        if (request.valeAlimentacao() != null && request.valeAlimentacao().compareTo(java.math.BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("O vale alimentação não pode ser negativo");
-        }
-
-        // Validação da CNH
-        if (request.cnhNumero() != null && !request.cnhNumero().isBlank()) {
-            if (request.cnhCategoria() == null || request.cnhCategoria().isBlank()) {
-                throw new IllegalArgumentException("A categoria da CNH é obrigatória quando o número é informado");
-            }
-            if (request.cnhValidade() != null && request.cnhValidade().isBefore(LocalDate.now())) {
-                throw new IllegalArgumentException("A CNH informada está vencida");
-            }
-        }
-
         // Endereço opcional na etapa inicial, respeitando os campos sem asterisco da referência.
         // Se preenchido, todos os dados informados continuam validados.
         if (request.cep() != null && !request.cep().isBlank()
@@ -240,12 +212,7 @@ public class FuncionarioService {
                 throw new IllegalArgumentException("Comissão deve estar entre 0 e 100%");
         }
 
-        // Validação de E-mail Pessoal
-        if (request.emailPessoal() != null && !request.emailPessoal().isBlank()) {
-            if (!request.emailPessoal().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-                throw new IllegalArgumentException("E-mail pessoal inválido");
-            }
-        }
+
     }
 
     @Transactional
@@ -264,8 +231,10 @@ public class FuncionarioService {
         values.put("matricula", f.getMatricula()); values.put("nomeCompleto", f.getNomeCompleto());
         values.put("cargoId", f.getCargoId()); values.put("departamentoId", f.getDepartamentoId());
         values.put("usuarioId", f.getUsuarioId()); values.put("status", f.getStatus());
-        values.put("dataAdmissao", f.getDataAdmissao()); values.put("dataDemissao", f.getDataDemissao());
-        values.put("comissaoPercentual", f.getComissaoPercentual());
+        values.put("dataAdmissao", f.getDataAdmissao());
+        values.put("comissaoPecas", f.getComissaoPecas());
+        values.put("comissaoServicos", f.getComissaoServicos());
+        values.put("registroProfissional", f.getRegistroProfissional());
         return values;
     }
 
