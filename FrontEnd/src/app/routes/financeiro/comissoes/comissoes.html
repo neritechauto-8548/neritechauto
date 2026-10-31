@@ -24,12 +24,18 @@
   <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white shadow-sm" aria-labelledby="comissoes-title">
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
       <h2 id="comissoes-title" class="text-sm font-medium text-slate-600">Listagem de comissões</h2>
-      <button type="button" disabled title="Quitação em lote requer validação financeira transacional" class="rounded-lg bg-[#ebedf0] px-4 py-2.5 text-[13px] text-[#9ba6b4]">▧ &nbsp;Quitar selecionadas</button>
+      <button type="button" (click)="abrirQuitacaoLote()" [disabled]="selecionados.size===0||busy"
+        class="rounded-lg px-4 py-2.5 text-[13px] disabled:bg-[#ebedf0] disabled:text-[#9ba6b4]"
+        [class.bg-[#83ef47]]="selecionados.size>0" [class.text-[#102000]]="selecionados.size>0">▧ &nbsp;Quitar selecionadas</button>
     </header>
     <div *ngIf="loading" role="status" class="p-12 text-center text-sm text-slate-500">Carregando comissões...</div>
     <div *ngIf="!loading" class="overflow-x-auto">
       <table class="w-full min-w-[1570px] text-left text-[13px]">
         <thead class="border-b border-slate-200 text-slate-500"><tr>
+          <th scope="col" class="px-3 py-4 font-medium">
+            <input aria-label="Selecionar todas as comissões pendentes nesta página" type="checkbox"
+                [checked]="todosSelecionados" (change)="selecionarTodos($any($event.target).checked)" />
+          </th>
           <th scope="col" class="px-4 py-4 font-medium">Funcionário</th>
           <th scope="col" class="px-4 py-4 font-medium">O.S.</th>
           <th scope="col" class="px-4 py-4 font-medium">Placa</th>
@@ -45,8 +51,11 @@
         </tr></thead>
         <tbody class="divide-y divide-slate-200">
           <tr *ngFor="let item of registros" class="hover:bg-slate-50">
+            <td class="px-3 py-4"><input type="checkbox" [disabled]="item.pago" [checked]="selecionados.has(item.id)"
+                (change)="selecionar(item.id,$any($event.target).checked)"
+                [attr.aria-label]="'Selecionar comissão de ' + item.funcionarioNome" /></td>
             <td class="px-4 py-4 font-medium text-slate-950">{{ item.funcionarioNome || 'Não informado' }}</td>
-            <td class="px-4 py-4 text-slate-700">{{ item.ordemServicoId || 'Não vinculada' }}</td>
+            <td class="px-4 py-4 text-slate-700">{{ item.numeroOs || item.ordemServicoId || 'Não vinculada' }}</td>
             <td class="px-4 py-4 text-slate-700">{{ item.placa || '—' }}</td>
             <td class="px-4 py-4 text-slate-700">{{ item.empresaNome || '—' }}</td>
             <td class="px-4 py-4 text-slate-700">{{ item.clienteNome || '—' }}</td>
@@ -62,16 +71,15 @@
               <p *ngIf="item.pago && item.dataPagamento" class="mt-2 text-xs text-slate-500">{{ item.dataPagamento | date:'dd/MM/yyyy' }}</p>
             </td>
             <td class="px-4 py-4 text-right">
-              <button type="button" *ngIf="!item.aprovado && !item.pago" (click)="aprovar(item)" [disabled]="busy"
-                class="rounded-md border border-slate-300 px-3 py-2 text-xs text-[#18328A] disabled:opacity-40">Aprovar</button>
-              <button type="button" *ngIf="item.aprovado && !item.pago" (click)="abrirQuitacao(item)" [disabled]="busy"
-                class="rounded-md bg-[#18328A] px-3 py-2 text-xs font-semibold text-white disabled:opacity-40">Quitar</button>
+              <button type="button" *ngIf="!item.pago" (click)="abrirQuitacao(item)" [disabled]="busy"
+                [attr.aria-label]="'Quitar comissão de ' + item.funcionarioNome"
+                class="rounded-md bg-[#d9fbe0] px-3 py-2 text-xs font-semibold text-[#228a48] disabled:opacity-40">✓</button>
               <button type="button" *ngIf="item.pago" (click)="abrirEstorno(item)" [disabled]="busy"
                 class="rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700 disabled:opacity-40">Estornar</button>
             </td>
           </tr>
           <tr *ngIf="registros.length === 0 && !error">
-            <td colspan="12" class="p-12 text-center text-sm text-slate-500">Nenhuma comissão encontrada para esta empresa e os filtros selecionados.</td>
+            <td colspan="13" class="p-12 text-center text-sm text-slate-500">Nenhuma comissão encontrada para esta empresa e os filtros selecionados.</td>
           </tr>
         </tbody>
       </table>
@@ -141,7 +149,7 @@
     <button type="button" (click)="fecharOperacao()" class="absolute inset-0 h-full w-full bg-black/30" aria-label="Fechar quitação"></button>
     <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="quitar-titulo"
       (keydown.escape)="fecharOperacao()" class="absolute inset-y-0 right-0 flex w-full max-w-[680px] flex-col bg-white shadow-2xl">
-      <header class="flex items-center justify-between border-b border-slate-200 p-4"><h2 id="quitar-titulo" class="font-semibold text-slate-900">Quitar comissão</h2>
+      <header class="flex items-center justify-between border-b border-slate-200 p-4"><h2 id="quitar-titulo" class="font-semibold text-slate-900">{{ lote ? 'Quitar comissões selecionadas ('+selecionados.size+')' : 'Quitar comissão' }}</h2>
         <button type="button" (click)="fecharOperacao()" aria-label="Fechar quitação">✕</button></header>
       <form (ngSubmit)="confirmarOperacao()" id="quitar-form" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
         <p class="text-[13px] text-[#8a96a6]">Informe os dados necessários para realizar a quitação desta comissão. Verifique as informações antes de confirmar o pagamento.</p>
