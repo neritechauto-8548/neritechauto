@@ -97,7 +97,7 @@ public class FornecedorReferenciaController {
         Long tenant=TenantAccess.requireCurrent();
         var rows=jdbc.queryForList("""
             select id,nome,sexo,data_nascimento as "dataNascimento",
-                   contato_principal as "contatoPrincipal",ativo,versao
+                   contato_principal as "contatoPrincipal",estrangeiro,ativo,versao
             from contatos_fornecedor where fornecedor_id=? and empresa_id=? and ativo=true order by nome,id
             """,fornecedorId,tenant);
         for(var item:rows){
