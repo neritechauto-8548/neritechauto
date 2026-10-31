@@ -22,8 +22,11 @@ public class SeguradoraController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('OS_EDITAR')")
     public Page<SeguradoraResponse> listar(@RequestParam(required = false) String busca,
+            @RequestParam(required = false) String cnpj,
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String nomeFantasia,
             @RequestParam(required = false) Boolean ativo, @PageableDefault(size = 20) Pageable page) {
-        return service.listar(busca, ativo, page);
+        return service.listar(busca, cnpj, nome, nomeFantasia, ativo, page);
     }
 
     @GetMapping("/{id}")
