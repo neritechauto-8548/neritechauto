@@ -1,922 +1,383 @@
-<div class="flex flex-col h-full bg-slate-50 relative" [class.min-h-screen]="!drawerMode">
-  <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
+<div class="flex h-full min-h-0 flex-col bg-[#f7f8fa]" [class.min-h-screen]="!drawerMode">
+  <header *ngIf="drawerMode" class="flex shrink-0 items-center justify-between border-b border-[#e3e7ed] bg-white px-5 py-4">
+    <div><h1 class="text-[17px] font-semibold text-[#101828]">{{ edicao ? 'Editar funcionário' : 'Cadastro de funcionário' }}</h1>
+      <p class="text-[13px] text-[#8996a6]">Preencha as informações para {{ edicao ? 'atualizar' : 'registrar' }} um funcionário</p></div>
+    <button type="button" aria-label="Fechar cadastro" (click)="encerrar(false)" class="rounded-md p-2 text-slate-600 hover:bg-slate-100">✕</button>
+  </header>
 
-  <!-- ===== Sticky Action Bar ===== -->
-  <div class="bg-white px-5 py-3.5 border-b border-slate-200/60 flex items-center justify-between top-0 z-30 shadow-sm" [class.sticky]="!drawerMode">
-    <div class="flex items-center gap-4">
-      <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
-        <i class="pi pi-arrow-left text-sm"></i>
-      </button>
-      <div>
-        <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ isEditMode ? 'Editar funcionário' : 'Cadastro de funcionário' }}</h1>
-        <span class="text-xs text-slate-500 font-normal">Dados pessoais, vínculo e acesso ao sistema</span>
-      </div>
-    </div>
-    <div class="flex gap-3 items-center">
-      <button *ngIf="isEditMode" (click)="excluir()" [disabled]="loading"
-        class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-        <i class="pi pi-trash text-[13px]"></i> Inativar
-      </button>
-      <div *ngIf="isEditMode" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-      <button *ngIf="!drawerMode" (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
-        Cancelar
-      </button>
-      <button *ngIf="!drawerMode" (click)="salvar()" [disabled]="loading"
-        class="px-3.5 py-2 rounded-md bg-[#18328A] text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-50">
-        <i class="pi pi-check text-xs"></i> {{ loading ? 'Salvando...' : 'Salvar' }}
-      </button>
-    </div>
-  </div>
-
-  <div class="p-5 w-full space-y-4" [class.min-h-0]="drawerMode" [class.flex-1]="drawerMode" [class.overflow-y-auto]="drawerMode">
-
-    <!-- ===== Pill Tab Navigation ===== -->
-    <div class="flex justify-center">
-      <div class="bg-slate-100 p-1 rounded-lg flex flex-wrap justify-center gap-1 border border-slate-200">
-        <button *ngFor="let tab of navTabs"
-          (click)="selecionarAba(tab.id)"
-          [class]="activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-          class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
-          <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ tab.icon }}</mat-icon> {{ tab.label }}
-        </button>
-      </div>
-    </div>
-
-    <!-- ===== Tab Content ===== -->
-    <div class="grid grid-cols-1 gap-4 animate-fade-in-up w-full">
-
-    <!-- ===== TAB: DADOS PESSOAIS ===== -->
-    <ng-container *ngIf="activeTab === 'pessoais'">
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Identificação</span>
-            <span class="nt-panel-sub">Informações pessoais básicas</span>
+  <div class="min-h-0 flex-1 overflow-y-auto" [class.p-5]="drawerMode" [class.px-4]="!drawerMode" [class.py-5]="!drawerMode" [class.sm:px-7]="!drawerMode">
+    <div class="mx-auto w-full" [class.max-w-[1560px]]="!drawerMode">
+      <ng-container *ngIf="!drawerMode">
+        <nav class="mb-5 text-[11px] text-slate-500" aria-label="Navegação">NERITECH AUTO › <a routerLink="/configuracoes/colaboradores" class="hover:underline">Funcionários</a> › {{ edicao ? (aba === 'profissional' ? 'Dados Profissionais' : aba === 'epis' ? 'EPIs' : aba === 'contatos' ? 'Contatos' : 'Geral') : 'Cadastro' }}</nav>
+        <header class="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#8c3ff3] text-[12px] font-semibold text-white">{{ formulario.nomeCompleto ? formulario.nomeCompleto.slice(0,2).toUpperCase() : 'FU' }}</span>
+            <div><h1 class="max-w-[320px] truncate text-[16px] font-semibold text-[#111827]">{{ formulario.nomeCompleto || 'Novo funcionário' }}</h1>
+              <p class="text-[12px] text-[#8a96a6]">{{ formulario.cpf || 'Identificação do funcionário' }}</p></div>
+          </div>
+          <div *ngIf="edicao" class="flex flex-wrap items-center gap-2">
+            <span class="rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px]" [class.text-green-600]="formulario.status === 'ATIVO'">{{ formulario.status === 'ATIVO' ? 'Ativado' : 'Inativo' }}</span>
+            <button type="button" (click)="alternarSituacao()" class="rounded-md bg-[#f4f5f7] px-3 py-2 text-[12px] text-slate-700">{{ formulario.status === 'ATIVO' ? 'Desativar' : 'Ativar' }}</button>
+            <button type="button" *ngIf="!usuarioId" (click)="criarUsuario()" class="rounded-md bg-[#d9e7ff] px-4 py-2 text-[12px] font-semibold text-[#18328A]">＋ Criar usuário</button>
+            <span *ngIf="usuarioId" class="rounded-md bg-blue-50 px-3 py-2 text-[12px] text-[#18328A]">Usuário vinculado</span>
+            <button type="button" *ngIf="formulario.status === 'ATIVO'" (click)="alternarSituacao()" class="rounded-md bg-[#ffe2e4] px-4 py-2 text-[12px] text-[#e1283b]">Remover</button>
           </div>
-        </ng-template>
-        
-        <div class="nt-row">
-          <div class="nt-c8">
-            <label class="nt-lbl">Nome Completo *</label>
-            <input [(ngModel)]="form.nomeCompleto" class="w-full modern-input" placeholder="Nome completo" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Matrícula *</label>
-            <input [(ngModel)]="form.matricula" class="w-full modern-input font-mono" placeholder="Ex: 001" />
-          </div>
-        </div>
-        
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">CPF *</label>
-            <p-inputmask mask="999.999.999-99" [(ngModel)]="form.cpf" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="000.000.000-00" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">RG</label>
-            <input [(ngModel)]="form.rg" class="w-full modern-input font-mono" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Data de Nascimento</label>
-            <p-datepicker [(ngModel)]="form.dataNascimento" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Sexo</label>
-            <p-select [(ngModel)]="form.sexo" [options]="sexoOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-        </div>
-
-        <div class="nt-row">
-          <div class="nt-c4">
-            <label class="nt-lbl">Estado Civil</label>
-            <p-select [(ngModel)]="form.estadoCivil" [options]="estadoCivilOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Escolaridade</label>
-            <p-select [(ngModel)]="form.escolaridade" [options]="escolaridadeOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Profissão</label>
-            <input [(ngModel)]="form.profissao" class="w-full modern-input" />
-          </div>
-        </div>
-      </p-panel>
-
-      <p-panel styleClass="nt-panel mt-4">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Filiação e Naturalidade</span>
-            <span class="nt-panel-sub">Origem e informações familiares</span>
-          </div>
-        </ng-template>
-
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Nacionalidade</label>
-            <input [(ngModel)]="form.nacionalidade" class="w-full modern-input" placeholder="Brasileira" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Naturalidade</label>
-            <input [(ngModel)]="form.naturalidade" class="w-full modern-input" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Nome da Mãe</label>
-            <input [(ngModel)]="form.nomeMae" class="w-full modern-input" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Nome do Pai</label>
-            <input [(ngModel)]="form.nomePai" class="w-full modern-input" />
-          </div>
-        </div>
-      </p-panel>
-
-      <p-panel styleClass="nt-panel mt-4">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Contato</span>
-            <span class="nt-panel-sub">Canais de comunicação direta e de emergência do colaborador</span>
-          </div>
-        </ng-template>
-
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Telefone Principal</label>
-            <p-inputmask mask="(99) 99999-9999" [(ngModel)]="form.telefonePrincipal" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="(00) 00000-0000" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c9">
-            <label class="nt-lbl">E-mail Pessoal</label>
-            <input [(ngModel)]="form.emailPessoal" type="email" class="w-full modern-input" placeholder="email@exemplo.com" />
-          </div>
-        </div>
-
-        <p-divider>
-          <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Contato de Emergência</span>
-        </p-divider>
-
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Telefone de Emergência</label>
-            <p-inputmask mask="(99) 99999-9999" [(ngModel)]="form.telefoneEmergencia" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="(00) 00000-0000" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c5">
-            <label class="nt-lbl">Nome do Contato</label>
-            <input [(ngModel)]="form.contatoEmergenciaNome" class="w-full modern-input" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Parentesco</label>
-            <input [(ngModel)]="form.contatoEmergenciaParentesco" class="w-full modern-input" placeholder="Ex: Cônjuge, Pai" />
-          </div>
-        </div>
-      </p-panel>
-
-      <p-panel styleClass="nt-panel mt-4">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Localização</span>
-            <span class="nt-panel-sub">Endereço de residência principal</span>
-          </div>
-        </ng-template>
-
-        <div class="nt-row">
-          <div class="nt-c2">
-            <label class="nt-lbl">CEP *</label>
-            <p-inputgroup>
-              <p-inputmask
-                [(ngModel)]="form.cep"
-                mask="99999-999"
-                placeholder="00000-000"
-                [unmask]="false"
-                styleClass="w-full"
-                inputStyleClass="w-full modern-input"
-                (onBlur)="buscarCep()"
-              />
-              <p-button icon="pi pi-search" severity="secondary" (onClick)="buscarCep()" />
-            </p-inputgroup>
-          </div>
-          <div class="nt-c7">
-            <label class="nt-lbl">Logradouro *</label>
-            <input [(ngModel)]="form.logradouro" class="w-full modern-input" placeholder="Av. das Nações Unidas" />
-          </div>
-          <div class="nt-c1">
-            <label class="nt-lbl">Nº</label>
-            <input [(ngModel)]="form.numero" class="w-full modern-input" placeholder="123" />
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">Complemento</label>
-            <input [(ngModel)]="form.complemento" class="w-full modern-input" placeholder="Sala 1" />
-          </div>
-        </div>
-
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Bairro *</label>
-            <input [(ngModel)]="form.bairro" class="w-full modern-input" placeholder="Nome do bairro" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Cidade *</label>
-            <input [(ngModel)]="form.cidade" class="w-full modern-input" placeholder="Nome da cidade" />
-          </div>
-          <div class="nt-c1">
-            <label class="nt-lbl">UF</label>
-            <p-select [(ngModel)]="form.estado" [options]="estadosBr" class="w-full" styleClass="w-full" appendTo="body" />
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">País</label>
-            <input [(ngModel)]="form.pais" class="w-full modern-input" placeholder="Brasil" />
-          </div>
-        </div>
-      </p-panel>
-
-      <p-panel styleClass="nt-panel mt-4">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Foto de Perfil</span>
-            <span class="nt-panel-sub">Imagem de exibição do colaborador</span>
-          </div>
-        </ng-template>
-
-        <div class="nt-row">
-          <div class="nt-c6 flex flex-col gap-3">
-            <label class="nt-lbl">Visualização da Foto</label>
-            <div class="flex items-center gap-4">
-              <div class="w-32 h-32 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden relative group">
-                @if (getFotoUrl()) {
-                  <img [src]="getFotoUrl()" class="w-full h-full object-cover" alt="Foto de Perfil" />
-                } @else {
-                  <div class="text-slate-400 flex flex-col items-center gap-1">
-                    <i class="pi pi-user text-3xl"></i>
-                    <span class="text-[10px]">Sem foto</span>
-                  </div>
-                }
-              </div>
-              <div class="flex flex-col gap-2">
-                <input type="file" #fileInput (change)="onFotoSelected($event)" accept="image/*" class="hidden" />
-                <p-button label="Selecionar Imagem" icon="pi pi-upload" severity="secondary" (onClick)="fileInput.click()" [loading]="uploadingFoto" [disabled]="!funcionarioId" />
-                @if (getFotoUrl()) {
-                  <p-button label="Remover" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="removerFoto()" />
-                }
-              </div>
-            </div>
-            <small class="nt-hint" *ngIf="!funcionarioId">É necessário salvar o colaborador primeiro para adicionar uma foto.</small>
-            <small class="nt-hint" *ngIf="funcionarioId">Formatos suportados: PNG, JPG. Máximo 2MB.</small>
-          </div>
-        </div>
-      </p-panel>
-    </ng-container>
-
-    <!-- ===== TAB: VÍNCULO ===== -->
-    <ng-container *ngIf="activeTab === 'vinculo'">
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Vínculo Empregatício</span>
-            <span class="nt-panel-sub">Cargo, departamento e tipo de contrato</span>
-          </div>
-        </ng-template>
-
-        <div class="nt-row">
-          <div class="nt-c4">
-            <label class="nt-lbl">Departamento</label>
-            <p-select [(ngModel)]="form.departamentoId" [options]="departamentoOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Cargo</label>
-            <p-select [(ngModel)]="form.cargoId" [options]="cargoOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Tipo de Contrato</label>
-            <p-select [(ngModel)]="form.tipoContrato" [options]="tipoContratoOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-        </div>
-
-        <div class="nt-row mt-4">
-          <div class="nt-c3">
-            <label class="nt-lbl">Data de Admissão *</label>
-            <p-datepicker [(ngModel)]="form.dataAdmissao" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Data de Demissão</label>
-            <p-datepicker [(ngModel)]="form.dataDemissao" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Status</label>
-            <p-select [(ngModel)]="form.status" [options]="statusOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Motivo de Inativação</label>
-            <input [(ngModel)]="form.motivoInativacao" class="w-full modern-input" placeholder="Preencher se inativo" />
-          </div>
-        </div>
-
-        <p-divider>
-          <span class="text-surface-400 text-xs font-medium tracking-wide uppercase">Remuneração e Benefícios</span>
-        </p-divider>
-
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Salário Base (R$)</label>
-            <p-inputnumber [(ngModel)]="form.salarioBase" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Vale Transporte (R$)</label>
-            <p-inputnumber [(ngModel)]="form.valeTransporte" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Vale Alimentação (R$)</label>
-            <p-inputnumber [(ngModel)]="form.valeAlimentacao" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" inputStyleClass="w-full modern-input" />
-          </div>
-          <div class="nt-c3 flex items-end pb-1 gap-4">
-            <div class="flex items-center gap-2">
-              <p-checkbox [(ngModel)]="form.planoSaude" [binary]="true" inputId="chk-saude" />
-              <label for="chk-saude" class="nt-lbl cursor-pointer mb-0 font-normal">Saúde</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <p-checkbox [(ngModel)]="form.planoOdontologico" [binary]="true" inputId="chk-odonto" />
-              <label for="chk-odonto" class="nt-lbl cursor-pointer mb-0 font-normal">Odonto</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="nt-row mt-4">
-          <div class="nt-c12">
-            <label class="nt-lbl">Observações</label>
-            <textarea [(ngModel)]="form.observacoes" rows="2" class="w-full modern-input resize-none"></textarea>
-          </div>
-        </div>
-      </p-panel>
-    </ng-container>
-
-    <!-- ===== TAB: REGRAS DE COMISSÃO ===== -->
-    <ng-container *ngIf="activeTab === 'comissao'">
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Regras de Comissão</span>
-            <span class="nt-panel-sub">Configure percentuais e condições para este colaborador</span>
-          </div>
-        </ng-template>
-        
-        <p-message severity="secondary" styleClass="w-full mb-6">
-          <ng-template pTemplate="icon"><i class="pi pi-lightbulb text-indigo-500"></i></ng-template>
-          <ng-template pTemplate="detail">
-            Uma regra de comissão deve ter pelo menos uma modalidade configurada como <strong>SIM</strong>. Ao criar uma nova regra para o mesmo setor, as anteriores serão arquivadas automaticamente.
-          </ng-template>
-        </p-message>
-        <div class="nt-row mt-4">
-          <div class="nt-c2">
-            <label class="nt-lbl">Porcentagem %</label>
-            <div class="relative">
-              <i class="pi pi-money-bill absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input [(ngModel)]="novaRegra.percentual" type="number" step="0.01" class="w-full modern-input pl-9" placeholder="0,00" />
-            </div>
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">Setor</label>
-            <p-select [(ngModel)]="novaRegra.setorId" [options]="setorOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" placeholder="Geral (Qualquer setor)" />
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">% Sobre serviço</label>
-            <p-select [(ngModel)]="novaRegra.sobreServico" [options]="[{label: 'SIM', value: 'SIM'}, {label: 'NÃO', value: 'NAO'}]" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" />
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">% Sobre produtos</label>
-            <p-select [(ngModel)]="novaRegra.sobreProdutos" [options]="[{label: 'SIM', value: 'SIM'}, {label: 'NÃO', value: 'NAO'}]" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">% Faturamento geral</label>
-            <p-select [(ngModel)]="novaRegra.faturamentoGeral" [options]="[{label: 'SIM - Serviços ou Produtos', value: 'SIM - Servicos ou Produtos'}, {label: 'NÃO', value: 'NAO'}]" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" appendTo="body" />
-          </div>
-        </div>
-
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Data Início</label>
-            <p-datepicker [(ngModel)]="novaRegra.dataInicio" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
-          </div>
-          <div class="nt-c3 flex items-end">
-            <p-button label="Adicionar Regra" icon="pi pi-plus" (onClick)="adicionarRegraComissao()" styleClass="w-full" severity="success" />
-          </div>
-        </div>
-
-          <h4 class="text-slate-500 font-normal text-base border-b border-slate-200 pb-2 mb-4">Regras de comissão deste funcionario</h4>
-
-          <div class="border border-slate-200 rounded-lg overflow-hidden">
-            <p-table [value]="regrasComissao" [tableStyle]="{ 'min-width': '100%' }" styleClass="p-datatable-sm w-full">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th class="bg-slate-50 text-slate-700 font-semibold text-sm border-b border-slate-200 p-3">Descrição</th>
-                  <th class="bg-slate-50 text-slate-700 font-semibold text-sm border-b border-slate-200 p-3 w-32">Situação</th>
-                  <th class="bg-slate-50 text-slate-700 font-semibold text-sm border-b border-slate-200 p-3 w-40 text-center">Data Inicio</th>
-                  <th class="bg-slate-50 text-slate-700 font-semibold text-sm border-b border-slate-200 p-3 w-40 text-center">Data Final</th>
-                  <th class="bg-slate-50 border-b border-slate-200 w-16"></th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-regra>
-                <tr [ngClass]="{'bg-rose-50/50': !regra.ativo}" class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                  <td class="p-3 text-sm" [ngClass]="{'text-rose-600': !regra.ativo, 'text-slate-800': regra.ativo}">
-                    <span class="font-bold">{{ regra.percentual }}%</span> de comissão 
-                    <span *ngIf="regra.sobreServico === 'SIM' && regra.sobreProdutos === 'SIM'">sobre serviços e produtos</span>
-                    <span *ngIf="regra.sobreServico === 'SIM' && regra.sobreProdutos === 'NAO'">sobre serviços</span>
-                    <span *ngIf="regra.sobreServico === 'NAO' && regra.sobreProdutos === 'SIM'">sobre produtos</span>
-                    <span *ngIf="regra.setorNome"> no setor <span class="font-semibold">{{ regra.setorNome | uppercase }}</span></span>
-                  </td>
-                  <td class="p-3 text-sm">
-                    <span [ngClass]="{'text-rose-600': !regra.ativo, 'text-slate-600': regra.ativo}">{{ regra.ativo ? 'Ativo' : 'Inativo' }}</span>
-                  </td>
-                  <td class="p-3 text-sm text-center">
-                    <p-datepicker [(ngModel)]="regra.dataInicio" (onSelect)="atualizarRegraComissao(regra)" (onBlur)="atualizarRegraComissao(regra)" appendTo="body" styleClass="w-full" inputStyleClass="w-full text-center border-0 bg-transparent text-slate-700 p-0 text-sm focus:ring-0 focus:outline-none" dateFormat="dd/mm/yy" />
-                  </td>
-                  <td class="p-3 text-sm text-center">
-                    <p-datepicker [(ngModel)]="regra.dataFinal" (onSelect)="atualizarRegraComissao(regra)" (onBlur)="atualizarRegraComissao(regra)" appendTo="body" styleClass="w-full" inputStyleClass="w-full text-center border-0 bg-transparent text-slate-700 p-0 text-sm focus:ring-0 focus:outline-none" placeholder="Sem prazo (-)" dateFormat="dd/mm/yy" [showClear]="true" />
-                  </td>
-                  <td class="p-3 text-center">
-                    <button (click)="excluirRegraComissao(regra.id)" class="text-rose-400 hover:text-rose-600 w-6 h-6 flex items-center justify-center rounded-md hover:bg-rose-50 transition-colors">
-                      <i class="pi pi-times text-xs"></i>
-                    </button>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="5" class="text-center p-8 text-slate-500 text-sm">
-                    Nenhuma regra de comissão cadastrada.
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-      </p-panel>
-    </ng-container>
-
-
-
-    <!-- ===== TAB: DOCUMENTOS ===== -->
-    <ng-container *ngIf="activeTab === 'documentos'">
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Documentos Trabalhistas</span>
-            <span class="nt-panel-sub">PIS/PASEP, Carteira de Trabalho e Reservista</span>
-          </div>
-        </ng-template>
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">PIS/PASEP</label>
-            <p-inputmask mask="999.99999.99-9" [(ngModel)]="form.pisPasep" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="000.00000.00-0" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Título de Eleitor</label>
-            <p-inputmask mask="9999 9999 9999" [(ngModel)]="form.tituloEleitor" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="0000 0000 0000" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Carteira de Trabalho</label>
-            <input [(ngModel)]="form.carteiraTrabalho" class="w-full modern-input font-mono" />
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Cert. Reservista</label>
-            <input [(ngModel)]="form.certificadoReservista" class="w-full modern-input font-mono" />
-          </div>
-        </div>
-      </p-panel>
-
-      <p-panel styleClass="nt-panel mt-4">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Habilitação (CNH)</span>
-            <span class="nt-panel-sub">Dados da carteira nacional de habilitação</span>
-          </div>
-        </ng-template>
-        <div class="nt-row">
-          <div class="nt-c4">
-            <label class="nt-lbl">Número da CNH</label>
-            <input [(ngModel)]="form.cnhNumero" class="w-full modern-input font-mono" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Categoria</label>
-            <p-select [(ngModel)]="form.cnhCategoria" [options]="cnhCategoriaOptions" class="w-full" styleClass="w-full" appendTo="body" placeholder="Selecione" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Validade</label>
-            <p-datepicker [(ngModel)]="form.cnhValidade" appendTo="body" styleClass="w-full" inputStyleClass="w-full modern-input" placeholder="dd/mm/aaaa" dateFormat="dd/mm/yy" />
-          </div>
-        </div>
-      </p-panel>
-    </ng-container>
-
-    <!-- ===== TAB: DADOS BANCÁRIOS ===== -->
-    <ng-container *ngIf="activeTab === 'bancario'">
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Dados Bancários</span>
-            <span class="nt-panel-sub">Para pagamento de salário e comissões</span>
-          </div>
-        </ng-template>
-        <div class="nt-row">
-          <div class="nt-c2">
-            <label class="nt-lbl">Código do Banco</label>
-            <p-inputmask mask="999" [(ngModel)]="form.bancoCodigo" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="Ex: 341" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Agência</label>
-            <p-inputmask mask="9999-9" [(ngModel)]="form.bancoAgencia" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="Ex: 0001-0" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Conta</label>
-            <p-inputmask mask="9999999999-9" [(ngModel)]="form.bancoConta" styleClass="w-full" inputStyleClass="w-full modern-input font-mono" placeholder="Ex: 00000000-0" [unmask]="false"></p-inputmask>
-          </div>
-          <div class="nt-c3">
-            <label class="nt-lbl">Tipo de Conta</label>
-            <p-select [(ngModel)]="form.bancoTipoConta" [options]="tipoContaOptions" optionLabel="label" optionValue="value" class="w-full" styleClass="w-full" placeholder="Selecione" appendTo="body" />
-          </div>
-        </div>
-      </p-panel>
-    </ng-container>
-
-    <!-- ===== TAB: ACESSO AO SISTEMA ===== -->
-    <ng-container *ngIf="activeTab === 'usuario'">
-
-      <!-- Toggle card -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
-        <div class="p-6 flex items-start gap-5">
-          <!-- Toggle switch -->
-          <button type="button"
-            [class]="temAcesso
-              ? 'flex-shrink-0 w-12 h-6 bg-emerald-500 rounded-full relative transition-colors'
-              : 'flex-shrink-0 w-12 h-6 bg-slate-300 rounded-full relative transition-colors'"
-            (click)="temAcesso = !temAcesso">
-            <span [class]="temAcesso
-                ? 'absolute top-1 right-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-                : 'absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'">
-            </span>
-          </button>
-          <div class="flex-1">
-            <p class="font-bold text-slate-900 text-sm">
-              {{ temAcesso ? 'Acesso ao sistema habilitado' : 'Sem acesso ao sistema' }}
-            </p>
-            <p class="text-xs text-slate-500 mt-0.5">
-              {{ temAcesso
-                ? 'Este colaborador possui conta de usuário e pode fazer login.'
-                : 'Ative para criar credenciais de login para este colaborador.' }}
-            </p>
-          </div>
-          <span *ngIf="usuarioId"
-            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100 flex-shrink-0">
-            <span class="material-icons text-xs">link</span>
-            Usuário #{{ usuarioId }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Access form — shown only when temAcesso = true -->
-      <ng-container *ngIf="temAcesso">
-
-        <!-- Credentials -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Credenciais de Login</span>
-              <span class="nt-panel-sub">E-mail e senha para acesso ao sistema</span>
-            </div>
-          </ng-template>
-          <div class="nt-row items-start">
-            <div class="nt-c6">
-              <label class="nt-lbl">E-mail de Login</label>
-              <input [(ngModel)]="usuarioForm.email" type="email"
-                class="w-full modern-input"
-                placeholder="colaborador@empresa.com" />
-              <p class="text-[10px] text-slate-400 mt-1">Será usado para autenticação no sistema</p>
-            </div>
-            <div class="nt-c6">
-              <label class="nt-lbl">
-                {{ usuarioId ? 'Nova Senha (deixe em branco para manter)' : 'Senha' }}
-              </label>
-              <input [(ngModel)]="usuarioForm.senha" type="password"
-                class="w-full modern-input"
-                [placeholder]="usuarioId ? 'Deixe em branco para não alterar' : 'Mínimo 6 caracteres'" />
-            </div>
-          </div>
-        </p-panel>
-
-        <!-- Funcoes / Roles -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Funções & Permissões</span>
-              <span class="nt-panel-sub">Defina quais funções (roles) este usuário terá no sistema</span>
-            </div>
-          </ng-template>
-          <div class="nt-row">
-            <div class="nt-c12">
-              <p-multiSelect
-                [(ngModel)]="usuarioForm.funcoesIds"
-                [options]="funcaoOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Selecione as funções..."
-                [filter]="true"
-                filterPlaceholder="Buscar função..."
-                display="chip"
-                styleClass="w-full modern-multiselect"
-                appendTo="body" />
-              <p class="text-[10px] text-slate-400 mt-2">
-                Para criar ou editar funções acesse
-                <a routerLink="/configuracoes/permissoes" class="text-[#635bff] underline">Permissões & Funções</a>
-              </p>
-            </div>
-          </div>
-        </p-panel>
-
-        <!-- Account status -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Estado da Conta</span>
-              <span class="nt-panel-sub">Ative ou bloqueie o acesso do usuário</span>
-            </div>
-          </ng-template>
-          <div class="nt-row">
-            <div class="nt-c12 flex flex-wrap gap-8">
-              <label class="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" [(ngModel)]="usuarioForm.ativo" class="w-4 h-4 mt-0.5 accent-[#635bff]" />
-                <div>
-                  <p class="text-xs font-bold text-slate-700">Conta ativa</p>
-                  <p class="text-[10px] text-slate-500">Usuário pode fazer login normalmente</p>
-                </div>
-              </label>
-              <label class="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" [(ngModel)]="usuarioForm.bloqueado" class="w-4 h-4 mt-0.5 accent-red-500" />
-                <div>
-                  <p class="text-xs font-bold text-slate-700">Conta bloqueada</p>
-                  <p class="text-[10px] text-slate-500">Impede login mesmo com credenciais corretas</p>
-                </div>
-              </label>
-            </div>
-          </div>
-        </p-panel>
-
-    
-        </ng-container>
-    </ng-container>
-
-    <!-- ===== TAB: TEMA ===== -->
-    <ng-container *ngIf="activeTab === 'tema'">
-
-      <!-- Warning if user access is disabled -->
-      <div *ngIf="!temAcesso" class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4 flex items-start gap-4">
-        <i class="pi pi-exclamation-triangle text-amber-500 text-xl mt-0.5"></i>
-        <div>
-          <h4 class="font-bold text-amber-800 text-sm">Acesso ao Sistema Desabilitado</h4>
-          <p class="text-xs text-amber-700 mt-1">
-            As configurações de tema são associadas ao usuário de login. Para configurar um tema personalizado, habilite o <strong>Acesso ao Sistema</strong> na aba anterior.
-          </p>
-        </div>
-      </div>
-
-      <!-- Main theme selector cards — shown only when temAcesso = true -->
-      <ng-container *ngIf="temAcesso">
-        
-        <!-- Esquema de Cores -->
-        <p-panel styleClass="nt-panel">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Esquema de Cores</span>
-              <span class="nt-panel-sub">Escolha o modo de visualização geral da interface</span>
-            </div>
-          </ng-template>
-          
-          <div class="flex flex-wrap gap-4 p-2">
-            <!-- Light Mode Button -->
-            <button type="button" 
-              (click)="selectColorScheme('light')"
-              [ngClass]="usuarioForm.preferencias.theme === 'light' ? 'border-primary ring-2 ring-indigo-100 bg-indigo-50/50' : 'border-slate-200 bg-white hover:bg-slate-50'"
-              class="flex items-center gap-3 px-5 py-3 border rounded-xl cursor-pointer transition-all duration-200 text-left outline-none min-w-[150px]">
-              <i class="pi pi-sun text-lg" [ngClass]="usuarioForm.preferencias.theme === 'light' ? 'text-[#635bff]' : 'text-slate-500'"></i>
-              <div>
-                <p class="text-xs font-bold text-slate-800">Claro</p>
-                <p class="text-[10px] text-slate-500 mt-0.5">Interface clara e limpa</p>
-              </div>
-            </button>
-
-            <!-- Dark Mode Button -->
-            <button type="button" 
-              (click)="selectColorScheme('dark')"
-              [ngClass]="usuarioForm.preferencias.theme === 'dark' ? 'border-primary ring-2 ring-indigo-100 bg-indigo-50/50' : 'border-slate-200 bg-white hover:bg-slate-50'"
-              class="flex items-center gap-3 px-5 py-3 border rounded-xl cursor-pointer transition-all duration-200 text-left outline-none min-w-[150px]">
-              <i class="pi pi-moon text-lg" [ngClass]="usuarioForm.preferencias.theme === 'dark' ? 'text-[#635bff]' : 'text-slate-500'"></i>
-              <div>
-                <p class="text-xs font-bold text-slate-800">Escuro</p>
-                <p class="text-[10px] text-slate-500 mt-0.5">Interface em tons escuros</p>
-              </div>
-            </button>
-
-            <!-- Auto Mode Button -->
-            <button type="button" 
-              (click)="selectColorScheme('auto')"
-              [ngClass]="usuarioForm.preferencias.theme === 'auto' ? 'border-primary ring-2 ring-indigo-100 bg-indigo-50/50' : 'border-slate-200 bg-white hover:bg-slate-50'"
-              class="flex items-center gap-3 px-5 py-3 border rounded-xl cursor-pointer transition-all duration-200 text-left outline-none min-w-[150px]">
-              <i class="pi pi-desktop text-lg" [ngClass]="usuarioForm.preferencias.theme === 'auto' ? 'text-[#635bff]' : 'text-slate-500'"></i>
-              <div>
-                <p class="text-xs font-bold text-slate-800">Automático</p>
-                <p class="text-[10px] text-slate-500 mt-0.5">Conforme o sistema</p>
-              </div>
-            </button>
-          </div>
-        </p-panel>
-
-        <!-- Cor Primária -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Cor Primária</span>
-              <span class="nt-panel-sub">Selecione a cor de destaque principal (botões, links, seletores)</span>
-            </div>
-          </ng-template>
-          
-          <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 p-2">
-            <div *ngFor="let opt of primaryColorOptions" 
-              (click)="selectPrimaryColor(opt.value)"
-              class="flex flex-col items-center gap-1.5 cursor-pointer group text-center">
-              <div 
-                [style.background-color]="opt.hex"
-                class="w-10 h-10 rounded-full flex items-center justify-center shadow-sm border border-black/10 transition-transform duration-200 group-hover:scale-110 relative">
-                <i *ngIf="usuarioForm.preferencias.primaryColor === opt.value" 
-                  class="pi pi-check text-white text-xs font-bold filter drop-shadow"></i>
-              </div>
-              <span class="text-[10px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">
-                {{ opt.name }}
-              </span>
-            </div>
-          </div>
-        </p-panel>
-
-        <!-- Cor de Superfície -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Cor de Superfície</span>
-              <span class="nt-panel-sub">Defina o tom de cinza base para fundos, cards e bordas</span>
-            </div>
-          </ng-template>
-          
-          <div class="flex flex-wrap gap-6 p-2">
-            <div *ngFor="let opt of surfaceColorOptions" 
-              (click)="selectSurfaceColor(opt.value)"
-              class="flex flex-col items-center gap-1.5 cursor-pointer group text-center">
-              <div 
-                [style.background-color]="opt.hex"
-                class="w-10 h-10 rounded-full flex items-center justify-center shadow-sm border border-black/10 transition-transform duration-200 group-hover:scale-110 relative">
-                <i *ngIf="usuarioForm.preferencias.surfaceColor === opt.value" 
-                  class="pi pi-check text-white text-xs font-bold filter drop-shadow"></i>
-              </div>
-              <span class="text-[10px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">
-                {{ opt.name }}
-              </span>
-            </div>
-          </div>
-        </p-panel>
-      
-<!-- Tipo de Estilo (Preset) -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Estilo de Componentes (Aura/Lara)</span>
-              <span class="nt-panel-sub">Escolha o visual base para tabelas, inputs e painéis</span>
-            </div>
-          </ng-template>
-          
-          <div class="flex flex-wrap gap-4 p-2">
-            <button *ngFor="let opt of presetOptions" type="button" 
-              (click)="selectPreset(opt.value)"
-              [ngClass]="usuarioForm.preferencias.presetTheme === opt.value ? 'border-primary ring-2 ring-indigo-100 bg-indigo-50/50' : 'border-slate-200 bg-white hover:bg-slate-50'"
-              class="flex items-center gap-3 px-5 py-3 border rounded-xl cursor-pointer transition-all duration-200 text-left outline-none min-w-[150px]">
-              <div>
-                <p class="text-xs font-bold text-slate-800">{{ opt.name }}</p>
-                <p class="text-[10px] text-slate-500 mt-0.5">Estilo {{ opt.name }}</p>
-              </div>
-            </button>
-          </div>
-        </p-panel>
-
-        <!-- Tema do Menu -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Tema do Menu (Sidebar)</span>
-              <span class="nt-panel-sub">Escolha uma cor para o menu lateral</span>
-            </div>
-          </ng-template>
-          
-          <div class="flex flex-wrap gap-3.5 p-2">
-            <div *ngFor="let opt of menuThemeOptions" 
-              (click)="selectMenuTheme(opt.value)"
-              [pTooltip]="opt.name"
-              class="cursor-pointer group relative">
-              <div 
-                [style.background-color]="opt.hex"
-                [ngClass]="usuarioForm.preferencias.menuThemeClass === opt.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-105' : 'border border-black/10'"
-                class="w-9 h-9 rounded-full flex items-center justify-center shadow-sm transition-all duration-200 group-hover:scale-110 relative">
-                <i *ngIf="usuarioForm.preferencias.menuThemeClass === opt.value" 
-                  [ngClass]="opt.hex === '#ffffff' ? 'text-indigo-600' : 'text-white'"
-                  class="pi pi-check text-xs font-bold"></i>
-              </div>
-            </div>
-          </div>
-        </p-panel>
-
-        <!-- Tema da Barra Superior -->
-        <p-panel styleClass="nt-panel mt-4">
-          <ng-template pTemplate="header">
-            <div class="nt-panel-hd">
-              <span class="nt-panel-title">Tema da Barra Superior (Topbar)</span>
-              <span class="nt-panel-sub">Escolha uma cor para a barra do topo</span>
-            </div>
-          </ng-template>
-          
-          <div class="flex flex-wrap gap-3.5 p-2">
-            <div *ngFor="let opt of topbarThemeOptions" 
-              (click)="selectTopbarTheme(opt.value)"
-              [pTooltip]="opt.name"
-              class="cursor-pointer group relative">
-              <div 
-                [style.background-color]="opt.hex"
-                [ngClass]="usuarioForm.preferencias.topbarThemeClass === opt.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-105' : 'border border-black/10'"
-                class="w-9 h-9 rounded-full flex items-center justify-center shadow-sm transition-all duration-200 group-hover:scale-110 relative">
-                <i *ngIf="usuarioForm.preferencias.topbarThemeClass === opt.value" 
-                  [ngClass]="opt.hex === '#ffffff' ? 'text-indigo-600' : 'text-white'"
-                  class="pi pi-check text-xs font-bold"></i>
-              </div>
-            </div>
-          </div>
-        </p-panel>
-
-      
-      </ng-container>
-    </ng-container>
-
-
-    <ng-container *ngIf="activeTab === 'epis'">
-      <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="func-epi-title">
-        <header class="mb-5 flex items-center justify-between">
-          <div><h2 id="func-epi-title" class="font-semibold text-slate-950">Equipamentos de Proteção Individual</h2>
-          <p class="text-xs text-slate-500">Histórico de entregas vinculadas a este funcionário</p></div>
         </header>
-        <div *ngIf="!funcionarioId" class="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">
-          Salve os dados gerais do funcionário antes de registrar a entrega de EPIs.
-        </div>
-        <ng-container *ngIf="funcionarioId">
-          <div *ngIf="epiLoading" role="status" class="p-4 text-sm text-slate-500">Carregando entregas...</div>
-          <div class="overflow-x-auto rounded-lg border border-slate-200">
-            <table class="w-full min-w-[480px] text-left text-sm">
-              <thead class="border-b border-slate-200 text-slate-500"><tr>
-                <th scope="col" class="p-3">EPI</th><th scope="col" class="p-3">Data de entrega</th><th scope="col" class="p-3">Validade</th>
-              </tr></thead>
-              <tbody class="divide-y divide-slate-200">
-                <tr *ngFor="let item of epiEntregas">
-                  <td class="p-3">{{ item.epiNome }} <span class="text-xs text-slate-400">{{ item.numeroCa || '' }}</span></td>
-                  <td class="p-3">{{ item.dataEntrega | date:'dd/MM/yyyy' }}</td>
-                  <td class="p-3">{{ item.dataValidade ? (item.dataValidade | date:'dd/MM/yyyy') : 'Não informada' }}</td>
-                </tr>
-                <tr *ngIf="!epiEntregas.length"><td colspan="3" class="p-10 text-center text-sm text-slate-500">Nenhum EPI vinculado encontrado.</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <form (ngSubmit)="registrarEntregaEpi()" class="mt-5 space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4" aria-label="Adicionar entrega de EPI">
-            <h3 class="text-sm font-semibold text-slate-950">Adicionar EPI</h3>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <label class="flex flex-col gap-2 text-sm">EPI <span class="text-red-600">*</span>
-                <select name="epiId" [(ngModel)]="epiForm.epiId" required class="h-11 rounded-lg border border-slate-300 bg-white px-3">
-                  <option [ngValue]="null">Selecionar EPI</option>
-                  <option *ngFor="let epi of epiCatalogo" [ngValue]="epi.id">{{ epi.nome }}{{ epi.numeroCa ? ' — CA ' + epi.numeroCa : '' }}</option>
+        <nav class="mb-4 flex flex-wrap gap-1 rounded-lg border border-[#e1e5eb] bg-white p-1" aria-label="Abas do funcionário">
+          <button type="button" (click)="abaSelecionada('geral')" [attr.aria-current]="aba==='geral' ? 'page' : null"
+            class="rounded-md px-4 py-2 text-[13px]" [class.bg-[#d7e7ff]]="aba==='geral'" [class.text-[#18328A]]="aba==='geral'">▤ Geral</button>
+          <button type="button" (click)="abaSelecionada('profissional')" [disabled]="!edicao" [attr.aria-current]="aba==='profissional' ? 'page' : null"
+            class="rounded-md px-4 py-2 text-[13px] disabled:opacity-40" [class.bg-[#d7e7ff]]="aba==='profissional'" [class.text-[#18328A]]="aba==='profissional'">▣ Dados Profissionais</button>
+          <button type="button" (click)="abaSelecionada('epis')" [disabled]="!edicao" [attr.aria-current]="aba==='epis' ? 'page' : null"
+            class="rounded-md px-4 py-2 text-[13px] disabled:opacity-40" [class.bg-[#d7e7ff]]="aba==='epis'" [class.text-[#18328A]]="aba==='epis'">♢ EPIs</button>
+          <button type="button" (click)="abaSelecionada('contatos')" [disabled]="!edicao" [attr.aria-current]="aba==='contatos' ? 'page' : null"
+            class="rounded-md px-4 py-2 text-[13px] disabled:opacity-40" [class.bg-[#d7e7ff]]="aba==='contatos'" [class.text-[#18328A]]="aba==='contatos'">▣ Contatos</button>
+        </nav>
+      </ng-container>
+
+      <div *ngIf="carregando" role="status" class="rounded-lg bg-white p-10 text-center text-sm text-slate-500">Carregando funcionário...</div>
+      <p *ngIf="erro" role="alert" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700">{{ erro }}</p>
+
+      <form *ngIf="!carregando && (aba === 'geral' || drawerMode)" id="form-funcionario" (ngSubmit)="salvar()" class="space-y-4">
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white" aria-labelledby="dados-gerais">
+          <header class="flex items-center gap-3 border-b border-[#e1e5eb] px-4 py-3">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#dae9ff] text-[#18328A]">▤</span>
+            <div><h2 id="dados-gerais" class="text-[14px] font-semibold text-slate-950">Dados gerais</h2>
+              <p class="text-[12px] text-[#8a96a6]">Informações básicas do colaborador, como identificação e dados pessoais.</p></div>
+          </header>
+          <div class="space-y-4 p-4">
+            <div class="flex justify-center">
+              <label class="flex h-[145px] w-[145px] cursor-pointer flex-col items-center justify-center rounded-lg border border-[#d8dee8] bg-[#f1f3f5] text-center text-[#8b98a7] hover:bg-[#e8ecf2]">
+                <span class="text-2xl">▧</span>
+                <span class="mt-2 text-[12px]">Foto de perfil</span>
+                <span class="mt-1 text-[10px]">PNG, JPG</span>
+                <input type="file" accept="image/png,image/jpeg" (change)="selecionarFoto($event)" class="sr-only" aria-label="Escolher foto de perfil" />
+              </label>
+            </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <label class="flex min-w-0 flex-col gap-2 text-[13px] font-medium">CPF <span class="text-red-500">*</span>
+                <input name="cpf" [ngModel]="formulario.cpf" (ngModelChange)="formulario.cpf=$event; formatarCpf()" required maxlength="14" inputmode="numeric"
+                  placeholder="000.000.000-00" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal outline-none focus:border-[#18328A]" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-2 text-[13px] font-medium sm:col-span-2">Nome completo <span class="text-red-500">*</span>
+                <input name="nomeCompleto" [(ngModel)]="formulario.nomeCompleto" required maxlength="255" placeholder="Nome e sobrenome"
+                  class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal outline-none focus:border-[#18328A]" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-2 text-[13px] font-medium">RG
+                <input name="rg" [(ngModel)]="formulario.rg" maxlength="20" placeholder="Somente números" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-2 text-[13px] font-medium">Data de nascimento
+                <input name="dataNascimento" [(ngModel)]="formulario.dataNascimento" type="date" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-2 text-[13px] font-medium">Gênero
+                <select name="sexo" [(ngModel)]="formulario.sexo" class="h-11 rounded-lg border border-[#cbd3df] bg-white px-3 text-[13px] font-normal">
+                  <option [ngValue]="undefined">Selecione</option><option value="F">Feminino</option><option value="M">Masculino</option><option value="O">Outro</option>
                 </select>
               </label>
-              <div class="hidden sm:block"></div>
-              <label class="flex flex-col gap-2 text-sm">Data da entrega <span class="text-red-600">*</span>
-                <input type="date" name="dataEntregaEpi" [(ngModel)]="epiForm.dataEntrega" required class="h-11 rounded-lg border border-slate-300 bg-white px-3" />
-              </label>
-              <label class="flex flex-col gap-2 text-sm">Data de validade
-                <input type="date" name="dataValidadeEpi" [(ngModel)]="epiForm.dataValidade" class="h-11 rounded-lg border border-slate-300 bg-white px-3" />
-              </label>
-              <label class="flex flex-col gap-2 text-sm sm:col-span-2">Observação
-                <textarea name="observacaoEpi" [(ngModel)]="epiForm.observacao" rows="2" maxlength="2000" class="rounded-lg border border-slate-300 bg-white p-3"></textarea>
+              <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-3">Observações
+                <textarea name="observacoes" [(ngModel)]="formulario.observacoes" rows="3" placeholder="Informações adicionais relevantes..."
+                  class="rounded-lg border border-[#cbd3df] p-3 text-[13px] font-normal"></textarea>
               </label>
             </div>
-            <p *ngIf="epiErro" role="alert" class="text-sm text-red-700">{{ epiErro }}</p>
-            <button type="submit" [disabled]="epiSalvando || !epiForm.epiId || !epiForm.dataEntrega"
-              class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-40">
-              {{ epiSalvando ? 'Registrando...' : 'Registrar entrega de EPI' }}
-            </button>
-          </form>
-        </ng-container>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white" aria-labelledby="endereco-titulo">
+          <header class="flex items-center gap-3 border-b border-[#e1e5eb] px-4 py-3">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#dae9ff] text-[#18328A]">♧</span>
+            <div><h2 id="endereco-titulo" class="text-[14px] font-semibold">Endereço</h2>
+              <p class="text-[12px] text-[#8a96a6]">Informações do endereço do colaborador, como logradouro e dados residenciais.</p></div>
+          </header>
+          <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
+            <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-3">CEP
+              <input name="cep" [ngModel]="formulario.cep" (ngModelChange)="formulario.cep=$event;formatarCep()" placeholder="Informe o CEP" maxlength="9" inputmode="numeric"
+                class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+            </label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-3">Logradouro
+              <input name="logradouro" [(ngModel)]="formulario.logradouro" placeholder="Nome da rua, avenida ou estrada" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+            </label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Número
+              <input name="numero" [(ngModel)]="formulario.numero" placeholder="Número do imóvel" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+            </label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-2">Bairro
+              <input name="bairro" [(ngModel)]="formulario.bairro" placeholder="Nome do bairro" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+            </label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-3">Estado
+              <select name="estado" [(ngModel)]="formulario.estado" class="h-11 rounded-lg border border-[#cbd3df] bg-white px-3 text-[13px] font-normal">
+                <option [ngValue]="undefined">Selecione o estado</option>
+                <option *ngFor="let uf of ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']" [value]="uf">{{ uf }}</option>
+              </select>
+            </label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-3">Cidade
+              <input name="cidade" [(ngModel)]="formulario.cidade" placeholder="Informe a cidade" class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+            </label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium sm:col-span-3">Complemento
+              <input name="complemento" [(ngModel)]="formulario.complemento" placeholder="Apartamento, bloco, sala, etc." class="h-11 rounded-lg border border-[#cbd3df] px-3 text-[13px] font-normal" />
+            </label>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white" aria-labelledby="empresas-titulo">
+          <header class="flex items-center justify-between border-b border-[#e1e5eb] px-4 py-3">
+            <div class="flex items-center gap-3"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#dae9ff] text-[#18328A]">▥</span>
+              <div><h2 id="empresas-titulo" class="text-[14px] font-semibold">Empresas vinculadas</h2>
+                <p class="text-[12px] text-[#8a96a6]">Empresas às quais este colaborador pertence</p></div></div>
+            <span class="rounded bg-cyan-100 px-2 py-1 text-[11px] text-cyan-700">1 selecionada</span>
+          </header>
+          <div class="min-h-[165px] p-4">
+            <div class="rounded-lg border border-[#18328A] bg-[#d8e7ff] px-4 py-3 text-[13px]">
+              <span class="font-semibold text-[#18328A]">☑ Empresa da sessão</span><p class="mt-1 text-[11px] text-slate-600">Identificador {{ empresaId }} · vínculo protegido por empresa</p>
+            </div>
+          </div>
+        </section>
+        <footer *ngIf="!drawerMode" class="flex justify-end gap-3 bg-transparent pb-4 pt-3">
+          <button type="button" (click)="encerrar(false)" class="rounded-lg border border-[#cbd3df] bg-white px-5 py-2.5 text-[13px]">Cancelar</button>
+          <button type="submit" [disabled]="salvando || !formularioValido" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-semibold text-[#102000] disabled:opacity-40">
+            {{ salvando ? 'Salvando...' : (edicao ? 'Salvar alterações' : 'Cadastrar funcionário') }}
+          </button>
+        </footer>
+      </form>
+
+      <form *ngIf="!drawerMode && aba === 'profissional' && edicao" (ngSubmit)="salvar()" class="space-y-3 pb-4">
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="border-b border-[#e1e5eb] px-4 py-3 text-[14px] font-semibold">Perfil do colaborador</header>
+          <div class="grid gap-2 p-3 sm:grid-cols-2">
+            <label class="flex cursor-pointer items-center justify-center rounded-md bg-[#eef0f3] px-3 py-2 text-[12px]" [class.bg-[#18328A]]="formulario.perfilProfissional === 'ORCAMENTISTA_VENDEDOR'" [class.text-white]="formulario.perfilProfissional === 'ORCAMENTISTA_VENDEDOR'">
+              <input type="radio" name="perfilProfissional" value="ORCAMENTISTA_VENDEDOR" [(ngModel)]="formulario.perfilProfissional" class="sr-only" /> Orçamentista / Vendedor
+            </label>
+            <label class="flex cursor-pointer items-center justify-center rounded-md bg-[#eef0f3] px-3 py-2 text-[12px]" [class.bg-[#18328A]]="formulario.perfilProfissional === 'OUTRAS_FUNCOES'" [class.text-white]="formulario.perfilProfissional === 'OUTRAS_FUNCOES'">
+              <input type="radio" name="perfilProfissional" value="OUTRAS_FUNCOES" [(ngModel)]="formulario.perfilProfissional" class="sr-only" /> Outras funções
+            </label>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="border-b border-[#e1e5eb] px-4 py-3 text-[14px] font-semibold">▣ Identificação profissional</header>
+          <div class="grid grid-cols-1 gap-3 p-4 md:grid-cols-3">
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Registro profissional
+              <input name="registroProfissional" [(ngModel)]="formulario.registroProfissional" placeholder="Informe o número do registro" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Tipo de profissional
+              <input name="tipoProfissional" [(ngModel)]="formulario.tipoProfissional" placeholder="Selecione o tipo" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Área de atuação
+              <input name="areaAtuacao" [(ngModel)]="formulario.areaAtuacao" placeholder="Selecione a área" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Função / cargo
+              <select name="cargoId" [(ngModel)]="formulario.cargoId" class="h-10 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal">
+                <option [ngValue]="undefined">Selecione uma função</option>
+                <option *ngFor="let cargo of cargos" [ngValue]="cargo.id">{{ cargo.nome }}</option>
+              </select></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Nível acadêmico
+              <select name="escolaridade" [(ngModel)]="formulario.escolaridade" class="h-10 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal">
+                <option [ngValue]="undefined">Selecione o nível</option>
+                <option value="FUNDAMENTAL">Fundamental</option><option value="MEDIO">Médio</option><option value="SUPERIOR">Superior</option><option value="POS_GRADUACAO">Pós-graduação</option>
+              </select></label>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="border-b border-[#e1e5eb] px-4 py-3 text-[14px] font-semibold">▣ Vínculo empregatício <p class="text-[11px] font-normal text-slate-500">Dados do contrato de trabalho</p></header>
+          <div class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3">
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Data de admissão
+              <input name="admissao" type="date" [(ngModel)]="formulario.dataAdmissao" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Carteira de trabalho
+              <input name="carteiraTrabalho" [(ngModel)]="formulario.carteiraTrabalho" placeholder="Nº da carteira" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">PIS
+              <input name="pisPasep" [(ngModel)]="formulario.pisPasep" placeholder="Nº do PIS" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="border-b border-[#e1e5eb] px-4 py-3 text-[14px] font-semibold">R$ Remuneração</header>
+          <div class="space-y-3 p-4">
+            <label class="flex max-w-[620px] flex-col gap-2 text-[13px] font-medium">Salário base
+              <input name="salarioBase" type="number" min="0" step="0.01" [(ngModel)]="formulario.salarioBase" placeholder="R$ 0,00" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <div class="rounded-lg border border-dashed border-sky-300 bg-[#e7f4ff] p-3">
+              <p class="mb-2 text-[11px] text-[#1d7fc9]">Comissões</p>
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label class="flex flex-col gap-2 text-[13px] font-medium">Comissão sobre peças
+                  <input name="comissaoPecas" [(ngModel)]="formulario.comissaoPecas" type="number" min="0" max="100" step="0.01" placeholder="% 0,00" class="h-10 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal" /></label>
+                <label class="flex flex-col gap-2 text-[13px] font-medium">Comissão sobre serviços
+                  <input name="comissaoServicos" [(ngModel)]="formulario.comissaoServicos" type="number" min="0" max="100" step="0.01" placeholder="% 0,00" class="h-10 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal" /></label>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="border-b border-[#e1e5eb] px-4 py-3 text-[14px] font-semibold">▣ Deslocamento <p class="text-[11px] font-normal text-slate-500">Vale-transporte e linhas utilizadas</p></header>
+          <div class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Linhas de transporte
+              <input name="linhasTransporte" [(ngModel)]="formulario.linhasTransporte" placeholder="Informe as linhas de transporte" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Valor da passagem
+              <input name="valeTransporte" type="number" min="0" step="0.01" [(ngModel)]="formulario.valeTransporte" placeholder="R$ 0,00" class="h-10 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          </div>
+        </section>
+        <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="border-b border-[#e1e5eb] px-4 py-3 text-[14px] font-semibold">Informações adicionais</header>
+          <label class="flex flex-col gap-2 p-4 text-[13px] font-medium">Observações
+            <textarea name="observacoesProf" [(ngModel)]="formulario.observacoes" rows="3" placeholder="Informe uma observação (opcional)" class="rounded-lg border border-[#cbd3df] p-3 font-normal"></textarea></label>
+        </section>
+        <footer class="flex justify-end gap-3 pt-3">
+          <button type="button" (click)="encerrar(false)" class="rounded-lg border border-[#cbd3df] bg-white px-4 py-2.5 text-[13px]">Cancelar</button>
+          <button type="submit" [disabled]="salvando" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-40">{{ salvando ? 'Salvando...' : 'Salvar alterações' }}</button>
+        </footer>
+      </form>
+
+      <section *ngIf="!drawerMode && aba === 'epis' && edicao" class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+        <header class="flex flex-wrap items-center justify-between gap-3 border-b border-[#e1e5eb] p-4">
+          <div><h2 class="text-[14px] font-semibold">Equipamentos de Proteção Individual</h2><p class="text-[12px] text-[#8a96a6]">Gerencie os EPIs deste colaborador</p></div>
+          <button type="button" (click)="abrirEpi()" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-medium">＋ Adicionar EPI</button>
+        </header>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[550px] text-left text-[13px]">
+            <thead class="border-b border-[#e1e5eb] text-[#8a96a6]"><tr>
+              <th scope="col" class="px-4 py-4 font-medium">EPI</th><th scope="col" class="px-4 py-4 font-medium">Data de entrega</th><th scope="col" class="px-4 py-4 font-medium">Validade</th></tr></thead>
+            <tbody><tr *ngFor="let item of entregas" class="border-b border-[#e1e5eb]">
+              <td class="px-4 py-4">{{ item.epiNome }}</td><td class="px-4 py-4">{{ item.dataEntrega | date:'dd/MM/yyyy' }}</td>
+              <td class="px-4 py-4">{{ item.dataValidade ? (item.dataValidade | date:'dd/MM/yyyy') : 'Não informada' }}</td></tr></tbody>
+          </table>
+        </div>
+        <p *ngIf="carregandoEpi" role="status" class="p-10 text-center text-sm text-slate-500">Carregando EPIs...</p>
+        <div *ngIf="!carregandoEpi && !entregas.length" class="m-4 rounded-lg border border-[#e1e5eb] bg-[#f4f5f7] p-10 text-center text-[13px] text-[#8a96a6]">
+          ◇<p class="mt-2">Nenhum EPI vinculado encontrado</p>
+        </div>
+        <p *ngIf="erroEpi" role="alert" class="p-4 text-[13px] text-red-700">{{ erroEpi }}</p>
       </section>
-    </ng-container>
+
+      <section *ngIf="!drawerMode && aba === 'contatos' && edicao" class="space-y-4">
+        <div class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white">
+          <header class="flex flex-wrap items-center justify-between gap-3 border-b border-[#e1e5eb] p-4">
+            <h2 class="text-[14px] font-medium text-[#8a96a6]">Listagem de contatos</h2>
+            <button type="button" (click)="abrirContato()" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-medium">＋ Novo contato</button>
+          </header>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[680px] text-left text-[13px]">
+              <thead class="border-b border-[#e1e5eb] text-[#8a96a6]"><tr>
+                <th scope="col" class="p-4 font-medium">Nome</th><th scope="col" class="p-4 font-medium">E-mail</th><th scope="col" class="p-4 font-medium">WhatsApp</th>
+                <th scope="col" class="p-4 font-medium">Celular</th><th scope="col" class="p-4 font-medium">Telefone</th><th scope="col" class="p-4 font-medium">Ações</th></tr></thead>
+              <tbody><tr *ngFor="let item of contatos" class="border-b border-[#e1e5eb]">
+                <td class="p-4">{{ item.nome }} <span *ngIf="item.principal" class="text-[11px] text-[#18328A]">Principal</span></td>
+                <td class="p-4">{{ valorMeio(item,'EMAIL') }}</td><td class="p-4">{{ valorMeio(item,'WHATSAPP') }}</td>
+                <td class="p-4">{{ valorMeio(item,'CELULAR') }}</td><td class="p-4">{{ valorMeio(item,'TELEFONE') }}</td>
+                <td class="p-4"><button type="button" (click)="abrirContato(item)" class="mr-3 text-[#18328A]">Editar</button>
+                <button type="button" (click)="excluirContato(item)" class="text-red-600">Excluir</button></td></tr></tbody>
+            </table>
+          </div>
+          <p *ngIf="carregandoContato" role="status" class="p-10 text-center text-slate-500">Carregando contatos...</p>
+          <p *ngIf="!carregandoContato && contatos.length===0" class="m-4 rounded-lg bg-[#f4f5f7] p-10 text-center text-[13px] text-[#8a96a6]">☏<span class="mt-2 block">Funcionário não tem nenhum contato cadastrado</span></p>
+          <p *ngIf="erroContato" role="alert" class="p-4 text-[13px] text-red-700">{{ erroContato }}</p>
+        </div>
+        <div class="rounded-lg border border-[#e1e5eb] bg-white p-4"><button type="button" (click)="encerrar(false)" class="rounded-lg border border-[#cbd3df] px-5 py-2.5 text-[13px]">Cancelar</button></div>
+      </section>
+    </div>
+  </div>
+  <footer *ngIf="drawerMode" class="flex shrink-0 justify-end gap-3 border-t border-[#e1e5eb] bg-white px-5 py-3">
+    <button type="button" (click)="encerrar(false)" class="rounded-lg border border-[#cbd3df] px-5 py-2.5 text-[13px]">Cancelar</button>
+    <button type="submit" form="form-funcionario" [disabled]="salvando || !formularioValido"
+      class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-40">{{ salvando ? 'Salvando...' : edicao ? 'Salvar alterações' : 'Cadastrar funcionário' }}</button>
+  </footer>
+
+  <div *ngIf="epiAberto" class="fixed inset-0 z-[100]">
+    <button type="button" (click)="epiAberto=false" aria-label="Fechar cadastro de EPIs" class="absolute inset-0 h-full w-full bg-black/30"></button>
+    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="epi-drawer-title"
+      class="absolute inset-y-0 right-0 flex w-full max-w-[680px] flex-col bg-white shadow-2xl">
+      <header class="flex items-center justify-between border-b border-[#e1e5eb] p-4"><h2 id="epi-drawer-title" class="text-[17px] font-semibold">Adicionar EPIs</h2><button type="button" (click)="epiAberto=false" aria-label="Fechar">✕</button></header>
+      <div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+        <div class="rounded-lg border border-[#e1e5eb] p-4">
+          <h3 class="text-[13px] font-semibold">Empresa</h3><p class="text-[12px] text-slate-500">Empresa vinculada ao funcionário</p>
+          <p class="mt-2 rounded-md border border-[#cbd3df] p-3 text-[13px]">Empresa da sessão ({{ empresaId }})</p>
+        </div>
+        <div *ngFor="let item of epiItens; let i=index" class="space-y-3 rounded-lg border border-[#e1e5eb] p-4">
+          <div class="flex items-center justify-between"><h3 class="text-[13px] font-semibold">EPI {{ i + 1 }}</h3><button type="button" *ngIf="epiItens.length>1" (click)="removerEpi(i)" aria-label="Remover item" class="text-red-600">✕</button></div>
+          <label class="flex flex-col gap-2 text-[13px] font-medium">EPI <span class="text-red-500">*</span>
+            <select [(ngModel)]="item.epiId" class="h-11 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal">
+              <option [ngValue]="null">Selecionar EPI</option><option *ngFor="let epi of epis" [ngValue]="epi.id">{{ epi.nome }}</option>
+            </select></label>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Data de entrega
+              <input type="date" [(ngModel)]="item.dataEntrega" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Data de validade
+              <input type="date" [(ngModel)]="item.dataValidade" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          </div>
+        </div>
+        <button type="button" (click)="adicionarOutroEpi()" class="w-full rounded-lg bg-[#d8e7ff] py-3 text-[13px] font-semibold text-[#18328A]">＋ Adicionar outro EPI</button>
+        <p *ngIf="erroEpi" role="alert" class="text-[13px] text-red-700">{{ erroEpi }}</p>
+      </div>
+      <footer class="flex justify-end gap-3 border-t border-[#e1e5eb] p-4">
+        <button type="button" (click)="epiAberto=false" [disabled]="salvandoEpi" class="rounded-lg border border-[#cbd3df] px-5 py-2.5 text-[13px]">Cancelar</button>
+        <button type="button" (click)="registrarEpis()" [disabled]="salvandoEpi" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-40">{{ salvandoEpi ? 'Gravando...' : 'Cadastrar EPI' }}</button>
+      </footer>
+    </section>
   </div>
 
-  <footer *ngIf="drawerMode" class="z-20 flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-5 py-3 shadow-sm">
-    <button type="button" (click)="cancelar()" [disabled]="loading"
-      class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 disabled:opacity-50">Cancelar</button>
-    <button type="button" (click)="salvar()" [disabled]="loading"
-      class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-900 disabled:opacity-50">
-      {{ loading ? 'Salvando...' : (isEditMode ? 'Salvar alterações' : 'Cadastrar funcionário') }}
-    </button>
-  </footer>
+  <div *ngIf="contatoAberto" class="fixed inset-0 z-[100]">
+    <button type="button" (click)="contatoAberto=false" aria-label="Fechar cadastro do contato" class="absolute inset-0 h-full w-full bg-black/30"></button>
+    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="contato-drawer-titulo"
+      class="absolute inset-y-0 right-0 flex w-full max-w-[680px] flex-col bg-white shadow-2xl">
+      <header class="flex items-center justify-between border-b border-[#e1e5eb] p-4"><h2 id="contato-drawer-titulo" class="text-[17px] font-semibold">{{ contatoId ? 'Edição do contato' : 'Criação do contato' }}</h2><button type="button" (click)="contatoAberto=false" aria-label="Fechar">✕</button></header>
+      <form id="form-contato" (ngSubmit)="salvarContato()" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+        <div class="space-y-4 rounded-lg border border-[#e1e5eb] p-4">
+          <h3 class="text-[13px] font-medium text-slate-500">Dados do contato</h3>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Nome <span class="text-red-500">*</span>
+              <input name="nome" required [(ngModel)]="contato.nome" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Sexo
+              <select name="sexo" [(ngModel)]="contato.sexo" class="h-11 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal">
+                <option value="">Não informado</option><option value="M">Masculino</option><option value="F">Feminino</option><option value="O">Outro</option></select></label>
+            <label class="flex flex-col gap-2 text-[13px] font-medium">Data de nascimento
+              <input name="dataNascimento" type="date" [(ngModel)]="contato.dataNascimento" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          </div>
+          <label class="flex items-center gap-2 text-[13px]"><input type="checkbox" name="principal" [(ngModel)]="contato.principal" /> Grupo de contato principal?</label>
+        </div>
+        <h3 class="text-[13px] font-medium text-slate-500">Contatos</h3>
+        <div *ngFor="let meio of contato.meios;let i=index" class="flex flex-wrap gap-2">
+          <select [name]="'tipoContato'+i" [(ngModel)]="meio.tipo" class="h-11 rounded-lg border border-[#cbd3df] bg-white px-2 text-[13px]">
+            <option value="EMAIL">E-mail</option><option value="WHATSAPP">WhatsApp</option><option value="CELULAR">Celular</option><option value="TELEFONE">Telefone</option>
+          </select>
+          <input [name]="'valorContato'+i" [(ngModel)]="meio.valor" class="h-11 min-w-0 flex-1 rounded-lg border border-[#cbd3df] px-3 text-[13px]" placeholder="Informe o contato" />
+          <button type="button" (click)="excluirMeio(i)" class="px-2 text-red-600" aria-label="Remover meio de contato">✕</button>
+        </div>
+        <button type="button" (click)="novoMeio()" class="w-full rounded-lg border border-[#cbd3df] bg-white p-3 text-[13px] font-medium">＋ Adicionar contato</button>
+        <p *ngIf="erroContato" role="alert" class="text-[13px] text-red-700">{{ erroContato }}</p>
+      </form>
+      <footer class="flex justify-end gap-3 border-t border-[#e1e5eb] p-4">
+        <button type="button" (click)="contatoAberto=false" class="rounded-lg border border-[#cbd3df] px-5 py-2.5 text-[13px]">Cancelar</button>
+        <button type="submit" form="form-contato" [disabled]="salvandoContato||contato.nome.trim().length<2" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-40">{{ salvandoContato ? 'Salvando...' : 'Cadastrar contato' }}</button>
+      </footer>
+    </section>
+  </div>
+
+  <div *ngIf="usuarioAberto" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+    <button type="button" (click)="usuarioAberto=false" class="absolute inset-0 bg-black/70" aria-label="Fechar usuário"></button>
+    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="usuario-modal-titulo"
+      class="relative flex max-h-[92vh] w-full max-w-[600px] flex-col rounded-xl bg-white shadow-2xl">
+      <header class="flex items-center justify-between p-5">
+        <div><h2 id="usuario-modal-titulo" class="text-[18px] font-semibold">Cadastrar um usuário</h2>
+          <p class="text-[13px] text-slate-600">Preencha as informações para salvar os dados do usuário</p></div>
+        <button type="button" (click)="usuarioAberto=false" aria-label="Fechar" class="p-2">✕</button>
+      </header>
+      <form id="form-usuario" (ngSubmit)="salvarUsuario()" class="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-3">
+        <fieldset class="space-y-3 rounded-lg border border-[#e1e5eb] p-4">
+          <legend class="px-2 text-[13px] font-medium text-slate-500">Dados de acesso</legend>
+          <label class="flex flex-col gap-2 text-[13px] font-semibold">Login <span class="text-red-500">*</span>
+            <input name="login" [(ngModel)]="usuarioFormulario.login" placeholder="Login de acesso" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          <label class="flex flex-col gap-2 text-[13px] font-semibold">E-mail <span class="text-red-500">*</span>
+            <input name="email" type="email" [(ngModel)]="usuarioFormulario.email" placeholder="E-mail de recuperação" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          <label class="flex flex-col gap-2 text-[13px] font-semibold">Senha <span class="text-red-500">*</span>
+            <input name="senha" [type]="mostrarSenha ? 'text' : 'password'" [(ngModel)]="usuarioFormulario.senha" autocomplete="new-password" placeholder="Sua senha forte" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          <label class="flex flex-col gap-2 text-[13px] font-semibold">Confirmação de senha <span class="text-red-500">*</span>
+            <input name="confirmarSenha" [type]="mostrarSenha ? 'text' : 'password'" [(ngModel)]="usuarioFormulario.confirmar" autocomplete="new-password" placeholder="Confirme sua senha" class="h-11 rounded-lg border border-[#cbd3df] px-3 font-normal" /></label>
+          <label class="flex items-center gap-2 text-[12px]"><input type="checkbox" [(ngModel)]="mostrarSenha" name="mostrarSenha" /> Mostrar senhas</label>
+        </fieldset>
+        <fieldset class="space-y-3 rounded-lg border border-[#e1e5eb] p-4">
+          <legend class="px-2 text-[13px] font-medium text-slate-500">Dados de perfil</legend>
+          <label class="flex flex-col gap-2 text-[13px] font-semibold">Grupo de usuário <span class="text-red-500">*</span>
+            <select name="grupoId" [(ngModel)]="usuarioFormulario.grupoId" class="h-11 rounded-lg border border-[#cbd3df] bg-white px-3 font-normal">
+              <option [ngValue]="null">Selecionar grupo de usuário</option><option *ngFor="let f of funcoes" [ngValue]="f.id">{{ f.nome }}</option>
+            </select></label>
+          <label class="flex flex-col gap-2 text-[13px] font-semibold">Funcionário <span class="text-red-500">*</span>
+            <input disabled [value]="formulario.nomeCompleto" class="h-11 rounded-lg border border-[#cbd3df] bg-[#f3f5f7] px-3 font-normal text-slate-500" />
+            <span class="text-[11px] font-normal text-slate-500">Funcionário definido pela tela de origem</span></label>
+        </fieldset>
+        <p *ngIf="usuarioErro" role="alert" class="text-[13px] text-red-700">{{ usuarioErro }}</p>
+      </form>
+      <footer class="flex justify-end gap-3 p-5">
+        <button type="button" (click)="usuarioAberto=false" class="rounded-lg border border-[#cbd3df] px-5 py-2.5 text-[13px]">Cancelar</button>
+        <button type="submit" form="form-usuario" [disabled]="usuarioSalvando" class="rounded-lg bg-[#84ef48] px-5 py-2.5 text-[13px] font-semibold disabled:opacity-40">{{ usuarioSalvando ? 'Salvando...' : 'Salvar' }}</button>
+      </footer>
+    </section>
+  </div>
 </div>
