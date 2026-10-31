@@ -7,6 +7,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { FuncionarioService, FuncionarioResponse } from './funcionario.service';
+import { LocalStorageService } from '@shared/services/storage.service';
+import { empresaIdAtual } from '@shared/utils/empresa-context';
 
 @Component({
   selector: 'colaboradores',
@@ -22,6 +24,51 @@ export class Colaboradores implements OnInit {
   private readonly router    = inject(Router);
   private readonly toast     = inject(HotToastService);
   private readonly service   = inject(FuncionarioService);
+  private readonly storage = inject(LocalStorageService);
+
+  // Preferências visuais locais por empresa; o campo de identificação é fixo.
+  columnPanelOpen = false;
+  readonly columnOptions = [
+    { key: 'matricula', label: 'Nº Registro' },
+    { key: 'cargo', label: 'Função' },
+    { key: 'status', label: 'Situação' },
+  ];
+  visibleColumns: Record<string, boolean> = { matricula: true, cargo: true, status: true };
+  private get columnsStorageKey(): string {
+    return 'neritech.funcionarios.colunas.' + String(empresaIdAtual(this.storage) ?? 'sem-empresa');
+  }
+
+  private restoreColumns(): void {
+    try {
+      const saved = JSON.parse(localStorage.getItem(this.columnsStorageKey) || '{}');
+      for (const option of this.columnOptions) {
+        if (typeof saved[option.key] === 'boolean') this.visibleColumns[option.key] = saved[option.key];
+      }
+    } catch { this.visibleColumns = { matricula: true, cargo: true, status: true }; }
+  }
+
+  toggleColumn(key: string, visible: boolean): void {
+    if (!this.columnOptions.some(option => option.key === key)) return;
+    this.visibleColumns = { ...this.visibleColumns, [key]: visible };
+  }
+
+  saveColumns(): void {
+    try {
+      localStorage.setItem(this.columnsStorageKey, JSON.stringify(this.visibleColumns));
+      this.columnPanelOpen = false;
+      this.toast.success('Colunas atualizadas');
+    } catch {
+      this.toast.error('Não foi possível salvar as preferências de colunas.');
+    }
+  }
+
+  restoreDefaultColumns(): void {
+    this.visibleColumns = { matricula: true, cargo: true, status: true };
+  }
+
+  get visibleColumnCount(): number {
+    return 2 + this.columnOptions.filter(option => this.visibleColumns[option.key]).length;
+  }
 
   searchTerm   = '';
   statusFilter = '';
@@ -33,7 +80,7 @@ export class Colaboradores implements OnInit {
   loading = false;
   loadError = '';
 
-  ngOnInit() { this.loadData(); }
+  ngOnInit() { this.restoreColumns(); this.loadData(); }
 
   loadData() {
     this.loading = true;
