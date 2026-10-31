@@ -73,6 +73,7 @@ public record FuncionarioResponse(
         LocalDateTime dataCadastro,
         LocalDateTime dataAtualizacao,
         Integer versao,
+        String perfilProfissional,
         String registroProfissional,
         String tipoProfissional,
         String areaAtuacao,
