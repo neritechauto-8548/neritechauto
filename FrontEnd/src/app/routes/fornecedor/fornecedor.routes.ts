@@ -1,13 +1,18 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '@core';
 
 export const routes: Routes = [
   {
       path: 'lista',
-      loadComponent: () => import('./fornecedor/fornecedor').then(m => m.Fornecedor)
+      canActivate: [permissionGuard],
+      data: { title: 'Fornecedores', requiredPermissions: ['PS_LISTAR_FORN','FORNECEDOR_VISUALIZAR','GERAL_CONFIG_SISTEMA'], permissionMode: 'any' },
+      loadComponent: () => import('./fornecedor-referencia/fornecedor-referencia').then(m => m.FornecedorReferenciaComponent)
   },
   {
       path: 'novo',
-      loadComponent: () => import('./cadastro-fornecedor/cadastro-fornecedor').then(m => m.CadastroFornecedor)
+      canActivate: [permissionGuard],
+      data: { title: 'Fornecedores', requiredPermissions: ['PS_INC_FORN','FORNECEDOR_CRIAR','GERAL_CONFIG_SISTEMA'], permissionMode: 'any' },
+      loadComponent: () => import('./fornecedor-referencia/fornecedor-referencia').then(m => m.FornecedorReferenciaComponent)
   },
   {
       path: 'editar/:id',
