@@ -59,13 +59,14 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
             VALUES (?, 'JURIDICA', 'Fornecedor Compartilhado', '11444777000161', true, false, false, now())
             RETURNING id
             """, Long.class, empresa);
+        // O drawer não expõe fornecedorId: mesmo documento deve reutilizar cadastro fiscal.
         mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON).content(request("11444777000161", null, true)))
-                .andExpect(status().isConflict());
-        mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON).content(request("11444777000161", supplierId, true)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.fornecedorId").value(supplierId));
+        mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(request("11444777000161", supplierId, true)))
+                .andExpect(status().isConflict());
         assertThat(jdbc.queryForObject("""
             SELECT COUNT(*) FROM fornecedores WHERE empresa_id=? AND cnpj = '11444777000161'
             """, Long.class, empresa)).isEqualTo(1L);
@@ -161,6 +162,32 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.totalElements").isNumber());
     }
 
+    @Test void enderecoEstruturadoRetornaNaApiEExigeCamposObrigatorios() throws Exception {
+        long empresa = empresa("E");
+        String token = login(empresa, "carrierEndereco" + empresa + "@t.invalid", "ADMIN");
+        mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(request("11222333000181", null, true)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.cep").value("54510000"))
+                .andExpect(jsonPath("$.data.inscricaoEstadual").value("ISENTO"))
+                .andExpect(jsonPath("$.data.logradouro").value("Rua A"))
+                .andExpect(jsonPath("$.data.numero").value("100"))
+                .andExpect(jsonPath("$.data.bairro").value("Centro"));
+        assertThat(jdbc.queryForObject("""
+                SELECT logradouro FROM fornecedores
+                WHERE empresa_id=? AND transportadora=true
+                """, String.class, empresa)).isEqualTo("Rua A");
+
+        var invalido = new LinkedHashMap<String, Object>();
+        invalido.put("tipoPessoa", "JURIDICA");
+        invalido.put("nomeFantasia", "Transportadora sem endereço");
+        invalido.put("cnpj", "11444777000161");
+        invalido.put("modalidade", "RODOVIARIO");
+        mvc.perform(post("/v1/transportadoras").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(invalido)))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
     @Test void conflitoDeVersaoPerfilEIsolamentoDeListagem() throws Exception {
         long a = empresa("A"), b = empresa("B");
         String token = login(a, "carrierC" + a + "@t.invalid", "ADMIN");
@@ -196,6 +223,12 @@ class TransportadoraTenantIntegrationTest extends AbstractIntegrationTest {
         data.put("telefone", "81999999999");
         data.put("email", "contato@teste.com");
         data.put("endereco", "Rua A");
+        data.put("inscricaoEstadual", "ISENTO");
+        data.put("cep", "54510000");
+        data.put("logradouro", "Rua A");
+        data.put("numero", "100");
+        data.put("bairro", "Centro");
+        data.put("complemento", "Galpão 1");
         data.put("cidade", "Recife");
         data.put("estado", "PE");
         data.put("modalidade", "RODOVIARIO");
