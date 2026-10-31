@@ -93,13 +93,13 @@ public class ComissaoFuncionarioService {
     @Transactional(readOnly = true)
     public Page<ComissaoFuncionarioResponse> listar(Long empresaId, String nome, Long funcionarioId,
             Long ordemServicoId, Boolean paga, LocalDate inicio, LocalDate fim, Pageable pageable) {
-        return listar(empresaId, nome, funcionarioId, ordemServicoId, paga, inicio, fim, null, null, pageable);
+        return listar(empresaId, nome, funcionarioId, ordemServicoId, paga, inicio, fim, null, null, null, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<ComissaoFuncionarioResponse> listar(Long empresaId, String nome, Long funcionarioId,
             Long ordemServicoId, Boolean paga, LocalDate inicio, LocalDate fim,
-            String cliente, String placa, Pageable pageable) {
+            String cliente, String placa, String numeroOs, Pageable pageable) {
         long tenant = TenantAccess.require(empresaId);
         validarPaginacao(pageable);
         if (inicio != null && fim != null && inicio.isAfter(fim))
@@ -109,8 +109,10 @@ public class ComissaoFuncionarioService {
         String q = nome == null ? "" : nome.trim().toLowerCase().replace("!", "!!")
                 .replace("%", "!%").replace("_", "!_");
         final java.util.List<Long> osFiltradas;
-        if (cliente != null && !cliente.isBlank() || placa != null && !placa.isBlank()) {
-            if (cliente != null && cliente.length() > 150 || placa != null && placa.length() > 10)
+        if (cliente != null && !cliente.isBlank() || placa != null && !placa.isBlank()
+                || numeroOs != null && !numeroOs.isBlank()) {
+            if (cliente != null && cliente.length() > 150 || placa != null && placa.length() > 10
+                    || numeroOs != null && numeroOs.length() > 20)
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Filtro de cliente/placa muito extenso");
             var sql = new StringBuilder("""
                 select os.id from ordens_servico os
@@ -127,6 +129,10 @@ public class ComissaoFuncionarioService {
             if (placa != null && !placa.isBlank()) {
                 sql.append(" and upper(v.placa) like ? escape '!' ");
                 args.add("%" + placa.trim().toUpperCase().replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
+            }
+            if (numeroOs != null && !numeroOs.isBlank()) {
+                sql.append(" and upper(os.numero_os) like ? escape '!' ");
+                args.add("%" + numeroOs.trim().toUpperCase().replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
             }
             osFiltradas = jdbc.queryForList(sql.toString(), Long.class, args.toArray());
             if (osFiltradas.isEmpty()) return Page.empty(pageable);
