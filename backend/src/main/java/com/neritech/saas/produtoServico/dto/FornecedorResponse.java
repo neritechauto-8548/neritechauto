@@ -38,5 +38,11 @@ public record FornecedorResponse(
                 ClassificacaoFornecedor classificacao,
                 String observacoes,
                 Boolean ativo,
-                Integer versao) {
+                Integer versao,
+                String logradouro,
+                String numero,
+                String bairro,
+                String complemento,
+                Long planoContasId,
+                String linhaPecas) {
 }
