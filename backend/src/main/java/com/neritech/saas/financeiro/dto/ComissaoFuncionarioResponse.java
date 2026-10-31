@@ -32,5 +32,6 @@ public record ComissaoFuncionarioResponse(
         java.time.LocalDateTime dataAutorizacao,
         java.time.LocalDateTime dataFechamento,
         java.math.BigDecimal valorLiquido,
-        String numeroOs) {
+        String numeroOs,
+        String situacaoOs) {
 }
