@@ -9,6 +9,7 @@ public record CargoResponse(
         String nome,
         String descricao,
         String codigoCbo,
+        String tipo,
         Long areaId,
         Integer nivelHierarquico,
         Long cargoSuperiorId,
