@@ -60,10 +60,18 @@ public class TransportadoraService {
         Long tenant = TenantAccess.requireCurrent();
         String cpf = documento(request.cpf()), cnpj = documento(request.cnpj());
         validarDocumento(request.tipoPessoa(), cpf, cnpj);
+        validarEndereco(request);
         Fornecedor f;
+        // Documento fiscal único por empresa: o papel logístico reutiliza o fornecedor.
+        Long vinculoExistente = request.fornecedorId();
+        if (vinculoExistente == null) {
+            vinculoExistente = (cpf != null
+                ? fornecedores.findByEmpresaIdAndCpf(tenant, cpf)
+                : fornecedores.findByEmpresaIdAndCnpj(tenant, cnpj)).map(Fornecedor::getId).orElse(null);
+        }
         Map<String, Object> antes;
-        if (request.fornecedorId() != null) {
-            f = fornecedores.findById(request.fornecedorId()).orElseThrow(
+        if (vinculoExistente != null) {
+            f = fornecedores.findById(vinculoExistente).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fornecedor não encontrado"));
             TenantAccess.require(f.getEmpresaId());
             if (Boolean.TRUE.equals(f.getTransportadora())) {
@@ -82,7 +90,7 @@ public class TransportadoraService {
             }
             f.setTransportadora(true);
             f.setTransportadoraAtiva(request.ativo() == null || request.ativo());
-            f.setModalidadeTransporte(request.modalidade());
+            aplicar(f, request);
         } else {
             verificarDuplicidade(tenant, cpf, cnpj, null);
             f = new Fornecedor();
@@ -112,6 +120,7 @@ public class TransportadoraService {
         }
         String cpf = documento(request.cpf()), cnpj = documento(request.cnpj());
         validarDocumento(request.tipoPessoa(), cpf, cnpj);
+        validarEndereco(request);
         verificarDuplicidade(f.getEmpresaId(), cpf, cnpj, id);
         if (Boolean.TRUE.equals(request.ativo()) && !Boolean.TRUE.equals(f.getAtivo())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -267,19 +276,41 @@ public class TransportadoraService {
         }
     }
 
+    private static void validarEndereco(TransportadoraRequest r) {
+        if (r.cep() == null || !r.cep().matches("\\d{5}-?\\d{3}")
+                || r.cidade() == null || r.cidade().isBlank()
+                || r.logradouro() == null || r.logradouro().isBlank()
+                || r.numero() == null || r.numero().isBlank()
+                || r.bairro() == null || r.bairro().isBlank()
+                || r.estado() == null || !r.estado().matches("[A-Z]{2}")) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "Código postal, estado, cidade, logradouro, número e bairro são obrigatórios");
+        }
+    }
+
     private static void aplicar(Fornecedor f, TransportadoraRequest r) {
         f.setTipoPessoa(r.tipoPessoa());
         f.setNomeFantasia(r.nomeFantasia().trim());
         f.setRazaoSocial(limpar(r.razaoSocial()));
         f.setCpf(documento(r.cpf()));
         f.setCnpj(documento(r.cnpj()));
-        f.setNomeContato(limpar(r.contato()));
-        f.setTelefonePrincipal(limpar(r.telefone()));
-        f.setEmailPrincipal(limpar(r.email()));
-        f.setEnderecoCompleto(limpar(r.endereco()));
+        // Dados compartilhados usados por compras não são apagados por campos ocultos na UI.
+        if (r.contato()!=null) f.setNomeContato(limpar(r.contato()));
+        if (r.telefone()!=null) f.setTelefonePrincipal(limpar(r.telefone()));
+        if (r.email()!=null) f.setEmailPrincipal(limpar(r.email()));
+        if (r.endereco()!=null) f.setEnderecoCompleto(limpar(r.endereco()));
         f.setCep(limpar(r.cep()));
         f.setCidade(limpar(r.cidade()));
         f.setEstado(limpar(r.estado()));
+        f.setInscricaoEstadual(limpar(r.inscricaoEstadual()));
+        f.setLogradouro(limpar(r.logradouro()));
+        f.setNumero(limpar(r.numero()));
+        f.setBairro(limpar(r.bairro()));
+        f.setComplemento(limpar(r.complemento()));
+        // Endereço legível também fica disponível aos consumidores históricos de Fornecedores.
+        if (r.logradouro() != null) f.setEnderecoCompleto(String.join(", ", java.util.stream.Stream.of(
+            r.logradouro(), r.numero(), r.bairro(), r.complemento())
+            .filter(x -> x != null && !x.isBlank()).toList()));
         f.setModalidadeTransporte(r.modalidade());
         f.setObservacoes(limpar(r.observacoes()));
     }
@@ -310,7 +341,9 @@ public class TransportadoraService {
                 f.getNomeContato(), f.getTelefonePrincipal(), f.getEmailPrincipal(),
                 f.getEnderecoCompleto(), f.getCep(), f.getCidade(), f.getEstado(),
                 f.getModalidadeTransporte(), Boolean.TRUE.equals(f.getAtivo()) && Boolean.TRUE.equals(f.getTransportadoraAtiva()), f.getObservacoes(), f.getVersao(),
-                ((Number) summary.get("total")).longValue(), ultima);
+                ((Number) summary.get("total")).longValue(), ultima,
+                f.getInscricaoEstadual(), f.getLogradouro(), f.getNumero(),
+                f.getBairro(), f.getComplemento());
     }
 
     private TransportadoraPedidoResponse leituraPedido(Long pedidoId, Long tenant, Long fornecedorId) {
@@ -340,6 +373,11 @@ public class TransportadoraService {
         values.put("modalidade", f.getModalidadeTransporte());
         values.put("ativo", f.getTransportadoraAtiva());
         values.put("transportadora", f.getTransportadora());
+        values.put("inscricaoEstadual", f.getInscricaoEstadual());
+        values.put("logradouro", f.getLogradouro());
+        values.put("numero", f.getNumero());
+        values.put("bairro", f.getBairro());
+        values.put("complemento", f.getComplemento());
         values.put("observacoes", f.getObservacoes());
         return values;
     }
