@@ -15,6 +15,13 @@ public interface ComissaoFuncionarioMapper {
     @Mapping(target = "paga", ignore = true)
     ComissaoFuncionario toEntity(ComissaoFuncionarioRequest request);
 
+    @Mapping(target = "placa", ignore = true)
+    @Mapping(target = "clienteNome", ignore = true)
+    @Mapping(target = "empresaNome", ignore = true)
+    @Mapping(target = "dataAutorizacao", ignore = true)
+    @Mapping(target = "dataFechamento", ignore = true)
+    @Mapping(target = "valorLiquido", ignore = true)
+    @Mapping(target = "numeroOs", ignore = true)
     @Mapping(target = "aprovado", expression = "java(entity.getDataAprovacao() != null)")
     @Mapping(target = "pago", source = "paga")
     @Mapping(target = "valorBase", source = "baseCalculo")
