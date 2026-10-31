@@ -156,7 +156,7 @@
           <label class="com-field">Empresa
             <div class="com-company">
               <span class="monogram" aria-hidden="true">Co</span>
-              <span>{{ empresaExibicao }}</span>
+              <span>{{ empresaExibicao }}<small *ngIf="empresaCnpjExibicao" class="com-inline-help" style="display:block">{{ empresaCnpjExibicao }}</small></span>
             </div>
             <small class="com-inline-help">Empresa definida pela sessão autenticada</small>
           </label>
