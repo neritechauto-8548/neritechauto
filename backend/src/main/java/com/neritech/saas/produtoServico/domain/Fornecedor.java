@@ -102,6 +102,19 @@ public class Fornecedor extends TenantEntity {
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 
+    @Column(name = "logradouro", length = 255)
+    private String logradouro;
+    @Column(name = "numero", length = 30)
+    private String numero;
+    @Column(name = "bairro", length = 120)
+    private String bairro;
+    @Column(name = "complemento", length = 255)
+    private String complemento;
+    @Column(name = "plano_contas_id")
+    private Long planoContasId;
+    @Column(name = "linha_pecas", length = 255)
+    private String linhaPecas;
+
     @Column(name = "ativo")
     private Boolean ativo = true;
     // ADM-010: papel logístico do mesmo cadastro mestre; não cria outra pessoa fiscal.
@@ -113,6 +126,19 @@ public class Fornecedor extends TenantEntity {
 
     @Column(name = "modalidade_transporte", length = 20)
     private String modalidadeTransporte;
+
+    public String getLogradouro() { return logradouro; }
+    public void setLogradouro(String value) { this.logradouro = value; }
+    public String getNumero() { return numero; }
+    public void setNumero(String value) { this.numero = value; }
+    public String getBairro() { return bairro; }
+    public void setBairro(String value) { this.bairro = value; }
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String value) { this.complemento = value; }
+    public Long getPlanoContasId() { return planoContasId; }
+    public void setPlanoContasId(Long value) { this.planoContasId = value; }
+    public String getLinhaPecas() { return linhaPecas; }
+    public void setLinhaPecas(String value) { this.linhaPecas = value; }
 
     public TipoPessoa getTipoPessoa() {
         return tipoPessoa;
