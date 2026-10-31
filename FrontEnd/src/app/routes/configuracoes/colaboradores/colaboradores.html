@@ -1,167 +1,220 @@
-<div class="min-h-screen bg-slate-50 flex flex-col gap-6 p-6">
+<main class="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 lg:px-8 space-y-5">
+  <nav class="text-xs text-slate-500" aria-label="Navegação estrutural">
+    <span>Administração</span><span class="mx-2">›</span><span class="font-medium text-slate-700">Funcionários</span>
+  </nav>
 
-  <!-- ===== Actions Bar (Padrão DNA Cliente) ===== -->
-  <div class="flex flex-row gap-4 justify-between items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-20">
-      <!-- Search Input -->
-      <div class="relative w-full sm:max-w-md group">
-          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors !text-[18px] !w-[18px] !h-[18px] pointer-events-none">search</mat-icon>
-          <input
-              pInputText
-              [(ngModel)]="searchTerm"
-              (keyup.enter)="onSearch()"
-              placeholder="Buscar por nome ou CPF..."
-              class="w-full pl-12 pr-12 py-2.5 bg-transparent border-0 ring-0 focus:ring-0 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
-          />
-          <div class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] text-slate-400 font-medium hidden sm:block pointer-events-none">Ctrl+K</div>
-      </div>
+  <nav class="flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm" aria-label="Gestão de pessoas">
+    <span aria-current="page" class="inline-flex items-center gap-2 rounded-lg bg-blue-100 px-3 py-2 text-sm font-medium text-blue-900">
+      <mat-icon class="!text-[18px]">groups</mat-icon> Funcionários
+    </span>
+    <a routerLink="/configuracoes/cargos" class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+      <mat-icon class="!text-[18px]">work_outline</mat-icon> Cargos
+    </a>
+    <span class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 cursor-not-allowed" title="A gestão de EPIs ainda não está disponível neste módulo" aria-disabled="true">
+      <mat-icon class="!text-[18px]">shield</mat-icon> EPIs
+    </span>
+    <a routerLink="/financeiro/comissoes" class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+      <mat-icon class="!text-[18px]">percent</mat-icon> Comissões
+    </a>
+  </nav>
 
-      <!-- Header Info (Mobile Hidden) -->
-      <div class="hidden lg:flex flex-col text-right pr-4">
-        <h1 class="text-sm font-bold text-slate-900 leading-tight">Colaboradores</h1>
-        <p class="text-[11px] text-slate-500">{{ totalRecords }} funcionário(s) cadastrado(s)</p>
-      </div>
-
-      <!-- New Button -->
-      <button routerLink="/configuracoes/colaboradores/cadastro" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap">
-          <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">person_add</mat-icon>
-          <span>Novo Colaborador</span>
-      </button>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-950">Funcionários</h1>
+      <p class="mt-1 text-xs text-slate-500">{{ totalRecords }} funcionário(s) no resultado da pesquisa</p>
+    </div>
+    <a routerLink="/configuracoes/colaboradores/cadastro" class="inline-flex items-center gap-2 rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18328A]">
+      <mat-icon class="!text-[18px]">person_add</mat-icon> Novo funcionário
+    </a>
   </div>
 
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-    <h2 class="text-xl font-semibold text-slate-900">Funcionários</h2>
-    <button type="button" (click)="columnPanelOpen = true" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" aria-haspopup="dialog">
-      Colunas
+  <div class="flex flex-col sm:flex-row gap-3">
+    <div class="relative flex-1">
+      <mat-icon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 !text-[19px]">search</mat-icon>
+      <label class="sr-only" for="funcionarios-search">Pesquisar funcionários</label>
+      <input id="funcionarios-search" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Pesquisar funcionários por nome ou registro"
+        class="h-11 w-full rounded-lg border border-slate-300 bg-white pl-11 pr-24 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-700 focus:ring-2 focus:ring-blue-100" />
+      <button type="button" (click)="onSearch()" class="absolute right-2 top-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-blue-900 hover:bg-blue-50">Buscar</button>
+    </div>
+    <button type="button" (click)="openFilters()" aria-haspopup="dialog" [attr.aria-label]="activeFilterCount ? 'Filtrar, ' + activeFilterCount + ' filtros ativos' : 'Filtrar funcionários'"
+      class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-900 hover:bg-slate-50">
+      <mat-icon class="!text-[19px]">filter_list</mat-icon> Filtrar
+      <span *ngIf="activeFilterCount" class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-900">{{ activeFilterCount }}</span>
     </button>
   </div>
 
-  <div *ngIf="columnPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (keydown.escape)="columnPanelOpen = false">
-    <section role="dialog" aria-modal="true" aria-labelledby="columns-title" class="w-full max-w-lg rounded-xl border border-slate-200 bg-white shadow-xl">
-      <header class="flex items-center justify-between border-b border-slate-200 p-5">
-        <div><h3 id="columns-title" class="font-semibold text-slate-900">Colunas de funcionários</h3><p class="text-sm text-slate-500">Selecione quais colunas deseja exibir.</p></div>
-        <button type="button" (click)="columnPanelOpen = false" aria-label="Fechar configuração de colunas" class="p-2 rounded-md hover:bg-slate-100">✕</button>
+  <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" aria-labelledby="employees-list-title">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+      <h2 id="employees-list-title" class="text-sm font-medium text-slate-600">Listagem de funcionários</h2>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" (click)="exportCurrentPage()" [disabled]="loading || !colaboradores.length"
+          class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          title="Exportar somente os registros da página atual em CSV">
+          <mat-icon class="!text-[18px]">description</mat-icon> Exportar página
+        </button>
+        <button type="button" (click)="openColumnPanel()" aria-haspopup="dialog"
+          class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50">
+          <mat-icon class="!text-[18px]">view_column</mat-icon> Colunas
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="p-10 text-center text-sm text-slate-500" role="status">Carregando funcionários...</div>
+    <div *ngIf="loadError && !loading" class="p-8 text-center text-sm text-red-700" role="alert">
+      {{ loadError }}
+      <button type="button" (click)="loadData()" class="ml-2 font-semibold underline">Tentar novamente</button>
+    </div>
+
+    <div *ngIf="!loading && !loadError" class="overflow-x-auto">
+      <table class="w-full min-w-[700px] border-collapse text-left text-sm">
+        <thead class="border-b border-slate-200 bg-white text-slate-500">
+          <tr>
+            <th scope="col" class="px-4 py-4 font-medium">
+              <button type="button" (click)="changeSort('nomeCompleto')" class="flex items-center gap-1 hover:text-blue-900">
+                Funcionário <mat-icon class="!text-[15px]">unfold_more</mat-icon>
+              </button>
+            </th>
+            <th *ngFor="let column of selectedColumns" scope="col" class="px-4 py-4 font-medium">
+              <ng-container [ngSwitch]="column.key">
+                <button *ngSwitchCase="'sexo'" type="button" (click)="changeSort('sexo')" class="inline-flex items-center gap-1 hover:text-blue-900">Gênero <mat-icon class="!text-[15px]">unfold_more</mat-icon></button>
+                <button *ngSwitchCase="'matricula'" type="button" (click)="changeSort('matricula')" class="inline-flex items-center gap-1 hover:text-blue-900">Nº Registro <mat-icon class="!text-[15px]">unfold_more</mat-icon></button>
+                <button *ngSwitchCase="'status'" type="button" (click)="changeSort('status')" class="inline-flex items-center gap-1 hover:text-blue-900">Situação <mat-icon class="!text-[15px]">unfold_more</mat-icon></button>
+                <span *ngSwitchDefault>{{ column.label }}</span>
+              </ng-container>
+            </th>
+            <th scope="col" class="px-4 py-4 text-right font-medium"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          <tr *ngFor="let row of colaboradores" class="hover:bg-slate-50">
+            <td class="px-4 py-4">
+              <a [routerLink]="['/configuracoes/colaboradores/cadastro', row.id]" class="inline-flex items-center gap-3 font-medium text-[#18328A] hover:underline">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-900" aria-hidden="true">{{ getInitials(row.nomeCompleto) }}</span>
+                <span>{{ row.nomeCompleto }}</span>
+              </a>
+            </td>
+            <td *ngFor="let column of selectedColumns" class="px-4 py-4 text-slate-700">
+              <ng-container [ngSwitch]="column.key">
+                <span *ngSwitchCase="'sexo'">{{ genderLabel(row.sexo) }}</span>
+                <span *ngSwitchCase="'matricula'" [class.text-slate-400]="!row.matricula">{{ row.matricula || 'Não informado' }}</span>
+                <span *ngSwitchCase="'cargo'" [class.text-slate-400]="!row.cargoNome">{{ row.cargoNome || 'Não informado' }}</span>
+                <span *ngSwitchCase="'status'" [class]="getBadgeClass(row.status)">{{ row.status || 'Não informado' }}</span>
+              </ng-container>
+            </td>
+            <td class="px-4 py-4 text-right">
+              <div class="inline-flex items-center gap-2">
+                <a [routerLink]="['/configuracoes/colaboradores/cadastro', row.id]" aria-label="Editar funcionário" title="Editar"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-800">
+                  <mat-icon class="!text-[18px]">edit</mat-icon>
+                </a>
+                <button type="button" (click)="excluir(row.id)" [disabled]="row.status === 'INATIVO' || row.status === 'DEMITIDO'"
+                  [attr.aria-label]="'Inativar ' + row.nomeCompleto" title="Inativar funcionário (preserva histórico)"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30">
+                  <mat-icon class="!text-[18px]">delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="colaboradores.length === 0">
+            <td [attr.colspan]="visibleColumnCount" class="p-12 text-center text-sm text-slate-500">
+              <mat-icon class="mb-2 text-slate-400">groups</mat-icon>
+              <p>Nenhum funcionário encontrado para os filtros aplicados.</p>
+              <button type="button" (click)="resetFilters(); searchTerm = ''; onSearch()" class="mt-2 text-sm font-semibold text-blue-800 underline">Limpar busca e filtros</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="totalRecords > 0" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
+      <p class="text-xs text-slate-500">Exibindo {{ rangeStart }}–{{ rangeEnd }} de {{ totalRecords }} · Página {{ currentPage }} de {{ maxPage }}</p>
+      <div class="flex gap-2">
+        <button type="button" (click)="goPrev()" [disabled]="first === 0" class="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-40">Anterior</button>
+        <button type="button" (click)="goNext()" [disabled]="first + rows >= totalRecords" class="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-40">Próximo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtro avançado: contexto preservado e ações reais via API paginada. -->
+  <div *ngIf="filterDrawerOpen" class="fixed inset-0 z-50">
+    <button type="button" (click)="closeFilters()" class="absolute inset-0 h-full w-full bg-black/35" aria-label="Fechar filtros"></button>
+    <aside role="dialog" aria-modal="true" aria-labelledby="filter-title" (keydown.escape)="closeFilters()"
+      class="absolute inset-y-0 right-0 flex w-full max-w-[580px] flex-col border-l border-slate-200 bg-white shadow-2xl">
+      <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div><h2 id="filter-title" class="font-semibold text-slate-900">Filtro avançado de funcionários</h2><p class="mt-1 text-xs text-slate-500">Filtro de listagem avançado</p></div>
+        <button type="button" (click)="closeFilters()" aria-label="Fechar" class="rounded-md p-2 hover:bg-slate-100"><mat-icon>close</mat-icon></button>
       </header>
-      <div class="p-5 space-y-4">
-        <label class="flex items-center gap-3 text-sm text-slate-500"><input type="checkbox" checked disabled /> Funcionário (obrigatória)</label>
-        <label *ngFor="let column of columnOptions" class="flex items-center gap-3 text-sm text-slate-800">
-          <input type="checkbox" [checked]="visibleColumns[column.key]" (change)="toggleColumn(column.key, $any($event.target).checked)" />
-          {{ column.label }}
-        </label>
+      <div class="flex-1 overflow-y-auto px-5 py-5">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-900">
+            Nome
+            <input [(ngModel)]="draftFilters.nome" maxlength="120" placeholder="Informe um nome" class="h-11 rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-blue-700" />
+          </label>
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-900">
+            Função
+            <input [(ngModel)]="draftFilters.funcao" maxlength="120" placeholder="Informe uma função" class="h-11 rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-blue-700" />
+          </label>
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-900">
+            Registro
+            <input [(ngModel)]="draftFilters.registro" maxlength="120" placeholder="Informe um registro" class="h-11 rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-blue-700" />
+          </label>
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-900">
+            Situação
+            <select [(ngModel)]="draftFilters.status" class="h-11 rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-blue-700">
+              <option *ngFor="let status of statuses" [value]="status.value">{{ status.label }}</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <footer class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-5 py-4">
+        <button type="button" (click)="closeFilters()" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
+        <div class="flex gap-2">
+          <button type="button" (click)="resetFilters()" class="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">Resetar</button>
+          <button type="button" (click)="applyFilters()" class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900">Filtrar</button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Personalização de colunas: funcionário permanece visível e a ordem é editável. -->
+  <div *ngIf="columnPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5">
+    <button type="button" (click)="columnPanelOpen = false" class="absolute inset-0 bg-black/55" aria-label="Fechar colunas"></button>
+    <section role="dialog" aria-modal="true" aria-labelledby="columns-title" (keydown.escape)="columnPanelOpen = false"
+      class="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+      <header class="flex items-center justify-between border-b border-slate-200 p-5">
+        <div><h2 id="columns-title" class="font-semibold text-slate-900">Colunas de funcionários</h2><p class="text-xs text-slate-500">Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div>
+        <button type="button" (click)="columnPanelOpen = false" aria-label="Fechar" class="rounded-md p-2 hover:bg-slate-100"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="mx-5 mt-4 rounded-lg bg-blue-50 p-3 text-xs text-blue-900">A coluna Funcionário é obrigatória. Suas preferências são salvas neste navegador para a empresa atual.</div>
+      <div class="grid flex-1 grid-cols-1 gap-0 overflow-y-auto sm:grid-cols-2">
+        <div class="space-y-3 border-b border-slate-200 p-5 sm:border-b-0 sm:border-r">
+          <h3 class="font-semibold text-slate-900">Opções de colunas</h3>
+          <label class="flex items-center gap-3 text-sm text-slate-400"><input type="checkbox" checked disabled /> Funcionário (fixa)</label>
+          <label *ngFor="let column of columnOptions" class="flex cursor-pointer items-center gap-3 text-sm text-slate-900">
+            <input type="checkbox" [checked]="isColumnSelected(column.key)" (change)="toggleColumn(column.key, $any($event.target).checked)" />
+            {{ column.label }}
+          </label>
+        </div>
+        <div class="space-y-3 p-5">
+          <h3 class="font-semibold text-slate-900">Colunas selecionadas <span class="rounded-md border border-slate-200 px-2 py-1 text-xs">{{ draftColumnKeys.length + 1 }}</span></h3>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">Funcionário <span class="float-right">Fixa</span></div>
+          <div *ngFor="let key of draftColumnKeys; let i = index" class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+            <span>{{ key === 'sexo' ? 'Gênero' : key === 'matricula' ? 'Nº Registro' : key === 'cargo' ? 'Função' : 'Situação' }}</span>
+            <div class="flex gap-1">
+              <button type="button" [disabled]="i === 0" (click)="moveColumn(key, -1)" [attr.aria-label]="'Mover ' + key + ' para cima'" class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-30">↑</button>
+              <button type="button" [disabled]="i === draftColumnKeys.length - 1" (click)="moveColumn(key, 1)" [attr.aria-label]="'Mover ' + key + ' para baixo'" class="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-30">↓</button>
+              <button type="button" (click)="toggleColumn(key, false)" [attr.aria-label]="'Remover coluna ' + key" class="rounded px-2 py-1 text-red-700 hover:bg-red-50">✕</button>
+            </div>
+          </div>
+        </div>
       </div>
       <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-5">
         <button type="button" (click)="restoreDefaultColumns()" class="text-sm text-slate-700 hover:underline">Restaurar padrão</button>
         <div class="flex gap-2">
           <button type="button" (click)="columnPanelOpen = false" class="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancelar</button>
-          <button type="button" (click)="saveColumns()" class="rounded-lg bg-blue-700 px-4 py-2 text-sm text-white">Salvar</button>
+          <button type="button" (click)="saveColumns()" class="rounded-lg bg-[#18328A] px-4 py-2 text-sm text-white">Salvar</button>
         </div>
       </footer>
     </section>
   </div>
-
-  <!-- ===== Data Table (Modern Style) ===== -->
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
-      <div class="overflow-x-auto flex-1">
-        <div *ngIf="loading" class="p-10 text-center text-sm text-slate-500" role="status">Carregando funcionários...</div>
-        <div *ngIf="loadError && !loading" class="p-6 text-center text-sm text-red-700" role="alert">{{ loadError }} <button type="button" class="ml-2 underline" (click)="loadData()">Tentar novamente</button></div>
-        <table *ngIf="!loading && !loadError" class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left align-middle">Colaborador</th>
-                    <th *ngIf="visibleColumns['matricula']" class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left align-middle">Matrícula</th>
-                    <th *ngIf="visibleColumns['cargo']" class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left align-middle">Vínculo</th>
-                    <th *ngIf="visibleColumns['status']" class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left align-middle">Status</th>
-                    <th class="py-2.5 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right align-middle"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                <tr *ngFor="let row of colaboradores" class="group hover:bg-gray-50 transition-colors duration-200">
-                    <!-- Colaborador -->
-                    <td class="py-2.5 px-6 align-middle">
-                        <div class="flex items-center gap-4">
-                            <!-- Avatar -->
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-slate-100 text-slate-600 ring-4 ring-white shadow-sm">
-                                {{ getInitials(row.nomeCompleto) }}
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-slate-900 text-sm group-hover:text-blue-600 transition-colors cursor-pointer" [routerLink]="['/configuracoes/colaboradores/cadastro', row.id]">{{ row.nomeCompleto }}</span>
-                                <span class="text-[11px] text-slate-500">{{ row.emailPessoal || 'Sem e-mail' }}</span>
-                            </div>
-                        </div>
-                    </td>
-
-                    <!-- Matrícula -->
-                    <td *ngIf="visibleColumns['matricula']" class="py-2.5 px-6 align-middle">
-                        <span class="font-mono text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                            {{ row.matricula }}
-                        </span>
-                    </td>
-
-                    <!-- Vínculo -->
-                    <td *ngIf="visibleColumns['cargo']" class="py-2.5 px-6 align-middle">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-semibold text-slate-800">{{ row.cargoNome || 'Sem Cargo' }}</span>
-                            <span class="text-[11px] text-slate-500">{{ row.departamentoNome || 'Sem Depto.' }}</span>
-                            <span class="text-[11px] text-slate-400 font-medium">{{ row.tipoContrato || '—' }}</span>
-                        </div>
-                    </td>
-
-                    <!-- Status -->
-                    <td *ngIf="visibleColumns['status']" class="py-2.5 px-6 align-middle">
-                        <span [class]="getBadgeClass(row.status)">
-                            {{ row.status }}
-                        </span>
-                    </td>
-
-                    <!-- Actions -->
-                    <td class="py-2.5 px-6 align-middle text-right pr-4">
-                        <div class="flex items-center justify-end">
-                            <button [routerLink]="['/configuracoes/colaboradores/cadastro', row.id]" title="Editar" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-white hover:border-slate-200 shadow-sm transition-all active:scale-90 border border-transparent">
-                              <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">edit</mat-icon>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Empty State -->
-                <tr *ngIf="colaboradores.length === 0">
-                    <td [attr.colspan]="visibleColumnCount" class="py-12 text-center text-slate-500 text-sm">
-                        <div class="flex flex-col items-center gap-3 text-slate-400">
-                          <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
-                             <mat-icon class="!text-2xl text-slate-400">people_outline</mat-icon>
-                          </div>
-                          <p class="text-sm font-medium text-slate-500">Nenhum colaborador encontrado</p>
-                          <a routerLink="/configuracoes/colaboradores/cadastro" class="text-xs text-blue-600 font-bold hover:underline">
-                              Cadastrar novo colaborador
-                          </a>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-      </div>
-
-      <!-- ===== Pagination (Modern) ===== -->
-      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-between bg-slate-50/50 sticky bottom-0 z-10" *ngIf="totalRecords > 0">
-        <div class="text-xs text-slate-500">
-            Mostrando <span class="font-medium">{{ rangeStart }}</span> a <span class="font-medium">{{ rangeEnd }}</span> de <span class="font-medium">{{ totalRecords }}</span> resultados
-        </div>
-        <div class="flex gap-2">
-            <button
-                [disabled]="first === 0"
-                (click)="goPrev()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_left</mat-icon> Anterior
-            </button>
-            <button
-                [disabled]="first + rows >= totalRecords"
-                (click)="goNext()"
-                class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1.5"
-            >
-                Próximo <mat-icon class="!text-[16px] !w-[16px] !h-[16px]">chevron_right</mat-icon>
-            </button>
-        </div>
-      </div>
-  </div>
-
-</div>
+</main>
