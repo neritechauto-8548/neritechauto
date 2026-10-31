@@ -133,7 +133,7 @@
       "children": [
         {
           "name": "Cadastros",
-          "route": "configuracoes/empresa",
+          "route": "produtos-servicos/recursos",
           "type": "link",
           "icon": "clipboard"
         },
