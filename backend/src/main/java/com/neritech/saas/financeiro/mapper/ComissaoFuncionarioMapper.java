@@ -12,6 +12,11 @@ public interface ComissaoFuncionarioMapper {
     @Mapping(target = "itemFatura", ignore = true)
     ComissaoFuncionario toEntity(ComissaoFuncionarioRequest request);
 
+    @Mapping(target = "pago", source = "paga")
+    @Mapping(target = "valorBase", source = "baseCalculo")
+    @Mapping(target = "dataReferencia", source = "dataCompetencia")
+    @Mapping(target = "createdAt", source = "dataCadastro")
+    @Mapping(target = "updatedAt", source = "dataAtualizacao")
     @Mapping(target = "funcionarioNome", source = "funcionario.nomeCompleto")
     @Mapping(target = "faturaNumero", source = "fatura.numeroFatura")
     @Mapping(target = "itemFaturaDescricao", source = "itemFatura.descricao")
