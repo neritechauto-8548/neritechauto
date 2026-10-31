@@ -25,6 +25,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   acompanharComissao(_indice: number, item: ComissaoLinha): number { return item.id; }
   hoje = this.localDate(new Date());
   empresaExibicao = 'Empresa autenticada';
+  empresaCnpjExibicao = '';
   erroFiltros = '';
   fecharFiltros(): void { this.filtroAberto = false; this.erroFiltros = ''; }
   formatarValor(valor: number | null | undefined): string {
@@ -94,6 +95,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
       next: page => {
         this.registros = page.content ?? [];
         this.empresaExibicao = this.registros.find(r => !!r.empresaNome)?.empresaNome || this.empresaExibicao;
+        this.empresaCnpjExibicao = this.registros.find(r => !!r.empresaCnpj)?.empresaCnpj || this.empresaCnpjExibicao;
         this.selecionados.clear();
         this.total = page.totalElements ?? 0;
         this.totalPaginas = Math.max(1, page.totalPages ?? 1);
