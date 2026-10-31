@@ -4,6 +4,7 @@ on:
     branches: [master]
     paths:
       - "FrontEnd/src/app/routes/produtos-servicos/**"
+      - "FrontEnd/public/data/menu.json"
       - "backend/src/main/java/com/neritech/saas/produtoServico/controller/RecursosReferenciaController.java"
       - "backend/src/main/resources/db/migration/V299__recursos_areas_servicos_acessorios.sql"
       - "backend/src/test/java/com/neritech/saas/produtoServico/RecursosReferenciaControllerTest.java"
@@ -26,8 +27,27 @@ jobs:
           cache: yarn
           cache-dependency-path: FrontEnd/yarn.lock
       - run: yarn install --frozen-lockfile
+      - name: Validar contrato do menu Gestão de recursos
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const menu = JSON.parse(fs.readFileSync('public/data/menu.json','utf8'));
+          const visitar = (nodes) => Array.isArray(nodes) ? nodes.flatMap(n => [n,...visitar(n.children)]) : [];
+          const entries = visitar(Array.isArray(menu) ? menu : Object.values(menu).flatMap(v => Array.isArray(v) ? v : []));
+          const recursos = entries.find(n => n.name === 'Gestão de recursos');
+          assert.ok(recursos, 'Gestão de recursos não encontrada');
+          const cadastros = recursos.children?.find(n => n.name === 'Cadastros');
+          assert.equal(cadastros?.route, 'produtos-servicos/recursos');
+          assert.notEqual(cadastros?.route, 'configuracoes/empresa');
+          const routes = fs.readFileSync('src/app/routes/produtos-servicos/produtos-servicos.routes.ts','utf8');
+          assert.match(routes, /path: 'recursos', component: RecursosComponent/);
+          console.log('OK: Cadastros abre Áreas/Serviços/Acessórios, não Empresa.');
+          NODE
       - name: Validar compilação Angular
         run: yarn build
+      - name: Testar aba inicial e acesso legado
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/produtos-servicos/servicos/recursos.component.spec.ts
   backend:
     runs-on: ubuntu-latest
     defaults:
