@@ -59,3 +59,81 @@ jobs:
           name: seguradoras-backend-test-results
           path: backend/target/surefire-reports/
           if-no-files-found: ignore
+
+  migration:
+    name: Validação Flyway V300 em PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: teste
+          POSTGRES_USER: postgres
+          POSTGRES_DB: seguradoras
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d seguradoras"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      PGPASSWORD: teste
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: seguradoras
+    steps:
+      - uses: actions/checkout@v4
+      - name: Montar dependências do esquema anterior
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TABLE empresa(id BIGSERIAL PRIMARY KEY);
+          CREATE TABLE ordens_servico(id BIGSERIAL PRIMARY KEY);
+          INSERT INTO empresa DEFAULT VALUES;
+          INSERT INTO ordens_servico DEFAULT VALUES;
+          SQL
+      - name: Aplicar migração anterior e popular dados reais
+        run: |
+          psql -v ON_ERROR_STOP=1 -f backend/src/main/resources/db/migration/V274__adm009_seguradoras_os.sql
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO seguradoras(empresa_id,nome_fantasia,cnpj,notas)
+          VALUES (1,'Seguradora Antiga','11222333000181','Histórico anterior');
+          INSERT INTO seguradoras_os(empresa_id,seguradora_id,ordem_servico_id,tipo_vinculo)
+          VALUES (1,1,1,'CONVENIO');
+          SQL
+      - name: Executar migração V300 como no banco PostgreSQL
+        run: psql -v ON_ERROR_STOP=1 -f backend/src/main/resources/db/migration/V300__seguradoras_referencia_visual.sql
+      - name: Validar dados migrados, vínculos e colunas removidas
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $check$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM seguradoras
+              WHERE id=1 AND razao_social='Seguradora Antiga'
+                AND observacoes='Histórico anterior' AND retencao_iss=false
+            ) THEN
+              RAISE EXCEPTION 'Dados antigos não preservados';
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM seguradoras_os WHERE seguradora_id=1 AND ordem_servico_id=1) THEN
+              RAISE EXCEPTION 'Vínculo com OS foi perdido';
+            END IF;
+            IF EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_name='seguradoras'
+                AND column_name IN ('registro_susep','nome_contato','telefone','endereco','tipo_convenio','notas')
+            ) THEN
+              RAISE EXCEPTION 'Campos legados ainda existem';
+            END IF;
+            INSERT INTO seguradoras
+              (empresa_id,cnpj,razao_social,inscricao_estadual,inscricao_municipal,
+               email,observacoes,margem_refatoramento,site,retencao_iss,ativo)
+            VALUES
+              (1,'11222333000190','Nova Seguradora','ISENTO','1234567',
+               'novo@exemplo.com','Observações',10.5,'https://exemplo.com',true,true);
+            IF NOT EXISTS (
+              SELECT 1 FROM seguradoras WHERE razao_social='Nova Seguradora' AND retencao_iss=true
+            ) THEN
+              RAISE EXCEPTION 'Campos novos não persistiram';
+            END IF;
+          END $check$;
+          SQL
