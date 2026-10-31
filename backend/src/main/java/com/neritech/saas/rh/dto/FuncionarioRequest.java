@@ -68,6 +68,7 @@ public record FuncionarioRequest(
         @Size(max = 500) String fotoFuncionarioUrl,
         String observacoes,
         Integer versao,
+        @Size(max = 50) String perfilProfissional,
         @Size(max = 80) String registroProfissional,
         @Size(max = 80) String tipoProfissional,
         @Size(max = 100) String areaAtuacao,
