@@ -34,9 +34,10 @@ public class ComissaoFuncionarioController {
             @RequestParam(required=false) java.time.LocalDate fim,
             @RequestParam(required=false) String cliente,
             @RequestParam(required=false) String placa,
+            @RequestParam(required=false) String numeroOs,
             Pageable pageable) {
         return ResponseEntity.ok(service.listar(empresaId, nome, funcionarioId, ordemServicoId,
-                paga, inicio, fim, cliente, placa, pageable));
+                paga, inicio, fim, cliente, placa, numeroOs, pageable));
     }
 
     @GetMapping("/{id}")
