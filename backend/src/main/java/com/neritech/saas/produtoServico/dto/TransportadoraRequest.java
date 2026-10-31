@@ -19,5 +19,10 @@ public record TransportadoraRequest(
         @Pattern(regexp = "^$|^[A-Z]{2}$", message = "UF inválida") String estado,
         @NotBlank @Pattern(regexp = "RODOVIARIO|OUTROS") String modalidade,
         Boolean ativo,
-        @Size(max = 4000) String observacoes
+        @Size(max = 4000) String observacoes,
+        @Size(max = 20) String inscricaoEstadual,
+        @Size(max = 255) String logradouro,
+        @Size(max = 30) String numero,
+        @Size(max = 120) String bairro,
+        @Size(max = 255) String complemento
 ) {}
