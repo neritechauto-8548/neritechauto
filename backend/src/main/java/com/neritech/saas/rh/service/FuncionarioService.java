@@ -64,7 +64,7 @@ public class FuncionarioService {
     }
 
     private String normalizeFilter(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank()) return "";
         String normalized = value.trim();
         if (normalized.length() > 120) {
             throw new org.springframework.web.server.ResponseStatusException(
