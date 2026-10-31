@@ -96,3 +96,29 @@ Situação geral: **implementação parcial, integração principal de listagem 
 5. A experiência visual em mobile/tablet, foco/teclado completo e comparação visual 320/768/1440 ainda dependem de homologação prática. Não classificar como 100% concluído.
 
 **Situação de desenvolvimento:** telas e integrações principais dos três módulos implementadas e aprovadas pelos testes focados, com paridade operacional e visual **parcial**, ainda sem homologação integral.
+
+## Revisão do contrato das 14 capturas — 31/10/2026
+
+O usuário autorizou expressamente a remoção física de colunas legadas do projeto inicial e definiu que todo o novo código de domínio e nomes de tabelas e colunas sejam em português.
+
+### Execução técnica
+
+1. `V294`: cadastro básico sem obrigação de data de admissão, novos campos profissionais e tabelas `rh_funcionario_contatos`/`rh_funcionario_contato_meios` em português.
+2. `V295`: coluna `perfil_profissional`.
+3. `V296`: remoção física de 26 colunas legadas (estado civil, filiação, benefícios não exibidos, dados bancários, CNH etc.). Os campos técnicos necessários aos módulos dependentes foram preservados.
+4. `FuncionarioRequest`/`FuncionarioResponse`, entidade `Funcionario` e serviço: contratos ajustados, validador correspondente e matrícula interna gerada apenas como identificador técnico.
+5. `FuncionarioContatoController`/`FuncionarioContatoService`: CRUD real de contatos, meios e principal único, protegido por empresa e auditado.
+6. Cadastro Angular reescrito segundo as telas: cabeçalho com identidade e ativação, abas Geral/Dados Profissionais/EPIs/Contatos, drawers de cadastro de funcionário/EPIs/contato e modal criar usuário.
+7. `FuncionarioReferenciaIntegracaoTest`: valida alterações de schema e fluxo de contatos em PostgreSQL 16/Testcontainers, incluindo acesso entre empresas negado. Workflow `funcionarios-quality.yml`.
+
+### Restrições relevantes
+
+- O campo `login` separado da imagem ainda **não possui autenticação própria** na implementação atual: o backend utiliza e-mail como identificador. A interface bloqueia um login divergente e informa a regra, evitando gravação enganosa.
+- A seleção de outra empresa não é permitida, pois a modelagem atual de funcionário tem uma empresa proprietária e isolamento estrito. A ficha mostra o nome e CNPJ reais da empresa autenticada.
+- A seleção de múltiplos EPIs funciona mediante gravações individuais; **não** é transação atômica de lote, podendo ocorrer gravação parcial com erro explícito.
+- A coluna `tipo` de profissional é texto livre enquanto não houver catálogo de tipos definido; o cargo usa os registros da API existente.
+- A remoção física em banco de produção **não foi executada nesta conversa**; o que foi publicado é a migração versionada, que será aplicada pelo pipeline de deploy compatível com Flyway.
+- A semelhança visual de 100% ainda depende de screenshots comparativos em 320, 768 e 1440 px e validação de teclado/WCAG. Não alegar equivalência perfeita sem verificação.
+- Os campos técnicos `empresa_id`, `usuario_id`, `matricula` e controles de status/auditoria continuam no banco, mesmo sem todos aparecerem na ficha.
+
+Documentação canônica de nomenclatura: `Documentacao/PADRAO_PORTUGUES_BANCO_BACKEND.md`.
