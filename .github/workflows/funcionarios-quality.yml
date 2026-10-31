@@ -49,6 +49,10 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: maven
+      - name: Compatibilidade do Testcontainers com Docker do runner
+        run: |
+          mkdir -p src/test/resources
+          printf 'api.version=1.44\n' > src/test/resources/docker-java.properties
       - name: Testar funcionários e isolamento entre empresas
         run: mvn -B test -Dtest=FuncionarioTenantIntegrationTest
         env:
