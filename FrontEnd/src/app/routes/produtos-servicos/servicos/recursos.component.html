@@ -1,0 +1,342 @@
+<main class="recursos-page" aria-label="Gestão de recursos">
+  <div class="breadcrumb">NERITECH AUTO <span>›</span> Gestão de recursos <span>›</span> {{ servicoDetalhe ? 'Serviços › ' + (servicoDraft.id ? 'Detalhe' : 'Criação') : (aba === 'areas' ? 'Áreas' : aba === 'servicos' ? 'Serviços' : 'Acessórios') }}</div>
+
+  <div *ngIf="mensagem" class="notice success" role="status">{{ mensagem }} <button aria-label="Fechar aviso" (click)="mensagem=''">×</button></div>
+  <div *ngIf="erro" class="notice error" role="alert">{{ erro }} <button aria-label="Fechar erro" (click)="erro=''">×</button></div>
+
+  <ng-container *ngIf="!servicoDetalhe; else detalheServico">
+    <nav class="tabs recursos-tabs" aria-label="Categorias de recursos">
+      <button [class.active]="aba==='areas'" (click)="trocarAba('areas')">▦ &nbsp; Áreas</button>
+      <button [class.active]="aba==='servicos'" (click)="trocarAba('servicos')">♧ &nbsp; Serviços</button>
+      <button [class.active]="aba==='acessorios'" (click)="trocarAba('acessorios')">♢ &nbsp; Acessórios</button>
+    </nav>
+
+    <div class="section-heading">
+      <h1>{{ aba==='areas' ? 'Áreas' : aba==='servicos' ? 'Serviços' : 'Acessórios' }} <span class="help-icon" title="Gestão de recursos da oficina">?</span></h1>
+      <button class="btn primary" (click)="aba==='areas'?abrirNovaArea():aba==='servicos'?criarServico():abrirNovoAcessorio()">
+        <span class="plus">＋</span> {{ aba==='areas' ? 'Nova área' : aba==='servicos' ? 'Novo serviço' : 'Novo acessório' }}
+      </button>
+    </div>
+
+    <div class="search-row">
+      <label class="search-box"><span aria-hidden="true">⌕</span>
+        <input [(ngModel)]="pesquisa" (keyup.enter)="carregar()" [placeholder]="'Pesquisar ' + (aba==='areas'?'áreas':aba==='servicos'?'serviços':'acessórios')" [attr.aria-label]="'Pesquisar '+aba"/>
+      </label>
+      <ng-container *ngIf="aba==='areas'">
+        <div class="segment" aria-label="Situação de áreas">
+          <button [class.selected]="filtroSituacao!=='false'" (click)="filtroSituacao='true';carregar()">Ativados</button>
+          <button [class.selected]="filtroSituacao==='false'" (click)="filtroSituacao='false';carregar()">Desativados</button>
+        </div>
+      </ng-container>
+      <button *ngIf="aba!=='areas'" class="btn secondary" (click)="abrirFiltro()">⚲ &nbsp; Filtrar</button>
+    </div>
+
+    <div class="data-card">
+      <div class="table-toolbar">
+        <span class="muted">Listagem de {{ aba==='areas'?'áreas':aba==='servicos'?'serviços':'acessórios' }}</span>
+        <div class="toolbar-actions">
+          <ng-container *ngIf="aba==='servicos'">
+            <button class="btn secondary" (click)="abrirImportacao()">⇧ &nbsp; Importar CSV</button>
+            <button class="btn secondary" (click)="abrirPrecos()">$ &nbsp; Preços</button>
+          </ng-container>
+          <button *ngIf="aba!=='acessorios'" class="btn secondary" (click)="exportarRelatorio()">▤ &nbsp; Relatórios</button>
+          <button *ngIf="aba!=='areas'" class="btn secondary" (click)="abrirColunas()">▥ &nbsp; Colunas</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table *ngIf="aba==='areas'" class="resource-table">
+          <thead><tr><th>Descrição</th><th>Ativo</th><th><span class="sr-only">Ações</span></th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of areas">
+              <td><button class="text-link" (click)="editarArea(row)">{{ row.descricao }}</button></td>
+              <td><span class="pill" [class.off]="!row.ativo">{{ row.ativo?'Sim':'Não' }}</span></td>
+              <td class="action-cell"><button title="Desativar área" class="delete-icon" [disabled]="!row.ativo" (click)="excluirArea(row)">♧</button></td>
+            </tr>
+            <tr *ngIf="!areas.length && !carregando"><td colspan="3" class="empty-row">Nenhuma área encontrada.</td></tr>
+          </tbody>
+        </table>
+
+        <table *ngIf="aba==='servicos'" class="resource-table">
+          <thead><tr>
+            <th *ngFor="let c of colunas">{{ rotulos[c] }}</th>
+            <th><span class="sr-only">Ações</span></th>
+          </tr></thead>
+          <tbody>
+            <tr *ngFor="let row of servicos">
+              <td *ngFor="let c of colunas">
+                <ng-container [ngSwitch]="c">
+                  <button *ngSwitchCase="'descricao'" class="text-link" (click)="editarServico(row)">{{ row.descricao }}</button>
+                  <span *ngSwitchCase="'codigoTempario'">{{ row.codigoTempario || '—' }}</span>
+                  <span *ngSwitchCase="'area'">{{ row.area }}</span>
+                  <span *ngSwitchCase="'preco'" class="price-cell">
+                    <button class="text-link price-link" (click)="precoVisualizado=precoVisualizado===row.id?null:row.id">$ &nbsp; Visualizar</button>
+                    <div *ngIf="precoVisualizado===row.id" class="price-popover">
+                      <strong>Preços por empresa</strong><p class="muted small">Valores configurados para este serviço</p>
+                      <div class="price-preview"><strong>Empresa atual</strong><div class="price-grid">
+                        <div><small>Preço</small><b>{{ moeda(row.preco) }}</b></div>
+                        <div><small>Custo fixo</small><b>{{ moeda(row.custoFixo) }}</b></div>
+                        <div><small>Comissão</small><b>{{ row.comissao | number:'1.2-2' }}%</b></div>
+                      </div></div>
+                    </div>
+                  </span>
+                </ng-container>
+              </td>
+              <td class="action-cell"><button class="delete-icon" title="Desativar serviço" [disabled]="!row.ativo" (click)="excluirServico(row)">♧</button></td>
+            </tr>
+            <tr *ngIf="!servicos.length && !carregando"><td [attr.colspan]="colunas.length+1" class="empty-row">Nenhum serviço encontrado.</td></tr>
+          </tbody>
+        </table>
+
+        <table *ngIf="aba==='acessorios'" class="resource-table">
+          <thead><tr>
+            <th *ngFor="let c of colunas">{{ rotulos[c] }}</th><th><span class="sr-only">Ações</span></th>
+          </tr></thead>
+          <tbody>
+            <tr *ngFor="let row of acessorios">
+              <td *ngFor="let c of colunas">
+                <ng-container [ngSwitch]="c">
+                  <button *ngSwitchCase="'descricao'" class="plain-link" (click)="editarAcessorio(row)">{{ row.descricao }}</button>
+                  <span *ngSwitchCase="'checklist'" class="pill" [class.off]="!row.checklist">{{ row.checklist?'Sim':'Não' }}</span>
+                  <span *ngSwitchCase="'padrao'" class="pill" [class.off]="!row.padrao">{{ row.padrao?'Sim':'Não' }}</span>
+                  <span *ngSwitchCase="'ativo'" class="pill" [class.off]="!row.ativo">{{ row.ativo?'Sim':'Não' }}</span>
+                </ng-container>
+              </td>
+              <td class="action-cell"><button class="delete-icon" title="Desativar acessório" [disabled]="!row.ativo" (click)="excluirAcessorio(row)">♧</button></td>
+            </tr>
+            <tr *ngIf="!acessorios.length && !carregando"><td [attr.colspan]="colunas.length+1" class="empty-row">Nenhum acessório encontrado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="carregando" class="loading" role="status">Carregando registros…</div>
+      <div class="table-footer">Exibindo até 1000 registros por consulta</div>
+    </div>
+  </ng-container>
+
+  <ng-template #detalheServico>
+    <div class="section-heading service-heading">
+      <h1>{{ tituloServico }}</h1>
+      <div class="segment" *ngIf="servicoDraft.id">
+        <button [class.selected]="servicoDraft.ativo!==false" (click)="servicoDraft.ativo=true;salvarServico()">Ativado</button>
+        <button [class.selected]="servicoDraft.ativo===false" (click)="servicoDraft.ativo=false;salvarServico()">Desativado</button>
+      </div>
+    </div>
+    <nav class="tabs" *ngIf="servicoDraft.id">
+      <button [class.active]="servicoAba==='geral'" (click)="selecionarAbaServico('geral')">▤ &nbsp; Geral</button>
+      <button [class.active]="servicoAba==='aplicacoes'" (click)="selecionarAbaServico('aplicacoes')">▥ &nbsp; Aplicações</button>
+    </nav>
+
+    <ng-container *ngIf="servicoAba==='geral'">
+      <section class="form-card">
+        <h2 class="muted">Dados gerais</h2>
+        <div class="form-grid">
+          <label class="field span-2">Descrição <em>*</em>
+            <input [(ngModel)]="servicoDraft.descricao" maxlength="200" placeholder="Descrição do serviço" required/>
+          </label>
+          <label class="field">Código tempário
+            <input [(ngModel)]="servicoDraft.codigoTempario" maxlength="50" placeholder="ACB000"/>
+          </label>
+          <label class="field">Área <em>*</em>
+            <select [(ngModel)]="servicoDraft.areaId" required>
+              <option [ngValue]="undefined">Selecione uma área</option>
+              <option *ngFor="let a of areas" [ngValue]="a.id">{{ a.descricao }}</option>
+            </select>
+          </label>
+          <label class="field">Unidade <em>*</em>
+            <select [(ngModel)]="servicoDraft.unidade" required>
+              <option value="">Horas, minutos...</option>
+              <option *ngFor="let u of unidades" [value]="u.valor">{{ u.nome }}</option>
+            </select>
+          </label>
+          <label class="field">Tempo <em>*</em>
+            <input type="number" [(ngModel)]="servicoDraft.tempo" step="0.01" min="0.01" required/>
+          </label>
+          <label class="field">Vida útil (dias)
+            <input type="number" [(ngModel)]="servicoDraft.vidaUtilDias" min="0" step="1"/>
+          </label>
+          <label class="field">Km manutenção
+            <input type="number" [(ngModel)]="servicoDraft.kmManutencao" min="0" step="1"/>
+          </label>
+          <label class="field">NBS
+            <input [(ngModel)]="servicoDraft.nbs" maxlength="30" placeholder="Selecionar NBS"/>
+          </label>
+          <label class="field span-3">Observação
+            <textarea [(ngModel)]="servicoDraft.observacao" rows="2" placeholder="Informe uma observação"></textarea>
+          </label>
+        </div>
+      </section>
+      <section class="form-card pricing">
+        <h2 class="muted">Preços por empresa</h2>
+        <div class="price-table-grid price-head"><span>Empresa</span><span>Preço $</span><span>Custo fixo $</span><span>(%) Comissão</span></div>
+        <div class="price-table-grid">
+          <span>Empresa atual</span>
+          <input type="number" min="0" step="0.01" aria-label="Preço" [(ngModel)]="servicoDraft.preco"/>
+          <input type="number" min="0" step="0.01" aria-label="Custo fixo" [(ngModel)]="servicoDraft.custoFixo"/>
+          <input type="number" min="0" max="100" step="0.01" aria-label="Comissão percentual" [(ngModel)]="servicoDraft.comissao"/>
+        </div>
+      </section>
+      <footer class="form-footer">
+        <button class="btn secondary" (click)="voltarServicos()">Cancelar</button>
+        <button class="btn primary" [disabled]="salvando" (click)="salvarServico()">▣ &nbsp; {{ salvando?'Salvando…':'Salvar' }}</button>
+      </footer>
+    </ng-container>
+
+    <ng-container *ngIf="servicoAba==='aplicacoes'">
+      <section class="data-card applications">
+        <div class="table-toolbar">Modelos que se aplicam aos serviços</div>
+        <div class="table-scroll">
+          <table class="resource-table">
+            <thead><tr><th>Montadora</th><th>Modelo</th><th>Tempo</th><th></th></tr></thead>
+            <tbody>
+              <tr *ngFor="let item of aplicacoes">
+                <td>{{item.marca}}</td><td>{{item.modelo}}</td>
+                <td><div class="time-input"><input type="number" [(ngModel)]="item.tempo" min="0.01" step="0.01" aria-label="Tempo do modelo"/><button class="btn primary compact" title="Salvar tempo" (click)="salvarTempoAplicacao(item)">▣</button></div></td>
+                <td><button class="delete-icon" title="Remover aplicação" (click)="removerAplicacao(item)">♧</button></td>
+              </tr>
+              <tr>
+                <td><select [(ngModel)]="marcaId" (ngModelChange)="escolherMarca()"><option [ngValue]="null">Selecionar montadora</option><option *ngFor="let m of marcas" [ngValue]="m.id">{{m.nome}}</option></select></td>
+                <td><select [(ngModel)]="modeloId" [disabled]="!marcaId"><option [ngValue]="null">Selecionar modelo</option><option *ngFor="let m of modelos" [ngValue]="m.id">{{m.nome}}</option></select></td>
+                <td><input type="number" [(ngModel)]="tempoAplicacao" min="0.01" step="0.01" aria-label="Tempo da nova aplicação"/></td>
+                <td><button class="btn primary compact" (click)="incluirAplicacao()" title="Adicionar aplicação">＋</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <button class="btn secondary back-service" (click)="voltarServicos()">Voltar aos serviços</button>
+    </ng-container>
+  </ng-template>
+
+  <!-- Drawer universal (à direita) -->
+  <div *ngIf="drawer" class="layer" (click)="drawer=null">
+    <aside class="resource-drawer" role="dialog" aria-modal="true" [attr.aria-label]="drawer" (click)="$event.stopPropagation()">
+      <ng-container [ngSwitch]="drawer">
+        <ng-container *ngSwitchCase="'area'">
+          <header class="drawer-header"><div><h2>{{ areaDraft.id?'Edição da área':'Criação da área' }}</h2><p *ngIf="!areaDraft.id">Preencha as informações para registrar uma nova área</p></div><button class="close" (click)="drawer=null" aria-label="Fechar">×</button></header>
+          <div class="drawer-body">
+            <label class="field">Descrição <em>*</em><input [(ngModel)]="areaDraft.descricao" maxlength="200" required/></label>
+            <div class="field-status" *ngIf="areaDraft.id"><span>Status</span><div class="segment"><button [class.selected]="areaDraft.ativo" (click)="areaDraft.ativo=true">Ativo</button><button [class.selected]="!areaDraft.ativo" (click)="areaDraft.ativo=false">Desativado</button></div></div>
+            <section class="nested-table">
+              <h3>Subáreas</h3>
+              <div class="sub-table-head"><span>Descrição</span><span>Situação</span><span>Ação</span></div>
+              <div *ngIf="!areaDraft.subareas?.length" class="sub-empty"><span>▤</span><p>Área sem subárea cadastrada</p></div>
+              <div class="subarea-row" *ngFor="let sub of areaDraft.subareas;let i=index">
+                <input [(ngModel)]="sub.descricao" maxlength="200" aria-label="Descrição da subárea"/>
+                <div class="segment small-segment"><button [class.selected]="sub.ativo" (click)="sub.ativo=true">Ativa</button><button [class.selected]="!sub.ativo" (click)="sub.ativo=false">Desativada</button></div>
+                <button class="delete-icon" (click)="removerSubarea(i)" aria-label="Remover subárea">♧</button>
+              </div>
+              <div class="nested-footer"><button class="btn primary block" (click)="adicionarSubarea()">＋ &nbsp; Adicionar subárea</button></div>
+            </section>
+          </div>
+          <footer class="drawer-footer"><button class="btn secondary" (click)="drawer=null">Cancelar</button><button class="btn primary" [disabled]="salvando" (click)="salvarArea()">▣ &nbsp; {{areaDraft.id?'Salvar':'Cadastrar'}}</button></footer>
+        </ng-container>
+        <ng-container *ngSwitchCase="'acessorio'">
+          <header class="drawer-header"><div><h2>{{acessorioDraft.id?'Editar acessório':'Novo acessório'}}</h2><p>Item que o veículo pode ter na conferência de acessórios</p></div><button class="close" (click)="drawer=null" aria-label="Fechar">×</button></header>
+          <div class="drawer-body accessory-form">
+            <section class="nested-table padded">
+              <div class="subheading"><span class="soft-icon">◇</span><div><h3>Identificação</h3><p>Nome que aparece na listagem e na conferência do veículo</p></div></div>
+              <label class="field">Descrição <em>*</em><input [(ngModel)]="acessorioDraft.descricao" maxlength="200" placeholder="Ex.: Estepe, macaco, triângulo, chave de roda" required/></label>
+              <div class="count">{{acessorioDraft.descricao.length}}/200</div>
+              <div *ngIf="!acessorioDraft.descricao" class="suggestions"><span>Sugestões: </span><button *ngFor="let s of sugeridos" (click)="escolherSugestao(s)">{{s}}</button></div>
+              <div *ngIf="duplicado" class="duplicate-warning" role="alert"><strong>⚠ &nbsp; Descrição já cadastrada</strong><p>"{{acessorioDraft.descricao}}" já está na lista de acessórios. Cadastrar de novo deixa o checklist com itens repetidos.</p></div>
+            </section>
+            <section class="nested-table padded">
+              <div class="subheading"><span class="soft-icon">☷</span><div><h3>Checklist do veículo</h3><p>Define se o item entra na conferência de acessórios</p></div></div>
+              <label class="check-box"><input type="checkbox" [(ngModel)]="acessorioDraft.checklist"/><span><strong>Incluir no checklist do veículo</strong><small>O atendente marca se o acessório está presente e pode registrar uma observação.</small></span></label>
+              <div *ngIf="acessorioDraft.checklist" class="check-preview"><p>Prévia na conferência do veículo</p><div><input type="checkbox" checked disabled/> {{acessorioDraft.descricao||'Nome do acessório'}} <input placeholder="Comentário (opcional)" disabled/></div></div>
+            </section>
+          </div>
+          <footer class="drawer-footer"><button class="btn secondary" (click)="drawer=null">Cancelar</button><button class="btn primary" [disabled]="salvando || duplicado" (click)="salvarAcessorio()">＋ &nbsp; {{acessorioDraft.id?'Salvar acessório':'Cadastrar acessório'}}</button></footer>
+        </ng-container>
+        <ng-container *ngSwitchCase="'filtro-servicos'">
+          <header class="drawer-header"><div><h2>Filtro avançado de serviços</h2><p>Filtro de listagem avançado</p></div><button class="close" (click)="drawer=null" aria-label="Fechar">×</button></header>
+          <div class="drawer-body"><div class="two-fields">
+            <label class="field">Descrição<input [(ngModel)]="filtroDescricao" placeholder="Informe uma descrição"/></label>
+            <label class="field">Código tempário<input [(ngModel)]="filtroCodigo" placeholder="Informe um código tempário"/></label>
+            <label class="field">Situação<select [(ngModel)]="filtroSituacao"><option value="">Selecionar situação</option><option value="true">Ativado</option><option value="false">Desativado</option></select></label>
+            <label class="field">Área<select [(ngModel)]="filtroAreaId"><option [ngValue]="null">Todas as áreas</option><option *ngFor="let a of areas" [ngValue]="a.id">{{a.descricao}}</option></select></label>
+          </div></div>
+          <footer class="drawer-footer"><button class="btn secondary" (click)="drawer=null">Cancelar</button><button class="btn danger-light" (click)="resetarFiltros();drawer=null">⌫ &nbsp; Resetar</button><button class="btn primary" (click)="filtrar()">⚲ &nbsp; Filtrar</button></footer>
+        </ng-container>
+        <ng-container *ngSwitchCase="'filtro-acessorios'">
+          <header class="drawer-header"><div><h2>Filtro avançado de acessórios</h2><p>Filtro de listagem avançado</p></div><button class="close" (click)="drawer=null" aria-label="Fechar">×</button></header>
+          <div class="drawer-body"><div class="two-fields">
+            <label class="checkbox-inline"><input type="checkbox" [(ngModel)]="filtroChecklist"/> Checklist</label>
+            <label class="field">Situação<select [(ngModel)]="filtroSituacao"><option value="">Selecionar situação</option><option value="true">Ativado</option><option value="false">Desativado</option></select></label>
+          </div></div>
+          <footer class="drawer-footer"><button class="btn secondary" (click)="drawer=null">Cancelar</button><button class="btn danger-light" (click)="resetarFiltros();drawer=null">⌫ &nbsp; Resetar</button><button class="btn primary" (click)="filtrar()">⚲ &nbsp; Filtrar</button></footer>
+        </ng-container>
+      </ng-container>
+    </aside>
+  </div>
+
+  <!-- Modais -->
+  <div *ngIf="modal" class="modal-layer" (click)="modal=null">
+    <section class="resource-modal" role="dialog" aria-modal="true" [class.wide]="modal==='importacao'||modal==='colunas'" (click)="$event.stopPropagation()">
+      <ng-container [ngSwitch]="modal">
+        <ng-container *ngSwitchCase="'colunas'">
+          <header class="modal-header"><div><h2>▥ &nbsp; Colunas de {{aba}}</h2><p>Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div><button class="close" (click)="modal=null">×</button></header>
+          <div class="information">ⓘ &nbsp; Personalize e salve para criar sua configuração.</div>
+          <div class="columns-grid">
+            <div><h3>Opções de colunas</h3><div class="column-options"><label *ngFor="let c of colunasDisponiveis">
+              <input type="checkbox" [checked]="possuiColuna(c)" [disabled]="c==='descricao'" (change)="alternarColuna(c)"/> {{rotulos[c]}}
+            </label></div></div>
+            <div><h3>Colunas selecionadas <span class="pill muted-pill">{{colunas.length}}</span></h3>
+              <div class="chosen-col" *ngFor="let c of colunas"><span>⠿ &nbsp; {{rotulos[c]}}</span>
+                <span *ngIf="c!=='descricao'"><button title="Mover para cima" (click)="moverColuna(c,-1)">↑</button><button title="Mover para baixo" (click)="moverColuna(c,1)">↓</button><button (click)="alternarColuna(c)" title="Remover">×</button></span><span *ngIf="c==='descricao'">♙</span>
+              </div>
+            </div>
+          </div>
+          <footer class="modal-footer"><button class="text-button" (click)="restaurarColunas()">Restaurar padrão</button><span></span><button class="btn secondary" (click)="modal=null">Cancelar</button><button class="btn primary" (click)="salvarColunas()">▣ &nbsp; Salvar</button></footer>
+        </ng-container>
+        <ng-container *ngSwitchCase="'precos'">
+          <header class="modal-header"><div><h2>Alteração de preços</h2></div><button class="close" (click)="modal=null">×</button></header>
+          <div class="modal-body">
+            <label class="field">Empresas <em>*</em><input disabled value="Empresa atual (contexto autenticado)"/></label>
+            <label class="field">Área<select [(ngModel)]="filtroAreaId"><option [ngValue]="null">Selecionar área</option><option *ngFor="let a of areas" [ngValue]="a.id">{{a.descricao}}</option></select></label>
+            <p class="muted small">Sem área, a alteração vale para os serviços de todas as áreas da empresa selecionada.</p>
+            <div class="segment spread"><button [class.selected]="operacaoLote==='SOMAR_VALOR'" (click)="operacaoLote='SOMAR_VALOR'">Somar valor</button><button [class.selected]="operacaoLote==='SUBSTITUIR_VALOR'" (click)="operacaoLote='SUBSTITUIR_VALOR'">Substituir valor</button><button [class.selected]="operacaoLote==='SOMAR_PERCENTUAL'" (click)="operacaoLote='SOMAR_PERCENTUAL'">Somar percentual</button></div>
+            <p class="muted small">{{operacaoLote==='SOMAR_VALOR'?'Soma o valor informado ao preço atual do serviço.':operacaoLote==='SUBSTITUIR_VALOR'?'Substitui os preços pelo valor informado.':'Acrescenta o percentual informado ao preço atual.'}}</p>
+            <label class="field">{{operacaoLote==='SOMAR_PERCENTUAL'?'Percentual':'Preço'}} <em>*</em><input type="number" step="0.01" min="0" [(ngModel)]="valorLote"/></label>
+          </div>
+          <footer class="modal-footer right"><button class="btn secondary" (click)="modal=null">Cancelar</button><button class="btn primary" [disabled]="salvando" (click)="aplicarPrecos()">Alterar preços</button></footer>
+        </ng-container>
+        <ng-container *ngSwitchCase="'importacao'">
+          <header class="modal-header"><div><h2>⇧ &nbsp; Importações</h2><p>Envie, valide e confirme cadastros em poucos passos</p></div><button class="close" (click)="modal=null">×</button></header>
+          <div class="import-layout">
+            <aside><strong>Tipos de importação</strong><span class="import-selected">⚒ &nbsp; Serviços</span></aside>
+            <div class="import-content">
+              <h3>Serviços</h3><p class="muted small">Importe o catálogo de serviços em massa.</p>
+              <div class="steps"><span [class.active]="csvEtapa===1">① Arquivo</span><span [class.active]="csvEtapa===2">② Validação / Revisão</span><span [class.active]="csvEtapa===3">③ Conclusão</span></div>
+              <div *ngIf="csvEtapa===1">
+                <h3>Prepare o arquivo</h3><p class="muted">Use o modelo para manter os cabeçalhos e formatos esperados.</p>
+                <div class="information">ⓘ &nbsp; Seus cadastros só serão gravados depois da validação e da sua confirmação.</div>
+                <div class="import-instructions">
+                  <p>• Código do Serviço, Descrição, Área e Unidade são obrigatórios.</p>
+                  <p>• Unidade aceita até 5 caracteres (Hr, Mi, D, Sm, Me).</p>
+                  <p>• Área precisa corresponder a uma área já cadastrada.</p>
+                  <p>• Tempo é informado em horas decimais e pode ser omitido (padrão 1).</p>
+                  <p>• Não são importadas configurações fictícias de preços ou dados pessoais.</p>
+                </div>
+                <label class="upload">Selecionar arquivo CSV<input type="file" accept=".csv,text/csv" (change)="arquivoCsv($event)"/></label>
+              </div>
+              <div *ngIf="csvEtapa===2">
+                <div class="information">Arquivo: {{csvNome}} — {{csvLinhas.length}} serviço(s) validado(s) localmente.</div>
+                <p>Revise o arquivo antes de gravar. O servidor repetirá as validações dentro de uma transação.</p>
+                <div class="preview-import" *ngFor="let l of csvLinhas.slice(0,10)">{{l.codigo}} &nbsp; {{l.descricao}} &nbsp; {{moeda(l.preco)}}</div>
+                <p class="muted" *ngIf="csvLinhas.length>10">Exibindo as primeiras 10 linhas.</p>
+              </div>
+              <div *ngIf="csvEtapa===3" class="import-done">✓ &nbsp; Importação concluída. {{csvLinhas.length}} serviço(s) recebido(s) pelo servidor.</div>
+              <div *ngIf="csvErro" class="notice error" role="alert">{{csvErro}}</div>
+            </div>
+          </div>
+          <footer class="modal-footer right">
+            <button class="btn secondary" (click)="baixarModelo()">⇩ &nbsp; Baixar modelo CSV</button>
+            <button *ngIf="csvEtapa===2" class="btn primary" [disabled]="salvando" (click)="confirmarImportacao()">Confirmar importação</button>
+            <button *ngIf="csvEtapa===3" class="btn primary" (click)="modal=null">Concluir</button>
+          </footer>
+        </ng-container>
+      </ng-container>
+    </section>
+  </div>
+</main>
