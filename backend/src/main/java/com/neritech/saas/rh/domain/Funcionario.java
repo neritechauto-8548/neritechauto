@@ -1,9 +1,7 @@
 package com.neritech.saas.rh.domain;
 
 import com.neritech.saas.common.audit.BaseEntity;
-import com.neritech.saas.financeiro.domain.enums.TipoConta;
 import com.neritech.saas.rh.domain.enums.Escolaridade;
-import com.neritech.saas.rh.domain.enums.EstadoCivil;
 import com.neritech.saas.rh.domain.enums.Sexo;
 import com.neritech.saas.rh.domain.enums.StatusFuncionario;
 import com.neritech.saas.rh.domain.enums.TipoContrato;
@@ -41,29 +39,16 @@ public class Funcionario extends BaseEntity {
     @Column(name = "sexo", length = 1)
     private Sexo sexo;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado_civil", length = 20)
-    private EstadoCivil estadoCivil;
 
-    @Column(name = "nacionalidade", length = 50)
-    private String nacionalidade = "Brasileira";
 
-    @Column(name = "naturalidade", length = 100)
-    private String naturalidade;
 
-    @Column(name = "nome_mae", length = 255)
-    private String nomeMae;
 
-    @Column(name = "nome_pai", length = 255)
-    private String nomePai;
 
     @Enumerated(EnumType.STRING)
 
     @Column(name = "escolaridade", length = 30)
     private Escolaridade escolaridade;
 
-    @Column(name = "profissao", length = 100)
-    private String profissao;
 
     @Column(name = "cargo_id")
     private Long cargoId;
@@ -113,20 +98,12 @@ public class Funcionario extends BaseEntity {
     @Column(name = "salario_base", precision = 10, scale = 2)
     private BigDecimal salarioBase;
 
-    @Column(name = "comissao_percentual", precision = 5, scale = 2)
-    private BigDecimal comissaoPercentual = BigDecimal.ZERO;
 
     @Column(name = "vale_transporte", precision = 8, scale = 2)
     private BigDecimal valeTransporte = BigDecimal.ZERO;
 
-    @Column(name = "vale_alimentacao", precision = 8, scale = 2)
-    private BigDecimal valeAlimentacao = BigDecimal.ZERO;
 
-    @Column(name = "plano_saude")
-    private Boolean planoSaude = false;
 
-    @Column(name = "plano_odontologico")
-    private Boolean planoOdontologico = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20)
@@ -135,8 +112,6 @@ public class Funcionario extends BaseEntity {
     @Column(name = "motivo_inativacao", columnDefinition = "TEXT")
     private String motivoInativacao;
 
-    @Column(name = "endereco_completo", columnDefinition = "TEXT")
-    private String enderecoCompleto;
 
     @Column(name = "cep", length = 9)
     private String cep;
@@ -159,57 +134,26 @@ public class Funcionario extends BaseEntity {
     @Column(name = "estado", length = 2)
     private String estado;
 
-    @Column(name = "pais", length = 50)
-    private String pais = "Brasil";
 
-    @Column(name = "telefone_principal", length = 20)
-    private String telefonePrincipal;
 
-    @Column(name = "telefone_emergencia", length = 20)
-    private String telefoneEmergencia;
 
-    @Column(name = "contato_emergencia_nome", length = 255)
-    private String contatoEmergenciaNome;
 
-    @Column(name = "contato_emergencia_parentesco", length = 50)
-    private String contatoEmergenciaParentesco;
 
-    @Column(name = "email_pessoal", length = 255)
-    private String emailPessoal;
 
-    @Column(name = "banco_codigo", length = 5)
-    private String bancoCodigo;
 
-    @Column(name = "banco_agencia", length = 10)
-    private String bancoAgencia;
 
-    @Column(name = "banco_conta", length = 20)
-    private String bancoConta;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "banco_tipo_conta", length = 10)
-    private TipoConta bancoTipoConta;
 
     @Column(name = "pis_pasep", length = 15)
     private String pisPasep;
 
-    @Column(name = "titulo_eleitor", length = 15)
-    private String tituloEleitor;
 
     @Column(name = "carteira_trabalho", length = 20)
     private String carteiraTrabalho;
 
-    @Column(name = "certificado_reservista", length = 20)
-    private String certificadoReservista;
 
-    @Column(name = "cnh_numero", length = 15)
-    private String cnhNumero;
 
-    @Column(name = "cnh_categoria", length = 5)
-    private String cnhCategoria;
 
-    @Column(name = "cnh_validade")
-    private LocalDate cnhValidade;
 
     @Column(name = "foto_funcionario_url", length = 500)
     private String fotoFuncionarioUrl;
@@ -284,45 +228,15 @@ public class Funcionario extends BaseEntity {
         this.sexo = sexo;
     }
 
-    public EstadoCivil getEstadoCivil() {
-        return estadoCivil;
-    }
 
-    public void setEstadoCivil(EstadoCivil estadoCivil) {
-        this.estadoCivil = estadoCivil;
-    }
 
-    public String getNacionalidade() {
-        return nacionalidade;
-    }
 
-    public void setNacionalidade(String nacionalidade) {
-        this.nacionalidade = nacionalidade;
-    }
 
-    public String getNaturalidade() {
-        return naturalidade;
-    }
 
-    public void setNaturalidade(String naturalidade) {
-        this.naturalidade = naturalidade;
-    }
 
-    public String getNomeMae() {
-        return nomeMae;
-    }
 
-    public void setNomeMae(String nomeMae) {
-        this.nomeMae = nomeMae;
-    }
 
-    public String getNomePai() {
-        return nomePai;
-    }
 
-    public void setNomePai(String nomePai) {
-        this.nomePai = nomePai;
-    }
 
     public Escolaridade getEscolaridade() {
         return escolaridade;
@@ -332,13 +246,7 @@ public class Funcionario extends BaseEntity {
         this.escolaridade = escolaridade;
     }
 
-    public String getProfissao() {
-        return profissao;
-    }
 
-    public void setProfissao(String profissao) {
-        this.profissao = profissao;
-    }
 
     public Long getCargoId() {
         return cargoId;
@@ -388,13 +296,7 @@ public class Funcionario extends BaseEntity {
         this.salarioBase = salarioBase;
     }
 
-    public BigDecimal getComissaoPercentual() {
-        return comissaoPercentual;
-    }
 
-    public void setComissaoPercentual(BigDecimal comissaoPercentual) {
-        this.comissaoPercentual = comissaoPercentual;
-    }
 
     public BigDecimal getValeTransporte() {
         return valeTransporte;
@@ -404,29 +306,11 @@ public class Funcionario extends BaseEntity {
         this.valeTransporte = valeTransporte;
     }
 
-    public BigDecimal getValeAlimentacao() {
-        return valeAlimentacao;
-    }
 
-    public void setValeAlimentacao(BigDecimal valeAlimentacao) {
-        this.valeAlimentacao = valeAlimentacao;
-    }
 
-    public Boolean getPlanoSaude() {
-        return planoSaude;
-    }
 
-    public void setPlanoSaude(Boolean planoSaude) {
-        this.planoSaude = planoSaude;
-    }
 
-    public Boolean getPlanoOdontologico() {
-        return planoOdontologico;
-    }
 
-    public void setPlanoOdontologico(Boolean planoOdontologico) {
-        this.planoOdontologico = planoOdontologico;
-    }
 
     public StatusFuncionario getStatus() {
         return status;
@@ -444,13 +328,7 @@ public class Funcionario extends BaseEntity {
         this.motivoInativacao = motivoInativacao;
     }
 
-    public String getEnderecoCompleto() {
-        return enderecoCompleto;
-    }
 
-    public void setEnderecoCompleto(String enderecoCompleto) {
-        this.enderecoCompleto = enderecoCompleto;
-    }
 
     public String getCep() {
         return cep;
@@ -508,85 +386,25 @@ public class Funcionario extends BaseEntity {
         this.estado = estado;
     }
 
-    public String getPais() {
-        return pais;
-    }
 
-    public void setPais(String pais) {
-        this.pais = pais;
-    }
 
-    public String getTelefonePrincipal() {
-        return telefonePrincipal;
-    }
 
-    public void setTelefonePrincipal(String telefonePrincipal) {
-        this.telefonePrincipal = telefonePrincipal;
-    }
 
-    public String getTelefoneEmergencia() {
-        return telefoneEmergencia;
-    }
 
-    public void setTelefoneEmergencia(String telefoneEmergencia) {
-        this.telefoneEmergencia = telefoneEmergencia;
-    }
 
-    public String getContatoEmergenciaNome() {
-        return contatoEmergenciaNome;
-    }
 
-    public void setContatoEmergenciaNome(String contatoEmergenciaNome) {
-        this.contatoEmergenciaNome = contatoEmergenciaNome;
-    }
 
-    public String getContatoEmergenciaParentesco() {
-        return contatoEmergenciaParentesco;
-    }
 
-    public void setContatoEmergenciaParentesco(String contatoEmergenciaParentesco) {
-        this.contatoEmergenciaParentesco = contatoEmergenciaParentesco;
-    }
 
-    public String getEmailPessoal() {
-        return emailPessoal;
-    }
 
-    public void setEmailPessoal(String emailPessoal) {
-        this.emailPessoal = emailPessoal;
-    }
 
-    public String getBancoCodigo() {
-        return bancoCodigo;
-    }
 
-    public void setBancoCodigo(String bancoCodigo) {
-        this.bancoCodigo = bancoCodigo;
-    }
 
-    public String getBancoAgencia() {
-        return bancoAgencia;
-    }
 
-    public void setBancoAgencia(String bancoAgencia) {
-        this.bancoAgencia = bancoAgencia;
-    }
 
-    public String getBancoConta() {
-        return bancoConta;
-    }
 
-    public void setBancoConta(String bancoConta) {
-        this.bancoConta = bancoConta;
-    }
 
-    public TipoConta getBancoTipoConta() {
-        return bancoTipoConta;
-    }
 
-    public void setBancoTipoConta(TipoConta bancoTipoConta) {
-        this.bancoTipoConta = bancoTipoConta;
-    }
 
     public String getPisPasep() {
         return pisPasep;
@@ -596,13 +414,7 @@ public class Funcionario extends BaseEntity {
         this.pisPasep = pisPasep;
     }
 
-    public String getTituloEleitor() {
-        return tituloEleitor;
-    }
 
-    public void setTituloEleitor(String tituloEleitor) {
-        this.tituloEleitor = tituloEleitor;
-    }
 
     public String getCarteiraTrabalho() {
         return carteiraTrabalho;
@@ -612,37 +424,13 @@ public class Funcionario extends BaseEntity {
         this.carteiraTrabalho = carteiraTrabalho;
     }
 
-    public String getCertificadoReservista() {
-        return certificadoReservista;
-    }
 
-    public void setCertificadoReservista(String certificadoReservista) {
-        this.certificadoReservista = certificadoReservista;
-    }
 
-    public String getCnhNumero() {
-        return cnhNumero;
-    }
 
-    public void setCnhNumero(String cnhNumero) {
-        this.cnhNumero = cnhNumero;
-    }
 
-    public String getCnhCategoria() {
-        return cnhCategoria;
-    }
 
-    public void setCnhCategoria(String cnhCategoria) {
-        this.cnhCategoria = cnhCategoria;
-    }
 
-    public LocalDate getCnhValidade() {
-        return cnhValidade;
-    }
 
-    public void setCnhValidade(LocalDate cnhValidade) {
-        this.cnhValidade = cnhValidade;
-    }
 
     public String getFotoFuncionarioUrl() {
         return fotoFuncionarioUrl;
