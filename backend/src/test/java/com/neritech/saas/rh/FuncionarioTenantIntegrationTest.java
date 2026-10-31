@@ -38,7 +38,7 @@ class FuncionarioTenantIntegrationTest extends AbstractIntegrationTest {
                 "insert into cargos (empresa_id, nome, data_cadastro, versao) values (?, 'Cargo B', now(), 0) returning id",
                 Long.class, b);
         long departamentoB = jdbc.queryForObject(
-                "insert into departamentos_contabio (empresa_id, descricao, ativo, ordem, data_cadastro, versao) values (?, 'Depto B', true, 0, now(), 0) returning id",
+                "insert into departamentos_contabio (empresa_id, codigo, descricao, ativo, ordem, data_cadastro, versao) values (?, 'TESTE-B', 'Depto B', true, 0, now(), 0) returning id",
                 Long.class, b);
         String tokenA = login(a, "a" + a + "@t.co", "ADMIN");
         String tokenB = login(b, "b" + b + "@t.co", "ADMIN");
@@ -152,6 +152,15 @@ class FuncionarioTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(1))
                 .andExpect(jsonPath("$.data.content[0].id").value(funcionarioA));
+
+        // Funcionário sem cargo não deve ser excluído quando a função não foi filtrada.
+        mvc.perform(get("/v1/rh/funcionarios")
+                .param("empresaId", Long.toString(empresaA)).param("size", "20")
+                .param("nome", "joão")
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(funcionarioB));
 
         mvc.perform(get("/v1/rh/funcionarios")
                 .param("empresaId", Long.toString(empresaA)).param("size", "20")
