@@ -1,0 +1,46 @@
+name: Diagnóstico de exceções — frontend e backend
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'FrontEnd/src/app/core/interceptors/error-interceptor.ts'
+      - 'FrontEnd/src/app/core/interceptors/error-interceptor.spec.ts'
+      - 'backend/src/main/java/com/neritech/saas/common/exception/GlobalExceptionHandler.java'
+      - 'backend/src/main/java/com/neritech/saas/common/dto/ApiErrorResponse.java'
+      - 'backend/src/test/java/com/neritech/saas/common/exception/GlobalExceptionHandlerDiagnosticsTest.java'
+      - 'backend/src/main/resources/application.yml'
+      - 'backend/src/main/resources/application-dev.yml'
+      - '.github/workflows/diagnostico-excecoes-quality.yml'
+  workflow_dispatch:
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Compilar Angular
+        run: yarn build
+      - name: Validar exibição de erros e exceções reais
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/core/interceptors/error-interceptor.spec.ts
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Testar diagnóstico local e proteção de respostas externas
+        run: mvn -B test -Dtest=GlobalExceptionHandlerDiagnosticsTest
