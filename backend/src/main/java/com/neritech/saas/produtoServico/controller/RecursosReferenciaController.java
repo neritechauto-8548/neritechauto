@@ -93,13 +93,14 @@ public class RecursosReferenciaController {
             @RequestParam(required = false) Boolean ativo) {
         return jdbc.queryForList("""
             select id, descricao, ativo, versao from departamentos_contabio
-             where empresa_id=? and (? is null or ativo=?)
-               and (? is null or lower(descricao) like lower('%' || ? || '%'))
+             where empresa_id=? and (cast(? as boolean) is null or ativo=?)
+               and (cast(? as varchar) is null or lower(descricao) like lower('%' || ? || '%'))
              order by descricao, id limit 1000
             """, TenantAccess.requireCurrent(), ativo, ativo, busca, busca);
     }
 
     @GetMapping("/areas/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV') or hasAuthority('GERAL_CONFIG_SISTEMA')")
     public Map<String,Object> obterArea(@PathVariable Long id) {
         assertArea(id);
         Map<String,Object> area = new LinkedHashMap<>(jdbc.queryForMap(
@@ -222,20 +223,32 @@ public class RecursosReferenciaController {
             left join departamentos_contabio a on a.id=s.area_id and a.empresa_id=s.empresa_id
             left join precos_servico_empresa p on p.servico_id=s.id and p.empresa_id=s.empresa_id
             where s.empresa_id=?
-              and (? is null or lower(s.nome) like lower('%' || ? || '%'))
-              and (? is null or lower(coalesce(s.codigo,'')) like lower('%' || ? || '%'))
-              and (? is null or s.area_id=?)
-              and (? is null or s.ativo=?)
+              and (cast(? as varchar) is null or lower(s.nome) like lower('%' || ? || '%'))
+              and (cast(? as varchar) is null or lower(coalesce(s.codigo,'')) like lower('%' || ? || '%'))
+              and (cast(? as bigint) is null or s.area_id=?)
+              and (cast(? as boolean) is null or s.ativo=?)
             order by s.nome, s.id limit 1000
             """, TenantAccess.requireCurrent(), busca, busca, codigo, codigo, areaId, areaId, ativo, ativo);
     }
 
     @GetMapping("/servicos/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV')")
     public Map<String,Object> obterServico(@PathVariable Long id) {
         assertServico(id);
-        return listarServicos(null, null, null, null).stream()
-                .filter(s -> ((Number) s.get("id")).longValue() == id)
-                .findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado."));
+        return jdbc.queryForMap("""
+            select s.id, s.nome as descricao, s.codigo as "codigoTempario",
+                s.area_id as "areaId", coalesce(a.descricao,'Outros') as area,
+                s.unidade, s.tempo_previsto_horas as tempo,
+                s.vida_util_dias as "vidaUtilDias", s.km_manutencao as "kmManutencao",
+                s.nbs, s.instrucoes_execucao as observacao, s.ativo, s.versao,
+                coalesce(p.preco,s.preco_base,0) as preco,
+                coalesce(p.custo_fixo,s.custo,0) as "custoFixo",
+                coalesce(p.comissao_percentual,0) as comissao
+            from servicos s
+            left join departamentos_contabio a on a.id=s.area_id and a.empresa_id=s.empresa_id
+            left join precos_servico_empresa p on p.servico_id=s.id and p.empresa_id=s.empresa_id
+            where s.id=? and s.empresa_id=?
+            """, id, TenantAccess.requireCurrent());
     }
 
     private ServicoRequest toRequest(ServicoInput input) {
@@ -315,7 +328,7 @@ public class RecursosReferenciaController {
             select s.id, coalesce(p.preco,s.preco_base,0) as preco
             from servicos s left join precos_servico_empresa p
             on p.servico_id=s.id and p.empresa_id=s.empresa_id
-            where s.empresa_id=? and s.ativo=true and (? is null or s.area_id=?)
+            where s.empresa_id=? and s.ativo=true and (cast(? as bigint) is null or s.area_id=?)
             """,tenant,input.areaId(),input.areaId());
         for (var row:rows) {
             Long id=((Number)row.get("id")).longValue();
@@ -360,6 +373,7 @@ public class RecursosReferenciaController {
     }
 
     @GetMapping("/marcas")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV')")
     public List<Map<String,Object>> marcas() {
         return jdbc.queryForList("""
             select id,nome from marcas_veiculos
@@ -367,6 +381,7 @@ public class RecursosReferenciaController {
             """, TenantAccess.requireCurrent());
     }
     @GetMapping("/modelos")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV')")
     public List<Map<String,Object>> modelos(@RequestParam Long marcaId) {
         return jdbc.queryForList("""
             select m.id,m.nome from modelos_veiculos m
@@ -377,6 +392,7 @@ public class RecursosReferenciaController {
             """, marcaId,TenantAccess.requireCurrent(),TenantAccess.requireCurrent());
     }
     @GetMapping("/servicos/{id}/aplicacoes")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV')")
     public List<Map<String,Object>> aplicacoes(@PathVariable Long id) {
         assertServico(id);
         return jdbc.queryForList("""
@@ -431,13 +447,14 @@ public class RecursosReferenciaController {
     // ----- Acessórios de conferência --------------------------------------
     public record AcessorioInput(String descricao, Boolean checklist, Boolean padrao, Boolean ativo) {}
     @GetMapping("/acessorios")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('PS_LISTAR_SERV') or hasAuthority('GERAL_CONFIG_SISTEMA')")
     public List<Map<String,Object>> listarAcessorios(@RequestParam(required = false) String busca,
            @RequestParam(required = false) Boolean ativo,
            @RequestParam(required = false) Boolean checklist) {
         return jdbc.queryForList("""
             select id,descricao,checklist,padrao,ativo,versao from acessorios_veiculo
-            where empresa_id=? and (? is null or ativo=?) and (? is null or checklist=?)
-              and (? is null or lower(descricao) like lower('%'||?||'%'))
+            where empresa_id=? and (cast(? as boolean) is null or ativo=?) and (cast(? as boolean) is null or checklist=?)
+              and (cast(? as varchar) is null or lower(descricao) like lower('%'||?||'%'))
             order by descricao,id limit 1000
             """,TenantAccess.requireCurrent(),ativo,ativo,checklist,checklist,busca,busca);
     }
