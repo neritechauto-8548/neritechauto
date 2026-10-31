@@ -82,6 +82,29 @@ public class ComissaoFuncionarioController {
                 request.tipoDocumento(), Boolean.TRUE.equals(request.liquidarContaPagar())));
     }
 
+    @PostMapping("/{id}/processar-quitacao")
+    public ResponseEntity<ComissaoFuncionarioResponse> processarQuitacao(
+            @PathVariable Long id, @RequestParam Long empresaId, @Valid @RequestBody QuitarRequest request) {
+        return ResponseEntity.ok(service.processarQuitacao(id,empresaId,request.dataPagamento(),
+                request.observacao(),Boolean.TRUE.equals(request.gerarContaPagar()),
+                request.planoContaId(),request.tipoDocumento(),
+                Boolean.TRUE.equals(request.liquidarContaPagar())));
+    }
+
+    public record QuitacaoLoteRequest(
+            @jakarta.validation.constraints.NotEmpty java.util.List<Long> ids,
+            @jakarta.validation.Valid @jakarta.validation.constraints.NotNull QuitarRequest dados) {}
+
+    @PostMapping("/quitar-lote")
+    public ResponseEntity<java.util.List<ComissaoFuncionarioResponse>> quitarLote(
+            @RequestParam Long empresaId, @Valid @RequestBody QuitacaoLoteRequest request) {
+        var dados=request.dados();
+        return ResponseEntity.ok(service.quitarLote(empresaId,request.ids(),dados.dataPagamento(),
+                dados.observacao(),Boolean.TRUE.equals(dados.gerarContaPagar()),
+                dados.planoContaId(),dados.tipoDocumento(),
+                Boolean.TRUE.equals(dados.liquidarContaPagar())));
+    }
+
     @PostMapping("/{id}/estornar")
     public ResponseEntity<ComissaoFuncionarioResponse> estornar(@PathVariable Long id, @RequestParam Long empresaId) {
         return ResponseEntity.ok(service.estornar(id, empresaId));
