@@ -1,0 +1,263 @@
+<main class="supplier-page">
+  <nav class="crumb" aria-label="Navegação">
+    <span>NERITECH AUTO</span><b>›</b><span>Gestão de recursos</span><b>›</b>
+    <button type="button" (click)="voltar()">Fornecedores</button>
+    @if (detalhe) { <b>›</b><span class="crumb-muted">{{ titulo }}</span><b>›</b><span class="crumb-muted">{{aba === 'geral'?'Geral':aba==='contato'?'Contato':aba==='devolvidos'?'Itens devolvidos':'Detalhamento de crédito'}}</span> }
+  </nav>
+
+  @if (aviso) {<p class="notice success" role="status">{{aviso}} <button type="button" (click)="aviso=''">×</button></p>}
+  @if (erro && !drawer){<p role="alert" class="notice error">{{erro}} <button type="button" (click)="erro=''">×</button></p>}
+
+  @if (!detalhe) {
+    <header class="page-title">
+      <h1>Fornecedores <span class="help" title="Cadastro de fornecedores">?</span></h1>
+      <button type="button" class="btn primary" (click)="novo()">＋ &nbsp; Novo fornecedor</button>
+    </header>
+
+    <div class="search-row">
+      <label class="search-field"><span aria-hidden="true">⌕</span>
+        <input type="search" [(ngModel)]="busca" (ngModelChange)="digitarBusca()" (keyup.enter)="listar(true)"
+          placeholder="Pesquisar fornecedores" aria-label="Pesquisar fornecedores" maxlength="255"/>
+      </label>
+      <button type="button" class="btn outline" (click)="drawer='filtro'">⚲ &nbsp; Filtrar</button>
+    </div>
+    <section class="data-card" aria-label="Listagem de fornecedores">
+      <div class="card-toolbar">
+        <h2>Listagem de fornecedores</h2>
+        <div class="toolbar-buttons">
+          <button type="button" class="btn outline" (click)="abrirImportar()">⇧ &nbsp; Importar CSV</button>
+          <button type="button" class="btn outline" (click)="relatorio()" [disabled]="exporting||loading">▤ &nbsp; {{exporting?'Gerando...':'Relatórios'}}</button>
+        </div>
+      </div>
+      <div class="table-scroll" tabindex="0">
+        <table class="listing">
+          <thead><tr><th>Fornecedor</th><th>CPF/CNPJ</th><th>E-mail</th><th>Telefone</th><th aria-label="Ações"></th></tr></thead>
+          <tbody>
+            @for (row of itens; track row.id){
+              <tr>
+                <td><div class="name-col"><span class="avatar">{{(labelLinha(row)||'F').slice(0,2).toUpperCase()}}</span>
+                  <button type="button" class="row-link" (click)="abrirFornecedor(row.id)">{{labelLinha(row)}}</button></div></td>
+                <td>{{documentoLinha(row)||'Não informado'}}</td>
+                <td class="optional-data">{{row.emailPrincipal||'Não informado'}}</td>
+                <td class="optional-data">{{row.telefonePrincipal||'Não informado'}}</td>
+                <td class="delete-col">
+                  <button type="button" class="danger-icon" [disabled]="!row.ativo" (click)="abrirFornecedor(row.id)" title="Abrir fornecedor e alterar situação">♧</button>
+                </td>
+              </tr>
+            }
+            @if (!loading && !erro && itens.length===0) {
+              <tr><td colspan="5" class="empty"><span>▤</span> Não há dados</td></tr>
+            }
+            @if (loading){ <tr><td colspan="5" class="empty">Carregando fornecedores...</td></tr> }
+          </tbody>
+        </table>
+      </div>
+      @if (total>size) {
+        <div class="pagination"><span>{{total}} registros</span>
+          <button type="button" class="btn outline" [disabled]="page===0" (click)="navegarPagina(-1)">Anterior</button>
+          <span>Página {{page+1}}</span>
+          <button type="button" class="btn outline" [disabled]="(page+1)*size>=total" (click)="navegarPagina(1)">Próxima</button>
+        </div>
+      }
+    </section>
+  } @else {
+    <header class="page-title detail-title">
+      <h1>{{titulo}}</h1>
+      <div class="detail-actions">
+        <div class="segment" role="group" aria-label="Situação do fornecedor">
+          <button type="button" [class.chosen]="form.ativo" (click)="alterarSituacao(true)">Ativado</button>
+          <button type="button" [class.chosen]="form.ativo===false" (click)="alterarSituacao(false)">Desativado</button>
+        </div>
+        <button class="btn remove" type="button" [disabled]="!form.ativo" (click)="excluir()">♧ &nbsp; Remover</button>
+      </div>
+    </header>
+    <nav class="tabs" aria-label="Informações de fornecedor">
+      <button [class.active]="aba==='geral'" (click)="abrirAba('geral')">▤ &nbsp; Geral</button>
+      <button [class.active]="aba==='contato'" (click)="abrirAba('contato')">♧ &nbsp; Contato</button>
+      <button [class.active]="aba==='devolvidos'" (click)="abrirAba('devolvidos')">◈ &nbsp; Itens devolvidos</button>
+      <button [class.active]="aba==='credito'" (click)="abrirAba('credito')">ⓢ &nbsp; Detalhamento de crédito</button>
+    </nav>
+
+    @if(aba==='geral'){
+      <ng-container *ngTemplateOutlet="dadosFornecedor"></ng-container>
+      <footer class="bottom-actions"><button type="button" class="btn outline" (click)="voltar()">Cancelar</button>
+        <button type="button" class="btn primary" (click)="salvar()" [disabled]="saving||!podeSalvar">▣ &nbsp; {{saving?'Salvando...':'Salvar'}}</button>
+      </footer>
+    } @else if (aba==='contato') {
+      <section class="data-card related-card">
+        <div class="card-toolbar">
+          <h2>Listagem de contatos</h2>
+          <button class="btn primary" type="button" (click)="novoContato()">＋ &nbsp; Novo contato</button>
+        </div>
+        <div class="table-scroll">
+          <table class="listing">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Celular</th><th>Telefone</th><th>Estrangeiro</th><th aria-label="Ação"></th></tr></thead>
+            <tbody>
+              @for(c of contatos;track c.id){
+                <tr><td><button type="button" class="row-link" (click)="editarContato(c)">{{c.nome}}</button></td>
+                  <td>{{contatoValor(c,'EMAIL')}}</td><td>{{contatoWhatsapp(c)}}</td>
+                  <td>{{contatoValor(c,'CELULAR')}}</td><td>{{contatoValor(c,'TELEFONE')}}</td><td>Não</td>
+                  <td><button class="danger-icon" (click)="excluirContato(c)">♧</button></td></tr>
+              }
+              @if(!contatos.length&&!loading){<tr><td class="empty" colspan="7"><div class="empty-panel"><span>♧</span><p>Fornecedor não tem nenhum contato cadastrado</p></div></td></tr>}
+              @if(loading){<tr><td colspan="7" class="empty">Carregando contatos...</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <footer class="bottom-actions"><button class="btn outline" (click)="voltar()">Cancelar</button></footer>
+    } @else if (aba==='devolvidos'){
+      <section class="data-card related-card">
+        <div class="related-filter">
+          <label class="search-field"><span>⌕</span><input [(ngModel)]="filtroCompra" (keyup.enter)="carregarDevolvidos()" placeholder="Código compra" aria-label="Código compra"/></label>
+          <select [(ngModel)]="ordem" (change)="carregarDevolvidos()" aria-label="Ordem"><option value="desc">Descendente</option><option value="asc">Ascendente</option></select>
+        </div>
+        <div class="table-scroll">
+          <table class="listing">
+            <thead><tr><th>Empresa</th><th>Compra</th><th>Descrição</th><th>Chave NFe</th><th>Quantidade</th><th>Valor</th></tr></thead>
+            <tbody>
+              @for(row of devolvidos;track row.id){<tr><td>{{row.empresa}}</td><td>{{row.compra}}</td><td>{{row.descricao}}</td><td>{{row.chaveNfe||'—'}}</td><td>{{row.quantidade}}</td><td>{{moeda(row.valor)}}</td></tr>}
+              @if(!devolvidos.length&&!loading){<tr><td colspan="6" class="empty"><div class="empty-panel"><span>▤</span><p>Fornecedor não tem nenhum item devolvido</p></div></td></tr>}
+              @if(loading){<tr><td colspan="6" class="empty">Carregando itens devolvidos...</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <footer class="bottom-actions"><button class="btn outline" (click)="voltar()">Cancelar</button></footer>
+    } @else {
+      <section class="data-card related-card">
+        <div class="related-filter">
+          <label class="search-field"><span>⌕</span><input [(ngModel)]="filtroCompra" (keyup.enter)="carregarCreditos()" placeholder="Código compra" aria-label="Código compra"/></label>
+          <select [(ngModel)]="ordem" (change)="carregarCreditos()" aria-label="Ordem"><option value="desc">Descendente</option><option value="asc">Ascendente</option></select>
+        </div>
+        <div class="table-scroll">
+          <table class="listing">
+            <thead><tr><th>Empresa</th><th>Código Compra</th><th>Número doc. compra</th><th>Lanc. ref.</th><th>Conta</th><th>Valor</th></tr></thead>
+            <tbody>
+              @for(row of creditos;track row.id){<tr><td>{{row.empresa}}</td><td>{{row.codigoCompra||'—'}}</td><td>{{row.numeroDocumento||'—'}}</td><td>{{row.lancamentoReferencia||'—'}}</td><td>{{row.conta||'—'}}</td><td>{{moeda(row.valor)}}</td></tr>}
+              @if(!creditos.length&&!loading){<tr><td colspan="6" class="empty"><div class="empty-panel"><span>▤</span><p>Fornecedor não tem nenhum detalhamento de crédito</p></div></td></tr>}
+              @if(loading){<tr><td colspan="6" class="empty">Carregando detalhamento de crédito...</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <footer class="bottom-actions"><button class="btn outline" (click)="voltar()">Cancelar</button></footer>
+    }
+  }
+</main>
+
+<ng-template #dadosFornecedor>
+  <section class="form-panel">
+    <h2>Dados gerais</h2>
+    <div class="segment pessoa" role="group" aria-label="Tipo de pessoa">
+      <button [class.chosen]="!pessoaJuridica" (click)="selecionarTipo('FISICA')" type="button">♙ &nbsp; Pessoa física</button>
+      <button [class.chosen]="pessoaJuridica" (click)="selecionarTipo('JURIDICA')" type="button">♧ &nbsp; Pessoa jurídica</button>
+    </div>
+    <div class="fields">
+      @if(!pessoaJuridica){
+        <label class="field">CPF<input [(ngModel)]="form.cpf" (ngModelChange)="form.cpf=formatarDocumento($event,'FISICA')" placeholder="Informe um CPF" maxlength="14" inputmode="numeric"/></label>
+        <label class="field">Nome completo <b>*</b><input [(ngModel)]="form.razaoSocial" placeholder="Informe um nome completo" maxlength="255"/></label>
+        <label class="field">Email<input [(ngModel)]="form.emailPrincipal" type="email" placeholder="Informe um email" maxlength="255"/></label>
+      } @else {
+        <label class="field">CNPJ<input [(ngModel)]="form.cnpj" (ngModelChange)="form.cnpj=formatarDocumento($event,'JURIDICA')" placeholder="Informe um CNPJ" maxlength="18" inputmode="numeric"/></label>
+        <label class="field">Razão social <b>*</b><input [(ngModel)]="form.razaoSocial" placeholder="Informe a razão social" maxlength="255"/></label>
+        <label class="field">Nome fantasia<input [(ngModel)]="form.nomeFantasia" placeholder="Informe um nome fantasia" maxlength="255"/></label>
+        <label class="field">Inscrição estadual<input [(ngModel)]="form.inscricaoEstadual" placeholder="Informe uma inscrição estadual" maxlength="20"/></label>
+        <label class="field">Inscrição municipal<input [(ngModel)]="form.inscricaoMunicipal" placeholder="Informe uma inscrição municipal" maxlength="20"/></label>
+        <label class="field">Email<input [(ngModel)]="form.emailPrincipal" type="email" placeholder="Informe um email" maxlength="255"/></label>
+      }
+      <label class="field full">Observações<textarea [(ngModel)]="form.observacoes" rows="2" maxlength="4000" placeholder="Informe uma observação"></textarea></label>
+    </div>
+  </section>
+  <section class="form-panel">
+    <h2>Endereço</h2>
+    <div class="fields">
+      <label class="field full">CEP<input [(ngModel)]="form.cep" (ngModelChange)="form.cep=formatarCep($event)" placeholder="⌾  Informe o CEP" maxlength="9" inputmode="numeric"/></label>
+      <label class="field full">Logradouro<input [(ngModel)]="form.logradouro" placeholder="Nome da rua, avenida ou estrada" maxlength="255"/></label>
+      <label class="field one-third">Número<input [(ngModel)]="form.numero" placeholder="#  Número do imóvel" maxlength="30"/></label>
+      <label class="field two-thirds">Bairro<input [(ngModel)]="form.bairro" placeholder="Nome do bairro" maxlength="120"/></label>
+      <label class="field full">Estado<select [(ngModel)]="form.estado" aria-label="Estado"><option value="">Selecione o estado</option><option *ngFor="let uf of estados" [value]="uf">{{uf}}</option></select></label>
+      <label class="field full">Cidade<input [(ngModel)]="form.cidade" [disabled]="!form.estado" placeholder="Selecione a cidade" maxlength="100"/></label>
+      <label class="field full">Complemento<input [(ngModel)]="form.complemento" placeholder="Apartamento, bloco, sala, etc." maxlength="255"/></label>
+    </div>
+  </section>
+  <section class="form-panel">
+    <h2>Informações complementares</h2>
+    <div class="fields">
+      <label class="field">Classificação <b>*</b><select [(ngModel)]="form.classificacao"><option value="OUTROS">Outros</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></label>
+      <label class="field">Plano de contas
+        <select [(ngModel)]="form.planoContasId"><option [ngValue]="null">Informe um plano de contas</option>
+        @for(p of planos;track p.id){<option [ngValue]="p.id">{{p.codigo}} - {{p.nome}}</option>}</select>
+      </label>
+      <label class="field">Site<input [(ngModel)]="form.website" placeholder="https://meusite.com" type="url" maxlength="255"/></label>
+      <label class="field">Linha de peças<input [(ngModel)]="form.linhaPecas" maxlength="255" placeholder="Informe uma linha de peças"/></label>
+    </div>
+  </section>
+</ng-template>
+
+@if(drawer){
+  <div class="backdrop" (click)="drawer=null" aria-hidden="true"></div>
+  <aside class="drawer" [class.wide]="drawer==='novo'" [class.import-drawer]="drawer==='importar'"
+    role="dialog" aria-modal="true" aria-label="Painel de fornecedores" (keydown.escape)="drawer=null">
+    @if(drawer==='novo'){
+      <header class="drawer-head"><div><h2>Cadastro de fornecedor</h2><p>Preencha as informações para registrar um novo fornecedor</p></div><button (click)="drawer=null" aria-label="Fechar">×</button></header>
+      <div class="drawer-scroll"><ng-container *ngTemplateOutlet="dadosFornecedor"></ng-container></div>
+      @if(erro){<div class="form-error" role="alert">{{erro}}</div>}
+      <footer class="drawer-foot"><button class="btn outline" (click)="drawer=null">Cancelar</button>
+        <button class="btn primary" [disabled]="saving||!podeSalvar" (click)="salvar()">＋ &nbsp; {{saving?'Salvando...':'Cadastrar fornecedor'}}</button>
+      </footer>
+    } @else if(drawer==='filtro'){
+      <header class="drawer-head"><div><h2>Filtro avançado de fornecedores</h2><p>Filtro de listagem avançado</p></div><button (click)="drawer=null" aria-label="Fechar">×</button></header>
+      <div class="drawer-scroll"><div class="fields">
+        <label class="field">CPF/CNPJ<input [(ngModel)]="filtroDocumento" placeholder="Informe documento"/></label>
+        <label class="field">Nome<input [(ngModel)]="filtroNome" placeholder="Informe um nome"/></label>
+        <label class="field">Situação<select [(ngModel)]="filtroSituacao"><option value="">Selecionar situação</option><option value="true">Ativado</option><option value="false">Desativado</option></select></label>
+      </div></div>
+      <footer class="drawer-foot filter-foot"><button class="btn outline" (click)="drawer=null">Cancelar</button><div class="foot-right"><button class="btn reset" (click)="limparFiltro()">⌫ &nbsp; Resetar</button><button class="btn primary" (click)="filtrar()">⚲ &nbsp; Filtrar</button></div></footer>
+    } @else if(drawer==='contato'){
+      <header class="drawer-head"><div><h2>{{contatoForm.id?'Edição do contato':'Criação do contato'}}</h2></div><button (click)="drawer=null" aria-label="Fechar">×</button></header>
+      <div class="drawer-scroll">
+        <section class="form-panel">
+          <h2>Dados do contato</h2>
+          <div class="fields">
+            <label class="field">Nome <b>*</b><input [(ngModel)]="contatoForm.nome" maxlength="255"/></label>
+            <label class="field">Sexo<select [(ngModel)]="contatoForm.sexo"><option value="MASCULINO">Masculino</option><option value="FEMININO">Feminino</option><option value="NAO_INFORMADO">Não informado</option></select></label>
+            <label class="field">Data de nascimento<input type="date" [(ngModel)]="contatoForm.dataNascimento"/></label>
+            <label class="check-field full"><input type="checkbox" [(ngModel)]="contatoForm.contatoPrincipal"/> Grupo de contato principal?</label>
+          </div>
+        </section>
+        <h3 class="contact-subtitle">Contatos</h3>
+        @for(meio of contatoForm.meios;track $index;let i=$index){
+          <div class="contact-row"><select [(ngModel)]="meio.tipo" aria-label="Tipo de contato"><option value="CELULAR">Celular</option><option value="TELEFONE">Telefone</option><option value="EMAIL">E-mail</option></select>
+            <input [(ngModel)]="meio.valor" placeholder="Informe um contato" aria-label="Contato" maxlength="255"/>
+            @if(meio.tipo==='CELULAR'){<label><input type="checkbox" [(ngModel)]="meio.whatsapp"/> WhatsApp</label>}
+            <button class="danger-icon" (click)="retirarCanal(i)" aria-label="Remover contato">×</button>
+          </div>
+        }
+        <button class="btn outline contact-add" (click)="adicionarCanal()">＋ &nbsp; Adicionar contato</button>
+      </div>
+      @if(erro){<div role="alert" class="form-error">{{erro}}</div>}
+      <footer class="drawer-foot"><button class="btn outline" (click)="drawer=null">Cancelar</button><button class="btn primary" (click)="salvarContato()" [disabled]="saving||!contatoForm.nome.trim()">＋ &nbsp; {{contatoForm.id?'Salvar contato':'Cadastrar contato'}}</button></footer>
+    } @else {
+      <header class="drawer-head"><div><h2>Importações de fornecedores</h2><p>Envie, valide e confirme cadastros em poucos passos</p></div><button (click)="drawer=null" aria-label="Fechar">×</button></header>
+      <div class="drawer-scroll import-content">
+        <p class="steps"><strong [class.current]="importarEtapa===1">1. Arquivo</strong><strong [class.current]="importarEtapa===2">2. Revisão</strong><strong [class.current]="importarEtapa===3">3. Conclusão</strong></p>
+        @if(importarEtapa===1){
+          <h3>Prepare o arquivo</h3>
+          <p>Utilize o modelo CSV com Tipo de pessoa, CPF, CNPJ, Nome/Razão social, Nome fantasia, Email e Classificação.</p>
+          <div class="notice info">Os registros serão gravados somente após validação e sua confirmação.</div>
+          <label class="upload">Selecionar CSV<input type="file" accept=".csv,text/csv" (change)="selecionarCsv($event)"/></label>
+        } @else if(importarEtapa===2){
+          <h3>Revisão do arquivo: {{importarNome}}</h3>
+          <p>{{importarLinhas.length}} fornecedores preparados para importação.</p>
+          <div class="preview-list">@for(item of importarLinhas.slice(0,15);track $index){<p>{{item.razaoSocial}} — {{item.tipoPessoa}}</p>}</div>
+        } @else {<div class="notice success">Importação concluída: {{importarLinhas.length}} fornecedores.</div>}
+        @if(importarErro){<div class="form-error" role="alert">{{importarErro}}</div>}
+      </div>
+      <footer class="drawer-foot"><button class="btn outline" (click)="baixarModelo()">⇩ &nbsp; Baixar modelo CSV</button>
+        @if(importarEtapa===2){<button class="btn primary" [disabled]="saving" (click)="confirmarImportacao()">Confirmar importação</button>}
+        @if(importarEtapa===3){<button class="btn primary" (click)="drawer=null">Concluir</button>}
+      </footer>
+    }
+  </aside>
+}
