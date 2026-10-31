@@ -48,7 +48,8 @@
           <div class="space-y-4 p-4">
             <div class="flex justify-center">
               <label class="flex h-[145px] w-[145px] cursor-pointer flex-col items-center justify-center rounded-lg border border-[#d8dee8] bg-[#f1f3f5] text-center text-[#8b98a7] hover:bg-[#e8ecf2]">
-                <span class="text-2xl">▧</span>
+                <img *ngIf="urlFoto" [src]="urlFoto" alt="Foto do funcionário" class="h-20 w-20 rounded-md object-cover" />
+                <span *ngIf="!urlFoto" class="text-2xl">▧</span>
                 <span class="mt-2 text-[12px]">Foto de perfil</span>
                 <span class="mt-1 text-[10px]">PNG, JPG</span>
                 <input type="file" accept="image/png,image/jpeg" (change)="selecionarFoto($event)" class="sr-only" aria-label="Escolher foto de perfil" />
@@ -124,7 +125,7 @@
           </header>
           <div class="min-h-[165px] p-4">
             <div class="rounded-lg border border-[#18328A] bg-[#d8e7ff] px-4 py-3 text-[13px]">
-              <span class="font-semibold text-[#18328A]">☑ Empresa da sessão</span><p class="mt-1 text-[11px] text-slate-600">Identificador {{ empresaId }} · vínculo protegido por empresa</p>
+              <span class="font-semibold text-[#18328A]">☑ {{ empresaNome || 'Empresa da sessão' }}</span><p class="mt-1 text-[11px] text-slate-600">{{ empresaCnpj || 'Empresa autenticada' }}</p>
             </div>
           </div>
         </section>
@@ -278,7 +279,7 @@
       <div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
         <div class="rounded-lg border border-[#e1e5eb] p-4">
           <h3 class="text-[13px] font-semibold">Empresa</h3><p class="text-[12px] text-slate-500">Empresa vinculada ao funcionário</p>
-          <p class="mt-2 rounded-md border border-[#cbd3df] p-3 text-[13px]">Empresa da sessão ({{ empresaId }})</p>
+          <p class="mt-2 rounded-md border border-[#cbd3df] p-3 text-[13px]">{{ empresaNome || 'Empresa da sessão' }}{{ empresaCnpj ? ' · ' + empresaCnpj : '' }}</p>
         </div>
         <div *ngFor="let item of epiItens; let i=index" class="space-y-3 rounded-lg border border-[#e1e5eb] p-4">
           <div class="flex items-center justify-between"><h3 class="text-[13px] font-semibold">EPI {{ i + 1 }}</h3><button type="button" *ngIf="epiItens.length>1" (click)="removerEpi(i)" aria-label="Remover item" class="text-red-600">✕</button></div>
