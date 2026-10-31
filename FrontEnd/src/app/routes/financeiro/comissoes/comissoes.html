@@ -177,8 +177,8 @@
       </form>
       <footer class="flex justify-end gap-3 border-t border-slate-200 p-4">
         <button type="button" (click)="fecharOperacao()" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
-        <button type="submit" form="quitar-form" [disabled]="busy || !dataPagamento"
-          class="rounded-lg bg-[#83ef47] px-5 py-2.5 text-[13px] font-semibold text-[#102000] disabled:opacity-40" [disabled]="busy || !planoSelecionado || liquidarContaPagar">{{ busy ? 'Salvando...' : '✓ Quitar comissão' }}</button>
+        <button type="submit" form="quitar-form" [disabled]="busy || !dataPagamento || !planoSelecionado || liquidarContaPagar"
+          class="rounded-lg bg-[#83ef47] px-5 py-2.5 text-[13px] font-semibold text-[#102000] disabled:opacity-40">{{ busy ? 'Salvando...' : '✓ Quitar comissão' }}</button>
       </footer>
     </section>
   </div>
