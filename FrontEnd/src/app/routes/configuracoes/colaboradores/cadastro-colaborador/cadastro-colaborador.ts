@@ -35,6 +35,7 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { UtilService } from '@shared/services/util.service';
 import { isValidCpf } from '@shared/utils/validators';
+import { Epi, EpiEntrega, EpiService } from '../../epis/epi.service';
 
 @Component({
   selector: 'cadastro-colaborador',
@@ -70,6 +71,7 @@ export class CadastroColaborador implements OnInit {
   private readonly regraComissaoService = inject(RegraComissaoService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly utilService         = inject(UtilService);
+  private readonly epiService          = inject(EpiService);
 
   // ---- Acesso ao sistema ----
   temAcesso = false;
@@ -105,12 +107,69 @@ export class CadastroColaborador implements OnInit {
   navTabs = [
     { id: 'pessoais',    label: 'Dados Pessoais',    icon: 'person' },
     { id: 'vinculo',     label: 'Vínculo',            icon: 'badge' },
+    { id: 'epis',        label: 'EPIs',               icon: 'shield' },
     { id: 'comissao',    label: 'Regras de Comissão', icon: 'percent' },
     { id: 'documentos',  label: 'Documentos',         icon: 'description' },
     { id: 'bancario',    label: 'Dados Bancários',    icon: 'account_balance' },
     { id: 'usuario',     label: 'Acesso ao Sistema',  icon: 'lock' },
     { id: 'tema',        label: 'Tema',               icon: 'palette' },
   ];
+
+  epiCatalogo: Epi[] = [];
+  epiEntregas: EpiEntrega[] = [];
+  epiLoading = false;
+  epiSalvando = false;
+  epiErro = '';
+  epiForm = { epiId: null as number | null, dataEntrega: '', dataValidade: '', observacao: '' };
+
+  selecionarAba(id: string): void {
+    this.activeTab = id;
+    if (id === 'epis') this.carregarEntregasEpi();
+  }
+
+  carregarEntregasEpi(): void {
+    if (!this.funcionarioId) return;
+    this.epiLoading = true;
+    this.epiErro = '';
+    this.epiService.entregas(this.funcionarioId).subscribe({
+      next: rows => { this.epiEntregas = rows; this.epiLoading = false; },
+      error: () => { this.epiLoading = false; this.epiErro = 'Não foi possível carregar o histórico de EPIs.'; }
+    });
+    this.epiService.listar('', 0, 100).subscribe({
+      next: page => { this.epiCatalogo = page.content ?? []; },
+      error: () => { this.epiErro = 'Não foi possível carregar o catálogo de EPIs.'; }
+    });
+  }
+
+  registrarEntregaEpi(): void {
+    if (!this.funcionarioId || !this.epiForm.epiId || !this.epiForm.dataEntrega) {
+      this.epiErro = 'Selecione o EPI e informe a data da entrega realizada.';
+      return;
+    }
+    if (this.epiForm.dataValidade && this.epiForm.dataValidade < this.epiForm.dataEntrega) {
+      this.epiErro = 'Data de validade não pode anteceder a entrega.';
+      return;
+    }
+    this.epiErro = ''; this.epiSalvando = true;
+    this.epiService.entregar(this.funcionarioId, {
+      epiId: this.epiForm.epiId, dataEntrega: this.epiForm.dataEntrega,
+      dataValidade: this.epiForm.dataValidade || undefined,
+      observacao: this.epiForm.observacao || undefined
+    }).subscribe({
+      next: () => {
+        this.epiSalvando = false;
+        this.epiForm = { epiId: null, dataEntrega: '', dataValidade: '', observacao: '' };
+        this.messageService.add({ severity: 'success', summary: 'EPI entregue', detail: 'Entrega registrada no histórico do funcionário.' });
+        this.carregarEntregasEpi();
+      },
+      error: err => {
+        this.epiSalvando = false;
+        this.epiErro = err.status === 403 ? 'Sem permissão para registrar entrega.'
+          : err.status === 422 ? 'Revise a data da entrega e a validade.'
+          : 'Não foi possível registrar a entrega.';
+      }
+    });
+  }
 
   // ---- Opções de cores para o Tema ----
   primaryColorOptions = [
