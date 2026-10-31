@@ -128,8 +128,8 @@ class FuncionarioTenantIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void filtroAvancadoPesquisaServidorSemCruzarEmpresas() throws Exception {
-        long empresaA = empresa("FiltroA");
-        long empresaB = empresa("FiltroB");
+        long empresaA = empresa("X");
+        long empresaB = empresa("Y");
         long funcionarioA = funcionario(empresaA, "FiltroA");
         long funcionarioB = funcionario(empresaA, "FiltroB");
         long funcionarioExterno = funcionario(empresaB, "FiltroC");
