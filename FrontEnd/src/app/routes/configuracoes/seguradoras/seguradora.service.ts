@@ -6,25 +6,30 @@ import { environment } from '../../../../environments/environment';
 export interface Seguradora {
   id: number;
   empresaId: number;
-  nomeFantasia: string;
-  razaoSocial?: string | null;
-  cnpj?: string | null;
-  registroSusep?: string | null;
-  registroSusepVerificado: boolean;
-  nomeContato?: string | null;
-  telefone?: string | null;
-  email?: string | null;
-  endereco?: string | null;
-  tipoConvenio?: 'CONVENIO' | 'REEMBOLSO' | 'AMBOS' | null;
+  cnpj: string;
+  razaoSocial: string;
+  nomeFantasia: string | null;
+  inscricaoEstadual: string | null;
+  inscricaoMunicipal: string | null;
+  email: string | null;
+  observacoes: string | null;
+  margemRefatoramento: number | null;
+  site: string | null;
+  retencaoIss: boolean;
   ativo: boolean;
-  notas?: string | null;
   versao: number;
   totalOS: number;
 }
 
-export type SeguradoraForm = Pick<Seguradora, 'nomeFantasia' | 'razaoSocial' | 'cnpj' |
-  'registroSusep' | 'nomeContato' | 'telefone' | 'email' | 'endereco' |
-  'tipoConvenio' | 'notas' | 'ativo'>;
+export type SeguradoraForm = Pick<Seguradora,
+  'cnpj' | 'razaoSocial' | 'nomeFantasia' | 'inscricaoEstadual' | 'inscricaoMunicipal' |
+  'email' | 'observacoes' | 'margemRefatoramento' | 'site' | 'retencaoIss' | 'ativo'>;
+
+export interface FiltrosSeguradoras {
+  cnpj?: string;
+  nome?: string;
+  nomeFantasia?: string;
+}
 
 export interface Pagina<T> {
   content: T[];
@@ -53,11 +58,15 @@ export class SeguradoraService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.baseUrl}/v1/seguradoras`;
 
-  listar(page = 0, size = 20, busca = '', ativo?: boolean): Observable<Pagina<Seguradora>> {
+  listar(page = 0, size = 20, busca = '', ativo?: boolean,
+    filtros: FiltrosSeguradoras = {}): Observable<Pagina<Seguradora>> {
     let params = new HttpParams().set('page', page).set('size', size)
       .set('sort', 'id,desc');
     if (busca.trim()) params = params.set('busca', busca.trim());
     if (ativo !== undefined) params = params.set('ativo', String(ativo));
+    if (filtros.cnpj?.trim()) params = params.set('cnpj', filtros.cnpj.replace(/\\D/g, ''));
+    if (filtros.nome?.trim()) params = params.set('nome', filtros.nome.trim());
+    if (filtros.nomeFantasia?.trim()) params = params.set('nomeFantasia', filtros.nomeFantasia.trim());
     return this.http.get<Pagina<Seguradora>>(this.base, { params });
   }
   obter(id: number): Observable<Seguradora> {
