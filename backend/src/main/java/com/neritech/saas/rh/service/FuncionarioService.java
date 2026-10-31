@@ -82,12 +82,16 @@ public class FuncionarioService {
     public FuncionarioResponse create(FuncionarioRequest request) {
         Long empresaId = TenantAccess.require(request.empresaId());
         validateRelations(request, empresaId, null);
-        if (repository.existsByEmpresaIdAndMatricula(request.empresaId(), request.matricula())) {
+        if (request.matricula() != null && !request.matricula().isBlank() && repository.existsByEmpresaIdAndMatricula(request.empresaId(), request.matricula())) {
             throw new IllegalArgumentException("Matrícula já existe para esta empresa");
         }
         validarFuncionario(request, null);
 
         Funcionario entity = mapper.toEntity(request);
+        if (entity.getMatricula() == null || entity.getMatricula().isBlank()) {
+            Long seq = jdbc.queryForObject("select nextval('seq_funcionarios_registro_interno')", Long.class);
+            entity.setMatricula("AUTO-" + seq);
+        }
         if (entity.getStatus() == null) entity.setStatus(com.neritech.saas.rh.domain.enums.StatusFuncionario.ATIVO);
         entity = repository.save(entity);
         audit(entity, "INSERT", auditFields(entity));
@@ -220,25 +224,20 @@ public class FuncionarioService {
             }
         }
 
-        // Validação de Endereço
-        if (request.cep() == null || request.cep().isBlank()) {
-            throw new IllegalArgumentException("CEP é obrigatório");
-        }
-        String cleanCep = request.cep().replaceAll("\\D", "");
-        if (cleanCep.length() != 8) {
+        // Endereço opcional na etapa inicial, respeitando os campos sem asterisco da referência.
+        // Se preenchido, todos os dados informados continuam validados.
+        if (request.cep() != null && !request.cep().isBlank()
+                && !request.cep().replaceAll("\\\\D", "").matches("\\\\d{8}")) {
             throw new IllegalArgumentException("CEP inválido");
         }
-        if (request.logradouro() == null || request.logradouro().isBlank()) {
-            throw new IllegalArgumentException("Logradouro é obrigatório");
+        if (request.estado() != null && !request.estado().isBlank()
+                && !request.estado().matches("[A-Za-z]{2}")) {
+            throw new IllegalArgumentException("UF inválida");
         }
-        if (request.bairro() == null || request.bairro().isBlank()) {
-            throw new IllegalArgumentException("Bairro é obrigatório");
-        }
-        if (request.cidade() == null || request.cidade().isBlank()) {
-            throw new IllegalArgumentException("Cidade é obrigatória");
-        }
-        if (request.estado() == null || request.estado().isBlank()) {
-            throw new IllegalArgumentException("UF é obrigatória");
+        for (var valor : java.util.List.of(request.comissaoPecas() == null ? java.math.BigDecimal.ZERO : request.comissaoPecas(),
+                request.comissaoServicos() == null ? java.math.BigDecimal.ZERO : request.comissaoServicos())) {
+            if (valor.signum() < 0 || valor.compareTo(new java.math.BigDecimal("100")) > 0)
+                throw new IllegalArgumentException("Comissão deve estar entre 0 e 100%");
         }
 
         // Validação de E-mail Pessoal
