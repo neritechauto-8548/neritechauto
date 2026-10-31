@@ -61,6 +61,28 @@ public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
             Pageable pageable);
 
     @org.springframework.data.jpa.repository.Query("""
+        SELECT f FROM Fornecedor f
+         WHERE f.empresaId=:empresaId
+           AND (:ativo IS NULL OR f.ativo=:ativo)
+           AND (:cidade='' OR LOWER(f.cidade) LIKE LOWER(CONCAT('%',:cidade,'%')))
+           AND (:documento='' OR f.cnpj LIKE CONCAT('%',:documento,'%')
+                              OR f.cpf LIKE CONCAT('%',:documento,'%'))
+           AND (:nome='' OR LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%',:nome,'%'))
+                       OR LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%',:nome,'%')))
+           AND (:search='' OR LOWER(f.razaoSocial) LIKE LOWER(CONCAT('%',:search,'%'))
+                        OR LOWER(f.nomeFantasia) LIKE LOWER(CONCAT('%',:search,'%'))
+                        OR f.cnpj LIKE CONCAT('%',:search,'%')
+                        OR f.cpf LIKE CONCAT('%',:search,'%'))
+        """)
+    Page<Fornecedor> filterDetalhado(
+        @org.springframework.data.repository.query.Param("empresaId") Long empresaId,
+        @org.springframework.data.repository.query.Param("search") String search,
+        @org.springframework.data.repository.query.Param("ativo") Boolean ativo,
+        @org.springframework.data.repository.query.Param("cidade") String cidade,
+        @org.springframework.data.repository.query.Param("documento") String documento,
+        @org.springframework.data.repository.query.Param("nome") String nome, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("""
         SELECT f FROM Fornecedor f WHERE f.empresaId = :tenant
         AND f.transportadora = true
         AND (:ativo IS NULL OR
