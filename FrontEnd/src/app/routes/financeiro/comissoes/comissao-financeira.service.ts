@@ -78,6 +78,24 @@ export class ComissaoFinanceiraService {
         tipoDocumento: opcoes?.tipoDocumento
       }, { headers, params: { empresaId } }));
   }
+  processarQuitacao(id: number, dataPagamento: string, observacao?: string,
+    opcoes?: OpcoesQuitacao): Observable<ComissaoLinha> {
+    return this.scoped((empresaId, headers) =>
+      this.http.post<ComissaoLinha>(this.base + '/' + id + '/processar-quitacao', {
+        dataPagamento, observacao, gerarContaPagar: opcoes?.gerarContaPagar ?? false,
+        liquidarContaPagar: opcoes?.liquidarContaPagar ?? false,
+        planoContaId: opcoes?.planoContaId, tipoDocumento: opcoes?.tipoDocumento
+      }, { headers, params: { empresaId } }));
+  }
+  quitarLote(ids: number[], dataPagamento: string, observacao?: string,
+    opcoes?: OpcoesQuitacao): Observable<ComissaoLinha[]> {
+    return this.scoped((empresaId, headers) =>
+      this.http.post<ComissaoLinha[]>(this.base + '/quitar-lote', {
+        ids, dados: { dataPagamento, observacao, gerarContaPagar: opcoes?.gerarContaPagar ?? false,
+          liquidarContaPagar: opcoes?.liquidarContaPagar ?? false,
+          planoContaId: opcoes?.planoContaId, tipoDocumento: opcoes?.tipoDocumento }
+      }, { headers, params: { empresaId } }));
+  }
   estornar(id: number): Observable<ComissaoLinha> {
     return this.scoped((empresaId, headers) =>
       this.http.post<ComissaoLinha>(this.base + '/' + id + '/estornar', null, {
