@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Subscription } from 'rxjs';
 import { RelatoriosService } from '../../relatorios/relatorios.service';
-import { ComissaoFinanceiraService, ComissaoLinha, FiltrosComissoes } from './comissao-financeira.service';
+import { ComissaoFinanceiraService, ComissaoLinha, FiltrosComissoes, PlanoContaComissao } from './comissao-financeira.service';
 
 @Component({
   standalone: true,
@@ -37,6 +37,14 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   dataPagamento = '';
   observacao = '';
   operacaoErro = '';
+  gerarContaPagar = false;
+  liquidarContaPagar = false;
+  planoContaId: number | null = null;
+  tipoDocumento = '';
+  planosContas: PlanoContaComissao[] = [];
+  carregandoPlanos = false;
+  get planoSelecionado(): boolean { return !this.gerarContaPagar || (!!this.planoContaId && !!this.tipoDocumento); }
+  aoMarcarConta(): void { if (!this.gerarContaPagar) { this.planoContaId=null; this.tipoDocumento='';this.liquidarContaPagar=false; } }
 
   ngOnInit(): void { this.carregar(); }
   ngOnDestroy(): void { this.listSub?.unsubscribe(); }
@@ -106,6 +114,10 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   abrirQuitacao(linha: ComissaoLinha): void {
     this.selecionada = linha; this.operacao = 'quitar'; this.observacao = '';
     this.dataPagamento = this.localDate(new Date()); this.operacaoErro = '';
+    this.gerarContaPagar=false; this.liquidarContaPagar=false; this.planoContaId=null; this.tipoDocumento='';
+    this.carregandoPlanos=true;
+    this.service.listarPlanos().subscribe({next: p => {this.planosContas=p;this.carregandoPlanos=false;},
+      error: () => {this.carregandoPlanos=false;this.operacaoErro='Não foi possível consultar o plano de contas.';} });
   }
   abrirEstorno(linha: ComissaoLinha): void {
     this.selecionada = linha; this.operacao = 'estornar'; this.operacaoErro = '';
@@ -116,16 +128,25 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     if (this.operacao === 'quitar' && (!this.dataPagamento || this.dataPagamento > this.localDate(new Date()))) {
       this.operacaoErro = 'Informe a data real do pagamento (não futura).'; return;
     }
+    if (this.operacao === 'quitar' && !this.planoSelecionado) {
+      this.operacaoErro = 'Selecione plano de contas e tipo de documento.'; return;
+    }
+    if (this.operacao === 'quitar' && this.liquidarContaPagar) {
+      this.operacaoErro = 'A liquidação automática exige pagamento financeiro comprovado; utilize Contas a Pagar.'; return;
+    }
     this.busy = true; this.operacaoErro = '';
     const op = this.operacao === 'quitar'
-      ? this.service.quitar(this.selecionada.id, this.dataPagamento, this.observacao)
+      ? this.service.quitar(this.selecionada.id, this.dataPagamento, this.observacao,
+          { gerarContaPagar:this.gerarContaPagar, liquidarContaPagar:false,
+            planoContaId:this.gerarContaPagar?(this.planoContaId||undefined):undefined,
+            tipoDocumento:this.gerarContaPagar?this.tipoDocumento:undefined })
       : this.service.estornar(this.selecionada.id);
     op.subscribe({
       next: () => {
         const status = this.operacao;
         this.busy = false; this.fecharOperacao();
         this.notice = status === 'quitar'
-          ? 'Quitação registrada. Nenhuma conta a pagar nem transferência bancária foi criada.'
+          ? (this.gerarContaPagar ? 'Comissão quitada e conta a pagar criada em aberto.' : 'Quitação registrada. Nenhuma conta a pagar nem transferência bancária foi criada.')
           : 'Quitação estornada e registrada em auditoria.';
         this.carregar();
       },
