@@ -95,6 +95,12 @@ export const routes: Routes = [
     data: { title: 'Categoria' }
   },
   {
+    path: 'epis',
+    canActivate: [permissionGuard],
+    loadComponent: () => import('./epis/epis').then(m => m.EpisComponent),
+    data: { title: 'EPIs', requiredPermissions: 'GERAL_CONFIG_SISTEMA' }
+  },
+  {
     path: 'cargos',
     canActivate: [permissionGuard],
     loadComponent: () => import('./cargos/cargos').then(m => m.CargosComponent),
