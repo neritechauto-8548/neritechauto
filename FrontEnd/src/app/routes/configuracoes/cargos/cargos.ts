@@ -12,7 +12,7 @@ import { DepartamentoService } from '../departamentos/departamento.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, A11yModule],
 
-  template: \`
+  template: `
     <main class="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 lg:px-8 space-y-5">
       <nav aria-label="Caminho de navegação" class="text-xs text-slate-500">Administração › Gestão de pessoas › Cargos</nav>
       <nav aria-label="Gestão de pessoas" class="flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
@@ -123,7 +123,7 @@ import { DepartamentoService } from '../departamentos/departamento.service';
         </section>
       </div>
     </main>
-  \`
+  `
 
 })
 export class CargosComponent implements OnInit {
