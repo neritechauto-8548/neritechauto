@@ -12,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +27,14 @@ public class FornecedorService {
     private final FornecedorRepository repository;
     private final FornecedorMapper mapper;
     private final FornecedorHistoricoService auditoria;
+    private final JdbcTemplate jdbc;
 
     public FornecedorService(FornecedorRepository repository, FornecedorMapper mapper,
-                             FornecedorHistoricoService auditoria) {
+                             FornecedorHistoricoService auditoria, JdbcTemplate jdbc) {
         this.repository = repository;
         this.mapper = mapper;
         this.auditoria = auditoria;
+        this.jdbc = jdbc;
     }
 
     @Transactional
@@ -40,6 +43,7 @@ public class FornecedorService {
         validar(request, tenant, null);
         Fornecedor entity = mapper.toEntity(request);
         entity.setEmpresaId(tenant);
+        if (entity.getNomeFantasia() == null || entity.getNomeFantasia().isBlank()) entity.setNomeFantasia(request.razaoSocial());
         entity.setCpf(documento(request.cpf()));
         entity.setCnpj(documento(request.cnpj()));
         if (entity.getAtivo() == null) entity.setAtivo(true);
@@ -96,6 +100,7 @@ public class FornecedorService {
         validar(request, tenant, id);
         Map<String, Object> anterior = FornecedorHistoricoService.campos(entity);
         mapper.updateEntityFromRequest(request, entity);
+        if (entity.getNomeFantasia() == null || entity.getNomeFantasia().isBlank()) entity.setNomeFantasia(request.razaoSocial());
         entity.setCpf(documento(request.cpf()));
         entity.setCnpj(documento(request.cnpj()));
         Fornecedor saved;
@@ -169,12 +174,12 @@ public class FornecedorService {
         String cpf = documento(r.cpf());
         String cnpj = documento(r.cnpj());
         if (r.tipoPessoa() == TipoPessoa.FISICA) {
-            if (cpf == null || !DocumentoValidator.isValidCpf(cpf) || cnpj != null) {
+            if ((cpf != null && !DocumentoValidator.isValidCpf(cpf)) || cnpj != null) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CPF inválido ou CNPJ indevido para pessoa física");
             }
         } else if (r.tipoPessoa() == TipoPessoa.JURIDICA) {
-            if (cnpj == null || cnpj.length() != 14 || cnpj.chars().distinct().count() == 1
-                    || !DocumentoValidator.isValidCnpj(cnpj) || cpf != null) {
+            if ((cnpj != null && (cnpj.length() != 14 || cnpj.chars().distinct().count() == 1
+                    || !DocumentoValidator.isValidCnpj(cnpj))) || cpf != null) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CNPJ inválido ou CPF indevido para pessoa jurídica");
             }
         }
@@ -186,6 +191,12 @@ public class FornecedorService {
                 || r.descontoPadrao() != null && (r.descontoPadrao().compareTo(BigDecimal.ZERO) < 0
                     || r.descontoPadrao().compareTo(new BigDecimal("100")) > 0)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Condições de compra inválidas");
+        }
+        if (r.planoContasId() != null) {
+            Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM fin_plano_contas WHERE id=? AND empresa_id=? AND ativo=true",
+                    Integer.class, r.planoContasId(), tenant);
+            if (count == null || count != 1) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Plano de contas não pertence à empresa autenticada ou está inativo");
         }
         if (cpf != null && repository.existsOtherCpf(tenant, cpf, editingId)
                 || cnpj != null && repository.existsOtherCnpj(tenant, cnpj, editingId)) {
