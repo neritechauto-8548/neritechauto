@@ -1,190 +1,157 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SelectModule } from 'primeng/select';
-import { DatePickerModule } from 'primeng/datepicker';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { MatIconModule } from '@angular/material/icon';
-import { MessageService } from 'primeng/api';
-import { HttpClient } from '@angular/common/http';
-import { LocalStorageService } from '@shared/services/storage.service';
-
+import { RouterModule } from '@angular/router';
+import { A11yModule } from '@angular/cdk/a11y';
+import { Subscription } from 'rxjs';
 import { RelatoriosService } from '../../relatorios/relatorios.service';
-import { FuncionarioService } from '../../configuracoes/colaboradores/funcionario.service';
-
-export interface LinhaComissao {
-  funcionarioId: number;
-  funcionarioNome: string;
-  totalOrdens: number;
-  totalFaturado: number;
-  percentual: number;
-  totalComissao: number;
-}
+import { ComissaoFinanceiraService, ComissaoLinha, FiltrosComissoes } from './comissao-financeira.service';
 
 @Component({
   standalone: true,
   selector: 'app-comissoes',
   templateUrl: './comissoes.html',
-  imports: [
-    CommonModule, FormsModule, SelectModule, DatePickerModule, ButtonModule,
-    ToastModule, MatIconModule
-  ],
-  providers: [MessageService]
+  imports: [CommonModule, FormsModule, RouterModule, A11yModule]
 })
-export class ComissoesComponent implements OnInit {
-  private relatoriosService = inject(RelatoriosService);
-  private funcionarioService = inject(FuncionarioService);
-  private messageService = inject(MessageService);
-  private http = inject(HttpClient);
-  private storage = inject(LocalStorageService);
-
-  funcionarios: { label: string; value: number | null }[] = [];
-  funcionario: number | null = null;
-  
-  dataInicial: Date | null = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  dataFinal: Date | null = new Date();
-
-  gerando = false;
+export class ComissoesComponent implements OnInit, OnDestroy {
+  private service = inject(ComissaoFinanceiraService);
+  private relatorios = inject(RelatoriosService);
+  private listSub?: Subscription;
+  registros: ComissaoLinha[] = [];
+  loading = false;
+  busy = false;
   pdfLoading = false;
-  resumoVisivel = false;
-  linhas: LinhaComissao[] = [];
+  error = '';
+  notice = '';
+  busca = '';
+  filtroAberto = false;
+  filtros: FiltrosComissoes = {};
+  rascunho: { os: string; paga: string; inicio: string; fim: string } = {
+    os: '', paga: '', inicio: '', fim: ''
+  };
+  pagina = 0;
+  total = 0;
+  totalPaginas = 1;
+  operacao: 'quitar' | 'estornar' | null = null;
+  selecionada: ComissaoLinha | null = null;
+  dataPagamento = '';
+  observacao = '';
+  operacaoErro = '';
 
-  // Totais calculados a partir das linhas
-  get totalOrdens(): number { return this.linhas.reduce((s, l) => s + l.totalOrdens, 0); }
-  get totalFaturado(): number { return this.linhas.reduce((s, l) => s + l.totalFaturado, 0); }
-  get totalComissoes(): number { return this.linhas.reduce((s, l) => s + l.totalComissao, 0); }
-  get totalFuncionarios(): number { return this.linhas.length; }
+  ngOnInit(): void { this.carregar(); }
+  ngOnDestroy(): void { this.listSub?.unsubscribe(); }
 
-  ngOnInit() {
-    this.carregarFuncionarios();
-    this.gerarRelatorio();
-  }
-
-  carregarFuncionarios() {
-    this.funcionarioService.list({ page: 0, size: 100 }).subscribe({
-      next: data => {
-        if (data.content) {
-          this.funcionarios = data.content.map(f => ({ label: f.nomeCompleto, value: f.id }));
-          this.funcionarios.unshift({ label: 'Todos os funcionários', value: null });
-        }
-      },
-      error: err => console.error('Erro ao listar funcionários', err),
-    });
-  }
-
-  private toISO(d: Date | null): string | undefined {
-    if (!d) return undefined;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
-  gerarRelatorio(): void {
-    if (!this.dataInicial || !this.dataFinal) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha a data inicial e final.' });
-      return;
-    }
-
-    this.gerando = true;
-    this.resumoVisivel = false;
-
-    let empresaId = this.storage.get('tenantId')?.id || this.storage.get('tenantId') || this.storage.get('empresaId')?.id || this.storage.get('empresaId');
-    if (empresaId && typeof empresaId === 'object') {
-      empresaId = empresaId.id;
-    }
-
-    const params: any = {
-      empresaId: empresaId || '7',
-      page: 0,
-      size: 10000
-    };
-
-    this.http.get<any>('/v1/financeiro/comissoes', { params }).subscribe({
-      next: (res) => {
-        const list = res.content || [];
-        const iniStr = this.toISO(this.dataInicial);
-        const fimStr = this.toISO(this.dataFinal);
-
-        const filtered = list.filter((c: any) => {
-          const matchesFunc = !this.funcionario || c.funcionario?.id === this.funcionario;
-          const dateComp = c.dataCompetencia; // YYYY-MM-DD
-          const matchesDate = (!iniStr || dateComp >= iniStr) && 
-                              (!fimStr || dateComp <= fimStr);
-          return matchesFunc && matchesDate;
-        });
-
-        // Group by employee to populate this.linhas
-        const grupos: { [key: number]: LinhaComissao } = {};
-        filtered.forEach((c: any) => {
-          const fId = c.funcionario?.id || 0;
-          const fNome = c.funcionario?.nomeCompleto || 'N/A';
-          if (!grupos[fId]) {
-            grupos[fId] = {
-              funcionarioId: fId,
-              funcionarioNome: fNome,
-              totalOrdens: 0,
-              totalFaturado: 0,
-              percentual: c.percentualComissao || 0,
-              totalComissao: 0
-            };
-          }
-          grupos[fId].totalComissao += Number(c.valorComissao || 0);
-          grupos[fId].totalFaturado += Number(c.baseCalculo || 0);
-          if (c.ordemServicoId) {
-            grupos[fId].totalOrdens += 1;
-          }
-        });
-
-        this.linhas = Object.values(grupos);
-        this.gerando = false;
-        this.resumoVisivel = true;
-      },
-      error: (err) => {
-        console.error(err);
-        this.gerando = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar dados do relatório.' });
-      }
-    });
-  }
-
-  imprimirRelatorio(): void {
-    this.pdfLoading = true;
-    const payload: any = {};
-    if (this.funcionario) {
-      payload.funcionarioId = this.funcionario;
-    }
-    const iniStr = this.toISO(this.dataInicial);
-    const fimStr = this.toISO(this.dataFinal);
-    if (iniStr) {
-      payload.dataInicio = iniStr;
-    }
-    if (fimStr) {
-      payload.dataFim = fimStr;
-    }
-
-    this.relatoriosService.gerarRelatorio('comissoes', payload).subscribe({
-      next: blob => {
-        this.pdfLoading = false;
-        this.relatoriosService.abrirBlobEmNovaAba(blob);
+  carregar(): void {
+    this.listSub?.unsubscribe();
+    this.loading = true; this.error = '';
+    const filters = { ...this.filtros, nome: this.busca.trim() || undefined };
+    this.listSub = this.service.listar(filters, this.pagina, 20).subscribe({
+      next: page => {
+        this.registros = page.content ?? [];
+        this.total = page.totalElements ?? 0;
+        this.totalPaginas = Math.max(1, page.totalPages ?? 1);
+        this.loading = false;
       },
       error: err => {
-        console.error(err);
-        this.pdfLoading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível gerar o PDF.' });
+        this.registros = []; this.total = 0; this.loading = false;
+        this.error = err.status === 403 ? 'Você não possui permissão para consultar comissões.'
+          : 'Falha ao consultar comissões desta empresa.';
       }
     });
   }
-
-  limparFiltros() {
-    this.funcionario = null;
-    this.dataInicial = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    this.dataFinal = new Date();
-    this.gerarRelatorio();
+  pesquisar(): void { this.pagina = 0; this.carregar(); }
+  mudarPagina(delta: number): void {
+    const nova = this.pagina + delta;
+    if (nova < 0 || nova >= this.totalPaginas || this.loading) return;
+    this.pagina = nova; this.carregar();
   }
-
-  formatCurrency(v: number): string {
-    return (v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  abrirFiltros(): void {
+    this.rascunho = {
+      os: this.filtros.ordemServicoId ? String(this.filtros.ordemServicoId) : '',
+      paga: this.filtros.paga === undefined ? '' : String(this.filtros.paga),
+      inicio: this.filtros.inicio || '', fim: this.filtros.fim || ''
+    };
+    this.filtroAberto = true;
+  }
+  aplicarFiltros(): void {
+    const os = this.rascunho.os.trim();
+    if (os && (!/^\d+$/.test(os) || Number(os) <= 0)) {
+      this.error = 'Informe um número válido de ordem de serviço.'; return;
+    }
+    if (this.rascunho.inicio && this.rascunho.fim && this.rascunho.inicio > this.rascunho.fim) {
+      this.error = 'Data inicial não pode ser posterior à final.'; return;
+    }
+    this.error = '';
+    this.filtros = {
+      ordemServicoId: os ? Number(os) : undefined,
+      paga: this.rascunho.paga === '' ? undefined : this.rascunho.paga === 'true',
+      inicio: this.rascunho.inicio || undefined,
+      fim: this.rascunho.fim || undefined
+    };
+    this.filtroAberto = false; this.pagina = 0; this.carregar();
+  }
+  limparFiltros(): void {
+    this.rascunho = { os: '', paga: '', inicio: '', fim: '' };
+    this.filtros = {}; this.busca = ''; this.filtroAberto = false;
+    this.pagina = 0; this.carregar();
+  }
+  aprovar(linha: ComissaoLinha): void {
+    if (this.busy || !confirm('Aprovar a comissão de ' + linha.funcionarioNome + '? Verifique a apuração e a origem antes de confirmar.')) return;
+    this.busy = true; this.notice = '';
+    this.service.aprovar(linha.id).subscribe({
+      next: () => { this.busy = false; this.notice = 'Comissão aprovada e registrada em auditoria.'; this.carregar(); },
+      error: err => { this.busy = false; this.error = this.fail(err); }
+    });
+  }
+  abrirQuitacao(linha: ComissaoLinha): void {
+    this.selecionada = linha; this.operacao = 'quitar'; this.observacao = '';
+    this.dataPagamento = this.localDate(new Date()); this.operacaoErro = '';
+  }
+  abrirEstorno(linha: ComissaoLinha): void {
+    this.selecionada = linha; this.operacao = 'estornar'; this.operacaoErro = '';
+  }
+  fecharOperacao(): void { if (!this.busy) { this.operacao = null; this.selecionada = null; } }
+  confirmarOperacao(): void {
+    if (!this.selecionada || !this.operacao || this.busy) return;
+    if (this.operacao === 'quitar' && (!this.dataPagamento || this.dataPagamento > this.localDate(new Date()))) {
+      this.operacaoErro = 'Informe a data real do pagamento (não futura).'; return;
+    }
+    this.busy = true; this.operacaoErro = '';
+    const op = this.operacao === 'quitar'
+      ? this.service.quitar(this.selecionada.id, this.dataPagamento, this.observacao)
+      : this.service.estornar(this.selecionada.id);
+    op.subscribe({
+      next: () => {
+        const status = this.operacao;
+        this.busy = false; this.fecharOperacao();
+        this.notice = status === 'quitar'
+          ? 'Quitação registrada. Nenhuma conta a pagar nem transferência bancária foi criada.'
+          : 'Quitação estornada e registrada em auditoria.';
+        this.carregar();
+      },
+      error: err => { this.busy = false; this.operacaoErro = this.fail(err); }
+    });
+  }
+  private fail(err: any): string {
+    return err.status === 403 ? 'Operação não autorizada.'
+      : err.status === 409 ? 'Conflito: confira aprovação, recebimento da fatura ou pagamento prévio.'
+      : err.status === 422 ? 'Dados inválidos. Revise a operação.'
+      : 'Não foi possível executar a operação.';
+  }
+  private localDate(d: Date): string {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-'
+      + String(d.getDate()).padStart(2, '0');
+  }
+  imprimirRelatorio(): void {
+    if (this.pdfLoading) return;
+    this.pdfLoading = true;
+    const payload = { dataInicio: this.filtros.inicio, dataFim: this.filtros.fim };
+    this.relatorios.gerarRelatorio('comissoes', payload).subscribe({
+      next: blob => { this.pdfLoading = false; this.relatorios.abrirBlobEmNovaAba(blob); },
+      error: () => { this.pdfLoading = false; this.error = 'O relatório PDF não está disponível no momento.'; }
+    });
+  }
+  formatarMoeda(value: number | null | undefined): string {
+    return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 }
