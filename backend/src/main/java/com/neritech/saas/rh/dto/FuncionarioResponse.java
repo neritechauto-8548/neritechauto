@@ -72,5 +72,11 @@ public record FuncionarioResponse(
         String observacoes,
         LocalDateTime dataCadastro,
         LocalDateTime dataAtualizacao,
-        Integer versao) {
+        Integer versao,
+        String registroProfissional,
+        String tipoProfissional,
+        String areaAtuacao,
+        BigDecimal comissaoPecas,
+        BigDecimal comissaoServicos,
+        String linhasTransporte) {
 }
