@@ -23,6 +23,7 @@ public interface ComissaoFuncionarioMapper {
     @Mapping(target = "valorLiquido", ignore = true)
     @Mapping(target = "numeroOs", ignore = true)
     @Mapping(target = "situacaoOs", ignore = true)
+    @Mapping(target = "empresaCnpj", ignore = true)
     @Mapping(target = "aprovado", expression = "java(entity.getDataAprovacao() != null)")
     @Mapping(target = "pago", source = "paga")
     @Mapping(target = "valorBase", source = "baseCalculo")
