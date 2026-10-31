@@ -1,6 +1,10 @@
 -- Contrato visual de Funcionários (14 capturas): exclusão expressamente autorizada.
 -- Campos técnicos e vínculos com OS, Financeiro, segurança e auditoria permanecem.
--- Migração destrutiva intencional para projeto sem dados de produção.
+-- A view criada pela V105 usa telefone_principal e email_pessoal, que serão removidos.
+-- Não usar CASCADE: somente a view conhecida é recriada, sem excluir objetos independentes.
+-- Esta versão está pendente no banco informado (versão atual 295).
+DROP VIEW IF EXISTS vw_funcionarios_ativos;
+
 ALTER TABLE funcionarios
   DROP COLUMN IF EXISTS estado_civil,
   DROP COLUMN IF EXISTS nacionalidade,
@@ -28,3 +32,26 @@ ALTER TABLE funcionarios
   DROP COLUMN IF EXISTS cnh_categoria,
   DROP COLUMN IF EXISTS cnh_validade,
   DROP COLUMN IF EXISTS comissao_percentual;
+
+
+-- Restaurar a consulta de RH sem campos removidos do contrato visual.
+-- Mantém as colunas essenciais e o filtro original por status ATIVO.
+CREATE VIEW vw_funcionarios_ativos AS
+SELECT
+    f.id,
+    f.empresa_id,
+    f.matricula,
+    f.nome_completo,
+    f.cpf,
+    f.data_admissao,
+    f.status,
+    c.nome AS cargo_nome,
+    d.nome AS departamento_nome,
+    f.salario_base
+FROM funcionarios f
+LEFT JOIN cargos c ON f.cargo_id = c.id
+LEFT JOIN departamentos d ON f.departamento_id = d.id
+WHERE f.status = 'ATIVO';
+
+COMMENT ON VIEW vw_funcionarios_ativos IS
+  'Funcionários ativos com cargo e departamento, sem contatos legados removidos na V296';
