@@ -16,7 +16,7 @@ export interface Page<T> {
 export interface FuncionarioRequest {
   empresaId: number;
   usuarioId?: number;
-  matricula: string;
+  matricula?: string;
   nomeCompleto: string;
   cpf: string;
   rg?: string;
@@ -31,11 +31,18 @@ export interface FuncionarioRequest {
   profissao?: string;
   cargoId?: number;
   departamentoId?: number;
-  dataAdmissao: string;
+  dataAdmissao?: string;
   dataDemissao?: string;
   tipoContrato?: string;
   salarioBase?: number;
   comissaoPercentual?: number;
+  registroProfissional?: string;
+  tipoProfissional?: string;
+  areaAtuacao?: string;
+  comissaoPecas?: number;
+  comissaoServicos?: number;
+  linhasTransporte?: string;
+  perfilProfissional?: string;
   valeTransporte?: number;
   valeAlimentacao?: number;
   planoSaude?: boolean;
@@ -98,6 +105,13 @@ export interface FuncionarioResponse {
   tipoContrato?: string;
   salarioBase?: number;
   comissaoPercentual?: number;
+  registroProfissional?: string;
+  tipoProfissional?: string;
+  areaAtuacao?: string;
+  comissaoPecas?: number;
+  comissaoServicos?: number;
+  linhasTransporte?: string;
+  perfilProfissional?: string;
   valeTransporte?: number;
   valeAlimentacao?: number;
   planoSaude?: boolean;
