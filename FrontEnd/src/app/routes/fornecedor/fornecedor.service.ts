@@ -5,6 +5,24 @@ import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '../../../environments/environment';
 import { Page, FornecedorRequest, FornecedorResponse, HistoricoFornecedor } from './models/fornecedor.models';
 
+export interface CanalFornecedor { id?: number; tipo: 'EMAIL' | 'CELULAR' | 'TELEFONE'; valor: string; whatsapp: boolean; }
+export interface ContatoFornecedor {
+  id?: number; nome: string; sexo: string; dataNascimento?: string | null;
+  contatoPrincipal: boolean; meios: CanalFornecedor[];
+}
+export interface DevolucaoFornecedor {
+  id: number; empresa: string; compra: number; descricao: string; chaveNfe: string | null; quantidade: number; valor: number;
+}
+export interface CreditoFornecedor {
+  id: number; empresa: string; codigoCompra: number | null; numeroDocumento: string | null;
+  lancamentoReferencia: string | null; conta: string | null; valor: number;
+}
+export interface LinhaImportacaoFornecedor {
+  tipoPessoa: 'FISICA' | 'JURIDICA'; cpf: string; cnpj: string; razaoSocial: string;
+  nomeFantasia: string; email: string; classificacao: string;
+}
+
+
 @Injectable({ providedIn: 'root' })
 export class FornecedorService {
   private readonly http = inject(HttpClient);
@@ -72,6 +90,44 @@ export class FornecedorService {
     return this.safe(tenant => this.http.get<Page<HistoricoFornecedor>>(`${this.base}/${id}/historico`, {
       headers: this.headers(tenant), params: { page, size }
     }));
+  }
+
+
+  private referencia = `${environment.baseUrl}/v1/fornecedores/referencia`;
+
+  planosContas(): Observable<Array<{ id: number; codigo: string; nome: string }>> {
+    return this.safe(t => this.http.get<Array<{ id: number; codigo: string; nome: string }>>(
+      `${this.referencia}/plano-contas`, { headers: this.headers(t) }));
+  }
+  contatos(fornecedorId: number): Observable<ContatoFornecedor[]> {
+    return this.safe(t => this.http.get<ContatoFornecedor[]>(`${this.referencia}/${fornecedorId}/contatos`,
+      { headers: this.headers(t) }));
+  }
+  criarContato(fornecedorId: number, dto: ContatoFornecedor): Observable<{ id: number }> {
+    return this.safe(t => this.http.post<{ id: number }>(`${this.referencia}/${fornecedorId}/contatos`,
+      dto, { headers: this.headers(t) }));
+  }
+  editarContato(fornecedorId: number, contatoId: number, dto: ContatoFornecedor): Observable<{ id: number }> {
+    return this.safe(t => this.http.put<{ id: number }>(
+      `${this.referencia}/${fornecedorId}/contatos/${contatoId}`, dto, { headers: this.headers(t) }));
+  }
+  excluirContato(fornecedorId: number, contatoId: number): Observable<void> {
+    return this.safe(t => this.http.delete<void>(
+      `${this.referencia}/${fornecedorId}/contatos/${contatoId}`, { headers: this.headers(t) }));
+  }
+  devolucoes(fornecedorId: number, busca = '', ordem = 'desc'): Observable<DevolucaoFornecedor[]> {
+    return this.safe(t => this.http.get<DevolucaoFornecedor[]>(
+      `${this.referencia}/${fornecedorId}/devolucoes`,
+      { headers: this.headers(t), params: { busca, ordem } }));
+  }
+  creditos(fornecedorId: number, busca = '', ordem = 'desc'): Observable<CreditoFornecedor[]> {
+    return this.safe(t => this.http.get<CreditoFornecedor[]>(
+      `${this.referencia}/${fornecedorId}/creditos`,
+      { headers: this.headers(t), params: { busca, ordem } }));
+  }
+  importar(linhas: LinhaImportacaoFornecedor[]): Observable<{ importados: number }> {
+    return this.safe(t => this.http.post<{ importados: number }>(
+      `${this.referencia}/importar`, linhas, { headers: this.headers(t) }));
   }
 
   /** Rota legada DELETE inativa sem remover pedidos, cotações e documentos. */
