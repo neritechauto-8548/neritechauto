@@ -138,7 +138,7 @@
   <!-- Mesmo componente de cadastro já integrado ao backend, agora aberto em drawer. -->
   <div *ngIf="employeeDrawerOpen" class="fixed inset-0 z-[60]">
     <button type="button" (click)="closeEmployeeDrawer(false)" class="absolute inset-0 h-full w-full bg-black/35" aria-label="Fechar cadastro de funcionário"></button>
-    <section role="dialog" aria-modal="true" aria-label="Cadastro e edição de funcionário"
+    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-label="Cadastro e edição de funcionário"
       class="absolute inset-y-0 right-0 flex w-full max-w-[760px] flex-col border-l border-slate-200 bg-white shadow-2xl">
       <div class="min-h-0 flex-1 overflow-hidden">
         <cadastro-colaborador class="block h-full min-h-0"
@@ -153,7 +153,7 @@
   <!-- Filtro avançado: contexto preservado e ações reais via API paginada. -->
   <div *ngIf="filterDrawerOpen" class="fixed inset-0 z-50">
     <button type="button" (click)="closeFilters()" class="absolute inset-0 h-full w-full bg-black/35" aria-label="Fechar filtros"></button>
-    <aside role="dialog" aria-modal="true" aria-labelledby="filter-title" (keydown.escape)="closeFilters()"
+    <aside cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="filter-title" (keydown.escape)="closeFilters()"
       class="absolute inset-y-0 right-0 flex w-full max-w-[580px] flex-col border-l border-slate-200 bg-white shadow-2xl">
       <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
         <div><h2 id="filter-title" class="font-semibold text-slate-900">Filtro avançado de funcionários</h2><p class="mt-1 text-xs text-slate-500">Filtro de listagem avançado</p></div>
@@ -194,7 +194,7 @@
   <!-- Personalização de colunas: funcionário permanece visível e a ordem é editável. -->
   <div *ngIf="columnPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5">
     <button type="button" (click)="columnPanelOpen = false" class="absolute inset-0 bg-black/55" aria-label="Fechar colunas"></button>
-    <section role="dialog" aria-modal="true" aria-labelledby="columns-title" (keydown.escape)="columnPanelOpen = false"
+    <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="columns-title" (keydown.escape)="columnPanelOpen = false"
       class="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
       <header class="flex items-center justify-between border-b border-slate-200 p-5">
         <div><h2 id="columns-title" class="font-semibold text-slate-900">Colunas de funcionários</h2><p class="text-xs text-slate-500">Selecione e ordene as colunas que deseja exibir nesta tabela.</p></div>
