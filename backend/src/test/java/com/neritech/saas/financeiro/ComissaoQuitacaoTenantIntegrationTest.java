@@ -138,6 +138,36 @@ class ComissaoQuitacaoTenantIntegrationTest extends AbstractIntegrationTest {
                 """,Integer.class,empresa,comissao)).isEqualTo(1);
     }
 
+    @Test
+    void quitacaoDiretaELoteSaoAtomicosEIsoladosPorEmpresa() throws Exception {
+        long empresaA=empresa("LOTE-A"), empresaB=empresa("LOTE-B");
+        long funcA=funcionario(empresaA,"L1");
+        long comissao1=comissao(empresaA,funcA);
+        long comissao2=comissao(empresaA,funcA);
+        long comissaoB=comissao(empresaB,funcionario(empresaB,"L2"));
+        String token=login(empresaA,"lote"+empresaA+"@t.co","ADMIN");
+        var dados=Map.of("dataPagamento","2026-10-29","gerarContaPagar",false);
+        var invalidos=json.writeValueAsString(Map.of("ids",new long[]{comissao1,comissaoB},"dados",dados));
+        mvc.perform(post("/v1/financeiro/comissoes/quitar-lote")
+                .param("empresaId",Long.toString(empresaA))
+                .header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content(invalidos))
+                .andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject("select count(*) from fin_comissoes_funcionarios where empresa_id=? and paga=true",
+                Integer.class,empresaA)).isZero();
+
+        var lote=json.writeValueAsString(Map.of("ids",new long[]{comissao1,comissao2},"dados",dados));
+        mvc.perform(post("/v1/financeiro/comissoes/quitar-lote")
+                .param("empresaId",Long.toString(empresaA))
+                .header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content(lote))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(2));
+        assertThat(jdbc.queryForObject("select count(*) from fin_comissoes_funcionarios where empresa_id=? and paga=true",
+                Integer.class,empresaA)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from fin_contas_pagar where empresa_id=?",
+                Integer.class,empresaA)).isZero();
+    }
+
     private long empresa(String suffix) {
         return jdbc.queryForObject("insert into empresa (cnpj,nome_fantasia,ativo,data_cadastro) values (?,?,true,now()) returning id",
                 Long.class, suffix + Long.toString(System.nanoTime(),36), "Comissão " + suffix);
