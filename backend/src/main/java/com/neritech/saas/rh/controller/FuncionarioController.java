@@ -34,8 +34,12 @@ public class FuncionarioController {
             @RequestParam(required = false) com.neritech.saas.rh.domain.enums.StatusFuncionario status,
             @RequestParam(required = false) Long cargoId,
             @RequestParam(required = false) Long departamentoId,
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String funcao,
+            @RequestParam(required = false) String registro,
             Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(empresaId, nomeCompleto, status, cargoId, departamentoId, pageable));
+        return ResponseEntity.ok(service.findAllAdvanced(empresaId, nomeCompleto, status, cargoId, departamentoId,
+                nome, funcao, registro, pageable));
     }
 
     @GetMapping("/{id}")
