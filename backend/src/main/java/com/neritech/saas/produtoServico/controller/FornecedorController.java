@@ -48,8 +48,10 @@ public class FornecedorController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) String cidade,
+            @RequestParam(required = false) String documento,
+            @RequestParam(required = false) String nome,
             Pageable pageable) {
-        return ResponseEntity.ok(service.filter(empresaId, search, ativo, cidade, pageable));
+        return ResponseEntity.ok(service.filterDetalhado(empresaId, search, ativo, cidade, documento, nome, pageable));
     }
 
     @GetMapping("/{id}/historico")
