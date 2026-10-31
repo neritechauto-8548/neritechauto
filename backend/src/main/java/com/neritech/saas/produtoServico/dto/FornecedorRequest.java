@@ -65,5 +65,11 @@ public record FornecedorRequest(
 
                 ClassificacaoFornecedor classificacao,
                 String observacoes,
-                Boolean ativo) {
+                Boolean ativo,
+                @Size(max = 255) String logradouro,
+                @Size(max = 30) String numero,
+                @Size(max = 120) String bairro,
+                @Size(max = 255) String complemento,
+                Long planoContasId,
+                @Size(max = 255) String linhaPecas) {
 }
