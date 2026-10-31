@@ -16,7 +16,9 @@ export const routes: Routes = [
   },
   {
       path: 'editar/:id',
-      loadComponent: () => import('./cadastro-fornecedor/cadastro-fornecedor').then(m => m.CadastroFornecedor)
+      canActivate: [permissionGuard],
+      data: { title: 'Fornecedores', requiredPermissions: ['PS_LISTAR_FORN','FORNECEDOR_VISUALIZAR','GERAL_CONFIG_SISTEMA'], permissionMode: 'any' },
+      loadComponent: () => import('./fornecedor-referencia/fornecedor-referencia').then(m => m.FornecedorReferenciaComponent)
   },
   {
       path: 'compras',
