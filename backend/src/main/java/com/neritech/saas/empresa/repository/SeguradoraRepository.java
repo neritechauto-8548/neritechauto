@@ -14,17 +14,23 @@ public interface SeguradoraRepository extends JpaRepository<Seguradora, Long> {
     @Query("""
         SELECT s FROM Seguradora s WHERE s.empresaId = :empresa
         AND (:ativo IS NULL OR s.ativo = :ativo)
-        AND (:busca IS NULL OR :busca = '' OR
-            LOWER(s.nomeFantasia) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+        AND (:cnpj = '' OR s.cnpj LIKE CONCAT('%', :cnpj, '%'))
+        AND (:nome = '' OR LOWER(s.razaoSocial) LIKE LOWER(CONCAT('%', :nome, '%')))
+        AND (:fantasia = '' OR LOWER(COALESCE(s.nomeFantasia, '')) LIKE LOWER(CONCAT('%', :fantasia, '%')))
+        AND (:busca = '' OR
             LOWER(s.razaoSocial) LIKE LOWER(CONCAT('%', :busca, '%')) OR
-            LOWER(s.cnpj) LIKE LOWER(CONCAT('%', :busca, '%')))
+            LOWER(COALESCE(s.nomeFantasia, '')) LIKE LOWER(CONCAT('%', :busca, '%')) OR
+            s.cnpj LIKE CONCAT('%', :busca, '%'))
         """)
-    Page<Seguradora> buscar(@Param("empresa") Long empresa, @Param("ativo") Boolean ativo,
-                            @Param("busca") String busca, Pageable page);
+    Page<Seguradora> buscar(@Param("empresa") Long empresa,
+        @Param("ativo") Boolean ativo, @Param("busca") String busca,
+        @Param("cnpj") String cnpj, @Param("nome") String nome,
+        @Param("fantasia") String fantasia, Pageable page);
+
     @Query("""
         SELECT COUNT(s) > 0 FROM Seguradora s
-        WHERE s.empresaId = :empresa AND s.cnpj = :cnpj
-            AND (:id IS NULL OR s.id <> :id)
+         WHERE s.empresaId = :empresa AND s.cnpj = :cnpj
+           AND (:id IS NULL OR s.id <> :id)
         """)
     boolean duplicado(@Param("empresa") Long empresa, @Param("cnpj") String cnpj,
                       @Param("id") Long id);
