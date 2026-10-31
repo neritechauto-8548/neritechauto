@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { RelatoriosService } from '../../relatorios/relatorios.service';
 import { ComissaoFinanceiraService, ComissaoLinha, FiltrosComissoes, PlanoContaComissao } from './comissao-financeira.service';
 
@@ -11,12 +11,27 @@ import { ComissaoFinanceiraService, ComissaoLinha, FiltrosComissoes, PlanoContaC
   standalone: true,
   selector: 'app-comissoes',
   templateUrl: './comissoes.html',
+  styleUrls: ['./comissoes.scss'],
   imports: [CommonModule, FormsModule, RouterModule, A11yModule]
 })
 export class ComissoesComponent implements OnInit, OnDestroy {
   private service = inject(ComissaoFinanceiraService);
   private relatorios = inject(RelatoriosService);
   private listSub?: Subscription;
+  private readonly alteracoesBusca = new Subject<string>();
+  private readonly assinaturaBusca = this.alteracoesBusca.pipe(debounceTime(320), distinctUntilChanged())
+    .subscribe(() => this.pesquisar());
+  alterarBusca(valor: string): void { this.busca = valor; this.alteracoesBusca.next(valor); }
+  acompanharComissao(_indice: number, item: ComissaoLinha): number { return item.id; }
+  hoje = this.localDate(new Date());
+  empresaExibicao = 'Empresa autenticada';
+  erroFiltros = '';
+  fecharFiltros(): void { this.filtroAberto = false; this.erroFiltros = ''; }
+  formatarValor(valor: number | null | undefined): string {
+    return valor == null ? '—' : Number(valor).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+  }
   registros: ComissaoLinha[] = [];
   selecionados = new Set<number>();
   lote = false;
@@ -55,10 +70,21 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   planosContas: PlanoContaComissao[] = [];
   carregandoPlanos = false;
   get planoSelecionado(): boolean { return !this.gerarContaPagar || (!!this.planoContaId && !!this.tipoDocumento); }
-  aoMarcarConta(): void { if (!this.gerarContaPagar) { this.planoContaId=null; this.tipoDocumento='';this.liquidarContaPagar=false; } }
+  aoMarcarConta(): void {
+    if (!this.gerarContaPagar) {
+      this.planoContaId = null; this.tipoDocumento = ''; this.liquidarContaPagar = false;
+      this.operacaoErro = '';
+      return;
+    }
+    this.carregandoPlanos = true; this.operacaoErro = '';
+    this.service.listarPlanos().subscribe({
+      next: lista => { this.planosContas = lista; this.carregandoPlanos = false; },
+      error: () => { this.carregandoPlanos = false; this.operacaoErro = 'Não foi possível carregar o plano de contas da empresa.'; }
+    });
+  }
 
   ngOnInit(): void { this.carregar(); }
-  ngOnDestroy(): void { this.listSub?.unsubscribe(); }
+  ngOnDestroy(): void { this.listSub?.unsubscribe(); this.assinaturaBusca.unsubscribe(); this.alteracoesBusca.complete(); }
 
   carregar(): void {
     this.listSub?.unsubscribe();
@@ -67,6 +93,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     this.listSub = this.service.listar(filters, this.pagina, 20).subscribe({
       next: page => {
         this.registros = page.content ?? [];
+        this.empresaExibicao = this.registros.find(r => !!r.empresaNome)?.empresaNome || this.empresaExibicao;
         this.selecionados.clear();
         this.total = page.totalElements ?? 0;
         this.totalPaginas = Math.max(1, page.totalPages ?? 1);
@@ -92,14 +119,15 @@ export class ComissoesComponent implements OnInit, OnDestroy {
       cliente: this.filtros.cliente || '', placa: this.filtros.placa || '',
       inicio: this.filtros.inicio || '', fim: this.filtros.fim || ''
     };
+    this.erroFiltros = '';
     this.filtroAberto = true;
   }
   aplicarFiltros(): void {
     const os = this.rascunho.os.trim();
     if (this.rascunho.inicio && this.rascunho.fim && this.rascunho.inicio > this.rascunho.fim) {
-      this.error = 'Data inicial não pode ser posterior à final.'; return;
+      this.erroFiltros = 'Data inicial não pode ser posterior à final.'; return;
     }
-    this.error = '';
+    this.error = ''; this.erroFiltros = '';
     this.filtros = {
       numeroOs: os || undefined,
       paga: this.rascunho.paga === '' ? undefined : this.rascunho.paga === 'true',
@@ -124,11 +152,9 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   }
   abrirQuitacao(linha: ComissaoLinha): void {
     this.selecionada = linha; this.operacao = 'quitar'; this.lote = false; this.observacao = '';
-    this.dataPagamento = this.localDate(new Date()); this.operacaoErro = '';
+    this.dataPagamento = this.localDate(new Date()); this.hoje = this.dataPagamento; this.operacaoErro = '';
     this.gerarContaPagar=false; this.liquidarContaPagar=false; this.planoContaId=null; this.tipoDocumento='';
-    this.carregandoPlanos=true;
-    this.service.listarPlanos().subscribe({next: p => {this.planosContas=p;this.carregandoPlanos=false;},
-      error: () => {this.carregandoPlanos=false;this.operacaoErro='Não foi possível consultar o plano de contas.';} });
+    this.carregandoPlanos = false;
   }
   abrirEstorno(linha: ComissaoLinha): void {
     this.selecionada = linha; this.operacao = 'estornar'; this.lote = false; this.operacaoErro = '';
