@@ -1,42 +1,43 @@
-<main class="min-h-screen space-y-5 bg-slate-50 px-4 py-5 sm:px-6 lg:px-8">
-  <nav aria-label="Caminho de navegação" class="text-xs text-slate-500">Financeiro › Gestão de pessoas › Comissões</nav>
-  <nav aria-label="Gestão de pessoas" class="flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+<main class="min-h-screen space-y-4 bg-[#f7f8fa] px-4 py-5 sm:px-6 lg:px-8">
+  <nav aria-label="Caminho de navegação" class="text-xs text-slate-500">NERITECH AUTO › Gestão de pessoas › Comissões</nav>
+  <nav aria-label="Gestão de pessoas" class="flex flex-wrap items-center gap-1 rounded-lg border border-[#e1e5eb] bg-white p-1 shadow-sm">
     <a routerLink="/configuracoes/colaboradores" class="rounded-lg px-3 py-2 text-sm hover:bg-slate-50">Funcionários</a>
     <a routerLink="/configuracoes/cargos" class="rounded-lg px-3 py-2 text-sm hover:bg-slate-50">Cargos</a>
     <a routerLink="/configuracoes/epis" class="rounded-lg px-3 py-2 text-sm hover:bg-slate-50">EPIs</a>
     <span aria-current="page" class="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-[#18328A]">Comissões</span>
   </nav>
   <header class="flex flex-wrap items-center justify-between gap-3">
-    <div><h1 class="text-2xl font-bold tracking-tight text-slate-950">Comissões</h1>
-      <p class="mt-1 text-xs text-slate-500">Apuração e controle de quitação por funcionário</p>
-    </div>
+    <h1 class="text-[28px] font-semibold tracking-tight text-[#101828]">Comissões <span title="Gestão de comissões" class="text-[15px] text-[#18328A]">⬡</span></h1>
     <button type="button" (click)="imprimirRelatorio()" [disabled]="pdfLoading"
-      class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40">{{ pdfLoading ? 'Gerando PDF...' : 'Relatório PDF' }}</button>
+      class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-40">{{ pdfLoading ? 'Gerando PDF...' : 'Relatório' }}</button>
   </header>
   <div class="flex flex-col gap-2 sm:flex-row">
     <label class="sr-only" for="comissao-busca">Pesquisar funcionário</label>
     <input id="comissao-busca" type="search" [(ngModel)]="busca" (keyup.enter)="pesquisar()" placeholder="Pesquisar funcionário"
-      class="h-11 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-4 text-sm focus:border-blue-700" />
-    <button type="button" (click)="pesquisar()" class="rounded-lg border border-slate-300 bg-white px-4 text-sm">Pesquisar</button>
+      class="h-10 min-w-0 flex-1 rounded-lg border border-[#cbd4df] bg-white px-4 text-[13px] focus:border-[#18328A]" />
     <button type="button" (click)="abrirFiltros()" class="rounded-lg border border-slate-300 bg-white px-4 text-sm">Filtrar</button>
   </div>
   <p *ngIf="notice" role="status" class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">{{ notice }}</p>
   <div *ngIf="error" role="alert" class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
     {{ error }} <button type="button" (click)="carregar()" class="ml-2 underline">Tentar novamente</button>
   </div>
-  <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" aria-labelledby="comissoes-title">
+  <section class="overflow-hidden rounded-lg border border-[#e1e5eb] bg-white shadow-sm" aria-labelledby="comissoes-title">
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
       <h2 id="comissoes-title" class="text-sm font-medium text-slate-600">Listagem de comissões</h2>
-      <span class="text-xs text-slate-500">Quitação em lote requer integração contábil validada</span>
+      <button type="button" disabled title="Quitação em lote requer validação financeira transacional" class="rounded-lg bg-[#ebedf0] px-4 py-2.5 text-[13px] text-[#9ba6b4]">▧ &nbsp;Quitar selecionadas</button>
     </header>
     <div *ngIf="loading" role="status" class="p-12 text-center text-sm text-slate-500">Carregando comissões...</div>
     <div *ngIf="!loading" class="overflow-x-auto">
-      <table class="w-full min-w-[1010px] text-left text-sm">
+      <table class="w-full min-w-[1570px] text-left text-[13px]">
         <thead class="border-b border-slate-200 text-slate-500"><tr>
           <th scope="col" class="px-4 py-4 font-medium">Funcionário</th>
           <th scope="col" class="px-4 py-4 font-medium">O.S.</th>
-          <th scope="col" class="px-4 py-4 font-medium">Documento</th>
-          <th scope="col" class="px-4 py-4 font-medium">Competência</th>
+          <th scope="col" class="px-4 py-4 font-medium">Placa</th>
+          <th scope="col" class="px-4 py-4 font-medium">Empresa</th>
+          <th scope="col" class="px-4 py-4 font-medium">Cliente</th>
+          <th scope="col" class="px-4 py-4 font-medium">Autorização</th>
+          <th scope="col" class="px-4 py-4 font-medium">Fechamento</th>
+          <th scope="col" class="px-4 py-4 text-right font-medium">Valor Líq.</th>
           <th scope="col" class="px-4 py-4 text-right font-medium">Valor base</th>
           <th scope="col" class="px-4 py-4 text-right font-medium">Comissão</th>
           <th scope="col" class="px-4 py-4 font-medium">Situação</th>
@@ -46,8 +47,12 @@
           <tr *ngFor="let item of registros" class="hover:bg-slate-50">
             <td class="px-4 py-4 font-medium text-slate-950">{{ item.funcionarioNome || 'Não informado' }}</td>
             <td class="px-4 py-4 text-slate-700">{{ item.ordemServicoId || 'Não vinculada' }}</td>
-            <td class="px-4 py-4 text-slate-700">{{ item.faturaNumero || 'Não vinculado' }}</td>
-            <td class="px-4 py-4 text-slate-600">{{ item.dataReferencia | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-4 text-slate-700">{{ item.placa || '—' }}</td>
+            <td class="px-4 py-4 text-slate-700">{{ item.empresaNome || '—' }}</td>
+            <td class="px-4 py-4 text-slate-700">{{ item.clienteNome || '—' }}</td>
+            <td class="px-4 py-4 text-slate-600">{{ item.dataAutorizacao ? (item.dataAutorizacao | date:'dd/MM/yyyy') : 'Sem informação' }}</td>
+            <td class="px-4 py-4 text-slate-600">{{ item.dataFechamento ? (item.dataFechamento | date:'dd/MM/yyyy') : 'Sem informação' }}</td>
+            <td class="px-4 py-4 text-right text-slate-800">{{ item.valorLiquido == null ? '—' : formatarMoeda(item.valorLiquido) }}</td>
             <td class="px-4 py-4 text-right text-slate-800">{{ formatarMoeda(item.valorBase) }}</td>
             <td class="px-4 py-4 text-right font-semibold">{{ formatarMoeda(item.valorComissao) }}</td>
             <td class="px-4 py-4">
@@ -66,7 +71,7 @@
             </td>
           </tr>
           <tr *ngIf="registros.length === 0 && !error">
-            <td colspan="8" class="p-12 text-center text-sm text-slate-500">Nenhuma comissão encontrada para esta empresa e os filtros selecionados.</td>
+            <td colspan="12" class="p-12 text-center text-sm text-slate-500">Nenhuma comissão encontrada para esta empresa e os filtros selecionados.</td>
           </tr>
         </tbody>
       </table>
@@ -122,11 +127,10 @@
     <button type="button" (click)="fecharOperacao()" class="absolute inset-0 h-full w-full bg-black/30" aria-label="Fechar quitação"></button>
     <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="quitar-titulo"
       (keydown.escape)="fecharOperacao()" class="absolute inset-y-0 right-0 flex w-full max-w-[680px] flex-col bg-white shadow-2xl">
-      <header class="border-b border-slate-200 p-5"><h2 id="quitar-titulo" class="font-semibold text-slate-900">Quitar comissão</h2>
-        <p class="text-xs text-slate-500">Registre somente um pagamento efetivamente realizado.</p>
-      </header>
+      <header class="flex items-center justify-between border-b border-slate-200 p-4"><h2 id="quitar-titulo" class="font-semibold text-slate-900">Quitar comissão</h2>
+        <button type="button" (click)="fecharOperacao()" aria-label="Fechar quitação">✕</button></header>
       <form (ngSubmit)="confirmarOperacao()" id="quitar-form" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
-        <p class="text-sm text-slate-700"><strong>{{ selecionada.funcionarioNome }}</strong> — {{ formatarMoeda(selecionada.valorComissao) }}</p>
+        <p class="text-[13px] text-[#8a96a6]">Informe os dados necessários para realizar a quitação desta comissão. Verifique as informações antes de confirmar o pagamento.</p>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label class="flex flex-col gap-2 text-sm">Data do pagamento <span class="text-red-600">*</span>
             <input type="date" name="dataPagamento" required [(ngModel)]="dataPagamento" class="h-11 rounded-lg border border-slate-300 px-3" />
@@ -135,15 +139,46 @@
             <input name="observacao" [(ngModel)]="observacao" maxlength="2000" placeholder="Adicione uma observação" class="h-11 rounded-lg border border-slate-300 px-3" />
           </label>
         </div>
-        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          A quitação altera o status desta comissão. Não realiza transferência bancária, não cria conta a pagar e não liquida lançamentos financeiros.
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-[13px]">
+            <input type="checkbox" name="gerarContaPagar" [(ngModel)]="gerarContaPagar" (ngModelChange)="aoMarcarConta()"
+              class="h-4 w-4 accent-[#18328A]" /> Gerar conta a pagar automaticamente
+          </label>
+          <p class="pl-7 text-[11px] text-[#8a96a6]">Cria lançamento financeiro pendente após quitar a comissão</p>
+          <label *ngIf="gerarContaPagar" class="flex items-center gap-2 text-[13px]">
+            <input type="checkbox" name="liquidarContaPagar" [(ngModel)]="liquidarContaPagar"
+              class="h-4 w-4 accent-[#18328A]" /> Liquidar contas a pagar automaticamente
+          </label>
+          <p *ngIf="gerarContaPagar" class="pl-7 text-[11px] text-[#8a96a6]">A liquidação exige pagamento confirmado pelo módulo financeiro</p>
+        </div>
+        <div *ngIf="gerarContaPagar" class="rounded-lg bg-[#fff2bd] p-4 text-[13px] text-[#7d5200]">
+          <p class="mb-2 font-semibold">⚠ Conta a pagar será criada</p>
+          <p>O documento ficará como <strong>aberto</strong>. O pagamento deverá ser realizado posteriormente no módulo financeiro.</p>
+        </div>
+        <div *ngIf="gerarContaPagar" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-2 text-[13px] font-medium">Plano de contas <span class="text-red-500">*</span>
+            <select name="planoContaId" [(ngModel)]="planoContaId" [disabled]="carregandoPlanos"
+              class="h-11 rounded-lg border border-[#cbd4df] bg-white px-3 font-normal">
+              <option [ngValue]="null">Selecionar plano de contas</option>
+              <option *ngFor="let plano of planosContas" [ngValue]="plano.id">{{ plano.codigo }} — {{ plano.nome }}</option>
+            </select>
+          </label>
+          <label class="flex flex-col gap-2 text-[13px] font-medium">Tipo de documento <span class="text-red-500">*</span>
+            <select name="tipoDocumento" [(ngModel)]="tipoDocumento"
+              class="h-11 rounded-lg border border-[#cbd4df] bg-white px-3 font-normal">
+              <option value="">Selecionar tipo de documento</option>
+              <option value="BOLETO">Boleto</option><option value="CHEQUE">Cheque</option>
+              <option value="DUPLICATA">Duplicata</option><option value="PROMISSORIA">Promissória</option>
+              <option value="OUTROS">Outros</option>
+            </select>
+          </label>
         </div>
         <p *ngIf="operacaoErro" role="alert" class="text-sm text-red-700">{{ operacaoErro }}</p>
       </form>
       <footer class="flex justify-end gap-3 border-t border-slate-200 p-4">
         <button type="button" (click)="fecharOperacao()" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
         <button type="submit" form="quitar-form" [disabled]="busy || !dataPagamento"
-          class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40">{{ busy ? 'Salvando...' : 'Registrar quitação' }}</button>
+          class="rounded-lg bg-[#83ef47] px-5 py-2.5 text-[13px] font-semibold text-[#102000] disabled:opacity-40" [disabled]="busy || !planoSelecionado || liquidarContaPagar">{{ busy ? 'Salvando...' : '✓ Quitar comissão' }}</button>
       </footer>
     </section>
   </div>
@@ -152,13 +187,13 @@
     <button type="button" (click)="fecharOperacao()" class="absolute inset-0 bg-black/55" aria-label="Fechar estorno"></button>
     <section cdkTrapFocus [cdkTrapFocusAutoCapture]="true" role="dialog" aria-modal="true" aria-labelledby="estornar-titulo" (keydown.escape)="fecharOperacao()"
       class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-      <h2 id="estornar-titulo" class="font-semibold text-slate-900">Estornar quitação</h2>
+      <h2 id="estornar-titulo" class="font-semibold text-slate-900">🟠 &nbsp;Estornar comissão</h2>
       <p class="mt-4 text-sm text-slate-700">Deseja estornar o registro de quitação da comissão de <strong>{{ selecionada.funcionarioNome }}</strong>?</p>
       <p class="mt-2 text-xs text-slate-500">Essa ação reabre a comissão, com auditoria. Não estorna pagamentos bancários nem lançamentos financeiros externos.</p>
       <p *ngIf="operacaoErro" role="alert" class="mt-3 text-sm text-red-700">{{ operacaoErro }}</p>
       <footer class="mt-6 flex justify-end gap-3">
         <button type="button" (click)="fecharOperacao()" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
-        <button type="button" (click)="confirmarOperacao()" [disabled]="busy" class="rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40">Estornar</button>
+        <button type="button" (click)="confirmarOperacao()" [disabled]="busy" class="rounded-lg bg-[#ffe5c7] px-5 py-2.5 text-sm font-semibold text-[#ed5c16] disabled:opacity-40">Estornar</button>
       </footer>
     </section>
   </div>
