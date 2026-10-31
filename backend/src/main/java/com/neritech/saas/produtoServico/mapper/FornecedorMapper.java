@@ -40,5 +40,6 @@ public interface FornecedorMapper {
     @Mapping(target = "bancoAgencia", ignore = true)
     @Mapping(target = "bancoConta", ignore = true)
     @Mapping(target = "bancoPix", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(FornecedorRequest request, @MappingTarget Fornecedor entity);
 }
