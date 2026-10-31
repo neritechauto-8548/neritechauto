@@ -11,6 +11,7 @@ export interface CargoRequest {
   nome: string;
   descricao?: string;
   codigoCbo?: string;
+  tipo?: string;
   areaId?: number;
   nivelHierarquico?: number;
   responsabilidades?: string;
