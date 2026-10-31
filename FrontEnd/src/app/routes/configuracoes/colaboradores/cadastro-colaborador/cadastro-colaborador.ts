@@ -732,6 +732,7 @@ export class CadastroColaborador implements OnInit {
                   error: (err) => {
                     console.error('Erro ao vincular usuario ao funcionario', err);
                     this.loading = false;
+                    this.isEditMode = true;
                     this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário e usuário criados, mas houve um erro ao vinculá-los.' });
                     // Evita anunciar conclusão quando a associação funcionário/usuário falhou.
                   }
@@ -743,6 +744,7 @@ export class CadastroColaborador implements OnInit {
             },
             error: (err: any) => {
               this.loading = false;
+              this.isEditMode = true;
               this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário salvo, mas erro ao salvar acesso: ' + (err?.error?.message || '') });
               // Manter o formulário aberto para permitir diagnóstico de vínculo de acesso parcial.
             },
