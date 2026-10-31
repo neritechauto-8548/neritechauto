@@ -66,14 +66,12 @@ th:nth-child(4),td:nth-child(4){width:5%}
 .switch-person button.active{color:#172033;background:#fff;box-shadow:0 1px 3px #10182824}
 .switch-person button:disabled{opacity:1}
 .switch-person svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 16px}
-.field{display:flex;flex-direction:column;gap:8px;font-weight:550;font-size:14px;line-height:1.25;min-width:0}
+.form-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:17px 16px}
+.field{grid-column:span 3;display:flex;flex-direction:column;gap:8px;font-weight:550;font-size:14px;line-height:1.25;min-width:0}
 .field span b{color:#fa3c4f}
 .field.full{grid-column:1/-1}
-.field.two-thirds{grid-column:span 1}
-.field.one-third{grid-column:span 1}
-.form-grid:has(.two-thirds){grid-template-columns:1.5fr .72fr}
-.form-grid:has(.two-thirds)>.field:nth-child(3),.form-grid:has(.two-thirds)>.field:nth-child(4){grid-column:span 1}
+.field.two-thirds{grid-column:span 4}
+.field.one-third{grid-column:span 2}
 .field input,.field select,.field textarea{background:#fff;border:1px solid #cbd5e1;border-radius:8px;min-height:42px;width:100%;padding:10px 14px;font-size:14px;font-weight:400;color:#182236;outline:0;min-width:0}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:#193a9a;box-shadow:0 0 0 1px #193a9a}
 .field input[aria-invalid=true]{border-color:#dc2626}
@@ -100,7 +98,7 @@ th:nth-child(4),td:nth-child(4){width:5%}
  .drawer-header p{font-size:13px}
  .drawer-body{padding:0 13px 12px}
  .form-section{padding:13px}
- .form-grid,.form-grid:has(.two-thirds){grid-template-columns:1fr}
+ .form-grid{grid-template-columns:1fr}
  .field.full,.field.two-thirds,.field.one-third{grid-column:1/-1!important}
  .switch-person{width:100%}
  .switch-person button{min-width:0;flex:1}
