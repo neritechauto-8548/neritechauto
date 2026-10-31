@@ -19,6 +19,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
+@org.springframework.test.context.jdbc.Sql(
+    scripts = "/db/migration/V293__rh_epis_catalogo_entregas.sql",
+    executionPhase = org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class EpiTenantIntegrationTest extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
