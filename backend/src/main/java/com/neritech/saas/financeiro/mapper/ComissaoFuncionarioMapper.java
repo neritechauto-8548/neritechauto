@@ -10,6 +10,9 @@ public interface ComissaoFuncionarioMapper {
     @Mapping(target = "funcionario", ignore = true)
     @Mapping(target = "fatura", ignore = true)
     @Mapping(target = "itemFatura", ignore = true)
+    @Mapping(target = "baseCalculo", source = "valorBase")
+    @Mapping(target = "dataCompetencia", source = "dataReferencia")
+    @Mapping(target = "paga", ignore = true)
     ComissaoFuncionario toEntity(ComissaoFuncionarioRequest request);
 
     @Mapping(target = "aprovado", expression = "java(entity.getDataAprovacao() != null)")
@@ -18,6 +21,9 @@ public interface ComissaoFuncionarioMapper {
     @Mapping(target = "dataReferencia", source = "dataCompetencia")
     @Mapping(target = "createdAt", source = "dataCadastro")
     @Mapping(target = "updatedAt", source = "dataAtualizacao")
+    @Mapping(target = "funcionarioId", source = "funcionario.id")
+    @Mapping(target = "faturaId", source = "fatura.id")
+    @Mapping(target = "itemFaturaId", source = "itemFatura.id")
     @Mapping(target = "funcionarioNome", source = "funcionario.nomeCompleto")
     @Mapping(target = "faturaNumero", source = "fatura.numeroFatura")
     @Mapping(target = "itemFaturaDescricao", source = "itemFatura.descricao")
@@ -27,5 +33,8 @@ public interface ComissaoFuncionarioMapper {
     @Mapping(target = "funcionario", ignore = true)
     @Mapping(target = "fatura", ignore = true)
     @Mapping(target = "itemFatura", ignore = true)
+    @Mapping(target = "baseCalculo", source = "valorBase")
+    @Mapping(target = "dataCompetencia", source = "dataReferencia")
+    @Mapping(target = "paga", ignore = true)
     void updateEntityFromDTO(ComissaoFuncionarioRequest request, @MappingTarget ComissaoFuncionario entity);
 }
