@@ -186,7 +186,7 @@ export class FornecedorReferenciaComponent implements OnInit {
       cpf:this.pessoaJuridica?null:this.form.cpf,cnpj:this.pessoaJuridica?this.form.cnpj:null,
       emailPrincipal:this.form.emailPrincipal?.trim()||'',razaoSocial:this.form.razaoSocial?.trim(),
       enderecoCompleto:[this.form.logradouro,this.form.numero,this.form.bairro,this.form.complemento]
-        .filter(Boolean).join(', ')};
+        .filter(Boolean).join(', ') || this.form.enderecoCompleto || ''};
     const obs=this.selecionado
       ?this.api.update(this.selecionado.id,{...payload,versao:this.selecionado.versao})
       :this.api.create(payload);
