@@ -35,7 +35,7 @@ export interface OpcoesQuitacao { gerarContaPagar: boolean; liquidarContaPagar?:
 export interface ComissoesPage { content: ComissaoLinha[]; totalElements: number; totalPages: number; }
 export interface FiltrosComissoes {
   nome?: string; ordemServicoId?: number; funcionarioId?: number; paga?: boolean;
-  inicio?: string; fim?: string; cliente?: string; placa?: string;
+  inicio?: string; fim?: string; cliente?: string; placa?: string; numeroOs?: string;
 }
 @Injectable({ providedIn: 'root' })
 export class ComissaoFinanceiraService {
