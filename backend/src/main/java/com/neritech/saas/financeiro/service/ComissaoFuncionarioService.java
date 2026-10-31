@@ -156,7 +156,7 @@ public class ComissaoFuncionarioService {
     }
 
     private record ContextoOs(String numero, String placa, String cliente, java.time.LocalDateTime autorizacao,
-            java.math.BigDecimal total) {}
+            java.time.LocalDateTime fechamento, String situacao) {}
 
     private ComissaoFuncionarioResponse resposta(ComissaoFuncionario entidade) {
         var base = mapper.toResponse(entidade);
@@ -166,14 +166,18 @@ public class ComissaoFuncionarioService {
         ContextoOs contexto = null;
         if (entidade.getOrdemServicoId() != null) {
             var resultados = jdbc.query("""
-                select os.numero_os,v.placa,cl.nome_completo,os.data_aprovacao_cliente,os.valor_total
+                select os.numero_os,v.placa,cl.nome_completo,os.data_aprovacao_cliente,
+                       case when st.finaliza_os = true then os.data_entrega else null end as data_fechamento,
+                       st.nome
                 from ordens_servico os
                 left join veiculos v on v.id=os.veiculo_id and v.empresa_id=os.empresa_id
                 left join cliente cl on cl.id=os.cliente_id and cl.empresa_id=os.empresa_id
+                left join status_os st on st.id=os.status_id and st.empresa_id=os.empresa_id
                 where os.id=? and os.empresa_id=?
                 """,(rs,n)->new ContextoOs(rs.getString(1),rs.getString(2),rs.getString(3),
                     rs.getTimestamp(4)==null?null:rs.getTimestamp(4).toLocalDateTime(),
-                    rs.getBigDecimal(5)),entidade.getOrdemServicoId(),entidade.getEmpresaId());
+                    rs.getTimestamp(5)==null?null:rs.getTimestamp(5).toLocalDateTime(),
+                    rs.getString(6)),entidade.getOrdemServicoId(),entidade.getEmpresaId());
             if (!resultados.isEmpty()) contexto = resultados.get(0);
         }
         return new ComissaoFuncionarioResponse(base.id(),base.empresaId(),base.funcionarioId(),
@@ -182,8 +186,9 @@ public class ComissaoFuncionarioService {
             base.percentualComissao(),base.valorComissao(),base.tipoComissao(),base.pago(),
             base.dataPagamento(),base.observacoes(),base.createdAt(),base.updatedAt(),base.aprovado(),
             contexto==null?null:contexto.placa(),contexto==null?null:contexto.cliente(),empresa,
-            contexto==null?null:contexto.autorizacao(),null,contexto==null?null:contexto.total(),
-            contexto==null?null:contexto.numero());
+            contexto==null?null:contexto.autorizacao(),contexto==null?null:contexto.fechamento(),
+            base.valorBase(),contexto==null?null:contexto.numero(),
+            contexto==null?null:contexto.situacao());
     }
 
     @Transactional(readOnly = true)
