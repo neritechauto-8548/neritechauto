@@ -16,6 +16,7 @@ export interface ComissaoLinha {
   placa?: string;
   clienteNome?: string;
   empresaNome?: string;
+  empresaCnpj?: string;
   dataAutorizacao?: string;
   dataFechamento?: string;
   valorLiquido?: number;
