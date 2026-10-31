@@ -9,5 +9,7 @@ public record TransportadoraResponse(
         String contato, String telefone, String email, String endereco, String cep,
         String cidade, String estado, String modalidade, Boolean ativo,
         String observacoes, Integer versao, long totalCompras,
-        LocalDateTime ultimaCompra
+        LocalDateTime ultimaCompra,
+        String inscricaoEstadual, String logradouro, String numero,
+        String bairro, String complemento
 ) {}
