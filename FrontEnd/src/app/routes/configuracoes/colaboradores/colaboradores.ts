@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -9,6 +9,7 @@ import { HotToastService } from '@ngxpert/hot-toast';
 import { FuncionarioService, FuncionarioResponse } from './funcionario.service';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { empresaIdAtual } from '@shared/utils/empresa-context';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'colaboradores',
@@ -20,41 +21,79 @@ import { empresaIdAtual } from '@shared/utils/empresa-context';
     MatIconModule, MatMenuModule, MatButtonModule
   ],
 })
-export class Colaboradores implements OnInit {
+export class Colaboradores implements OnInit, OnDestroy {
   private readonly router    = inject(Router);
   private readonly toast     = inject(HotToastService);
   private readonly service   = inject(FuncionarioService);
   private readonly storage = inject(LocalStorageService);
 
-  // Preferências visuais locais por empresa; o campo de identificação é fixo.
+
+  // As colunas e sua ordem são uma preferência visual local, isolada por empresa.
   columnPanelOpen = false;
+  filterDrawerOpen = false;
   readonly columnOptions = [
+    { key: 'sexo', label: 'Gênero' },
     { key: 'matricula', label: 'Nº Registro' },
     { key: 'cargo', label: 'Função' },
-    { key: 'status', label: 'Situação' },
+    { key: 'status', label: 'Situação' }
   ];
-  visibleColumns: Record<string, boolean> = { matricula: true, cargo: true, status: true };
+  selectedColumnKeys: string[] = ['sexo', 'matricula', 'cargo'];
+  draftColumnKeys: string[] = [];
+  get selectedColumns() {
+    return this.selectedColumnKeys.map(key => this.columnOptions.find(option => option.key === key))
+      .filter((option): option is { key: string; label: string } => !!option);
+  }
+  get visibleColumnCount() { return this.selectedColumnKeys.length + 2; }
+
   private get columnsStorageKey(): string {
     return 'neritech.funcionarios.colunas.' + String(empresaIdAtual(this.storage) ?? 'sem-empresa');
   }
 
   private restoreColumns(): void {
     try {
-      const saved = JSON.parse(localStorage.getItem(this.columnsStorageKey) || '{}');
-      for (const option of this.columnOptions) {
-        if (typeof saved[option.key] === 'boolean') this.visibleColumns[option.key] = saved[option.key];
+      const saved: unknown = JSON.parse(localStorage.getItem(this.columnsStorageKey) || 'null');
+      if (Array.isArray(saved) && saved.every(key => typeof key === 'string')) {
+        const allowed = saved.filter((key: string) => this.columnOptions.some(option => option.key === key));
+        this.selectedColumnKeys = Array.from(new Set(allowed));
+      } else if (saved && typeof saved === 'object') {
+        // Compatibilidade com preferências publicadas no primeiro lote.
+        const old = saved as Record<string, unknown>;
+        this.selectedColumnKeys = ['sexo', 'matricula', 'cargo', 'status']
+          .filter(key => key === 'sexo' || old[key] === true);
       }
-    } catch { this.visibleColumns = { matricula: true, cargo: true, status: true }; }
+    } catch {
+      this.selectedColumnKeys = ['sexo', 'matricula', 'cargo'];
+    }
   }
 
-  toggleColumn(key: string, visible: boolean): void {
-    if (!this.columnOptions.some(option => option.key === key)) return;
-    this.visibleColumns = { ...this.visibleColumns, [key]: visible };
+  openColumnPanel(): void {
+    this.draftColumnKeys = [...this.selectedColumnKeys];
+    this.columnPanelOpen = true;
   }
+
+  isColumnSelected(key: string): boolean { return this.draftColumnKeys.includes(key); }
+  toggleColumn(key: string, selected: boolean): void {
+    if (!this.columnOptions.some(option => option.key === key)) return;
+    this.draftColumnKeys = selected
+      ? [...this.draftColumnKeys.filter(k => k !== key), key]
+      : this.draftColumnKeys.filter(k => k !== key);
+  }
+
+  moveColumn(key: string, distance: number): void {
+    const idx = this.draftColumnKeys.indexOf(key);
+    const target = idx + distance;
+    if (idx < 0 || target < 0 || target >= this.draftColumnKeys.length) return;
+    const reordered = [...this.draftColumnKeys];
+    [reordered[idx], reordered[target]] = [reordered[target], reordered[idx]];
+    this.draftColumnKeys = reordered;
+  }
+
+  restoreDefaultColumns(): void { this.draftColumnKeys = ['sexo', 'matricula', 'cargo']; }
 
   saveColumns(): void {
     try {
-      localStorage.setItem(this.columnsStorageKey, JSON.stringify(this.visibleColumns));
+      localStorage.setItem(this.columnsStorageKey, JSON.stringify(this.draftColumnKeys));
+      this.selectedColumnKeys = [...this.draftColumnKeys];
       this.columnPanelOpen = false;
       this.toast.success('Colunas atualizadas');
     } catch {
@@ -62,62 +101,135 @@ export class Colaboradores implements OnInit {
     }
   }
 
-  restoreDefaultColumns(): void {
-    this.visibleColumns = { matricula: true, cargo: true, status: true };
+  searchTerm = '';
+  filters = { nome: '', funcao: '', registro: '', status: '' };
+  draftFilters = { nome: '', funcao: '', registro: '', status: '' };
+  readonly statuses = [
+    { value: '', label: 'Todas as situações' },
+    { value: 'ATIVO', label: 'Ativo' },
+    { value: 'INATIVO', label: 'Inativo' },
+    { value: 'AFASTADO', label: 'Afastado' },
+    { value: 'DEMITIDO', label: 'Demitido' },
+    { value: 'APOSENTADO', label: 'Aposentado' }
+  ];
+  get activeFilterCount(): number {
+    return Object.values(this.filters).filter(value => !!value).length;
   }
 
-  get visibleColumnCount(): number {
-    return 2 + this.columnOptions.filter(option => this.visibleColumns[option.key]).length;
-  }
-
-  searchTerm   = '';
-  statusFilter = '';
-
-  rows  = 20;
+  rows = 20;
   first = 0;
   totalRecords = 0;
   colaboradores: FuncionarioResponse[] = [];
   loading = false;
   loadError = '';
+  sortField = 'nomeCompleto';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  private listSubscription?: Subscription;
 
-  ngOnInit() { this.restoreColumns(); this.loadData(); }
+  ngOnInit(): void { this.restoreColumns(); this.loadData(); }
+  ngOnDestroy(): void { this.listSubscription?.unsubscribe(); }
 
-  loadData() {
+  loadData(): void {
+    this.listSubscription?.unsubscribe();
     this.loading = true;
     this.loadError = '';
-    const page = Math.floor(this.first / this.rows);
-    const params: any = { page, size: this.rows };
-    if (this.searchTerm)   params['nomeCompleto'] = this.searchTerm;
-    if (this.statusFilter) params['status']       = this.statusFilter;
+    const params: Record<string, string | number> = {
+      page: Math.floor(this.first / this.rows),
+      size: this.rows,
+      sort: this.sortField + ',' + this.sortDirection
+    };
+    if (this.searchTerm.trim()) params['nomeCompleto'] = this.searchTerm.trim();
+    if (this.filters.nome) params['nome'] = this.filters.nome;
+    if (this.filters.funcao) params['funcao'] = this.filters.funcao;
+    if (this.filters.registro) params['registro'] = this.filters.registro;
+    if (this.filters.status) params['status'] = this.filters.status;
 
-    this.service.list(params).subscribe({
-      next: (data) => {
-        this.colaboradores  = data.content ?? [];
-        this.totalRecords   = data.totalElements ?? 0;
+    this.listSubscription = this.service.list(params).subscribe({
+      next: data => {
+        this.colaboradores = data.content ?? [];
+        this.totalRecords = data.totalElements ?? 0;
         this.loading = false;
       },
-      error: (error) => {
+      error: error => {
         this.loading = false;
         this.colaboradores = [];
-        this.loadError = error?.status === 403 ? 'Você não tem permissão para consultar funcionários.' : 'Não foi possível carregar os funcionários.';
-      },
+        this.totalRecords = 0;
+        this.loadError = error?.status === 403
+          ? 'Você não tem permissão para consultar funcionários.'
+          : 'Não foi possível carregar os funcionários.';
+      }
     });
   }
 
-  onSearch() { this.first = 0; this.loadData(); }
-
-  goPrev() {
-    if (this.first - this.rows >= 0) { this.first -= this.rows; this.loadData(); }
+  onSearch(): void { this.first = 0; this.loadData(); }
+  openFilters(): void {
+    this.draftFilters = { ...this.filters };
+    this.filterDrawerOpen = true;
   }
-  goNext() {
+  closeFilters(): void { this.filterDrawerOpen = false; }
+  applyFilters(): void {
+    this.filters = {
+      nome: this.draftFilters.nome.trim(),
+      funcao: this.draftFilters.funcao.trim(),
+      registro: this.draftFilters.registro.trim(),
+      status: this.draftFilters.status
+    };
+    this.filterDrawerOpen = false;
+    this.first = 0;
+    this.loadData();
+  }
+  resetFilters(): void {
+    this.filters = { nome: '', funcao: '', registro: '', status: '' };
+    this.draftFilters = { ...this.filters };
+    this.first = 0;
+    this.loadData();
+  }
+
+  changeSort(field: 'nomeCompleto' | 'sexo' | 'matricula' | 'status'): void {
+    if (this.sortField === field) this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    else { this.sortField = field; this.sortDirection = 'asc'; }
+    this.first = 0;
+    this.loadData();
+  }
+
+  goPrev(): void {
+    if (this.first >= this.rows) { this.first -= this.rows; this.loadData(); }
+  }
+  goNext(): void {
     if (this.first + this.rows < this.totalRecords) { this.first += this.rows; this.loadData(); }
   }
 
   get currentPage() { return Math.floor(this.first / this.rows) + 1; }
-  get maxPage()     { return Math.max(1, Math.ceil(this.totalRecords / this.rows)); }
-
+  get maxPage() { return Math.max(1, Math.ceil(this.totalRecords / this.rows)); }
   get rangeStart(): number { return this.totalRecords === 0 ? 0 : this.first + 1; }
-  get rangeEnd(): number   { return Math.min(this.first + this.rows, this.totalRecords); }
+  get rangeEnd(): number { return Math.min(this.first + this.rows, this.totalRecords); }
+
+  genderLabel(sexo: string | undefined): string {
+    return ({ M: 'Masculino', F: 'Feminino', O: 'Outro' } as Record<string, string>)[sexo ?? '']
+      || 'Não informado';
+  }
+
+  exportCurrentPage(): void {
+    if (!this.colaboradores.length) return;
+    // Exporta exclusivamente o resultado da página carregada, sem sugerir relatório completo.
+    const header = ['Funcionário', 'Gênero', 'Nº Registro', 'Função', 'Situação'];
+    const rows = this.colaboradores.map(row => [
+      row.nomeCompleto, this.genderLabel(row.sexo), row.matricula,
+      row.cargoNome || 'Não informado', row.status || 'Não informado'
+    ]);
+    const safeCsvField = (value: unknown) => {
+      let text = String(value ?? '');
+      if (/^[\s]*[=+\-@\t\r]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    };
+    const csv = [header, ...rows].map(values => values.map(safeCsvField).join(';')).join('\r\n');
+    const href = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = 'neritech-funcionarios-pagina-' + this.currentPage + '.csv';
+    a.click();
+    URL.revokeObjectURL(href);
+  }
 
   getInitials(nome: string | undefined): string {
     if (!nome) return '??';
