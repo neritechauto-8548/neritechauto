@@ -93,6 +93,13 @@ public class ComissaoFuncionarioService {
     @Transactional(readOnly = true)
     public Page<ComissaoFuncionarioResponse> listar(Long empresaId, String nome, Long funcionarioId,
             Long ordemServicoId, Boolean paga, LocalDate inicio, LocalDate fim, Pageable pageable) {
+        return listar(empresaId, nome, funcionarioId, ordemServicoId, paga, inicio, fim, null, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ComissaoFuncionarioResponse> listar(Long empresaId, String nome, Long funcionarioId,
+            Long ordemServicoId, Boolean paga, LocalDate inicio, LocalDate fim,
+            String cliente, String placa, Pageable pageable) {
         long tenant = TenantAccess.require(empresaId);
         validarPaginacao(pageable);
         if (inicio != null && fim != null && inicio.isAfter(fim))
@@ -101,6 +108,29 @@ public class ComissaoFuncionarioService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Busca muito extensa");
         String q = nome == null ? "" : nome.trim().toLowerCase().replace("!", "!!")
                 .replace("%", "!%").replace("_", "!_");
+        final java.util.List<Long> osFiltradas;
+        if (cliente != null && !cliente.isBlank() || placa != null && !placa.isBlank()) {
+            if (cliente != null && cliente.length() > 150 || placa != null && placa.length() > 10)
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Filtro de cliente/placa muito extenso");
+            var sql = new StringBuilder("""
+                select os.id from ordens_servico os
+                left join veiculos v on v.id=os.veiculo_id and v.empresa_id=os.empresa_id
+                left join cliente cl on cl.id=os.cliente_id and cl.empresa_id=os.empresa_id
+                where os.empresa_id=?
+                """);
+            var args = new ArrayList<Object>();
+            args.add(tenant);
+            if (cliente != null && !cliente.isBlank()) {
+                sql.append(" and lower(cl.nome_completo) like ? escape '!' ");
+                args.add("%" + cliente.trim().toLowerCase().replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
+            }
+            if (placa != null && !placa.isBlank()) {
+                sql.append(" and upper(v.placa) like ? escape '!' ");
+                args.add("%" + placa.trim().toUpperCase().replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
+            }
+            osFiltradas = jdbc.queryForList(sql.toString(), Long.class, args.toArray());
+            if (osFiltradas.isEmpty()) return Page.empty(pageable);
+        } else osFiltradas = null;
         Specification<ComissaoFuncionario> spec = (root, query, cb) -> {
             var rules = new ArrayList<jakarta.persistence.criteria.Predicate>();
             rules.add(cb.equal(root.get("empresaId"), tenant));
@@ -111,16 +141,48 @@ public class ComissaoFuncionarioService {
             if (funcionarioId != null) rules.add(cb.equal(root.get("funcionario").get("id"), funcionarioId));
             if (ordemServicoId != null) rules.add(cb.equal(root.get("ordemServicoId"), ordemServicoId));
             if (paga != null) rules.add(cb.equal(root.get("paga"), paga));
+            if (osFiltradas != null) rules.add(root.get("ordemServicoId").in(osFiltradas));
             if (inicio != null) rules.add(cb.greaterThanOrEqualTo(root.get("dataCompetencia"), inicio));
             if (fim != null) rules.add(cb.lessThanOrEqualTo(root.get("dataCompetencia"), fim));
             return cb.and(rules.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
-        return repository.findAll(spec, pageable).map(mapper::toResponse);
+        return repository.findAll(spec, pageable).map(this::resposta);
+    }
+
+    private record ContextoOs(String numero, String placa, String cliente, java.time.LocalDateTime autorizacao,
+            java.math.BigDecimal total) {}
+
+    private ComissaoFuncionarioResponse resposta(ComissaoFuncionario entidade) {
+        var base = mapper.toResponse(entidade);
+        String empresa = jdbc.queryForObject(
+            "select coalesce(nome_fantasia,razao_social) from empresa where id=?",
+            String.class,entidade.getEmpresaId());
+        ContextoOs contexto = null;
+        if (entidade.getOrdemServicoId() != null) {
+            var resultados = jdbc.query("""
+                select os.numero_os,v.placa,cl.nome_completo,os.data_aprovacao_cliente,os.valor_total
+                from ordens_servico os
+                left join veiculos v on v.id=os.veiculo_id and v.empresa_id=os.empresa_id
+                left join cliente cl on cl.id=os.cliente_id and cl.empresa_id=os.empresa_id
+                where os.id=? and os.empresa_id=?
+                """,(rs,n)->new ContextoOs(rs.getString(1),rs.getString(2),rs.getString(3),
+                    rs.getTimestamp(4)==null?null:rs.getTimestamp(4).toLocalDateTime(),
+                    rs.getBigDecimal(5)),entidade.getOrdemServicoId(),entidade.getEmpresaId());
+            if (!resultados.isEmpty()) contexto = resultados.get(0);
+        }
+        return new ComissaoFuncionarioResponse(base.id(),base.empresaId(),base.funcionarioId(),
+            base.funcionarioNome(),base.faturaId(),base.faturaNumero(),base.ordemServicoId(),
+            base.itemFaturaId(),base.itemFaturaDescricao(),base.dataReferencia(),base.valorBase(),
+            base.percentualComissao(),base.valorComissao(),base.tipoComissao(),base.pago(),
+            base.dataPagamento(),base.observacoes(),base.createdAt(),base.updatedAt(),base.aprovado(),
+            contexto==null?null:contexto.placa(),contexto==null?null:contexto.cliente(),empresa,
+            contexto==null?null:contexto.autorizacao(),null,contexto==null?null:contexto.total(),
+            contexto==null?null:contexto.numero());
     }
 
     @Transactional(readOnly = true)
     public ComissaoFuncionarioResponse findById(Long id, Long empresaId) {
-        return mapper.toResponse(owned(id, TenantAccess.require(empresaId)));
+        return resposta(owned(id, TenantAccess.require(empresaId)));
     }
 
     @Transactional
@@ -136,7 +198,7 @@ public class ComissaoFuncionarioService {
         vincular(entity, request, tenant);
         entity = repository.saveAndFlush(entity);
         audit(tenant, entity.getId(), autor, "INSERT", Map.of("valorComissao", entity.getValorComissao()));
-        return mapper.toResponse(entity);
+        return resposta(entity);
     }
 
     private void vincular(ComissaoFuncionario entity, ComissaoFuncionarioRequest request, long tenant) {
@@ -172,7 +234,7 @@ public class ComissaoFuncionarioService {
         vincular(entity, request, tenant);
         entity = repository.saveAndFlush(entity);
         audit(tenant, id, autor, "UPDATE", Map.of("valorComissao", entity.getValorComissao()));
-        return mapper.toResponse(entity);
+        return resposta(entity);
     }
 
     @Transactional
@@ -189,7 +251,7 @@ public class ComissaoFuncionarioService {
         var entity = locked(id, tenant);
         if (Boolean.TRUE.equals(entity.getPaga()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Comissão já quitada");
-        if (entity.getDataAprovacao() != null) return mapper.toResponse(entity);
+        if (entity.getDataAprovacao() != null) return resposta(entity);
         if (entity.getValorComissao() == null || entity.getValorComissao().signum() < 0)
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Valor de comissão inválido");
         long autor = actor(tenant);
@@ -197,7 +259,7 @@ public class ComissaoFuncionarioService {
         entity.setDataAprovacao(LocalDateTime.now());
         entity = repository.saveAndFlush(entity);
         audit(tenant, id, autor, "UPDATE", Map.of("aprovada", true));
-        return mapper.toResponse(entity);
+        return resposta(entity);
     }
 
     @Transactional
@@ -268,7 +330,7 @@ public class ComissaoFuncionarioService {
             audit(tenant,id,autor,"INSERT",Map.of("contaPagarId",titulo.getId(),"situacao","ABERTO"));
         }
         audit(tenant, id, autor, "UPDATE", Map.of("paga", true, "dataPagamento", data.toString()));
-        return mapper.toResponse(entity);
+        return resposta(entity);
     }
 
     @Transactional
@@ -297,6 +359,6 @@ public class ComissaoFuncionarioService {
         entity.setValorPago(null);
         entity = repository.saveAndFlush(entity);
         audit(tenant, id, autor, "UPDATE", Map.of("paga", false, "estornoQuitacao", true));
-        return mapper.toResponse(entity);
+        return resposta(entity);
     }
 }
