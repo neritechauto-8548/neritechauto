@@ -26,8 +26,8 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   busca = '';
   filtroAberto = false;
   filtros: FiltrosComissoes = {};
-  rascunho: { os: string; paga: string; inicio: string; fim: string } = {
-    os: '', paga: '', inicio: '', fim: ''
+  rascunho: { os: string; paga: string; cliente: string; placa: string; inicio: string; fim: string } = {
+    os: '', paga: '', cliente: '', placa: '', inicio: '', fim: ''
   };
   pagina = 0;
   total = 0;
@@ -77,6 +77,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     this.rascunho = {
       os: this.filtros.ordemServicoId ? String(this.filtros.ordemServicoId) : '',
       paga: this.filtros.paga === undefined ? '' : String(this.filtros.paga),
+      cliente: this.filtros.cliente || '', placa: this.filtros.placa || '',
       inicio: this.filtros.inicio || '', fim: this.filtros.fim || ''
     };
     this.filtroAberto = true;
@@ -93,13 +94,14 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     this.filtros = {
       ordemServicoId: os ? Number(os) : undefined,
       paga: this.rascunho.paga === '' ? undefined : this.rascunho.paga === 'true',
+      cliente: this.rascunho.cliente.trim() || undefined, placa: this.rascunho.placa.trim() || undefined,
       inicio: this.rascunho.inicio || undefined,
       fim: this.rascunho.fim || undefined
     };
     this.filtroAberto = false; this.pagina = 0; this.carregar();
   }
   limparFiltros(): void {
-    this.rascunho = { os: '', paga: '', inicio: '', fim: '' };
+    this.rascunho = { os: '', paga: '', cliente: '', placa: '', inicio: '', fim: '' };
     this.filtros = {}; this.busca = ''; this.filtroAberto = false;
     this.pagina = 0; this.carregar();
   }
