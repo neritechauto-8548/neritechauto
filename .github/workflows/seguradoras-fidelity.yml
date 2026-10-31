@@ -12,6 +12,7 @@ on:
       - "backend/src/main/java/com/neritech/saas/empresa/service/SeguradoraService.java"
       - "backend/src/main/resources/db/migration/V300__seguradoras_referencia_visual.sql"
       - "backend/src/test/java/com/neritech/saas/empresa/SeguradoraTenantIntegrationTest.java"
+      - "backend/src/test/resources/docker-java.properties"
       - ".github/workflows/seguradoras-fidelity.yml"
   workflow_dispatch:
 concurrency:
