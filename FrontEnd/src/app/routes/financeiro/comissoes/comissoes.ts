@@ -18,6 +18,17 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   private relatorios = inject(RelatoriosService);
   private listSub?: Subscription;
   registros: ComissaoLinha[] = [];
+  selecionados = new Set<number>();
+  lote = false;
+  selecionar(id: number, marcado: boolean): void { if(marcado)this.selecionados.add(id);else this.selecionados.delete(id); }
+  selecionarTodos(marcado: boolean): void { this.selecionados.clear(); if(marcado) this.registros.filter(x => !x.pago).forEach(x => this.selecionados.add(x.id)); }
+  get totalSelecionaveis(): number { return this.registros.filter(x => !x.pago).length; }
+  get todosSelecionados(): boolean { return this.totalSelecionaveis>0 && this.registros.filter(x => !x.pago).every(x => this.selecionados.has(x.id)); }
+  abrirQuitacaoLote(): void {
+    const selecionada = this.registros.find(x => this.selecionados.has(x.id));
+    if(!selecionada || this.busy) return;
+    this.abrirQuitacao(selecionada); this.lote = true;
+  }
   loading = false;
   busy = false;
   pdfLoading = false;
@@ -56,6 +67,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     this.listSub = this.service.listar(filters, this.pagina, 20).subscribe({
       next: page => {
         this.registros = page.content ?? [];
+        this.selecionados.clear();
         this.total = page.totalElements ?? 0;
         this.totalPaginas = Math.max(1, page.totalPages ?? 1);
         this.loading = false;
@@ -111,7 +123,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     });
   }
   abrirQuitacao(linha: ComissaoLinha): void {
-    this.selecionada = linha; this.operacao = 'quitar'; this.observacao = '';
+    this.selecionada = linha; this.operacao = 'quitar'; this.lote = false; this.observacao = '';
     this.dataPagamento = this.localDate(new Date()); this.operacaoErro = '';
     this.gerarContaPagar=false; this.liquidarContaPagar=false; this.planoContaId=null; this.tipoDocumento='';
     this.carregandoPlanos=true;
@@ -119,7 +131,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
       error: () => {this.carregandoPlanos=false;this.operacaoErro='Não foi possível consultar o plano de contas.';} });
   }
   abrirEstorno(linha: ComissaoLinha): void {
-    this.selecionada = linha; this.operacao = 'estornar'; this.operacaoErro = '';
+    this.selecionada = linha; this.operacao = 'estornar'; this.lote = false; this.operacaoErro = '';
   }
   fecharOperacao(): void { if (!this.busy) { this.operacao = null; this.selecionada = null; } }
   confirmarOperacao(): void {
@@ -135,15 +147,19 @@ export class ComissoesComponent implements OnInit, OnDestroy {
     }
     this.busy = true; this.operacaoErro = '';
     const op = this.operacao === 'quitar'
-      ? this.service.quitar(this.selecionada.id, this.dataPagamento, this.observacao,
+      ? (this.lote ? this.service.quitarLote([...this.selecionados], this.dataPagamento, this.observacao,
           { gerarContaPagar:this.gerarContaPagar, liquidarContaPagar:false,
             planoContaId:this.gerarContaPagar?(this.planoContaId||undefined):undefined,
             tipoDocumento:this.gerarContaPagar?this.tipoDocumento:undefined })
+        : this.service.processarQuitacao(this.selecionada.id, this.dataPagamento, this.observacao,
+          { gerarContaPagar:this.gerarContaPagar, liquidarContaPagar:false,
+            planoContaId:this.gerarContaPagar?(this.planoContaId||undefined):undefined,
+            tipoDocumento:this.gerarContaPagar?this.tipoDocumento:undefined }))
       : this.service.estornar(this.selecionada.id);
     op.subscribe({
       next: () => {
         const status = this.operacao;
-        this.busy = false; this.fecharOperacao();
+        this.busy = false; this.fecharOperacao(); this.selecionados.clear();
         this.notice = status === 'quitar'
           ? (this.gerarContaPagar ? 'Comissão quitada e conta a pagar criada em aberto.' : 'Quitação registrada. Nenhuma conta a pagar nem transferência bancária foi criada.')
           : 'Quitação estornada e registrada em auditoria.';
