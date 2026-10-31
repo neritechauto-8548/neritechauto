@@ -104,8 +104,8 @@ class ComissaoQuitacaoTenantIntegrationTest extends AbstractIntegrationTest {
     private long comissao(long empresa, long funcionario) {
         return jdbc.queryForObject("""
                 insert into fin_comissoes_funcionarios (empresa_id,funcionario_id,base_calculo,percentual_comissao,
-                    valor_comissao,data_competencia,paga,versao)
-                values (?,?,100,10,10,'2026-10-01',false,0) returning id
+                    valor_comissao,data_competencia,paga,versao,data_cadastro)
+                values (?,?,100,10,10,'2026-10-01',false,0,now()) returning id
                 """, Long.class, empresa, funcionario);
     }
     private String login(long empresa, String email, String role) throws Exception {
