@@ -34,7 +34,7 @@
     <div class="flex justify-center">
       <div class="bg-slate-100 p-1 rounded-lg flex flex-wrap justify-center gap-1 border border-slate-200">
         <button *ngFor="let tab of navTabs"
-          (click)="activeTab = tab.id"
+          (click)="selecionarAba(tab.id)"
           [class]="activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
           class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-2">
           <mat-icon class="!text-[14px] !w-[14px] !h-[14px]">{{ tab.icon }}</mat-icon> {{ tab.label }}
@@ -853,6 +853,62 @@
       </ng-container>
     </ng-container>
 
+
+    <ng-container *ngIf="activeTab === 'epis'">
+      <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="func-epi-title">
+        <header class="mb-5 flex items-center justify-between">
+          <div><h2 id="func-epi-title" class="font-semibold text-slate-950">Equipamentos de Proteção Individual</h2>
+          <p class="text-xs text-slate-500">Histórico de entregas vinculadas a este funcionário</p></div>
+        </header>
+        <div *ngIf="!funcionarioId" class="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">
+          Salve os dados gerais do funcionário antes de registrar a entrega de EPIs.
+        </div>
+        <ng-container *ngIf="funcionarioId">
+          <div *ngIf="epiLoading" role="status" class="p-4 text-sm text-slate-500">Carregando entregas...</div>
+          <div class="overflow-x-auto rounded-lg border border-slate-200">
+            <table class="w-full min-w-[480px] text-left text-sm">
+              <thead class="border-b border-slate-200 text-slate-500"><tr>
+                <th scope="col" class="p-3">EPI</th><th scope="col" class="p-3">Data de entrega</th><th scope="col" class="p-3">Validade</th>
+              </tr></thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr *ngFor="let item of epiEntregas">
+                  <td class="p-3">{{ item.epiNome }} <span class="text-xs text-slate-400">{{ item.numeroCa || '' }}</span></td>
+                  <td class="p-3">{{ item.dataEntrega | date:'dd/MM/yyyy' }}</td>
+                  <td class="p-3">{{ item.dataValidade ? (item.dataValidade | date:'dd/MM/yyyy') : 'Não informada' }}</td>
+                </tr>
+                <tr *ngIf="!epiEntregas.length"><td colspan="3" class="p-10 text-center text-sm text-slate-500">Nenhum EPI vinculado encontrado.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <form (ngSubmit)="registrarEntregaEpi()" class="mt-5 space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4" aria-label="Adicionar entrega de EPI">
+            <h3 class="text-sm font-semibold text-slate-950">Adicionar EPI</h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label class="flex flex-col gap-2 text-sm">EPI <span class="text-red-600">*</span>
+                <select name="epiId" [(ngModel)]="epiForm.epiId" required class="h-11 rounded-lg border border-slate-300 bg-white px-3">
+                  <option [ngValue]="null">Selecionar EPI</option>
+                  <option *ngFor="let epi of epiCatalogo" [ngValue]="epi.id">{{ epi.nome }}{{ epi.numeroCa ? ' — CA ' + epi.numeroCa : '' }}</option>
+                </select>
+              </label>
+              <div class="hidden sm:block"></div>
+              <label class="flex flex-col gap-2 text-sm">Data da entrega <span class="text-red-600">*</span>
+                <input type="date" name="dataEntregaEpi" [(ngModel)]="epiForm.dataEntrega" required class="h-11 rounded-lg border border-slate-300 bg-white px-3" />
+              </label>
+              <label class="flex flex-col gap-2 text-sm">Data de validade
+                <input type="date" name="dataValidadeEpi" [(ngModel)]="epiForm.dataValidade" class="h-11 rounded-lg border border-slate-300 bg-white px-3" />
+              </label>
+              <label class="flex flex-col gap-2 text-sm sm:col-span-2">Observação
+                <textarea name="observacaoEpi" [(ngModel)]="epiForm.observacao" rows="2" maxlength="2000" class="rounded-lg border border-slate-300 bg-white p-3"></textarea>
+              </label>
+            </div>
+            <p *ngIf="epiErro" role="alert" class="text-sm text-red-700">{{ epiErro }}</p>
+            <button type="submit" [disabled]="epiSalvando || !epiForm.epiId || !epiForm.dataEntrega"
+              class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-40">
+              {{ epiSalvando ? 'Registrando...' : 'Registrar entrega de EPI' }}
+            </button>
+          </form>
+        </ng-container>
+      </section>
+    </ng-container>
   </div>
 
   <footer *ngIf="drawerMode" class="z-20 flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-5 py-3 shadow-sm">
