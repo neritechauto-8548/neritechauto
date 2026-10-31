@@ -81,6 +81,15 @@ public class FornecedorService {
                 .map(mapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public Page<FornecedorResponse> filterDetalhado(Long empresaId, String termo, Boolean ativo,
+            String cidade, String documento, String nome, Pageable page) {
+        TenantAccess.require(empresaId);
+        return repository.filterDetalhado(empresaId, filtroTexto(termo), ativo, filtroTexto(cidade),
+                documento==null?"":documento.replaceAll("[^A-Za-z0-9]","").toUpperCase(Locale.ROOT),
+                filtroTexto(nome), page).map(mapper::toResponse);
+    }
+
     private static String filtroTexto(String value) {
         return value == null || value.isBlank() ? "" : value.trim();
     }
