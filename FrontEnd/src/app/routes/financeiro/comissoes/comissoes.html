@@ -97,8 +97,8 @@
       <div class="flex-1 space-y-6 overflow-y-auto p-5">
         <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <legend class="mb-3 text-xs text-slate-500">Ordem de serviço</legend>
-          <label class="flex flex-col gap-2 text-sm">Número da OS
-            <input name="osFiltro" [(ngModel)]="rascunho.os" inputmode="numeric" placeholder="ID da ordem de serviço" class="h-11 rounded-lg border border-slate-300 px-3" />
+          <label class="flex flex-col gap-2 text-sm">O.S.
+            <input name="osFiltro" [(ngModel)]="rascunho.os" inputmode="numeric" placeholder="Número da ordem de serviço" class="h-11 rounded-lg border border-slate-300 px-3" />
           </label>
           <label class="flex flex-col gap-2 text-sm">Situação
             <select name="situacao" [(ngModel)]="rascunho.paga" class="h-11 rounded-lg border border-slate-300 bg-white px-3">
@@ -107,17 +107,31 @@
           </label>
         </fieldset>
         <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <legend class="mb-3 text-xs text-slate-500">Período de competência</legend>
+          <legend class="mb-3 text-xs text-slate-500">Cliente e veículo</legend>
+          <label class="flex flex-col gap-2 text-[13px] font-medium">Cliente
+            <input name="clienteFiltro" [(ngModel)]="rascunho.cliente" maxlength="150" placeholder="Nome do cliente"
+              class="h-11 rounded-lg border border-[#cbd4df] px-3 font-normal" />
+          </label>
+          <label class="flex flex-col gap-2 text-[13px] font-medium">Placa
+            <input name="placaFiltro" [(ngModel)]="rascunho.placa" maxlength="10" placeholder="Placa do veículo"
+              class="h-11 rounded-lg border border-[#cbd4df] px-3 font-normal" />
+          </label>
+        </fieldset>
+        <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <legend class="mb-3 text-xs text-slate-500">Período</legend>
           <label class="flex flex-col gap-2 text-sm">De <input type="date" [(ngModel)]="rascunho.inicio" class="h-11 rounded-lg border border-slate-300 px-3" /></label>
           <label class="flex flex-col gap-2 text-sm">Até <input type="date" [(ngModel)]="rascunho.fim" class="h-11 rounded-lg border border-slate-300 px-3" /></label>
         </fieldset>
-        <p class="text-xs text-slate-500">O escopo da empresa é definido pela sessão autenticada. Os filtros por placa e cliente dependem da vinculação formal da OS à comissão.</p>
+        <fieldset class="rounded-lg border-t border-[#e1e5eb] pt-3">
+          <legend class="mb-3 text-xs text-[#8c98a8]">Empresa</legend>
+          <p class="rounded-lg border border-[#cbd4df] bg-[#f7f8fa] p-3 text-[13px]">Empresa autenticada · dados restritos à sessão</p>
+        </fieldset>
       </div>
       <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-4">
         <button type="button" (click)="filtroAberto = false" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm">Cancelar</button>
         <div class="flex gap-2">
-          <button type="button" (click)="limparFiltros()" class="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">Resetar</button>
-          <button type="button" (click)="aplicarFiltros()" class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white">Filtrar</button>
+          <button type="button" (click)="limparFiltros()" class="rounded-lg bg-[#ffe6e6] px-4 py-2.5 text-sm text-[#e23c4d]">Resetar</button>
+          <button type="button" (click)="aplicarFiltros()" class="rounded-lg bg-[#83ef47] px-4 py-2.5 text-sm font-semibold text-[#102000]">Filtrar</button>
         </div>
       </footer>
     </section>
