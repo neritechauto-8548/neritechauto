@@ -14,7 +14,7 @@ public record FornecedorRequest(
 
                 TipoPessoa tipoPessoa,
 
-                @NotBlank(message = "O nome fantasia Ã© obrigatÃ³rio") @Size(max = 255, message = "O nome fantasia deve ter no mÃ¡ximo 255 caracteres") String nomeFantasia,
+                @Size(max = 255, message = "O nome fantasia deve ter no mÃ¡ximo 255 caracteres") String nomeFantasia,
 
                 @Size(max = 255, message = "A razÃ£o social deve ter no mÃ¡ximo 255 caracteres") String razaoSocial,
 
