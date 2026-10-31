@@ -41,7 +41,7 @@
                 <td class="optional-data">{{row.emailPrincipal||'Não informado'}}</td>
                 <td class="optional-data">{{row.telefonePrincipal||'Não informado'}}</td>
                 <td class="delete-col">
-                  <button type="button" class="danger-icon" [disabled]="!row.ativo" (click)="abrirFornecedor(row.id)" title="Abrir fornecedor e alterar situação">♧</button>
+                  <button type="button" class="danger-icon" [disabled]="!row.ativo" (click)="removerLista(row)" title="Desativar fornecedor">♧</button>
                 </td>
               </tr>
             }
