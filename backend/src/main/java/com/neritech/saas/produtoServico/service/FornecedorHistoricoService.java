@@ -54,6 +54,13 @@ public class FornecedorHistoricoService {
         m.put("estado", f.getEstado());
         m.put("prazoPagamentoDias", f.getPrazoPagamentoDias());
         m.put("descontoPadrao", f.getDescontoPadrao());
+        m.put("logradouro", f.getLogradouro());
+        m.put("numero", f.getNumero());
+        m.put("bairro", f.getBairro());
+        m.put("complemento", f.getComplemento());
+        m.put("planoContasId", f.getPlanoContasId());
+        m.put("linhaPecas", f.getLinhaPecas());
+        m.put("observacoes", f.getObservacoes());
         m.put("ativo", f.getAtivo());
         return m;
     }
