@@ -78,11 +78,29 @@ describe('ErrorInterceptor', () => {
     expect(add).toHaveBeenCalledWith(jasmine.objectContaining({ detail: 'O recurso solicitado não foi encontrado.' }));
   });
 
-  it('does not expose a server error body', () => {
+  it('mostra a exceção real do backend quando o diagnóstico local está habilitado', () => {
     const add = spyOn(messages, 'add');
-    fail('/api/clientes', 500, { message: 'stack trace' });
+    const consoleSpy = spyOn(console, 'error');
+    fail('/api/clientes', 500, {
+      type: 'INTERNAL_ERROR',
+      message: 'Falha ao salvar cliente',
+      exception: 'org.springframework.dao.DataIntegrityViolationException',
+      cause: 'duplicate key value violates unique constraint',
+    });
     expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
-      detail: 'O servidor não conseguiu concluir a operação. Tente novamente mais tarde.', sticky: true,
+      summary: 'HTTP 500 • org.springframework.dao.DataIntegrityViolationException',
+      detail: 'Falha ao salvar cliente | Causa: duplicate key value violates unique constraint',
+      sticky: true,
+    }));
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
+  it('não inventa exceções quando o servidor de produção não expõe detalhes', () => {
+    const add = spyOn(messages, 'add');
+    fail('/api/clientes', 500, { type: 'INTERNAL_ERROR', message: 'Erro interno do servidor.' });
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
+      summary: 'HTTP 500 • INTERNAL_ERROR',
+      detail: 'Erro interno do servidor.',
     }));
   });
 
@@ -97,8 +115,8 @@ describe('ErrorInterceptor', () => {
     expect(original.status).toBe(422);
     expect(original.error.errors[0].field).toBe('nome');
     expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
-      summary: 'Verifique os campos',
-      detail: 'Existem dados inválidos. Corrija os campos indicados e tente novamente.',
+      summary: 'HTTP 422 • HttpErrorResponse',
+      detail: 'internal sql details | nome: Obrigatório',
     }));
   });
 
@@ -121,17 +139,23 @@ describe('ErrorInterceptor', () => {
     expect(response.error.errors.nome).toBe('Campo obrigatório');
     expect(response.error.errors.cpfCnpj).toBe('Documento inválido');
     expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
-      summary: 'Verifique os campos',
+      summary: 'HTTP 422 • VALIDATION',
     }));
   });
 
-  it('differentiates 409 conflict without exposing backend diagnostics', () => {
+  it('não substitui a explicação real de conflito (409) por mensagem genérica', () => {
     const add = spyOn(messages, 'add');
-    fail('/api/clientes/123', 409, { message: 'duplicate key internal database failure' });
+    fail('/api/clientes/123', 409, { type: 'BUSINESS_RULE', message: 'CPF já cadastrado nesta empresa' });
     expect(add).toHaveBeenCalledWith(jasmine.objectContaining({
-      summary: 'Alteração em conflito',
-      detail: 'O registro pode ter sido alterado por outra pessoa. Atualize os dados antes de tentar novamente.',
+      summary: 'HTTP 409 • BUSINESS_RULE',
+      detail: 'CPF já cadastrado nesta empresa',
     }));
+  });
+
+  it('preserva login com mensagem genérica para não revelar informação de autenticação', () => {
+    const add = spyOn(messages, 'add');
+    fail('/api/auth/login', 401, { exception: 'BadCredentialsException', cause: 'Senha inválida' });
+    expect(add).toHaveBeenCalledWith(jasmine.objectContaining({ detail: 'Credenciais inválidas.' }));
   });
 
   it('announces offline state and does not navigate to an unrelated error route', () => {
