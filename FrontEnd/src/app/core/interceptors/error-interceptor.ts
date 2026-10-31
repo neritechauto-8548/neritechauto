@@ -23,6 +23,41 @@ export interface ValidationError {
   message: string;
 }
 
+/**
+ * Mostra o erro real retornado pela API (sem substituí-lo por um toast genérico).
+ * O backend somente envia classe/causa da exceção no diagnóstico local autorizado.
+ */
+function serverErrorDetail(error: HttpErrorResponse): { summary: string; detail: string } | null {
+  const body: unknown = error.error;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    const fallback = typeof body === 'string' ? body.trim() : '';
+    return fallback ? { summary: `HTTP ${error.status}`, detail: fallback.slice(0, 1400) } : null;
+  }
+
+  const data = body as Record<string, unknown>;
+  const value = (key: string) => typeof data[key] === 'string' ? (data[key] as string).trim() : '';
+  const exception = value('exception');
+  const type = exception || value('type') || value('code') || error.name;
+  const message = value('message') || value('detail') || value('title');
+  const cause = value('cause');
+  const validation = data['errors'];
+  let fields = '';
+  if (Array.isArray(validation)) {
+    fields = validation.map(x => {
+      if (!x || typeof x !== 'object') return '';
+      const item = x as Record<string, unknown>;
+      return `${String(item['field'] || 'Campo')}: ${String(item['message'] || '')}`;
+    }).filter(Boolean).join(' | ');
+  } else if (validation && typeof validation === 'object') {
+    fields = Object.entries(validation as Record<string, unknown>)
+      .map(([key, val]) => `${key}: ${String(val)}`).join(' | ');
+  }
+
+  const detail = [message, cause && cause !== message ? `Causa: ${cause}` : '', fields]
+    .filter(Boolean).join(' | ').slice(0, 1400);
+  return detail ? { summary: `HTTP ${error.status} • ${type}`, detail } : null;
+}
+
 export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn) {
   const router = inject(Router);
   const messages = inject(MessageService);
@@ -91,6 +126,28 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
       detail = 'Confira os dados da solicitação e tente novamente.';
     } else {
       detail = 'Tente novamente. Se o problema persistir, contate o suporte.';
+    }
+
+    // Na fase de desenvolvimento não esconder o motivo original em mensagens genéricas.
+    // Classe e causa só chegam quando o backend habilita diagnóstico local explicitamente.
+    if (!isLogin && error.status !== 0) {
+      const server = serverErrorDetail(error);
+      if (server) {
+        summary = server.summary;
+        detail = server.detail;
+      }
+    }
+
+    // O objeto HTTP completo continua disponível para inspeção (status, corpo, campos).
+    // Não registrar headers nem tokens de autenticação.
+    if (!isLogin && error.status !== 0 && error.error?.exception) {
+      console.error('[NERITECH] Exceção da API', {
+        status: error.status,
+        url: error.url,
+        exception: error.error.exception,
+        cause: error.error.cause,
+        message: error.error.message,
+      });
     }
 
     messages.add({ severity, summary, detail, sticky: error.status === 0 || error.status >= 500 });
