@@ -31,8 +31,14 @@ export interface FornecedorRequest {
   limiteCredito?: number | null;
   descontoPadrao?: number | null;
   condicoesEspeciais?: string;
-  classificacao?: 'A' | 'B' | 'C' | 'D' | 'E';
+  classificacao?: 'A' | 'B' | 'C' | 'D' | 'E' | 'OUTROS';
   observacoes?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  complemento?: string;
+  planoContasId?: number | null;
+  linhaPecas?: string;
   ativo?: boolean;
   versao?: number;
   // Compatibilidade de consumidores legados; não é enviado como campo canônico.
