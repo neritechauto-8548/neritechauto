@@ -64,3 +64,10 @@ stripe:
     neritech-ultra: ${STRIPE_PRODUCT_NERITECH_ULTRA}
   webhook:
     secret: ${STRIPE_WEBHOOK_SECRET}
+
+# Para diagnosticar EXCEÇÕES no computador local (inclusive com profile prod):
+# PowerShell: $env:NERITECH_DEBUG_ERRORS='true'
+# Resposta detalhada somente para conexões locais (127.0.0.1 / ::1).
+neritech:
+  diagnostics:
+    expose-exceptions: ${NERITECH_DEBUG_ERRORS:false}
