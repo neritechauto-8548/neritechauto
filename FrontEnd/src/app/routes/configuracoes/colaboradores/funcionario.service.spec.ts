@@ -23,6 +23,23 @@ describe('FuncionarioService ADM-004', () => {
 
   afterEach(() => http.verify());
 
+  it('passes advanced filters to server without allowing company override', () => {
+    service.list({
+      empresaId: 999, nome: 'Maria', funcao: 'Orçamentista',
+      registro: 'REG-1', status: 'ATIVO', size: 20, page: 0,
+      sort: 'nomeCompleto,asc'
+    }).subscribe();
+    const list = http.expectOne(request => request.url === `${environment.baseUrl}/v1/rh/funcionarios`);
+    expect(list.request.headers.get('X-Tenant-Id')).toBe('12');
+    expect(list.request.params.get('empresaId')).toBe('12');
+    expect(list.request.params.get('nome')).toBe('Maria');
+    expect(list.request.params.get('funcao')).toBe('Orçamentista');
+    expect(list.request.params.get('registro')).toBe('REG-1');
+    expect(list.request.params.get('status')).toBe('ATIVO');
+    expect(list.request.params.get('sort')).toBe('nomeCompleto,asc');
+    list.flush({ content: [], totalElements: 0 });
+  });
+
   it('sends tenant-scoped filters and uses soft-delete endpoint', () => {
     service.list({ page: 0, size: 20, nomeCompleto: 'Ana', status: 'ATIVO' }).subscribe();
     const list = http.expectOne(r => r.url === `${environment.baseUrl}/v1/rh/funcionarios`);
