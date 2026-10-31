@@ -10,6 +10,7 @@ import { FuncionarioService, FuncionarioResponse } from './funcionario.service';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { Subscription } from 'rxjs';
+import { CadastroColaborador } from './cadastro-colaborador/cadastro-colaborador';
 
 @Component({
   selector: 'colaboradores',
@@ -18,7 +19,7 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./colaboradores.scss'],
   imports: [
     CommonModule, FormsModule, RouterModule,
-    MatIconModule, MatMenuModule, MatButtonModule
+    MatIconModule, MatMenuModule, MatButtonModule, CadastroColaborador
   ],
 })
 export class Colaboradores implements OnInit, OnDestroy {
@@ -29,6 +30,8 @@ export class Colaboradores implements OnInit, OnDestroy {
 
 
   // As colunas e sua ordem são uma preferência visual local, isolada por empresa.
+  employeeDrawerOpen = false;
+  drawerEmployeeId?: number;
   columnPanelOpen = false;
   filterDrawerOpen = false;
   readonly columnOptions = [
@@ -99,6 +102,17 @@ export class Colaboradores implements OnInit, OnDestroy {
     } catch {
       this.toast.error('Não foi possível salvar as preferências de colunas.');
     }
+  }
+
+  openEmployeeDrawer(employeeId?: number): void {
+    this.drawerEmployeeId = employeeId;
+    this.employeeDrawerOpen = true;
+  }
+
+  closeEmployeeDrawer(saved: boolean): void {
+    this.employeeDrawerOpen = false;
+    this.drawerEmployeeId = undefined;
+    if (saved) this.loadData();
   }
 
   searchTerm = '';
