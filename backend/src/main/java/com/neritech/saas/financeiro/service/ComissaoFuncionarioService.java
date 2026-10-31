@@ -268,6 +268,43 @@ public class ComissaoFuncionarioService {
         return resposta(entity);
     }
 
+    /**
+     * Aprovação e quitação operacional em uma transação única.
+     * A fatura ainda precisa estar integralmente paga, quando vinculada.
+     */
+    @Transactional
+    public ComissaoFuncionarioResponse processarQuitacao(Long id, Long empresaId, LocalDate data,
+            String observacao, boolean gerarContaPagar, Long planoContaId,
+            TipoTitulo tipoDocumento, boolean liquidarContaPagar) {
+        long tenant = TenantAccess.require(empresaId);
+        var entidade = locked(id, tenant);
+        if (entidade.getDataAprovacao() == null) aprovar(id, empresaId);
+        return quitar(id, empresaId, data, observacao, gerarContaPagar,
+                planoContaId, tipoDocumento, liquidarContaPagar);
+    }
+
+    @Transactional
+    public java.util.List<ComissaoFuncionarioResponse> quitarLote(Long empresaId,
+            java.util.List<Long> ids, LocalDate data, String observacao,
+            boolean gerarContaPagar, Long planoContaId,
+            TipoTitulo tipoDocumento, boolean liquidarContaPagar) {
+        TenantAccess.require(empresaId);
+        if (ids == null || ids.isEmpty() || ids.size() > 50 || ids.stream().anyMatch(java.util.Objects::isNull)
+                || ids.stream().distinct().count() != ids.size()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Selecione de 1 a 50 comissões distintas");
+        }
+        if (liquidarContaPagar)
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Liquidação financeira exige pagamento confirmado no caixa/banco");
+        var resultados = new java.util.ArrayList<ComissaoFuncionarioResponse>();
+        for (Long id : ids.stream().sorted().toList()) {
+            resultados.add(processarQuitacao(id,empresaId,data,observacao,
+                gerarContaPagar,planoContaId,tipoDocumento,false));
+        }
+        return resultados;
+    }
+
     @Transactional
     public ComissaoFuncionarioResponse quitar(Long id, Long empresaId, LocalDate data, String observacao) {
         return quitar(id, empresaId, data, observacao, false, null, null, false);
