@@ -79,6 +79,9 @@ public class Funcionario extends BaseEntity {
     @JoinColumn(name = "departamento_id", insertable = false, updatable = false)
     private com.neritech.saas.empresa.domain.DepartamentoContabio departamento;
 
+    @Column(name = "perfil_profissional", length = 50)
+    private String perfilProfissional;
+
     @Column(name = "registro_profissional", length = 80)
     private String registroProfissional;
 
@@ -672,6 +675,9 @@ public class Funcionario extends BaseEntity {
     public void setDepartamento(com.neritech.saas.empresa.domain.DepartamentoContabio departamento) {
         this.departamento = departamento;
     }
+    public String getPerfilProfissional() { return perfilProfissional; }
+    public void setPerfilProfissional(String valor) { this.perfilProfissional = valor; }
+
     public String getRegistroProfissional() { return registroProfissional; }
     public void setRegistroProfissional(String value) { this.registroProfissional = value; }
     public String getTipoProfissional() { return tipoProfissional; }
