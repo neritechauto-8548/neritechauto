@@ -10,6 +10,7 @@ import { FuncionarioService, FuncionarioResponse } from './funcionario.service';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { empresaIdAtual } from '@shared/utils/empresa-context';
 import { Subscription } from 'rxjs';
+import { A11yModule } from '@angular/cdk/a11y';
 import { CadastroColaborador } from './cadastro-colaborador/cadastro-colaborador';
 
 @Component({
@@ -19,7 +20,7 @@ import { CadastroColaborador } from './cadastro-colaborador/cadastro-colaborador
   styleUrls: ['./colaboradores.scss'],
   imports: [
     CommonModule, FormsModule, RouterModule,
-    MatIconModule, MatMenuModule, MatButtonModule, CadastroColaborador
+    MatIconModule, MatMenuModule, MatButtonModule, CadastroColaborador, A11yModule
   ],
 })
 export class Colaboradores implements OnInit, OnDestroy {
