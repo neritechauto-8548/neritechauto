@@ -40,7 +40,8 @@ Data: 2026-10-31. Origem: 12 capturas do módulo de gestão de pessoas UltraCar 
 - Testes de contrato Angular estendidos: `funcionario.service.spec.ts`, conferindo cabeçalho e parâmetro de tenant.
 - Teste multiempresa Spring estendido: `FuncionarioTenantIntegrationTest`, pesquisando nome/função/registro/situação e negando empresa alheia.
 - Workflow: `.github/workflows/funcionarios-quality.yml` (push master: build Angular, teste de serviço e teste de integração Spring).
-- **Resultados de execução, screenshot de comparação, WCAG, breakpoints, teste de teclado e compatibilidade total do cadastro em drawer: NÃO COMPROVADOS nesta edição.** Não homologar nem declarar equivalência de 100%.
+- **Execução CI confirmada:** [workflow Funcionários — filtros avançados e integração](https://github.com/neritechauto-8548/neritechauto/actions/runs/41202031201), HEAD testado `75ced46d6dcfc5ee3ceccc81c3e3f2bfd0386d7c`. Job Angular (compilação + teste HTTP): **success**; job Spring Boot (integração e tenant): **success**.
+- **Screenshot de comparação, WCAG, breakpoints, teste de teclado completo e compatibilidade integral do cadastro no drawer: NÃO COMPROVADOS nesta edição.** Não homologar nem declarar equivalência de 100%.
 
 ## Pendências de paridade demonstráveis
 
@@ -50,6 +51,6 @@ Data: 2026-10-31. Origem: 12 capturas do módulo de gestão de pessoas UltraCar 
 4. Harmonizar separação entre cadastro básico e dados profissionais sem burlar regras RH/legais; revisar os campos obrigatórios em conjunto com ADM-004.
 5. Integrar **criação de usuário em fluxo separado** à experiência do perfil, respeitando política de senha/RBAC, sem duplicar usuários.
 6. Melhorar fidelidade visual do formulário profissional, abas Geral/Dados Profissionais/EPIs/Contatos, relatórios completos, busca no modal colunas e suporte mobile/teclado.
-7. Verificar resultado real do CI, executar testes ponta a ponta, comparar screenshots 320/768/1440 e WCAG 2.2 AA.
+7. Executar testes ponta a ponta, comparar screenshots 320/768/1440 e WCAG 2.2 AA; os testes de compilação e contrato HTTP/tenant do workflow focado já passaram.
 
 Situação geral: **implementação parcial, integração principal de listagem e CRUD reaproveitada, homologação pendente**.
