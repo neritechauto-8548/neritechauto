@@ -1,0 +1,44 @@
+name: Gestão de recursos — qualidade
+on:
+  push:
+    branches: [master]
+    paths:
+      - "FrontEnd/src/app/routes/produtos-servicos/**"
+      - "backend/src/main/java/com/neritech/saas/produtoServico/controller/RecursosReferenciaController.java"
+      - "backend/src/main/resources/db/migration/V299__recursos_areas_servicos_acessorios.sql"
+      - "backend/src/test/java/com/neritech/saas/produtoServico/RecursosReferenciaControllerTest.java"
+      - ".github/workflows/recursos-quality.yml"
+  workflow_dispatch:
+concurrency:
+  group: recursos-quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Validar compilação Angular
+        run: yarn build
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Testes focados do módulo de recursos
+        run: mvn -B test -Dtest=RecursosReferenciaControllerTest
