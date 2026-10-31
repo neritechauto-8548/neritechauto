@@ -1,9 +1,7 @@
 package com.neritech.saas.rh.dto;
 
-import com.neritech.saas.financeiro.domain.enums.TipoConta;
 import com.neritech.saas.rh.domain.*;
 import com.neritech.saas.rh.domain.enums.Escolaridade;
-import com.neritech.saas.rh.domain.enums.EstadoCivil;
 import com.neritech.saas.rh.domain.enums.Sexo;
 import com.neritech.saas.rh.domain.enums.StatusFuncionario;
 import com.neritech.saas.rh.domain.enums.TipoContrato;
@@ -21,13 +19,9 @@ public record FuncionarioResponse(
         String rg,
         LocalDate dataNascimento,
         Sexo sexo,
-        EstadoCivil estadoCivil,
-        String nacionalidade,
-        String naturalidade,
-        String nomeMae,
-        String nomePai,
+
         Escolaridade escolaridade,
-        String profissao,
+
         Long cargoId,
         Long departamentoId,
         String cargoNome,
@@ -36,14 +30,12 @@ public record FuncionarioResponse(
         LocalDate dataDemissao,
         TipoContrato tipoContrato,
         BigDecimal salarioBase,
-        BigDecimal comissaoPercentual,
+
         BigDecimal valeTransporte,
-        BigDecimal valeAlimentacao,
-        Boolean planoSaude,
-        Boolean planoOdontologico,
+
         StatusFuncionario status,
         String motivoInativacao,
-        String enderecoCompleto,
+
         String cep,
         String logradouro,
         String numero,
@@ -51,23 +43,11 @@ public record FuncionarioResponse(
         String bairro,
         String cidade,
         String estado,
-        String pais,
-        String telefonePrincipal,
-        String telefoneEmergencia,
-        String contatoEmergenciaNome,
-        String contatoEmergenciaParentesco,
-        String emailPessoal,
-        String bancoCodigo,
-        String bancoAgencia,
-        String bancoConta,
-        TipoConta bancoTipoConta,
+
         String pisPasep,
-        String tituloEleitor,
+
         String carteiraTrabalho,
-        String certificadoReservista,
-        String cnhNumero,
-        String cnhCategoria,
-        LocalDate cnhValidade,
+
         String fotoFuncionarioUrl,
         String observacoes,
         LocalDateTime dataCadastro,
