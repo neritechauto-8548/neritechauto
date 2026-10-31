@@ -96,7 +96,7 @@
               @for(c of contatos;track c.id){
                 <tr><td><button type="button" class="row-link" (click)="editarContato(c)">{{c.nome}}</button></td>
                   <td>{{contatoValor(c,'EMAIL')}}</td><td>{{contatoWhatsapp(c)}}</td>
-                  <td>{{contatoValor(c,'CELULAR')}}</td><td>{{contatoValor(c,'TELEFONE')}}</td><td>Não</td>
+                  <td>{{contatoValor(c,'CELULAR')}}</td><td>{{contatoValor(c,'TELEFONE')}}</td><td>{{c.estrangeiro ? 'Sim' : 'Não'}}</td>
                   <td><button class="danger-icon" (click)="excluirContato(c)">♧</button></td></tr>
               }
               @if(!contatos.length&&!loading){<tr><td class="empty" colspan="7"><div class="empty-panel"><span>♧</span><p>Fornecedor não tem nenhum contato cadastrado</p></div></td></tr>}
