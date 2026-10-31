@@ -3,6 +3,11 @@ package com.neritech.saas.financeiro.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neritech.saas.common.tenancy.TenantAccess;
 import com.neritech.saas.financeiro.domain.ComissaoFuncionario;
+import com.neritech.saas.financeiro.domain.ContasPagar;
+import com.neritech.saas.financeiro.domain.enums.TipoTitulo;
+import com.neritech.saas.financeiro.domain.enums.StatusTitulo;
+import com.neritech.saas.financeiro.repository.ContasPagarRepository;
+import com.neritech.saas.financeiro.repository.PlanoContaRepository;
 import com.neritech.saas.financeiro.domain.enums.StatusFatura;
 import com.neritech.saas.financeiro.dto.ComissaoFuncionarioRequest;
 import com.neritech.saas.financeiro.dto.ComissaoFuncionarioResponse;
@@ -39,6 +44,8 @@ public class ComissaoFuncionarioService {
     private final UsuarioRepository usuarios;
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
+    private final ContasPagarRepository contasPagar;
+    private final PlanoContaRepository planosContas;
 
     private ResponseStatusException notFound() {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "Comissão não encontrada");
@@ -195,6 +202,21 @@ public class ComissaoFuncionarioService {
 
     @Transactional
     public ComissaoFuncionarioResponse quitar(Long id, Long empresaId, LocalDate data, String observacao) {
+        return quitar(id, empresaId, data, observacao, false, null, null, false);
+    }
+
+    @Transactional
+    public ComissaoFuncionarioResponse quitar(Long id, Long empresaId, LocalDate data, String observacao,
+            boolean gerarContaPagar, Long planoContaId, TipoTitulo tipoDocumento, boolean liquidarContaPagar) {
+        if (liquidarContaPagar)
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "Liquidação financeira depende de pagamento confirmado no caixa/banco; não é possível simular");
+        if (gerarContaPagar && (planoContaId == null || tipoDocumento == null))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "Plano de contas e tipo de documento são obrigatórios");
+        if (!gerarContaPagar && (planoContaId != null || tipoDocumento != null))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "Dados financeiros somente podem ser enviados ao gerar conta a pagar");
         long tenant = TenantAccess.require(empresaId);
         var entity = locked(id, tenant);
         if (Boolean.TRUE.equals(entity.getPaga()))
@@ -213,6 +235,38 @@ public class ComissaoFuncionarioService {
         entity.setValorPago(entity.getValorComissao());
         if (observacao != null && !observacao.isBlank()) entity.setObservacoes(observacao.trim());
         entity = repository.saveAndFlush(entity);
+        if (gerarContaPagar) {
+            var plano = planosContas.findById(planoContaId)
+                    .filter(p -> p.getEmpresaId().equals(tenant)
+                            && Boolean.TRUE.equals(p.getAtivo())
+                            && Boolean.TRUE.equals(p.getAceitaLancamento()))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Plano de contas não disponível na empresa"));
+            Integer jaExiste = jdbc.queryForObject(
+                "select count(*) from fin_comissao_conta_pagar where empresa_id=? and comissao_id=?",
+                Integer.class,tenant,id);
+            if (jaExiste != null && jaExiste > 0)
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Conta a pagar desta comissão já existe");
+            var titulo = new ContasPagar();
+            titulo.setEmpresaId(tenant);
+            titulo.setCriadoPor(autor);
+            titulo.setNumeroTitulo("COM-" + tenant + "-" + id);
+            titulo.setDescricao("Comissão de funcionário - registro " + id);
+            titulo.setNumeroDocumento("COM-" + id);
+            titulo.setTipoTitulo(tipoDocumento);
+            titulo.setDataEmissao(data);
+            titulo.setDataVencimento(data);
+            titulo.setValorNominal(entity.getValorComissao());
+            titulo.setValorPendente(entity.getValorComissao());
+            titulo.setValorPago(java.math.BigDecimal.ZERO);
+            titulo.setStatus(StatusTitulo.ABERTO);
+            titulo.setPlanoContas(plano);
+            titulo.setObservacoes(observacao);
+            titulo = contasPagar.saveAndFlush(titulo);
+            jdbc.update("insert into fin_comissao_conta_pagar (empresa_id,comissao_id,conta_pagar_id) values (?,?,?)",
+                    tenant,id,titulo.getId());
+            audit(tenant,id,autor,"INSERT",Map.of("contaPagarId",titulo.getId(),"situacao","ABERTO"));
+        }
         audit(tenant, id, autor, "UPDATE", Map.of("paga", true, "dataPagamento", data.toString()));
         return mapper.toResponse(entity);
     }
@@ -224,6 +278,20 @@ public class ComissaoFuncionarioService {
         if (!Boolean.TRUE.equals(entity.getPaga()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Comissão não está quitada");
         long autor = actor(tenant);
+        var vinculadas = jdbc.queryForList(
+            "select conta_pagar_id from fin_comissao_conta_pagar where empresa_id=? and comissao_id=?",
+            Long.class,tenant,id);
+        for (var contaId : vinculadas) {
+            var conta = contasPagar.findByIdAndEmpresaId(contaId,tenant)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT,"Conta vinculada não localizada"));
+            if (conta.getStatus() != StatusTitulo.ABERTO || conta.getValorPago().signum() > 0)
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Conta a pagar já movimentada; regularize a reversão financeira antes do estorno");
+            conta.setStatus(StatusTitulo.CANCELADO);
+            conta.setValorPendente(java.math.BigDecimal.ZERO);
+            contasPagar.saveAndFlush(conta);
+            audit(tenant,id,autor,"UPDATE",Map.of("contaPagarId",contaId,"situacao","CANCELADO"));
+        }
         entity.setPaga(false);
         entity.setDataPagamento(null);
         entity.setValorPago(null);
