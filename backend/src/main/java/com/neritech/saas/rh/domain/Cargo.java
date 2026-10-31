@@ -20,6 +20,9 @@ public class Cargo extends BaseEntity {
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
+    @Column(name = "tipo", length = 60)
+    private String tipo;
+
     @Column(name = "codigo_cbo", length = 10)
     private String codigoCbo;
 
@@ -97,6 +100,9 @@ public class Cargo extends BaseEntity {
     public void setCodigoCbo(String codigoCbo) {
         this.codigoCbo = codigoCbo;
     }
+
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 
     public Long getAreaId() { return areaId; }
     public void setAreaId(Long areaId) { this.areaId = areaId; }
