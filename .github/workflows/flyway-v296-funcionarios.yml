@@ -1,0 +1,106 @@
+name: Flyway V296 — dependência da view de funcionários
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'backend/src/main/resources/db/migration/V296__remover_campos_legados_funcionarios.sql'
+      - '.github/workflows/flyway-v296-funcionarios.yml'
+  workflow_dispatch:
+
+jobs:
+  migracao:
+    name: Reproduzir e validar migração no PostgreSQL 16
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: teste
+          POSTGRES_DB: neritech_migracoes
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d neritech_migracoes"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: teste
+      PGDATABASE: neritech_migracoes
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduzir esquema histórico de funcionários
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TABLE empresa(id BIGINT PRIMARY KEY);
+          CREATE TABLE cargos(id BIGINT PRIMARY KEY, nome TEXT NOT NULL);
+          CREATE TABLE departamentos(id BIGINT PRIMARY KEY, nome TEXT NOT NULL);
+          INSERT INTO empresa VALUES (1);
+          INSERT INTO cargos VALUES (1, 'Mecânico');
+          INSERT INTO departamentos VALUES (1, 'Oficina');
+          SQL
+          psql -v ON_ERROR_STOP=1 -f backend/src/main/resources/db/migration/V92__create_funcionarios_table.sql
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          -- Estrutura original da view V105, incluindo as colunas que V296 remove.
+          CREATE VIEW vw_funcionarios_ativos AS
+          SELECT f.id, f.empresa_id, f.matricula, f.nome_completo,
+                 f.cpf, f.data_admissao, f.status, c.nome AS cargo_nome,
+                 d.nome AS departamento_nome, f.salario_base,
+                 f.telefone_principal, f.email_pessoal
+          FROM funcionarios f
+          LEFT JOIN cargos c ON f.cargo_id = c.id
+          LEFT JOIN departamentos d ON f.departamento_id = d.id
+          WHERE f.status = 'ATIVO';
+          INSERT INTO funcionarios (
+            empresa_id, matricula, nome_completo, cpf, cargo_id, departamento_id,
+            data_admissao, status, telefone_principal, email_pessoal
+          ) VALUES
+            (1, 'M-001', 'Maria Teste', '12345678901', 1, 1,
+             '2026-01-10', 'ATIVO', '81999999999', 'teste@exemplo.com'),
+            (1, 'M-002', 'João Inativo', '12345678902', 1, 1,
+             '2026-01-10', 'INATIVO', null, null);
+          SQL
+      - name: Aplicar exatamente o arquivo V296
+        run: |
+          psql -v ON_ERROR_STOP=1 -f backend/src/main/resources/db/migration/V296__remover_campos_legados_funcionarios.sql
+      - name: Confirmar colunas removidas, view funcional e dados preservados
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $verify$
+          BEGIN
+            IF EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='funcionarios'
+                AND column_name IN (
+                  'telefone_principal','email_pessoal','estado_civil',
+                  'contato_emergencia_nome','comissao_percentual'
+                )
+            ) THEN
+              RAISE EXCEPTION 'Campos legados continuam em funcionarios';
+            END IF;
+            IF (SELECT COUNT(*) FROM funcionarios WHERE empresa_id=1) <> 2 THEN
+              RAISE EXCEPTION 'Migração perdeu registros dos funcionários';
+            END IF;
+            IF (SELECT COUNT(*) FROM vw_funcionarios_ativos WHERE empresa_id=1) <> 1 THEN
+              RAISE EXCEPTION 'View de funcionários ativos não funciona';
+            END IF;
+            IF NOT EXISTS (
+              SELECT 1 FROM vw_funcionarios_ativos
+              WHERE empresa_id=1 AND matricula='M-001'
+                AND cargo_nome='Mecânico' AND departamento_nome='Oficina'
+            ) THEN
+              RAISE EXCEPTION 'Relacionamentos da view não foram preservados';
+            END IF;
+            IF EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='vw_funcionarios_ativos'
+                AND column_name IN ('telefone_principal','email_pessoal')
+            ) THEN
+              RAISE EXCEPTION 'View ainda expõe colunas removidas';
+            END IF;
+          END $verify$;
+          SELECT id, empresa_id, nome_completo, cargo_nome, departamento_nome
+          FROM vw_funcionarios_ativos;
+          SQL
