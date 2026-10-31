@@ -112,7 +112,10 @@ export class Colaboradores implements OnInit, OnDestroy {
   closeEmployeeDrawer(saved: boolean): void {
     this.employeeDrawerOpen = false;
     this.drawerEmployeeId = undefined;
-    if (saved) this.loadData();
+    if (saved) {
+      this.toast.success('Funcionário atualizado com sucesso');
+      this.loadData();
+    }
   }
 
   searchTerm = '';
