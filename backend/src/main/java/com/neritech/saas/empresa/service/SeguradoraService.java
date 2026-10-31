@@ -48,13 +48,16 @@ public class SeguradoraService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SeguradoraResponse> listar(String busca, Boolean ativo, Pageable page) {
+    public Page<SeguradoraResponse> listar(String busca, String cnpj, String nome, String nomeFantasia, Boolean ativo, Pageable page) {
         Long tenant = TenantAccess.requireCurrent();
         if (page.getPageSize() != 20 && page.getPageSize() != 50 && page.getPageSize() != 100) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Paginação deve ser 20, 50 ou 100");
         }
         String filtro = busca == null || busca.isBlank() ? "" : busca.trim();
-        return repository.buscar(tenant, ativo, filtro, page).map(this::resposta);
+        return repository.buscar(tenant, ativo, filtro,
+                cnpj == null ? "" : cnpj.replaceAll("[^A-Za-z0-9]", ""),
+                nome == null ? "" : nome.trim(), nomeFantasia == null ? "" : nomeFantasia.trim(), page)
+                .map(this::resposta);
     }
 
     @Transactional(readOnly = true)
@@ -120,7 +123,7 @@ public class SeguradoraService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "OS já possui seguradora vinculada", conflict);
         }
         registrarVinculo(s, ordemId, "INSERT", tipo);
-        return new VinculoOS(id, s.getNomeFantasia(), ordemId, tipo);
+        return new VinculoOS(id, nomeExibicao(s), ordemId, tipo);
     }
 
     @Transactional(readOnly = true)
@@ -129,7 +132,7 @@ public class SeguradoraService {
         os.findByIdAndEmpresaId(ordemId, tenant)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "OS fora da empresa autenticada"));
         var vinculos = jdbc.query("""
-            SELECT s.id, s.nome_fantasia, v.ordem_servico_id, v.tipo_vinculo
+            SELECT s.id, COALESCE(NULLIF(s.nome_fantasia, ''), s.razao_social), v.ordem_servico_id, v.tipo_vinculo
               FROM seguradoras_os v JOIN seguradoras s ON s.id = v.seguradora_id
              WHERE v.empresa_id = ? AND v.ordem_servico_id = ? AND s.empresa_id = ?
             """, (rs, row) -> new VinculoOS(rs.getLong(1), rs.getString(2),
@@ -195,7 +198,9 @@ public class SeguradoraService {
     }
 
     private void validarDocumento(Long tenant, String cnpj, Long existing) {
-        if (cnpj == null) return;
+        if (cnpj == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CNPJ é obrigatório");
+        }
         if (cnpj.length() != 14 || cnpj.chars().distinct().count() == 1 || !DocumentoValidator.isValidCnpj(cnpj)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CNPJ inválido");
         }
@@ -204,17 +209,26 @@ public class SeguradoraService {
         }
     }
 
+    private static String textoOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
+    }
+
+    private static String nomeExibicao(Seguradora s) {
+        return s.getNomeFantasia() == null || s.getNomeFantasia().isBlank()
+                ? s.getRazaoSocial() : s.getNomeFantasia();
+    }
+
     private static void atribuir(Seguradora s, SeguradoraRequest r, String cnpj) {
-        s.setNomeFantasia(r.nomeFantasia().trim());
-        s.setRazaoSocial(r.razaoSocial());
         s.setCnpj(cnpj);
-        s.setRegistroSusep(r.registroSusep()); // Informação declarada; nunca tratada como verificada.
-        s.setNomeContato(r.nomeContato());
-        s.setTelefone(r.telefone());
-        s.setEmail(r.email());
-        s.setEndereco(r.endereco());
-        s.setTipoConvenio(r.tipoConvenio());
-        s.setNotas(r.notas());
+        s.setRazaoSocial(r.razaoSocial().trim());
+        s.setNomeFantasia(textoOpcional(r.nomeFantasia()));
+        s.setInscricaoEstadual(textoOpcional(r.inscricaoEstadual()));
+        s.setInscricaoMunicipal(textoOpcional(r.inscricaoMunicipal()));
+        s.setEmail(textoOpcional(r.email()));
+        s.setObservacoes(textoOpcional(r.observacoes()));
+        s.setMargemRefatoramento(r.margemRefatoramento());
+        s.setSite(textoOpcional(r.site()));
+        s.setRetencaoIss(Boolean.TRUE.equals(r.retencaoIss()));
     }
 
     private void salvar(Seguradora s) {
@@ -228,25 +242,26 @@ public class SeguradoraService {
         Long total = jdbc.queryForObject("""
             SELECT COUNT(*) FROM seguradoras_os WHERE empresa_id = ? AND seguradora_id = ?
             """, Long.class, s.getEmpresaId(), s.getId());
-        return new SeguradoraResponse(s.getId(), s.getEmpresaId(), s.getNomeFantasia(), s.getRazaoSocial(),
-                s.getCnpj(), s.getRegistroSusep(), false, s.getNomeContato(), s.getTelefone(),
-                s.getEmail(), s.getEndereco(), s.getTipoConvenio(), s.getAtivo(), s.getNotas(),
+        return new SeguradoraResponse(s.getId(), s.getEmpresaId(), s.getCnpj(),
+                s.getRazaoSocial(), s.getNomeFantasia(), s.getInscricaoEstadual(),
+                s.getInscricaoMunicipal(), s.getEmail(), s.getObservacoes(),
+                s.getMargemRefatoramento(), s.getSite(), s.getRetencaoIss(), s.getAtivo(),
                 s.getVersao(), total == null ? 0 : total);
     }
 
     private static Map<String, Object> campos(Seguradora s) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("nomeFantasia", s.getNomeFantasia());
-        m.put("razaoSocial", s.getRazaoSocial());
         m.put("cnpj", s.getCnpj());
-        m.put("registroSusep", s.getRegistroSusep());
-        m.put("nomeContato", s.getNomeContato());
-        m.put("telefone", s.getTelefone());
+        m.put("razaoSocial", s.getRazaoSocial());
+        m.put("nomeFantasia", s.getNomeFantasia());
+        m.put("inscricaoEstadual", s.getInscricaoEstadual());
+        m.put("inscricaoMunicipal", s.getInscricaoMunicipal());
         m.put("email", s.getEmail());
-        m.put("endereco", s.getEndereco());
-        m.put("tipoConvenio", s.getTipoConvenio());
+        m.put("observacoes", s.getObservacoes());
+        m.put("margemRefatoramento", s.getMargemRefatoramento());
+        m.put("site", s.getSite());
+        m.put("retencaoIss", s.getRetencaoIss());
         m.put("ativo", s.getAtivo());
-        m.put("notas", s.getNotas());
         return m;
     }
 
