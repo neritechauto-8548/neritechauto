@@ -12,6 +12,7 @@ public record ComissaoFuncionarioResponse(
         String funcionarioNome, // Assuming we can fetch this
         Long faturaId,
         String faturaNumero,
+        Long ordemServicoId,
         Long itemFaturaId,
         String itemFaturaDescricao,
         LocalDate dataReferencia,
