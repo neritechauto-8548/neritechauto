@@ -1,34 +1,34 @@
-<div class="flex flex-col h-full bg-slate-50 relative min-h-screen">
+<div class="flex flex-col h-full bg-slate-50 relative" [class.min-h-screen]="!drawerMode">
   <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
 
   <!-- ===== Sticky Action Bar ===== -->
-  <div class="bg-white px-6 py-3.5 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+  <div class="bg-white px-5 py-3.5 border-b border-slate-200/60 flex items-center justify-between top-0 z-30 shadow-sm" [class.sticky]="!drawerMode">
     <div class="flex items-center gap-4">
       <button (click)="cancelar()" class="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-600">
         <i class="pi pi-arrow-left text-sm"></i>
       </button>
       <div>
-        <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ isEditMode ? 'Editar Colaborador' : 'Cadastro de Colaborador' }}</h1>
+        <h1 class="text-base font-semibold text-slate-900 leading-tight">{{ isEditMode ? 'Editar funcionário' : 'Cadastro de funcionário' }}</h1>
         <span class="text-xs text-slate-500 font-normal">Dados pessoais, vínculo e acesso ao sistema</span>
       </div>
     </div>
     <div class="flex gap-3 items-center">
       <button *ngIf="isEditMode" (click)="excluir()" [disabled]="loading"
         class="px-3.5 py-1.5 rounded-md border border-rose-200 bg-white text-rose-600 font-medium hover:bg-rose-50 hover:border-rose-300 transition-colors text-sm flex items-center gap-1.5 shadow-sm">
-        <i class="pi pi-trash text-[13px]"></i> Excluir
+        <i class="pi pi-trash text-[13px]"></i> Inativar
       </button>
       <div *ngIf="isEditMode" class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-      <button (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
+      <button *ngIf="!drawerMode" (click)="cancelar()" class="px-3.5 py-2 rounded-md border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm shadow-sm">
         Cancelar
       </button>
-      <button (click)="salvar()" [disabled]="loading"
-        class="px-3.5 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-50">
+      <button *ngIf="!drawerMode" (click)="salvar()" [disabled]="loading"
+        class="px-3.5 py-2 rounded-md bg-[#18328A] text-white font-medium hover:bg-emerald-700 shadow-sm transition-colors text-sm flex items-center gap-1.5 disabled:opacity-50">
         <i class="pi pi-check text-xs"></i> {{ loading ? 'Salvando...' : 'Salvar' }}
       </button>
     </div>
   </div>
 
-  <div class="p-5 w-full space-y-4">
+  <div class="p-5 w-full space-y-4" [class.min-h-0]="drawerMode" [class.flex-1]="drawerMode" [class.overflow-y-auto]="drawerMode">
 
     <!-- ===== Pill Tab Navigation ===== -->
     <div class="flex justify-center">
@@ -854,4 +854,13 @@
     </ng-container>
 
   </div>
+
+  <footer *ngIf="drawerMode" class="z-20 flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-5 py-3 shadow-sm">
+    <button type="button" (click)="cancelar()" [disabled]="loading"
+      class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 disabled:opacity-50">Cancelar</button>
+    <button type="button" (click)="salvar()" [disabled]="loading"
+      class="rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-900 disabled:opacity-50">
+      {{ loading ? 'Salvando...' : (isEditMode ? 'Salvar alterações' : 'Cadastrar funcionário') }}
+    </button>
+  </footer>
 </div>
