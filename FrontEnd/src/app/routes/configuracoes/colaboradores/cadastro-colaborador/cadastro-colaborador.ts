@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -50,6 +50,11 @@ import { isValidCpf } from '@shared/utils/validators';
   providers: [MessageService]
 })
 export class CadastroColaborador implements OnInit {
+  /** Reutiliza o cadastro existente no drawer da listagem sem criar outro formulário/API. */
+  @Input() drawerMode = false;
+  @Input() drawerFuncionarioId?: number;
+  @Output() drawerClosed = new EventEmitter<boolean>();
+
   private readonly router   = inject(Router);
   private readonly route    = inject(ActivatedRoute);
   private readonly location = inject(Location);
@@ -327,6 +332,14 @@ export class CadastroColaborador implements OnInit {
 
   ngOnInit() {
     this.loadOptions();
+    if (this.drawerMode) {
+      if (this.drawerFuncionarioId != null) {
+        this.isEditMode = true;
+        this.funcionarioId = this.drawerFuncionarioId;
+        this.loadData(false);
+      }
+      return;
+    }
     const id = this.route.snapshot.paramMap.get('id');
     const byUsuario = this.route.snapshot.queryParamMap.get('byUsuario') === 'true';
 
@@ -748,6 +761,10 @@ export class CadastroColaborador implements OnInit {
 
   private finishSave(id: number) {
     this.loading = false;
+    if (this.drawerMode) {
+      this.drawerClosed.emit(true);
+      return;
+    }
     if (!this.isEditMode) {
       this.isEditMode = true;
       this.router.navigate(['/configuracoes/colaboradores/cadastro', id], { replaceUrl: true });
@@ -770,7 +787,8 @@ export class CadastroColaborador implements OnInit {
         this.funcionarioService.delete(this.funcionarioId!).subscribe({
           next: () => {
             this.messageService.add({ severity: 'success', summary: 'Excluído', detail: 'Colaborador excluído com sucesso!' });
-            this.router.navigate(['/configuracoes/colaboradores']);
+            if (this.drawerMode) this.drawerClosed.emit(true);
+            else this.router.navigate(['/configuracoes/colaboradores']);
           },
           error: (err: any) => {
             this.loading = false;
@@ -781,7 +799,10 @@ export class CadastroColaborador implements OnInit {
     });
   }
 
-  cancelar() { this.location.back(); }
+  cancelar() {
+    if (this.drawerMode) this.drawerClosed.emit(false);
+    else this.location.back();
+  }
 
   private formatDateTime(d: any): string | undefined {
     if (!d) return undefined;
