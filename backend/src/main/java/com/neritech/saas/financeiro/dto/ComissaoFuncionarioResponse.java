@@ -24,5 +24,6 @@ public record ComissaoFuncionarioResponse(
         LocalDate dataPagamento,
         String observacoes,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt,
+        Boolean aprovado) {
 }
