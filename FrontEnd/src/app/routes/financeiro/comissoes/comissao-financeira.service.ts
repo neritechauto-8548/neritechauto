@@ -11,6 +11,13 @@ export interface ComissaoLinha {
   funcionarioId: number;
   funcionarioNome: string;
   ordemServicoId?: number;
+  numeroOs?: string;
+  placa?: string;
+  clienteNome?: string;
+  empresaNome?: string;
+  dataAutorizacao?: string;
+  dataFechamento?: string;
+  valorLiquido?: number;
   faturaId?: number;
   faturaNumero?: string;
   itemFaturaDescricao?: string;
