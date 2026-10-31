@@ -29,6 +29,11 @@ export interface TransportadoraForm {
   modalidade: Modalidade;
   ativo: boolean;
   observacoes?: string | null;
+  inscricaoEstadual?: string | null;
+  logradouro?: string | null;
+  numero?: string | null;
+  bairro?: string | null;
+  complemento?: string | null;
 }
 export interface Transportadora extends TransportadoraForm {
   id: number;
