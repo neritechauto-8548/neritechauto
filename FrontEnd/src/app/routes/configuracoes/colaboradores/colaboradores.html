@@ -23,9 +23,9 @@
       <h1 class="text-2xl font-bold tracking-tight text-slate-950">Funcionários</h1>
       <p class="mt-1 text-xs text-slate-500">{{ totalRecords }} funcionário(s) no resultado da pesquisa</p>
     </div>
-    <a routerLink="/configuracoes/colaboradores/cadastro" class="inline-flex items-center gap-2 rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18328A]">
+    <button type="button" (click)="openEmployeeDrawer()" class="inline-flex items-center gap-2 rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18328A]">
       <mat-icon class="!text-[18px]">person_add</mat-icon> Novo funcionário
-    </a>
+    </button>
   </div>
 
   <div class="flex flex-col sm:flex-row gap-3">
@@ -88,10 +88,10 @@
         <tbody class="divide-y divide-slate-200">
           <tr *ngFor="let row of colaboradores" class="hover:bg-slate-50">
             <td class="px-4 py-4">
-              <a [routerLink]="['/configuracoes/colaboradores/cadastro', row.id]" class="inline-flex items-center gap-3 font-medium text-[#18328A] hover:underline">
+              <button type="button" (click)="openEmployeeDrawer(row.id)" class="inline-flex items-center gap-3 text-left font-medium text-[#18328A] hover:underline">
                 <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-900" aria-hidden="true">{{ getInitials(row.nomeCompleto) }}</span>
                 <span>{{ row.nomeCompleto }}</span>
-              </a>
+              </button>
             </td>
             <td *ngFor="let column of selectedColumns" class="px-4 py-4 text-slate-700">
               <ng-container [ngSwitch]="column.key">
@@ -103,10 +103,10 @@
             </td>
             <td class="px-4 py-4 text-right">
               <div class="inline-flex items-center gap-2">
-                <a [routerLink]="['/configuracoes/colaboradores/cadastro', row.id]" aria-label="Editar funcionário" title="Editar"
+                <button type="button" (click)="openEmployeeDrawer(row.id)" [attr.aria-label]="'Editar ' + row.nomeCompleto" title="Editar"
                   class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-800">
                   <mat-icon class="!text-[18px]">edit</mat-icon>
-                </a>
+                </button>
                 <button type="button" (click)="excluir(row.id)" [disabled]="row.status === 'INATIVO' || row.status === 'DEMITIDO'"
                   [attr.aria-label]="'Inativar ' + row.nomeCompleto" title="Inativar funcionário (preserva histórico)"
                   class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30">
@@ -134,6 +134,21 @@
       </div>
     </div>
   </section>
+
+  <!-- Mesmo componente de cadastro já integrado ao backend, agora aberto em drawer. -->
+  <div *ngIf="employeeDrawerOpen" class="fixed inset-0 z-[60]">
+    <button type="button" (click)="closeEmployeeDrawer(false)" class="absolute inset-0 h-full w-full bg-black/35" aria-label="Fechar cadastro de funcionário"></button>
+    <section role="dialog" aria-modal="true" aria-label="Cadastro e edição de funcionário"
+      class="absolute inset-y-0 right-0 flex w-full max-w-[760px] flex-col border-l border-slate-200 bg-white shadow-2xl">
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <cadastro-colaborador
+          [drawerMode]="true"
+          [drawerFuncionarioId]="drawerEmployeeId"
+          (drawerClosed)="closeEmployeeDrawer($event)">
+        </cadastro-colaborador>
+      </div>
+    </section>
+  </div>
 
   <!-- Filtro avançado: contexto preservado e ações reais via API paginada. -->
   <div *ngIf="filterDrawerOpen" class="fixed inset-0 z-50">
