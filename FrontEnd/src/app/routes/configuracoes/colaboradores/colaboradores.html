@@ -1,4 +1,4 @@
-<main class="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 lg:px-8 space-y-5">
+<main class="min-h-screen bg-[#f7f8fa] px-4 py-5 sm:px-6 lg:px-8 space-y-5">
   <nav class="text-xs text-slate-500" aria-label="Navegação estrutural">
     <span>Administração</span><span class="mx-2">›</span><span class="font-medium text-slate-700">Funcionários</span>
   </nav>
@@ -21,9 +21,8 @@
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-2xl font-bold tracking-tight text-slate-950">Funcionários</h1>
-      <p class="mt-1 text-xs text-slate-500">{{ totalRecords }} funcionário(s) no resultado da pesquisa</p>
     </div>
-    <button type="button" (click)="openEmployeeDrawer()" class="inline-flex items-center gap-2 rounded-lg bg-[#18328A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18328A]">
+    <button type="button" (click)="openEmployeeDrawer()" class="inline-flex items-center gap-2 rounded-lg bg-[#84ef48] px-4 py-2.5 text-sm font-semibold text-[#0c2600] hover:bg-[#78e63a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18328A]">
       <mat-icon class="!text-[18px]">person_add</mat-icon> Novo funcionário
     </button>
   </div>
@@ -50,7 +49,7 @@
         <button type="button" (click)="exportCurrentPage()" [disabled]="loading || !colaboradores.length"
           class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           title="Exportar somente os registros da página atual em CSV">
-          <mat-icon class="!text-[18px]">description</mat-icon> Exportar página
+          <mat-icon class="!text-[18px]">description</mat-icon> Relatórios
         </button>
         <button type="button" (click)="openColumnPanel()" aria-haspopup="dialog"
           class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50">
