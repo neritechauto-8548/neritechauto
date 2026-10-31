@@ -25,5 +25,12 @@ public record ComissaoFuncionarioResponse(
         String observacoes,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Boolean aprovado) {
+        Boolean aprovado,
+        String placa,
+        String clienteNome,
+        String empresaNome,
+        java.time.LocalDateTime dataAutorizacao,
+        java.time.LocalDateTime dataFechamento,
+        java.math.BigDecimal valorLiquido,
+        String numeroOs) {
 }
