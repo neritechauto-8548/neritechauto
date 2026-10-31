@@ -79,7 +79,25 @@ public class Funcionario extends BaseEntity {
     @JoinColumn(name = "departamento_id", insertable = false, updatable = false)
     private com.neritech.saas.empresa.domain.DepartamentoContabio departamento;
 
-    @Column(name = "data_admissao", nullable = false)
+    @Column(name = "registro_profissional", length = 80)
+    private String registroProfissional;
+
+    @Column(name = "tipo_profissional", length = 80)
+    private String tipoProfissional;
+
+    @Column(name = "area_atuacao", length = 100)
+    private String areaAtuacao;
+
+    @Column(name = "comissao_pecas")
+    private BigDecimal comissaoPecas;
+
+    @Column(name = "comissao_servicos")
+    private BigDecimal comissaoServicos;
+
+    @Column(name = "linhas_transporte", length = 255)
+    private String linhasTransporte;
+
+    @Column(name = "data_admissao")
     private LocalDate dataAdmissao;
 
     @Column(name = "data_demissao")
@@ -654,4 +672,16 @@ public class Funcionario extends BaseEntity {
     public void setDepartamento(com.neritech.saas.empresa.domain.DepartamentoContabio departamento) {
         this.departamento = departamento;
     }
+    public String getRegistroProfissional() { return registroProfissional; }
+    public void setRegistroProfissional(String value) { this.registroProfissional = value; }
+    public String getTipoProfissional() { return tipoProfissional; }
+    public void setTipoProfissional(String value) { this.tipoProfissional = value; }
+    public String getAreaAtuacao() { return areaAtuacao; }
+    public void setAreaAtuacao(String value) { this.areaAtuacao = value; }
+    public BigDecimal getComissaoPecas() { return comissaoPecas; }
+    public void setComissaoPecas(BigDecimal value) { this.comissaoPecas = value; }
+    public BigDecimal getComissaoServicos() { return comissaoServicos; }
+    public void setComissaoServicos(BigDecimal value) { this.comissaoServicos = value; }
+    public String getLinhasTransporte() { return linhasTransporte; }
+    public void setLinhasTransporte(String value) { this.linhasTransporte = value; }
 }
