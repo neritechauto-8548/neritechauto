@@ -12,6 +12,7 @@ import { Epi, EpiEntrega, EpiService } from '../../epis/epi.service';
 import { ContatoFuncionario, ContatoFuncionarioService, ContatoPayload, MeioContato, TipoMeio } from '../contato-funcionario.service';
 import { PermissaoService, FuncaoResponse } from '../../permissoes/permissao.service';
 import { UsuarioService } from '../../usuario.service';
+import { EmpresaService } from '../../empresa/services/empresa.service';
 
 type AbaFuncionario = 'geral' | 'profissional' | 'epis' | 'contatos';
 
@@ -32,6 +33,7 @@ export class CadastroColaborador implements OnInit {
   private readonly contatosService = inject(ContatoFuncionarioService);
   private readonly permissoes = inject(PermissaoService);
   private readonly usuarios = inject(UsuarioService);
+  private readonly empresas = inject(EmpresaService);
   private readonly storage = inject(LocalStorageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -46,6 +48,8 @@ export class CadastroColaborador implements OnInit {
   erro = '';
   carregando = false;
   cargos: CargoResponse[] = [];
+  empresaNome = '';
+  empresaCnpj = '';
   fotoSelecionada: File | null = null;
   urlFoto: string | null = null;
   get empresaId(): number { return Number(empresaIdAtual(this.storage) ?? 0); }
@@ -77,6 +81,10 @@ export class CadastroColaborador implements OnInit {
 
   ngOnInit(): void {
     this.formulario.empresaId = this.empresaId;
+    if (this.empresaId) this.empresas.getEmpresa(this.empresaId).subscribe({
+      next: empresa => { this.empresaNome = empresa.nomeFantasia || empresa.razaoSocial || 'Empresa'; this.empresaCnpj = empresa.cnpj || ''; },
+      error: () => { this.empresaNome = 'Empresa da sessão'; }
+    });
     this.funcionarioId = this.drawerMode ? this.drawerFuncionarioId : (Number(this.route.snapshot.paramMap.get('id')) || undefined);
     this.cargosService.list({ page: 0, size: 100 }).subscribe({ next: pagina => this.cargos = pagina.content || [], error: () => this.cargos = [] });
     if (this.funcionarioId) this.carregar();
