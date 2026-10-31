@@ -1,4 +1,6 @@
-# ADM-004 — Inventário de referência visual e desenvolvimento de Funcionários
+# Gestão de pessoas — Inventário de referência visual e desenvolvimento
+
+Inclui ADM-004 (Funcionários/EPIs), ADM-005 (Cargos) e FIN-007 (Comissões).
 
 Data: 2026-10-31. Origem: 12 capturas do módulo de gestão de pessoas UltraCar fornecidas pelo usuário. Destino: NERITECH AUTO, repositório `neritechauto-8548/neritechauto`, branch `master`. Estas capturas são referências de experiência, não código/fonte de autoridade técnica.
 
@@ -24,7 +26,7 @@ Data: 2026-10-31. Origem: 12 capturas do módulo de gestão de pessoas UltraCar 
 - `FrontEnd/src/app/routes/configuracoes/colaboradores/cadastro-colaborador/`: formulário Angular preexistente, com integração para criação/edição e foto, agora reutilizado também no drawer da listagem. Mantidas suas abas e a experiência de rota direta.
 - `backend/src/main/java/com/neritech/saas/rh/`: ampliado GET `/v1/rh/funcionarios` para `nome`, `funcao`, `registro` combináveis com busca geral `nomeCompleto`, `status`, `cargoId` e `departamentoId`. Paginação server-side e tenant guard existentes preservados. Nenhuma migração nova.
 - `FrontEnd/src/app/routes/configuracoes/usuarios/` e controladores de usuários: identificados para reuso, mas **não** reconstruídos para o modal de captura nesta entrega.
-- Botão EPIs na listagem deliberadamente desabilitado: não há fluxo de EPI comprovado e não deve apontar para um recurso falso.
+- A aba EPIs da listagem agora aponta para `/configuracoes/epis` e o cadastro do funcionário contém histórico e registro de entregas de EPI. Sem simulação de persistência.
 
 ## Regras e riscos
 
@@ -45,12 +47,52 @@ Data: 2026-10-31. Origem: 12 capturas do módulo de gestão de pessoas UltraCar 
 
 ## Pendências de paridade demonstráveis
 
-1. Criar relacionamento e catálogo persistidos de **EPIs por funcionário**, entregas/validade e ações de registro.
+1. **EPIs entregues:** catálogo e histórico básico já implementados e testados; faltam homologação visual, múltiplos itens em uma única submissão e regras adicionais de devolução/substituição/validade quando definidas no contrato.
 2. Criar **contatos múltiplos por funcionário**, WhatsApp e seleção de contato principal com modelo autorizado, persistência e testes.
 3. Resolver **empresas vinculadas** com modelo de autorização e regras de multiempresa sem acesso cruzado indevido.
 4. Harmonizar separação entre cadastro básico e dados profissionais sem burlar regras RH/legais; revisar os campos obrigatórios em conjunto com ADM-004.
 5. Integrar **criação de usuário em fluxo separado** à experiência do perfil, respeitando política de senha/RBAC, sem duplicar usuários.
-6. Melhorar fidelidade visual do formulário profissional, abas Geral/Dados Profissionais/EPIs/Contatos, relatórios completos, busca no modal colunas e suporte mobile/teclado.
+6. Melhorar fidelidade visual do formulário profissional, abas Geral/Dados Profissionais/Contatos, relatórios completos, busca no modal colunas e suporte mobile/teclado.
 7. Executar testes ponta a ponta, comparar screenshots 320/768/1440 e WCAG 2.2 AA; os testes de compilação e contrato HTTP/tenant do workflow focado já passaram.
 
 Situação geral: **implementação parcial, integração principal de listagem e CRUD reaproveitada, homologação pendente**.
+
+## Complemento — Capturas 02, 03 e 04 (Cargos, EPIs e Comissões)
+
+**Capturas analisadas em 2026-10-31:** `02 - Cargo`, `02.1 - Cargo`, `03 - EPI's`, `03.1 - EPI's`, `03.2 - EPI's`, `04 - Comissão` até `04.5 - Comissão`. As imagens exibem apenas estados; nenhuma função externa é considerada confirmada sem evidência.
+
+| Área | Elementos observados | Estado da NERITECH AUTO |
+| --- | --- | --- |
+| Cargos | listagem com Descrição/Código/Tipo, pesquisa e novo cargo; modal com Descrição e CBO | Listagem Angular refatorada; modal com nome/CBO obrigatórios na UI, CRUD, busca paginada, edição, histórico e inativação pela API existente; dados administrativos avançados recolhidos em seção complementar |
+| EPIs | listagem com descrição/CA e drawer com nome, CA, categoria, fabricante, tamanho, especificações e descrição | Catálogo real com `V293__rh_epis_catalogo_entregas.sql`, API `/v1/rh/epis`, tela Angular em `/configuracoes/epis`, edição/inativação lógica e auditoria |
+| EPIs por colaborador | selecionar empresa e EPI, data de entrega, validade e múltiplas seleções | Aba EPIs no cadastro, endpoints `/v1/rh/funcionarios/{id}/epis` para consulta e registro real; empresa vem da sessão JWT. Cada entrega é gravada individualmente, sem lote |
+| Comissões | listagem por funcionário/OS/cliente/placa/empresa, valores, estados e pesquisa/filtro | `/financeiro/comissoes` exibe agora registros individuais reais e paginação; API de `fin_comissoes_funcionarios` com empresa JWT, busca por funcionário, OS, situação e período; origem textual detalhada ainda depende da modelagem completa |
+| Quitação e estorno | drawer de pagamento e observação; opção conta a pagar; estado quitado, confirmação de estorno | Aprovação, registro de quitação e estorno por comissão via transações auditadas e bloqueio pessimista; geração/liquidação de contas a pagar **não habilitada**, nunca simulada |
+
+### Principais arquivos
+- `FrontEnd/src/app/routes/configuracoes/cargos/cargos.ts`: modal da referência e listagem conectados ao `CargoService` existente.
+- `FrontEnd/src/app/routes/configuracoes/epis/*`: tela, serviço tipado e teste Angular.
+- `FrontEnd/src/app/routes/configuracoes/colaboradores/cadastro-colaborador/*`: aba EPIs e histórico de entregas.
+- `FrontEnd/src/app/routes/financeiro/comissoes/*`: listagem real, filtros, relatórios PDF existentes, drawers de quitação/estorno, serviço tipado e teste HTTP.
+- `backend/src/main/java/com/neritech/saas/rh/controller/EpiController.java` e `service/EpiService.java`: API catálogo/entregas/auditoria, isolamento por empresa.
+- `backend/src/main/java/com/neritech/saas/financeiro/`: contrato e mapper, filtros, autorizações, transações de aprovar/quitar/estornar e validação de vínculos cruzados.
+- `backend/src/main/resources/db/migration/V293__rh_epis_catalogo_entregas.sql`: catálogo e entregas sem exclusão física.
+- `backend/src/test/java/com/neritech/saas/rh/EpiTenantIntegrationTest.java` e `backend/src/test/java/com/neritech/saas/financeiro/ComissaoQuitacaoTenantIntegrationTest.java`.
+
+### Evidências de validação desta entrega
+- Workflow GitHub Actions: [Gestão de pessoas — Cargos EPIs Comissões](https://github.com/neritechauto-8548/neritechauto/actions/runs/41203657347).
+- **Código exato testado:** `649310c888905ab2313ae12abdcdd2b7cd79e4fd` (`master`).
+- **Angular:** build da aplicação e testes de serviço de Cargos/EPIs/Comissões concluídos com sucesso.
+- **Spring Boot:** 3 testes de integração (`CargoTenantIntegrationTest`, `EpiTenantIntegrationTest`, `ComissaoQuitacaoTenantIntegrationTest`): 3 executados, 0 falhas, 0 erros, 0 ignorados; Maven `BUILD SUCCESS`.
+- O teste de EPIs aplica a migração diretamente via `@Sql` porque o perfil de teste não executa as migrações Flyway automaticamente; execução em ambiente de deploy ainda deve ser validada.
+- Nenhuma comparação de screenshots, validação WCAG 2.2 AA completa, testes E2E de jornada ou evidência de deploy/homologação foi produzida.
+
+### Diferenças e pendências que não devem ser ocultadas
+
+1. **Cargos:** a coluna `Tipo` da referência não tem contrato equivalente comprovado no backend; mantidos funcionários/situação até decisão de modelagem. Ainda sem comparação pixel a pixel.
+2. **EPIs:** a referência mostra seleção por empresa no drawer; a NERITECH usa a empresa autenticada, sem permitir troca arbitrária. Validação externa de certificado de aprovação, devolução e substituição ainda não implementadas.
+3. **Comissões:** origem completa da OS (placa/cliente, datas de autorização/fechamento, valor líquido por item), quitação em lote, contas a pagar automáticas, pagamento parcial e reversão bancária/contábil não foram implementados. Precisam de contrato transacional entre OS, faturamento e Financeiro antes de habilitação.
+4. **Quitação:** a ação implementada registra quitação no registro de comissão após aprovação e, quando vinculada a fatura, exige recebimento integral confirmado. **Não representa transferência de dinheiro nem movimentação financeira automática**. O backend recusa `gerarContaPagar=true` com HTTP 422.
+5. A experiência visual em mobile/tablet, foco/teclado completo e comparação visual 320/768/1440 ainda dependem de homologação prática. Não classificar como 100% concluído.
+
+**Situação de desenvolvimento:** telas e integrações principais dos três módulos implementadas e aprovadas pelos testes focados, com paridade operacional e visual **parcial**, ainda sem homologação integral.
