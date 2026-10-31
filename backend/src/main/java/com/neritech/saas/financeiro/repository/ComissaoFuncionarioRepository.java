@@ -12,6 +12,12 @@ import java.util.List;
 @Repository
 public interface ComissaoFuncionarioRepository
         extends JpaRepository<ComissaoFuncionario, Long>, JpaSpecificationExecutor<ComissaoFuncionario> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select c from ComissaoFuncionario c where c.id=:id and c.empresaId=:empresaId")
+    java.util.Optional<ComissaoFuncionario> findOwnedForUpdate(
+            @org.springframework.data.repository.query.Param("id") Long id,
+            @org.springframework.data.repository.query.Param("empresaId") Long empresaId);
+
     List<ComissaoFuncionario> findByFuncionarioId(Long funcionarioId);
 
     Page<ComissaoFuncionario> findByFuncionarioId(Long funcionarioId, Pageable pageable);
