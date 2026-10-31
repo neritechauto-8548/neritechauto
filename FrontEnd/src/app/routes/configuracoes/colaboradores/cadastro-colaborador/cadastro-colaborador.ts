@@ -1,1054 +1,282 @@
-import { Component, inject, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { TooltipModule } from 'primeng/tooltip';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { A11yModule } from '@angular/cdk/a11y';
+import { HotToastService } from '@ngxpert/hot-toast';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { empresaIdAtual } from '@shared/utils/empresa-context';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { ButtonModule } from 'primeng/button';
-import { TextareaModule } from 'primeng/textarea';
-import { DatePickerModule } from 'primeng/datepicker';
-import { CheckboxModule } from 'primeng/checkbox';
-import { PasswordModule } from 'primeng/password';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { InputMaskModule } from 'primeng/inputmask';
-import { ToastModule } from 'primeng/toast';
-import { TableModule } from 'primeng/table';
-import { PanelModule } from 'primeng/panel';
-import { MessageModule } from 'primeng/message';
-import { DividerModule } from 'primeng/divider';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { MessageService } from 'primeng/api';
-import { SettingsService } from '@core';
-import { FuncionarioService, FuncionarioRequest } from '../funcionario.service';
-import { DepartamentoService } from '../../departamentos/departamento.service';
-import { CargoService } from '../../cargos/cargo.service';
-import { UsuarioService } from '../../usuario.service';
-import { PermissaoService } from '../../permissoes/permissao.service';
-import { SetorService } from '../../setores/setor.service';
-import { RegraComissaoService, RegraComissao } from '../regra-comissao.service';
-import { ConfirmationService } from '@shared/services/confirmation.service';
-import { InputGroupModule } from 'primeng/inputgroup';
-import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { UtilService } from '@shared/services/util.service';
-import { isValidCpf } from '@shared/utils/validators';
+import { FuncionarioRequest, FuncionarioResponse, FuncionarioService } from '../funcionario.service';
+import { CargoResponse, CargoService } from '../../cargos/cargo.service';
 import { Epi, EpiEntrega, EpiService } from '../../epis/epi.service';
+import { ContatoFuncionario, ContatoFuncionarioService, ContatoPayload, MeioContato, TipoMeio } from '../contato-funcionario.service';
+import { PermissaoService, FuncaoResponse } from '../../permissoes/permissao.service';
+import { UsuarioService } from '../../usuario.service';
+
+type AbaFuncionario = 'geral' | 'profissional' | 'epis' | 'contatos';
 
 @Component({
   selector: 'cadastro-colaborador',
   standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule, A11yModule],
   templateUrl: './cadastro-colaborador.html',
-  styleUrls: ['./cadastro-colaborador.scss'],
-  imports: [
-    CommonModule, FormsModule, MatIconModule, TooltipModule,
-    InputTextModule, SelectModule, ButtonModule, TextareaModule, DatePickerModule, CheckboxModule,
-    PasswordModule, MultiSelectModule, InputMaskModule, ToastModule, TableModule, PanelModule,
-    InputGroupModule, InputGroupAddonModule, MessageModule, DividerModule, InputNumberModule
-  ],
-  providers: [MessageService]
+  styleUrls: ['./cadastro-colaborador.scss']
 })
 export class CadastroColaborador implements OnInit {
-  /** Reutiliza o cadastro existente no drawer da listagem sem criar outro formulário/API. */
   @Input() drawerMode = false;
   @Input() drawerFuncionarioId?: number;
   @Output() drawerClosed = new EventEmitter<boolean>();
-
-  private readonly router   = inject(Router);
-  private readonly route    = inject(ActivatedRoute);
+  private readonly funcionarios = inject(FuncionarioService);
+  private readonly cargosService = inject(CargoService);
+  private readonly episService = inject(EpiService);
+  private readonly contatosService = inject(ContatoFuncionarioService);
+  private readonly permissoes = inject(PermissaoService);
+  private readonly usuarios = inject(UsuarioService);
+  private readonly storage = inject(LocalStorageService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly storage  = inject(LocalStorageService);
-  private readonly settings = inject(SettingsService);
-  private readonly messageService = inject(MessageService);
-  private readonly funcionarioService  = inject(FuncionarioService);
-  private readonly departamentoService = inject(DepartamentoService);
-  private readonly cargoService        = inject(CargoService);
-  private readonly usuarioService      = inject(UsuarioService);
-  private readonly permissaoService    = inject(PermissaoService);
-  private readonly setorService        = inject(SetorService);
-  private readonly regraComissaoService = inject(RegraComissaoService);
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly utilService         = inject(UtilService);
-  private readonly epiService          = inject(EpiService);
+  private readonly toast = inject(HotToastService);
 
-  // ---- Acesso ao sistema ----
-  temAcesso = false;
-  usuarioId?: number;        // linked usuario id (loaded from funcionario.usuarioId)
-  funcaoOptions: { label: string; value: number }[] = [];
-  usuarioForm = {
-    email: '',
-    senha: '',
-    funcoesIds: [] as number[],
-    ativo: true,
-    bloqueado: false,
-    preferencias: {
-      theme: 'light',
-      primaryColor: 'indigo',
-      primaryColorValue: '{indigo}',
-      surfaceColor: 'slate',
-      surfaceColorValue: '{slate}',
-      menuThemeClass: 'bg-slate-800',
-      topbarThemeClass: 'bg-blue-600',
-      presetTheme: 'Aura',
-      navPos: 'side',
-      dir: 'ltr',
-      showHeader: true,
-      headerPos: 'above',
-      showUserPanel: true,
-      sidenavOpened: true,
-      sidenavCollapsed: true,
-      language: 'pt-BR',
-    } as Record<string, any>
-  };
-
-  activeTab = 'pessoais';
-  navTabs = [
-    { id: 'pessoais',    label: 'Dados Pessoais',    icon: 'person' },
-    { id: 'vinculo',     label: 'Vínculo',            icon: 'badge' },
-    { id: 'epis',        label: 'EPIs',               icon: 'shield' },
-    { id: 'comissao',    label: 'Regras de Comissão', icon: 'percent' },
-    { id: 'documentos',  label: 'Documentos',         icon: 'description' },
-    { id: 'bancario',    label: 'Dados Bancários',    icon: 'account_balance' },
-    { id: 'usuario',     label: 'Acesso ao Sistema',  icon: 'lock' },
-    { id: 'tema',        label: 'Tema',               icon: 'palette' },
-  ];
-
-  epiCatalogo: Epi[] = [];
-  epiEntregas: EpiEntrega[] = [];
-  epiLoading = false;
-  epiSalvando = false;
-  epiErro = '';
-  epiForm = { epiId: null as number | null, dataEntrega: '', dataValidade: '', observacao: '' };
-
-  selecionarAba(id: string): void {
-    this.activeTab = id;
-    if (id === 'epis') this.carregarEntregasEpi();
-  }
-
-  carregarEntregasEpi(): void {
-    if (!this.funcionarioId) return;
-    this.epiLoading = true;
-    this.epiErro = '';
-    this.epiService.entregas(this.funcionarioId).subscribe({
-      next: rows => { this.epiEntregas = rows; this.epiLoading = false; },
-      error: () => { this.epiLoading = false; this.epiErro = 'Não foi possível carregar o histórico de EPIs.'; }
-    });
-    this.epiService.listar('', 0, 100).subscribe({
-      next: page => { this.epiCatalogo = page.content ?? []; },
-      error: () => { this.epiErro = 'Não foi possível carregar o catálogo de EPIs.'; }
-    });
-  }
-
-  registrarEntregaEpi(): void {
-    if (!this.funcionarioId || !this.epiForm.epiId || !this.epiForm.dataEntrega) {
-      this.epiErro = 'Selecione o EPI e informe a data da entrega realizada.';
-      return;
-    }
-    if (this.epiForm.dataValidade && this.epiForm.dataValidade < this.epiForm.dataEntrega) {
-      this.epiErro = 'Data de validade não pode anteceder a entrega.';
-      return;
-    }
-    this.epiErro = ''; this.epiSalvando = true;
-    this.epiService.entregar(this.funcionarioId, {
-      epiId: this.epiForm.epiId, dataEntrega: this.epiForm.dataEntrega,
-      dataValidade: this.epiForm.dataValidade || undefined,
-      observacao: this.epiForm.observacao || undefined
-    }).subscribe({
-      next: () => {
-        this.epiSalvando = false;
-        this.epiForm = { epiId: null, dataEntrega: '', dataValidade: '', observacao: '' };
-        this.messageService.add({ severity: 'success', summary: 'EPI entregue', detail: 'Entrega registrada no histórico do funcionário.' });
-        this.carregarEntregasEpi();
-      },
-      error: err => {
-        this.epiSalvando = false;
-        this.epiErro = err.status === 403 ? 'Sem permissão para registrar entrega.'
-          : err.status === 422 ? 'Revise a data da entrega e a validade.'
-          : 'Não foi possível registrar a entrega.';
-      }
-    });
-  }
-
-  // ---- Opções de cores para o Tema ----
-  primaryColorOptions = [
-    { name: 'Esmeralda', value: 'emerald', hex: '#10b981' },
-    { name: 'Verde', value: 'green', hex: '#22c55e' },
-    { name: 'Limão', value: 'lime', hex: '#84cc16' },
-    { name: 'Laranja', value: 'orange', hex: '#f97316' },
-    { name: 'Âmbar', value: 'amber', hex: '#f59e0b' },
-    { name: 'Amarelo', value: 'yellow', hex: '#eab308' },
-    { name: 'Ciano', value: 'cyan', hex: '#06b6d4' },
-    { name: 'Teal', value: 'teal', hex: '#14b8a6' },
-    { name: 'Celeste', value: 'sky', hex: '#0ea5e9' },
-    { name: 'Azul', value: 'blue', hex: '#3b82f6' },
-    { name: 'Índigo', value: 'indigo', hex: '#6366f1' },
-    { name: 'Violeta', value: 'violet', hex: '#8b5cf6' },
-    { name: 'Púrpura', value: 'purple', hex: '#a855f7' },
-    { name: 'Fúcsia', value: 'fuchsia', hex: '#d946ef' },
-    { name: 'Rosa', value: 'pink', hex: '#ec4899' },
-    { name: 'Rose', value: 'rose', hex: '#f43f5e' },
-  ];
-
-  surfaceColorOptions = [
-    { name: 'Slate', value: 'slate', hex: '#64748b' },
-    { name: 'Zinc', value: 'zinc', hex: '#71717a' },
-    { name: 'Gray', value: 'gray', hex: '#808080' },
-    { name: 'Neutral', value: 'neutral', hex: '#737373' },
-    { name: 'Stone', value: 'stone', hex: '#78716c' },
-  ];
-
-  menuThemeOptions = [
-    { name: 'Branco', value: '!bg-white !text-slate-800 border border-slate-200', hex: '#ffffff' },
-    { name: 'Cinza', value: '!bg-[#343a40] !text-slate-100', hex: '#343a40' },
-    { name: 'Marinho', value: '!bg-[#1a237e] !text-slate-100', hex: '#1a237e' },
-    { name: 'Grafite', value: '!bg-[#263238] !text-slate-100', hex: '#263238' },
-    { name: 'Marrom', value: '!bg-[#3e2723] !text-slate-100', hex: '#3e2723' },
-    { name: 'Teal Escuro', value: '!bg-[#004d40] !text-slate-100', hex: '#004d40' },
-    { name: 'Verde Escuro', value: '!bg-[#1b5e20] !text-slate-100', hex: '#1b5e20' },
-    { name: 'Violeta', value: '!bg-[#4a148c] !text-slate-100', hex: '#4a148c' },
-    { name: 'Ferrugem', value: '!bg-[#b71c1c] !text-slate-100', hex: '#b71c1c' },
-    { name: 'Bordô', value: '!bg-[#880e4f] !text-slate-100', hex: '#880e4f' },
-    { name: 'Roxo', value: '!bg-[#311b92] !text-slate-100', hex: '#311b92' },
-    { name: 'Turquesa', value: '!bg-[#006064] !text-slate-100', hex: '#006064' },
-  ];
-
-  topbarThemeOptions = [
-    { name: 'Azul Claro', value: '!bg-[#2196f3] !text-white', hex: '#2196f3' },
-    { name: 'Grafite', value: '!bg-[#343a40] !text-white', hex: '#343a40' },
-    { name: 'Branco', value: 'bg-white !text-slate-800 border border-slate-200', hex: '#ffffff' },
-    { name: 'Azul', value: '!bg-[#1976d2] !text-white', hex: '#1976d2' },
-    { name: 'Índigo', value: '!bg-[#3f51b5] !text-white', hex: '#3f51b5' },
-    { name: 'Púrpura', value: '!bg-[#673ab7] !text-white', hex: '#673ab7' },
-    { name: 'Rosa', value: '!bg-[#e91e63] !text-white', hex: '#e91e63' },
-    { name: 'Ciano', value: '!bg-[#00bcd4] !text-white', hex: '#00bcd4' },
-    { name: 'Teal', value: '!bg-[#009688] !text-white', hex: '#009688' },
-    { name: 'Verde', value: '!bg-[#4caf50] !text-white', hex: '#4caf50' },
-    { name: 'Verde Claro', value: '!bg-[#8bc34a] !text-white', hex: '#8bc34a' },
-    { name: 'Limão', value: '!bg-[#cddc39] !text-slate-800', hex: '#cddc39' },
-    { name: 'Amarelo', value: 'bg-[#ffeb3b] !text-slate-800', hex: '#ffeb3b' },
-    { name: 'Âmbar', value: 'bg-[#ffc107] !text-slate-800', hex: '#ffc107' },
-    { name: 'Laranja', value: '!bg-[#ff9800] !text-white', hex: '#ff9800' },
-    { name: 'Laranja Escuro', value: '!bg-[#ff5722] !text-white', hex: '#ff5722' },
-    { name: 'Marrom', value: '!bg-[#795548] !text-white', hex: '#795548' },
-    { name: 'Cinza', value: '!bg-[#9e9e9e] !text-white', hex: '#9e9e9e' },
-    { name: 'Cinza Azulado', value: '!bg-[#607d8b] !text-white', hex: '#607d8b' },
-    { name: 'Padrão / Azul Escuro', value: '!bg-[#25324B] !text-white', hex: '#25324B' },
-  ];
-
-  selectPrimaryColor(color: string) {
-    this.usuarioForm.preferencias.primaryColor = color;
-    this.usuarioForm.preferencias.primaryColorValue = `{${color}}`;
-    this.settings.setOptions({ ...this.settings.options, ...this.usuarioForm.preferencias });
-  }
-
-  presetOptions = [
-    { name: 'Aura', value: 'Aura' },
-    { name: 'Lara', value: 'Lara' }
-  ];
-
-  selectPreset(preset: string) {
-    this.usuarioForm.preferencias.presetTheme = preset;
-    this.settings.setOptions({ ...this.settings.options, ...this.usuarioForm.preferencias });
-  }
-
-  selectSurfaceColor(color: string) {
-    this.usuarioForm.preferencias.surfaceColor = color;
-    this.usuarioForm.preferencias.surfaceColorValue = `{${color}}`;
-    this.settings.setOptions({ ...this.settings.options, ...this.usuarioForm.preferencias });
-  }
-
-  selectMenuTheme(themeClass: string) {
-    this.usuarioForm.preferencias.menuThemeClass = themeClass;
-    this.settings.setOptions({ ...this.settings.options, ...this.usuarioForm.preferencias });
-  }
-
-  selectTopbarTheme(themeClass: string) {
-    this.usuarioForm.preferencias.topbarThemeClass = themeClass;
-    this.settings.setOptions({ ...this.settings.options, ...this.usuarioForm.preferencias });
-  }
-
-  selectColorScheme(scheme: 'light' | 'dark' | 'auto') {
-    this.usuarioForm.preferencias.theme = scheme;
-    this.settings.setOptions({ ...this.settings.options, ...this.usuarioForm.preferencias });
-  }
-
-  setorOptions:        { label: string; value: number }[] = [];
-  regrasComissao: RegraComissao[] = [];
-  novaRegra: Partial<RegraComissao> = {
-    sobreServico: 'NAO',
-    sobreProdutos: 'NAO',
-    faturamentoGeral: 'NAO',
-    percentual: 0,
-    ativo: true,
-    dataInicio: new Date()
-  };
-
-  isEditMode = false;
   funcionarioId?: number;
-  loading = false;
+  usuarioId?: number;
+  aba: AbaFuncionario = 'geral';
+  formulario: FuncionarioRequest = { empresaId: 0, nomeCompleto: '', cpf: '', status: 'ATIVO' };
+  salvando = false;
+  erro = '';
+  carregando = false;
+  cargos: CargoResponse[] = [];
+  fotoSelecionada: File | null = null;
+  urlFoto: string | null = null;
+  get empresaId(): number { return Number(empresaIdAtual(this.storage) ?? 0); }
+  get edicao(): boolean { return !!this.funcionarioId; }
+  get formularioValido(): boolean { return this.formulario.nomeCompleto.trim().length >= 2 && this.cpfValido(this.formulario.cpf); }
 
-  // ---- Select options ----
-  sexoOptions = [
-    { label: 'Masculino', value: 'M' },
-    { label: 'Feminino',  value: 'F' },
-    { label: 'Outro',     value: 'O' },
-  ];
-  estadoCivilOptions = [
-    { label: 'Solteiro',       value: 'SOLTEIRO' },
-    { label: 'Casado',         value: 'CASADO' },
-    { label: 'Divorciado',     value: 'DIVORCIADO' },
-    { label: 'Viúvo',          value: 'VIUVO' },
-    { label: 'União Estável',  value: 'UNIAO_ESTAVEL' },
-  ];
-  escolaridadeOptions = [
-    { label: 'Fund. Incompleto',  value: 'FUNDAMENTAL_INCOMPLETO' },
-    { label: 'Fund. Completo',    value: 'FUNDAMENTAL_COMPLETO' },
-    { label: 'Médio Incompleto',  value: 'MEDIO_INCOMPLETO' },
-    { label: 'Médio Completo',    value: 'MEDIO_COMPLETO' },
-    { label: 'Superior Incompleto', value: 'SUPERIOR_INCOMPLETO' },
-    { label: 'Superior Completo', value: 'SUPERIOR_COMPLETO' },
-    { label: 'Pós-graduação',     value: 'POS_GRADUACAO' },
-    { label: 'Mestrado',          value: 'MESTRADO' },
-    { label: 'Doutorado',         value: 'DOUTORADO' },
-  ];
-  tipoContratoOptions = [
-    { label: 'CLT',          value: 'CLT' },
-    { label: 'PJ',           value: 'PJ' },
-    { label: 'Estagiário',   value: 'ESTAGIARIO' },
-    { label: 'Terceirizado', value: 'TERCEIRIZADO' },
-    { label: 'Temporário',   value: 'TEMPORARIO' },
-    { label: 'Freelancer',   value: 'FREELANCER' },
-  ];
-  statusOptions = [
-    { label: 'Ativo',      value: 'ATIVO' },
-    { label: 'Inativo',    value: 'INATIVO' },
-    { label: 'Afastado',   value: 'AFASTADO' },
-    { label: 'Demitido',   value: 'DEMITIDO' },
-    { label: 'Aposentado', value: 'APOSENTADO' },
-  ];
-  tipoContaOptions = [
-    { label: 'Corrente', value: 'CORRENTE' },
-    { label: 'Poupança', value: 'POUPANCA' },
-  ];
-  cnhCategoriaOptions = ['A', 'B', 'AB', 'C', 'D', 'E', 'ACC'];
-  departamentoOptions: { label: string; value: number }[] = [];
-  cargoOptions:        { label: string; value: number }[] = [];
+  epis: Epi[] = [];
+  entregas: EpiEntrega[] = [];
+  epiAberto = false;
+  epiItens = [{ epiId: null as number | null, dataEntrega: '', dataValidade: '' }];
+  erroEpi = '';
+  salvandoEpi = false;
+  carregandoEpi = false;
 
-  // ---- Form model (UI state supports Date objects for p-datepicker) ----
-  form: any = {
-    versao: undefined,
-    nomeCompleto: '',
-    cpf: '',
-    rg: '',
-    matricula: '',
-    sexo: undefined,
-    estadoCivil: undefined,
-    nacionalidade: 'Brasileira',
-    naturalidade: '',
-    nomeMae: '',
-    nomePai: '',
-    escolaridade: undefined,
-    profissao: '',
-    cargoId: undefined,
-    departamentoId: undefined,
-    status: 'ATIVO',
-    tipoContrato: undefined,
-    salarioBase: undefined,
-    comissaoPercentual: 0,
-    valeTransporte: 0,
-    valeAlimentacao: 0,
-    planoSaude: false,
-    planoOdontologico: false,
-    motivoInativacao: '',
-    enderecoCompleto: '',
-    cep: '',
-    logradouro: '',
-    numero: '',
-    complemento: '',
-    bairro: '',
-    cidade: '',
-    estado: '',
-    pais: 'Brasil',
-    telefonePrincipal: '',
-    telefoneEmergencia: '',
-    contatoEmergenciaNome: '',
-    contatoEmergenciaParentesco: '',
-    emailPessoal: '',
-    pisPasep: '',
-    tituloEleitor: '',
-    carteiraTrabalho: '',
-    certificadoReservista: '',
-    cnhNumero: '',
-    cnhCategoria: '',
-    bancoCodigo: '',
-    bancoAgencia: '',
-    bancoConta: '',
-    bancoTipoConta: undefined,
-    observacoes: '',
-  };
+  contatos: ContatoFuncionario[] = [];
+  contatoAberto = false;
+  contatoId: number | null = null;
+  contato: ContatoPayload = { nome: '', sexo: '', principal: false, meios: [] };
+  erroContato = '';
+  salvandoContato = false;
+  carregandoContato = false;
 
-  ngOnInit() {
-    this.loadOptions();
-    if (this.drawerMode) {
-      if (this.drawerFuncionarioId != null) {
-        this.isEditMode = true;
-        this.funcionarioId = this.drawerFuncionarioId;
-        this.loadData(false);
-      }
-      return;
-    }
-    const id = this.route.snapshot.paramMap.get('id');
-    const byUsuario = this.route.snapshot.queryParamMap.get('byUsuario') === 'true';
+  usuarioAberto = false;
+  usuarioSalvando = false;
+  usuarioErro = '';
+  usuarioFormulario = { login: '', email: '', senha: '', confirmar: '', grupoId: null as number | null };
+  funcoes: FuncaoResponse[] = [];
+  mostrarSenha = false;
 
-    if (id) {
-      if (byUsuario) {
-        this.isEditMode = true;
-        this.usuarioId = Number(id);
-        this.loadData(true);
-      } else {
-        this.isEditMode    = true;
-        this.funcionarioId = Number(id);
-        this.loadData(false);
-      }
-    }
+  ngOnInit(): void {
+    this.formulario.empresaId = this.empresaId;
+    this.funcionarioId = this.drawerMode ? this.drawerFuncionarioId : (Number(this.route.snapshot.paramMap.get('id')) || undefined);
+    this.cargosService.list({ page: 0, size: 100 }).subscribe({ next: pagina => this.cargos = pagina.content || [], error: () => this.cargos = [] });
+    if (this.funcionarioId) this.carregar();
   }
 
-  loadOptions() {
-    this.departamentoService.list({ page: 0, size: 1000, sort: 'descricao,asc' }).subscribe({
-      next: (data: any) => {
-        const dep = Array.isArray(data) ? data : (data.content ?? []);
-        this.departamentoOptions = dep.map((d: any) => ({ label: d.descricao || d.nome, value: d.id }));
-      },
-    });
-    this.cargoService.list({ size: 1000 }).subscribe({
-      next: (data: any) => {
-        const c = data.content ?? [];
-        this.cargoOptions = c.map((c: any) => ({ label: c.nome, value: c.id }));
-      },
-    });
-    this.permissaoService.listFuncoes().subscribe({
-      next: (funcoes: any[]) => {
-        this.funcaoOptions = funcoes.map((f: any) => ({ label: f.nome, value: f.id }));
-      },
-    });
-    this.setorService.list({ size: 1000 }).subscribe({
-      next: (data: any) => {
-        const setores = data.content ?? [];
-        this.setorOptions = setores.map((s: any) => ({ label: s.nome || s.descricao, value: s.id }));
-      }
-    });
+  private cpfValido(valor: string): boolean {
+    const cpf = (valor || '').replace(/\D/g, '');
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    const digito = (tam: number) => ((cpf.slice(0, tam).split('').reduce((acc, n, i) => acc + Number(n) * (tam + 1 - i), 0) * 10) % 11) % 10;
+    return digito(9) === Number(cpf[9]) && digito(10) === Number(cpf[10]);
   }
-
-  loadData(byUsuario = false) {
-    const request = byUsuario && this.usuarioId
-      ? this.funcionarioService.getByUsuarioId(this.usuarioId)
-      : this.funcionarioService.getById(this.funcionarioId!);
-
-    request.subscribe({
-      next: (data) => {
-        this.funcionarioId = data.id; // Garante que temos o ID real do funcionario para updates subsequentes
-        this.form.versao = data.versao;
-        // carrega usuarioId do funcionario
-        if (data.usuarioId) {
-          this.usuarioId = data.usuarioId;
-          this.temAcesso = true;
-          this.usuarioService.get(data.usuarioId).subscribe({
-            next: (u: any) => {
-              this.usuarioForm.email     = u.email;
-              this.usuarioForm.ativo     = u.ativo;
-              this.usuarioForm.bloqueado = u.bloqueado;
-              this.usuarioForm.funcoesIds = u.funcoesIds || [];
-              if (u.preferencias) {
-                this.usuarioForm.preferencias = {
-                  ...this.usuarioForm.preferencias,
-                  ...u.preferencias
-                };
-              }
-            },
-          });
-        }
-        this.form.nomeCompleto              = data.nomeCompleto;
-        this.form.cpf                       = data.cpf;
-        this.form.rg                        = data.rg;
-        this.form.matricula                 = data.matricula;
-        this.form.fotoFuncionarioUrl        = data.fotoFuncionarioUrl;
-        this.form.dataNascimento            = data.dataNascimento ? new Date(data.dataNascimento + 'T00:00:00') : undefined;
-        this.form.sexo                      = data.sexo as any;
-        this.form.estadoCivil               = data.estadoCivil as any;
-        this.form.nacionalidade             = data.nacionalidade;
-        this.form.naturalidade              = data.naturalidade;
-        this.form.nomeMae                   = data.nomeMae;
-        this.form.nomePai                   = data.nomePai;
-        this.form.escolaridade              = data.escolaridade as any;
-        this.form.profissao                 = data.profissao;
-        this.form.cargoId                   = data.cargoId;
-        this.form.departamentoId            = data.departamentoId;
-        this.form.dataAdmissao              = data.dataAdmissao ? new Date(data.dataAdmissao + 'T00:00:00') : undefined;
-        this.form.dataDemissao              = data.dataDemissao ? new Date(data.dataDemissao + 'T00:00:00') : undefined;
-        this.form.tipoContrato              = data.tipoContrato as any;
-        this.form.status                    = data.status as any;
-        this.form.salarioBase               = data.salarioBase as any;
-        this.form.comissaoPercentual        = data.comissaoPercentual as any;
-        this.form.valeTransporte            = data.valeTransporte as any;
-        this.form.valeAlimentacao           = data.valeAlimentacao as any;
-        this.form.planoSaude                = data.planoSaude;
-        this.form.planoOdontologico         = data.planoOdontologico;
-        this.form.motivoInativacao          = data.motivoInativacao;
-        this.form.enderecoCompleto          = data.enderecoCompleto;
-        this.form.cep                       = data.cep;
-        this.form.logradouro                = data.logradouro;
-        this.form.numero                    = data.numero;
-        this.form.complemento               = data.complemento;
-        this.form.bairro                    = data.bairro;
-        this.form.cidade                    = data.cidade;
-        this.form.estado                    = data.estado;
-        this.form.pais                      = data.pais || 'Brasil';
-        this.form.telefonePrincipal         = data.telefonePrincipal;
-        this.form.telefoneEmergencia        = data.telefoneEmergencia;
-        this.form.contatoEmergenciaNome     = data.contatoEmergenciaNome;
-        this.form.contatoEmergenciaParentesco = data.contatoEmergenciaParentesco;
-        this.form.emailPessoal              = data.emailPessoal;
-        this.form.bancoCodigo               = data.bancoCodigo;
-        this.form.bancoAgencia              = data.bancoAgencia;
-        this.form.bancoConta                = data.bancoConta;
-        this.form.bancoTipoConta            = data.bancoTipoConta as any;
-        this.form.pisPasep                  = data.pisPasep;
-        this.form.tituloEleitor             = data.tituloEleitor;
-        this.form.carteiraTrabalho          = data.carteiraTrabalho;
-        this.form.certificadoReservista     = data.certificadoReservista;
-        this.form.cnhNumero                 = data.cnhNumero;
-        this.form.cnhCategoria              = data.cnhCategoria;
-        this.form.cnhValidade               = data.cnhValidade ? new Date(data.cnhValidade + 'T00:00:00') : undefined;
-        this.form.observacoes               = data.observacoes;
-        this.carregarRegrasComissao();
-      },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar funcionário' }),
-    });
+  formatarCpf(): void {
+    const v = (this.formulario.cpf || '').replace(/\D/g, '').slice(0, 11);
+    this.formulario.cpf = v.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2');
   }
-
-  private formatDate(d: any): string | undefined {
-    if (!d) return undefined;
-    if (d instanceof Date) return d.toISOString().split('T')[0];
-    return String(d);
+  formatarCep(): void {
+    const cep = (this.formulario.cep || '').replace(/\D/g, '').slice(0, 8);
+    this.formulario.cep = cep.replace(/^(\d{5})(\d)/, '$1-$2');
   }
-
-  private get tenantId(): number {
-    return empresaIdAtual(this.storage) ?? 0;
-  }
-
-  salvar() {
-    if (!this.tenantId) {
-      this.messageService.add({ severity: 'error', summary: 'Empresa não identificada', detail: 'Entre novamente antes de salvar o funcionário.' });
-      return;
-    }
-    // Limpa a máscara do CPF antes de validar (p-inputmask pode retornar string com '_' ou parcialmente preenchida)
-    const cpfSomenteDigitos = (this.form.cpf || '').replace(/\D/g, '');
-
-    if (!this.form.nomeCompleto?.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'Nome completo é obrigatório' });
-      return;
-    }
-    if (!this.form.matricula?.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'Matrícula é obrigatória' });
-      return;
-    }
-    if (!cpfSomenteDigitos || cpfSomenteDigitos.length === 0) {
-      this.messageService.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'CPF é obrigatório' });
-      return;
-    }
-    if (cpfSomenteDigitos.length !== 11) {
-      this.messageService.add({ severity: 'error', summary: 'CPF inválido', detail: 'O CPF deve conter 11 dígitos' });
-      return;
-    }
-    if (!isValidCpf(this.form.cpf)) {
-      this.messageService.add({ severity: 'error', summary: 'CPF inválido', detail: 'O CPF informado não é válido. Verifique os dígitos.' });
-      return;
-    }
-    if (!this.form.dataAdmissao) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'Data de admissão é obrigatória' });
-      return;
-    }
-
-    // Validação de Endereço
-    if (!this.form.cep || !this.form.cep.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'CEP é obrigatório' });
-      return;
-    }
-    const cleanCep = this.form.cep.replace(/\D/g, '');
-    if (cleanCep.length !== 8) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'CEP inválido' });
-      return;
-    }
-    if (!this.form.logradouro || !this.form.logradouro.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'Logradouro é obrigatório' });
-      return;
-    }
-    if (!this.form.bairro || !this.form.bairro.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'Bairro é obrigatório' });
-      return;
-    }
-    if (!this.form.cidade || !this.form.cidade.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'Cidade é obrigatória' });
-      return;
-    }
-    if (!this.form.estado || !this.form.estado.trim()) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'UF é obrigatória' });
-      return;
-    }
-
-    // Validação de E-mail Pessoal
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (this.form.emailPessoal && this.form.emailPessoal.trim() && !emailRegex.test(this.form.emailPessoal)) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'E-mail pessoal inválido' });
-      return;
-    }
-
-    // Validação de Idade Mínima
-    if (this.form.dataNascimento) {
-      const birthDate = new Date(this.form.dataNascimento);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      if (age < 16) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'O colaborador deve ter pelo menos 16 anos' });
-        return;
-      }
-    }
-
-    // Validação de Datas de Vínculo
-    if (this.form.dataDemissao && this.form.dataAdmissao) {
-      const adm = new Date(this.form.dataAdmissao);
-      const dem = new Date(this.form.dataDemissao);
-      if (dem < adm) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'A data de demissão não pode ser anterior à data de admissão' });
-        return;
-      }
-    }
-
-    // Validação de Motivo de Inativação
-    if ((this.form.status === 'INATIVO' || this.form.status === 'DEMITIDO' || this.form.status === 'AFASTADO') && (!this.form.motivoInativacao || !this.form.motivoInativacao.trim())) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'O motivo de inativação é obrigatório para o status selecionado' });
-      return;
-    }
-
-    // Validação Financeira
-    if (this.form.salarioBase !== undefined && this.form.salarioBase !== null && this.form.salarioBase < 0) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'O salário base não pode ser negativo' });
-      return;
-    }
-    if (this.form.valeTransporte !== undefined && this.form.valeTransporte !== null && this.form.valeTransporte < 0) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'O vale transporte não pode ser negativo' });
-      return;
-    }
-    if (this.form.valeAlimentacao !== undefined && this.form.valeAlimentacao !== null && this.form.valeAlimentacao < 0) {
-      this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'O vale alimentação não pode ser negativo' });
-      return;
-    }
-
-    // Validação da CNH
-    if (this.form.cnhNumero && this.form.cnhNumero.trim()) {
-      if (!this.form.cnhCategoria) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'A categoria da CNH é obrigatória quando o número é informado' });
-        return;
-      }
-      if (this.form.cnhValidade) {
-        const val = new Date(this.form.cnhValidade);
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        if (val < today) {
-          this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'A CNH informada está vencida' });
-          return;
-        }
-      }
-    }
-
-    // Validação de Acesso ao Sistema
-    if (this.temAcesso) {
-      if (!this.usuarioForm.email || !this.usuarioForm.email.trim()) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'E-mail de login é obrigatório para habilitar o acesso' });
-        return;
-      }
-      if (!emailRegex.test(this.usuarioForm.email)) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'E-mail de login inválido' });
-        return;
-      }
-      if (!this.usuarioId && (!this.usuarioForm.senha || this.usuarioForm.senha.length < 6)) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'A senha de login é obrigatória e deve ter pelo menos 6 caracteres' });
-        return;
-      }
-      if (this.usuarioForm.senha && this.usuarioForm.senha.length < 6) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'A nova senha deve ter pelo menos 6 caracteres' });
-        return;
-      }
-      if (!this.usuarioForm.funcoesIds || this.usuarioForm.funcoesIds.length === 0) {
-        this.messageService.add({ severity: 'error', summary: 'Atenção', detail: 'Selecione pelo menos uma função de acesso' });
-        return;
-      }
-    }
-
-    this.loading = true;
-    const payload: FuncionarioRequest = {
-      versao:                     this.form.versao,
-      empresaId:                  this.tenantId,
-      usuarioId:                  this.usuarioId,
-      matricula:                  this.form.matricula!,
-      nomeCompleto:               this.form.nomeCompleto!,
-      cpf:                        this.form.cpf!,
-      rg:                         this.form.rg,
-      dataNascimento:             this.formatDate(this.form.dataNascimento),
-      sexo:                       this.form.sexo as any,
-      estadoCivil:                this.form.estadoCivil as any,
-      nacionalidade:              this.form.nacionalidade,
-      naturalidade:               this.form.naturalidade,
-      nomeMae:                    this.form.nomeMae,
-      nomePai:                    this.form.nomePai,
-      escolaridade:               this.form.escolaridade as any,
-      profissao:                  this.form.profissao,
-      cargoId:                    this.form.cargoId,
-      departamentoId:             this.form.departamentoId,
-      dataAdmissao:               this.formatDate(this.form.dataAdmissao)!,
-      dataDemissao:               this.formatDate(this.form.dataDemissao),
-      tipoContrato:               this.form.tipoContrato as any,
-      salarioBase:                this.form.salarioBase,
-      comissaoPercentual:         this.form.comissaoPercentual,
-      valeTransporte:             this.form.valeTransporte,
-      valeAlimentacao:            this.form.valeAlimentacao,
-      planoSaude:                 this.form.planoSaude,
-      planoOdontologico:          this.form.planoOdontologico,
-      status:                     (this.form.status ?? 'ATIVO') as any,
-      motivoInativacao:           this.form.motivoInativacao,
-      enderecoCompleto:           this.form.enderecoCompleto,
-      cep:                        this.form.cep,
-      logradouro:                 this.form.logradouro,
-      numero:                     this.form.numero,
-      complemento:                this.form.complemento,
-      bairro:                     this.form.bairro,
-      cidade:                     this.form.cidade,
-      estado:                     this.form.estado,
-      pais:                       this.form.pais,
-      telefonePrincipal:          this.form.telefonePrincipal,
-      telefoneEmergencia:         this.form.telefoneEmergencia,
-      contatoEmergenciaNome:      this.form.contatoEmergenciaNome,
-      contatoEmergenciaParentesco: this.form.contatoEmergenciaParentesco,
-      emailPessoal:               this.form.emailPessoal,
-      bancoCodigo:                this.form.bancoCodigo,
-      bancoAgencia:               this.form.bancoAgencia,
-      bancoConta:                 this.form.bancoConta,
-      bancoTipoConta:             this.form.bancoTipoConta as any,
-      pisPasep:                   this.form.pisPasep,
-      tituloEleitor:              this.form.tituloEleitor,
-      carteiraTrabalho:           this.form.carteiraTrabalho,
-      certificadoReservista:      this.form.certificadoReservista,
-      cnhNumero:                  this.form.cnhNumero,
-      cnhCategoria:               this.form.cnhCategoria,
-      cnhValidade:                this.formatDate(this.form.cnhValidade),
-      observacoes:                this.form.observacoes,
-    };
-
-    const op = this.isEditMode && this.funcionarioId
-      ? this.funcionarioService.update(this.funcionarioId, payload)
-      : this.funcionarioService.create(payload);
-
-    op.subscribe({
-      next: (funcionario: any) => {
-        const funcionarioId = funcionario.id;
-        this.funcionarioId = funcionarioId;
-        
-        // Se tem acesso, cria/atualiza o usuario vinculado
-        if (this.temAcesso && this.usuarioForm.email) {
-          const usuReq = {
-            nomeCompleto:  this.form.nomeCompleto || '',
-            email:         this.usuarioForm.email,
-            senha:         this.usuarioForm.senha || undefined,
-            ativo:         this.usuarioForm.ativo,
-            bloqueado:     this.usuarioForm.bloqueado,
-            funcoesIds:    this.usuarioForm.funcoesIds,
-            preferencias:  this.usuarioForm.preferencias,
-          };
-          
-          const usuOp = this.usuarioId
-            ? this.usuarioService.update(this.usuarioId, usuReq)
-            : this.usuarioService.create(usuReq);
-            
-          usuOp.subscribe({
-            next: (u: any) => {
-              const newUsuarioId = u.id;
-              
-              // Se o usuario foi criado agora (não tínhamos usuarioId antes), vinculamos ao funcionario
-              if (!this.usuarioId) {
-                this.usuarioId = newUsuarioId;
-                // Atualiza o funcionário com o novo usuarioId
-                this.funcionarioService.update(funcionarioId, { ...payload, usuarioId: newUsuarioId }).subscribe({
-                  next: () => {
-                    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário e acesso salvos!' });
-                    this.finishSave(funcionarioId);
-                  },
-                  error: (err) => {
-                    console.error('Erro ao vincular usuario ao funcionario', err);
-                    this.loading = false;
-                    this.isEditMode = true;
-                    this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário e usuário criados, mas houve um erro ao vinculá-los.' });
-                    // Evita anunciar conclusão quando a associação funcionário/usuário falhou.
-                  }
-                });
-              } else {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário e acesso atualizados!' });
-                this.finishSave(funcionarioId);
-              }
-            },
-            error: (err: any) => {
-              this.loading = false;
-              this.isEditMode = true;
-              this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Funcionário salvo, mas erro ao salvar acesso: ' + (err?.error?.message || '') });
-              // Manter o formulário aberto para permitir diagnóstico de vínculo de acesso parcial.
-            },
-          });
-        } else {
-          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Funcionário salvo com sucesso!' });
-          this.finishSave(funcionarioId);
-        }
-      },
-      error: (err: any) => {
-        this.loading = false;
-        const msg = err?.error?.message || err?.error || 'Erro ao salvar funcionário';
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
-      },
-    });
-  }
-
-  private finishSave(id: number) {
-    this.loading = false;
-    if (this.drawerMode) {
-      this.drawerClosed.emit(true);
-      return;
-    }
-    if (!this.isEditMode) {
-      this.isEditMode = true;
-      this.router.navigate(['/configuracoes/colaboradores/cadastro', id], { replaceUrl: true });
-    }
-  }
-
-  excluir() {
+  carregar(): void {
     if (!this.funcionarioId) return;
-
-    this.confirmationService.confirm({
-      title: 'Inativar funcionário',
-      message: 'Deseja inativar este funcionário? Os históricos de serviços, agenda e comissões serão preservados.',
-      confirmText: 'Inativar',
-      cancelText: 'Cancelar',
-      type: 'danger',
-      icon: 'warning'
-    }).subscribe(confirmed => {
-      if (confirmed) {
-        this.loading = true;
-        this.funcionarioService.delete(this.funcionarioId!).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Inativado', detail: 'Funcionário inativado com sucesso!' });
-            if (this.drawerMode) this.drawerClosed.emit(true);
-            else this.router.navigate(['/configuracoes/colaboradores']);
-          },
-          error: (err: any) => {
-            this.loading = false;
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir colaborador: ' + (err?.error?.message || '') });
-          },
+    this.carregando = true; this.erro = '';
+    this.funcionarios.getById(this.funcionarioId).subscribe({
+      next: dados => {
+        this.formulario = { ...dados, empresaId: this.empresaId };
+        this.usuarioId = dados.usuarioId;
+        this.carregando = false;
+        this.urlFoto = dados.fotoFuncionarioUrl ? this.fotoUrl(dados.id) : null;
+        if (this.aba === 'epis') this.carregarEpis();
+        if (this.aba === 'contatos') this.carregarContatos();
+      },
+      error: () => { this.carregando = false; this.erro = 'Não foi possível carregar o cadastro de funcionário.'; }
+    });
+  }
+  fotoUrl(id: number): string { return '/api/v1/rh/funcionarios/' + id + '/foto'; }
+  selecionarFoto(evento: Event): void {
+    const arquivo = (evento.target as HTMLInputElement).files?.[0];
+    if (!arquivo) return;
+    if (!['image/png', 'image/jpeg'].includes(arquivo.type) || arquivo.size > 3 * 1024 * 1024) {
+      this.erro = 'A foto deve ser PNG ou JPG e ter no máximo 3 MB.'; return;
+    }
+    this.fotoSelecionada = arquivo;
+    if (this.urlFoto?.startsWith('blob:')) URL.revokeObjectURL(this.urlFoto);
+    this.urlFoto = URL.createObjectURL(arquivo);
+  }
+  salvar(): void {
+    if (this.salvando) return;
+    if (!this.formularioValido) { this.erro = 'Informe nome completo e CPF válido.'; return; }
+    if (!this.empresaId) { this.erro = 'Empresa não identificada na sessão.'; return; }
+    if (this.formulario.dataNascimento && this.formulario.dataNascimento > new Date().toISOString().slice(0, 10)) {
+      this.erro = 'Data de nascimento não pode ser futura.'; return;
+    }
+    this.erro = ''; this.salvando = true;
+    const payload = { ...this.formulario, empresaId: this.empresaId };
+    const requisicao = this.funcionarioId
+      ? this.funcionarios.update(this.funcionarioId, payload)
+      : this.funcionarios.create(payload);
+    requisicao.subscribe({
+      next: salvo => {
+        this.funcionarioId = salvo.id; this.formulario = { ...salvo };
+        const finalizar = () => { this.salvando = false; this.toast.success('Funcionário salvo com sucesso.'); this.encerrar(true); };
+        if (!this.fotoSelecionada) { finalizar(); return; }
+        this.funcionarios.uploadFoto(salvo.id, this.fotoSelecionada).subscribe({
+          next: () => finalizar(),
+          error: () => { this.salvando = false; this.erro = 'Cadastro salvo, mas a foto não foi enviada. Tente novamente.'; }
         });
+      },
+      error: falha => {
+        this.salvando = false;
+        this.erro = falha.status === 409 ? 'Cadastro alterado em outra sessão ou CPF duplicado.'
+          : falha.status === 403 ? 'Sem permissão para salvar este funcionário.'
+          : 'Não foi possível salvar. Confira os campos e tente novamente.';
       }
     });
   }
-
-  cancelar() {
-    if (this.drawerMode) this.drawerClosed.emit(false);
+  encerrar(salvo: boolean): void {
+    if (this.drawerMode) { this.drawerClosed.emit(salvo); return; }
+    if (salvo) this.router.navigate(['/configuracoes/colaboradores/cadastro', this.funcionarioId]);
     else this.location.back();
   }
-
-  private formatDateTime(d: any): string | undefined {
-    if (!d) return undefined;
-    if (d instanceof Date) {
-      const pad = (n: number) => n.toString().padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-    return String(d);
+  abaSelecionada(aba: AbaFuncionario): void {
+    this.aba = aba;
+    if (aba === 'epis') this.carregarEpis();
+    if (aba === 'contatos') this.carregarContatos();
   }
-
-  carregarRegrasComissao() {
+  alternarSituacao(): void {
     if (!this.funcionarioId) return;
-    this.regraComissaoService.listarPorFuncionario(this.funcionarioId).subscribe({
-      next: (res: any) => {
-        this.regrasComissao = (res.content || []).map((r: any) => {
-          return {
-            ...r,
-            dataInicio: r.dataInicio ? new Date(r.dataInicio) : null,
-            dataFinal: r.dataFinal ? new Date(r.dataFinal) : null
-          };
-        });
-      }
-    });
-  }
-
-  adicionarRegraComissao() {
-    if (!this.funcionarioId) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Salve o colaborador antes de adicionar regras' });
-      return;
+    if (this.formulario.status !== 'ATIVO') {
+      this.formulario.status = 'ATIVO'; this.salvar(); return;
     }
-    const regra: RegraComissao = {
-      ...this.novaRegra,
-      funcionarioId: this.funcionarioId,
-      dataInicio: this.novaRegra.dataInicio ? this.formatDateTime(this.novaRegra.dataInicio) : undefined,
-      dataFinal: this.novaRegra.dataFinal ? this.formatDateTime(this.novaRegra.dataFinal) : undefined
-    } as any;
-
-    this.regraComissaoService.criar(regra).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Regra adicionada' });
-        this.novaRegra = { 
-          sobreServico: 'NAO', 
-          sobreProdutos: 'NAO', 
-          faturamentoGeral: 'NAO', 
-          percentual: 0, 
-          ativo: true,
-          dataInicio: new Date()
-        };
-        this.carregarRegrasComissao();
-      },
-      error: (err: any) => {
-        console.error('Erro ao adicionar regra', err);
-      }
+    if (!confirm('Inativar este funcionário? O histórico permanecerá preservado.')) return;
+    this.funcionarios.delete(this.funcionarioId).subscribe({
+      next: () => { this.toast.success('Funcionário inativado'); this.carregar(); },
+      error: () => this.erro = 'Não foi possível inativar este funcionário.'
     });
   }
 
-  atualizarRegraComissao(regra: any) {
-    const payload: RegraComissao = {
-      ...regra,
-      dataInicio: regra.dataInicio ? this.formatDateTime(regra.dataInicio) : undefined,
-      dataFinal: regra.dataFinal ? this.formatDateTime(regra.dataFinal) : undefined
+  carregarEpis(): void {
+    if (!this.funcionarioId) return;
+    this.carregandoEpi = true;
+    this.episService.entregas(this.funcionarioId).subscribe({
+      next: itens => { this.entregas = itens; this.carregandoEpi = false; },
+      error: () => { this.erroEpi = 'Não foi possível consultar as entregas.'; this.carregandoEpi = false; }
+    });
+    this.episService.listar('', 0, 100).subscribe({
+      next: pagina => this.epis = pagina.content || [],
+      error: () => this.erroEpi = 'Não foi possível consultar o catálogo de EPIs.'
+    });
+  }
+  abrirEpi(): void { this.epiItens = [{ epiId: null, dataEntrega: '', dataValidade: '' }]; this.erroEpi = ''; this.epiAberto = true; }
+  adicionarOutroEpi(): void { this.epiItens.push({ epiId: null, dataEntrega: '', dataValidade: '' }); }
+  removerEpi(indice: number): void { if (this.epiItens.length > 1) this.epiItens.splice(indice, 1); }
+  registrarEpis(): void {
+    if (!this.funcionarioId || this.salvandoEpi) return;
+    if (this.epiItens.some(x => !x.epiId || !x.dataEntrega || (x.dataValidade && x.dataValidade < x.dataEntrega))) {
+      this.erroEpi = 'Informe EPI, entrega e validade coerentes.'; return;
+    }
+    this.salvandoEpi = true; this.erroEpi = '';
+    // A API persiste cada entrega. Falhas parciais são explicitadas; o botão não simula lote atômico.
+    const itens = [...this.epiItens];
+    const proximo = (indice: number) => {
+      if (indice === itens.length) {
+        this.salvandoEpi = false; this.epiAberto = false; this.toast.success('Entregas registradas.'); this.carregarEpis(); return;
+      }
+      const item = itens[indice];
+      this.episService.entregar(this.funcionarioId!, { epiId: item.epiId!, dataEntrega: item.dataEntrega, dataValidade: item.dataValidade || undefined }).subscribe({
+        next: () => proximo(indice + 1),
+        error: () => { this.salvandoEpi = false; this.erroEpi = 'Falha no item ' + (indice + 1) + '. Entregas anteriores foram gravadas. Confira o histórico.'; this.carregarEpis(); }
+      });
     };
-    this.regraComissaoService.atualizar(regra.id, payload).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Regra de comissão atualizada' });
-        this.carregarRegrasComissao();
-      },
-      error: (err: any) => {
-        console.error('Erro ao atualizar regra', err);
-        this.carregarRegrasComissao();
-      }
+    proximo(0);
+  }
+  carregarContatos(): void {
+    if (!this.funcionarioId) return;
+    this.carregandoContato = true;
+    this.contatosService.listar(this.funcionarioId).subscribe({
+      next: dados => { this.contatos = dados; this.carregandoContato = false; },
+      error: () => { this.carregandoContato = false; this.erroContato = 'Falha ao consultar contatos.'; }
     });
   }
-
-  excluirRegraComissao(id: number) {
-    this.confirmationService.confirm({
-      title: 'Excluir Regra',
-      message: 'Tem certeza que deseja excluir esta regra de comissão?',
-      confirmText: 'Excluir',
-      cancelText: 'Cancelar',
-      type: 'danger',
-      icon: 'warning'
-    }).subscribe(confirmed => {
-      if (confirmed) {
-        this.regraComissaoService.excluir(id).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Regra excluída' });
-            this.carregarRegrasComissao();
-          }
+  abrirContato(contato?: ContatoFuncionario): void {
+    this.contatoAberto = true; this.erroContato = ''; this.contatoId = contato?.id || null;
+    this.contato = contato ? { nome: contato.nome, sexo: contato.sexo, dataNascimento: contato.dataNascimento,
+      principal: contato.principal, meios: contato.meios.map(m => ({ tipo: m.tipo, valor: m.valor })) }
+      : { nome: '', sexo: '', principal: false, meios: [] };
+  }
+  novoMeio(): void { this.contato.meios.push({ tipo: 'CELULAR', valor: '' }); }
+  excluirMeio(indice: number): void { this.contato.meios.splice(indice, 1); }
+  valorMeio(contato: ContatoFuncionario, tipo: TipoMeio): string {
+    return contato.meios.filter(m => m.tipo === tipo).map(m => m.valor).join(', ') || '—';
+  }
+  salvarContato(): void {
+    if (!this.funcionarioId || this.salvandoContato) return;
+    if (this.contato.nome.trim().length < 2) { this.erroContato = 'Nome é obrigatório.'; return; }
+    this.salvandoContato = true; this.erroContato = '';
+    const req = this.contatoId
+      ? this.contatosService.atualizar(this.funcionarioId, this.contatoId, this.contato)
+      : this.contatosService.criar(this.funcionarioId, this.contato);
+    req.subscribe({
+      next: () => { this.salvandoContato = false; this.contatoAberto = false; this.toast.success('Contato salvo.'); this.carregarContatos(); },
+      error: erro => { this.salvandoContato = false; this.erroContato = erro.status === 409 ? 'Contato já alterado.' : 'Não foi possível salvar o contato.'; }
+    });
+  }
+  excluirContato(contato: ContatoFuncionario): void {
+    if (!this.funcionarioId || !confirm('Excluir este contato?')) return;
+    this.contatosService.excluir(this.funcionarioId, contato.id).subscribe({
+      next: () => this.carregarContatos(), error: () => this.erroContato = 'Não foi possível excluir o contato.'
+    });
+  }
+  criarUsuario(): void {
+    if (!this.funcionarioId || this.usuarioId) return;
+    this.usuarioErro = '';
+    this.usuarioFormulario = { login: '', email: '', senha: '', confirmar: '', grupoId: null };
+    this.permissoes.listFuncoes().subscribe({
+      next: grupos => this.funcoes = grupos.filter(g => g.ativo),
+      error: () => this.usuarioErro = 'Não foi possível consultar os grupos.'
+    });
+    this.usuarioAberto = true;
+  }
+  salvarUsuario(): void {
+    if (!this.funcionarioId || this.usuarioSalvando || this.usuarioId) return;
+    const u = this.usuarioFormulario;
+    if (!u.login.trim() || !u.email.includes('@') || u.senha.length < 8 || u.senha !== u.confirmar || !u.grupoId) {
+      this.usuarioErro = 'Informe login, e-mail, senha forte (mínimo 8 caracteres), confirmação e grupo.'; return;
+    }
+    // O login da autenticação atual é o e-mail. Não armazenar segundo identificador sem contrato de autenticação.
+    if (u.login.trim().toLowerCase() !== u.email.trim().toLowerCase()) {
+      this.usuarioErro = 'No sistema atual, o login deve ser o próprio e-mail de acesso.'; return;
+    }
+    this.usuarioSalvando = true; this.usuarioErro = '';
+    this.usuarios.create({ nomeCompleto: this.formulario.nomeCompleto, email: u.email.trim(),
+      senha: u.senha, ativo: true, bloqueado: false, funcoesIds: [u.grupoId] }).subscribe({
+      next: usuario => {
+        this.usuarioId = usuario.id;
+        this.funcionarios.update(this.funcionarioId!, { ...this.formulario, usuarioId: usuario.id }).subscribe({
+          next: () => { this.usuarioSalvando = false; this.usuarioAberto = false; this.toast.success('Usuário criado e vinculado.'); this.carregar(); },
+          error: () => { this.usuarioSalvando = false; this.usuarioErro = 'Usuário criado, mas o vínculo falhou. O administrador deve revisar o cadastro; não tente criar outro.'; }
         });
-      }
-    });
-  }
-
-  // ---- Foto Upload ----
-  uploadingFoto = false;
-
-  getFotoUrl(): string {
-    if (this.form.fotoFuncionarioUrl && this.funcionarioId) {
-      return `/api/v1/rh/funcionarios/${this.funcionarioId}/foto?tenantId=${this.tenantId}&t=${new Date().getTime()}`;
-    }
-    return '';
-  }
-
-  onFotoSelected(event: any): void {
-    if (!this.funcionarioId) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Salve o colaborador antes de adicionar uma foto.' });
-      return;
-    }
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'A imagem deve ter no máximo 2MB.' });
-      return;
-    }
-
-    this.uploadingFoto = true;
-    this.funcionarioService.uploadFoto(this.funcionarioId, file).subscribe({
-      next: (res) => {
-        this.uploadingFoto = false;
-        this.form.fotoFuncionarioUrl = res.fotoFuncionarioUrl;
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Foto atualizada com sucesso!' });
       },
-      error: (err) => {
-        this.uploadingFoto = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao fazer upload da foto.' });
-      }
-    });
-  }
-
-  removerFoto(): void {
-    this.confirmationService.confirm({
-      title: 'Remover Foto?',
-      message: 'Tem certeza que deseja remover a foto deste colaborador?',
-      confirmText: 'Sim, remover',
-      cancelText: 'Não, manter',
-      type: 'danger', icon: 'warning'
-    }).subscribe(ok => {
-      if (ok && this.funcionarioId) {
-        this.funcionarioService.removerFoto(this.funcionarioId).subscribe({
-          next: () => {
-            this.form.fotoFuncionarioUrl = '';
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Foto removida com sucesso!' });
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao remover foto.' });
-          }
-        });
-      }
-    });
-  }
-
-  // ---- Endereço / CEP ----
-  estadosBr = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
-
-  buscarCep(): void {
-    if (!this.form.cep || this.form.cep.length < 8) return;
-
-    const temDados = !!(this.form.logradouro || this.form.bairro || this.form.cidade || this.form.estado);
-    if (temDados) {
-      this.confirmationService.confirm({
-        title: 'Alterar Endereço?',
-        message: 'Os campos já estão preenchidos. Deseja sobrescrevê-los com os dados deste CEP?',
-        confirmText: 'Sim, sobrescrever',
-        cancelText: 'Não, manter atual',
-        type: 'warning', icon: 'warning'
-      }).subscribe(ok => { if (ok) this.executarBuscaCep(this.form.cep); });
-    } else {
-      this.executarBuscaCep(this.form.cep);
-    }
-  }
-
-  private executarBuscaCep(cep: string): void {
-    this.utilService.buscarCep(cep).subscribe({
-      next: (data) => {
-        if (data.erro) { this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'CEP não encontrado.' }); return; }
-        this.form.logradouro = data.logradouro || '';
-        this.form.bairro     = data.bairro     || '';
-        this.form.cidade     = data.localidade  || '';
-        this.form.estado     = data.uf          || '';
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Endereço preenchido automaticamente.' });
-      },
-      error: (err) => console.error('Erro ao buscar CEP', err)
+      error: () => { this.usuarioSalvando = false; this.usuarioErro = 'Não foi possível criar o usuário.'; }
     });
   }
 }
