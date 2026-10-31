@@ -75,7 +75,7 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   }
   abrirFiltros(): void {
     this.rascunho = {
-      os: this.filtros.ordemServicoId ? String(this.filtros.ordemServicoId) : '',
+      os: this.filtros.numeroOs || '',
       paga: this.filtros.paga === undefined ? '' : String(this.filtros.paga),
       cliente: this.filtros.cliente || '', placa: this.filtros.placa || '',
       inicio: this.filtros.inicio || '', fim: this.filtros.fim || ''
@@ -84,15 +84,12 @@ export class ComissoesComponent implements OnInit, OnDestroy {
   }
   aplicarFiltros(): void {
     const os = this.rascunho.os.trim();
-    if (os && (!/^\d+$/.test(os) || Number(os) <= 0)) {
-      this.error = 'Informe um número válido de ordem de serviço.'; return;
-    }
     if (this.rascunho.inicio && this.rascunho.fim && this.rascunho.inicio > this.rascunho.fim) {
       this.error = 'Data inicial não pode ser posterior à final.'; return;
     }
     this.error = '';
     this.filtros = {
-      ordemServicoId: os ? Number(os) : undefined,
+      numeroOs: os || undefined,
       paga: this.rascunho.paga === '' ? undefined : this.rascunho.paga === 'true',
       cliente: this.rascunho.cliente.trim() || undefined, placa: this.rascunho.placa.trim() || undefined,
       inicio: this.rascunho.inicio || undefined,
