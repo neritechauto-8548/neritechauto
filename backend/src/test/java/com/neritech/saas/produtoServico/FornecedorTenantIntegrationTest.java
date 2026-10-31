@@ -128,6 +128,68 @@ class FornecedorTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.totalElements").value(1));
     }
 
+    @Test
+    @org.springframework.test.context.jdbc.Sql(scripts="/sql/fornecedor_referencia_test_schema.sql")
+    void contatosReaisSaoIsoladosPorEmpresaEAuditados() throws Exception {
+        long a = empresa("A");
+        long b = empresa("B");
+        String tokenA = login(a, "contatoA" + a + "@fornecedor.t", "ADMIN");
+        String tokenB = login(b, "contatoB" + b + "@fornecedor.t", "ADMIN");
+        mvc.perform(post("/v1/fornecedores")
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(supplier(a, "11222333000181")))
+                .andExpect(status().isCreated());
+        long fornecedor = jdbc.queryForObject(
+                "SELECT id FROM fornecedores WHERE empresa_id=?", Long.class, a);
+        String contato = json.writeValueAsString(Map.of(
+                "nome", "Atendimento", "sexo", "MASCULINO", "contatoPrincipal", true,
+                "meios", java.util.List.of(Map.of("tipo", "CELULAR",
+                        "valor", "81999999999", "whatsapp", true))));
+        mvc.perform(post("/v1/fornecedores/referencia/{id}/contatos", fornecedor)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(contato))
+                .andExpect(status().isCreated());
+        mvc.perform(get("/v1/fornecedores/referencia/{id}/contatos", fornecedor)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].nome").value("Atendimento"));
+        mvc.perform(get("/v1/fornecedores/referencia/{id}/contatos", fornecedor)
+                .header("Authorization", "Bearer " + tokenB))
+                .andExpect(status().isNotFound());
+        assertThat(jdbc.queryForObject(
+                "select count(*) from contatos_fornecedor where fornecedor_id=? and empresa_id=?",
+                Long.class, fornecedor,a)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject(
+                "select count(*) from meios_contato_fornecedor where empresa_id=?",
+                Long.class,a)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject("""
+            select count(*) from logs_alteracoes where empresa_id=? and
+                tabela_afetada='contatos_fornecedor' and contexto_operacao='ADM-008'
+            """, Long.class,a)).isGreaterThan(0L);
+    }
+
+    @Test
+    void filtrosDeDocumentoENomeSaoIndependentes() throws Exception {
+        long a = empresa("A");
+        String token = login(a, "filtros" + a + "@fornecedor.t", "ADMIN");
+        mvc.perform(post("/v1/fornecedores")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(supplier(a, "11222333000181")))
+                .andExpect(status().isCreated());
+        mvc.perform(get("/v1/fornecedores").param("empresaId", Long.toString(a))
+                .param("nome","Fornecedor Automotivo Ltda")
+                .param("documento","11.222.333/0001-81")
+                .header("Authorization","Bearer "+token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1));
+        mvc.perform(get("/v1/fornecedores").param("empresaId", Long.toString(a))
+                .param("nome","Fornecedor Inexistente")
+                .param("documento","11.222.333/0001-81")
+                .header("Authorization","Bearer "+token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(0));
+    }
+
     private String supplier(long empresa, String cnpj) throws Exception {
         return json.writeValueAsString(Map.of(
                 "empresaId", empresa, "tipoPessoa", "JURIDICA",
