@@ -1,0 +1,55 @@
+name: Funcionários — filtros avançados e integração
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "FrontEnd/src/app/routes/configuracoes/colaboradores/**"
+      - "backend/src/main/java/com/neritech/saas/rh/controller/FuncionarioController.java"
+      - "backend/src/main/java/com/neritech/saas/rh/service/FuncionarioService.java"
+      - "backend/src/main/java/com/neritech/saas/rh/repository/FuncionarioRepository.java"
+      - "backend/src/test/java/com/neritech/saas/rh/FuncionarioTenantIntegrationTest.java"
+      - ".github/workflows/funcionarios-quality.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: funcionarios-master
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Compilação e teste de serviço Angular
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: FrontEnd/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Compilar Angular
+        run: yarn ng build --configuration development
+      - name: Testar contrato HTTP de funcionários
+        run: yarn ng test --watch=false --browsers=ChromeHeadless --include=src/app/routes/configuracoes/colaboradores/funcionario.service.spec.ts
+
+  backend:
+    name: Teste de integração e isolamento
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Testar funcionários e isolamento entre empresas
+        run: mvn -B test -Dtest=FuncionarioTenantIntegrationTest
+        env:
+          SPRING_PROFILES_ACTIVE: test
