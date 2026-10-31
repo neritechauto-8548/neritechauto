@@ -125,6 +125,54 @@ class FuncionarioTenantIntegrationTest extends AbstractIntegrationTest {
         assertThat(jdbc.queryForObject("select count(*) from funcionarios where id=?", Integer.class, funcionarioB)).isEqualTo(1);
     }
 
+
+    @Test
+    void filtroAvancadoPesquisaServidorSemCruzarEmpresas() throws Exception {
+        long empresaA = empresa("FiltroA");
+        long empresaB = empresa("FiltroB");
+        long funcionarioA = funcionario(empresaA, "FiltroA");
+        long funcionarioB = funcionario(empresaA, "FiltroB");
+        long funcionarioExterno = funcionario(empresaB, "FiltroC");
+        long cargo = jdbc.queryForObject(
+                "insert into cargos (empresa_id,nome,data_cadastro,versao) values (?, 'Orçamentista', now(), 0) returning id",
+                Long.class, empresaA);
+        jdbc.update("update funcionarios set nome_completo='Maria Almeida', matricula='REG-123', status='ATIVO', cargo_id=? where id=?",
+                cargo, funcionarioA);
+        jdbc.update("update funcionarios set nome_completo='João Almeida', matricula='REG-124', status='INATIVO' where id=?",
+                funcionarioB);
+        jdbc.update("update funcionarios set nome_completo='Maria Externa', matricula='REG-EX', status='ATIVO' where id=?",
+                funcionarioExterno);
+        String tokenA = login(empresaA, "filtro" + empresaA + "@t.co", "ADMIN");
+
+        mvc.perform(get("/v1/rh/funcionarios")
+                .param("empresaId", Long.toString(empresaA)).param("size", "20")
+                .param("nome", "maria").param("funcao", "orçamen")
+                .param("registro", "REG-12").param("status", "ATIVO")
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(funcionarioA));
+
+        mvc.perform(get("/v1/rh/funcionarios")
+                .param("empresaId", Long.toString(empresaA)).param("size", "20")
+                .param("nome", "maria").param("registro", "REG-EX")
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalElements").value(0));
+
+        mvc.perform(get("/v1/rh/funcionarios")
+                .param("empresaId", Long.toString(empresaB)).param("size", "20")
+                .param("nome", "maria")
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(get("/v1/rh/funcionarios")
+                .param("empresaId", Long.toString(empresaA)).param("size", "20")
+                .param("nome", "x".repeat(121))
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
     private long empresa(String suffix) {
         return jdbc.queryForObject("insert into empresa (cnpj, nome_fantasia, ativo, data_cadastro) values (?, ?, true, now()) returning id",
                 Long.class, suffix + Long.toString(System.nanoTime(), 36), "Teste " + suffix);
