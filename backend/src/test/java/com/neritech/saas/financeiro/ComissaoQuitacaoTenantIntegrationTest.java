@@ -94,6 +94,50 @@ class ComissaoQuitacaoTenantIntegrationTest extends AbstractIntegrationTest {
         assertThat(jdbc.queryForObject("select paga from fin_comissoes_funcionarios where id=?", Boolean.class, comissaoB)).isFalse();
     }
 
+    @Test
+    void geraContaPagarPendenteUnicaEEstornoCancelaSemTransferencia() throws Exception {
+        long empresa = empresa("CP");
+        long funcionario = funcionario(empresa,"CP");
+        long comissao = comissao(empresa,funcionario);
+        String token = login(empresa,"contapagar"+empresa+"@t.co","ADMIN");
+        long plano = jdbc.queryForObject("""
+                insert into fin_plano_contas
+                  (empresa_id,codigo,nome,nivel,ativo,aceita_lancamento,data_cadastro,versao)
+                values (?,'4.2.1','Comissões',1,true,true,now(),0) returning id
+                """,Long.class,empresa);
+        mvc.perform(post("/v1/financeiro/comissoes/{id}/aprovar",comissao)
+                .param("empresaId",Long.toString(empresa)).header("Authorization","Bearer "+token))
+                .andExpect(status().isOk());
+        var corpo = json.writeValueAsString(Map.of(
+                "dataPagamento","2026-10-29","gerarContaPagar",true,
+                "planoContaId",plano,"tipoDocumento","OUTROS"));
+        mvc.perform(post("/v1/financeiro/comissoes/{id}/quitar",comissao)
+                .param("empresaId",Long.toString(empresa))
+                .header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.pago").value(true));
+        assertThat(jdbc.queryForObject("""
+                select count(*) from fin_comissao_conta_pagar r join fin_contas_pagar c
+                  on c.id=r.conta_pagar_id and c.empresa_id=r.empresa_id
+                where r.empresa_id=? and r.comissao_id=? and c.status='ABERTO'
+                  and c.plano_contas_id=? and c.valor_pago=0
+                """,Integer.class,empresa,comissao,plano)).isEqualTo(1);
+        mvc.perform(post("/v1/financeiro/comissoes/{id}/quitar",comissao)
+                .param("empresaId",Long.toString(empresa))
+                .header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isConflict());
+        mvc.perform(post("/v1/financeiro/comissoes/{id}/estornar",comissao)
+                .param("empresaId",Long.toString(empresa))
+                .header("Authorization","Bearer "+token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.pago").value(false));
+        assertThat(jdbc.queryForObject("""
+                select count(*) from fin_comissao_conta_pagar r join fin_contas_pagar c
+                    on c.id=r.conta_pagar_id and c.empresa_id=r.empresa_id
+                where r.empresa_id=? and r.comissao_id=? and c.status='CANCELADO'
+                """,Integer.class,empresa,comissao)).isEqualTo(1);
+    }
+
     private long empresa(String suffix) {
         return jdbc.queryForObject("insert into empresa (cnpj,nome_fantasia,ativo,data_cadastro) values (?,?,true,now()) returning id",
                 Long.class, suffix + Long.toString(System.nanoTime(),36), "Comissão " + suffix);
