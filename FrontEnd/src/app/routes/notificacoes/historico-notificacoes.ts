@@ -34,6 +34,7 @@ export class HistoricoNotificacoes implements OnInit {
         && (!this.periodo || dia === this.periodo);
     });
   }
+  get existemNotificacoesNaoLidas(): boolean { return this.notificacoesFiltradas.some(n => !n.lida); }
   carregar(): void {
     this.carregando = true; this.erro = '';
     this.servico.findMine(0, 100).pipe(takeUntilDestroyed(this.destruir)).subscribe({

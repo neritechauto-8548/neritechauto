@@ -1,6 +1,6 @@
 <main class="pagina-historico-notificacoes">
   <div class="caminho-notificacoes"><a routerLink="/home">{{ 'Empresa atual' }}</a><span>›</span><span>Notificações</span></div>
-  <header class="cabecalho-historico"><h1>Notificações</h1><div><button type="button" class="acao-marcar-todas" [disabled]="carregando || !notificacoesFiltradas.some(n => !n.lida)" (click)="marcarTodasComoLidas()">⌁ &nbsp; Marcar todas como lida</button><button class="acao-configuracao" type="button" disabled title="Configurações disponíveis pelo painel de notificações" aria-label="Configurações de notificações">⚙</button></div></header>
+  <header class="cabecalho-historico"><h1>Notificações</h1><div><button type="button" class="acao-marcar-todas" [disabled]="carregando || !existemNotificacoesNaoLidas" (click)="marcarTodasComoLidas()">⌁ &nbsp; Marcar todas como lida</button><button class="acao-configuracao" type="button" disabled title="Configurações disponíveis pelo painel de notificações" aria-label="Configurações de notificações">⚙</button></div></header>
   <section class="filtros-notificacoes" aria-label="Filtros de notificações">
     <label class="campo-busca"><span aria-hidden="true">⌕</span><input [(ngModel)]="busca" placeholder="Pesquisar notificações" aria-label="Pesquisar notificações"></label>
     <select [(ngModel)]="origem" aria-label="Filtrar por origem"><option value="">Origem</option><option>Ordem de serviço</option><option>Nota de atualização</option><option>Outros</option></select>
