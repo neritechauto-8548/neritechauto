@@ -1,6 +1,6 @@
 <main class="pagina-historico-notificacoes">
   <div class="caminho-notificacoes"><a routerLink="/home">{{ 'Empresa atual' }}</a><span>›</span><span>Notificações</span></div>
-  <header class="cabecalho-historico"><h1>Notificações</h1><div><button type="button" class="acao-marcar-todas" [disabled]="carregando || !existemNotificacoesNaoLidas" (click)="marcarTodasComoLidas()">⌁ &nbsp; Marcar todas como lida</button><button class="acao-configuracao" type="button" disabled title="Configurações disponíveis pelo painel de notificações" aria-label="Configurações de notificações">⚙</button></div></header>
+  <header class="cabecalho-historico"><h1>Notificações</h1><div><button type="button" class="acao-marcar-todas" [disabled]="carregando || !existemNotificacoesNaoLidas" (click)="marcarTodasComoLidas()">⌁ &nbsp; Marcar todas como lida</button><button class="acao-configuracao" type="button" (click)="configuracaoAberta=true" aria-label="Configurações de notificações">⚙</button></div></header>
   <section class="filtros-notificacoes" aria-label="Filtros de notificações">
     <label class="campo-busca"><span aria-hidden="true">⌕</span><input [(ngModel)]="busca" placeholder="Pesquisar notificações" aria-label="Pesquisar notificações"></label>
     <select [(ngModel)]="origem" aria-label="Filtrar por origem"><option value="">Origem</option><option>Ordem de serviço</option><option>Nota de atualização</option><option>Outros</option></select>
@@ -18,3 +18,18 @@
     </div>
   }
 </main>
+@if (configuracaoAberta) {
+  <div class="mascara-configuracao" (click)="configuracaoAberta=false">
+    <section class="modal-configuracao" role="dialog" aria-modal="true" aria-label="Configuração de notificação" (click)="$event.stopPropagation()">
+      <header><h2>Configuração de notificação</h2><button type="button" (click)="configuracaoAberta=false" aria-label="Fechar configurações">×</button></header>
+      <p>Configure as regras de notificação da plataforma para uma melhor experiência.</p>
+      <div class="preferencia-notificacao"><label for="som-notificacao">Habilitar som de notificação?</label><input id="som-notificacao" type="checkbox" [(ngModel)]="somHabilitado" (change)="salvarPreferencias()"></div>
+      <button class="link-preferencia" type="button" [disabled]="!somHabilitado">Ouvir som</button>
+      <div class="preferencia-notificacao"><label for="balao-notificacao">Habilitar balão de notificação?</label><input id="balao-notificacao" type="checkbox" [(ngModel)]="balaoHabilitado" (change)="salvarPreferencias()"></div>
+      <button class="link-preferencia" type="button" [disabled]="!balaoHabilitado">Notificação de exemplo</button>
+      <div class="preferencia-notificacao"><label for="navegador-notificacao">Permitir que o navegador exiba notificações?</label><input id="navegador-notificacao" type="checkbox" [checked]="navegadorHabilitado" (change)="solicitarPermissaoNavegador()"></div>
+      @if (mensagemPermissao) { <p class="aviso-permissao" role="status">{{ mensagemPermissao }}</p> }
+      <p class="privacidade-notificacao">ⓘ &nbsp; As informações são relacionadas à configuração pessoal e não afetarão a configuração de notificação de outros usuários da sua matriz.</p>
+    </section>
+  </div>
+}

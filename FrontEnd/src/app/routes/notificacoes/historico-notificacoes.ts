@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '@core';
 import { NotificacaoService, NotificacaoSistemaResponse } from '@core/services/notificacao.service';
 
 @Component({
@@ -14,6 +15,7 @@ import { NotificacaoService, NotificacaoSistemaResponse } from '@core/services/n
 export class HistoricoNotificacoes implements OnInit {
   private readonly servico = inject(NotificacaoService);
   private readonly destruir = inject(DestroyRef);
+  private readonly autenticacao = inject(AuthService);
   notificacoes: NotificacaoSistemaResponse[] = [];
   carregando = false;
   erro = '';
@@ -21,8 +23,43 @@ export class HistoricoNotificacoes implements OnInit {
   origem = '';
   estado: 'todas' | 'naoLidas' | 'lidas' = 'todas';
   periodo = '';
+  configuracaoAberta = false;
+  somHabilitado = true;
+  balaoHabilitado = true;
+  navegadorHabilitado = false;
+  mensagemPermissao = '';
+  usuarioId: number | string | null = null;
 
-  ngOnInit(): void { this.carregar(); }
+  ngOnInit(): void {
+    this.autenticacao.user().pipe(takeUntilDestroyed(this.destruir)).subscribe(usuario => {
+      this.usuarioId = usuario?.id ?? null;
+      this.restaurarPreferencias();
+    });
+    this.carregar();
+  }
+  private chavePreferencias(): string { return `nt-notifications-${this.usuarioId ?? 'guest'}`; }
+  private restaurarPreferencias(): void {
+    if (!this.usuarioId || typeof localStorage === 'undefined') return;
+    try {
+      const preferencias = JSON.parse(localStorage.getItem(this.chavePreferencias()) ?? '{}');
+      this.somHabilitado = preferencias.sound !== false;
+      this.balaoHabilitado = preferencias.balloon !== false;
+      this.navegadorHabilitado = preferencias.browser === true && typeof Notification !== 'undefined' && Notification.permission === 'granted';
+    } catch { /* Preferências locais não disponíveis neste navegador. */ }
+  }
+  salvarPreferencias(): void {
+    if (!this.usuarioId || typeof localStorage === 'undefined') return;
+    localStorage.setItem(this.chavePreferencias(), JSON.stringify({ sound: this.somHabilitado, balloon: this.balaoHabilitado, browser: this.navegadorHabilitado }));
+  }
+  async solicitarPermissaoNavegador(): Promise<void> {
+    this.mensagemPermissao = '';
+    if (typeof Notification === 'undefined') { this.navegadorHabilitado = false; this.mensagemPermissao = 'Notificações do navegador indisponíveis neste ambiente.'; return; }
+    try {
+      this.navegadorHabilitado = await Notification.requestPermission() === 'granted';
+      if (!this.navegadorHabilitado) this.mensagemPermissao = 'Permissão não concedida. Altere a permissão nas configurações do navegador.';
+      this.salvarPreferencias();
+    } catch { this.navegadorHabilitado = false; this.mensagemPermissao = 'O navegador não conseguiu solicitar a permissão.'; }
+  }
   get notificacoesFiltradas(): NotificacaoSistemaResponse[] {
     const busca = this.busca.trim().toLocaleLowerCase('pt-BR');
     return this.notificacoes.filter(n => {
