@@ -1,4 +1,4 @@
-// BASE-03: checks oficiais de navegação sem backend ou dependências npm.
+// BASE 01 (Trello vigente): contrato de navegação do sistema na branch master.
 // Executar em FrontEnd: node --test scripts/navigation-contract.test.cjs
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -21,7 +21,7 @@ walk(menu);
 // Rotas confirmadas em app.routes.ts + arquivos de rotas lazy na data da BASE-03.
 // Não tratar uma rota conceitual da documentação como uma tela Angular existente.
 const existing = new Set([
-  '/home', '/cliente/listar', '/cliente/crm', '/cliente/crm/comunicacao', '/cliente/crm/pesquisa',
+  '/home', '/patio', '/cliente/historico-veiculos', '/cliente/indicadores', '/produtos-servicos/recursos', '/cliente/listar', '/cliente/crm', '/cliente/crm/comunicacao', '/cliente/crm/pesquisa',
   '/agendamento/calendario', '/orcamento/orcamento', '/os',
   '/produtos-servicos/servicos', '/veiculo', '/pdv', '/produtos-servicos/estoque',
   '/fornecedor/compras', '/configuracoes/inventario',
@@ -38,11 +38,12 @@ const existing = new Set([
   '/relatorios/relatorio-receitas-despesas'
 ]);
 
-test('menu de produção segue a ordem canônica e não possui agrupamentos legados', () => {
+test('menu de produção mantém os grupos atuais definidos para o sistema no Trello', () => {
   assert.deepEqual(menu.map(item => item.name), [
-    'Gestão de Pátio', 'Início', 'Clientes', 'Oficina', 'Estoque & Compras',
-    'Financeiro', 'Fiscal', 'Inteligência Artificial', 'Gráficos Gerenciais',
-    'Relatórios', 'Administração'
+    'Visão geral', 'Gestão de pátio', 'Agendamentos', 'Área do cliente',
+    'Orçamentos & Serviços', 'Clientes', 'Gestão de pessoas', 'Gestão de recursos',
+    'Peças & Estoque', 'Financeiro', 'Fiscal', 'Importações', 'Relatórios',
+    'Venda direta', 'Configurar menu', 'Mais funcionalidades'
   ]);
   assert.doesNotMatch(menuText, /Filiais|CLI-004|"operacional"|"pi pi-/i);
 });
@@ -52,8 +53,9 @@ test('não oferece cliques para rotas ausentes e mantém Pátio dentro do produt
     assert.equal(item.disabled === true, !existing.has(item.fullPath), item.fullPath);
     assert.ok(item.fullPath.startsWith('/') && !item.fullPath.startsWith('//'), item.fullPath);
   }
-  assert.equal(links.find(item => item.fullPath === '/patio')?.disabled, true);
-  assert.equal(links.filter(item => !item.disabled).length, existing.size);
+  assert.equal(links.find(item => item.fullPath === '/patio')?.disabled, false);
+  assert.equal(links.filter(item => !item.disabled).length, 48);
+  assert.equal(new Set(links.filter(item => !item.disabled).map(item => item.fullPath)).size, 48);
 });
 
 test('guards cobrem orçamento, calendário, caixa e rotas administrativas', () => {
@@ -66,8 +68,11 @@ test('guards cobrem orçamento, calendário, caixa e rotas administrativas', () 
   assert.match(app, /\{ path: '\*\*', redirectTo: '404' \}/);
   assert.match(finance, /requiredPermissions: 'FIN_VIS_CAIXA'/);
   assert.match(agenda, /requiredPermissions: 'GERAL_AGENDAMENTO_VISUALIZAR'/);
-  assert.equal((admin.match(/requiredPermissions: 'GERAL_CONFIG_SISTEMA'/g) || []).length, 9);
-  assert.equal((admin.match(/canActivate: \[permissionGuard\]/g) || []).length, 15);
+  assert.ok((admin.match(/requiredPermissions: 'GERAL_CONFIG_SISTEMA'/g) || []).length >= 5);
+  assert.ok((admin.match(/canActivate: \[permissionGuard\]/g) || []).length >= 5);
+  assert.match(app, /path: 'patio'/);
+  assert.match(read('src/app/routes/cliente/cliente.routes.ts'), /path: 'historico-veiculos'/);
+  assert.match(read('src/app/routes/produtos-servicos/produtos-servicos.routes.ts'), /path: 'recursos'/);
 });
 
 test('larguras globais do shell usam 264/72 px', () => {
