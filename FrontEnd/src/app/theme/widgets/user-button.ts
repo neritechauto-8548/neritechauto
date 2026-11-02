@@ -82,6 +82,13 @@ export class UserButton implements OnInit {
     return raw.replace(/^ROLE_/, '').replace(/[_-]/g, ' ');
   }
 
+  get codigoCliente(): string {
+    const dados = this.user as User & { codigoCliente?: string | number; codigo_cliente?: string | number };
+    return String(dados.codigoCliente ?? dados.codigo_cliente ?? '').trim();
+  }
+
+  get anoAtual(): number { return new Date().getFullYear(); }
+
   get isIllustrativeAvatar(): boolean {
     return this.avatar.isIllustrative(this.user);
   }

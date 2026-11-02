@@ -46,7 +46,7 @@
 
 @if (activeDialog) {
   <div class="nt-shell-modal-backdrop" (click)="closeDialog()" role="presentation">
-    <section class="nt-shell-modal" role="dialog" aria-modal="true"
+    <section class="nt-shell-modal" [class.nt-about-modal]="activeDialog === 'about'" role="dialog" aria-modal="true"
       [attr.aria-label]="activeDialog === 'shortcuts' ? 'Atalhos de comandos' : 'Sobre a plataforma'"
       (click)="$event.stopPropagation()">
       <header class="nt-shell-modal-header">
@@ -81,12 +81,12 @@
       } @else {
         <div class="nt-about-body">
           <p class="nt-about-subtitle">Informações da plataforma, código da conta e contato</p>
-          <div class="nt-about-wordmark">NERITECH <strong>AUTO</strong></div>
-          <a [href]="siteUrl" target="_blank" rel="noopener noreferrer">{{ siteUrl }}</a>
-          <p>Sistema de gestão de oficinas automotivas, com acompanhamento de clientes, serviços, estoque e financeiro.</p>
-          <div class="nt-about-detail"><span>CONTA ATUAL</span><strong>{{ displayName }}</strong><small>{{ user.email }}</small></div>
-          <div class="nt-about-detail"><strong>Suporte NERITECH</strong><button type="button" (click)="openSupport()">Abrir central de suporte</button></div>
-          <p class="nt-about-note">Versão do aplicativo: não disponível nesta compilação.</p>
+          <div class="nt-about-wordmark"><strong>NERITECH</strong> AUTO</div>
+          <a [href]="siteUrl" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">↗</span> {{ siteUrl }}</a>
+          <p class="nt-about-description">A NERITECH AUTO reúne em um só lugar a gestão de oficinas, clientes e serviços, com acesso seguro às informações da sua empresa.</p>
+          <div class="nt-about-detail"><span>CÓDIGO DO CLIENTE</span><strong>{{ codigoCliente || 'Não informado' }}</strong></div>
+          <div class="nt-about-detail"><strong>NERITECH AUTO</strong><span>Atendimento</span><button type="button" (click)="openSupport()">Abrir central de suporte</button></div>
+          <p class="nt-about-note">© {{ anoAtual }} NERITECH AUTO · Versão não informada</p>
           <button type="button" class="nt-about-close" (click)="closeDialog()">Fechar</button>
         </div>
       }

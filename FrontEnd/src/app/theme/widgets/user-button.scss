@@ -147,6 +147,16 @@ app-user{display:inline-flex;align-items:center;flex:none}
 .nt-about-detail>small{color:#64748b}
 .nt-about-body .nt-about-note{font-size:11px!important;color:#98a2b3}
 .nt-about-close{align-self:flex-end;margin-top:4px;padding:9px 18px;border:1px solid #cfd8e3;border-radius:7px;background:#fff;cursor:pointer}
+.nt-shell-modal.nt-about-modal{width:min(558px,100%);border-radius:8px}
+.nt-about-modal .nt-shell-modal-header{padding:16px 14px 2px;border:0}
+.nt-about-modal .nt-shell-modal-header h2{color:#8994a3;font-size:14px;font-weight:500}
+.nt-about-modal .nt-about-body{gap:12px;padding:0 14px 14px}
+.nt-about-modal .nt-about-subtitle{margin:0;color:#7c8999;font-size:12px}
+.nt-about-modal .nt-about-wordmark{font-size:28px;color:#173581}
+.nt-about-modal .nt-about-wordmark strong{color:#173581}
+.nt-about-modal .nt-about-description{margin:0;font-size:13px;line-height:20px;color:#202833}
+.nt-about-modal .nt-about-detail{gap:5px;padding:14px}
+.nt-about-modal .nt-about-note{align-self:center;margin:2px 0 0;text-align:center}
 .nt-shortcut-card button:focus-visible,.nt-dialog-close:focus-visible,.nt-theme-choice:focus-visible{outline:3px solid #3057ac;outline-offset:2px}
 @media(max-width:650px){.nt-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nt-shortcuts-scroll{padding:9px 15px 20px}.nt-shell-modal-header{padding:12px 16px}}
 @media(max-width:390px){.nt-shortcut-grid{grid-template-columns:1fr}.nt-shortcut-card{min-height:75px}}
