@@ -7,7 +7,7 @@ concurrency:
 
 on:
   push:
-    branches: ["feature/develop"]
+    branches: ["master", "feature/develop"]
     paths:
       - "FrontEnd/src/**"
       - "FrontEnd/scripts/**"
@@ -20,7 +20,7 @@ on:
       - "backend/pom.xml"
       - ".github/workflows/dashboard-quality.yml"
   pull_request:
-    branches: ["main"]
+    branches: ["main", "master"]
     paths:
       - "FrontEnd/src/**"
       - "FrontEnd/scripts/**"
@@ -47,7 +47,7 @@ jobs:
           node-version: 22
           cache: yarn
           cache-dependency-path: FrontEnd/yarn.lock
-      - name: Validar contrato de navegação BASE-03
+      - name: Validar menu atual e contrato de navegação
         run: node --test scripts/navigation-contract.test.cjs scripts/ui-tokens.test.cjs
       - run: yarn install --frozen-lockfile
       - run: yarn build
