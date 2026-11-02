@@ -68,13 +68,16 @@
 }
 
 .nt-sidebar-menu {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
+
+.nt-sidebar-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.nt-sidebar-scroll::-webkit-scrollbar{width:5px}
+.nt-sidebar-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
 
 .nt-sidebar-menu::-webkit-scrollbar {
   width: 5px;

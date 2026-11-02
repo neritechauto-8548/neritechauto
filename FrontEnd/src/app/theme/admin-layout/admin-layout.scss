@@ -300,5 +300,5 @@ html.theme-dark .nt-sidebar-footer{border-color:#3b3b3b}
 /* Mantém o controle de recolhimento preso ao rodapé enquanto a navegação rola. */
 .matero-container-wrap .matero-sidenav .mat-drawer-inner-container{display:flex;flex-direction:column;height:100%;overflow:hidden}
 .matero-container-wrap .matero-sidenav app-sidebar{display:flex;flex:1 1 auto;flex-direction:column;min-height:0;height:100%}
-.matero-container-wrap .matero-sidenav .nt-sidebar-menu{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.matero-container-wrap .matero-sidenav .nt-sidebar-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}.matero-container-wrap .matero-sidenav .nt-sidebar-menu{flex:0 0 auto;overflow:visible}
 .matero-container-wrap .matero-sidenav .nt-sidebar-footer{flex:0 0 60px;margin-top:auto}

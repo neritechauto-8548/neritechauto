@@ -1,16 +1,18 @@
-<div class="nt-attendance" role="group" aria-label="Controle de presença">
-  <button type="button" class="nt-attendance-action nt-attendance-in" disabled
-    title="Check-in de funcionários: integração de ponto ainda não disponível"
-    aria-label="Check-in de funcionários indisponível">
-    <svg class="icone-presenca" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM9 12h11m-4-4 4 4-4 4"/></svg><span class="nt-attendance-label">Check-in</span>
-  </button>
-  <button type="button" class="nt-attendance-action nt-attendance-out" disabled
-    title="Check-out de funcionários: integração de ponto ainda não disponível"
-    aria-label="Check-out de funcionários indisponível">
-    <svg class="icone-presenca" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM20 12H9m4-4-4 4 4 4"/></svg><span class="nt-attendance-label">Check-out</span>
-  </button>
+<div class="nt-sidebar-scroll">
+  <div class="nt-attendance" role="group" aria-label="Controle de presença">
+    <button type="button" class="nt-attendance-action nt-attendance-in" disabled
+      title="Check-in de funcionários: integração de ponto ainda não disponível"
+      aria-label="Check-in de funcionários indisponível">
+      <svg class="icone-presenca" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM9 12h11m-4-4 4 4-4 4"/></svg><span class="nt-attendance-label">Check-in</span>
+    </button>
+    <button type="button" class="nt-attendance-action nt-attendance-out" disabled
+      title="Check-out de funcionários: integração de ponto ainda não disponível"
+      aria-label="Check-out de funcionários indisponível">
+      <svg class="icone-presenca" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM20 12H9m4-4-4 4 4 4"/></svg><span class="nt-attendance-label">Check-out</span>
+    </button>
+  </div>
+  <div class="nt-sidebar-menu"><app-sidemenu /></div>
 </div>
-<div class="nt-sidebar-menu"><app-sidemenu /></div>
 <footer class="nt-sidebar-footer">
   @if (showToggle) {
     <button type="button" class="nt-collapse-button" (click)="toggleCollapsed.emit()"
