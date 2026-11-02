@@ -88,4 +88,11 @@ public class AuthController {
             TenantContext.clear();
         }
     }
+
+    @PostMapping("/change-my-password")
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> alterarMinhaSenha(@RequestBody @Valid com.neritech.saas.gestaoUsuarios.dto.AlteracaoSenhaContaRequest request) {
+        authService.alterarMinhaSenha(request.senhaAtual(), request.novaSenha());
+        return ResponseEntity.noContent().build();
+    }
 }

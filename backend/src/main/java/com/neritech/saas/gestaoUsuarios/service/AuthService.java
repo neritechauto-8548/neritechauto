@@ -373,6 +373,26 @@ public class AuthService {
         return candidate.codePoints().distinct().count() == 1;
     }
 
+    @Transactional
+    public void alterarMinhaSenha(String senhaAtual, String novaSenha) {
+        Authentication autenticacao = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Long empresaId = TenantContext.getCurrentTenant();
+        if (autenticacao == null || !autenticacao.isAuthenticated() || empresaId == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão não autenticada");
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(autenticacao.getName(), empresaId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Conta não encontrada na empresa atual"));
+        if (!passwordEncoder.matches(senhaAtual, usuario.getSenha()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha atual incorreta");
+        if (novaSenha == null || novaSenha.length() < 12 || novaSenha.length() > 128 || isPredictablePassword(novaSenha))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Use uma frase-senha segura de 12 a 128 caracteres.");
+        if (passwordEncoder.matches(novaSenha, usuario.getSenha()))
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "A nova senha deve ser diferente da senha atual.");
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuario.setDeveTrocarSenha(false);
+        usuarioRepository.saveAndFlush(usuario);
+        logAccess(usuario, LogAcesso.TipoEvento.PASSWORD_RESET_SUCCESS, "Senha alterada pelo titular da conta", null, null);
+    }
+
     private String hashToken(String token) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));

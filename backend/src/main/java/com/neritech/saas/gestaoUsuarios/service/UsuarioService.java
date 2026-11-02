@@ -283,6 +283,25 @@ public class UsuarioService {
         return response;
     }
 
+    @Transactional
+    public UsuarioResponse atualizarMeuEmail(String email, String senhaAtual) {
+        Long empresaId = TenantAccess.requireCurrent();
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacao == null || !autenticacao.isAuthenticated()) throw new AccessDeniedException("Sessão não autenticada");
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(autenticacao.getName(), empresaId)
+                .orElseThrow(() -> new AccessDeniedException("Usuário autenticado não encontrado nesta empresa"));
+        if (!passwordEncoder.matches(senhaAtual, usuario.getSenha())) throw new AccessDeniedException("Senha atual incorreta");
+        String emailNormalizado = normalizeEmail(email);
+        usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(emailNormalizado, empresaId)
+                .filter(outro -> !outro.getId().equals(usuario.getId()))
+                .ifPresent(outro -> { throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.CONFLICT, "E-mail já cadastrado nesta empresa"); });
+        usuario.setEmail(emailNormalizado);
+        Usuario salvo = usuarioRepository.save(usuario);
+        audit(salvo, "UPDATE", java.util.Map.of("email", emailNormalizado));
+        return toResponse(salvo);
+    }
+
     private java.util.Set<String> obterPermissoesUsuario(Usuario usuario) {
         if (usuario.getFuncoes() == null) {
             return java.util.Collections.emptySet();

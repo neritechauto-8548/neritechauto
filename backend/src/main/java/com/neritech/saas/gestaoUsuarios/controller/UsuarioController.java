@@ -88,6 +88,13 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.getCurrentUser());
     }
 
+    @PatchMapping("/me/email")
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Atualizar e-mail da própria conta")
+    public ResponseEntity<UsuarioResponse> atualizarMeuEmail(@RequestBody @Valid com.neritech.saas.gestaoUsuarios.dto.AtualizacaoEmailContaRequest request) {
+        return ResponseEntity.ok(usuarioService.atualizarMeuEmail(request.email(), request.senhaAtual()));
+    }
+
     @GetMapping("/menu")
     @Operation(summary = "Obter menu do usuário", description = "Retorna o menu baseado nas permissões do usuário")
     public ResponseEntity<MenuResponse> getMenu() {
