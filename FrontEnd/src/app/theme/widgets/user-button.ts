@@ -35,6 +35,11 @@ export class UserButton implements OnInit {
       event.preventDefault(); this.activeDialog = this.activeDialog === 'shortcuts' ? null : 'shortcuts'; return;
     }
     if (editable || this.activeDialog) return;
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'j') {
+      event.preventDefault();
+      this.changeTheme(this.theme === 'dark' ? 'light' : 'dark');
+      return;
+    }
     if (!event.ctrlKey && !event.metaKey && !event.altKey && (event.key === '[' || event.key === ']')) {
       event.preventDefault(); this.settings.setOptions({ sidenavCollapsed: event.key === '[' }); return;
     }

@@ -25,9 +25,9 @@
       <button mat-menu-item class="nt-profile-action nt-profile-action-danger" (click)="logout()"><span class="nt-menu-symbol">↪</span><span>Sair da conta</span></button>
     </div>
     <div class="nt-profile-section">
-      <span class="nt-profile-section-title">Empresa</span>
+      <span class="nt-profile-section-title">Matriz</span>
+      <button mat-menu-item class="nt-profile-action" disabled title="Informações contratuais não estão disponíveis nesta sessão"><span class="nt-menu-symbol">▧</span><span>Informações do contrato</span></button>
       <button mat-menu-item class="nt-profile-action" routerLink="/configuracoes/empresa"><span class="nt-menu-symbol">⬡</span><span>Configuração</span></button>
-      <button mat-menu-item class="nt-profile-action" routerLink="/configuracoes/assinatura"><span class="nt-menu-symbol">▣</span><span>Assinatura</span></button>
     </div>
     <div class="nt-profile-section">
       <span class="nt-profile-section-title">Sistema</span>
@@ -38,8 +38,9 @@
     <div class="nt-profile-section">
       <span class="nt-profile-section-title">Ajuda</span>
       <button mat-menu-item class="nt-profile-action" (click)="openSupport()"><span class="nt-menu-symbol">☏</span><span>Suporte NERITECH</span></button>
+      <button mat-menu-item class="nt-profile-action" (click)="openSupport()"><span class="nt-menu-symbol">ⓘ</span><span>Central de ajuda</span></button>
     </div>
-    <footer class="nt-profile-version">NERITECH AUTO · Gestão de oficinas</footer>
+    <footer class="nt-profile-version">Versão não informada</footer>
   </section>
 </mat-menu>
 
@@ -55,15 +56,17 @@
       @if (activeDialog === 'shortcuts') {
         <div class="nt-shortcuts-scroll">
           <h3>Ajuda</h3><p>Comandos de ajuda</p>
-          <div class="nt-shortcut-grid"><div class="nt-shortcut-card"><span>Abre ou fecha esta lista de atalhos</span><div><kbd>CTRL</kbd> + <kbd>/</kbd></div></div></div>
+          <div class="nt-shortcut-grid"><div class="nt-shortcut-card"><span>Abre e fecha a modal de listagem de atalhos</span><div><kbd>CTRL</kbd> + <kbd>/</kbd></div></div></div>
           <h3>Layout</h3><p>Comandos que mudam a aparência do sistema</p>
           <div class="nt-shortcut-grid">
-            <div class="nt-shortcut-card"><span>Expande o menu lateral</span><div><kbd>]</kbd></div></div>
-            <div class="nt-shortcut-card"><span>Recolhe o menu lateral</span><div><kbd>[</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Alteração de tema, entre escuro e claro</span><div><kbd>CTRL</kbd> + <kbd>J</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Expande a listagem do menu lateral</span><div><kbd>]</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Recolhe a listagem do menu lateral</span><div><kbd>[</kbd></div></div>
           </div>
           <h3>Navegação</h3><p>Comandos de navegação</p>
           <div class="nt-shortcut-grid">
             <div class="nt-shortcut-card"><span>Abre a pesquisa rápida do sistema</span><div><kbd>CTRL</kbd> + <kbd>K</kbd></div></div>
+            <div class="nt-shortcut-card"><span>Abre a pesquisa rápida com o comando de voz habilitado</span><div><kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>K</kbd></div></div>
             <div class="nt-shortcut-card"><span>Abre ou fecha as notificações</span><div><kbd>SHIFT</kbd> + <kbd>N</kbd></div></div>
             <div class="nt-shortcut-card"><span>Fecha esta janela ou painel ativo</span><div><kbd>ESCAPE</kbd></div></div>
           </div>
@@ -77,7 +80,7 @@
         </div>
       } @else {
         <div class="nt-about-body">
-          <p class="nt-about-subtitle">Informações da plataforma e contatos</p>
+          <p class="nt-about-subtitle">Informações da plataforma, código da conta e contato</p>
           <div class="nt-about-wordmark">NERITECH <strong>AUTO</strong></div>
           <a [href]="siteUrl" target="_blank" rel="noopener noreferrer">{{ siteUrl }}</a>
           <p>Sistema de gestão de oficinas automotivas, com acompanhamento de clientes, serviços, estoque e financeiro.</p>
