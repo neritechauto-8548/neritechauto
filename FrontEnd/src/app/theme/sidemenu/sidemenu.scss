@@ -293,10 +293,10 @@
   .matero-sidemenu .menu-heading,.matero-sidemenu .menu-caret{transition:none}
 }
 
-/* Compact Ultra-style menu; original routes and permission filters remain active. */
+/* Ritmo lateral aprovado: ícones e rótulos mantêm a hierarquia do menu NERITECH. */
 .matero-sidemenu.level-0{padding:10px 12px 18px}
 .matero-sidemenu .menu-item{margin-bottom:4px}
-.matero-sidemenu .menu-heading{min-height:40px;padding:8px 11px;border-radius:8px;border:1px solid transparent;color:#121212;font-size:12.5px;font-weight:510}
+.matero-sidemenu .menu-heading{min-height:34px;padding:7px 11px;border-radius:8px;border:1px solid transparent;color:#121212;font-size:12px;font-weight:510;line-height:18px}
 .matero-sidemenu .menu-icon{width:17px;height:17px;flex-basis:17px;margin-right:12px;stroke-width:1.8;color:#141414}
 .matero-sidemenu .menu-name{color:inherit}
 .matero-sidemenu .menu-item.active > .menu-heading{background:#dce9ff;border-color:transparent;color:#102652;font-weight:650}
@@ -304,10 +304,31 @@
 .matero-sidemenu .menu-item.active > .menu-heading .menu-icon{color:#102652}
 .matero-sidemenu .menu-item:not(.menu-item-heading) > .submenu{border-left:0;margin-left:9px;padding-left:2px}
 .matero-sidemenu .menu-item.expanded > .submenu{padding-top:3px;padding-bottom:4px}
-.matero-sidemenu .submenu .menu-heading{min-height:35px;font-size:12px;padding:7px 9px}
+.matero-sidemenu .submenu .menu-heading{min-height:34px;font-size:12px;padding:7px 9px}
 .matero-sidemenu .menu-item.expanded > .menu-toggle{background:#f1f3f5}
 .matero-sidemenu .menu-heading:hover{background:#f3f5f7;color:#101820}
 .matero-sidenav-collapsed .matero-sidemenu.level-0{padding:10px 9px 18px}
 .matero-sidenav-collapsed .matero-sidemenu .menu-heading{min-height:44px;padding:10px 0}
 .matero-sidenav-collapsed .matero-sidemenu .menu-icon{width:18px;height:18px;flex-basis:18px}
 .matero-sidemenu .nt-menu-disabled,.matero-sidemenu .nt-menu-disabled:hover{opacity:.48}
+
+.nt-attendance{margin:15px 5px 0;padding:6px 8px;gap:8px}
+.nt-attendance-action{min-height:30px;padding:5px 7px;font-size:12px;line-height:16px}
+.icone-presenca{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nt-attendance-glyph{display:none}
+.nt-sidebar-menu{scrollbar-width:thin;scrollbar-color:#9ca3af transparent}
+.nt-sidebar-menu::-webkit-scrollbar{width:7px}
+.nt-sidebar-menu::-webkit-scrollbar-thumb{background:#9ca3af;border-radius:999px}
+.nt-sidebar-footer{height:60px;min-height:60px;box-sizing:border-box}
+.matero-sidemenu .menu-label.bg-em-breve{margin-left:auto;padding:2px 7px;border-radius:5px;background:#f5f6f7;color:#9ca3af;font-size:8px;font-weight:400;line-height:13px;white-space:nowrap}
+.matero-sidemenu .menu-badge.bg-novo{margin-left:auto;padding:2px 7px;border-radius:999px;background:#17388f;color:#fff;font-size:8px;font-weight:700;line-height:13px;white-space:nowrap}
+.matero-sidemenu .nt-menu-disabled .menu-label,
+.matero-sidemenu .nt-menu-disabled .menu-badge{opacity:1}
+.matero-sidemenu .menu-item:not(.menu-item-heading) > .submenu{transition:height .18s ease}
+.matero-sidenav-collapsed .nt-attendance{margin:15px 5px 0;padding:4px 4px;gap:4px}
+.matero-sidenav-collapsed .nt-attendance-action{height:32px;min-height:32px;padding:3px 0}
+@media(prefers-reduced-motion:reduce){.matero-sidemenu .menu-item:not(.menu-item-heading) > .submenu{transition:none}}
+
+/* Larguras do menu lateral nas capturas de referência. */
+.matero-container-wrap{--nt-sidebar-width:232px!important}
+.matero-container-wrap .matero-container{--sidenav-collapsed-width:64px}
