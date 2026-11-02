@@ -59,6 +59,7 @@ export class Header {
   readonly suporteUrl = environment.supportUrl;
   readonly preVisualizacao = environment.uxPreview;
   private readonly roteador = inject(Router);
+  private readonly elemento = inject(ElementRef<HTMLElement>);
   private readonly menu = inject(MenuService);
   private readonly traducao = inject(TranslateService);
   private readonly auth = inject(AuthService);
@@ -135,6 +136,16 @@ export class Header {
       this.fecharMenus();
       this.registrarAcessoAtual();
     });
+  }
+
+  posicaoPainel(tipo: 'aplicativos' | 'empresas' | 'usuarios' | 'plano'): number {
+    const seletor = tipo === 'aplicativos' ? '.nt-apps-wrap'
+      : tipo === 'empresas' ? '.nt-company-wrap'
+      : tipo === 'usuarios' ? '.nt-user-wrap' : '.nt-plan-wrap';
+    const ancora = this.elemento.nativeElement.querySelector(seletor) as HTMLElement | null;
+    const barra = this.elemento.nativeElement.querySelector('.nt-topbar') as HTMLElement | null;
+    if (!ancora || !barra) return 0;
+    return Math.max(0, ancora.getBoundingClientRect().left - barra.getBoundingClientRect().left);
   }
 
   get acessoEmpresas(): boolean { return this.temPermissao('GERAL_CONFIG_SISTEMA', 'ADM_EMPRESA', 'ADMIN') || this.preVisualizacao; }
