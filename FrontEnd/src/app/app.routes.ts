@@ -9,6 +9,7 @@ import { Error500 } from './routes/sessions/error-500';
 import { Login } from './routes/sessions/login/login';
 import { Recover } from './routes/sessions/recover/recover';
 import { ResetPassword } from './routes/sessions/reset-password/reset-password';
+import { HistoricoNotificacoes } from './routes/notificacoes/historico-notificacoes';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: Dashboard, data: { title: 'Início' } },
+      { path: 'notificacoes', component: HistoricoNotificacoes, data: { title: 'Notificações' } },
       { path: 'dashboard', redirectTo: 'home', pathMatch: 'full' },
       { path: '403', component: Error403 },
       { path: '404', component: Error404 },

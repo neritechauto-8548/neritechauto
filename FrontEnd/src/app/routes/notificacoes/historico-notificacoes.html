@@ -1,0 +1,20 @@
+<main class="pagina-historico-notificacoes">
+  <div class="caminho-notificacoes"><a routerLink="/home">{{ 'Empresa atual' }}</a><span>›</span><span>Notificações</span></div>
+  <header class="cabecalho-historico"><h1>Notificações</h1><div><button type="button" class="acao-marcar-todas" [disabled]="carregando || !notificacoesFiltradas.some(n => !n.lida)" (click)="marcarTodasComoLidas()">⌁ &nbsp; Marcar todas como lida</button><button class="acao-configuracao" type="button" disabled title="Configurações disponíveis pelo painel de notificações" aria-label="Configurações de notificações">⚙</button></div></header>
+  <section class="filtros-notificacoes" aria-label="Filtros de notificações">
+    <label class="campo-busca"><span aria-hidden="true">⌕</span><input [(ngModel)]="busca" placeholder="Pesquisar notificações" aria-label="Pesquisar notificações"></label>
+    <select [(ngModel)]="origem" aria-label="Filtrar por origem"><option value="">Origem</option><option>Ordem de serviço</option><option>Nota de atualização</option><option>Outros</option></select>
+    <div class="filtro-estado" role="group" aria-label="Estado"><button [class.selecionado]="estado === 'todas'" (click)="estado='todas'">Todas</button><button [class.selecionado]="estado === 'naoLidas'" (click)="estado='naoLidas'">Não lidas</button><button [class.selecionado]="estado === 'lidas'" (click)="estado='lidas'">Lidas</button></div>
+    <input class="campo-periodo" type="date" [(ngModel)]="periodo" aria-label="Período">
+  </section>
+  @if (erro) { <p class="estado-erro" role="alert">{{ erro }} <button (click)="carregar()">Recarregar</button></p> }
+  @if (carregando && !notificacoes.length) { <p class="estado-vazio" role="status">Carregando notificações…</p> }
+  @if (!carregando && !erro && !notificacoesFiltradas.length) { <p class="estado-vazio">Nenhuma notificação encontrada.</p> }
+  @if (notificacoesFiltradas.length) {
+    <div class="tabela-notificacoes"><div class="linha-cabecalho"><span>Mensagem</span><span>Origem</span><span>Criação</span><span></span></div>
+      @for (n of notificacoesFiltradas; track n.id) {
+        <div class="linha-notificacao"><span class="mensagem-notificacao">{{ n.titulo }}</span><span><b class="etiqueta-origem" [class.etiqueta-os]="rotuloOrigem(n)==='Ordem de serviço'" [class.etiqueta-boletim]="rotuloOrigem(n)==='Nota de atualização'">{{ rotuloOrigem(n) }}</b></span><span>{{ rotuloData(n.dataCadastro) }}</span><span class="acoes-linha"><button type="button" [disabled]="n.lida" (click)="marcarComoLida(n)" [attr.aria-label]="n.lida ? 'Notificação já lida' : 'Marcar notificação como lida'">{{ n.lida ? '◉' : '◎' }}</button><button type="button" [disabled]="!n.linkAcao" (click)="abrir(n)" aria-label="Abrir item associado">↗</button></span></div>
+      }
+    </div>
+  }
+</main>

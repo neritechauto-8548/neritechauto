@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { NotificacaoService, NotificacaoSistemaResponse } from '@core/services/notificacao.service';
 import { AuthService } from '@core';
+import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
@@ -19,6 +20,7 @@ import { Subscription, interval } from 'rxjs';
 export class NotificationButton implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificacaoService);
   private readonly auth = inject(AuthService);
+  private readonly roteador = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private pollingSub?: Subscription;
   private fetchSub?: Subscription;
@@ -59,6 +61,7 @@ export class NotificationButton implements OnInit, OnDestroy {
   }
   closePanel(): void { this.panelOpen = false; this.settingsOpen = false; this.exampleVisible = false; }
   toggleHistory(): void { this.showHistory = !this.showHistory; this.loadNotifications(); }
+  openHistory(): void { this.closePanel(); void this.roteador.navigateByUrl('/notificacoes'); }
 
   @HostListener('document:keydown', ['$event'])
   onKeyboard(event: KeyboardEvent): void {

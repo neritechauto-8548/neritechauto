@@ -10,7 +10,7 @@
     <header class="nt-notification-head">
       <h2>Notificações</h2>
       <div>
-        <button type="button" class="nt-notif-text-button" (click)="toggleHistory()">{{ showHistory ? 'Ver recentes' : 'Ver histórico' }}</button>
+        <button type="button" class="nt-notif-text-button" (click)="openHistory()">Ver histórico</button>
         <button type="button" class="nt-notif-settings-button" (click)="settingsOpen = true" aria-label="Configurar notificações" title="Configurações">⚙</button>
         <button type="button" class="nt-notif-close" (click)="closePanel()" aria-label="Fechar notificações">×</button>
       </div>
