@@ -1,92 +1,228 @@
 <header class="nt-topbar">
   <div class="nt-topbar-left">
     @if (showToggle) {
-      <button class="nt-topbar-icon" type="button" (click)="toggleSidenav.emit()" [attr.aria-label]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'" [matTooltip]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'">
-        <svg viewBox="0 0 24 24" aria-hidden="true">@if (settings.options.sidenavCollapsed) {<path d="M9 5l7 7-7 7"></path>} @else {<path d="M15 5l-7 7 7 7"></path>}</svg>
+      <button class="nt-topbar-icon" type="button" (click)="toggleSidenav.emit()"
+        [attr.aria-label]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'"
+        [matTooltip]="settings.options.sidenavCollapsed ? 'Expandir menu' : 'Recolher menu'">
+        <svg viewBox="0 0 24 24" aria-hidden="true">@if (settings.options.sidenavCollapsed) {<path d="M9 5l7 7-7 7"/>} @else {<path d="M15 5l-7 7 7 7"/>}</svg>
       </button>
     }
-    @if (showBranding) {
-      <app-branding [showName]="true" />
-    }
+    @if (showBranding) { <app-branding [showName]="true" /> }
   </div>
 
   <nav class="nt-reference-navigation" aria-label="Acessos principais">
-    <div class="nt-apps-wrap"><button type="button" (click)="toggleApps()" [attr.aria-expanded]="appMenuOpen" aria-controls="nt-apps-popover">▦ &nbsp; Aplicativos</button></div>
-    <a routerLink="/configuracoes/empresa">Empresas</a>
-    <a routerLink="/configuracoes/usuarios">Usuários</a>
-    <a routerLink="/configuracoes/preferencias">Integrações</a>
-    <button type="button" (click)="abrirAjuda()">Informativos</button>
-    <div class="nt-plan-wrap"><button type="button" class="nt-master-link" (click)="togglePlan()" [attr.aria-expanded]="planMenuOpen" aria-controls="nt-plan-popover">◇ &nbsp; Master</button></div>
+    <div class="nt-apps-wrap">
+      <button type="button" (click)="alternarMenuAplicativos()" [attr.aria-expanded]="menuAplicativosAberto"
+        aria-controls="nt-apps-popover" [class.acesso-superior-ativo]="menuAplicativosAberto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="5" height="5" rx=".5"/><rect x="15" y="4" width="5" height="5" rx=".5"/><rect x="4" y="15" width="5" height="5" rx=".5"/><rect x="15" y="15" width="5" height="5" rx=".5"/></svg><span>Aplicativos</span>
+      </button>
+    </div>
+
+    <div class="nt-company-wrap">
+      @if (acessoEmpresas) {
+        <button type="button" (click)="alternarMenuEmpresas()" [attr.aria-expanded]="menuEmpresasAberto"
+          aria-controls="nt-company-popover" [class.acesso-superior-ativo]="menuEmpresasAberto"
+          aria-label="Empresas — Cadastro e gestão de empresas">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V8l5-4v16m0-12h9v12M7 10h1m-1 3h1m-1 3h1m6-4h2m-2 3h2"/></svg><span>Empresas</span>
+        </button>
+      } @else {
+        <button type="button" disabled aria-label="Empresas — acesso não autorizado" title="Seu perfil não tem acesso à gestão de empresas">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V8l5-4v16m0-12h9v12"/></svg><span>Empresas</span>
+        </button>
+      }
+    </div>
+
+    <div class="nt-user-wrap">
+      @if (acessoUsuarios) {
+        <button type="button" (click)="alternarMenuUsuarios()" [attr.aria-expanded]="menuUsuariosAberto"
+          aria-controls="nt-user-popover" [class.acesso-superior-ativo]="menuUsuariosAberto"
+          aria-label="Usuários — Gerenciamento de usuários">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1zm13-10a3 3 0 1 0 0-6m2 10a5 5 0 0 1 3 5"/></svg><span>Usuários</span>
+        </button>
+      } @else {
+        <button type="button" disabled aria-label="Usuários — acesso não autorizado" title="Seu perfil não tem acesso ao gerenciamento de usuários">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1z"/></svg><span>Usuários</span>
+        </button>
+      }
+    </div>
+
+    @if (temPermissao('GERAL_CONFIG_SISTEMA', 'ADMIN') || preVisualizacao) {
+      <a routerLink="/configuracoes/preferencias" routerLinkActive="acesso-superior-ativo" aria-label="Integrações — Configurações de integrações">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 15 6-6M7 17l-2 2a3 3 0 0 1-4-4l5-5a3 3 0 0 1 4 0m3-3 2-2a3 3 0 1 1 4 4l-5 5a3 3 0 0 1-4 0"/></svg><span>Integrações</span>
+      </a>
+    } @else {
+      <button type="button" disabled aria-label="Integrações — acesso não autorizado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 15 6-6m-8 8-2 2a3 3 0 0 1-4-4l5-5a3 3 0 0 1 4 0"/></svg><span>Integrações</span></button>
+    }
+
+    <a class="nt-info-link" [href]="suporteUrl" target="_blank" rel="noopener noreferrer"
+      aria-label="Informativos — Central de informações e ajuda">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg><span>Informativos</span>
+    </a>
+    <div class="nt-plan-wrap">
+      <button type="button" class="nt-master-link" (click)="alternarMenuPlano()" [attr.aria-expanded]="menuPlanoAberto"
+        aria-controls="nt-plan-popover" [class.acesso-superior-ativo]="menuPlanoAberto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 9-9 9-9-9z"/><circle cx="12" cy="12" r="2"/></svg><span>Master</span>
+      </button>
+    </div>
   </nav>
 
-  @if (appMenuOpen) {
-    <div id="nt-apps-popover" class="nt-apps-popover" role="dialog" aria-label="Aplicativos disponíveis">
-      <aside class="nt-apps-rail" aria-label="Selecionar aplicativo">
-        <button type="button" [class.selected]="appTab === 'system'" (click)="appTab = 'system'">Sistema NERITECH</button>
-        <button type="button" [class.selected]="appTab === 'crm'" (click)="appTab = 'crm'">CRM</button>
-      </aside>
-      <section class="nt-apps-content">
-        <header><strong>{{ appTab === 'system' ? 'Sistema NERITECH' : 'CRM' }}</strong><a [routerLink]="appTab === 'system' ? '/home' : '/cliente/crm'" (click)="closeMenus()">Navegar &nbsp; →</a></header>
-        @if (appEntries.length) {
+  @if (menuAplicativosAberto) {
+    <section id="nt-apps-popover" class="nt-apps-popover" role="dialog" aria-label="Aplicativos" aria-modal="false">
+      <nav class="nt-apps-rail" aria-label="Selecionar aplicativo">
+        <button type="button" [class.selected]="categoriaAplicativo === 'sistema'" [attr.aria-current]="categoriaAplicativo === 'sistema' ? 'page' : null"
+          (click)="selecionarCategoriaAplicativo('sistema')">Sistema de Gestão</button>
+        <button type="button" [class.selected]="categoriaAplicativo === 'crm'" [attr.aria-current]="categoriaAplicativo === 'crm' ? 'page' : null"
+          (click)="selecionarCategoriaAplicativo('crm')">CRM</button>
+      </nav>
+      <div class="nt-apps-content">
+        @if (categoriaAplicativo === 'sistema') {
+          <header class="nt-apps-heading"><strong>Sistema de Gestão</strong><button type="button" (click)="navegarAplicativo({nome:'Visão geral',rota:'/home',grupo:'Sistema de Gestão',icone:'dashboard',desabilitado:false})">Navegar <span aria-hidden="true">→</span></button></header>
           <div class="nt-apps-grid">
-            @for (entry of appEntries; track entry.route; let i = $index) {
-              @if (i === 0 || appEntries[i-1].group !== entry.group) {
-                <div class="nt-apps-group">{{ entry.group }}</div>
+            @for (grupo of gruposAplicativo; track grupo.nome) {
+              <h3 class="nt-apps-group">{{ grupo.nome }}</h3>
+              @for (item of grupo.itens; track item.nome) {
+                <button type="button" class="nt-apps-item" [class.nt-apps-item-disabled]="item.desabilitado"
+                  [disabled]="item.desabilitado" [attr.aria-label]="item.nome + (item.desabilitado ? ', indisponível' : '')"
+                  (click)="navegarAplicativo(item)">
+                  <span class="nt-apps-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg></span>
+                  <span class="nt-apps-item-text"><strong>{{ item.nome }}</strong>@if (item.aviso) {<small>{{ item.aviso }}</small>}</span>
+                </button>
               }
-              <a class="nt-apps-item" [routerLink]="entry.route" (click)="closeMenus()">
-                <span class="nt-apps-item-icon" aria-hidden="true">▣</span>
-                <span><strong>{{ entry.name }}</strong><small>Abrir módulo</small></span>
-              </a>
             }
           </div>
         } @else {
-          <p class="nt-apps-empty">Nenhum módulo disponível para este perfil.</p>
-        }
-      </section>
-    </div>
-  }
-  @if (planMenuOpen) {
-    <div id="nt-plan-popover" class="nt-plan-popover" role="dialog" aria-label="Plano de assinatura">
-      <span>Plano</span>
-      <a routerLink="/configuracoes/assinatura" (click)="closeMenus()"><span class="nt-plan-icon">◇</span><span><strong>Minha assinatura</strong><small>Consultar plano atual</small></span><span>›</span></a>
-    </div>
-  }
-
-  <div class="nt-global-search" [class.nt-mobile-search-open]="mobileSearchOpen">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
-    <input #globalSearchInput id="nt-global-search-input" type="text" [ngModel]="searchTerm" (ngModelChange)="onSearch($event)" placeholder="Busca Inteligente" aria-label="Buscar páginas e módulos" autocomplete="off" role="combobox" aria-autocomplete="list" [attr.aria-expanded]="!!searchTerm.trim()" [attr.aria-controls]="searchTerm.trim() ? 'nt-search-results' : null" [attr.aria-activedescendant]="activeSearchIndex >= 0 ? 'nt-search-result-' + activeSearchIndex : null" (keydown)="onSearchKeydown($event)" />
-    @if (searchTerm.trim()) {
-      <div id="nt-search-results" class="nt-search-results" role="listbox" aria-label="Páginas disponíveis">
-        @if (searchResults.length) {
-          @for (result of searchResults; track result.route; let i = $index) {
-            <button type="button" class="nt-search-result" [id]="'nt-search-result-' + i" [attr.aria-selected]="activeSearchIndex === i" (mouseenter)="activeSearchIndex = i" (click)="navigateSearch(result.route)" role="option">
-              <span>{{ result.name }}</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-            </button>
-          }
-        } @else {
-          <div class="nt-search-empty" role="option" aria-selected="false" aria-disabled="true">Nenhuma página encontrada no menu disponível.</div>
+          <header class="nt-apps-heading"><strong>CRM</strong><button type="button" [disabled]="itensCrm[0].desabilitado" (click)="navegarAplicativo(itensCrm[0])">Navegar <span aria-hidden="true">→</span></button></header>
+          <div class="nt-apps-grid">
+            @for (item of itensCrm; track item.nome) {
+              <h3 class="nt-apps-group">{{ item.grupo }}</h3>
+              <button type="button" class="nt-apps-item" [class.nt-apps-item-disabled]="item.desabilitado"
+                [disabled]="item.desabilitado" [attr.aria-label]="item.nome + (item.aviso ? ', ' + item.aviso : item.desabilitado ? ', indisponível' : '')"
+                (click)="navegarAplicativo(item)">
+                <span class="nt-apps-item-icon nt-apps-item-icon-crm" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h5"/></svg></span>
+                <span class="nt-apps-item-text"><strong>{{ item.nome }}</strong>@if (item.aviso) {<small>{{ item.aviso }}</small>}</span>
+              </button>
+            }
+          </div>
         }
       </div>
-    }
-    <kbd>CTRL+K</kbd>
+    </section>
+  }
+
+  @if (menuEmpresasAberto) {
+    <section id="nt-company-popover" class="nt-company-popover" role="dialog" aria-label="Empresas autorizadas">
+      <header class="nt-popover-heading"><span><strong>Empresas</strong><small>{{ empresas.length }} de {{ totalEmpresasAutorizadas }} desbloqueadas</small></span>
+        <a routerLink="/configuracoes/empresa" (click)="fecharMenus()">Ver todas <span aria-hidden="true">›</span></a></header>
+      <label class="nt-popover-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        <input type="search" [(ngModel)]="buscaEmpresa" placeholder="Buscar empresas" aria-label="Buscar empresas autorizadas" />
+      </label>
+      @if (empresasCarregando) { <p class="nt-popover-state" role="status">Consultando empresas autorizadas…</p> }
+      @if (empresasErro) { <p class="nt-popover-state nt-popover-error" role="alert">{{ empresasErro }}</p> }
+      @for (empresa of empresasFiltradas; track empresa.id) {
+        <div class="nt-company-row">
+          <button type="button" class="nt-company-select" [class.empresa-ativa]="empresa.id === empresaAtivaId"
+            [attr.aria-current]="empresa.id === empresaAtivaId ? 'true' : null" (click)="selecionarEmpresa(empresa)">
+            <strong>{{ empresa.nomeFantasia || empresa.razaoSocial }}</strong><small>{{ formatarCnpj(empresa.cnpj) }}</small>
+          </button>
+          <a routerLink="/configuracoes/empresa" (click)="fecharMenus()" class="nt-company-settings" [attr.aria-label]="'Configurações de ' + (empresa.nomeFantasia || empresa.razaoSocial)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2Z"/></svg>
+          </a>
+        </div>
+      }
+      @if (!empresasCarregando && !empresasErro && empresasFiltradas.length === 0) { <p class="nt-popover-state">Nenhuma empresa autorizada encontrada.</p> }
+      @if (verificacaoEmpresa) { <p class="nt-popover-state" role="status">{{ verificacaoEmpresa }}</p> }
+      <footer class="nt-company-footer"><button type="button" disabled title="A criação de novas empresas não está disponível nesta sessão"><span aria-hidden="true">＋</span> Nova empresa</button></footer>
+    </section>
+  }
+
+  @if (menuUsuariosAberto) {
+    <section id="nt-user-popover" class="nt-user-popover" role="dialog" aria-label="Usuários e acessos">
+      <header class="nt-popover-heading"><span><strong>Usuários e acessos</strong></span><a routerLink="/configuracoes/usuarios" (click)="fecharMenus()">Ver todos <span aria-hidden="true">›</span></a></header>
+      <div class="nt-user-tabs" role="tablist" aria-label="Tipo de acesso">
+        <button type="button" role="tab" [attr.aria-selected]="abaUsuarios === 'usuarios'" [class.selected]="abaUsuarios === 'usuarios'" (click)="selecionarAbaUsuarios('usuarios')">Usuários</button>
+        <button type="button" role="tab" [attr.aria-selected]="abaUsuarios === 'grupos'" [class.selected]="abaUsuarios === 'grupos'" (click)="selecionarAbaUsuarios('grupos')">Grupos</button>
+      </div>
+      @if (abaUsuarios === 'usuarios') {
+        @if (usuariosCarregando) { <p class="nt-popover-state" role="status">Consultando usuários da empresa…</p> }
+        @if (usuariosErro) { <p class="nt-popover-state nt-popover-error" role="alert">{{ usuariosErro }}</p> }
+        @for (usuario of usuariosFiltrados; track usuario.id) {
+          <button type="button" class="nt-user-row" (click)="irParaUsuarios()">
+            <span class="nt-user-avatar" aria-hidden="true">{{ (usuario.nomeCompleto || 'U').slice(0, 1).toUpperCase() }}</span>
+            <span><strong>{{ usuario.nomeCompleto }}</strong><small>{{ usuario.cargo || usuario.funcoes?.[0] || 'Usuário' }}</small></span>
+          </button>
+        }
+        @if (!usuariosCarregando && !usuariosErro && usuariosFiltrados.length === 0) { <p class="nt-popover-state">Nenhum usuário encontrado.</p> }
+      } @else {
+        @if (gruposCarregando) { <p class="nt-popover-state" role="status">Consultando grupos de acesso…</p> }
+        @if (gruposErro) { <p class="nt-popover-state nt-popover-error" role="alert">{{ gruposErro }}</p> }
+        @for (grupo of gruposUsuario; track nomeGrupo(grupo)) {
+          <button type="button" class="nt-user-row" (click)="irParaUsuarios()"><span class="nt-user-avatar" aria-hidden="true">G</span><span><strong>{{ nomeGrupo(grupo) }}</strong><small>Grupo de acesso</small></span></button>
+        }
+        @if (!gruposCarregando && !gruposErro && gruposUsuario.length === 0) { <p class="nt-popover-state">Nenhum grupo de acesso disponível.</p> }
+      }
+      <footer class="nt-user-footer">
+        <button type="button" [disabled]="abaUsuarios === 'grupos'" (click)="irParaNovoUsuario()"><span aria-hidden="true">♙</span> Novo usuário</button>
+        <button type="button" disabled title="Não há fluxo de criação de grupos nesta etapa"><span aria-hidden="true">♙</span> Novo grupo de usuário</button>
+      </footer>
+    </section>
+  }
+
+  @if (menuPlanoAberto) {
+    <section id="nt-plan-popover" class="nt-plan-popover" role="dialog" aria-label="Plano e assinatura">
+      <span>Plano</span>
+      <a routerLink="/configuracoes/assinatura" (click)="fecharMenus()"><span class="nt-plan-icon" aria-hidden="true">◇</span><span><strong>Assinatura</strong><small>Plano atual</small></span><span aria-hidden="true">›</span></a>
+    </section>
+  }
+
+  <div class="barra-busca-superior">
+    <button type="button" class="nt-topbar-icon nt-parts-action" disabled title="Consulta de peças — tela não disponível nesta etapa" aria-label="Consulta de peças indisponível">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h8M4 20h5M18 13v8m-4-4h8"/></svg>
+    </button>
+    <button #botaoBusca type="button" class="nt-search-trigger" (click)="alternarBusca()" [attr.aria-expanded]="buscaAberta" aria-controls="nt-search-dialog" aria-label="Abrir Busca Inteligente (CTRL+K)">
+      <span class="nt-search-trigger-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></span><span>Busca Inteligente</span><kbd>CTRL+K</kbd>
+    </button>
   </div>
 
   <div class="nt-topbar-actions">
-    <button type="button" class="nt-topbar-icon nt-mobile-search-toggle"
-      [attr.aria-label]="mobileSearchOpen ? 'Fechar busca' : 'Abrir busca'"
-      [attr.aria-expanded]="mobileSearchOpen"
-      aria-controls="nt-global-search-input"
-      (click)="toggleMobileSearch()">
-      @if (mobileSearchOpen) {
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg>
-      } @else {
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
-      }
-    </button>
-    <a class="nt-topbar-icon nt-parts-action" routerLink="/produtos-servicos/estoque" aria-label="Consultar peças" matTooltip="Consulta de peças no estoque"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v13H4zM7 9h10M7 13h7M17 21l-3-3"/></svg></a>
     <button class="nt-topbar-icon nt-help-action" type="button" (click)="abrirAjuda()" aria-label="Abrir Central de ajuda" matTooltip="Central de ajuda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 4v12l-8 4-8-4V6l8-4Z"/><path d="M9.5 9a2.7 2.7 0 0 1 5 1.3c0 2-2.5 2-2.5 3.8M12 17h.01"/></svg></button>
     <app-notification />
     <app-user />
   </div>
 </header>
+
+@if (buscaAberta) {
+  <div class="nt-search-backdrop" (click)="fecharBusca()" role="presentation">
+    <section id="nt-search-dialog" class="nt-search-dialog" role="dialog" aria-modal="true" aria-label="Busca Inteligente" (click)="$event.stopPropagation()">
+      <label class="nt-search-dialog-input"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        <input #entradaBuscaGlobal id="nt-campo-busca-global" type="search" [(ngModel)]="termoBusca" (ngModelChange)="buscarNoMenu($event)"
+          placeholder="Busque por tela, placa, OS, cliente ou nota — use / para ações" aria-label="Buscar telas e módulos disponíveis"
+          autocomplete="off" role="combobox" aria-autocomplete="list" [attr.aria-expanded]="!!termoBusca.trim()"
+          [attr.aria-controls]="termoBusca.trim() ? 'nt-lista-resultados-busca' : null"
+          [attr.aria-activedescendant]="indiceResultadoAtivo >= 0 ? 'nt-resultado-busca-' + indiceResultadoAtivo : null"
+          (keydown)="aoNavegarBusca($event)" />
+        <button type="button" disabled title="Pesquisa por voz indisponível nesta etapa" aria-label="Pesquisa por voz indisponível"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0m-7 7v3m-4 0h8"/></svg></button>
+      </label>
+      @if (!termoBusca.trim()) {
+        <div class="nt-search-dialog-subhead"><span>VISTO RECENTEMENTE</span><button type="button" (click)="limparAcessosRecentes()" [disabled]="acessosRecentes.length === 0">Limpar</button></div>
+        <div class="nt-search-dialog-results" role="listbox" aria-label="Telas vistas recentemente">
+          @for (resultado of acessosRecentes; track resultado.rota) {
+            <button type="button" class="nt-search-dialog-result" (click)="navegarBusca(resultado)" role="option" aria-selected="false">
+              <span class="nt-search-result-symbol" aria-hidden="true">▦</span><span><strong>{{ resultado.nome }}</strong><small>{{ resultado.grupo }}</small></span><small class="nt-result-kind">Tela</small>
+            </button>
+          }
+          @if (acessosRecentes.length === 0) { <p class="nt-search-dialog-empty">As telas visitadas nesta sessão aparecerão aqui.</p> }
+        </div>
+      } @else {
+        <div class="nt-search-dialog-subhead"><span>{{ modoAcoes || termoBusca.startsWith('/') ? 'AÇÕES E TELAS DISPONÍVEIS' : 'RESULTADOS' }}</span></div>
+        <div id="nt-lista-resultados-busca" class="nt-search-dialog-results" role="listbox" aria-label="Resultados de telas disponíveis">
+          @for (resultado of resultadosBusca; track resultado.rota; let indice = $index) {
+            <button type="button" class="nt-search-dialog-result" [id]="'nt-resultado-busca-' + indice" [attr.aria-selected]="indiceResultadoAtivo === indice"
+              (mouseenter)="indiceResultadoAtivo = indice" (click)="navegarBusca(resultado)" role="option">
+              <span class="nt-search-result-symbol" aria-hidden="true">▦</span><span><strong>{{ resultado.nome }}</strong><small>{{ resultado.grupo }}</small></span><small class="nt-result-kind">Tela</small>
+            </button>
+          }
+          @if (resultadosBusca.length === 0) { <p class="nt-search-dialog-empty">Nenhuma tela ou módulo disponível corresponde à busca.</p> }
+        </div>
+      }
+    </section>
+  </div>
+}

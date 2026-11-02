@@ -24,6 +24,13 @@ export class EmpresaService {
   }
 
   // --- Empresa ---
+  /** Lista somente as empresas autorizadas pela sessão autenticada. */
+  listarEmpresas(): Observable<{ content: Empresa[]; totalElements: number }> {
+    return this.http.get<{ content: Empresa[]; totalElements: number }>('/api/v1/empresas', {
+      headers: { 'X-Skip-Toast': 'true' }
+    });
+  }
+
   getEmpresa(id: number): Observable<Empresa> {
     return this.http.get<Empresa>(`/api/v1/empresas/${id}`, { headers: { 'X-Skip-Toast': 'true' } });
   }
