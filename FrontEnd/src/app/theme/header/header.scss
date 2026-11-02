@@ -73,7 +73,7 @@
 
 /* MASTER reference topbar — the same bar spans the entire page. */
 .matero-header{background:#fff!important;border-bottom:1px solid #dce1e6;box-shadow:none!important}
-.nt-topbar{height:65px;padding:0 26px;gap:23px;box-sizing:border-box;color:#111827;background:#fff}
+.nt-topbar{height:80px;padding:0 26px;gap:23px;box-sizing:border-box;color:#111827;background:#fff}
 .nt-topbar-left{min-width:112px;gap:9px}
 .nt-topbar .branding .logo-box{display:none}
 .nt-topbar .branding .logo-text{font-size:19px;font-weight:780;letter-spacing:-.055em;color:#15307e}
@@ -100,7 +100,7 @@
 /* MASTER Aplicativos mega-menu and plan popover. */
 .nt-apps-wrap,.nt-plan-wrap{position:relative}
 .nt-reference-navigation button.nt-master-link{color:#f32665}
-.nt-apps-popover{position:absolute;z-index:1500;top:64px;left:12px;display:flex;width:min(900px,calc(100vw - 24px));height:min(530px,calc(100dvh - 80px));overflow:hidden;border:1px solid #e2e7ed;border-radius:9px;background:#fff;box-shadow:0 15px 40px #11182720}
+.nt-apps-popover{position:absolute;z-index:1500;top:79px;left:12px;display:flex;width:min(900px,calc(100vw - 24px));height:min(530px,calc(100dvh - 95px));overflow:hidden;border:1px solid #e2e7ed;border-radius:9px;background:#fff;box-shadow:0 15px 40px #11182720}
 .nt-apps-rail{display:flex;flex:none;flex-direction:column;gap:5px;width:290px;padding:24px 30px;background:#f0f2f4}
 .nt-apps-rail button{min-height:42px;padding:0 14px;border:0;border-radius:8px;background:transparent;text-align:left;color:#162a50;font-size:13px;cursor:pointer}
 .nt-apps-rail button.selected,.nt-apps-rail button:hover{background:#fff}
@@ -119,7 +119,7 @@
 .nt-apps-item strong{font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nt-apps-item small{color:#8b97a6;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nt-apps-empty{margin:22px 0;color:#64748b;font-size:13px}
-.nt-plan-popover{position:absolute;top:61px;left:580px;z-index:1510;width:250px;padding:12px;border:1px solid #e0e6ed;border-radius:9px;background:#fff;box-shadow:0 12px 25px #11182718;color:#151922}
+.nt-plan-popover{position:absolute;top:76px;left:580px;z-index:1510;width:250px;padding:12px;border:1px solid #e0e6ed;border-radius:9px;background:#fff;box-shadow:0 12px 25px #11182718;color:#151922}
 .nt-plan-popover>span{display:block;margin-bottom:6px;color:#7e8b9d;font-size:11px}
 .nt-plan-popover>a{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #dce2e8;border-radius:8px;text-decoration:none;color:#142137}
 .nt-plan-popover>a>span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:2px}

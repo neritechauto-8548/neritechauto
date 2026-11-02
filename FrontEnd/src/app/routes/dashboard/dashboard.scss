@@ -201,13 +201,13 @@
 /* Referência HOME V3 — isolamento em classes master-* para as demais visões. */
 .home-shell{min-height:calc(100dvh - 100px);background:#f7f8fa}
 .home-container{box-sizing:border-box;max-width:none;width:100%;padding:24px 33px 50px}
-.master-home-header{display:flex;align-items:flex-end;justify-content:space-between;gap:25px;position:relative;margin:0 0 21px}
-.master-home-path{display:flex;gap:10px;align-items:center;margin-bottom:25px;font-size:11px;color:#9aa6b4}
+.master-home-header{display:flex;align-items:flex-start;justify-content:space-between;gap:25px;position:relative;margin:0 0 17px}
+.master-home-path{display:flex;gap:10px;align-items:center;margin-bottom:20px;font-size:11px;color:#9aa6b4}
 .master-home-path span:first-child{color:#1c2638}
 .master-home-intro h1{margin:0 0 4px;font:700 23px/30px Inter,system-ui,sans-serif;letter-spacing:-.02em;color:#080c17}
 .master-help-mark{color:#122a72;font-size:17px;vertical-align:middle}
 .master-notice{display:flex;align-items:center;gap:7px;margin:0;font-size:13px;line-height:20px;color:#0c1017}
-.master-home-actions{display:flex;position:relative;align-items:center;gap:10px;padding-bottom:1px}
+.master-home-actions{display:flex;position:relative;align-items:center;gap:10px;padding-bottom:1px;margin-top:31px}
 .master-add-button{display:flex;align-items:center;gap:12px;height:40px;padding:0 15px;border:1px solid #8cf146;border-radius:7px;background:#8cf146;color:#080f10;font:600 13px/18px Inter,system-ui,sans-serif;white-space:nowrap;cursor:pointer}
 .master-add-button:hover{background:#a2ff64}
 .master-add-button>span{font-size:24px;line-height:16px;color:#13244f}
@@ -224,7 +224,7 @@
 .master-view-options .view-switcher{height:auto}
 .master-view-options .view-switcher button.active{background:#d9e8ff;color:#193c83;box-shadow:none}
 .master-widget-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
-.master-widget{min-width:0;min-height:278px;border:1px solid #dce1e6;border-radius:9px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.09);overflow:hidden}
+.master-widget{min-width:0;min-height:299px;border:1px solid #dce1e6;border-radius:9px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.09);overflow:hidden}
 .master-widget-title{display:flex;align-items:center;gap:10px;min-height:55px;padding:10px 12px;border-bottom:1px solid #e0e5ea;box-sizing:border-box}
 .master-widget-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:7px;background:#dbe8ff;color:#173b7d;font-size:21px;font-weight:700}
 .master-widget-title>div:nth-child(2){min-width:0;flex:1}
@@ -234,14 +234,14 @@
 .master-widget-tools button{display:grid;place-items:center;width:24px;height:28px;padding:0;border:0;border-radius:5px;background:none;color:#161c28;cursor:pointer;font-size:19px}
 .master-widget-tools button:hover{background:#edf3ff}
 .master-widget-info{margin:10px 12px;padding:10px;border:1px solid #dce5f3;border-radius:6px;background:#eff6ff;color:#334155;font-size:11px;line-height:1.55}
-.master-finance-lines{display:grid;gap:10px;padding:13px 12px 10px}
+.master-finance-lines{display:grid;gap:10px;padding:16px 12px 10px}
 .master-finance-lines>div{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:18px}
 .master-finance-lines span{display:flex;align-items:center;gap:7px;color:#8493a7;font-size:12.5px;white-space:nowrap}
 .master-finance-lines strong{margin-left:auto;color:#0b111d;font:600 12px/18px Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
 .master-dot{display:inline-block;width:7px;height:7px;flex:none;border-radius:50%}
 .master-dot.blue{background:#2590fa}.master-dot.teal{background:#13ba91}.master-dot.orange{background:#ff821a}.master-dot.violet{background:#bb48df}.master-dot.red{background:#ff5364}
 .master-widget-foot{margin:0 12px;padding:12px 0 11px;border-top:1px solid #dbe0e5;color:#96a6b6;font-size:11px}
-.master-os-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:11px 12px}
+.master-os-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:17px 12px 11px}
 .master-mini-metric{display:flex;flex-direction:column;justify-content:center;min-height:76px;padding:9px 13px;border:1px solid #dce1e7;border-left:3px solid #2196ff;border-radius:7px;background:#fff;box-sizing:border-box}
 .master-mini-metric.green{border-left-color:#14be86}
 .master-mini-metric.orange{border-left-color:#ff831c}
@@ -249,9 +249,38 @@
 .master-mini-metric strong{display:block;margin-top:5px;color:#090e18;font-size:20px;font-weight:700;line-height:24px;letter-spacing:-.02em;white-space:nowrap}
 .master-no-components{grid-column:1/-1;padding:32px 25px;border:1px dashed #a9b9d1;border-radius:9px;background:#fff;color:#64748b;font-size:13px}
 .master-home-actions button:focus-visible,.master-widget-tools button:focus-visible,.master-add-popover input:focus-visible{outline:3px solid #2f5dc5;outline-offset:2px}
-@media(max-width:1100px){.master-widget-grid{grid-template-columns:1fr}.master-home-header{align-items:flex-start}.master-home-actions{align-self:center}}
-@media(max-width:700px){.home-container{padding:18px 14px 30px}.master-home-header{flex-direction:column;align-items:stretch;gap:15px}.master-home-path{margin-bottom:13px}.master-home-actions{align-self:flex-start;flex-wrap:wrap}.master-widget{min-height:0}.master-widget-title p{font-size:11px}.master-os-metrics{grid-template-columns:1fr}.master-mini-metric{min-height:68px}.master-finance-lines span{white-space:normal}}
+@media(max-width:1100px){.master-widget-grid{grid-template-columns:1fr}.master-home-header{align-items:flex-start}.master-home-actions{align-self:flex-start}}
+@media(max-width:700px){.home-container{padding:18px 14px 30px}.master-home-header{flex-direction:column;align-items:stretch;gap:15px}.master-home-path{margin-bottom:13px}.master-home-actions{align-self:flex-start;flex-wrap:wrap;margin-top:0}.master-widget{min-height:0}.master-widget-title p{font-size:11px}.master-os-metrics{grid-template-columns:1fr}.master-mini-metric{min-height:68px}.master-finance-lines span{white-space:normal}}
 @media(prefers-reduced-motion:reduce){.master-add-button,.master-view-button{transition:none}}
+
+/* O painel inicial acompanha o tema persistido no perfil, junto com o shell. */
+:host-context(html.theme-dark) .home-shell{background:#1f1f1f;color:#e5e7eb}
+:host-context(html.theme-dark) .master-home-path span:first-child,
+:host-context(html.theme-dark) .master-home-intro h1,
+:host-context(html.theme-dark) .master-notice{color:#e5e7eb}
+:host-context(html.theme-dark) .master-help-mark{color:#c8d7ff}
+:host-context(html.theme-dark) .master-widget,
+:host-context(html.theme-dark) .master-mini-metric,
+:host-context(html.theme-dark) .master-add-popover,
+:host-context(html.theme-dark) .master-view-options,
+:host-context(html.theme-dark) .master-widget-menu{background:#2d2d2d;color:#e5e7eb;border-color:#414141}
+:host-context(html.theme-dark) .master-widget-title{border-color:#414141}
+:host-context(html.theme-dark) .master-widget-title h2,
+:host-context(html.theme-dark) .master-widget-tools button,
+:host-context(html.theme-dark) .master-finance-lines strong,
+:host-context(html.theme-dark) .master-mini-metric strong{color:#f3f4f6}
+:host-context(html.theme-dark) .master-widget-title p,
+:host-context(html.theme-dark) .master-finance-lines span,
+:host-context(html.theme-dark) .master-mini-metric span,
+:host-context(html.theme-dark) .master-widget-foot{color:#a3a3a3}
+:host-context(html.theme-dark) .master-widget-foot{border-color:#414141}
+:host-context(html.theme-dark) .master-mini-metric{background:#2d2d2d}
+:host-context(html.theme-dark) .master-widget-info{background:#202d43;color:#dbeafe;border-color:#344a69}
+:host-context(html.theme-dark) .master-widget-menu button{background:#2d2d2d;color:#e5e7eb}
+:host-context(html.theme-dark) .master-widget-menu button:hover:not(:disabled){background:#3a3a3a}
+:host-context(html.theme-dark) .master-view-button,
+:host-context(html.theme-dark) .master-view-options select{background:#2d2d2d;color:#e5e7eb;border-color:#414141}
+:host-context(html.theme-dark) .master-no-components{background:#2d2d2d;color:#cbd5e1;border-color:#52627a}
 
 /* HOME-001: grade personalizavel pelo usuario; a tela base mantem a referencia clara. */
 .master-widget{position:relative}
