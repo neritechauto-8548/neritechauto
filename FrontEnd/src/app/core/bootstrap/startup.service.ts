@@ -110,7 +110,7 @@ export class StartupService {
   }
 
   /** Menu padrão usado apenas quando a configuração estática de navegação falha. */
-  private obterMenuPadrao(): Menu[] {
+  obterMenuPadrao(): Menu[] {
     const menu: Menu[] = [
       { route: 'home', name: 'Visão geral', type: 'link', icon: 'dashboard' },
       { route: 'patio', name: 'Gestão de pátio', type: 'link', icon: 'patio', permissions: { only: ['GERAL_USUARIO', 'ADMIN'] } },

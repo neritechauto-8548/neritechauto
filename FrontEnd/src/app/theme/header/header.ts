@@ -16,6 +16,7 @@ import { Empresa } from '../../routes/configuracoes/empresa/models/empresa.model
 import { EmpresaService } from '../../routes/configuracoes/empresa/services/empresa.service';
 import { UsuarioResponse } from '../../routes/configuracoes/permissoes/usuario.models';
 import { UsuarioService } from '../../routes/configuracoes/usuario.service';
+import { StartupService } from '../../core/bootstrap/startup.service';
 import { Branding } from '../widgets/branding';
 import { NotificationButton } from '../widgets/notification-button';
 import { UserButton } from '../widgets/user-button';
@@ -64,6 +65,7 @@ export class Header {
   private readonly armazenamento = inject(LocalStorageService);
   private readonly empresaApi = inject(EmpresaService);
   private readonly usuarioApi = inject(UsuarioService);
+  private readonly inicio = inject(StartupService);
   private readonly aoDestruir = inject(DestroyRef);
 
   @ViewChild('entradaBuscaGlobal') entradaBuscaGlobal?: ElementRef<HTMLInputElement>;
@@ -150,7 +152,7 @@ export class Header {
   }
   get gruposAplicativo(): GrupoAplicativo[] {
     const grupos: GrupoAplicativo[] = [];
-    const itens = this.itensMenu;
+    const itens = this.itensMenu.length ? this.itensMenu : this.inicio.obterMenuPadrao();
     for (const item of itens) {
       if (item.type === 'link') {
         grupos.push({ nome: this.nomeVisivel(item.name), itens: [this.converterItemAplicativo(item, [])] });
