@@ -150,7 +150,8 @@ export class Header {
   }
   get gruposAplicativo(): GrupoAplicativo[] {
     const grupos: GrupoAplicativo[] = [];
-    for (const item of this.itensMenu) {
+    const itens = this.itensMenu;
+    for (const item of itens) {
       if (item.type === 'link') {
         grupos.push({ nome: this.nomeVisivel(item.name), itens: [this.converterItemAplicativo(item, [])] });
       } else if (item.type === 'sub' && item.children?.length) {
@@ -289,12 +290,12 @@ export class Header {
       return;
     }
     this.usuariosCarregando = true;
-    this.usuarioApi.search('', null, 0, 8).pipe(take(1), catchError(erro => {
+    this.usuarioApi.list().pipe(take(1), catchError(erro => {
       console.error('Falha ao consultar usuários da empresa.', { status: erro?.status });
-      this.usuariosErro = `Não foi possível consultar usuários (HTTP ${erro?.status || 'sem resposta'}).`;
-      return of({ content: [], totalElements: 0 });
+      this.usuariosErro = 'Não foi possível carregar os usuários. Tente novamente ou abra Gerenciamento de usuários.';
+      return of([]);
     })).subscribe(resposta => {
-      this.usuarios = resposta.content ?? [];
+      this.usuarios = Array.isArray(resposta) ? resposta.slice(0, 8) : [];
       this.usuariosCarregando = false;
     });
   }

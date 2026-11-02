@@ -78,6 +78,7 @@
         @if (categoriaAplicativo === 'sistema') {
           <header class="nt-apps-heading"><strong>Sistema de Gestão</strong><button type="button" (click)="navegarAplicativo({nome:'Visão geral',rota:'/home',grupo:'Sistema de Gestão',icone:'dashboard',desabilitado:false})">Navegar <span aria-hidden="true">→</span></button></header>
           <div class="nt-apps-grid">
+            @if (gruposAplicativo.length === 0) { <p class="nt-popover-state">Nenhum aplicativo disponível para este perfil.</p> }
             @for (grupo of gruposAplicativo; track grupo.nome) {
               <h3 class="nt-apps-group">{{ grupo.nome }}</h3>
               @for (item of grupo.itens; track item.nome) {
