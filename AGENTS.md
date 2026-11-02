@@ -1,27 +1,42 @@
-# NERITECH AUTO — instruções Codex
+# NERITECH AUTO — instruções vigentes para Codex
+Atualizado em 02/11/2026. Este arquivo substitui as instruções anteriores para o desenvolvimento do SISTEMA NERITECH AUTO.
 
-**Branch obrigatória:** `feature/develop` do repositório `neritechauto-8548/neritechauto`; nunca alterar `main` sem ordem explícita.
+## Escopo, repositório e branch
+- Repositório: `neritechauto-8548/neritechauto`.
+- Branch de desenvolvimento do sistema: `master`. Nunca modificar `main`, `develop` ou `feature/develop` sem orientação explícita.
+- O sistema, a landing page e o portal do cliente são produtos distintos; não misturar suas alterações.
+- Trabalhar uma entrega coerente por vez e verificar o código existente antes de criar arquivos ou componentes novos.
 
-## Contratos e escopo
-- Fontes canônicas: [módulos/owners](https://app.notion.com/p/80101fd65a9c833580f1012ec0a45407), [UI-MASTER-001](https://app.notion.com/p/97401fd65a9c822a9a4b017c39a08518) e [Telas & UX / D01–D11](https://app.notion.com/p/98501fd65a9c8379a9a281145568f52a).
-- Ler somente o `CONTRATO EXECUTÁVEL CODEX` (bloco A) do ScreenId solicitado em `Documentacao/notion/telas/<modulo>/<ScreenId>.md`. Consultar o restante da página e as decisões D01–D11 apenas quando necessário; não abrir todos os 64 documentos.
-- `Documentacao/notion/` é cópia de consulta do Notion, **não** sincronização em tempo real. Em divergência, conferir a página canônica; link não concede acesso ao Notion.
-- Antes de alterar código, localizar com `rg` somente componentes, rotas, serviços, APIs, entidades, migrações e testes relevantes na `feature/develop`. Código real prevalece sobre API conceitual; não inventar que existe.
+## ÚNICA referência vigente para organização de módulos, menu e ordem de execução
+- Quadro Trello **NERITECH AUTO — Desenvolvimento das Telas**:
+  https://trello.com/b/PgSFFi0U/neritech-auto-desenvolvimento-das-telas
+- Primeiro cartão de execução: **01 · BASE — Login, segurança, shell e menu**:
+  https://trello.com/c/EXiOl0bm
+- Os cartões numerados de execução organizam prioridades e dependências; os cartões de telas detalham seus processos.
+- Em conflito entre um arquivo do repositório, contratos antigos do Notion e o Trello atual, **Trello atual + imagens mais recentes aprovadas pelo usuário prevalecem para o produto**, sem dispensar validação do funcionamento e segurança.
+- **Não utilizar como especificação vigente** a documentação antiga em `Documentacao/`, `Documentacao/notion/`, roteiros históricos de telas, links antigos de Notion ou a antiga árvore de menu. Esses arquivos são apenas histórico e não devem ditar novas implementações.
+- **Não reestruturar o Trello** nem presumir que um cartão está concluído só porque há rota, menu, build verde ou sufixo "-ok".
+- Capturas de tela mais recentes fornecidas pelo usuário são a referência visual de cada tela. Não alegar fidelidade pixel a pixel sem comparação real entre captura e navegador.
 
-## Engenharia e produto
-- `FrontEnd/`: Angular 20, Node 22, Yarn. `backend/`: Java 21, Spring Boot, Maven. Reutilizar PrimeNG e componentes existentes; UI-MASTER-001, ícones Tabler e identidade NERITECH AUTO. Stripe orienta qualidade de UX; Shopmonkey, UltraCar e OnMotor orientam processos.
-- Prioridade: **reutilizar > estender > criar**. Escopo mínimo por ScreenId; nada de telas/rotas, sidebar, DTOs, documentação ou tabelas duplicados.
-- Gestão de Pátio = PATIO-001, **uma tela interna**. Não criar Filiais, CLI-004, segunda sidebar ou sistema externo de Pátio.
-- Preservar auth, RBAC real no backend, isolamento por empresa/tenant, auditoria, idempotência e Flyway. Nunca assumir empresa 1, aceitar empresaId arbitrário, editar migração aplicada, excluir dados ou efetuar operação externa onerosa/irreversível sem aprovação.
-- Nunca simular êxito de emissão fiscal, pagamento, envio ou persistência. Preview/mock deve ser isolado e explicitamente demonstrativo.
-- Testar mudança de forma focada; em homologação/fechamento de lote executar builds, testes integrados e QA aplicáveis. Não alegar execução sem evidência; segurança multiempresa é requisito de aceite.
+## Stack existente e implementação
+- Frontend do sistema: `FrontEnd/` — Angular 20, Yarn, Node 22, Tailwind e bibliotecas já integradas, conforme código existente.
+- Backend: `backend/` — Java 21, Spring Boot, Maven, PostgreSQL e migrações Flyway.
+- Antes de editar: localizar componentes, menu, rotas, guards, serviços, controllers, DTOs, entidades, migrações e testes relacionados. Reutilizar ou corrigir primeiro; não duplicar.
+- Banco de dados: tabelas e colunas de negócio em português; backend com nomenclatura de domínio em português, respeitando integrações e APIs compatíveis onde necessário.
+- Mudanças de schema por migração Flyway aditiva e revisável; não apagar dados, migrations aplicadas, FKs ou colunas sem analisar impacto e ter autorização para ação destrutiva.
+- Funcionalidade de verdade: frontend integrado ao backend e persistência, validações, permissões, rastreabilidade e auditoria. Mock apenas identificado como demonstração e isolado de produção.
+- Segurança obrigatória: autenticação, controle de acesso no servidor, isolamento multiempresa/empresa_id, impedimento de acesso cruzado, tratamento correto de exceções e logs sem exposição de segredos.
+- Durante desenvolvimento, apresentar mensagens de erro acionáveis e identificação diagnóstica segura sem mascarar falhas; nunca expor credenciais, tokens ou dados sensíveis na interface.
 
-## Economia de tokens e entregas
-- **Comando mínimo:** `Faça <ScreenId>` significa localizar a tela em `Documentacao/notion/README.md`, ler só seu bloco A, confrontar código real, completar apenas lacunas e testar a mudança. Para AUTH-001/002/003, usar `Documentacao/notion/global/autenticacao.md`. Ordem oficial de comandos: `Documentacao/CODEX_ROTEIRO_64_TELAS.md`; não carregar o roteiro inteiro se o ID já estiver explícito.
-- Uma tela ou correção coerente por tarefa. Buscar por arquivo/símbolo e ler apenas trechos necessários; não imprimir árvore completa, logs extensos nem repetir buscas.
-- Não pesquisar web/Notion novamente se contrato local suficiente e atual; buscar dependências apenas por necessidade concreta.
-- Durante a edição, testes focados; validação integral ao encerrar o lote, sem ignorar risco relevante.
-- Sem commit, push, PR ou alteração de documentação fora do escopo, exceto quando explicitamente pedido.
-- Resposta final: até **6 linhas**, arquivos alterados, teste efetivo, resultado, pendências e commit (se aplicável). Sem repetir código, prompts ou logs.
+## Critérios de aceite por cartão
+1. Conferir a descrição e os checklists do cartão vigente e as imagens atuais.
+2. Verificar que layout, campos, estados, interações e rotas correspondem às evidências fornecidas.
+3. Validar regras de negócio e funcionamento ponta a ponta, inclusive persistência, permissões, estados vazios, erros, filtros e casos limítrofes.
+4. Testar frontend/backend, multiempresa, fluxo por usuário e migrações envolvidas. Validar navegação por teclado, acessibilidade e resoluções 320/768/1440.
+5. Reportar o que foi executado com evidência, resultados, arquivos alterados, divergências restantes e impedimentos. Não afirmar testes ou QA visual que não ocorreram.
+6. Só solicitar movimentação do cartão para "Em validação"/"Concluído" após evidência suficiente; não mover nem reorganizar cartões sem autorização.
 
-**Prioridades P0:** testes cruzados OS entre empresas, fallback empresa, contrato Orçamento/API e navegação/guards. Ver `Documentacao/CODEX_STATUS_EXECUCAO.md`.
+## Primeira entrega
+Começar pelo cartão 01 — BASE. Auditar login, sessão, autenticação, menu lateral/superior, roteamento, permissões, isolamento entre empresas, exceções, Flyway e CI em `master`. Corrigir primeiro inconsistências comprovadas de navegação e testes sem reescrever o sistema.
+
+**Importante:** instruções antigas do próprio repositório em desacordo com este arquivo não devem ser reutilizadas como requisitos.
