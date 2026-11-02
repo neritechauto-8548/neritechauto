@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { take } from 'rxjs';
@@ -10,6 +10,8 @@ import { MinhaContaService } from '../minha-conta.service';
 
 @Component({ selector: 'app-profile-overview', templateUrl: './overview.html', styleUrl: './overview.scss', imports: [CommonModule, ReactiveFormsModule] })
 export class ProfileOverview implements OnInit {
+  @Input() modal = false;
+  @Output() fecharConta = new EventEmitter<void>();
   private readonly construtor = inject(FormBuilder);
   private readonly servico = inject(MinhaContaService);
   private readonly roteador = inject(Router);
@@ -53,6 +55,6 @@ export class ProfileOverview implements OnInit {
       error: falha => { console.error('Falha ao atualizar a senha da própria conta.', { status: falha?.status }); this.carregando = false; this.erro = falha?.status === 422 ? 'Use uma frase-senha de 12 a 128 caracteres, diferente da senha atual.' : 'Não foi possível atualizar a senha. Confira a senha atual.'; },
     });
   }
-  fechar(): void { void this.roteador.navigateByUrl('/home'); }
+  fechar(): void { if (this.modal) this.fecharConta.emit(); else void this.roteador.navigateByUrl('/home'); }
   alternarTelaCheia(): void { this.telaCheia = !this.telaCheia; }
 }

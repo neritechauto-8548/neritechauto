@@ -21,7 +21,7 @@
     </div>
     <div class="nt-profile-section">
       <span class="nt-profile-section-title">Conta</span>
-      <button mat-menu-item class="nt-profile-action" routerLink="/profile/overview"><span class="nt-menu-symbol">◎</span><span>Minha conta</span></button>
+      <button mat-menu-item class="nt-profile-action" (click)="openDialog('account')"><span class="nt-menu-symbol">◎</span><span>Minha conta</span></button>
       <button mat-menu-item class="nt-profile-action nt-profile-action-danger" (click)="logout()"><span class="nt-menu-symbol">↪</span><span>Sair da conta</span></button>
     </div>
     <div class="nt-profile-section">
@@ -44,7 +44,7 @@
   </section>
 </mat-menu>
 
-@if (activeDialog) {
+@if (activeDialog && activeDialog !== 'account') {
   <div class="nt-shell-modal-backdrop" (click)="closeDialog()" role="presentation">
     <section class="nt-shell-modal" [class.nt-about-modal]="activeDialog === 'about'" role="dialog" aria-modal="true"
       [attr.aria-label]="activeDialog === 'shortcuts' ? 'Atalhos de comandos' : 'Sobre a plataforma'"
@@ -78,7 +78,7 @@
             <div class="nt-shortcut-card"><span>Abre as configurações da empresa</span><div><kbd>CTRL</kbd> + <kbd>.</kbd></div></div>
           </div>
         </div>
-      } @else {
+      } @else if (activeDialog === 'about') {
         <div class="nt-about-body">
           <p class="nt-about-subtitle">Informações da plataforma, código da conta e contato</p>
           <div class="nt-about-wordmark"><strong>NERITECH</strong> AUTO</div>
@@ -92,4 +92,7 @@
       }
     </section>
   </div>
+}
+@if (activeDialog === 'account') {
+  <app-profile-overview [modal]="true" (fecharConta)="closeDialog()" />
 }
