@@ -40,7 +40,6 @@
         <div class="auth-recover-helper">
           <button type="button" class="auth-link auth-help-toggle" (click)="showLoginHelp = !showLoginHelp"
             [attr.aria-expanded]="showLoginHelp" aria-controls="recover-login-help">Não lembro meu login</button>
-          <p id="recover-login-help" *ngIf="showLoginHelp" class="field-help">Na NERITECH AUTO, o login é o e-mail cadastrado. Se não souber qual é, solicite ajuda ao administrador da oficina ou à Central de ajuda.</p>
         </div>
 
         <button type="submit" class="auth-primary" [disabled]="isSubmitting" [attr.aria-disabled]="isSubmitting">
@@ -60,3 +59,23 @@
   </section>
   <aside class="auth-visual" aria-hidden="true"></aside>
 </main>
+
+<div *ngIf="showLoginHelp" class="auth-dialog-backdrop" (click)="showLoginHelp = false" role="presentation">
+  <section id="recover-login-help" class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="recover-dialog-title" (click)="$event.stopPropagation()">
+    <header class="auth-dialog-header">
+      <div><h2 id="recover-dialog-title">Recuperação da conta de acesso</h2><p>Ações para recuperação de conta</p></div>
+      <button type="button" class="auth-dialog-close" aria-label="Fechar" (click)="showLoginHelp = false">×</button>
+    </header>
+    <article class="auth-dialog-card">
+      <h3>Solicitar ao administrador de contas</h3>
+      <p>Para recuperar o acesso à sua conta, entre em contato com o responsável pelo gerenciamento de contas de usuários em sua oficina.</p>
+    </article>
+    <article class="auth-dialog-card">
+      <h3>Entre em contato com o suporte</h3>
+      <p>Se a sua conta for de administrador e não houver outro perfil disponível para ajudá-lo na recuperação, não se preocupe. Entre em contato com nosso time de suporte, e estaremos prontos para auxiliá-lo na recuperação do seu acesso.</p>
+      <a class="auth-dialog-support" href="https://neritechauto.atlassian.net/servicedesk/customer/portal/1" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M8 9h8M8 13h5"/></svg> Central de ajuda
+      </a>
+    </article>
+  </section>
+</div>

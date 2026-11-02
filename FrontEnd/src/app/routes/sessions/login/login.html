@@ -20,7 +20,7 @@
           <label for="email">Usuário <span class="field-qualifier">(e-mail de acesso)</span></label>
           <div class="input-wrap">
             <svg class="field-leading-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="9" r="3"></circle><path d="M6.8 18c1.1-2.3 2.9-3.3 5.2-3.3s4.1 1 5.2 3.3"></path></svg>
-            <input id="email" type="email" formControlName="username" autocomplete="username" placeholder="Informe seu e-mail de acesso" autofocus
+            <input id="email" type="email" formControlName="username" autocomplete="username" placeholder="Informe seu usuário" autofocus
               [attr.aria-invalid]="username.invalid && (username.dirty || username.touched)"
               [attr.aria-describedby]="username.invalid && (username.dirty || username.touched) ? 'email-error' : null" />
           </div>
@@ -52,7 +52,6 @@
 
         <div class="auth-assist-row">
           <a class="auth-link" routerLink="/auth/recover">Esqueci minha senha</a>
-          <label class="remember-field"><input type="checkbox" formControlName="rememberMe" /><span>Lembrar e-mail</span></label>
         </div>
 
         <button type="submit" class="auth-primary" [disabled]="isSubmitting" [attr.aria-disabled]="isSubmitting">
@@ -61,8 +60,6 @@
         </button>
 
         <a class="auth-secondary" href="https://neritechauto.com.br/teste-gratis">Criar conta / Teste grátis</a>
-        <a class="auth-preview-action" href="/home?uxPreview=1">Acessar demonstração sem login <span aria-hidden="true">›</span></a>
-        <p class="auth-preview-note">Prévia de interface. Não permite consultar, criar ou alterar dados reais.</p>
       </form>
 
       <a class="auth-help-link" href="https://neritechauto.atlassian.net/servicedesk/customer/portal/1" target="_blank" rel="noopener noreferrer">

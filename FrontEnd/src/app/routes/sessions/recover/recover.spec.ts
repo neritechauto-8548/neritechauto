@@ -80,14 +80,16 @@ describe('AUTH-002 Recuperar acesso — seguro e acessível', () => {
     expect(back?.getAttribute('href')).toBe('/auth/login');
     expect(back?.textContent).toContain('Voltar para o login');
   });
-  it('esclarece que o login é o e-mail sem inventar um segundo identificador na API', () => {
+  it('abre o modal de ajuda para recuperar o login', () => {
     const toggle = fixture.nativeElement.querySelector('.auth-help-toggle') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     toggle.click();
     fixture.detectChanges();
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(fixture.nativeElement.querySelector('#recover-login-help')?.textContent)
-      .toContain('o login é o e-mail cadastrado');
+    expect(fixture.nativeElement.querySelector('#recover-dialog-title')?.textContent)
+      .toContain('Recuperação da conta de acesso');
+    expect(fixture.nativeElement.querySelector('.auth-dialog-card')?.textContent)
+      .toContain('administrador de contas');
   });
 
 });

@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '@core/authentication';
-import { LocalStorageService, MemoryStorageService } from '@shared/services/storage.service';
 import { MessageService } from 'primeng/api';
 import { of, Subject, throwError } from 'rxjs';
 import { Login } from './login';
@@ -12,11 +11,10 @@ describe('AUTH-001 Login — estados e navegação', () => {
   let router: Router;
   let fixture: ComponentFixture<Login>;
 
-  function credentials(rememberMe = false) {
+  function credentials() {
     fixture.componentInstance.loginForm.patchValue({
       username: '  user@oficina.com  ',
       password: 'senha válida',
-      rememberMe,
     });
     fixture.detectChanges();
   }
@@ -30,7 +28,6 @@ describe('AUTH-001 Login — estados e navegação', () => {
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: auth },
-        { provide: LocalStorageService, useClass: MemoryStorageService },
         MessageService,
       ],
     });
@@ -40,8 +37,7 @@ describe('AUTH-001 Login — estados e navegação', () => {
     fixture.detectChanges();
   });
 
-  it('exige e-mail válido e senha e não memoriza email por padrão', () => {
-    expect(fixture.componentInstance.rememberMe.value).toBeFalse();
+  it('exige e-mail válido e senha', () => {
     fixture.componentInstance.login();
     fixture.detectChanges();
     expect(auth.login).not.toHaveBeenCalled();
@@ -52,8 +48,7 @@ describe('AUTH-001 Login — estados e navegação', () => {
   it('exibe navegação de recuperação, cadastro de teste e suporte reais', () => {
     const view: HTMLElement = fixture.nativeElement;
     expect(view.querySelector('a[href="/auth/recover"]')).not.toBeNull();
-    expect(view.querySelector('a.auth-secondary')?.getAttribute('href'))
-      .toBe('https://neritechauto.com.br/teste-gratis');
+    expect(view.querySelector('.auth-preview-action')).toBeNull();
     expect(view.querySelector('a.auth-help-link')?.getAttribute('href'))
       .toContain('neritechauto.atlassian.net');
     expect(view.querySelector('.auth-visual')).not.toBeNull();
@@ -61,12 +56,11 @@ describe('AUTH-001 Login — estados e navegação', () => {
 
   it('só navega depois de token válido e perfil/empresa autenticados', () => {
     auth.login.and.returnValue(of(true));
-    credentials(true);
+    credentials();
     fixture.componentInstance.login();
-    expect(auth.login).toHaveBeenCalledWith('user@oficina.com', 'senha válida', true);
+    expect(auth.login).toHaveBeenCalledWith('user@oficina.com', 'senha válida', false);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
     expect(fixture.componentInstance.password.value).toBe('');
-    expect(TestBed.inject(LocalStorageService).get('loginDefaults')).toEqual({ username: 'user@oficina.com' });
   });
 
   it('não navega com login falsamente bem-sucedido', () => {

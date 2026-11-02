@@ -1,13 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { EMPTY, catchError, filter, map, switchMap, take, timeout, throwError } from 'rxjs';
 import { Component, inject } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '@core/authentication';
 import { NeriTechIcon } from '@shared/components/neritech-icon/neritech-icon';
-import { LocalStorageService } from '@shared/services/storage.service';
 
 import { CommonModule } from '@angular/common';
 import { MessageService } from 'primeng/api';
@@ -18,7 +17,6 @@ import { MessageService } from 'primeng/api';
   styleUrl: './login.scss',
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     RouterLink,
     NeriTechIcon,
@@ -29,7 +27,6 @@ export class Login {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
-  private readonly storage = inject(LocalStorageService);
   private readonly messageService = inject(MessageService);
 
   isSubmitting = false;
@@ -43,7 +40,6 @@ export class Login {
   loginForm = this.fb.nonNullable.group({
     username: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
-    rememberMe: [false],
   });
 
   get username() {
@@ -52,15 +48,6 @@ export class Login {
 
   get password() {
     return this.loginForm.get('password')!;
-  }
-
-  get rememberMe() {
-    return this.loginForm.get('rememberMe')!;
-  }
-
-  constructor() {
-    const remembered = this.storage.get('loginDefaults') as { username?: string };
-    if (remembered?.username) this.loginForm.patchValue({ username: remembered.username, rememberMe: true });
   }
 
   login() {
@@ -79,7 +66,7 @@ export class Login {
 
     this.isSubmitting = true;
     let sessionEstablished = false;
-    this.auth.login(email, this.password.value, this.rememberMe.value).pipe(
+    this.auth.login(email, this.password.value, false).pipe(
       switchMap(authenticated => {
         if (!authenticated) {
           return throwError(() => new HttpErrorResponse({
@@ -133,11 +120,6 @@ export class Login {
     ).subscribe(() => {
       // Never retain the password after successful authentication.
       this.password.setValue('', { emitEvent: false });
-      if (this.rememberMe.value) {
-        this.storage.set('loginDefaults', { username: email });
-      } else {
-        this.storage.remove('loginDefaults');
-      }
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
       const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//') &&
         !returnUrl.startsWith('/auth/') && !returnUrl.includes('\\')
