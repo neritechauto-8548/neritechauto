@@ -4,7 +4,7 @@
 .nt-notification-launch svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
 .nt-notification-count{position:absolute;top:-7px;right:-5px;display:grid;place-items:center;min-width:21px;height:20px;padding:0 3px;border-radius:999px;background:#ff4d5b;color:#fff;font-size:10px;box-sizing:border-box}
 .nt-notification-mask{position:fixed;inset:0;z-index:1199;background:rgba(0,0,0,.68)}
-.nt-notification-drawer{position:fixed;z-index:1200;top:0;bottom:0;right:0;display:flex;flex-direction:column;width:min(398px,100vw);background:#fff;box-shadow:-10px 0 35px #0f172a28;color:#111827;font-family:Inter,system-ui,sans-serif}
+.nt-notification-drawer{position:fixed;z-index:1200;top:0;bottom:0;right:0;display:flex;flex-direction:column;width:min(445px,100vw);background:#fff;box-shadow:-10px 0 35px #0f172a28;color:#111827;font-family:Inter,system-ui,sans-serif}
 .nt-notification-head{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:58px;padding:0 14px;border-bottom:1px solid #e2e6eb}
 .nt-notification-head h2{font-size:13px;color:#7f8c9f;font-weight:550;margin:0}
 .nt-notification-head>div{display:flex;align-items:center;gap:9px}
@@ -18,10 +18,10 @@
 .nt-notif-empty>span{display:grid;place-items:center;width:36px;height:36px;border:1px solid #d5dde6;border-radius:50%;font-size:20px}
 .nt-notif-empty p{margin:0;font-size:13px}
 .nt-notif-empty button,.nt-notif-demo-link{border:0;background:transparent;color:#1b3f9a;font-size:12px;cursor:pointer}
-.nt-notif-item{display:flex;gap:10px;width:100%;padding:13px 9px;text-align:left;border:0;border-bottom:1px solid #ecedf1;background:#f9fbfe;cursor:pointer}
+.nt-notif-item{display:block;width:100%;margin:0 0 10px;border:1px solid #d8dfe7;border-radius:8px;background:#fff;overflow:hidden}.nt-notif-item-content{display:flex;gap:14px;padding:12px}.nt-notif-item-actions{padding:10px 12px;border-top:1px solid #d8dfe7}.nt-notif-item-actions button{min-height:36px;padding:0 16px;border:1px solid #cfd7e2;border-radius:8px;background:#fff;color:#171a20;font:500 12px Inter,system-ui,sans-serif;cursor:pointer}.nt-notif-item-actions button:disabled{opacity:.55;cursor:wait}
 .nt-notif-item.is-read{background:#fff;cursor:default}
 .nt-notif-item-icon{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:#edf3ff;color:#19378b}
-.nt-notif-item>span:last-child{display:flex;flex-direction:column;min-width:0;gap:5px}
+.nt-notif-item-text{display:flex;flex-direction:column;min-width:0;gap:7px}
 .nt-notif-item strong{font-size:12px;color:#111827;font-weight:650}
 .nt-notif-item small{font-size:11px;color:#64748b;overflow-wrap:anywhere}
 .nt-notif-item em{font-style:normal;font-size:10px;color:#9aa4b2}

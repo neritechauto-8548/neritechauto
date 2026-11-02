@@ -34,11 +34,13 @@
           <button type="button" (click)="loadNotifications()">⟳ &nbsp; Recarregar</button></div>
       } @else {
         @for (item of filteredNotifications; track item.id) {
-          <button type="button" class="nt-notif-item" [class.is-read]="item.lida"
-            [disabled]="item.lida || pendingIds.has(item.id)" (click)="markAsRead(item)"
-            [attr.aria-label]="(item.lida ? 'Notificação lida: ' : 'Marcar como lida: ') + item.titulo">
-            <span class="nt-notif-item-icon">♧</span><span><strong>{{ item.titulo }}</strong><small>{{ item.mensagem }}</small><em>{{ formatTime(item.dataCadastro) }}</em></span>
-          </button>
+          <article class="nt-notif-item" [class.is-read]="item.lida">
+            <div class="nt-notif-item-content">
+              <span class="nt-notif-item-icon" aria-hidden="true">{{ item.icone || '▦' }}</span>
+              <span class="nt-notif-item-text"><strong>{{ item.titulo }}</strong><small>{{ item.mensagem || 'Sem descrição.' }}</small><em>{{ formatTime(item.dataCadastro) }}</em></span>
+            </div>
+            @if (!item.lida) { <div class="nt-notif-item-actions"><button type="button" [disabled]="pendingIds.has(item.id)" (click)="markAsRead(item)">Marcar como lida</button></div> }
+          </article>
         }
       }
     </div>
