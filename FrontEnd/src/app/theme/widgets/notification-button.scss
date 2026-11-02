@@ -29,7 +29,7 @@
 .nt-notification-foot{display:flex;align-items:center;justify-content:center;min-height:55px;padding:8px;border-top:1px solid #e2e5e9}
 .nt-notification-foot button{border:0;border-radius:6px;padding:5px 9px;background:#edf1f5;color:#65748a;font-size:11px;cursor:pointer}
 .nt-notification-foot button:disabled{opacity:.58;cursor:not-allowed}
-.nt-notification-config-mask{position:fixed;z-index:1400;inset:0;display:flex;align-items:flex-start;justify-content:flex-start;padding:min(8vh,55px) min(7vw,90px);background:rgba(0,0,0,.76)}
+.nt-notification-config-mask{position:fixed;z-index:1400;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.76)}
 .nt-notif-config-modal{box-sizing:border-box;width:min(558px,100%);max-height:calc(100dvh - 55px);overflow:auto;padding:15px;border-radius:8px;background:#fff;color:#131821;box-shadow:0 18px 55px #0003}
 .nt-notif-config-modal>header{display:flex;align-items:center;justify-content:space-between;margin:0 0 20px}
 .nt-notif-config-modal>header h2{font-size:14px;font-weight:650;margin:0}
