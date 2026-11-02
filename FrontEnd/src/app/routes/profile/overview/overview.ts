@@ -24,8 +24,9 @@ export class ProfileOverview implements OnInit {
   carregando = false;
   erro = '';
   sucesso = '';
-  readonly formularioEmail = this.construtor.nonNullable.group({ email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]], senhaAtual: ['', [Validators.required, Validators.minLength(12)]] });
+  readonly formularioEmail = this.construtor.nonNullable.group({ email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]] });
   readonly formularioSenha = this.construtor.nonNullable.group({ senhaAtual: ['', [Validators.required, Validators.minLength(12)]], novaSenha: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(128)]], confirmarSenha: ['', Validators.required] });
+  visibilidadeSenhas = { atual: false, nova: false, confirmacao: false };
 
   ngOnInit(): void { this.carregar(); }
   carregar(): void {
@@ -38,12 +39,16 @@ export class ProfileOverview implements OnInit {
   salvarEmail(): void {
     this.sucesso = ''; this.erro = '';
     if (this.formularioEmail.invalid) { this.formularioEmail.markAllAsTouched(); return; }
-    const dados = this.formularioEmail.getRawValue(); this.carregando = true;
-    this.servico.atualizarEmail(dados.email, dados.senhaAtual).pipe(take(1)).subscribe({
+    const dados = this.formularioEmail.getRawValue();
+    const senhaAtual = this.formularioSenha.controls.senhaAtual.value;
+    if (!senhaAtual) { this.erro = 'Informe a senha atual em Credenciais de acesso para confirmar a alteração do e-mail.'; this.formularioSenha.controls.senhaAtual.markAsTouched(); return; }
+    this.carregando = true;
+    this.servico.atualizarEmail(dados.email, senhaAtual).pipe(take(1)).subscribe({
       next: usuario => { this.usuario = usuario; this.carregando = false; this.sucesso = 'E-mail atualizado. Entre novamente usando o novo endereço.'; this.autenticacao.logout().pipe(take(1)).subscribe({ next: () => void this.roteador.navigateByUrl('/auth/login'), error: () => void this.roteador.navigateByUrl('/auth/login') }); },
       error: falha => { console.error('Falha ao salvar o e-mail da própria conta.', { status: falha?.status }); this.carregando = false; this.erro = falha?.status === 409 ? 'Este e-mail já está cadastrado nesta empresa.' : 'Não foi possível atualizar o e-mail. Confira sua senha atual.'; },
     });
   }
+  alternarVisibilidadeSenha(campo: 'atual' | 'nova' | 'confirmacao'): void { this.visibilidadeSenhas[campo] = !this.visibilidadeSenhas[campo]; }
   salvarSenha(): void {
     this.sucesso = ''; this.erro = '';
     if (this.formularioSenha.invalid) { this.formularioSenha.markAllAsTouched(); return; }
