@@ -90,4 +90,14 @@ describe('ADM-001 — Empresa: carregamento seguro', () => {
     expect(page.empresaCarregada).toBeFalse();
     expect(page.erroCarregamento).toContain('empresa autenticada');
   });
+
+  it('adiciona e remove contatos da empresa na lista editável', () => {
+    page.contatosEmpresa = [{ tipoContato: 'EMAIL', contato: 'contato@exemplo.com' }];
+    page.adicionarContatoEmpresa();
+    expect(page.contatosEmpresa.length).toBe(2);
+    expect(page.contatosEmpresa[1]).toEqual({ tipoContato: 'EMAIL', contato: '' });
+
+    page.removerContatoEmpresa(0);
+    expect(page.contatosEmpresa).toEqual([{ tipoContato: 'EMAIL', contato: '' }]);
+  });
 });

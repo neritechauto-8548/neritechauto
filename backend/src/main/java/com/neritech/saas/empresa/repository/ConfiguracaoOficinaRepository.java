@@ -11,6 +11,9 @@ public interface ConfiguracaoOficinaRepository
         extends JpaRepository<ConfiguracaoOficina, Long>, JpaSpecificationExecutor<ConfiguracaoOficina> {
     Optional<ConfiguracaoOficina> findByEmpresaId(Long empresaId);
 
+    /** Recupera a configuração mais recente se houver registros legados duplicados. */
+    Optional<ConfiguracaoOficina> findFirstByEmpresaIdOrderByIdDesc(Long empresaId);
+
     boolean existsByEmpresaId(Long empresaId);
 }
 

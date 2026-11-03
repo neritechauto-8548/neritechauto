@@ -8,6 +8,8 @@ public record SituacaoRequest(
         @NotNull Long empresaId,
         @NotBlank @Size(max = 255) String nmSituacao,
         @Size(max = 1000) String dsSituacao,
-        @Size(max = 7) String corSituacao
+        @Size(max = 7) String corSituacao,
+        String tipoStatus,
+        Integer ordemExibicao
 ) {}
 

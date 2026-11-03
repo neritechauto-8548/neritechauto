@@ -14,6 +14,9 @@ export interface Empresa {
   ativo?: boolean;
   logoPath?: string;
   versao?: number;
+  tipoEmpresa?: string;
+  empresaPrincipal?: boolean;
+  contatos?: Array<{ tipoContato: 'EMAIL' | 'TELEFONE'; contato: string }>;
 }
 
 // --- Endereço da Empresa ---
@@ -143,6 +146,7 @@ export interface ConfiguracaoOficina {
   tempoAgendamentoPadrao?: number;
   antecedenciaMinimaAgendamento?: number;
   permiteAgendamentoOnline?: boolean;
+  emailAgendamento?: string;
   enviaLembreteAgendamento?: boolean;
   tempoLembreteHoras?: number;
   margemLucroPadrao?: number;

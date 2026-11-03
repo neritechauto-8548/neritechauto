@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -23,6 +23,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { AccordionModule } from 'primeng/accordion';
 import { FieldsetModule } from 'primeng/fieldset';
+import { ConfiguracoesEmpresaComponent } from './configuracoes-empresa';
 import { EmpresaService } from './services/empresa.service';
 import { SettingsService } from '@core/bootstrap/settings.service';
 import {
@@ -64,7 +65,8 @@ import { catchError, finalize, forkJoin, of, tap, throwError } from 'rxjs';
     TextareaModule,
     TooltipModule,
     AccordionModule,
-    FieldsetModule
+    FieldsetModule,
+    ConfiguracoesEmpresaComponent
   ],
   providers: [MessageService]
 })
@@ -75,13 +77,16 @@ export class EmpresaConfig implements OnInit, OnDestroy {
   private storage             = inject(LocalStorageService);
   private utilService         = inject(UtilService);
   private confirmationService = inject(ConfirmationService);
+  private localizacao = inject(Location);
 
   loading   = false;
   empresaCarregada = false;
   emailConfigWritable = false;
   erroCarregamento = '';
+  private estadoOriginal: Record<string, string> = {};
   empresaId = this.getTenantId();
   activeTab = 'dados';
+  configuracoesAbertas = false;
   historico: EmpresaAlteracao[] = [];
   historicoLoading = false;
   historicoError = '';
@@ -91,6 +96,8 @@ export class EmpresaConfig implements OnInit, OnDestroy {
 
   // ── Models ──────────────────────────────────────────────────────
   empresa: Empresa = { nomeFantasia: '', razaoSocial: '', cnpj: '' };
+  tiposEmpresa = [{ label: 'Mecânica', value: 'MECANICA' }];
+  contatosEmpresa: Array<{ tipoContato: 'EMAIL' | 'TELEFONE'; contato: string }> = [];
   tipoPessoa: 'Física' | 'Jurídica' = 'Jurídica';
 
   endereco: EnderecoEmpresa = {
@@ -113,7 +120,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
   configOficina: ConfiguracaoOficina = {
     empresaId: this.empresaId, funcionaDomingo: false,
     possuiIntervalo: false, inicioIntervalo: '', fimIntervalo: '',
-    permiteAgendamentoOnline: true, enviaLembreteAgendamento: true,
+    permiteAgendamentoOnline: true, emailAgendamento: '', enviaLembreteAgendamento: true,
     margemLucroPadrao: 30, diasGarantiaPadrao: 90,
     tempoAgendamentoPadrao: 60, antecedenciaMinimaAgendamento: 24,
     tempoLembreteHoras: 24, timezone: 'America/Sao_Paulo',
@@ -152,7 +159,22 @@ export class EmpresaConfig implements OnInit, OnDestroy {
 
   // ── Options ─────────────────────────────────────────────────────
   tiposEndereco        = ['MATRIZ','DEPOSITO','ADMINISTRATIVO'];
-  estadosBr            = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+  estadosBr            = [
+    { label: 'Acre', value: 'AC' }, { label: 'Alagoas', value: 'AL' }, { label: 'Amapá', value: 'AP' },
+    { label: 'Amazonas', value: 'AM' }, { label: 'Bahia', value: 'BA' }, { label: 'Ceará', value: 'CE' },
+    { label: 'Distrito Federal', value: 'DF' }, { label: 'Espírito Santo', value: 'ES' }, { label: 'Goiás', value: 'GO' },
+    { label: 'Maranhão', value: 'MA' }, { label: 'Mato Grosso', value: 'MT' }, { label: 'Mato Grosso do Sul', value: 'MS' },
+    { label: 'Minas Gerais', value: 'MG' }, { label: 'Pará', value: 'PA' }, { label: 'Paraíba', value: 'PB' },
+    { label: 'Paraná', value: 'PR' }, { label: 'Pernambuco', value: 'PE' }, { label: 'Piauí', value: 'PI' },
+    { label: 'Rio de Janeiro', value: 'RJ' }, { label: 'Rio Grande do Norte', value: 'RN' }, { label: 'Rio Grande do Sul', value: 'RS' },
+    { label: 'Rondônia', value: 'RO' }, { label: 'Roraima', value: 'RR' }, { label: 'Santa Catarina', value: 'SC' },
+    { label: 'São Paulo', value: 'SP' }, { label: 'Sergipe', value: 'SE' }, { label: 'Tocantins', value: 'TO' }
+  ];
+  regimesTributariosTela = [
+    { label: 'Simples Nacional', value: 'SIMPLES_NACIONAL' },
+    { label: 'Lucro presumido', value: 'LUCRO_PRESUMIDO' },
+    { label: 'Lucro real', value: 'LUCRO_REAL' }
+  ];
   regimesTributarios   = ['SIMPLES_NACIONAL','LUCRO_PRESUMIDO','LUCRO_REAL'];
   portesEmpresa        = ['MEI','ME','EPP','MEDIO','GRANDE'];
   tiposEstabelecimento = ['MATRIZ'];
@@ -240,6 +262,12 @@ export class EmpresaConfig implements OnInit, OnDestroy {
           const clean = (empresa.cnpj || '').replace(/[^a-zA-Z0-9]/g, '');
           this.tipoPessoa = clean.length > 11 ? 'Jurídica' : 'Física';
           this.empresa = empresa;
+          this.contatosEmpresa = empresa.contatos?.length
+            ? empresa.contatos.map(contato => ({ tipoContato: contato.tipoContato, contato: contato.contato }))
+            : [
+                ...(empresa.email ? [{ tipoContato: 'EMAIL' as const, contato: empresa.email }] : []),
+                ...(empresa.telefone ? [{ tipoContato: 'TELEFONE' as const, contato: empresa.telefone }] : [])
+              ];
           this.carregarLogo();
         }
         if (this.pick(enderecos))   this.endereco      = { ...this.endereco,      ...this.pick<EnderecoEmpresa>(enderecos) };
@@ -253,6 +281,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         if (this.pick<ConfiguracaoWhatsapp>(whatsapp)) this.configWhatsapp = { ...this.configWhatsapp, ...this.pick<ConfiguracaoWhatsapp>(whatsapp) };
         if (this.pick<ConfiguracaoSms>(sms))           this.configSms      = { ...this.configSms,      ...this.pick<ConfiguracaoSms>(sms) };
         this.endereco.empresaId = this.empresaId;
+        this.registrarEstadoOriginal();
       },
       error: (error: any) => {
         this.empresaCarregada = false;
@@ -304,6 +333,38 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         detail: `O ${isCpf ? 'CPF' : 'CNPJ'} informado não é válido.`
       });
     }
+  }
+
+  adicionarContatoEmpresa(): void {
+    this.contatosEmpresa = [...this.contatosEmpresa, { tipoContato: 'EMAIL', contato: '' }];
+  }
+
+  removerContatoEmpresa(indice: number): void {
+    this.contatosEmpresa = this.contatosEmpresa.filter((_, atual) => atual !== indice);
+  }
+
+  removerEmpresa(): void {
+    if (this.loading || !this.empresa.id) return;
+    const versaoAtual = this.empresa.versao;
+    const dadosInativados = {
+      ...this.empresa,
+      ativo: false,
+      versao: versaoAtual,
+      contatos: this.contatosEmpresa.filter(contato => contato.contato.trim())
+    };
+    this.loading = true;
+    this.service.updateEmpresa(this.empresa.id, dadosInativados)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe({
+        next: empresa => {
+          this.empresa = { ...this.empresa, ...empresa };
+          this.toast.add({ severity: 'success', summary: 'Empresa inativada', detail: 'A empresa foi marcada como inativa.' });
+        },
+        error: erro => {
+          const detalhe = erro?.error?.message || erro?.message || 'Não foi possível inativar a empresa.';
+          this.toast.add({ severity: 'error', summary: 'Erro ao inativar empresa', detail: detalhe });
+        }
+      });
   }
 
   /** Formata dinamicamente o documento como CPF (se numérico com <=11 dígitos) ou CNPJ alfanumérico */
@@ -400,6 +461,10 @@ export class EmpresaConfig implements OnInit, OnDestroy {
       this.activeTab = 'dados';
       return false;
     }
+    if (!this.empresa.tipoEmpresa?.trim()) {
+      this.toast.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'Selecione o tipo da empresa.' });
+      return false;
+    }
 
     // ───── BLOCO 2: CPF / CNPJ ─────
     const docRaw = (this.empresa.cnpj || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -435,10 +500,24 @@ export class EmpresaConfig implements OnInit, OnDestroy {
 
     // ───── BLOCO 3: CONTATO ─────
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (this.empresa.email?.trim() && !emailRegex.test(this.empresa.email.trim())) {
-      this.toast.add({ severity: 'error', summary: 'E-mail inválido', detail: 'O e-mail principal da empresa não é válido.' });
+    if (this.configOficina.emailAgendamento?.trim() && !emailRegex.test(this.configOficina.emailAgendamento.trim())) {
+      this.toast.add({ severity: 'error', summary: 'E-mail inválido', detail: 'O e-mail para recebimento de agendamentos não é válido.' });
       this.activeTab = 'dados';
       return false;
+    }
+    if (this.configOficina.permiteAgendamentoOnline && !this.configOficina.emailAgendamento?.trim()) {
+      this.toast.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'Informe o e-mail para recebimento de agendamentos.' });
+      return false;
+    }
+    for (const contato of this.contatosEmpresa) {
+      if (!contato.contato.trim()) {
+        this.toast.add({ severity: 'error', summary: 'Contato obrigatório', detail: 'Preencha ou remova cada linha de contato antes de salvar.' });
+        return false;
+      }
+      if (contato.tipoContato === 'EMAIL' && !emailRegex.test(contato.contato.trim())) {
+        this.toast.add({ severity: 'error', summary: 'E-mail inválido', detail: `O contato ${contato.contato} não é um e-mail válido.` });
+        return false;
+      }
     }
     if (this.empresa.site?.trim()) {
       const site = this.empresa.site.trim();
@@ -474,6 +553,10 @@ export class EmpresaConfig implements OnInit, OnDestroy {
     if (!this.endereco.cidade?.trim()) {
       this.toast.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'A Cidade é obrigatória.' });
       this.activeTab = 'dados';
+      return false;
+    }
+    if (!this.endereco.estado?.trim() || !this.endereco.numero?.trim()) {
+      this.toast.add({ severity: 'error', summary: 'Campo obrigatório', detail: 'Informe o estado e o número do endereço.' });
       return false;
     }
 
@@ -710,16 +793,31 @@ export class EmpresaConfig implements OnInit, OnDestroy {
       this.toast.add({ severity: 'error', summary: 'Acesso indisponível', detail: 'Não foi possível identificar a empresa autenticada.' });
       return;
     }
-    // Executa todas as validações de frontend antes de chamar a API
+    // Executa as validações antes de enviar qualquer alteração.
     if (!this.validarFormulario()) return;
+
+    this.empresa.contatos = this.contatosEmpresa.filter(contato => contato.contato.trim());
+
+    const alteracoes = {
+      empresa: this.alterado('empresa', this.empresa),
+      endereco: this.alterado('endereco', this.endereco),
+      configEmp: this.alterado('configEmp', this.configEmpresa),
+      fiscal: this.alterado('fiscal', this.configFiscal),
+      oficina: this.alterado('oficina', this.configOficina),
+      email: this.emailConfigWritable && this.alterado('email', this.configEmail)
+    };
+    if (!Object.values(alteracoes).some(Boolean)) {
+      this.toast.add({ severity: 'info', summary: 'Sem alterações', detail: 'Não há alterações para salvar.' });
+      return;
+    }
 
     this.loading = true;
     const reqs: Record<string, any> = {};
 
-    if (this.empresa.id) reqs['empresa'] = this.service.updateEmpresa(this.empresa.id, this.empresa);
-    reqs['endereco']  = this.service.saveEndereco(this.endereco);
-    reqs['configEmp'] = this.service.saveConfigEmpresa(this.configEmpresa);
-    reqs['fiscal']    = this.service.saveConfigFiscal(this.configFiscal);
+    if (alteracoes.empresa && this.empresa.id) reqs['empresa'] = this.service.updateEmpresa(this.empresa.id, this.empresa);
+    if (alteracoes.endereco) reqs['endereco'] = this.service.saveEndereco(this.endereco);
+    if (alteracoes.configEmp) reqs['configEmp'] = this.service.saveConfigEmpresa(this.configEmpresa);
+    if (alteracoes.fiscal) reqs['fiscal'] = this.service.saveConfigFiscal(this.configFiscal);
 
     // Converte todos os campos de horário (Date → HH:mm) antes de enviar ao backend.
     // O p-datepicker retorna objetos Date completos; o Spring Boot espera LocalTime em HH:mm.
@@ -734,9 +832,9 @@ export class EmpresaConfig implements OnInit, OnDestroy {
       inicioIntervalo:          this.toHHmm(this.configOficina.inicioIntervalo),
       fimIntervalo:             this.toHHmm(this.configOficina.fimIntervalo),
     };
-    reqs['oficina'] = this.service.saveConfigOficina(oficinaPayload);
+    if (alteracoes.oficina) reqs['oficina'] = this.service.saveConfigOficina(oficinaPayload);
 
-    if (this.configEmail?.ativo && this.emailConfigWritable) {
+    if (alteracoes.email && this.configEmail?.ativo) {
       if (!this.configEmail.usuarioSmtp) this.configEmail.usuarioSmtp = this.configEmail.remetenteEmail;
       reqs['email'] = this.service.saveConfigEmail(this.configEmail);
     }
@@ -754,6 +852,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
           if (res.oficina.corTema) this.settings.setTheme(res.oficina.corTema);
         }
         if (res.email)     this.configEmail   = res.email;
+        this.registrarEstadoOriginal();
       },
       error: (err: any) => {
         const tipo   = err?.error?.type;
@@ -773,6 +872,47 @@ export class EmpresaConfig implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  private alterado(chave: string, valor: unknown): boolean {
+    return this.estadoOriginal[chave] !== JSON.stringify(valor ?? null);
+  }
+
+  private registrarEstadoOriginal(): void {
+    this.estadoOriginal = {
+      empresa: JSON.stringify(this.empresa),
+      endereco: JSON.stringify(this.endereco),
+      configEmp: JSON.stringify(this.configEmpresa),
+      fiscal: JSON.stringify(this.configFiscal),
+      oficina: JSON.stringify(this.configOficina),
+      email: JSON.stringify(this.configEmail ?? null)
+    };
+  }
+
+  resetar(): void {
+    if (this.loading || !this.empresaCarregada) return;
+    this.empresa = this.lerEstadoOriginal<Empresa>('empresa', this.empresa);
+    this.endereco = this.lerEstadoOriginal<EnderecoEmpresa>('endereco', this.endereco);
+    this.configEmpresa = this.lerEstadoOriginal<ConfiguracaoEmpresa>('configEmp', this.configEmpresa);
+    this.configFiscal = this.lerEstadoOriginal<ConfiguracaoFiscal>('fiscal', this.configFiscal);
+    this.configOficina = this.lerEstadoOriginal<ConfiguracaoOficina>('oficina', this.configOficina);
+    this.configEmail = this.lerEstadoOriginal<ConfiguracaoEmail>('email', this.configEmail);
+    this.contatosEmpresa = (this.empresa.contatos ?? []).map(contato => ({
+      tipoContato: contato.tipoContato,
+      contato: contato.contato
+    }));
+  }
+
+  cancelar(): void {
+    if (this.loading) return;
+    this.localizacao.back();
+  }
+
+  private lerEstadoOriginal<T>(chave: string, valorAtual: T): T {
+    const original = this.estadoOriginal[chave];
+    if (!original) return valorAtual;
+    try { return JSON.parse(original) as T; }
+    catch { return valorAtual; }
   }
 
   testarEmail(): void {

@@ -67,7 +67,7 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     provideHotToastConfig({
-      position: 'top-right',
+      position: 'bottom-right',
       dismissible: true,
       role: 'status',
       className: 'stripe-toast',

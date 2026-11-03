@@ -21,9 +21,21 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/v1/configuracoes-seguras")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
 public class ConfiguracoesSegurasController {
     private final ConfiguracoesSegurasService servico;
+
+    @GetMapping("/smtp-perfil")
+    @PreAuthorize("isAuthenticated()")
+    public Map<String,Object> obterSmtpPerfil() { return servico.obterSmtpPerfil(); }
+
+    @PutMapping("/smtp-perfil")
+    @PreAuthorize("isAuthenticated()")
+    public Map<String,Object> salvarSmtpPerfil(@RequestBody ConfiguracoesSegurasService.RequisicaoSmtp requisicao) { return servico.salvarSmtpPerfil(requisicao); }
+
+    @PostMapping("/smtp-perfil/verificar")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> verificarSmtpPerfil(@RequestBody ConfiguracoesSegurasService.RequisicaoSmtp requisicao) { servico.verificarSmtpPerfil(requisicao); return ResponseEntity.noContent().build(); }
 
     @GetMapping("/smtp/{escopo}")
     public Map<String,Object> obterSmtp(@PathVariable String escopo) { return servico.obterSmtp(escopo.toUpperCase()); }
@@ -36,6 +48,18 @@ public class ConfiguracoesSegurasController {
 
     @GetMapping("/certificados")
     public List<Map<String,Object>> listarCertificados() { return servico.listarCertificados(); }
+
+    @GetMapping("/fiscal/nfse/senha-prefeitura")
+    public Map<String,Object> obterSenhaPrefeituraNfse() { return servico.obterSenhaPrefeituraNfse(); }
+
+    @PutMapping("/fiscal/nfse/senha-prefeitura")
+    public Map<String,Object> salvarSenhaPrefeituraNfse(@RequestBody Map<String,String> requisicao) { return servico.salvarSenhaPrefeituraNfse(requisicao == null ? null : requisicao.get("senha")); }
+
+    @GetMapping("/fiscal/nfce/credenciais")
+    public Map<String,Object> obterCredenciaisNfce() { return servico.obterCredenciaisNfce(); }
+
+    @PutMapping("/fiscal/nfce/credenciais")
+    public Map<String,Object> salvarCredenciaisNfce(@RequestBody Map<String,String> requisicao) { return servico.salvarCredenciaisNfce(requisicao == null ? null : requisicao.get("csc"), requisicao == null ? null : requisicao.get("token")); }
 
     @PostMapping(value="/certificados", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> criarCertificado(@RequestParam("nomeArquivo") @NotBlank String nomeArquivo, @RequestParam(value="email",required=false) String email, @RequestParam("senha") @NotBlank String senha, @RequestParam("arquivo") MultipartFile arquivo) throws Exception {

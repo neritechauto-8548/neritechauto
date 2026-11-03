@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface SituacaoRepository extends JpaRepository<Situacao, Long>, JpaSpecificationExecutor<Situacao> {
     List<Situacao> findByEmpresaId(Long empresaId);
+    List<Situacao> findByEmpresaIdOrderByOrdemExibicaoAscIdAsc(Long empresaId);
     Page<Situacao> findByEmpresaId(Long empresaId, Pageable pageable);
     boolean existsByEmpresaIdAndNmSituacaoIgnoreCase(Long empresaId, String nmSituacao);
     boolean existsByEmpresaIdAndNmSituacaoIgnoreCaseAndIdNot(Long empresaId, String nmSituacao, Long id);

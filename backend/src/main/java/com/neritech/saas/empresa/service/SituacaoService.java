@@ -38,6 +38,8 @@ public class SituacaoService {
                 .orElseThrow(() -> new EntityNotFoundException("Empresa não encontrada com ID: " + request.empresaId()));
 
         Situacao entity = mapper.toEntity(request);
+        entity.setTipoStatus(tipoNormalizado(request.tipoStatus()));
+        entity.setOrdemExibicao(request.ordemExibicao() == null ? repository.findByEmpresaIdOrderByOrdemExibicaoAscIdAsc(request.empresaId()).size() : request.ordemExibicao());
         entity.setCorSituacao(normalizarCor(request.corSituacao()));
         entity.setEmpresa(empresa);
         Situacao saved = repository.save(entity);
@@ -62,7 +64,7 @@ public class SituacaoService {
 
     @Transactional(readOnly = true)
     public List<SituacaoResponse> findByEmpresaId(Long empresaId) {
-        return repository.findByEmpresaId(empresaId).stream()
+        return repository.findByEmpresaIdOrderByOrdemExibicaoAscIdAsc(empresaId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -79,6 +81,8 @@ public class SituacaoService {
         }
 
         mapper.updateEntityFromRequest(request, entity);
+        entity.setTipoStatus(tipoNormalizado(request.tipoStatus()));
+        if (request.ordemExibicao() != null) entity.setOrdemExibicao(request.ordemExibicao());
         entity.setCorSituacao(normalizarCor(request.corSituacao()));
         Situacao updated = repository.save(entity);
         return mapper.toResponse(updated);
@@ -128,6 +132,13 @@ public class SituacaoService {
             throw new com.neritech.saas.common.exception.BusinessException("Formato de cor inválido. Deve ser um código hexadecimal (ex: #2563EB).");
         }
         return trimCor;
+    }
+
+    private String tipoNormalizado(String tipo) {
+        String valor = tipo == null || tipo.isBlank() ? "ABERTURA" : tipo.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!List.of("ABERTURA", "PROGRESSO", "FINALIZACAO", "CONCLUIDO").contains(valor))
+            throw new com.neritech.saas.common.exception.BusinessException("Tipo de status inválido.");
+        return valor;
     }
 }
 

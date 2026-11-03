@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, inject, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ConfirmationService } from '@shared/services/confirmation.service';
+import { LocalStorageService } from '@shared/services/storage.service';
 import { forkJoin, take } from 'rxjs';
 import { AuthService } from '@core';
 import { environment } from '@env/environment';
@@ -10,6 +13,8 @@ import { MinhaContaService } from '../minha-conta.service';
 import { Chave, Politica, PreferenciasService } from '../../configuracoes/preferencias/preferencias.service';
 import { AlteracaoItemConfiguracao, GrupoItemConfiguracao, ItemConfiguracao, ItensConfiguracaoService } from '../../configuracoes/preferencias/itens-configuracao.service';
 import { CertificadoProtegido, ConfiguracaoSmtp, ConfiguracoesSegurasService } from './configuracoes-seguras.service';
+import { TemplateComunicacaoResponse, TemplateComunicacaoService } from '../../configuracoes/modelos-mensagens/template-comunicacao.service';
+import { SituacaoService, SituacaoResponse } from '../../configuracoes/situacao/situacao.service';
 
 @Component({ selector: 'app-profile-overview', templateUrl: './overview.html', styleUrl: './overview.scss', imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink] })
 export class ProfileOverview implements OnInit {
@@ -23,6 +28,11 @@ export class ProfileOverview implements OnInit {
   private readonly preferencias = inject(PreferenciasService);
   private readonly itensConfiguracao = inject(ItensConfiguracaoService);
   private readonly configuracoesSeguras = inject(ConfiguracoesSegurasService);
+  private readonly mensagens = inject(MessageService);
+  private readonly templatesComunicacao = inject(TemplateComunicacaoService);
+  private readonly situacoesService = inject(SituacaoService);
+  private readonly confirmacoes = inject(ConfirmationService);
+  private readonly armazenamento = inject(LocalStorageService);
   readonly preVisualizacao = environment.uxPreview;
   usuario?: UsuarioResponse;
   secao: 'geral' | 'email' | 'vinculos' = 'geral';
@@ -47,11 +57,36 @@ export class ProfileOverview implements OnInit {
   readonly formularioSmtp = this.construtor.nonNullable.group({ email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]], senha: [''], servidorSmtp: ['', [Validators.required, Validators.maxLength(255)]], portaSmtp: [587, [Validators.required, Validators.min(1), Validators.max(65535)]], usarSsl: [false], usarTls: [false], assinatura: [''] });
   escopoSmtp: 'MATRIZ' | 'CRM' = 'MATRIZ';
   temSenhaSmtp = false;
+  editandoSenhaSmtp = false;
   carregandoSmtp = false;
   salvandoSmtp = false;
   verificandoSmtp = false;
   erroSmtp = '';
   sucessoSmtp = '';
+  templatesWhatsapp: TemplateComunicacaoResponse[] = [];
+  templateEditandoWhatsapp?: TemplateComunicacaoResponse;
+  carregandoTemplatesWhatsapp = false;
+  templateDrawerAberto = false;
+  salvandoTemplateWhatsapp = false;
+  nomeTemplateWhatsapp = '';
+  mensagemTemplateWhatsapp = '';
+  mostrandoTagsWhatsapp = false;
+  mostrandoDescricaoWhatsapp = false;
+  erroNomeTemplateWhatsapp = '';
+  erroMensagemTemplateWhatsapp = '';
+  @ViewChild('mensagemTemplateInput') mensagemTemplateInput?: ElementRef<HTMLTextAreaElement>;
+  readonly tagsTemplateWhatsapp = ['{{nomeDoCliente}}','{{numeroOS}}','{{urlDoOrcamento}}','{{modeloDoVeiculo}}','{{placaDoVeiculo}}','{{dataEntrada}}'];
+  statusOs: SituacaoResponse[] = [];
+  buscaStatusOs = '';
+  carregandoStatusOs = false;
+  modalStatusOs = false;
+  salvandoStatusOs = false;
+  statusEditandoOs?: SituacaoResponse;
+  descricaoStatusOs = '';
+  tipoStatusOs: 'ABERTURA'|'PROGRESSO'|'FINALIZACAO'|'CONCLUIDO' = 'ABERTURA';
+  corStatusOs = '#2D2D2D';
+  erroStatusOs = '';
+  statusArrastado?: number;
   certificadosProtegidos: CertificadoProtegido[] = [];
   carregandoCertificados = false;
   modalCertificado = false;
@@ -115,6 +150,10 @@ export class ProfileOverview implements OnInit {
 
   ngOnInit(): void { this.aba = this.abaInicial; this.carregar(); if (this.aba === 'matriz') this.carregarPoliticasMatriz(); }
   selecionarAba(aba: 'perfil' | 'matriz'): void { this.aba = aba; if (aba === 'matriz' && !Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); }
+  carregarSmtpPerfil(): void { this.escopoSmtp='MATRIZ';this.carregandoSmtp=true;this.erroSmtp='';this.configuracoesSeguras.obterSmtpPerfil().pipe(take(1)).subscribe({next:dados=>{this.aplicarSmtp(dados);this.carregandoSmtp=false;},error:falha=>{console.error('Falha ao carregar SMTP pessoal.',{status:falha?.status});this.erroSmtp='Não foi possível carregar sua configuração de e-mail.';this.carregandoSmtp=false;}}); }
+  cancelarAlteracaoSenhaSmtp(): void {this.editandoSenhaSmtp=false;this.formularioSmtp.controls.senha.setValue('');this.formularioSmtp.controls.senha.markAsPristine();}
+  salvarSmtpPerfil(): void {this.erroSmtp='';if(this.formularioSmtp.invalid){this.formularioSmtp.markAllAsTouched();return;}const dados=this.formularioSmtp.getRawValue();if(!this.temSenhaSmtp&&!dados.senha){this.erroSmtp='Informe a senha do servidor SMTP para salvar.';return;}this.salvandoSmtp=true;this.configuracoesSeguras.salvarSmtpPerfil(dados).pipe(take(1)).subscribe({next:resposta=>{this.aplicarSmtp(resposta);this.salvandoSmtp=false;this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000});},error:falha=>{console.error('Falha ao salvar SMTP pessoal.',{status:falha?.status});this.erroSmtp='Não foi possível salvar sua configuração. Confira os campos e tente novamente.';this.salvandoSmtp=false;}});}
+  verificarSmtpPerfil(): void {const dados=this.formularioSmtp.getRawValue();if(this.formularioSmtp.invalid||(!this.temSenhaSmtp&&!dados.senha)){this.erroSmtp='Preencha e-mail, senha, SMTP e porta para verificar.';this.formularioSmtp.markAllAsTouched();return;}this.verificandoSmtp=true;this.configuracoesSeguras.verificarSmtpPerfil(dados).pipe(take(1)).subscribe({next:()=>{this.verificandoSmtp=false;this.mensagens.add({severity:'success',summary:'Verificação de e-mail',detail:'E-mail de verificação enviado.',life:5000});},error:falha=>{console.error('Falha ao verificar SMTP pessoal.',{status:falha?.status});this.erroSmtp='Não foi possível enviar o e-mail de verificação. Confira servidor, porta e credenciais.';this.verificandoSmtp=false;}});}
   carregar(): void {
     this.carregando = true; this.erro = '';
     this.servico.obterMinhaConta().pipe(take(1)).subscribe({
@@ -135,16 +174,34 @@ export class ProfileOverview implements OnInit {
     });
   }
   alternarVisibilidadeSenha(campo: 'atual' | 'nova' | 'confirmacao'): void { this.visibilidadeSenhas[campo] = !this.visibilidadeSenhas[campo]; }
-  selecionarSecaoMatriz(secao: string, grupo: string): void { this.secaoMatriz = secao; this.grupoMatriz = grupo; this.sucessoMatriz = ''; if (!Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); if (['categorias','etiquetasFinanceiro','etiquetasVenda'].includes(secao)) this.carregarItensMatriz(); if (secao === 'configEmail' || secao === 'crmEmail') this.carregarSmtp(secao === 'crmEmail' ? 'CRM' : 'MATRIZ'); if (secao === 'certificados') this.carregarCertificados(); }
-  carregarSmtp(escopo: 'MATRIZ'|'CRM'): void { this.escopoSmtp=escopo; this.carregandoSmtp=true; this.erroSmtp=''; this.configuracoesSeguras.obterSmtp(escopo).pipe(take(1)).subscribe({next:dados=>{this.aplicarSmtp(dados);this.carregandoSmtp=false;},error:falha=>{console.error('Falha ao carregar configuração SMTP.',{status:falha?.status});this.erroSmtp=falha?.status===403?'Você não tem permissão para consultar a configuração de e-mail.':'Não foi possível carregar a configuração de e-mail desta empresa.';this.carregandoSmtp=false;}}); }
-  private aplicarSmtp(dados: ConfiguracaoSmtp): void { this.temSenhaSmtp=dados.temSenha; this.formularioSmtp.patchValue({email:dados.email,servidorSmtp:dados.servidorSmtp,portaSmtp:dados.portaSmtp,usarSsl:dados.usarSsl,usarTls:dados.usarTls,assinatura:dados.assinatura,senha:''}); }
-  salvarSmtp(): void { this.erroSmtp='';this.sucessoSmtp='';if(this.formularioSmtp.invalid){this.formularioSmtp.markAllAsTouched();return;}const dados=this.formularioSmtp.getRawValue();if(dados.usarSsl&&dados.usarTls){this.erroSmtp='Escolha SSL ou TLS, não ambos.';return;}if(!this.temSenhaSmtp&&!dados.senha){this.erroSmtp='Informe a senha do servidor SMTP.';return;}this.salvandoSmtp=true;this.configuracoesSeguras.salvarSmtp(this.escopoSmtp,dados).pipe(take(1)).subscribe({next:resposta=>{this.aplicarSmtp(resposta);this.sucessoSmtp='Configuração de e-mail salva.';this.salvandoSmtp=false;},error:falha=>{console.error('Falha ao salvar configuração SMTP.',{status:falha?.status});this.erroSmtp=falha?.status===403?'Você não tem permissão para alterar esta configuração.':'Não foi possível salvar. Confira os campos e tente novamente.';this.salvandoSmtp=false;}}); }
-  verificarSmtp(): void { this.erroSmtp='';this.sucessoSmtp='';const dados=this.formularioSmtp.getRawValue();if(!dados.email||!dados.servidorSmtp||!dados.portaSmtp||(!this.temSenhaSmtp&&!dados.senha)){this.erroSmtp='Preencha e-mail, senha, SMTP e porta para verificar.';this.formularioSmtp.markAllAsTouched();return;}if(dados.usarSsl&&dados.usarTls){this.erroSmtp='Escolha SSL ou TLS, não ambos.';return;}this.verificandoSmtp=true;this.configuracoesSeguras.verificarSmtp(this.escopoSmtp,dados).pipe(take(1)).subscribe({next:()=>{this.sucessoSmtp='E-mail de verificação enviado. Confira a caixa de entrada.';this.verificandoSmtp=false;},error:falha=>{console.error('Falha na verificação SMTP.',{status:falha?.status});this.erroSmtp=falha?.status===502?'Não foi possível autenticar no servidor SMTP. Revise servidor, porta e credenciais.':'Salve a configuração antes de verificar o e-mail.';this.verificandoSmtp=false;}}); }
+  selecionarSecaoMatriz(secao: string, grupo: string): void { this.secaoMatriz = secao; this.grupoMatriz = grupo; this.sucessoMatriz = ''; if (!Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); if (['categorias','recomendacoes','etiquetas','etiquetasFinanceiro','etiquetasVenda'].includes(secao)) this.carregarItensMatriz(); if (secao === 'configEmail' || secao === 'crmEmail') this.carregarSmtp(secao === 'crmEmail' ? 'CRM' : 'MATRIZ'); if (secao === 'templates') this.carregarTemplatesWhatsapp(); if (secao === 'status') this.carregarStatusOs(); if (secao === 'certificados') this.carregarCertificados(); }
+  private empresaAtualId(): number | null { const id=Number(this.armazenamento.get('tenantId')); return Number.isSafeInteger(id)&&id>0?id:null; }
+  carregarStatusOs(): void { this.carregandoStatusOs=true;this.situacoesService.list({page:0,size:1000,sort:'ordemExibicao,asc'}).pipe(take(1)).subscribe({next:pagina=>{this.statusOs=[...(pagina.content??[])].sort((a,b)=>(a.ordemExibicao??0)-(b.ordemExibicao??0)||a.id-b.id);this.carregandoStatusOs=false;},error:falha=>{this.mensagens.add({severity:'error',summary:'Erro ao carregar status',detail:this.mensagemErroBruta(falha),life:9000});this.carregandoStatusOs=false;}}); }
+  get statusOsFiltrados(): SituacaoResponse[] { const busca=this.buscaStatusOs.trim().toLocaleLowerCase();return this.statusOs.filter(item=>!busca||item.nmSituacao.toLocaleLowerCase().includes(busca)); }
+  abrirStatusOs(item?:SituacaoResponse):void{this.statusEditandoOs=item;this.descricaoStatusOs=item?.nmSituacao??'';this.tipoStatusOs=item?.tipoStatus??'ABERTURA';this.corStatusOs=item?.corSituacao??this.coresItensMatriz[0];this.erroStatusOs='';this.modalStatusOs=true;}
+  fecharStatusOs():void{if(!this.salvandoStatusOs)this.modalStatusOs=false;}
+  salvarStatusOs():void{const empresaId=this.empresaAtualId(),descricao=this.descricaoStatusOs.trim();if(!empresaId){this.erroStatusOs='Empresa não identificada na sessão.';return;}if(descricao.length<2||descricao.length>255){this.erroStatusOs='A descrição deve conter de 2 a 255 caracteres.';return;}const payload={empresaId,nmSituacao:descricao,dsSituacao:'',corSituacao:this.corStatusOs,tipoStatus:this.tipoStatusOs,ordemExibicao:this.statusEditandoOs?.ordemExibicao??this.statusOs.length};this.salvandoStatusOs=true;const req=this.statusEditandoOs?this.situacoesService.update(this.statusEditandoOs.id,payload):this.situacoesService.create(payload);req.pipe(take(1)).subscribe({next:()=>{this.modalStatusOs=false;this.salvandoStatusOs=false;this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000});this.carregarStatusOs();},error:falha=>{this.erroStatusOs=this.mensagemErroBruta(falha);this.mensagens.add({severity:'error',summary:'Erro ao salvar status',detail:this.mensagemErroBruta(falha),life:9000});this.salvandoStatusOs=false;}});}
+  excluirStatusOs(item:SituacaoResponse):void{this.confirmacoes.confirm({title:'Excluir status',message:`Deseja excluir o status “${item.nmSituacao}”?`,confirmText:'Excluir',cancelText:'Cancelar',type:'danger',icon:'warning'}).pipe(take(1)).subscribe(ok=>{if(!ok)return;this.situacoesService.delete(item.id).pipe(take(1)).subscribe({next:()=>{this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000});this.carregarStatusOs();},error:falha=>this.mensagens.add({severity:'error',summary:'Erro ao excluir status',detail:this.mensagemErroBruta(falha),life:9000})});});}
+  iniciarArrasteStatus(id:number):void{this.statusArrastado=id;}
+  soltarStatus(alvo:number):void{if(!this.statusArrastado||this.statusArrastado===alvo)return;const lista=[...this.statusOs],origem=lista.findIndex(x=>x.id===this.statusArrastado),destino=lista.findIndex(x=>x.id===alvo);if(origem<0||destino<0)return;const [movido]=lista.splice(origem,1);lista.splice(destino,0,movido);this.statusOs=lista;this.statusArrastado=undefined;const empresaId=this.empresaAtualId();if(!empresaId)return;forkJoin(lista.map((item,ordemExibicao)=>this.situacoesService.update(item.id,{empresaId,nmSituacao:item.nmSituacao,dsSituacao:item.dsSituacao,corSituacao:item.corSituacao,tipoStatus:item.tipoStatus,ordemExibicao}))).pipe(take(1)).subscribe({next:()=>this.mensagens.add({severity:'success',summary:'Ordem atualizada',detail:'Ordem dos status salva.',life:5000}),error:falha=>{this.mensagens.add({severity:'error',summary:'Erro ao ordenar status',detail:this.mensagemErroBruta(falha),life:9000});this.carregarStatusOs();}});}
+  private mensagemErroBruta(falha: {error?: unknown; message?: string; status?: number}): string { if (typeof falha?.error === 'string') return falha.error; if (falha?.error !== undefined) { try { return JSON.stringify(falha.error); } catch { /* objeto não serializável */ } } return falha?.message || `HTTP ${falha?.status ?? 'ERROR'}`; }
+  carregarTemplatesWhatsapp(): void {const empresaId=this.empresaAtualId();if(!empresaId){this.mensagens.add({severity:'error',summary:'Empresa não identificada',detail:'Atualize a sessão e tente novamente.',life:7000});return;}this.carregandoTemplatesWhatsapp=true;this.templatesComunicacao.list(empresaId,{page:0,size:1000,sort:'nome,asc'}).pipe(take(1)).subscribe({next:pagina=>{this.templatesWhatsapp=(pagina.content??[]).filter(template=>template.tipoTemplate==='WHATSAPP');this.carregandoTemplatesWhatsapp=false;},error:falha=>{console.error('Falha ao carregar templates WhatsApp.',{status:falha?.status});this.mensagens.add({severity:'error',summary:'Erro ao carregar templates',detail:this.mensagemErroBruta(falha),life:9000});this.carregandoTemplatesWhatsapp=false;}});}
+  abrirTemplateWhatsapp(template?: TemplateComunicacaoResponse): void {this.templateEditandoWhatsapp=template;this.nomeTemplateWhatsapp=template?.nome??'';this.mensagemTemplateWhatsapp=template?.conteudo??'';this.erroNomeTemplateWhatsapp='';this.erroMensagemTemplateWhatsapp='';this.mostrandoTagsWhatsapp=false;this.mostrandoDescricaoWhatsapp=false;this.templateDrawerAberto=true;}
+  fecharTemplateWhatsapp(): void {if(!this.salvandoTemplateWhatsapp)this.templateDrawerAberto=false;}
+  inserirTagTemplateWhatsapp(tag: string): void {this.inserirNoCursorTemplate(tag);}
+  formatarTextoTemplateWhatsapp(formato:'negrito'|'italico'|'sublinhado'): void {const area=this.mensagemTemplateInput?.nativeElement;if(!area)return;const valor=this.mensagemTemplateWhatsapp,inicio=area.selectionStart,fim=area.selectionEnd,selecionado=valor.slice(inicio,fim),marcador=formato==='negrito'?'*':formato==='italico'?'_':'~',insercao=`${marcador}${selecionado||'texto'}${marcador}`;this.mensagemTemplateWhatsapp=valor.slice(0,inicio)+insercao+valor.slice(fim);requestAnimationFrame(()=>{area.focus();const pos=inicio+marcador.length+(selecionado?selecionado.length:0);area.setSelectionRange(selecionado?pos:pos,pos);});}
+  private inserirNoCursorTemplate(texto:string):void {const area=this.mensagemTemplateInput?.nativeElement;if(!area){this.mensagemTemplateWhatsapp+=texto;return;}const inicio=area.selectionStart,fim=area.selectionEnd;this.mensagemTemplateWhatsapp=this.mensagemTemplateWhatsapp.slice(0,inicio)+texto+this.mensagemTemplateWhatsapp.slice(fim);requestAnimationFrame(()=>{area.focus();area.setSelectionRange(inicio+texto.length,inicio+texto.length);});}
+  salvarTemplateWhatsapp(): void {const nome=this.nomeTemplateWhatsapp.trim(),conteudo=this.mensagemTemplateWhatsapp.trim();this.erroNomeTemplateWhatsapp=nome.length<2||nome.length>100?'Informe um nome de 2 a 100 caracteres.':'';this.erroMensagemTemplateWhatsapp=conteudo.length<10||conteudo.length>500?'A mensagem precisa ter entre 10 e 500 caracteres.':'';if(this.erroNomeTemplateWhatsapp||this.erroMensagemTemplateWhatsapp)return;const empresaId=this.empresaAtualId();if(!empresaId){this.mensagens.add({severity:'error',summary:'Empresa não identificada',detail:'Atualize a sessão e tente novamente.',life:7000});return;}const editando=Boolean(this.templateEditandoWhatsapp);this.salvandoTemplateWhatsapp=true;const payload={empresaId,nome,tipoTemplate:'WHATSAPP' as const,categoria:this.templateEditandoWhatsapp?.categoria??'OUTROS' as const,conteudo,ativo:this.templateEditandoWhatsapp?.ativo??true,padraoCategoria:this.templateEditandoWhatsapp?.padraoCategoria??false,personalizavel:this.templateEditandoWhatsapp?.personalizavel??true,requerAprovacao:this.templateEditandoWhatsapp?.requerAprovacao??false};const requisicao=this.templateEditandoWhatsapp?this.templatesComunicacao.update(this.templateEditandoWhatsapp.id,payload):this.templatesComunicacao.create(payload);requisicao.pipe(take(1)).subscribe({next:template=>{this.templatesWhatsapp=[...this.templatesWhatsapp.filter(item=>item.id!==template.id),template].sort((a,b)=>a.nome.localeCompare(b.nome));this.templateDrawerAberto=false;this.templateEditandoWhatsapp=undefined;this.salvandoTemplateWhatsapp=false;this.mensagens.add({severity:'success',summary:editando?'Template atualizado':'Template criado',detail:'Template do WhatsApp salvo com sucesso.',life:5000});},error:falha=>{console.error('Falha ao salvar template WhatsApp.',{status:falha?.status});this.mensagens.add({severity:'error',summary:'Erro ao salvar template',detail:this.mensagemErroBruta(falha),life:9000});this.salvandoTemplateWhatsapp=false;}});}
+  excluirTemplateWhatsapp(template:TemplateComunicacaoResponse): void {this.confirmacoes.confirm({title:'Excluir template',message:`Deseja excluir o template “${template.nome}”?`,confirmText:'Excluir',cancelText:'Cancelar',type:'danger',icon:'warning'}).pipe(take(1)).subscribe(confirmado=>{if(!confirmado)return;this.templatesComunicacao.delete(template.id).pipe(take(1)).subscribe({next:()=>{this.templatesWhatsapp=this.templatesWhatsapp.filter(item=>item.id!==template.id);this.mensagens.add({severity:'success',summary:'Template excluído',detail:'Template do WhatsApp excluído com sucesso.',life:5000});},error:falha=>{console.error('Falha ao excluir template WhatsApp.',{status:falha?.status});this.mensagens.add({severity:'error',summary:'Erro ao excluir template',detail:this.mensagemErroBruta(falha),life:9000});}});});}
+  carregarSmtp(escopo: 'MATRIZ'|'CRM'): void { this.escopoSmtp=escopo; this.carregandoSmtp=true; this.erroSmtp=''; this.configuracoesSeguras.obterSmtp(escopo).pipe(take(1)).subscribe({next:dados=>{this.aplicarSmtp(dados);this.carregandoSmtp=false;},error:falha=>{console.error('Falha ao carregar configuração SMTP.',{status:falha?.status});this.mensagens.add({severity:'error',summary:'Erro ao carregar configuração de e-mail',detail:this.mensagemErroBruta(falha),life:9000});this.carregandoSmtp=false;}}); }
+  private aplicarSmtp(dados: ConfiguracaoSmtp): void { this.temSenhaSmtp=dados.temSenha;this.editandoSenhaSmtp=false; this.formularioSmtp.patchValue({email:dados.email,servidorSmtp:dados.servidorSmtp,portaSmtp:dados.portaSmtp,usarSsl:dados.usarSsl,usarTls:dados.usarTls,assinatura:dados.assinatura,senha:''}); }
+  salvarSmtp(): void { this.erroSmtp='';this.sucessoSmtp='';if(this.formularioSmtp.invalid){this.formularioSmtp.markAllAsTouched();this.mensagens.add({severity:'error',summary:'Dados de e-mail inválidos',detail:'Confira os campos obrigatórios e o formato do e-mail.',life:7000});return;}const dados=this.formularioSmtp.getRawValue();if(!this.temSenhaSmtp&&!dados.senha){this.mensagens.add({severity:'error',summary:'Senha obrigatória',detail:'Informe a senha do servidor SMTP.',life:7000});return;}this.salvandoSmtp=true;this.configuracoesSeguras.salvarSmtp(this.escopoSmtp,dados).pipe(take(1)).subscribe({next:resposta=>{this.aplicarSmtp(resposta);this.sucessoSmtp='';this.salvandoSmtp=false;this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000});},error:falha=>{console.error('Falha ao salvar configuração SMTP.',{status:falha?.status});this.mensagens.add({severity:'error',summary:'Erro ao salvar configuração de e-mail',detail:this.mensagemErroBruta(falha),life:9000});this.salvandoSmtp=false;}}); }
+  verificarSmtp(): void { this.erroSmtp='';this.sucessoSmtp='';const dados=this.formularioSmtp.getRawValue();if(this.formularioSmtp.invalid||(!this.temSenhaSmtp&&!dados.senha)){this.formularioSmtp.markAllAsTouched();this.mensagens.add({severity:'error',summary:'Dados incompletos',detail:'Preencha e-mail, senha, SMTP e porta para verificar.',life:7000});return;}this.verificandoSmtp=true;this.configuracoesSeguras.verificarSmtp(this.escopoSmtp,dados).pipe(take(1)).subscribe({next:()=>{this.sucessoSmtp='';this.verificandoSmtp=false;this.mensagens.add({severity:'success',summary:'Verificação de e-mail',detail:'E-mail de verificação enviado.',life:5000});},error:falha=>{console.error('Falha na verificação SMTP.',{status:falha?.status});this.mensagens.add({severity:'error',summary:'Erro ao verificar configuração de e-mail',detail:this.mensagemErroBruta(falha),life:9000});this.verificandoSmtp=false;}}); }
   formatarAssinatura(formato: 'b'|'i'|'u'): void { const campo=document.querySelector<HTMLTextAreaElement>('.editor-assinatura textarea');if(!campo)return;const inicio=campo.selectionStart,fim=campo.selectionEnd,valor=campo.value,selecionado=valor.slice(inicio,fim)||'texto';const novo=`${valor.slice(0,inicio)}<${formato}>${selecionado}</${formato}>${valor.slice(fim)}`;this.formularioSmtp.controls.assinatura.setValue(novo);campo.focus();campo.setSelectionRange(inicio+formato.length+2,inicio+formato.length+2+selecionado.length);}
   carregarCertificados(): void {this.carregandoCertificados=true;this.erroCertificado='';this.configuracoesSeguras.listarCertificados().pipe(take(1)).subscribe({next:lista=>{this.certificadosProtegidos=lista;this.carregandoCertificados=false;},error:falha=>{console.error('Falha ao listar certificados digitais.',{status:falha?.status});this.erroCertificado=falha?.status===403?'Você não tem permissão para consultar certificados.':'Não foi possível carregar os certificados desta empresa.';this.carregandoCertificados=false;}});}
   abrirCertificado(): void {this.nomeCertificado='';this.emailCertificado='';this.senhaCertificado='';this.arquivoCertificado=undefined;this.erroCertificado='';this.modalCertificado=true;}
   selecionarArquivoCertificado(evento: Event): void {const entrada=evento.target as HTMLInputElement;this.arquivoCertificado=entrada.files?.[0];if(this.arquivoCertificado){this.nomeCertificado=this.arquivoCertificado.name;if(!/\.(pfx|p12)$/i.test(this.arquivoCertificado.name))this.erroCertificado='Selecione um arquivo .pfx ou .p12.';else this.erroCertificado='';}}
-  salvarCertificado(): void {if(!this.nomeCertificado.trim()||!this.senhaCertificado||!this.arquivoCertificado){this.erroCertificado='Informe o arquivo A1, a senha e o nome do certificado.';return;}if(this.arquivoCertificado.size>5242880){this.erroCertificado='O arquivo deve ter até 5 MB.';return;}const dados=new FormData();dados.append('nomeArquivo',this.nomeCertificado.trim());dados.append('email',this.emailCertificado.trim());dados.append('senha',this.senhaCertificado);dados.append('arquivo',this.arquivoCertificado);this.salvandoCertificado=true;this.erroCertificado='';this.configuracoesSeguras.criarCertificado(dados).pipe(take(1)).subscribe({next:()=>{this.modalCertificado=false;this.salvandoCertificado=false;this.carregarCertificados();},error:falha=>{console.error('Falha ao cadastrar certificado A1.',{status:falha?.status});this.erroCertificado=falha?.status===422?'Arquivo ou senha inválidos. Selecione um certificado A1 válido.':'Não foi possível cadastrar o certificado.';this.salvandoCertificado=false;}});}
+  salvarCertificado(): void {if(!this.nomeCertificado.trim()||!this.senhaCertificado||!this.arquivoCertificado){this.erroCertificado='Informe o arquivo A1, a senha e o nome do certificado.';return;}if(this.arquivoCertificado.size>5242880){this.erroCertificado='O arquivo deve ter até 5 MB.';return;}const dados=new FormData();dados.append('nomeArquivo',this.nomeCertificado.trim());dados.append('email',this.emailCertificado.trim());dados.append('senha',this.senhaCertificado);dados.append('arquivo',this.arquivoCertificado);this.salvandoCertificado=true;this.erroCertificado='';this.configuracoesSeguras.criarCertificado(dados).pipe(take(1)).subscribe({next:()=>{this.modalCertificado=false;this.salvandoCertificado=false;this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000});this.carregarCertificados();},error:falha=>{console.error('Falha ao cadastrar certificado A1.',{status:falha?.status});this.erroCertificado=falha?.status===422?'Arquivo ou senha inválidos. Selecione um certificado A1 válido.':'Não foi possível cadastrar o certificado.';this.salvandoCertificado=false;}});}
   carregarPoliticasMatriz(): void {
     this.carregandoMatriz = true; this.erroMatriz = '';
     this.preferencias.listar('', '', undefined, 0, 100).pipe(take(1)).subscribe({
@@ -152,7 +209,15 @@ export class ProfileOverview implements OnInit {
       error: falha => { console.error('Falha ao carregar configurações da matriz.', { status: falha?.status }); this.erroMatriz = 'Não foi possível carregar as configurações autorizadas desta empresa.'; this.carregandoMatriz = false; },
     });
   }
-  salvarPoliticasMatriz(chaves: Chave[]): void {
+  salvarPoliticasMatriz(chaves: Chave[], tentativa = 0): void {
+    for (const chave of chaves) {
+      const valor=this.valoresMatriz[chave];
+      if (valor===undefined) continue;
+      if (chave==='emailRespostaCrm') {
+        const normalizado=valor.trim();this.valoresMatriz[chave]=normalizado;
+        if (normalizado && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizado)) { this.mensagens.add({severity:'error',summary:'E-mail de resposta inválido',detail:'Informe um endereço no formato nome@dominio.com ou deixe o campo vazio.',life:7000});return; }
+      } else if (chave==='nomeRemetenteCrm') this.valoresMatriz[chave]=valor.trim();
+    }
     const alteradas = chaves.filter(chave => this.valoresMatriz[chave] !== undefined && this.valoresMatriz[chave] !== (this.politicasMatriz[chave]?.valorAplicado ?? ''));
     if (!alteradas.length || this.salvandoMatriz) return;
     this.salvandoMatriz = true; this.erroMatriz = ''; this.sucessoMatriz = '';
@@ -162,8 +227,25 @@ export class ProfileOverview implements OnInit {
       return politica?.versao == null ? this.preferencias.criar(chave, valor) : this.preferencias.editar(chave, valor, politica.versao);
     });
     forkJoin(requisicoes).pipe(take(1)).subscribe({
-      next: atualizadas => { for (const politica of atualizadas) { this.politicasMatriz[politica.chave] = politica; this.valoresMatriz[politica.chave] = politica.valorAplicado; } this.sucessoMatriz = 'Configurações salvas.'; this.salvandoMatriz = false; },
-      error: falha => { console.error('Falha ao salvar configurações da matriz.', { status: falha?.status }); this.erroMatriz = falha?.status === 403 ? 'Você não tem permissão para alterar as configurações da empresa.' : falha?.status === 409 ? 'As configurações mudaram em outra sessão. Recarregue e tente novamente.' : 'Não foi possível salvar as configurações.'; this.salvandoMatriz = false; },
+      next: atualizadas => { for (const politica of atualizadas) { this.politicasMatriz[politica.chave] = politica; this.valoresMatriz[politica.chave] = politica.valorAplicado; } this.sucessoMatriz = ''; this.salvandoMatriz = false; this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000}); },
+      error: falha => { console.error('Falha ao salvar configurações da matriz.', { status: falha?.status }); this.erroMatriz = falha?.status === 403 ? 'Você não tem permissão para alterar as configurações da empresa.' : ''; this.salvandoMatriz = false; if (falha?.status === 409 && tentativa === 0) { this.reconciliarPoliticasMatriz(chaves); return; } this.mensagens.add({severity:'error',summary:'Erro ao salvar configuração',detail:this.mensagemErroBruta(falha),life:9000}); },
+    });
+  }
+  private reconciliarPoliticasMatriz(chaves: Chave[]): void {
+    const valoresDesejados = Object.fromEntries(chaves.map(chave => [chave, this.valoresMatriz[chave]])) as Partial<Record<Chave,string>>;
+    const valoresBase = Object.fromEntries(chaves.map(chave => [chave, this.politicasMatriz[chave]?.valorAplicado ?? this.valorPadraoPolitica(chave)])) as Partial<Record<Chave,string>>;
+    this.preferencias.listar('', '', undefined, 0, 100).pipe(take(1)).subscribe({
+      next: resposta => {
+        const atualizadas = Object.fromEntries(resposta.content.map(p => [p.chave,p])) as Partial<Record<Chave,Politica>>;
+        this.politicasMatriz = atualizadas;
+        const conflitando = chaves.filter(chave => { const atual=atualizadas[chave]?.valorAplicado??this.valorPadraoPolitica(chave); return atual!==valoresBase[chave]&&atual!==valoresDesejados[chave]; });
+        const reenviar = chaves.filter(chave => !conflitando.includes(chave));
+        if (!reenviar.length) { this.mensagens.add({severity:'error',summary:'Configuração alterada em outra sessão',detail:'Os campos desta tela mudaram em outra sessão. Revise os valores e salve novamente.',life:9000});return; }
+        if (reenviar.every(chave => (atualizadas[chave]?.valorAplicado??this.valorPadraoPolitica(chave))===valoresDesejados[chave])) { this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000});return; }
+        if (conflitando.length) this.mensagens.add({severity:'warn',summary:'Alguns campos mudaram em outra sessão',detail:`Revise: ${conflitando.map(chave=>this.camposCrmMatriz.find(c=>c.chave===chave)?.rotulo??chave).join(', ')}. Os demais serão salvos.`,life:9000});
+        this.salvarPoliticasMatriz(reenviar,1);
+      },
+      error: falha => this.mensagens.add({severity:'error',summary:'Erro ao atualizar configurações',detail:this.mensagemErroBruta(falha),life:9000}),
     });
   }
   atualizarPolitica(chave: Chave, valor: string): void { this.valoresMatriz[chave] = valor; this.sucessoMatriz = ''; }
@@ -178,7 +260,7 @@ export class ProfileOverview implements OnInit {
     this.carregandoItensMatriz = true; this.erroItemMatriz = '';
     this.itensConfiguracao.listar(grupo, this.buscaItensMatriz).pipe(take(1)).subscribe({ next: itens => { this.itensMatriz = itens; this.carregandoItensMatriz = false; }, error: falha => { this.itensMatriz = []; this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para consultar esta configuração.' : 'Não foi possível carregar os itens desta empresa.'; this.carregandoItensMatriz = false; } });
   }
-  grupoItemAtual(): GrupoItemConfiguracao | null { return this.secaoMatriz === 'categorias' ? 'CLIENTE_CATEGORIA' : this.secaoMatriz === 'etiquetasFinanceiro' ? 'FINANCEIRO_ETIQUETA' : this.secaoMatriz === 'etiquetasVenda' ? 'VENDA_DIRETA_ETIQUETA' : null; }
+  grupoItemAtual(): GrupoItemConfiguracao | null { return this.secaoMatriz === 'categorias' ? 'CLIENTE_CATEGORIA' : this.secaoMatriz === 'recomendacoes' ? 'CLIENTE_RECOMENDACAO' : this.secaoMatriz === 'etiquetas' ? 'ORDEM_SERVICO_ETIQUETA' : this.secaoMatriz === 'etiquetasFinanceiro' ? 'FINANCEIRO_ETIQUETA' : this.secaoMatriz === 'etiquetasVenda' ? 'VENDA_DIRETA_ETIQUETA' : null; }
   abrirItemMatriz(item?: ItemConfiguracao): void { this.itemEditandoMatriz = item; this.descricaoItemMatriz = item?.descricao ?? ''; this.corItemMatriz = item?.cor ?? '#899198'; this.erroItemMatriz = ''; this.modalItemMatriz = true; }
   fecharItemMatriz(): void { if (!this.salvandoItemMatriz) this.modalItemMatriz = false; }
   salvarItemMatriz(): void {
@@ -187,10 +269,10 @@ export class ProfileOverview implements OnInit {
     const alteracao: AlteracaoItemConfiguracao = { grupo, descricao, cor: this.corItemMatriz };
     this.salvandoItemMatriz = true; this.erroItemMatriz = '';
     const requisicao = this.itemEditandoMatriz ? this.itensConfiguracao.editar(this.itemEditandoMatriz.id, alteracao) : this.itensConfiguracao.criar(alteracao);
-    requisicao.pipe(take(1)).subscribe({ next: () => { this.salvandoItemMatriz = false; this.modalItemMatriz = false; this.carregarItensMatriz(); }, error: falha => { this.salvandoItemMatriz = false; this.erroItemMatriz = falha?.status === 409 ? 'Já existe um item com essa descrição.' : falha?.status === 403 ? 'Você não tem permissão para salvar este item.' : 'Não foi possível salvar o item.'; } });
+    requisicao.pipe(take(1)).subscribe({ next: () => { this.salvandoItemMatriz = false; this.modalItemMatriz = false; this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000}); this.carregarItensMatriz(); }, error: falha => { this.salvandoItemMatriz = false; this.erroItemMatriz = falha?.status === 409 ? 'Já existe um item com essa descrição.' : falha?.status === 403 ? 'Você não tem permissão para salvar este item.' : 'Não foi possível salvar o item.'; } });
   }
   excluirItemMatriz(item: ItemConfiguracao): void {
-    this.itensConfiguracao.excluir(item.id).pipe(take(1)).subscribe({ next: () => this.carregarItensMatriz(), error: falha => { this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para excluir este item.' : 'Não foi possível excluir o item.'; } });
+    this.itensConfiguracao.excluir(item.id).pipe(take(1)).subscribe({ next: () => { this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000}); this.carregarItensMatriz(); }, error: falha => { this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para excluir este item.' : 'Não foi possível excluir o item.'; } });
   }
   camposAtualizados(campos: {chave: Chave}[]): void { this.salvarPoliticasMatriz(campos.map(campo => campo.chave)); }
   atualizarBuscaItensMatriz(valor: string): void { this.buscaItensMatriz = valor; this.carregarItensMatriz(); }

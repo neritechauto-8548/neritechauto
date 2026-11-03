@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, of, switchMap, throwError } from 'rxjs';
 import {
   ConfiguracaoEmail,
   ConfiguracaoEmpresa,
@@ -47,7 +47,11 @@ export class EmpresaService {
       dataAbertura: data.dataAbertura,
       observacoes: data.observacoes,
       ativo: data.ativo,
-      versao: data.versao
+      versao: data.versao,
+      // O seletor apresenta o rótulo traduzido, mas a API armazena o código estável.
+      tipoEmpresa: data.tipoEmpresa?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase(),
+      empresaPrincipal: data.empresaPrincipal,
+      contatos: data.contatos
     };
     return this.http.put<Empresa>(`/api/v1/empresas/${id}`, payload);
   }
@@ -169,6 +173,9 @@ export class EmpresaService {
       tempoAgendamentoPadrao: data.tempoAgendamentoPadrao,
       antecedenciaMinimaAgendamento: data.antecedenciaMinimaAgendamento,
       permiteAgendamentoOnline: data.permiteAgendamentoOnline,
+      // Campo opcional: omitir quando vazio mantém compatibilidade com servidores
+      // que ainda não receberam a migração/DTO de agendamento por e-mail.
+      ...(data.emailAgendamento?.trim() ? { emailAgendamento: data.emailAgendamento.trim() } : {}),
       enviaLembreteAgendamento: data.enviaLembreteAgendamento,
       tempoLembreteHoras: data.tempoLembreteHoras,
       margemLucroPadrao: data.margemLucroPadrao,
@@ -182,9 +189,18 @@ export class EmpresaService {
       inicioIntervalo: data.inicioIntervalo,
       fimIntervalo: data.fimIntervalo
     };
-    return data.id
-      ? this.http.put<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina/${data.id}`, payload)
-      : this.http.post<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina`, payload);
+    if (data.id) {
+      return this.http.put<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina/${data.id}`, payload);
+    }
+
+    // A primeira criação pode ter sido concluída mesmo que outra seção do
+    // salvamento conjunto tenha falhado. Consulte antes de repetir o POST.
+    return this.getConfigOficina(data.empresaId).pipe(
+      catchError(erro => erro?.status === 404 ? of(null) : throwError(() => erro)),
+      switchMap(existente => existente?.id
+        ? this.http.put<ConfiguracaoOficina>(`/api/v1/configuracoes-oficina/${existente.id}`, payload)
+        : this.http.post<ConfiguracaoOficina>('/api/v1/configuracoes-oficina', payload))
+    );
   }
 
   // --- Configuração Email ---

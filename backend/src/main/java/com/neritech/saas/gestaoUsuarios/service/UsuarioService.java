@@ -284,6 +284,36 @@ public class UsuarioService {
     }
 
     @Transactional
+    public UsuarioResponse atualizarMeuTema(String tema) {
+        if (!java.util.Set.of("light", "dark", "auto").contains(tema)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY, "Tema inválido");
+        }
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacao == null || !autenticacao.isAuthenticated()) {
+            throw new AccessDeniedException("Sessão não autenticada");
+        }
+        Long empresaId = TenantAccess.requireCurrent();
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCaseAndEmpresaId(autenticacao.getName(), empresaId)
+                .orElseThrow(() -> new AccessDeniedException("Usuário autenticado não encontrado nesta empresa"));
+
+        com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario perfil = usuario.getPerfil();
+        if (perfil == null) {
+            perfil = new com.neritech.saas.gestaoUsuarios.domain.PerfilUsuario();
+            perfil.setUsuario(usuario);
+            perfil.setEmpresaId(empresaId);
+            usuario.setPerfil(perfil);
+        }
+        java.util.Map<String, Object> preferencias = perfil.getPreferencias() == null
+                ? new java.util.HashMap<>() : new java.util.HashMap<>(perfil.getPreferencias());
+        preferencias.put("theme", tema);
+        perfil.setPreferencias(preferencias);
+        Usuario salvo = usuarioRepository.save(usuario);
+        audit(salvo, "UPDATE", java.util.Map.of("theme", tema));
+        return toResponse(salvo);
+    }
+
+    @Transactional
     public UsuarioResponse atualizarMeuEmail(String email, String senhaAtual) {
         Long empresaId = TenantAccess.requireCurrent();
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();

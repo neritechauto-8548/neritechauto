@@ -18,6 +18,7 @@ public record ConfiguracaoOficinaResponse(
         Integer tempoAgendamentoPadrao,
         Integer antecedenciaMinimaAgendamento,
         Boolean permiteAgendamentoOnline,
+        String emailAgendamento,
         Boolean enviaLembreteAgendamento,
         Integer tempoLembreteHoras,
         BigDecimal margemLucroPadrao,

@@ -172,15 +172,16 @@ public class PoliticasGeraisService {
     @Transactional
     public Politica criar(Alterar request) {
         Long tenant = TenantAccess.requireCurrent();
-        validarValor(request.chave(), request.valor());
+        String valor = normalizarValor(request.chave(), request.valor());
+        validarValor(request.chave(), valor);
         Long autor = usuario(tenant);
         try {
             Long id = jdbc.queryForObject("""
                 INSERT INTO politicas_gerais_empresa
                   (empresa_id, chave, valor, ativo, atualizado_por)
                 VALUES (?, ?, ?, true, ?) RETURNING id
-                """, Long.class, tenant, request.chave(), request.valor(), autor);
-            registrar(tenant, id, request.chave(), null, request.valor(), 0, autor, "INSERT");
+                """, Long.class, tenant, request.chave(), valor, autor);
+            registrar(tenant, id, request.chave(), null, valor, 0, autor, "INSERT");
         } catch (DataIntegrityViolationException duplicate) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Política já personalizada para esta empresa", duplicate);
@@ -191,6 +192,7 @@ public class PoliticasGeraisService {
     @Transactional
     public Politica editar(String chave, String valor, Integer versao) {
         Long tenant = TenantAccess.requireCurrent();
+        valor = normalizarValor(chave, valor);
         validarValor(chave, valor);
         requireVersion(versao);
         Politica anterior = obter(chave);
@@ -288,6 +290,10 @@ public class PoliticasGeraisService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Política não permitida");
         }
     }
+    private String normalizarValor(String chave, String valor) {
+        if (valor != null && List.of("nomeRemetenteCrm", "emailRespostaCrm").contains(chave)) return valor.trim();
+        return valor;
+    }
     private void validarValor(String chave, String valor) {
         validarChave(chave);
         boolean textoCrm = List.of("nomeRemetenteCrm", "emailRespostaCrm").contains(chave);
@@ -321,7 +327,7 @@ public class PoliticasGeraisService {
                     "relatorioSepararAreas", "relatorioDadosCliente", "notaFiscalOutraEmpresa" -> List.of("true", "false").contains(valor);
             default -> false;
         };
-        if (!valid) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Valor fora dos limites da política");
+        if (!valid) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Valor fora dos limites da política para a chave '" + chave + "'.");
     }
 
     private static boolean validoEntre(String valor, int min, int max) {

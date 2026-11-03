@@ -40,7 +40,7 @@ public class EmpresaAlteracaoService {
                           Map<String, ?> antes, Map<String, ?> depois) {
         TenantAccess.require(empresaId);
         if (!List.of("empresa", "configuracoes_fiscais", "configuracoes_empresa",
-                "enderecos_empresa", "configuracoes_oficina").contains(tabela)) {
+                "enderecos_empresa", "configuracoes_oficina", "contatos_empresa").contains(tabela)) {
             throw new IllegalArgumentException("Origem de auditoria inválida");
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -16,8 +16,15 @@ export class ConfiguracoesSegurasService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.baseUrl}/v1/configuracoes-seguras`;
   obterSmtp(escopo: 'MATRIZ' | 'CRM'): Observable<ConfiguracaoSmtp> { return this.http.get<ConfiguracaoSmtp>(`${this.base}/smtp/${escopo}`); }
+  obterSmtpPerfil(): Observable<ConfiguracaoSmtp> { return this.http.get<ConfiguracaoSmtp>(`${this.base}/smtp-perfil`); }
+  salvarSmtpPerfil(dados: Omit<ConfiguracaoSmtp, 'temSenha'> & { senha: string }): Observable<ConfiguracaoSmtp> { return this.http.put<ConfiguracaoSmtp>(`${this.base}/smtp-perfil`, dados); }
+  verificarSmtpPerfil(dados: Omit<ConfiguracaoSmtp, 'temSenha'> & { senha: string }): Observable<void> { return this.http.post<void>(`${this.base}/smtp-perfil/verificar`, dados); }
   salvarSmtp(escopo: 'MATRIZ' | 'CRM', dados: Omit<ConfiguracaoSmtp, 'temSenha'> & { senha: string }): Observable<ConfiguracaoSmtp> { return this.http.put<ConfiguracaoSmtp>(`${this.base}/smtp/${escopo}`, dados); }
   verificarSmtp(escopo: 'MATRIZ' | 'CRM', dados: Omit<ConfiguracaoSmtp, 'temSenha'> & { senha: string }): Observable<void> { return this.http.post<void>(`${this.base}/smtp/${escopo}/verificar`, dados); }
   listarCertificados(): Observable<CertificadoProtegido[]> { return this.http.get<CertificadoProtegido[]>(`${this.base}/certificados`); }
   criarCertificado(dados: FormData): Observable<void> { return this.http.post<void>(`${this.base}/certificados`, dados); }
+  obterSenhaPrefeituraNfse(): Observable<{ temSenha: boolean }> { return this.http.get<{ temSenha: boolean }>(`${this.base}/fiscal/nfse/senha-prefeitura`); }
+  salvarSenhaPrefeituraNfse(senha: string): Observable<{ temSenha: boolean }> { return this.http.put<{ temSenha: boolean }>(`${this.base}/fiscal/nfse/senha-prefeitura`, { senha }); }
+  obterCredenciaisNfce(): Observable<{ temCsc: boolean; temToken: boolean }> { return this.http.get<{ temCsc: boolean; temToken: boolean }>(`${this.base}/fiscal/nfce/credenciais`); }
+  salvarCredenciaisNfce(csc: string, token: string): Observable<{ temCsc: boolean; temToken: boolean }> { return this.http.put<{ temCsc: boolean; temToken: boolean }>(`${this.base}/fiscal/nfce/credenciais`, { csc, token }); }
 }

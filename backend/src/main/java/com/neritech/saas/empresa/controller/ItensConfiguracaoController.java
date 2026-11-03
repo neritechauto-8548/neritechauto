@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/v1/itens-configuracao")
-@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA')")
+@PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
 public class ItensConfiguracaoController {
     private final ItensConfiguracaoService servico;
     public ItensConfiguracaoController(ItensConfiguracaoService servico) { this.servico = servico; }

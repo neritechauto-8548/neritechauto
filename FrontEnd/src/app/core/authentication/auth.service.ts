@@ -86,6 +86,12 @@ export class AuthService {
     return this.user$.pipe(share());
   }
 
+  updateThemePreference(theme: 'light' | 'auto' | 'dark') {
+    return this.loginService.updateThemePreference(theme).pipe(
+      tap(user => this.user$.next(user))
+    );
+  }
+
   menu() {
     return iif(() => this.check() || environment.uxPreview, this.loginService.menu(), of([]));
   }

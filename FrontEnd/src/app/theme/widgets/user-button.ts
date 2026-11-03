@@ -22,7 +22,18 @@ export class UserButton implements OnInit {
   readonly siteUrl = 'https://neritechauto.com.br';
   activeDialog: 'shortcuts' | 'about' | 'account' | 'settings' | null = null;
   get theme(): string { return this.settings.options.theme; }
-  changeTheme(value: 'light' | 'auto' | 'dark'): void { this.settings.setTheme(value); }
+  changeTheme(value: 'light' | 'auto' | 'dark'): void {
+    const temaAnterior = this.theme as 'light' | 'auto' | 'dark';
+    if (temaAnterior === value) return;
+    this.settings.setTheme(value);
+    if (this.uxPreview || !this.auth.check()) return;
+
+    this.auth.updateThemePreference(value)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: () => this.settings.setTheme(temaAnterior),
+      });
+  }
   get initials(): string { return this.displayName.trim().slice(0, 2).toUpperCase(); }
   openDialog(kind: 'shortcuts' | 'about' | 'account' | 'settings'): void { this.activeDialog = kind; }
   closeDialog(): void { this.activeDialog = null; }
@@ -35,12 +46,13 @@ export class UserButton implements OnInit {
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === '/') {
       event.preventDefault(); this.activeDialog = this.activeDialog === 'shortcuts' ? null : 'shortcuts'; return;
     }
-    if (editable || this.activeDialog) return;
+    if (editable) return;
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'j') {
       event.preventDefault();
       this.changeTheme(this.theme === 'dark' ? 'light' : 'dark');
       return;
     }
+    if (this.activeDialog) return;
     if (!event.ctrlKey && !event.metaKey && !event.altKey && (event.key === '[' || event.key === ']')) {
       event.preventDefault(); this.settings.setOptions({ sidenavCollapsed: event.key === '[' }); return;
     }

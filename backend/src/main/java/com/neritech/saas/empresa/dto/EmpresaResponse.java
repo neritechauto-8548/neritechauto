@@ -2,6 +2,7 @@ package com.neritech.saas.empresa.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.util.List;
 
 @Schema(name = "EmpresaResponse", description = "Dados retornados de empresa")
 public class EmpresaResponse {
@@ -34,6 +35,9 @@ public class EmpresaResponse {
 
     @Schema(description = "Versão para controle de concorrência")
     private Integer versao;
+    private String tipoEmpresa;
+    private Boolean empresaPrincipal;
+    private List<ContatoEmpresaRequest> contatos = List.of();
 
     public Long getId() {
         return id;
@@ -145,4 +149,11 @@ public class EmpresaResponse {
     public void setVersao(Integer versao) {
         this.versao = versao;
     }
+
+    public String getTipoEmpresa() { return tipoEmpresa; }
+    public void setTipoEmpresa(String tipoEmpresa) { this.tipoEmpresa = tipoEmpresa; }
+    public Boolean getEmpresaPrincipal() { return empresaPrincipal; }
+    public void setEmpresaPrincipal(Boolean empresaPrincipal) { this.empresaPrincipal = empresaPrincipal; }
+    public List<ContatoEmpresaRequest> getContatos() { return contatos; }
+    public void setContatos(List<ContatoEmpresaRequest> contatos) { this.contatos = contatos; }
 }

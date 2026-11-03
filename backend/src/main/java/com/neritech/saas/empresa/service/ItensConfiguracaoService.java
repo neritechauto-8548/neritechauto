@@ -18,7 +18,7 @@ import java.util.Set;
 
 @Service
 public class ItensConfiguracaoService {
-    private static final Set<String> GRUPOS = Set.of("CLIENTE_CATEGORIA", "FINANCEIRO_ETIQUETA", "VENDA_DIRETA_ETIQUETA");
+    private static final Set<String> GRUPOS = Set.of("CLIENTE_CATEGORIA", "CLIENTE_RECOMENDACAO", "FINANCEIRO_ETIQUETA", "VENDA_DIRETA_ETIQUETA", "ORDEM_SERVICO_ETIQUETA");
     private static final Set<String> CORES = Set.of("#2D2D2D", "#899198", "#FF4D55", "#E83E7A", "#BA42D2", "#7544E8", "#4367E8", "#2585DA", "#16A7B9", "#12B886", "#3BB956", "#7EC51D", "#F3A900", "#FF7A00", "#FFFFFF00");
     public record Item(Long id, String grupo, String descricao, String cor, java.time.LocalDateTime atualizadoEm) {}
     public record Alteracao(String grupo, String descricao, String cor) {}

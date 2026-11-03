@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.neritech.saas.empresa.service.EmpresaLogoStorageService;
+import com.neritech.saas.empresa.service.ContatoEmpresaService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,18 +35,22 @@ public class EmpresaController {
     private final EmpresaService service;
     private final EmpresaLogoStorageService logoStorageService;
     private final EmpresaAlteracaoService auditoria;
+    private final ContatoEmpresaService contatos;
 
-    public EmpresaController(EmpresaService service, EmpresaLogoStorageService logoStorageService, EmpresaAlteracaoService auditoria) {
+    public EmpresaController(EmpresaService service, EmpresaLogoStorageService logoStorageService, EmpresaAlteracaoService auditoria, ContatoEmpresaService contatos) {
         this.service = service;
         this.logoStorageService = logoStorageService;
         this.auditoria = auditoria;
+        this.contatos = contatos;
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar empresa", description = "Busca uma empresa pelo ID")
     public ResponseEntity<EmpresaResponse> getById(@PathVariable Long id) {
         Empresa e = service.findById(TenantAccess.require(id));
-        return ResponseEntity.ok(EmpresaMapper.toResponse(e));
+        EmpresaResponse resposta = EmpresaMapper.toResponse(e);
+        resposta.setContatos(contatos.listar(id));
+        return ResponseEntity.ok(resposta);
     }
 
     @GetMapping
@@ -65,6 +71,7 @@ public class EmpresaController {
         boolean matches = matchesCnpj && matchesName;
         List<EmpresaResponse> content = matches && pageable.getOffset() == 0
                 ? List.of(EmpresaMapper.toResponse(own)) : List.of();
+        content.forEach(item -> item.setContatos(contatos.listar(item.getId())));
         return ResponseEntity.ok(new PageImpl<>(content, pageable, matches ? 1L : 0L));
     }
 
@@ -90,10 +97,14 @@ public class EmpresaController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('GERAL_CONFIG_SISTEMA') or hasAuthority('ADM_EMPRESA')")
+    @Transactional
     @Operation(summary = "Atualizar empresa", description = "Atualiza os dados de uma empresa existente")
     public ResponseEntity<EmpresaResponse> update(@PathVariable Long id, @Valid @RequestBody EmpresaRequest request) {
         Empresa saved = service.updateCadastro(TenantAccess.require(id), request);
-        return ResponseEntity.ok(EmpresaMapper.toResponse(saved));
+        if (request.getContatos() != null) contatos.substituir(id, request.getContatos());
+        EmpresaResponse resposta = EmpresaMapper.toResponse(saved);
+        resposta.setContatos(contatos.listar(id));
+        return ResponseEntity.ok(resposta);
     }
 
     @DeleteMapping("/{id}")

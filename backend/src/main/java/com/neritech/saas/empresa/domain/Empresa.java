@@ -51,6 +51,12 @@ public class Empresa extends BaseEntity {
     @Column(name = "segmento", length = 50)
     private String segmento;
 
+    @Column(name = "tipo_empresa", length = 40, nullable = false)
+    private String tipoEmpresa = "MECANICA";
+
+    @Column(name = "empresa_principal", nullable = false)
+    private Boolean empresaPrincipal = true;
+
     @Column(name = "stripe_customer_id", length = 255)
     private String stripeCustomerId;
 
@@ -156,6 +162,11 @@ public class Empresa extends BaseEntity {
     public void setSegmento(String segmento) {
         this.segmento = segmento;
     }
+
+    public String getTipoEmpresa() { return tipoEmpresa; }
+    public void setTipoEmpresa(String tipoEmpresa) { this.tipoEmpresa = tipoEmpresa; }
+    public Boolean getEmpresaPrincipal() { return empresaPrincipal; }
+    public void setEmpresaPrincipal(Boolean empresaPrincipal) { this.empresaPrincipal = empresaPrincipal; }
 
     public String getStripeCustomerId() {
         return stripeCustomerId;

@@ -8,7 +8,7 @@ import { ConfirmationDialogComponent } from '@shared/components/confirmation-dia
 @Component({
   selector: 'app-root',
   template: `
-    <p-toast [style]="{top: '110px'}" [baseZIndex]="99999" />
+    <p-toast position="bottom-right" styleClass="nt-toast-config" [baseZIndex]="100000" />
     <app-confirmation-dialog />
     <router-outlet />
   `,

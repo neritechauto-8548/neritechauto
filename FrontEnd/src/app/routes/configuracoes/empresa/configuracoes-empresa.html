@@ -1,0 +1,150 @@
+<div class="nt-ce-backdrop" (click)="fecharPainel()" (keydown.escape)="fecharPainel()">
+  <section class="nt-ce-modal" [class.nt-ce-modal--maximizada]="maximizada" role="dialog" aria-modal="true" aria-label="Configurações da empresa" (click)="$event.stopPropagation()">
+    <header class="nt-ce-header">
+      <div class="nt-ce-identidade">
+        <i class="pi pi-cog" aria-hidden="true"></i>
+        <div><h1>Configurações da empresa <i class="pi pi-question-circle nt-ce-ajuda" title="Preferências operacionais da empresa selecionada"></i></h1>
+          <p>{{ nomeEmpresa }}<span>{{ cnpjEmpresa ? ' | CNPJ ' + cnpjEmpresa : '' }}</span></p></div>
+      </div>
+      <div class="nt-ce-acoes-header">
+        <button type="button" class="nt-ce-icone" (click)="alternarTamanho()" [attr.aria-label]="maximizada ? 'Restaurar tamanho' : 'Maximizar configurações'"><i class="pi" [class.pi-window-maximize]="!maximizada" [class.pi-window-minimize]="maximizada"></i></button>
+        <button type="button" class="nt-ce-icone nt-ce-fechar" (click)="fecharPainel()" aria-label="Fechar configurações"><i class="pi pi-times"></i></button>
+      </div>
+    </header>
+
+    <div class="nt-ce-busca"><i class="pi pi-search" aria-hidden="true"></i><input [(ngModel)]="busca" type="search" placeholder="Buscar configuração..." aria-label="Buscar configuração" /></div>
+
+    <div class="nt-ce-corpo">
+      <aside class="nt-ce-menu" aria-label="Seções de configuração">
+        @for (grupo of gruposVisiveis; track grupo) {
+          <div class="nt-ce-grupo">
+            <button type="button" class="nt-ce-grupo-botao" (click)="alternarGrupo(grupo)" [attr.aria-expanded]="!!aberto[grupo]">
+              <i class="pi" [class.pi-file]="grupo === 'Ordem de serviço'" [class.pi-box]="grupo === 'Produto'" [class.pi-shopping-bag]="grupo === 'Compras'" [class.pi-calendar-clock]="grupo === 'Agendamento'" [class.pi-dollar]="grupo === 'Financeiro'" [class.pi-book]="grupo === 'Termos'" [class.pi-receipt]="grupo === 'Fiscal'"></i><span>{{ grupo }}</span><i class="pi nt-ce-chevron" [class.pi-chevron-down]="aberto[grupo]" [class.pi-chevron-right]="!aberto[grupo]"></i>
+            </button>
+            @if (aberto[grupo] || busca.trim()) {
+              @for (item of secoesVisiveis; track item.secao) {
+                @if (item.grupo === grupo && (item.secao !== 'PRODUTO_COMPOSICAO' || aberto['Produto'] || busca.trim()) && (item.secao !== 'PRODUTO_CUSTO_LUCRO' || aberto['Produto'] || busca.trim())) {
+                  <button type="button" class="nt-ce-item" [class.selecionado]="secaoAtual === item.secao" (click)="selecionar(item.secao)"><i [class]="item.icone" aria-hidden="true"></i><span>{{ item.titulo }}</span></button>
+                }
+              }
+            }
+          </div>
+        }
+        @if (!gruposVisiveis.length) { <p class="nt-ce-sem-busca">Nenhuma configuração encontrada.</p> }
+      </aside>
+
+      <main class="nt-ce-conteudo">
+        @if (!secaoAtual.startsWith('FISCAL_')) { <header class="nt-ce-titulo-secao"><h2><i [class]="secaoSelecionada.icone" aria-hidden="true"></i>{{ secaoSelecionada.titulo }}</h2>
+          <p>{{ descricaoSecao() }}</p></header> }
+        @if (erro) { <p class="nt-ce-erro" role="alert">{{ erro }}</p> }
+        @if (loading) { <div class="nt-ce-carregando" role="status">Carregando configurações...</div> }
+        @if (!loading) {
+          @if (secaoAtual === 'ATENDIMENTO') {
+            <section class="nt-ce-cartao">
+              <h3>Campos e rotina de atendimento</h3>
+              <div class="nt-ce-grade-dois">
+                @for (campo of ['campoKmObrigatorio','campoPrismaObrigatorio','campoNivelTanqueObrigatorio','exibirCamposIndicacaoCorretor','vincularObservacoesOrdensAtividades','preencherFolhaMecanicoAutomaticamente']; track campo) {
+                  <div class="nt-ce-chave"><div><strong>{{ rotulo(campo) }}</strong><p>{{ descricao(campo) }}</p></div><button type="button" class="nt-ce-switch" [class.ativo]="dados['ATENDIMENTO'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['ATENDIMENTO'][campo]"><span></span></button></div>
+                }
+              </div>
+              <ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container>
+            </section>
+          }
+          @if (secaoAtual === 'COMERCIAL') {
+            <section class="nt-ce-cartao"><h3>Regras comerciais</h3>
+              <div class="nt-ce-grade-tres">
+                <label class="nt-ce-campo"><span>Margem de referência (%)</span><input type="number" min="0" max="100" step="0.01" [(ngModel)]="dados['COMERCIAL']['margemReferencia']" /></label>
+                <label class="nt-ce-campo"><span>Desconto máximo de peça (%)</span><input type="number" min="0" max="100" step="0.01" [(ngModel)]="dados['COMERCIAL']['descontoMaximoPeca']" /></label>
+                <label class="nt-ce-campo"><span>Desconto máximo de serviço (%)</span><input type="number" min="0" max="100" step="0.01" [(ngModel)]="dados['COMERCIAL']['descontoMaximoServico']" /></label>
+              </div>
+              <div class="nt-ce-chave nt-ce-chave--linha"><div><strong>{{ rotulo('aplicarAcrescimoOs') }}</strong><p>{{ descricao('aplicarAcrescimoOs') }}</p></div><button type="button" class="nt-ce-switch" [class.ativo]="dados['COMERCIAL']['aplicarAcrescimoOs']" (click)="alternar('aplicarAcrescimoOs')" aria-label="Aplicar acréscimo na ordem de serviço" [attr.aria-pressed]="dados['COMERCIAL']['aplicarAcrescimoOs']"><span></span></button></div>
+              <ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container>
+            </section>
+          }
+          @if (secaoAtual === 'ESTOQUE_FINANCEIRO') {
+            <section class="nt-ce-cartao"><h3>Estoque</h3><div class="nt-ce-grade-dois">
+              @for (campo of ['baixaAutomaticaEstoque','notificarEstoqueMinimo']; track campo) { <div class="nt-ce-chave"><div><strong>{{ rotulo(campo) }}</strong><p>{{ descricao(campo) }}</p></div><button type="button" class="nt-ce-switch" [class.ativo]="dados['ESTOQUE_FINANCEIRO'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['ESTOQUE_FINANCEIRO'][campo]"><span></span></button></div> }
+              </div><hr /><h3>Gerar financeiro</h3><div class="nt-ce-segmentos" role="group" aria-label="Condição de pagamento">
+                <button type="button" [class.ativo]="dados['ESTOQUE_FINANCEIRO']['modoCondicaoPagamento'] === 'PARCELAMENTO_LIVRE'" (click)="dados['ESTOQUE_FINANCEIRO']['modoCondicaoPagamento']='PARCELAMENTO_LIVRE'">Parcelamento livre</button>
+                <button type="button" [class.ativo]="dados['ESTOQUE_FINANCEIRO']['modoCondicaoPagamento'] === 'CONDICOES_PAGAMENTO'" (click)="dados['ESTOQUE_FINANCEIRO']['modoCondicaoPagamento']='CONDICOES_PAGAMENTO'">Condições de pagamento</button>
+              </div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container>
+            </section>
+          }
+          @if (secaoAtual === 'INTEGRACOES') {
+            <section class="nt-ce-cartao"><h3>Criação de peças</h3><div class="nt-ce-grade-dois nt-ce-grade-integracao">
+              @for (item of [{valor:'valorHoraPintura',area:'areaPintura',nome:'Pintura'},{valor:'valorHoraTroca',area:'areaTroca',nome:'Troca'},{valor:'valorHoraReparacao',area:'areaReparacao',nome:'Reparação'}]; track item.valor) {
+                <label class="nt-ce-campo"><span>Valor hora {{ item.nome.toLowerCase() }}</span><input type="number" min="0" step="0.01" [(ngModel)]="dados['INTEGRACOES'][item.valor]" /></label>
+                <label class="nt-ce-campo"><span>Área de {{ item.nome.toLowerCase() }}</span><select [(ngModel)]="dados['INTEGRACOES'][item.area]"><option value="">Selecionar área</option>@for (area of areasRecursos; track area.id) { <option [value]="area.id">{{ area.descricao }}</option> }</select></label>
+              }
+            </div><hr /><h3>Bosch</h3><div class="nt-ce-grade-dois">
+              @for (campo of ['utilizarChecklistBosch','enviarOsMyBcsAutomaticamente','receberEventosMyBcs']; track campo) { <div class="nt-ce-chave"><div><strong>{{ rotulo(campo) }}</strong><p>{{ descricao(campo) }}</p></div><button type="button" class="nt-ce-switch" [class.ativo]="dados['INTEGRACOES'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['INTEGRACOES'][campo]"><span></span></button></div> }
+            </div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container></section>
+          }
+          @if (secaoAtual === 'GESTAO_PATIO') {
+            <section class="nt-ce-cartao"><h3>Gestão de pátio</h3><div class="nt-ce-grade-dois">
+              @for (campo of ['criarAtividadeAoGerarOs','moverCartaoAoFecharOs']; track campo) { <div class="nt-ce-chave"><div><strong>{{ rotulo(campo) }}</strong><p>{{ descricao(campo) }}</p></div><button type="button" class="nt-ce-switch" [class.ativo]="dados['GESTAO_PATIO'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['GESTAO_PATIO'][campo]"><span></span></button></div> }
+            </div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container></section>
+          }
+          @if (secaoAtual === 'TAGS_ITENS') {
+            <section class="nt-ce-lista"><div class="nt-ce-lista-topo"><h3>Tags de itens</h3><button type="button" class="nt-ce-botao-verde" (click)="abrirCriacaoTag()"><i class="pi pi-plus"></i> Nova tag</button></div>
+              <label class="nt-ce-busca-lista"><i class="pi pi-search"></i><input [(ngModel)]="buscaTag" (ngModelChange)="carregarTags()" placeholder="Pesquisar tag de itens" /></label>
+              <div class="nt-ce-tabela"><div class="nt-ce-tabela-titulo">Descrição</div>
+                @for (item of itensFiltrados(); track item.id) { <div class="nt-ce-tabela-linha"><span class="nt-ce-cor" [style.background]="item.cor"></span><span>{{ item.descricao }}</span><button type="button" class="nt-ce-lixeira" (click)="excluirTag(item)" [attr.aria-label]="'Excluir tag ' + item.descricao"><i class="pi pi-trash"></i></button></div> }
+                @empty { <div class="nt-ce-vazio"><i class="pi pi-inbox"></i> Não há dados</div> }
+              </div>
+            </section>
+          }
+          @if (secaoAtual === 'FERIADOS_LOCAIS') {
+            <section class="nt-ce-cartao"><h3>Feriados locais (GNV)</h3><label class="nt-ce-campo"><span>Feriados estaduais e municipais</span><div class="nt-ce-entrada-feriado"><input [(ngModel)]="feriadoEntrada" placeholder="Ex.: 20/01 ou 05/06/2026" (keydown.enter)="$event.preventDefault(); adicionarFeriado()" /><button type="button" (click)="adicionarFeriado()" aria-label="Adicionar feriado"><i class="pi pi-plus"></i></button></div></label>
+              <small class="nt-ce-ajuda-campo">Descontados da validade para inspeção do Atestado de GNV (10 dias úteis após o serviço). DD/MM repete todo ano; DD/MM/AAAA vale só naquela data. Pressione Enter para adicionar.</small>
+              @for (feriado of dados['FERIADOS_LOCAIS']['feriados']; track $index; let i = $index) { <div class="nt-ce-feriado"><span><i class="pi pi-calendar"></i>{{ feriado }}</span><button type="button" class="nt-ce-lixeira" (click)="removerFeriado(i)" aria-label="Remover feriado"><i class="pi pi-trash"></i></button></div> }
+              <ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container>
+            </section>
+          }
+          @if (secaoAtual === 'PRODUTO_COMPOSICAO') {
+            <section class="nt-ce-cartao"><h3>Campos usados na composição</h3><p class="nt-ce-intro">Ative somente os valores que devem participar do cálculo do preço de venda dos produtos.</p><div class="nt-ce-grade-dois nt-ce-lista-chaves">
+              @for (campo of ['percentualIpi','frete','custoFixo','despesasOperacionais','substituicaoTributaria','outrasDespesas','icmsDesoneracao','calcularMargemLucro']; track campo) { <div class="nt-ce-chave"><div><strong>{{ rotulo(campo) }}</strong><p>{{ campo === 'percentualIpi' ? 'Inclui o percentual de IPI informado no item na composição do preço.' : campo === 'frete' ? 'Soma o valor de frete do produto à composição do preço.' : campo === 'custoFixo' ? 'Aplica o percentual de custo fixo configurado para a empresa.' : campo === 'despesasOperacionais' ? 'Inclui despesas operacionais na formação do preço de venda.' : campo === 'substituicaoTributaria' ? 'Considera o valor de substituição tributária no cálculo de venda.' : campo === 'outrasDespesas' ? 'Inclui despesas acessórias registradas no produto.' : campo === 'icmsDesoneracao' ? 'Considera o ICMS de desoneração no cálculo quando houver valor informado.' : 'Define se o reajuste preserva o preço de venda ou o percentual de lucro.' }}</p></div><button type="button" class="nt-ce-switch" [class.ativo]="dados['PRODUTO_COMPOSICAO'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['PRODUTO_COMPOSICAO'][campo]"><span></span></button></div> }
+            </div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container></section>
+          }
+          @if (secaoAtual === 'PRODUTO_CUSTO_LUCRO') {
+            <section class="nt-ce-cartao"><div class="nt-ce-grade-dois nt-ce-blocos-percentual">
+              <div><h3>Custo fixo</h3><p class="nt-ce-intro">Percentual fixo usado para compor o custo dos produtos.</p><label class="nt-ce-campo"><span>Percentual de custo fixo</span><div class="nt-ce-percentual"><i class="pi pi-percentage"></i><input type="number" min="0" max="100" step="0.01" [(ngModel)]="dados['PRODUTO_CUSTO_LUCRO']['percentualCustoFixo']" /></div></label></div>
+              <div><h3>Lucro fixo</h3><p class="nt-ce-intro">Percentual de referência para calcular a margem de lucro dos produtos.</p><label class="nt-ce-campo"><span>Percentual de lucro fixo</span><div class="nt-ce-percentual"><i class="pi pi-percentage"></i><input type="number" min="0" max="100" step="0.01" [(ngModel)]="dados['PRODUTO_CUSTO_LUCRO']['percentualLucroFixo']" /></div></label></div>
+            </div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container></section>
+          }
+          @if (secaoAtual === 'COMPRAS') {
+            <section class="nt-ce-cartao"><h3>Configuração geral de compras</h3>@for (campo of ['bloquearCfopSaida','permitirExcluirItensImportados','permitirPrecoVendaNaCompra','exigirMotivoCancelamento']; track campo) { <div class="nt-ce-chave nt-ce-chave--compra"><div><strong>{{ rotulo(campo) }}</strong><p>{{ descricao(campo) }}</p>@if (campo === 'bloquearCfopSaida' && dados['COMPRAS'][campo]) { <small class="nt-ce-aviso">Compras importadas sem CFOP não poderão ser confirmadas.</small> }@if (campo === 'exigirMotivoCancelamento' && dados['COMPRAS'][campo]) { <small class="nt-ce-aviso">O cancelamento fica bloqueado enquanto o motivo não for informado.</small> }</div><button type="button" class="nt-ce-switch" [class.ativo]="dados['COMPRAS'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['COMPRAS'][campo]"><span></span></button></div> }
+              <ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container>
+            </section>
+          }
+          @if (secaoAtual === 'AGENDAMENTO') {
+            <section class="nt-ce-cartao"><h3>Configuração de agendamento</h3><p class="nt-ce-intro">Controle os dias de atendimento, a capacidade da agenda e os períodos indisponíveis da empresa.</p><div class="nt-ce-tab">▧ &nbsp; Indisponibilidades</div><div class="nt-ce-lista"><div class="nt-ce-lista-topo"><h3>Períodos em que a agenda não recebe novos agendamentos</h3><button type="button" class="nt-ce-botao-verde" (click)="modalIndisponibilidade=true"><i class="pi pi-plus"></i> Nova indisponibilidade</button></div><div class="nt-ce-grade-tabela"><span>Descrição</span><span>Período</span><span>Recursos</span></div>
+              @for (periodo of dados['AGENDAMENTO']['indisponibilidades']; track $index; let i = $index) { <div class="nt-ce-linha-periodo"><span>{{ periodo.descricao }}</span><span>{{ periodo.data | date:'dd/MM/yyyy' }} · {{ periodo.inicio }}–{{ periodo.fim }}</span><span>{{ periodo.todosRecursos ? 'Todos' : periodo.recursos }}</span><button class="nt-ce-lixeira" type="button" (click)="removerIndisponibilidade(i)" aria-label="Remover indisponibilidade"><i class="pi pi-trash"></i></button></div> }
+              @empty { <div class="nt-ce-vazio"><i class="pi pi-inbox"></i> Não há dados</div> }</div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container></section>
+          }
+          @if (secaoAtual === 'FINANCEIRO') {
+            <section class="nt-ce-cartao"><h3>Configuração geral do financeiro</h3>@for (campo of ['parcelasLivresVendaDireta','dataVendaReferenciaVencimento','permitirLiquidoNegativoPagar']; track campo) { <div class="nt-ce-chave nt-ce-chave--compra"><div><strong>{{ rotulo(campo) }}</strong><p>{{ descricao(campo) }}</p>@if (campo === 'parcelasLivresVendaDireta' && !dados['FINANCEIRO'][campo]) { <small class="nt-ce-aviso">Quando desativado, a venda direta usa as condições de pagamento cadastradas.</small> }@if (campo === 'permitirLiquidoNegativoPagar' && dados['FINANCEIRO'][campo]) { <small class="nt-ce-aviso">Esta configuração pode impactar lançamentos financeiros e conciliações.</small> }</div><button type="button" class="nt-ce-switch" [class.ativo]="dados['FINANCEIRO'][campo]" (click)="alternar(campo)" [attr.aria-label]="rotulo(campo)" [attr.aria-pressed]="dados['FINANCEIRO'][campo]"><span></span></button></div> }
+              <ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container>
+            </section>
+          }
+          @if (secaoAtual === 'TERMOS') {
+            <section class="nt-ce-cartao"><h3>Termos personalizados</h3><div class="nt-ce-acordeao">
+              @for (termo of termos; track termo.chave) { <details><summary>{{ termo.titulo }}<span class="nt-ce-status">{{ dados['TERMOS'][termo.chave]?.trim() ? 'Configurado' : 'Não configurado' }}</span><i class="pi pi-chevron-down"></i></summary><div class="nt-ce-termo-conteudo"><label [for]="termo.chave">{{ termo.titulo }}</label><textarea [id]="termo.chave" maxlength="5000" rows="6" [(ngModel)]="dados['TERMOS'][termo.chave]"></textarea><small>Aparece na ordem de serviço e na venda direta.<span>{{ dados['TERMOS'][termo.chave].length }}/5000</span></small></div></details> }
+            </div><ng-container *ngTemplateOutlet="rodapeSalvar"></ng-container></section>
+          }
+          @if (secaoAtual.startsWith('FISCAL_')) { <nt-configuracoes-fiscais-empresa [secao]="secaoAtual" [cnpjEmpresa]="cnpjEmpresa" /> }
+        }
+      </main>
+    </div>
+
+    <ng-template #rodapeSalvar><footer class="nt-ce-rodape"><button type="button" class="nt-ce-botao-salvar" [disabled]="!alterado || saving" (click)="salvar()"><i class="pi pi-save"></i>{{ saving ? 'Salvando...' : 'Salvar' }}<i class="pi pi-info-circle" title="Salva as alterações desta seção"></i></button></footer></ng-template>
+  </section>
+</div>
+
+@if (modalTag) {
+  <div class="nt-ce-dialog-fundo" (click)="modalTag=false"><section class="nt-ce-dialog nt-ce-dialog--tag" role="dialog" aria-modal="true" aria-label="Criação da tag" (click)="$event.stopPropagation()"><header><h2>Criação da tag</h2><button type="button" class="nt-ce-icone" (click)="modalTag=false" aria-label="Fechar"><i class="pi pi-times"></i></button></header><label class="nt-ce-campo"><span>Descrição <b>*</b></span><input [(ngModel)]="descricaoTag" maxlength="100" autofocus /></label><strong class="nt-ce-legenda-cor">Cor <b>*</b></strong><div class="nt-ce-paleta">@for (cor of cores; track cor) { <button type="button" [style.background]="cor" [class.escolhida]="corTag===cor" (click)="corTag=cor" [attr.aria-label]="'Selecionar cor ' + cor"></button> }</div><footer><button type="button" class="nt-ce-botao-secundario" (click)="modalTag=false">Cancelar</button><button type="button" class="nt-ce-botao-verde" [disabled]="descricaoTag.trim().length<2 || saving" (click)="salvarTag()"><i class="pi pi-save"></i> Salvar</button></footer></section></div>
+}
+
+@if (modalIndisponibilidade) {
+  <div class="nt-ce-dialog-fundo" (click)="modalIndisponibilidade=false"><section class="nt-ce-dialog nt-ce-dialog--indisponibilidade" role="dialog" aria-modal="true" aria-label="Nova indisponibilidade" (click)="$event.stopPropagation()"><header><h2>Nova indisponibilidade</h2><button type="button" class="nt-ce-icone" (click)="modalIndisponibilidade=false" aria-label="Fechar"><i class="pi pi-times"></i></button></header><p>Bloqueie uma data e horário específicos quando parte ou todos os recursos não puderem receber agendamentos.</p><label class="nt-ce-campo nt-ce-largura-total"><span>Descrição <b>*</b></span><input [(ngModel)]="novoPeriodo.descricao" maxlength="120" placeholder="Ex.: Treinamento interno" /></label><div class="nt-ce-grade-dois"><label class="nt-ce-campo"><span>Data <b>*</b></span><input type="date" [(ngModel)]="novoPeriodo.data" /></label><label class="nt-ce-campo"><span>Recursos indisponíveis <b>*</b></span><input type="number" min="1" max="10000" [(ngModel)]="novoPeriodo.recursos" [disabled]="novoPeriodo.todosRecursos" placeholder="Ex.: 2" /></label></div><label class="nt-ce-checkbox"><input type="checkbox" [(ngModel)]="novoPeriodo.todosRecursos" /> Todos os recursos</label><small>Use quando a empresa inteira estiver indisponível nesse horário.</small><div class="nt-ce-grade-dois"><label class="nt-ce-campo"><span>Início <b>*</b></span><input type="time" [(ngModel)]="novoPeriodo.inicio" /></label><label class="nt-ce-campo"><span>Fim <b>*</b></span><input type="time" [(ngModel)]="novoPeriodo.fim" /></label></div><footer><button type="button" class="nt-ce-botao-secundario" (click)="modalIndisponibilidade=false">Cancelar</button><button type="button" class="nt-ce-botao-verde" [disabled]="!novoPeriodo.descricao.trim() || !novoPeriodo.data || !novoPeriodo.inicio || !novoPeriodo.fim || novoPeriodo.fim<=novoPeriodo.inicio" (click)="adicionarIndisponibilidade()">Salvar</button></footer></section></div>
+}

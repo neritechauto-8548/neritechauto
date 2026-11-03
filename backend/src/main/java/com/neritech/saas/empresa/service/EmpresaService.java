@@ -261,6 +261,8 @@ public class EmpresaService {
         campos.put("telefone", e.getTelefone());
         campos.put("site", e.getSite());
         campos.put("ativo", e.getAtivo());
+        campos.put("tipoEmpresa", e.getTipoEmpresa());
+        campos.put("empresaPrincipal", e.getEmpresaPrincipal());
         return campos;
     }
 
@@ -312,6 +314,15 @@ public class EmpresaService {
         if (empresa.getRazaoSocial().trim().length() < 2) {
             throw new BusinessException("A Razão Social deve ter pelo menos 2 caracteres.");
         }
+        if (empresa.getTipoEmpresa() == null || empresa.getTipoEmpresa().isBlank()) {
+            throw new BusinessException("O tipo da empresa é obrigatório.");
+        }
+        String tipoEmpresaNormalizado = java.text.Normalizer.normalize(empresa.getTipoEmpresa(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").trim().toUpperCase(java.util.Locale.ROOT).replaceAll("[\\s_-]+", "");
+        if (!List.of("MECANICA").contains(tipoEmpresaNormalizado)) {
+            throw new BusinessException("O tipo da empresa é inválido.");
+        }
+        empresa.setTipoEmpresa(tipoEmpresaNormalizado);
 
         // ── RN-EMPRESA-03: CPF/CNPJ obrigatório e válido ─────────────────────
         if (empresa.getCnpj() == null || empresa.getCnpj().isBlank()) {

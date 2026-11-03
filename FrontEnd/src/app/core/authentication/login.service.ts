@@ -68,6 +68,16 @@ export class LoginService {
     );
   }
 
+  updateThemePreference(theme: 'light' | 'auto' | 'dark') {
+    return this.http.patch<User>('/usuarios/me/preferencias/tema', { tema: theme }).pipe(
+      map((user: any) => ({
+        ...user,
+        name: user.nomeCompleto || user.name,
+        avatar: user.avatarUrl || user.avatar,
+      } as User))
+    );
+  }
+
   menu() {
     // Busca o arquivo estático da própria URL do frontend, ignorando o BaseUrlInterceptor
     const menuUrl = window.location.origin + '/data/menu.json';

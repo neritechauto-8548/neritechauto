@@ -95,6 +95,14 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.atualizarMeuEmail(request.email(), request.senhaAtual()));
     }
 
+    @PatchMapping("/me/preferencias/tema")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Atualizar tema da própria conta")
+    public ResponseEntity<UsuarioResponse> atualizarMeuTema(
+            @RequestBody @Valid com.neritech.saas.gestaoUsuarios.dto.PreferenciaTemaRequest request) {
+        return ResponseEntity.ok(usuarioService.atualizarMeuTema(request.tema()));
+    }
+
     @GetMapping("/menu")
     @Operation(summary = "Obter menu do usuário", description = "Retorna o menu baseado nas permissões do usuário")
     public ResponseEntity<MenuResponse> getMenu() {

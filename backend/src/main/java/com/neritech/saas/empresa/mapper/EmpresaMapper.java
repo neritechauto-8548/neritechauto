@@ -19,6 +19,8 @@ public class EmpresaMapper {
         e.setDataAbertura(dto.getDataAbertura());
         e.setObservacoes(dto.getObservacoes());
         e.setAtivo(dto.getAtivo());
+        if (dto.getTipoEmpresa() != null) e.setTipoEmpresa(dto.getTipoEmpresa());
+        if (dto.getEmpresaPrincipal() != null) e.setEmpresaPrincipal(dto.getEmpresaPrincipal());
         return e;
     }
 
@@ -34,6 +36,8 @@ public class EmpresaMapper {
         target.setDataAbertura(dto.getDataAbertura());
         target.setObservacoes(dto.getObservacoes());
         target.setAtivo(dto.getAtivo());
+        if (dto.getTipoEmpresa() != null) target.setTipoEmpresa(dto.getTipoEmpresa());
+        if (dto.getEmpresaPrincipal() != null) target.setEmpresaPrincipal(dto.getEmpresaPrincipal());
     }
 
     public static EmpresaResponse toResponse(Empresa e) {
@@ -51,6 +55,8 @@ public class EmpresaMapper {
         r.setDataAbertura(e.getDataAbertura());
         r.setObservacoes(e.getObservacoes());
         r.setAtivo(e.getAtivo());
+        r.setTipoEmpresa(e.getTipoEmpresa());
+        r.setEmpresaPrincipal(e.getEmpresaPrincipal());
         // O frontend precisa apenas saber se há logomarca; nunca expor o caminho local.
         r.setLogoPath(e.getLogoPath() == null || e.getLogoPath().isBlank() ? null : "available");
         return r;

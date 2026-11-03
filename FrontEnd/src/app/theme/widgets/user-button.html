@@ -15,9 +15,9 @@
       </div>
     </div>
     <div class="nt-theme-picker" aria-label="Preferência de aparência">
-      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'light'" (click)="changeTheme('light')" aria-label="Tema claro" [attr.aria-pressed]="theme === 'light'">▤</button>
-      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'auto'" (click)="changeTheme('auto')" aria-label="Tema automático" [attr.aria-pressed]="theme === 'auto'">☼</button>
-      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'dark'" (click)="changeTheme('dark')" aria-label="Tema escuro" [attr.aria-pressed]="theme === 'dark'">☾</button>
+      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'light'" (click)="changeTheme('light')" aria-label="Tema claro" title="Claro" [attr.aria-pressed]="theme === 'light'"><span aria-hidden="true">☼</span><small>Claro</small></button>
+      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'auto'" (click)="changeTheme('auto')" aria-label="Tema automático" title="Automático" [attr.aria-pressed]="theme === 'auto'"><span aria-hidden="true">▣</span><small>Auto</small></button>
+      <button type="button" class="nt-theme-choice" [class.is-active]="theme === 'dark'" (click)="changeTheme('dark')" aria-label="Tema escuro" title="Escuro" [attr.aria-pressed]="theme === 'dark'"><span aria-hidden="true">☾</span><small>Escuro</small></button>
     </div>
     <div class="nt-profile-section">
       <span class="nt-profile-section-title">Conta</span>

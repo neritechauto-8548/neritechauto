@@ -1,32 +1,6 @@
 
 <div class="nt-empresa">
-
-  <!-- Toast de notificações (validações, sucesso e erros) -->
   <p-toast [style]="{top: '90px'}" [baseZIndex]="99999" />
-
-  <!-- ====== NAVBAR: p-tabs + Salvar ====== -->
-  <div class="nt-navbar">
-    <p-tabs [(value)]="activeTab" styleClass="h-full">
-      <p-tablist>
-        <p-tab value="dados">        <i class="pi pi-building"></i>   Dados da Oficina  </p-tab>
-        <p-tab value="configuracoes"><i class="pi pi-sliders-h"></i>   Configurações     </p-tab>
-        <p-tab value="horarios">     <i class="pi pi-clock"></i>       Horários          </p-tab>
-        <p-tab value="fiscal">       <i class="pi pi-file"></i>        Dados Fiscais     </p-tab>
-        <p-tab value="email">        <i class="pi pi-envelope"></i>    E-mail            </p-tab>
-        <p-tab value="historico" (click)="carregarHistorico()">Histórico</p-tab>
-      </p-tablist>
-    </p-tabs>
-    <div class="nt-navbar__action">
-      <p-button
-        label="Salvar alterações"
-        icon="pi pi-check"
-        [loading]="loading"
-        [disabled]="loading || !empresaCarregada || !!erroCarregamento"
-        (onClick)="salvar()"
-        id="btn-salvar-empresa"
-      />
-    </div>
-  </div>
 
   @if (erroCarregamento || (!loading && !empresaCarregada)) {
     <div class="nt-empresa-load-error" role="alert">
@@ -36,186 +10,103 @@
     </div>
   }
 
-  <!-- ====== CONTENT ====== -->
+  <div class="nt-empresa-pagina">
+    <nav class="nt-empresa-caminho" aria-label="Navegação estrutural">
+      <span>{{ empresa.nomeFantasia }}</span><i class="pi pi-angle-right" aria-hidden="true"></i>
+      <span>Empresas</span><i class="pi pi-angle-right" aria-hidden="true"></i>
+      <span aria-current="page">{{ empresa.nomeFantasia }}</span>
+    </nav>
+    <header class="nt-empresa-cabecalho">
+      <h1>{{ empresa.nomeFantasia }}</h1>
+      <div class="nt-empresa-acoes">
+        <div class="nt-empresa-situacao" role="group" aria-label="Situação da empresa">
+          <button type="button" [class.selecionado]="empresa.ativo !== false" (click)="empresa.ativo = true">Ativo</button>
+          <button type="button" [class.selecionado]="empresa.ativo === false" (click)="empresa.ativo = false">Inativo</button>
+        </div>
+        <button class="nt-empresa-botao" type="button" (click)="configuracoesAbertas = true"><i class="pi pi-cog"></i> Configurações</button>
+        <button class="nt-empresa-botao nt-empresa-botao--perigo" type="button" (click)="removerEmpresa()"><i class="pi pi-trash"></i> Remover</button>
+      </div>
+    </header>
+    <div class="nt-empresa-abas" role="tablist" aria-label="Seções da empresa">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'dados'" [class.selecionado]="activeTab === 'dados'" (click)="activeTab = 'dados'"><i class="pi pi-file"></i> Dados gerais</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'transacoes'" [class.selecionado]="activeTab === 'transacoes'" (click)="activeTab = 'transacoes'"><i class="pi pi-credit-card"></i> Transações</button>
+    </div>
+  </div>
+
+  @if (activeTab !== 'dados' && activeTab !== 'transacoes') {
+    <nav class="nt-empresa-subabas" role="tablist" aria-label="Configurações da empresa">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'configuracoes'" [class.selecionado]="activeTab === 'configuracoes'" (click)="activeTab = 'configuracoes'">Configurações</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'horarios'" [class.selecionado]="activeTab === 'horarios'" (click)="activeTab = 'horarios'">Horários</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'fiscal'" [class.selecionado]="activeTab === 'fiscal'" (click)="activeTab = 'fiscal'">Dados fiscais</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'email'" [class.selecionado]="activeTab === 'email'" (click)="activeTab = 'email'">E-mail</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab === 'historico'" [class.selecionado]="activeTab === 'historico'" (click)="activeTab = 'historico'; carregarHistorico()">Histórico</button>
+    </nav>
+  }
+
   <div class="nt-content">
-
-
-    <!-- ============================= TAB 1: DADOS DA OFICINA ============================= -->
     @if (activeTab === 'dados') {
-
-      <!-- CARD: Identificação -->
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Identificação</span>
-            <span class="nt-panel-sub">Razão social, nome fantasia e documentos</span>
-          </div>
-        </ng-template>
-
-        <!-- Linha 1: Nome Fantasia (col-12) -->
-        <div class="nt-row">
-          <div class="nt-c12">
-            <label class="nt-lbl">Nome Fantasia <span class="nt-req">*</span></label>
-            <input pInputText [(ngModel)]="empresa.nomeFantasia" class="w-full" placeholder="Ex: Oficina Mecânica Elite" />
-          </div>
-        </div>
-
-        <!-- Linha 2: Razão Social (col-8) + CPF / CNPJ (col-4) -->
-        <div class="nt-row">
-          <div class="nt-c8">
-            <label class="nt-lbl">Razão Social <span class="nt-req">*</span></label>
-            <input pInputText [(ngModel)]="empresa.razaoSocial" class="w-full" placeholder="Razão social completa" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">CPF / CNPJ <span class="nt-req">*</span></label>
-            <input
-              pInputText
-              [(ngModel)]="empresa.cnpj"
-              class="w-full font-mono uppercase tracking-wider"
-              placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              maxlength="18"
-              (blur)="onBlurCnpj()"
-              (input)="formatarDocumento($event)"
-            />
+      <p-panel styleClass="nt-panel nt-empresa-painel">
+        <ng-template pTemplate="header"><div class="nt-panel-title">Dados gerais</div></ng-template>
+        <div class="nt-empresa-identificacao">
+          <button class="nt-empresa-logomarca" type="button" (click)="fileInput.click()" aria-label="Adicionar logomarca">
+            @if (getLogoUrl()) { <img [src]="getLogoUrl()" alt="Logomarca da empresa" /> }
+            @else { <i class="pi pi-image" aria-hidden="true"></i><span>Adicionar logomarca</span> }
+          </button>
+          <input #fileInput type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
+          <div class="nt-empresa-campos">
+            <label class="nt-empresa-campo nt-coluna-2"><span class="nt-empresa-campo-titulo">Razão social <b>*</b></span><input pInputText [(ngModel)]="empresa.razaoSocial" autocomplete="organization" /></label>
+            <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Nome fantasia <b>*</b></span><input pInputText [(ngModel)]="empresa.nomeFantasia" /></label>
+            <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Tipo de empresa <b>*</b></span><p-select [(ngModel)]="empresa.tipoEmpresa" [options]="tiposEmpresa" optionLabel="label" optionValue="value" class="w-full" /></label>
+            <label class="nt-empresa-campo">CNAE<input pInputText [(ngModel)]="configEmpresa.codigoCnaePrincipal" /></label>
+            <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">CNPJ <b>*</b></span><input pInputText [(ngModel)]="empresa.cnpj" maxlength="18" (blur)="onBlurCnpj()" (input)="formatarDocumento($event)" /></label>
           </div>
         </div>
-
-
-      </p-panel>
-
-      <!-- CARD: Contato -->
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Contato</span>
-            <span class="nt-panel-sub">Canais de comunicação da oficina</span>
-          </div>
-        </ng-template>
-
-        <!-- Telefone (col-3) + E-mail (col-5) + Site (col-4) -->
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Telefone Comercial</label>
-            <p-inputmask [(ngModel)]="empresa.telefone" mask="(99) 99999-9999" placeholder="(00) 00000-0000" class="w-full" />
-          </div>
-          <div class="nt-c5">
-            <label class="nt-lbl">E-mail Principal</label>
-            <input pInputText [(ngModel)]="empresa.email" type="email" class="w-full" placeholder="contato@oficina.com.br" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Site / URL</label>
-            <input pInputText [(ngModel)]="empresa.site" class="w-full" placeholder="https://www.oficina.com.br" />
-          </div>
+        <div class="nt-empresa-campos-adicionais">
+          <label class="nt-empresa-campo">Inscrição municipal<input pInputText [(ngModel)]="empresa.inscricaoMunicipal" /></label>
+          <label class="nt-empresa-campo">Inscrição estadual<input pInputText [(ngModel)]="empresa.inscricaoEstadual" /></label>
+          <label class="nt-empresa-campo">Regime tributário<p-select [(ngModel)]="configEmpresa.regimeTributario" [options]="regimesTributariosTela" optionLabel="label" optionValue="value" class="w-full" placeholder="Selecionar regime tributário" [showClear]="true" /></label>
+          <label class="nt-empresa-campo nt-coluna-3">Website<input pInputText [(ngModel)]="empresa.site" /></label>
+          <label class="nt-empresa-campo nt-coluna-3">Observação<textarea pTextarea [(ngModel)]="empresa.observacoes" rows="4"></textarea></label>
         </div>
-
-        <!-- Observações (col-12) -->
-        <div class="nt-row">
-          <div class="nt-c12">
-            <label class="nt-lbl">Observações</label>
-            <input pInputText [(ngModel)]="empresa.observacoes" class="w-full" placeholder="Ex: Atende veículos leves e utilitários" />
-          </div>
+        <div class="nt-empresa-opcoes">
+          <label><p-checkbox [(ngModel)]="empresa.empresaPrincipal" [binary]="true" inputId="empresaPrincipal" /> Empresa principal <i class="pi pi-info-circle" title="Identifica a empresa principal"></i></label>
+          <label><p-checkbox [(ngModel)]="configOficina.permiteAgendamentoOnline" [binary]="true" inputId="recebeAgendamento" /> Habilitar empresa para recebimento de agendamento <i class="pi pi-info-circle" title="Permite receber agendamentos"></i></label>
+          @if (configOficina.permiteAgendamentoOnline) {
+            <label class="nt-empresa-campo nt-email-agendamento"><span class="nt-empresa-campo-titulo">Email <b>*</b></span><input pInputText [(ngModel)]="configOficina.emailAgendamento" type="email" autocomplete="email" /></label>
+          }
         </div>
       </p-panel>
 
-      <!-- CARD: Localização -->
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd nt-panel-hd--row">
-            <div>
-              <span class="nt-panel-title">Localização</span>
-              <span class="nt-panel-sub block mt-0.5">Endereço comercial e fiscal principal</span>
+      <p-panel styleClass="nt-panel nt-empresa-painel">
+        <ng-template pTemplate="header"><div class="nt-panel-title">Endereço</div></ng-template>
+        <div class="nt-empresa-endereco">
+          <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">CEP <b>*</b></span><input pInputText [(ngModel)]="endereco.cep" maxlength="9" (blur)="buscarCep()" /></label>
+          <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Estado <b>*</b></span><p-select [(ngModel)]="endereco.estado" [options]="estadosBr" optionLabel="label" optionValue="value" class="w-full" /></label>
+          <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Cidade <b>*</b></span><input pInputText [(ngModel)]="endereco.cidade" /></label>
+          <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Bairro <b>*</b></span><input pInputText [(ngModel)]="endereco.bairro" /></label>
+          <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Logradouro <b>*</b></span><input pInputText [(ngModel)]="endereco.logradouro" /></label>
+          <label class="nt-empresa-campo"><span class="nt-empresa-campo-titulo">Número <b>*</b></span><input pInputText [(ngModel)]="endereco.numero" /></label>
+          <label class="nt-empresa-campo">Complemento<input pInputText [(ngModel)]="endereco.complemento" /></label>
+        </div>
+      </p-panel>
+
+      <p-panel styleClass="nt-panel nt-empresa-painel">
+        <ng-template pTemplate="header"><div class="nt-panel-title nt-panel-title-row">Contatos <p-button label="Adicionar" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="adicionarContatoEmpresa()" /></div></ng-template>
+        <div class="nt-empresa-tabela-contatos">
+          <div class="nt-empresa-cabecalho-contatos"><span>Tipo de contato</span><span>Contato</span><span></span></div>
+          @for (contato of contatosEmpresa; track $index; let indice = $index) {
+            <div class="nt-empresa-linha-contato">
+              <select [(ngModel)]="contato.tipoContato" [attr.aria-label]="'Tipo do contato ' + (indice + 1)"><option value="EMAIL">E-mail</option><option value="TELEFONE">Telefone</option></select>
+              <input pInputText [(ngModel)]="contato.contato" [type]="contato.tipoContato === 'EMAIL' ? 'email' : 'tel'" [attr.aria-label]="'Contato ' + (indice + 1)" />
+              <button type="button" class="nt-empresa-remover-contato" (click)="removerContatoEmpresa(indice)" [attr.aria-label]="'Remover contato ' + (indice + 1)"><i class="pi pi-trash"></i></button>
             </div>
-          </div>
-        </ng-template>
-
-        <!-- CEP (col-2) + Logradouro (col-7) + Número (col-1) + Complemento (col-2) -->
-        <div class="nt-row">
-          <div class="nt-c2">
-            <label class="nt-lbl">CEP <span class="nt-req">*</span></label>
-            <p-inputgroup>
-              <p-inputmask
-                [(ngModel)]="endereco.cep"
-                mask="99999-999"
-                placeholder="00000-000"
-                [unmask]="false"
-                (onBlur)="buscarCep()"
-              />
-              <p-button icon="pi pi-search" severity="secondary" (onClick)="buscarCep()" />
-            </p-inputgroup>
-          </div>
-          <div class="nt-c7">
-            <label class="nt-lbl">Logradouro <span class="nt-req">*</span></label>
-            <input pInputText [(ngModel)]="endereco.logradouro" class="w-full" placeholder="Av. das Nações Unidas" />
-          </div>
-          <div class="nt-c1">
-            <label class="nt-lbl">Nº</label>
-            <input pInputText [(ngModel)]="endereco.numero" class="w-full" placeholder="123" />
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">Complemento</label>
-            <input pInputText [(ngModel)]="endereco.complemento" class="w-full" placeholder="Sala 1" />
-          </div>
-        </div>
-
-        <!-- Bairro (col-3) + Cidade (col-4) + UF (col-1) + País (col-2) -->
-        <div class="nt-row">
-          <div class="nt-c3">
-            <label class="nt-lbl">Bairro <span class="nt-req">*</span></label>
-            <input pInputText [(ngModel)]="endereco.bairro" class="w-full" placeholder="Nome do bairro" />
-          </div>
-          <div class="nt-c4">
-            <label class="nt-lbl">Cidade <span class="nt-req">*</span></label>
-            <input pInputText [(ngModel)]="endereco.cidade" class="w-full" placeholder="Nome da cidade" />
-          </div>
-          <div class="nt-c1">
-            <label class="nt-lbl">UF</label>
-            <p-select [(ngModel)]="endereco.estado" [options]="estadosBr" class="w-full" />
-          </div>
-          <div class="nt-c2">
-            <label class="nt-lbl">País</label>
-            <input pInputText [(ngModel)]="endereco.pais" class="w-full" placeholder="Brasil" />
-          </div>
-        </div>
-
-
-      </p-panel>
-
-      <!-- CARD: Logomarca -->
-      <p-panel styleClass="nt-panel">
-        <ng-template pTemplate="header">
-          <div class="nt-panel-hd">
-            <span class="nt-panel-title">Logomarca</span>
-            <span class="nt-panel-sub">Logotipo da sua oficina para documentos e relatórios</span>
-          </div>
-        </ng-template>
-
-        <div class="nt-row">
-          <div class="nt-c6 flex flex-col gap-3">
-            <label class="nt-lbl">Visualização do Logo</label>
-            <div class="flex items-center gap-4">
-              <div class="w-32 h-32 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden relative group">
-                @if (getLogoUrl()) {
-                  <img [src]="getLogoUrl()" class="w-full h-full object-contain" alt="Logomarca" />
-                } @else {
-                  <div class="text-slate-400 flex flex-col items-center gap-1">
-                    <i class="pi pi-image text-3xl"></i>
-                    <span class="text-[10px]">Sem logo</span>
-                  </div>
-                }
-              </div>
-              <div class="flex flex-col gap-2">
-                <input type="file" #fileInput (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
-                <p-button label="Selecionar Imagem" icon="pi pi-upload" severity="secondary" (onClick)="fileInput.click()" [loading]="uploadingLogo" />
-                @if (getLogoUrl()) {
-                  <p-button label="Remover" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="removerLogo()" />
-                }
-              </div>
-            </div>
-            <small class="nt-hint">Formatos suportados: PNG, JPG. Máximo 2MB.</small>
-          </div>
+          }
         </div>
       </p-panel>
-    }
+
+    } @else if (activeTab === 'transacoes') {
+      <p-panel styleClass="nt-panel nt-empresa-painel"><div class="nt-empresa-transacoes">Transações</div></p-panel>
+    } @else {
 
 
     <!-- ============================= TAB 4: HORÁRIOS ============================= -->
@@ -1090,5 +981,18 @@
       </section>
     }
 
+    }
   </div><!-- /nt-content -->
+  @if (activeTab !== 'transacoes') {
+    <div class="nt-empresa-salvar nt-empresa-salvar--fixo">
+      <p-button label="Resetar" icon="pi pi-refresh" severity="danger" [disabled]="loading || !empresaCarregada" (onClick)="resetar()" styleClass="nt-empresa-botao-resetar" />
+      <div class="nt-empresa-salvar-acoes">
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="loading" (onClick)="cancelar()" />
+        <p-button label="Salvar" icon="pi pi-save" [loading]="loading" [disabled]="loading || !empresaCarregada || !!erroCarregamento" (onClick)="salvar()" id="btn-salvar-empresa" />
+      </div>
+    </div>
+  }
+  @if (configuracoesAbertas) {
+    <nt-configuracoes-empresa [nomeEmpresa]="empresa.nomeFantasia || empresa.razaoSocial || ''" [cnpjEmpresa]="empresa.cnpj || ''" (fechar)="configuracoesAbertas = false" />
+  }
 </div><!-- /nt-empresa -->

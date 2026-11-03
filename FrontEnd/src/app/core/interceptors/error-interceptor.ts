@@ -31,30 +31,15 @@ function serverErrorDetail(error: HttpErrorResponse): { summary: string; detail:
   const body: unknown = error.error;
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     const fallback = typeof body === 'string' ? body.trim() : '';
-    return fallback ? { summary: `HTTP ${error.status}`, detail: fallback.slice(0, 1400) } : null;
+    return fallback ? { summary: `HTTP ${error.status}`, detail: fallback } : null;
   }
 
   const data = body as Record<string, unknown>;
   const value = (key: string) => typeof data[key] === 'string' ? (data[key] as string).trim() : '';
   const exception = value('exception');
   const type = exception || value('type') || value('code') || error.name;
-  const message = value('message') || value('detail') || value('title');
-  const cause = value('cause');
-  const validation = data['errors'];
-  let fields = '';
-  if (Array.isArray(validation)) {
-    fields = validation.map(x => {
-      if (!x || typeof x !== 'object') return '';
-      const item = x as Record<string, unknown>;
-      return `${String(item['field'] || 'Campo')}: ${String(item['message'] || '')}`;
-    }).filter(Boolean).join(' | ');
-  } else if (validation && typeof validation === 'object') {
-    fields = Object.entries(validation as Record<string, unknown>)
-      .map(([key, val]) => `${key}: ${String(val)}`).join(' | ');
-  }
-
-  const detail = [message, cause && cause !== message ? `Causa: ${cause}` : '', fields]
-    .filter(Boolean).join(' | ').slice(0, 1400);
+  const message = value('message') || value('detail') || value('error') || value('title');
+  const detail = message || (typeof body === 'string' ? body : '');
   return detail ? { summary: `HTTP ${error.status} • ${type}`, detail } : null;
 }
 
@@ -128,8 +113,7 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
       detail = 'Tente novamente. Se o problema persistir, contate o suporte.';
     }
 
-    // Na fase de desenvolvimento não esconder o motivo original em mensagens genéricas.
-    // Classe e causa só chegam quando o backend habilita diagnóstico local explicitamente.
+    // Durante o desenvolvimento, prioriza a mensagem original do servidor sem resumi-la.
     if (!isLogin && error.status !== 0) {
       const server = serverErrorDetail(error);
       if (server) {

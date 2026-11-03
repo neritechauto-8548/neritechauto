@@ -10,6 +10,8 @@ export interface SituacaoRequest {
   nmSituacao: string;
   dsSituacao?: string;
   corSituacao?: string;
+  tipoStatus?: 'ABERTURA' | 'PROGRESSO' | 'FINALIZACAO' | 'CONCLUIDO';
+  ordemExibicao?: number;
 }
 
 export interface SituacaoResponse {
@@ -19,6 +21,8 @@ export interface SituacaoResponse {
   nmSituacao: string;
   dsSituacao?: string;
   corSituacao?: string;
+  tipoStatus?: 'ABERTURA' | 'PROGRESSO' | 'FINALIZACAO' | 'CONCLUIDO';
+  ordemExibicao?: number;
   dataCadastro?: string;
   dataAtualizacao?: string;
 }

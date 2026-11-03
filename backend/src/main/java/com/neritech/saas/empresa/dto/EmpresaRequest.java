@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.List;
 
 @Schema(name = "EmpresaRequest", description = "Dados para criaÃ§Ã£o/atualizaÃ§Ã£o de empresa")
 public class EmpresaRequest {
@@ -58,6 +59,13 @@ public class EmpresaRequest {
 
     @Schema(description = "Versão para controle de concorrência")
     private Integer versao;
+
+    @Size(max = 40)
+    private String tipoEmpresa;
+
+    private Boolean empresaPrincipal;
+    @jakarta.validation.constraints.Size(max = 30)
+    private List<@jakarta.validation.Valid ContatoEmpresaRequest> contatos;
 
     public String getNomeFantasia() {
         return nomeFantasia;
@@ -161,4 +169,11 @@ public class EmpresaRequest {
     public void setVersao(Integer versao) {
         this.versao = versao;
     }
+
+    public String getTipoEmpresa() { return tipoEmpresa; }
+    public void setTipoEmpresa(String tipoEmpresa) { this.tipoEmpresa = tipoEmpresa; }
+    public Boolean getEmpresaPrincipal() { return empresaPrincipal; }
+    public void setEmpresaPrincipal(Boolean empresaPrincipal) { this.empresaPrincipal = empresaPrincipal; }
+    public List<ContatoEmpresaRequest> getContatos() { return contatos; }
+    public void setContatos(List<ContatoEmpresaRequest> contatos) { this.contatos = contatos; }
 }

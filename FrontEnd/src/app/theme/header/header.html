@@ -121,7 +121,8 @@
       @for (empresa of empresasFiltradas; track empresa.id) {
         <div class="nt-company-row">
           <button type="button" class="nt-company-select" [class.empresa-ativa]="empresa.id === empresaAtivaId"
-            [attr.aria-current]="empresa.id === empresaAtivaId ? 'true' : null" (click)="selecionarEmpresa(empresa)">
+            [attr.aria-current]="empresa.id === empresaAtivaId ? 'true' : null" (click)="abrirEmpresa(empresa)"
+            [attr.aria-label]="'Abrir empresa ' + (empresa.nomeFantasia || empresa.razaoSocial)">
             <strong>{{ empresa.nomeFantasia || empresa.razaoSocial }}</strong><small>{{ formatarCnpj(empresa.cnpj) }}</small>
           </button>
           <a routerLink="/configuracoes/empresa" (click)="fecharMenus()" class="nt-company-settings" [attr.aria-label]="'Configurações de ' + (empresa.nomeFantasia || empresa.razaoSocial)">

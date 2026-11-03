@@ -16,6 +16,7 @@ public record ConfiguracaoOficinaRequest(
         Integer tempoAgendamentoPadrao,
         Integer antecedenciaMinimaAgendamento,
         Boolean permiteAgendamentoOnline,
+        @Email @Size(max = 120) String emailAgendamento,
         Boolean enviaLembreteAgendamento,
         Integer tempoLembreteHoras,
         BigDecimal margemLucroPadrao,

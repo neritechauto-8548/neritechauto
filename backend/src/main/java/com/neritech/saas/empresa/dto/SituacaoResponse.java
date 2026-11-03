@@ -10,6 +10,8 @@ public record SituacaoResponse(
         String dsSituacao,
         String corSituacao,
         LocalDateTime dataCadastro,
-        LocalDateTime dataAtualizacao
+        LocalDateTime dataAtualizacao,
+        String tipoStatus,
+        Integer ordemExibicao
 ) {}
 

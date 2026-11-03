@@ -290,6 +290,16 @@ export class Header {
     });
   }
 
+  abrirEmpresa(empresa: Empresa): void {
+    if (!empresa.id) return;
+    if (empresaIdAtual(this.armazenamento) !== empresa.id) {
+      this.verificacaoEmpresa = 'O servidor precisa confirmar o acesso à empresa antes de abri-la.';
+      return;
+    }
+    this.fecharMenus();
+    this.roteador.navigateByUrl('/configuracoes/empresa');
+  }
+
   private carregarUsuarios(): void {
     this.usuariosErro = '';
     if (this.preVisualizacao) {

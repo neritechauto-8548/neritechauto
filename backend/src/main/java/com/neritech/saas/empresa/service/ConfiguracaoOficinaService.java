@@ -67,7 +67,7 @@ public class ConfiguracaoOficinaService {
     @Transactional(readOnly = true)
     public ConfiguracaoOficinaResponse findByEmpresaId(Long empresaId) {
         TenantAccess.require(empresaId);
-        return repository.findByEmpresaId(empresaId)
+        return repository.findFirstByEmpresaIdOrderByIdDesc(empresaId)
                 .map(mapper::toResponse)
                 .orElseThrow(() -> new EntityNotFoundException("ConfiguraÃ§Ã£o nÃ£o encontrada para esta empresa"));
     }
@@ -75,7 +75,7 @@ public class ConfiguracaoOficinaService {
     @Transactional(readOnly = true)
     public Page<ConfiguracaoOficinaResponse> findAll(Pageable pageable) {
         Long empresaId = TenantAccess.requireCurrent();
-        var own = repository.findByEmpresaId(empresaId).map(mapper::toResponse);
+        var own = repository.findFirstByEmpresaIdOrderByIdDesc(empresaId).map(mapper::toResponse);
         var content = pageable.getOffset() == 0 ? own.stream().toList() : java.util.List.<ConfiguracaoOficinaResponse>of();
         return new org.springframework.data.domain.PageImpl<>(content, pageable, own.isPresent() ? 1 : 0);
     }
@@ -106,6 +106,15 @@ public class ConfiguracaoOficinaService {
     }
 
     private static void validarPreferencias(ConfiguracaoOficinaRequest request) {
+        if (Boolean.TRUE.equals(request.permiteAgendamentoOnline())
+                && (request.emailAgendamento() == null || request.emailAgendamento().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Informe o e-mail para recebimento de agendamentos.");
+        }
+        if (request.emailAgendamento() != null && !request.emailAgendamento().isBlank()
+                && !request.emailAgendamento().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "E-mail de agendamento inválido.");
+        }
         if (request.moeda() != null && !"BRL".equals(request.moeda())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Moeda deve ser BRL");
         }
@@ -128,6 +137,8 @@ public class ConfiguracaoOficinaService {
         campos.put("horarioFechamentoSabado", c.getHorarioFechamentoSabado());
         campos.put("horarioAberturaDomingo", c.getHorarioAberturaDomingo());
         campos.put("horarioFechamentoDomingo", c.getHorarioFechamentoDomingo());
+        campos.put("permiteAgendamentoOnline", c.getPermiteAgendamentoOnline());
+        campos.put("emailAgendamento", c.getEmailAgendamento());
         return campos;
     }
 

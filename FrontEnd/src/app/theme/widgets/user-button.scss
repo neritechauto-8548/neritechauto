@@ -115,7 +115,8 @@ app-user{display:inline-flex;align-items:center;flex:none}
 .nt-profile-summary-text strong{font-size:12px;font-weight:650;color:#192333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nt-profile-summary-text small{font-size:10px;color:#8290a4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nt-theme-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;margin:2px 9px 8px;border-radius:8px;background:#f0f2f4}
-.nt-theme-picker .nt-theme-choice{height:27px;border:1px solid transparent;border-radius:6px;background:none;color:#4b5563;font-size:17px;cursor:pointer}
+.nt-theme-picker .nt-theme-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;height:38px;border:1px solid transparent;border-radius:6px;background:none;color:#4b5563;font-size:15px;line-height:16px;cursor:pointer}
+.nt-theme-picker .nt-theme-choice small{font-size:9px;line-height:11px}
 .nt-theme-picker .nt-theme-choice.is-active{background:white;border-color:#e0e5ed;box-shadow:0 1px 3px #11182718}
 .nt-profile-section{padding:8px 10px;border-top:1px solid #e6eaed}
 .nt-profile-section-title{display:block;padding:0 0 5px;color:#929ba9;font-size:10px;font-weight:650}
@@ -160,3 +161,42 @@ app-user{display:inline-flex;align-items:center;flex:none}
 .nt-shortcut-card button:focus-visible,.nt-dialog-close:focus-visible,.nt-theme-choice:focus-visible{outline:3px solid #3057ac;outline-offset:2px}
 @media(max-width:650px){.nt-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nt-shortcuts-scroll{padding:9px 15px 20px}.nt-shell-modal-header{padding:12px 16px}}
 @media(max-width:390px){.nt-shortcut-grid{grid-template-columns:1fr}.nt-shortcut-card{min-height:75px}}
+
+html.theme-dark .nt-shell-modal{border-color:#414141;background:#222;color:#e5e7eb}
+html.theme-dark .nt-shell-modal-header{border-color:#414141}
+html.theme-dark .nt-shell-modal-header h2,
+html.theme-dark .nt-shortcuts-scroll h3,
+html.theme-dark .nt-shortcuts-scroll p,
+html.theme-dark .nt-shortcut-card,
+html.theme-dark .nt-about-description{color:#e5e7eb}
+html.theme-dark .nt-dialog-close{color:#cbd5e1}
+html.theme-dark .nt-shortcut-card,
+html.theme-dark .nt-about-detail{border-color:#414141;background:#2d2d2d}
+html.theme-dark .nt-shortcut-card kbd{border-color:#525252;background:#202020;color:#e5e7eb}
+html.theme-dark .nt-about-subtitle,
+html.theme-dark .nt-about-detail>span,
+html.theme-dark .nt-about-detail>small,
+html.theme-dark .nt-about-body .nt-about-note{color:#a3a3a3}
+html.theme-dark .nt-about-close{border-color:#525252;background:#2d2d2d;color:#e5e7eb}
+html.theme-dark .nt-profile-menu-panel.mat-mdc-menu-panel,
+html.theme-dark .nt-profile-menu-panel .nt-profile-card{border-color:#414141!important;background:#222!important;color:#e5e7eb!important}
+html.theme-dark .nt-profile-menu-panel .nt-profile-summary-text strong,
+html.theme-dark .nt-profile-menu-panel .nt-profile-action,
+html.theme-dark .nt-profile-menu-panel .nt-profile-action .mat-mdc-menu-item-text,
+html.theme-dark .nt-profile-menu-panel .nt-profile-action .nt-menu-symbol{color:#e5e7eb!important}
+html.theme-dark .nt-profile-menu-panel .nt-profile-summary-text small,
+html.theme-dark .nt-profile-menu-panel .nt-profile-section-title,
+html.theme-dark .nt-profile-menu-panel .nt-profile-version{color:#a3a3a3!important}
+html.theme-dark .nt-profile-menu-panel .nt-profile-section,
+html.theme-dark .nt-profile-menu-panel .nt-profile-version{border-color:#414141!important}
+html.theme-dark .nt-profile-menu-panel .nt-theme-picker{background:#303030}
+html.theme-dark .nt-profile-menu-panel .nt-theme-picker .nt-theme-choice{color:#cbd5e1}
+html.theme-dark .nt-profile-menu-panel .nt-theme-picker .nt-theme-choice:hover{background:#3b3b3b}
+html.theme-dark .nt-profile-menu-panel .nt-theme-picker .nt-theme-choice.is-active{border-color:#5b6470;background:#4a4a4a;color:#fff;box-shadow:0 1px 3px #0006}
+html.theme-dark .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action:hover,
+html.theme-dark .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action:focus-visible{background:#303030;color:#fff}
+html.theme-dark .nt-profile-menu-panel .nt-profile-action kbd{border-color:#525252;background:#242424;color:#cbd5e1}
+html.theme-dark .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action-danger,
+html.theme-dark .nt-profile-menu-panel .nt-profile-action-danger .mat-mdc-menu-item-text,
+html.theme-dark .nt-profile-menu-panel .nt-profile-action-danger .nt-menu-symbol{color:#ff777d!important}
+html.theme-dark .nt-profile-menu-panel button.mat-mdc-menu-item.nt-profile-action-danger:hover{background:#3a2526}

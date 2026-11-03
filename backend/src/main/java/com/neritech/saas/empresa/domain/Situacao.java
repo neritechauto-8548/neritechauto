@@ -27,6 +27,12 @@ public class Situacao extends BaseEntity {
     @Column(name = "cor_situacao", length = 7)
     private String corSituacao;
 
+    @Column(name = "tipo_status", nullable = false, length = 20)
+    private String tipoStatus = "ABERTURA";
+
+    @Column(name = "ordem_exibicao", nullable = false)
+    private Integer ordemExibicao = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
@@ -54,6 +60,11 @@ public class Situacao extends BaseEntity {
     public void setCorSituacao(String corSituacao) {
         this.corSituacao = corSituacao;
     }
+
+    public String getTipoStatus() { return tipoStatus; }
+    public void setTipoStatus(String tipoStatus) { this.tipoStatus = tipoStatus; }
+    public Integer getOrdemExibicao() { return ordemExibicao; }
+    public void setOrdemExibicao(Integer ordemExibicao) { this.ordemExibicao = ordemExibicao; }
 
     public Empresa getEmpresa() {
         return empresa;

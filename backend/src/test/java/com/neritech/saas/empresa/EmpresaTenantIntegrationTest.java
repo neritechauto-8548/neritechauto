@@ -120,6 +120,39 @@ class EmpresaTenantIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void contatosDaEmpresaSaoPersistidosEIsoladosPorTenant() throws Exception {
+        long empresaA = empresa("A");
+        long empresaB = empresa("B");
+        String tokenA = login(empresaA, "contatos" + empresaA + "@t.co", "ADMIN");
+        int versao = jdbc.queryForObject("select versao from empresa where id=?", Integer.class, empresaA);
+        String atualizacao = json.writeValueAsString(Map.of(
+                "nomeFantasia", "Empresa A",
+                "razaoSocial", "Empresa A Ltda",
+                "cnpj", "52998224725",
+                "tipoEmpresa", "MECANICA",
+                "empresaPrincipal", true,
+                "versao", versao,
+                "contatos", java.util.List.of(
+                        Map.of("tipoContato", "EMAIL", "contato", "contato" + empresaA + "@t.co"),
+                        Map.of("tipoContato", "TELEFONE", "contato", "(11) 99999-9999"))));
+
+        mvc.perform(put("/v1/empresas/{id}", empresaA)
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON).content(atualizacao))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.contatos.length()").value(2))
+                .andExpect(jsonPath("$.data.contatos[0].tipoContato").value("EMAIL"));
+
+        assertThat(jdbc.queryForObject("select count(*) from contatos_empresa where empresa_id=?", Integer.class, empresaA))
+                .isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from contatos_empresa where empresa_id=?", Integer.class, empresaB))
+                .isZero();
+        mvc.perform(get("/v1/empresas/{id}", empresaB)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void logoInvalidaNaoEPersistidaEExclusaoFisicaDaEmpresaEProibida() throws Exception {
         long empresaA = empresa("A");
         String tokenA = login(empresaA, "a" + empresaA + "@t.co", "ADMIN");

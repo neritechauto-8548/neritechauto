@@ -46,6 +46,9 @@ public class ConfiguracaoOficina extends BaseEntity {
     @Column(name = "permite_agendamento_online")
     private Boolean permiteAgendamentoOnline = true;
 
+    @Column(name = "email_agendamento", length = 120)
+    private String emailAgendamento;
+
     @Column(name = "envia_lembrete_agendamento")
     private Boolean enviaLembreteAgendamento = true;
 
@@ -200,6 +203,9 @@ public class ConfiguracaoOficina extends BaseEntity {
     public void setPermiteAgendamentoOnline(Boolean permiteAgendamentoOnline) {
         this.permiteAgendamentoOnline = permiteAgendamentoOnline;
     }
+
+    public String getEmailAgendamento() { return emailAgendamento; }
+    public void setEmailAgendamento(String emailAgendamento) { this.emailAgendamento = emailAgendamento; }
 
     public Boolean getEnviaLembreteAgendamento() {
         return enviaLembreteAgendamento;

@@ -1,3 +1,4 @@
+import { ElementRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -7,6 +8,7 @@ import { Header } from './header';
 import { EmpresaService } from '../../routes/configuracoes/empresa/services/empresa.service';
 import { UsuarioService } from '../../routes/configuracoes/usuario.service';
 import { LocalStorageService } from '../../shared/services/storage.service';
+import { StartupService } from '../../core/bootstrap/startup.service';
 
 describe('Menu superior', () => {
   let cabecalho: Header;
@@ -18,6 +20,8 @@ describe('Menu superior', () => {
     roteador = { events: EMPTY, navigateByUrl: jasmine.createSpy('navigateByUrl') };
     TestBed.configureTestingModule({ providers: [
       MenuService,
+      { provide: ElementRef, useValue: { nativeElement: document.createElement('header') } },
+      { provide: StartupService, useValue: { obterMenuPadrao: () => [] } },
       { provide: Router, useValue: roteador }, { provide: ActivatedRoute, useValue: {} },
       { provide: SettingsService, useValue: { options: {}, getThemeColor: () => 'light', setTheme: jasmine.createSpy() } },
       { provide: TranslateService, useValue: { instant: (chave: string) => chave } },
@@ -50,7 +54,21 @@ describe('Menu superior', () => {
   });
 
   it('carrega empresas e usuários pelo serviço vinculado ao servidor', () => {
+    cabecalho.alternarMenuEmpresas();
     expect(cabecalho.empresas).toEqual([empresa]);
     expect(cabecalho.usuarios.length).toBe(0);
+  });
+
+  it('abre os dados gerais ao clicar no nome da empresa ativa e fecha o popover', () => {
+    cabecalho.menuEmpresasAberto = true;
+    cabecalho.abrirEmpresa(empresa);
+    expect(roteador.navigateByUrl).toHaveBeenCalledWith('/configuracoes/empresa');
+    expect(cabecalho.menuEmpresasAberto).toBeFalse();
+  });
+
+  it('não abre uma empresa fora do contexto autenticado', () => {
+    cabecalho.abrirEmpresa({ ...empresa, id: 9 });
+    expect(roteador.navigateByUrl).not.toHaveBeenCalled();
+    expect(cabecalho.verificacaoEmpresa).toContain('confirmar o acesso');
   });
 });

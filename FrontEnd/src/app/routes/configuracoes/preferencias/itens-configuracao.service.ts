@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
-export type GrupoItemConfiguracao = 'CLIENTE_CATEGORIA' | 'FINANCEIRO_ETIQUETA' | 'VENDA_DIRETA_ETIQUETA';
+export type GrupoItemConfiguracao = 'CLIENTE_CATEGORIA' | 'CLIENTE_RECOMENDACAO' | 'FINANCEIRO_ETIQUETA' | 'VENDA_DIRETA_ETIQUETA' | 'ORDEM_SERVICO_ETIQUETA';
 export interface ItemConfiguracao { id: number; grupo: GrupoItemConfiguracao; descricao: string; cor: string; atualizadoEm: string; }
 export interface AlteracaoItemConfiguracao { grupo: GrupoItemConfiguracao; descricao: string; cor: string; }
 

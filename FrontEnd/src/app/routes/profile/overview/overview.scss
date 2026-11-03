@@ -55,7 +55,22 @@
 .campo-senha button{position:absolute;right:7px;display:grid;place-items:center;width:32px;height:32px;border:0;background:transparent;color:#303943;cursor:pointer}
 .campo-senha button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7}
 .campo-senha button:focus-visible{outline:2px solid #3157c3;border-radius:5px}
-.janela-conta-configuracoes{width:calc(100vw - 40px);height:calc(100dvh - 24px);max-width:1600px;max-height:1000px}
+.janela-conta-configuracoes{width:min(1200px,calc(100vw - 32px));height:min(640px,calc(100dvh - 32px));max-width:none;max-height:none;font-family:Inter,system-ui,sans-serif;font-size:12px}
+.janela-conta-configuracoes .topo-conta{height:40px;padding:0 14px}
+.janela-conta-configuracoes .topo-conta h1{font-size:14px}
+.janela-conta-configuracoes .topo-conta button{width:26px;height:26px;font-size:16px}
+.janela-conta-configuracoes .busca-config{height:34px;margin:10px 9px}
+.janela-conta-configuracoes .abas-conta{height:30px}
+.janela-conta-configuracoes .menu-conta{flex-basis:207px;padding:8px}
+.janela-conta-configuracoes .menu-conta button{height:33px;padding:0 10px;font-size:12px}
+.janela-conta-configuracoes .painel-conta{padding:14px 16px}
+.janela-conta-configuracoes .titulo-secao h2{font-size:14px}
+.janela-conta-configuracoes .titulo-secao p,.janela-conta-configuracoes .nota-campo{font-size:11px}
+.janela-conta-configuracoes .cartao-conta{padding:16px}
+.janela-conta-configuracoes .cartao-conta h3,.janela-conta-configuracoes .matriz-cartao>strong{font-size:12px}
+.janela-conta-configuracoes .cartao-conta label,.janela-conta-configuracoes .linha-preferencia,.janela-conta-configuracoes .linha-alternancia,.janela-conta-configuracoes .opcoes-radio label{font-size:12px}
+.janela-conta-configuracoes .cartao-conta input{height:34px;font-size:12px}
+.janela-conta-configuracoes .botao-verde,.janela-conta-configuracoes .acoes-preferencia button{height:34px;font-size:12px}
 .menu-matriz{flex-basis:260px;overflow:auto}
 .menu-matriz>button{display:flex;align-items:center;gap:4px;font-size:14px}
 .menu-matriz>button span{margin-left:auto}
@@ -74,6 +89,8 @@
 .subtitulo-linha{display:flex;align-items:center;gap:12px;margin:22px 0 12px;color:#8994a3;font-size:15px;font-weight:500}
 .subtitulo-linha:after{content:"";height:1px;flex:1;background:#d9dfe6}
 .linha-preferencia{display:flex;align-items:center;gap:12px;min-height:36px;font-size:14px;font-weight:400}
+.cartao-conta label.linha-preferencia{flex-direction:row;align-items:center;justify-content:flex-start}
+.cartao-conta label.linha-preferencia input{flex:0 0 20px;width:20px;margin:0}
 .linha-preferencia input,.opcoes-radio input{width:20px;height:20px;accent-color:#1b3a93}
 .linha-preferencia span{color:#173a94}
 .opcoes-radio{display:flex;align-items:center;flex-wrap:wrap;gap:20px;margin-top:12px}
@@ -95,7 +112,8 @@
 .linha-item-matriz:last-child{border-bottom:0}
 .linha-item-matriz>button:not(.excluir-item-matriz){border:0;background:transparent;color:#173a94;text-align:left;font:inherit;cursor:pointer}
 .amostra-cor-item{width:18px;height:18px;flex:none;border:1px solid #647080;border-radius:4px}
-.excluir-item-matriz{margin-left:auto;border:0;background:transparent;color:#ff4d55;font-size:20px;cursor:pointer}
+.excluir-item-matriz{display:grid;place-items:center;width:26px;height:30px;margin-left:auto;padding:0;border:0;background:transparent;color:#ff4d55;cursor:pointer}
+.excluir-item-matriz svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .vazio-itens-matriz{display:flex;align-items:center;justify-content:center;min-height:134px;color:#8994a3}
 .certificados-sem-api .cabecalho-certificados{grid-template-columns:1fr 1fr 1fr}
 .fundo-modal-item{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-start;justify-content:center;padding:2px 16px 16px;background:#000b}
@@ -105,7 +123,7 @@
 .modal-item-matriz>header button{border:0;background:transparent;color:#535e68;font-size:23px;cursor:pointer}
 .campo-item-matriz{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;font-weight:550}
 .campo-item-matriz b,.modal-item-matriz>strong b{color:#ef4444}
-.modal-item-matriz .campo-item-matriz input{height:42px}
+.modal-item-matriz .campo-item-matriz input{box-sizing:border-box;width:100%;height:42px;padding:0 12px;border:1px solid #cbd4df;border-radius:8px;background:#fff;color:#111;font:400 14px Inter,system-ui,sans-serif}
 .paleta-itens-matriz{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 14px}
 .paleta-itens-matriz button{width:32px;height:32px;border:1px solid #0002;border-radius:5px;cursor:pointer}
 .paleta-itens-matriz button:last-child{background-image:linear-gradient(45deg,#ddd 25%,transparent 25%),linear-gradient(-45deg,#ddd 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ddd 75%),linear-gradient(-45deg,transparent 75%,#ddd 75%)!important;background-size:8px 8px;background-position:0 0,0 4px,4px -4px,-4px 0}
@@ -115,6 +133,158 @@
 .modal-item-matriz>footer .botao-verde{align-self:auto}
 .grade-crm-matriz{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 18px}
 .grade-crm-matriz .linha-preferencia{font-weight:400}
+.crm-config-cartao .linha-calculo-crm{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:38px}
+.crm-config-cartao .linha-calculo-crm strong{font-size:14px;font-weight:550}
+.crm-config-cartao .linha-calculo-crm .opcoes-segmentadas{width:164px;flex:none}
+.crm-config-cartao .subtitulo-linha{margin:16px 0 12px;font-size:14px}
+.crm-config-cartao .subtitulo-linha span{color:#173a94;font-size:14px}
+.crm-config-cartao .grade-email-crm{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.crm-config-cartao .grade-email-crm label{gap:8px;font-size:14px;font-weight:550}
+.crm-config-cartao .grade-email-crm input{height:42px;font-size:14px}
+.crm-config-cartao .grade-crm-matriz{gap:6px 18px}
+.crm-config-cartao .grade-crm-matriz .linha-preferencia{min-height:30px;gap:12px;font-size:13px}
+.crm-config-cartao .grade-crm-matriz input{flex:0 0 20px;width:20px;height:20px}
+@media(max-width:720px){.crm-config-cartao .linha-calculo-crm{align-items:flex-start;flex-direction:column}.crm-config-cartao .linha-calculo-crm .opcoes-segmentadas{width:100%}.crm-config-cartao .grade-email-crm{grid-template-columns:1fr}.crm-config-cartao .grade-crm-matriz{grid-template-columns:1fr}}
 @media(max-width:720px){.grade-crm-matriz{grid-template-columns:1fr}.fundo-modal-item{padding:32px 10px}.paleta-itens-matriz{gap:8px}.paleta-itens-matriz button{width:28px;height:28px}}
-@media(max-width:720px){.janela-conta-configuracoes{width:100vw;height:100dvh}.menu-matriz{flex-basis:180px}.opcoes-segmentadas.quatro,.opcoes-segmentadas.duas{flex-wrap:wrap}.opcoes-segmentadas button{flex:1 1 42%}.linha-alternancia{align-items:flex-start;flex-direction:column;padding:10px 0}}
-.formulario-smtp .grade-conta{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.formulario-smtp .linha-smtp{display:flex;align-items:center;justify-content:space-between;min-height:42px;font-weight:400}.formulario-smtp .linha-smtp .opcoes-segmentadas{flex-direction:row;gap:3px;margin:0}.formulario-smtp .linha-smtp .opcoes-segmentadas button{min-height:32px}.formulario-smtp .campo-assinatura{display:flex;flex-direction:column;gap:4px;font-weight:550}.formulario-smtp .campo-assinatura small{color:#8994a3;font-size:12px;font-weight:400}.editor-assinatura{overflow:hidden;border:1px solid #cbd4df;border-radius:8px;background:#fff}.editor-assinatura>div{display:flex;gap:4px;height:42px;align-items:center;padding:0 10px;border-bottom:1px solid #cbd4df}.editor-assinatura button{width:28px;height:26px;border:1px solid #d4dbe4;border-radius:4px;background:#eef1f4;color:#7c8794}.editor-assinatura textarea{display:block;width:100%;height:62px;padding:10px;border:0;resize:vertical;font:inherit}.acoes-preferencia .botao-secundario{margin-right:auto;border:1px solid #cbd4df;background:#fff;color:#101828}.certificados-sem-api .cabecalho-certificados{grid-template-columns:1.5fr 1fr 1fr}.linha-certificado{display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;min-height:58px;padding:0 18px;border-bottom:1px solid #d8dfe7}.linha-certificado button{border:0;background:transparent;color:#ff4d55;font-size:19px;cursor:pointer}.modal-certificado{width:min(620px,calc(100vw - 32px))}.fundo-modal-item{align-items:center;padding:16px}.seletor-certificado{position:relative;display:grid;place-items:center;height:104px;margin:12px 0 18px;border:1px dashed #cbd4df;border-radius:8px;color:#8994a3;cursor:pointer}.seletor-certificado input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.seletor-certificado span{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:30px}.seletor-certificado small{font-size:12px}.modal-certificado .grade-conta{margin-bottom:16px}.modal-certificado .grade-conta label{display:flex;flex-direction:column;gap:8px;font-weight:550}.modal-certificado .grade-conta b{color:#ef4444}
+@media(max-width:720px){.janela-conta-configuracoes{width:100vw;height:100dvh;border-radius:0}.janela-conta-configuracoes .menu-conta{flex-basis:145px}.janela-conta-configuracoes .painel-conta{padding:14px}.janela-conta-configuracoes .grade-conta{grid-template-columns:1fr}.menu-matriz{flex-basis:145px}.opcoes-segmentadas.quatro,.opcoes-segmentadas.duas{flex-wrap:wrap}.opcoes-segmentadas button{flex:1 1 42%}.linha-alternancia{align-items:flex-start;flex-direction:column;padding:10px 0}}
+.formulario-smtp .grade-conta{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.formulario-smtp label.linha-smtp{display:flex;flex-direction:row;align-items:center;justify-content:space-between;min-height:42px;font-weight:400}.formulario-smtp .linha-smtp .opcoes-segmentadas{flex-direction:row;gap:3px;margin:0}.formulario-smtp .linha-smtp .opcoes-segmentadas button{min-height:32px}.formulario-smtp .campo-assinatura{display:flex;flex-direction:column;gap:4px;font-weight:550}.formulario-smtp .campo-assinatura small{color:#8994a3;font-size:12px;font-weight:400}.editor-assinatura{overflow:hidden;border:1px solid #cbd4df;border-radius:8px;background:#fff}.editor-assinatura>div{display:flex;gap:4px;height:42px;align-items:center;padding:0 10px;border-bottom:1px solid #cbd4df}.editor-assinatura button{width:28px;height:26px;border:1px solid #d4dbe4;border-radius:4px;background:#eef1f4;color:#7c8794}.editor-assinatura textarea{display:block;width:100%;height:62px;padding:10px;border:0;resize:vertical;font:inherit}.acoes-preferencia .botao-secundario{margin-right:auto;border:1px solid #cbd4df;background:#fff;color:#101828}.certificados-sem-api .cabecalho-certificados{grid-template-columns:1.5fr 1fr 1fr}.linha-certificado{display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;min-height:58px;padding:0 18px;border-bottom:1px solid #d8dfe7}.linha-certificado button{border:0;background:transparent;color:#ff4d55;font-size:19px;cursor:pointer}.modal-certificado{width:min(620px,calc(100vw - 32px))}.fundo-modal-item{align-items:center;padding:16px}.seletor-certificado{position:relative;display:grid;place-items:center;height:104px;margin:12px 0 18px;border:1px dashed #cbd4df;border-radius:8px;color:#8994a3;cursor:pointer}.seletor-certificado input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.seletor-certificado span{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:30px}.seletor-certificado small{font-size:12px}.modal-certificado .grade-conta{margin-bottom:16px}.modal-certificado .grade-conta label{display:flex;flex-direction:column;gap:8px;font-weight:550}.modal-certificado .grade-conta b{color:#ef4444}
+.formulario-smtp .senha-smtp-alterar{width:100%;height:34px;border:1px solid #cbd4df;border-radius:6px;background:#fff;color:#253042;font:inherit;font-weight:500;cursor:pointer}
+.formulario-smtp .senha-smtp-alterar:hover{background:#f8fafc;border-color:#aeb9c6}
+.formulario-smtp .senha-smtp-edicao{display:flex;align-items:center;gap:10px;width:100%}
+.formulario-smtp .senha-smtp-edicao input{flex:1;min-width:0}
+.formulario-smtp .senha-smtp-cancelar{flex:0 0 34px;width:34px;height:34px;border:1px solid #ff4d55;border-radius:7px;background:#fff;color:#ff4d55;font-size:25px;line-height:1;cursor:pointer}
+.formulario-smtp .senha-smtp-cancelar:hover{background:#fff1f2}
+
+.tabela-templates-whatsapp .cabecalho-itens-matriz{min-height:58px;box-sizing:border-box;padding:18px}
+.linha-template-whatsapp{display:flex;align-items:center;gap:16px;min-height:66px;padding:10px 16px;border-bottom:1px solid #d8dfe7;background:#fff}
+.linha-template-whatsapp:last-child{border-bottom:0}
+.linha-template-whatsapp>div{min-width:0;flex:1}
+.linha-template-whatsapp .nome-template-whatsapp{display:block;max-width:100%;overflow:hidden;padding:0;border:0;background:transparent;color:#173a94;font:500 14px Inter,system-ui,sans-serif;text-align:left;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.linha-template-whatsapp .excluir-item-matriz{display:grid;place-items:center;width:24px;height:28px;padding:0}
+.linha-template-whatsapp .excluir-item-matriz svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.linha-template-whatsapp p{overflow:hidden;margin:2px 0 0;color:#8994a3;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.fundo-template-whatsapp{position:fixed;inset:0;z-index:2400;display:flex;justify-content:flex-end;background:#000c;font-family:Inter,system-ui,sans-serif;color:#111}
+.drawer-template-whatsapp{display:flex;flex-direction:column;width:min(774px,100vw);height:100dvh;background:#fff;box-shadow:-12px 0 36px #0002}
+.cabecalho-drawer-template{display:flex;align-items:center;justify-content:space-between;flex:none;height:62px;padding:0 16px;border-bottom:1px solid #d8dfe7}
+.cabecalho-drawer-template h2{margin:0;font-size:16px;font-weight:500}
+.cabecalho-drawer-template button{width:34px;height:34px;border:0;background:transparent;color:#535e68;font-size:25px;cursor:pointer}
+.conteudo-drawer-template{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;flex:1;min-height:0;padding:20px 24px;overflow:auto}
+.editor-template-whatsapp{min-width:0}
+.campo-template-nome{display:flex;flex-direction:column;gap:7px;margin:0 0 14px;font-size:14px;font-weight:550}
+.campo-template-nome b{color:#ef4444}
+.campo-template-nome input{box-sizing:border-box;width:100%;height:42px;padding:0 12px;border:1px solid #cbd4df;border-radius:8px;font:inherit}
+.rotulo-mensagem-template{display:block;margin-bottom:8px;font-size:14px;font-weight:550}
+.barra-template-whatsapp{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border:1px solid #cbd4df;border-bottom:0;border-radius:8px 8px 0 0}
+.barra-template-whatsapp button{height:28px;padding:0 9px;border:1px solid #cbd4df;border-radius:7px;background:#fff;font:inherit;white-space:nowrap;cursor:pointer}
+.formatos-template-whatsapp{display:flex}
+.barra-template-whatsapp .formatos-template-whatsapp button{width:28px;padding:0;border-radius:0;background:#eef1f4;color:#8994a3}
+.formatos-template-whatsapp button+button{border-left:0}
+.formatos-template-whatsapp button:first-child{border-radius:6px 0 0 6px}
+.formatos-template-whatsapp button:last-child{border-radius:0 6px 6px 0}
+.barra-template-whatsapp .botao-descritivo-template{margin-left:auto}
+.lista-tags-template{display:flex;flex-wrap:wrap;gap:6px;padding:9px;border:1px solid #cbd4df;border-bottom:0;background:#f8fafc}
+.lista-tags-template button{padding:5px 7px;border:1px solid #d5dce5;border-radius:5px;background:#fff;color:#344054;font-size:11px;cursor:pointer}
+.descricao-template-whatsapp{margin:0;padding:10px 12px;border:1px solid #cbd4df;border-bottom:0;background:#f8fafc;color:#667085;font-size:12px;line-height:1.45}
+.linha-status-os{display:flex;align-items:center;gap:18px;min-height:66px;padding:10px 18px;border-bottom:1px solid #d8dfe7;background:#fff}
+.linha-status-os:nth-child(even){background:#f8f9fa}
+.arraste-status-os{width:18px;padding:0;border:0;background:transparent;color:#202833;font-size:18px;cursor:grab}
+.nome-status-os{border:0;background:transparent;color:#173a94;text-align:left;font:500 14px Inter,system-ui,sans-serif;cursor:pointer}
+.modal-status-os .campo-item-matriz{margin-bottom:18px}
+.modal-status-os>strong{display:block;margin:18px 0 8px;font-size:14px;font-weight:550}
+.tipos-status-os{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:12px 0 18px}
+.tipos-status-os label{display:flex;align-items:center;gap:8px;font-size:13px}
+.tipos-status-os input{width:20px;height:20px;margin:0;accent-color:#173a94}
+.modal-status-os .paleta-itens-matriz{margin-top:8px}
+@media(max-width:600px){.linha-status-os{gap:10px;padding:10px}.tipos-status-os{gap:10px}.tipos-status-os label{font-size:12px}}
+.editor-template-whatsapp textarea{box-sizing:border-box;display:block;width:100%;height:58px;min-height:58px;padding:16px;border:1px solid #cbd4df;border-radius:0 0 8px 8px;resize:vertical;font:14px Inter,system-ui,sans-serif}
+.editor-template-whatsapp textarea::placeholder{color:#a3adba}
+.contador-template-whatsapp{margin-top:5px;color:#8994a3;text-align:right;font-size:12px}
+.erro-template-whatsapp{display:block;margin:-8px 0 10px;color:#b42318;font-size:12px}
+.previa-template-whatsapp{position:relative;display:flex;align-items:flex-end;justify-content:flex-end;min-width:0;min-height:240px;padding:16px;border-radius:8px;background:#e7deda}
+.balao-template-whatsapp{max-width:90%;padding:14px;border-radius:9px;background:#e2f5c9;box-shadow:0 2px 5px #0001;color:#414a39;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.rodape-drawer-template{display:flex;justify-content:flex-end;gap:14px;flex:none;padding:12px 24px;border-top:1px solid #d8dfe7}
+.rodape-drawer-template .cancelar-template-whatsapp{height:42px;padding:0 20px;border:1px solid #cbd4df;border-radius:8px;background:white;font:inherit;cursor:pointer}
+.rodape-drawer-template .botao-verde{align-self:auto;height:42px}
+.rodape-drawer-template button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:680px){.conteudo-drawer-template{grid-template-columns:1fr;gap:14px;padding:16px;overflow:auto}.previa-template-whatsapp{min-height:220px;order:2}.editor-template-whatsapp{order:1}.rodape-drawer-template{padding:10px 16px}.barra-template-whatsapp{gap:6px;padding:0 7px}.barra-template-whatsapp button{padding:0 6px;font-size:12px}}
+
+:host-context(html.theme-dark) .janela-conta-configuracoes{background:#222;color:#e5e7eb;color-scheme:dark}
+:host-context(html.theme-dark) .janela-conta-configuracoes .topo-conta,
+:host-context(html.theme-dark) .janela-conta-configuracoes .abas-conta,
+:host-context(html.theme-dark) .janela-conta-configuracoes .titulo-secao,
+:host-context(html.theme-dark) .janela-conta-configuracoes .acoes-preferencia,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-certificado,
+:host-context(html.theme-dark) .janela-conta-configuracoes .tabela-itens-matriz>header,
+:host-context(html.theme-dark) .janela-conta-configuracoes .cabecalho-itens-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .cabecalho-certificados{border-color:#414141}
+:host-context(html.theme-dark) .janela-conta-configuracoes .topo-conta button,
+:host-context(html.theme-dark) .janela-conta-configuracoes .abas-conta button,
+:host-context(html.theme-dark) .janela-conta-configuracoes .menu-conta,
+:host-context(html.theme-dark) .janela-conta-configuracoes .menu-conta button{background:#222;color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes .topo-conta button,
+:host-context(html.theme-dark) .janela-conta-configuracoes .busca-config,
+:host-context(html.theme-dark) .janela-conta-configuracoes .menu-conta,
+:host-context(html.theme-dark) .janela-conta-configuracoes .editor-assinatura,
+:host-context(html.theme-dark) .janela-conta-configuracoes .editor-assinatura>div{border-color:#414141}
+:host-context(html.theme-dark) .janela-conta-configuracoes .menu-conta button:hover,
+:host-context(html.theme-dark) .janela-conta-configuracoes .menu-conta button:focus-visible{background:#303030}
+:host-context(html.theme-dark) .janela-conta-configuracoes .menu-conta button.selecionada{background:#10213c;color:#c7dcff}
+:host-context(html.theme-dark) .janela-conta-configuracoes .abas-conta button.selecionada{border-bottom-color:#8ab4ff;color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes .painel-conta{background:#1f1f1f;color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes .titulo-secao h2,
+:host-context(html.theme-dark) .janela-conta-configuracoes .cartao-conta,
+:host-context(html.theme-dark) .janela-conta-configuracoes .tabela-itens-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-template-whatsapp,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-status-os,
+:host-context(html.theme-dark) .janela-conta-configuracoes .modal-item-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .drawer-template-whatsapp{background:#292929;color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes .cartao-conta,
+:host-context(html.theme-dark) .janela-conta-configuracoes .tabela-itens-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .busca-itens-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .modal-item-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .modal-item-matriz>header,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-template-whatsapp,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-status-os,
+:host-context(html.theme-dark) .janela-conta-configuracoes .cabecalho-drawer-template,
+:host-context(html.theme-dark) .janela-conta-configuracoes .rodape-drawer-template{border-color:#414141}
+:host-context(html.theme-dark) .janela-conta-configuracoes .cartao-conta h3,
+:host-context(html.theme-dark) .janela-conta-configuracoes .titulo-secao p,
+:host-context(html.theme-dark) .janela-conta-configuracoes .nota-campo,
+:host-context(html.theme-dark) .janela-conta-configuracoes .campo-assinatura small,
+:host-context(html.theme-dark) .janela-conta-configuracoes .tabela-itens-matriz>header,
+:host-context(html.theme-dark) .janela-conta-configuracoes .cabecalho-itens-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .cabecalho-certificados,
+:host-context(html.theme-dark) .janela-conta-configuracoes .vazio-itens-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-template-whatsapp p{color:#a3a3a3}
+:host-context(html.theme-dark) .janela-conta-configuracoes input:not([type=checkbox]):not([type=radio]),
+:host-context(html.theme-dark) .janela-conta-configuracoes textarea,
+:host-context(html.theme-dark) .janela-conta-configuracoes select,
+:host-context(html.theme-dark) .janela-conta-configuracoes .senha-smtp-alterar,
+:host-context(html.theme-dark) .janela-conta-configuracoes .acoes-preferencia .botao-secundario,
+:host-context(html.theme-dark) .janela-conta-configuracoes .modal-item-matriz>footer>button:first-child,
+:host-context(html.theme-dark) .janela-conta-configuracoes .rodape-drawer-template .cancelar-template-whatsapp{border-color:#525252;background:#242424;color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes input::placeholder,
+:host-context(html.theme-dark) .janela-conta-configuracoes textarea::placeholder{color:#8793a2}
+:host-context(html.theme-dark) .janela-conta-configuracoes .cartao-conta input[readonly]{background:#303030;color:#a3a3a3}
+:host-context(html.theme-dark) .janela-conta-configuracoes .editor-assinatura,
+:host-context(html.theme-dark) .janela-conta-configuracoes .editor-template-whatsapp textarea{background:#242424;color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes .editor-assinatura button,
+:host-context(html.theme-dark) .janela-conta-configuracoes .barra-template-whatsapp button,
+:host-context(html.theme-dark) .janela-conta-configuracoes .lista-tags-template button{border-color:#525252;background:#303030;color:#d1d5db}
+:host-context(html.theme-dark) .janela-conta-configuracoes .lista-tags-template,
+:host-context(html.theme-dark) .janela-conta-configuracoes .descricao-template-whatsapp{border-color:#414141;background:#242424;color:#a3a3a3}
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-item-matriz,
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-status-os:nth-child(even){border-color:#414141;background:#242424}
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-item-matriz>button:not(.excluir-item-matriz),
+:host-context(html.theme-dark) .janela-conta-configuracoes .linha-template-whatsapp .nome-template-whatsapp,
+:host-context(html.theme-dark) .janela-conta-configuracoes .nome-status-os{color:#a9c5ff}
+:host-context(html.theme-dark) .janela-conta-configuracoes .modal-item-matriz>header h2,
+:host-context(html.theme-dark) .janela-conta-configuracoes .modal-item-matriz>header button,
+:host-context(html.theme-dark) .janela-conta-configuracoes .arraste-status-os{color:#cbd5e1}
+:host-context(html.theme-dark) .janela-conta-configuracoes .opcoes-segmentadas,
+:host-context(html.theme-dark) .janela-conta-configuracoes .opcoes-radio{color:#e5e7eb}
+:host-context(html.theme-dark) .janela-conta-configuracoes .opcoes-segmentadas button:not(.ativo){background:#303030;color:#cbd5e1}
+:host-context(html.theme-dark) .janela-conta-configuracoes .opcoes-segmentadas button.ativo{background:#444;color:#fff}
+:host-context(html.theme-dark) .janela-conta-configuracoes .acoes-preferencia button:disabled{background:#3a3a3a;color:#8793a2}
+:host-context(html.theme-dark) .janela-conta-configuracoes .previa-template-whatsapp{background:#3a302e}
+:host-context(html.theme-dark) .janela-conta-configuracoes .balao-template-whatsapp{background:#32442b;color:#e3f3d6}
