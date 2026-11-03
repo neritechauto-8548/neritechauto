@@ -2,6 +2,7 @@ package com.neritech.saas.comunicacao.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import com.neritech.saas.configuracoes.ConfiguracoesSegurasService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class EmailSenderService {
 
     private final JavaMailSender mailSender;
+    private final ConfiguracoesSegurasService configuracoesSeguras;
 
     @Value("${spring.mail.username:}")
     private String fromEmail;
@@ -24,6 +26,16 @@ public class EmailSenderService {
      * classificar ENVIADA, mas não comprova entrega/leitura ao destinatário.
      */
     public void sendEmail(String to, String subject, String body) {
+        if (configuracoesSeguras.enviarPorSmtpConfigurado("MATRIZ", to, subject, body)) return;
+        enviarPeloSmtpPadrao(to, subject, body);
+    }
+
+    public void enviarEmailCrm(String destinatario, String assunto, String conteudo) {
+        if (configuracoesSeguras.enviarPorSmtpConfigurado("CRM", destinatario, assunto, conteudo)) return;
+        enviarPeloSmtpPadrao(destinatario, assunto, conteudo);
+    }
+
+    private void enviarPeloSmtpPadrao(String to, String subject, String body) {
         if (fromEmail == null || fromEmail.isBlank()) {
             throw new IllegalStateException("SMTP não configurado para envio de e-mails.");
         }

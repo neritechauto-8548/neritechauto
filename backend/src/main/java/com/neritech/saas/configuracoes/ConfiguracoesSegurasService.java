@@ -1,0 +1,108 @@
+package com.neritech.saas.configuracoes;
+
+import com.neritech.saas.common.tenancy.TenantAccess;
+import com.neritech.saas.common.tenancy.TenantContext;
+import jakarta.mail.internet.MimeMessage;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class ConfiguracoesSegurasService {
+    private static final String CIPHER = "AES/GCM/NoPadding";
+    private final JdbcTemplate banco;
+    private final String chaveBase64;
+
+    public ConfiguracoesSegurasService(JdbcTemplate banco, @Value("${neritech.criptografia.chave:${NERITECH_CHAVE_CRIPTOGRAFIA:}}") String chaveBase64) {
+        this.banco = banco;
+        this.chaveBase64 = chaveBase64;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String,Object> obterSmtp(String escopo) {
+        validarEscopo(escopo); Long empresa = TenantAccess.requireCurrent();
+        return banco.query("select email, servidor_smtp, porta_smtp, usar_ssl, usar_tls, assinatura, (octet_length(senha_cifrada)>0) tem_senha from configuracoes_smtp_empresa where empresa_id=? and escopo=?",
+            rs -> rs.next() ? Map.of("email",rs.getString("email"),"servidorSmtp",rs.getString("servidor_smtp"),"portaSmtp",rs.getInt("porta_smtp"),"usarSsl",rs.getBoolean("usar_ssl"),"usarTls",rs.getBoolean("usar_tls"),"assinatura",rs.getString("assinatura") == null ? "" : rs.getString("assinatura"),"temSenha",rs.getBoolean("tem_senha")) : Map.of("email","","servidorSmtp","","portaSmtp",587,"usarSsl",false,"usarTls",false,"assinatura","","temSenha",false), empresa, escopo);
+    }
+
+    @Transactional
+    public Map<String,Object> salvarSmtp(String escopo, RequisicaoSmtp req) {
+        validarEscopo(escopo); Long empresa=TenantAccess.requireCurrent(); validarSmtp(req);
+        byte[] senha = req.senha()!=null && !req.senha().isBlank() ? cifrar(req.senha().getBytes(StandardCharsets.UTF_8)) : banco.query("select senha_cifrada from configuracoes_smtp_empresa where empresa_id=? and escopo=?", rs -> rs.next()?rs.getBytes(1):null, empresa,escopo);
+        if (senha==null) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Informe a senha SMTP na primeira configuração");
+        Long usuario=usuarioAtualId();
+        banco.update("insert into configuracoes_smtp_empresa(empresa_id,escopo,email,senha_cifrada,servidor_smtp,porta_smtp,usar_ssl,usar_tls,assinatura,criado_por,atualizado_por) values(?,?,?,?,?,?,?,?,?,?,?) on conflict(empresa_id,escopo) do update set email=excluded.email,senha_cifrada=excluded.senha_cifrada,servidor_smtp=excluded.servidor_smtp,porta_smtp=excluded.porta_smtp,usar_ssl=excluded.usar_ssl,usar_tls=excluded.usar_tls,assinatura=excluded.assinatura,data_atualizacao=current_timestamp,atualizado_por=excluded.atualizado_por,versao=configuracoes_smtp_empresa.versao+1",
+            empresa,escopo,req.email(),senha,req.servidorSmtp(),req.portaSmtp(),req.usarSsl(),req.usarTls(),req.assinatura(),usuario,usuario);
+        return obterSmtp(escopo);
+    }
+
+    @Transactional(readOnly = true)
+    public void verificarSmtp(String escopo, RequisicaoSmtp requisicao) {
+        validarEscopo(escopo); Long empresa=TenantAccess.requireCurrent();
+        byte[] senha=requisicao==null||requisicao.senha()==null||requisicao.senha().isBlank()?banco.query("select senha_cifrada from configuracoes_smtp_empresa where empresa_id=? and escopo=?",rs->rs.next()?rs.getBytes(1):null,empresa,escopo):cifrar(requisicao.senha().getBytes(StandardCharsets.UTF_8));
+        String email=requisicao==null?null:requisicao.email(); String servidor=requisicao==null?null:requisicao.servidorSmtp(); Integer porta=requisicao==null?null:requisicao.portaSmtp(); Boolean ssl=requisicao==null?null:requisicao.usarSsl(); Boolean tls=requisicao==null?null:requisicao.usarTls();
+        if(email==null||servidor==null||porta==null||ssl==null||tls==null){var salvo=banco.query("select email,servidor_smtp,porta_smtp,usar_ssl,usar_tls from configuracoes_smtp_empresa where empresa_id=? and escopo=?",rs->rs.next()?new DadosSmtp(rs.getString(1),rs.getString(2),rs.getInt(3),rs.getBoolean(4),rs.getBoolean(5)):null,empresa,escopo);if(salvo==null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Informe e salve a configuração SMTP antes de verificar");if(email==null)email=salvo.email();if(servidor==null)servidor=salvo.servidor();if(porta==null)porta=salvo.porta();if(ssl==null)ssl=salvo.ssl();if(tls==null)tls=salvo.tls();}
+        if(senha==null)throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Informe a senha SMTP antes de verificar");
+        JavaMailSenderImpl remetente=new JavaMailSenderImpl(); remetente.setHost(servidor); remetente.setPort(porta); remetente.setUsername(email); remetente.setPassword(new String(decifrar(senha),StandardCharsets.UTF_8));
+        var propriedades=remetente.getJavaMailProperties(); propriedades.put("mail.smtp.auth","true"); propriedades.put("mail.smtp.connectiontimeout","10000"); propriedades.put("mail.smtp.timeout","10000"); propriedades.put("mail.smtp.writetimeout","10000");
+        if(ssl) propriedades.put("mail.smtp.ssl.enable","true"); if(tls) propriedades.put("mail.smtp.starttls.enable","true");
+        try { MimeMessage msg=remetente.createMimeMessage(); var helper=new org.springframework.mail.javamail.MimeMessageHelper(msg,true,"UTF-8"); helper.setTo(email); helper.setSubject("Verificação de configuração de e-mail"); helper.setText("A configuração SMTP da sua empresa foi verificada com sucesso.",false); remetente.send(msg); }
+        catch(Exception falha){ throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,"Não foi possível autenticar e enviar o e-mail de verificação. Confira servidor, porta, SSL/TLS e credenciais.",falha); }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean enviarPorSmtpConfigurado(String escopo, String destinatario, String assunto, String conteudo) {
+        validarEscopo(escopo); Long empresa=TenantContext.getCurrentTenant(); if(empresa==null)return false;
+        var dados=banco.query("select email,senha_cifrada,servidor_smtp,porta_smtp,usar_ssl,usar_tls,assinatura from configuracoes_smtp_empresa where empresa_id=? and escopo=?",rs->rs.next()?new SmtpCompleto(rs.getString(1),rs.getBytes(2),rs.getString(3),rs.getInt(4),rs.getBoolean(5),rs.getBoolean(6),rs.getString(7)):null,empresa,escopo);
+        if(dados==null)return false;
+        JavaMailSenderImpl remetente=new JavaMailSenderImpl();remetente.setHost(dados.servidor());remetente.setPort(dados.porta());remetente.setUsername(dados.email());remetente.setPassword(new String(decifrar(dados.senha()),StandardCharsets.UTF_8));
+        var propriedades=remetente.getJavaMailProperties();propriedades.put("mail.smtp.auth","true");propriedades.put("mail.smtp.connectiontimeout","10000");propriedades.put("mail.smtp.timeout","10000");propriedades.put("mail.smtp.writetimeout","10000");if(dados.ssl())propriedades.put("mail.smtp.ssl.enable","true");if(dados.tls())propriedades.put("mail.smtp.starttls.enable","true");
+        try{MimeMessage mensagem=remetente.createMimeMessage();var auxiliar=new org.springframework.mail.javamail.MimeMessageHelper(mensagem,true,"UTF-8");auxiliar.setFrom(dados.email());auxiliar.setTo(destinatario);auxiliar.setSubject(assunto);String assinatura="MATRIZ".equals(escopo)&&dados.assinatura()!=null&&!dados.assinatura().isBlank()?"<br><br>"+dados.assinatura():"";auxiliar.setText((conteudo==null?"":conteudo)+assinatura,true);remetente.send(mensagem);return true;}catch(Exception falha){throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,"Falha no envio pelo SMTP configurado para esta empresa",falha);}
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String,Object>> listarCertificados() {
+        Long empresa=TenantAccess.requireCurrent(); return banco.query("select id,nome_certificado,email_contato,data_vencimento,data_cadastro from certificados_digitais where empresa_id=? order by data_cadastro desc",(rs,n)->Map.of("id",rs.getLong("id"),"nomeArquivo",rs.getString("nome_certificado"),"email",rs.getString("email_contato")==null?"":rs.getString("email_contato"),"dataValidade",rs.getDate("data_vencimento").toLocalDate().atStartOfDay(),"dataCadastro",rs.getTimestamp("data_cadastro").toLocalDateTime()),empresa);
+    }
+
+    @Transactional
+    public void criarCertificado(String nome, String email, String senha, byte[] arquivo) {
+        Long empresa=TenantAccess.requireCurrent(); if(nome==null||nome.isBlank()||nome.length()>255||senha==null||senha.isBlank()||arquivo==null||arquivo.length<1||arquivo.length>5_242_880) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Informe arquivo A1 (.pfx/.p12) de até 5 MB, senha e nome válido");
+        try {
+            KeyStore cofre=KeyStore.getInstance("PKCS12"); cofre.load(new ByteArrayInputStream(arquivo),senha.toCharArray());
+            var aliases=cofre.aliases(); if(!aliases.hasMoreElements()) throw new IllegalArgumentException("Sem certificado");
+            X509Certificate cert=(X509Certificate)cofre.getCertificate(aliases.nextElement()); Date validade=cert.getNotAfter(); String titular=cert.getSubjectX500Principal().getName();
+            String cpfCnpj=java.util.Arrays.stream(titular.split(",")).filter(parte->parte.trim().toUpperCase().startsWith("SERIALNUMBER=")).map(parte->parte.substring(parte.indexOf('=')+1).replaceAll("[^0-9]","")).filter(valor->!valor.isBlank()).findFirst().orElse("");
+            String nomeFinal=nome==null||nome.isBlank()?"Certificado A1":nome;
+            banco.update("insert into certificados_digitais(empresa_id,tipo_certificado,nome_certificado,numero_serie,emissor,titular,cpf_cnpj_titular,data_emissao,data_vencimento,arquivo_certificado,senha_certificado,ativo,principal,usado_nfe,data_instalacao,data_cadastro,cadastrado_por,arquivo_cifrado,senha_cifrada,email_contato) values(?,'A1',?,?,?,?,?,?,?,null,null,true,false,true,current_timestamp,current_timestamp,?,?,?,?)",empresa,nomeFinal,cert.getSerialNumber().toString(16),cert.getIssuerX500Principal().getName(),titular,cpfCnpj,java.sql.Date.valueOf(cert.getNotBefore().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()),java.sql.Date.valueOf(validade.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()),usuarioAtualId(),cifrar(arquivo),cifrar(senha.getBytes(StandardCharsets.UTF_8)),email==null||email.isBlank()?null:email);
+        } catch(ResponseStatusException falha){throw falha;} catch(Exception falha){throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Arquivo ou senha inválidos. Use um certificado A1 válido no formato .pfx ou .p12.",falha);}
+    }
+
+    private byte[] chaveProtecao() { try { byte[] bytes=Base64.getDecoder().decode(chaveBase64 == null ? "" : chaveBase64); if(bytes.length!=32) throw new IllegalArgumentException(); return bytes; } catch(Exception falha){ throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"A chave de proteção de dados não está configurada corretamente no servidor"); } }
+    private byte[] cifrar(byte[] texto) { try { byte[] iv=new byte[12]; new java.security.SecureRandom().nextBytes(iv); Cipher cifra=Cipher.getInstance(CIPHER); cifra.init(Cipher.ENCRYPT_MODE,new SecretKeySpec(chaveProtecao(),"AES"),new GCMParameterSpec(128,iv)); byte[] cifrado=cifra.doFinal(texto); byte[] saida=new byte[iv.length+cifrado.length]; System.arraycopy(iv,0,saida,0,iv.length);System.arraycopy(cifrado,0,saida,iv.length,cifrado.length); return saida; } catch(org.springframework.web.server.ResponseStatusException falha){throw falha;} catch(Exception falha){throw new IllegalStateException("Falha ao proteger dado sensível",falha);} }
+    private byte[] decifrar(byte[] dado) { try { byte[] iv=java.util.Arrays.copyOfRange(dado,0,12); Cipher cifra=Cipher.getInstance(CIPHER); cifra.init(Cipher.DECRYPT_MODE,new SecretKeySpec(chaveProtecao(),"AES"),new GCMParameterSpec(128,iv)); return cifra.doFinal(java.util.Arrays.copyOfRange(dado,12,dado.length)); } catch(org.springframework.web.server.ResponseStatusException falha){throw falha;} catch(Exception falha){throw new IllegalStateException("Falha ao acessar configuração protegida",falha);} }
+    private void validarEscopo(String escopo){if(!List.of("MATRIZ","CRM").contains(escopo)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Escopo de e-mail inválido");}
+    private void validarSmtp(RequisicaoSmtp req){if(req==null||req.email()==null||!req.email().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")||req.servidorSmtp()==null||req.servidorSmtp().isBlank()||req.portaSmtp()<1||req.portaSmtp()>65535) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Confira e-mail, servidor SMTP e porta"); if(req.usarSsl()&&req.usarTls()) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Escolha SSL ou TLS, não ambos");}
+    private Long usuarioAtualId(){var auth=SecurityContextHolder.getContext().getAuthentication(); if(auth==null||!auth.isAuthenticated()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Autenticação necessária"); return banco.query("select id from usuarios where lower(email)=lower(?) and empresa_id=? and ativo=true and bloqueado=false",rs->rs.next()?rs.getLong(1):null,auth.getName(),TenantAccess.requireCurrent());}
+    public record RequisicaoSmtp(String email,String senha,String servidorSmtp,int portaSmtp,boolean usarSsl,boolean usarTls,String assinatura){}
+    private record SmtpCompleto(String email,byte[] senha,String servidor,int porta,boolean ssl,boolean tls,String assinatura){ SmtpCompleto(String email,byte[] senha,String servidor,int porta,boolean ssl,boolean tls){this(email,senha,servidor,porta,ssl,tls,null);} }
+    private record DadosSmtp(String email,String servidor,int porta,boolean ssl,boolean tls){}
+}

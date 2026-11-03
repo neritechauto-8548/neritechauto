@@ -90,7 +90,7 @@ public class ComunicacaoEnviadaService {
         entity.setDataEnvio(null);
         entity.setErroEnvio(null);
         try {
-            emailSenderService.sendEmail(
+            emailSenderService.enviarEmailCrm(
                 request.destinatarioContato(),
                 request.assunto() != null ? request.assunto() : "Notificação NERITECH AUTO",
                 request.conteudo()

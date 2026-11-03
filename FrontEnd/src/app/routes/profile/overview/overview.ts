@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, Input, Output, EventEmitter } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, take } from 'rxjs';
 import { AuthService } from '@core';
@@ -9,8 +9,9 @@ import { UsuarioResponse } from '../../configuracoes/permissoes/usuario.models';
 import { MinhaContaService } from '../minha-conta.service';
 import { Chave, Politica, PreferenciasService } from '../../configuracoes/preferencias/preferencias.service';
 import { AlteracaoItemConfiguracao, GrupoItemConfiguracao, ItemConfiguracao, ItensConfiguracaoService } from '../../configuracoes/preferencias/itens-configuracao.service';
+import { CertificadoProtegido, ConfiguracaoSmtp, ConfiguracoesSegurasService } from './configuracoes-seguras.service';
 
-@Component({ selector: 'app-profile-overview', templateUrl: './overview.html', styleUrl: './overview.scss', imports: [CommonModule, ReactiveFormsModule, RouterLink] })
+@Component({ selector: 'app-profile-overview', templateUrl: './overview.html', styleUrl: './overview.scss', imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink] })
 export class ProfileOverview implements OnInit {
   @Input() modal = false;
   @Input() abaInicial: 'perfil' | 'matriz' = 'perfil';
@@ -21,6 +22,7 @@ export class ProfileOverview implements OnInit {
   private readonly autenticacao = inject(AuthService);
   private readonly preferencias = inject(PreferenciasService);
   private readonly itensConfiguracao = inject(ItensConfiguracaoService);
+  private readonly configuracoesSeguras = inject(ConfiguracoesSegurasService);
   readonly preVisualizacao = environment.uxPreview;
   usuario?: UsuarioResponse;
   secao: 'geral' | 'email' | 'vinculos' = 'geral';
@@ -42,6 +44,23 @@ export class ProfileOverview implements OnInit {
   corItemMatriz = '#899198';
   itemEditandoMatriz?: ItemConfiguracao;
   erroItemMatriz = '';
+  readonly formularioSmtp = this.construtor.nonNullable.group({ email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]], senha: [''], servidorSmtp: ['', [Validators.required, Validators.maxLength(255)]], portaSmtp: [587, [Validators.required, Validators.min(1), Validators.max(65535)]], usarSsl: [false], usarTls: [false], assinatura: [''] });
+  escopoSmtp: 'MATRIZ' | 'CRM' = 'MATRIZ';
+  temSenhaSmtp = false;
+  carregandoSmtp = false;
+  salvandoSmtp = false;
+  verificandoSmtp = false;
+  erroSmtp = '';
+  sucessoSmtp = '';
+  certificadosProtegidos: CertificadoProtegido[] = [];
+  carregandoCertificados = false;
+  modalCertificado = false;
+  nomeCertificado = '';
+  emailCertificado = '';
+  senhaCertificado = '';
+  arquivoCertificado?: File;
+  erroCertificado = '';
+  salvandoCertificado = false;
   readonly coresItensMatriz = ['#2D2D2D','#899198','#FF4D55','#E83E7A','#BA42D2','#7544E8','#4367E8','#2585DA','#16A7B9','#12B886','#3BB956','#7EC51D','#F3A900','#FF7A00','#FFFFFF00'];
   readonly camposCompraMatriz = [
     { chave: 'alterarPrecoCompra' as Chave, rotulo: 'Alterar o preço do produto ao autorizar uma compra', tipo: 'opcao' },
@@ -116,7 +135,16 @@ export class ProfileOverview implements OnInit {
     });
   }
   alternarVisibilidadeSenha(campo: 'atual' | 'nova' | 'confirmacao'): void { this.visibilidadeSenhas[campo] = !this.visibilidadeSenhas[campo]; }
-  selecionarSecaoMatriz(secao: string, grupo: string): void { this.secaoMatriz = secao; this.grupoMatriz = grupo; this.sucessoMatriz = ''; if (!Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); if (['categorias','etiquetasFinanceiro','etiquetasVenda'].includes(secao)) this.carregarItensMatriz(); }
+  selecionarSecaoMatriz(secao: string, grupo: string): void { this.secaoMatriz = secao; this.grupoMatriz = grupo; this.sucessoMatriz = ''; if (!Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); if (['categorias','etiquetasFinanceiro','etiquetasVenda'].includes(secao)) this.carregarItensMatriz(); if (secao === 'configEmail' || secao === 'crmEmail') this.carregarSmtp(secao === 'crmEmail' ? 'CRM' : 'MATRIZ'); if (secao === 'certificados') this.carregarCertificados(); }
+  carregarSmtp(escopo: 'MATRIZ'|'CRM'): void { this.escopoSmtp=escopo; this.carregandoSmtp=true; this.erroSmtp=''; this.configuracoesSeguras.obterSmtp(escopo).pipe(take(1)).subscribe({next:dados=>{this.aplicarSmtp(dados);this.carregandoSmtp=false;},error:falha=>{console.error('Falha ao carregar configuração SMTP.',{status:falha?.status});this.erroSmtp=falha?.status===403?'Você não tem permissão para consultar a configuração de e-mail.':'Não foi possível carregar a configuração de e-mail desta empresa.';this.carregandoSmtp=false;}}); }
+  private aplicarSmtp(dados: ConfiguracaoSmtp): void { this.temSenhaSmtp=dados.temSenha; this.formularioSmtp.patchValue({email:dados.email,servidorSmtp:dados.servidorSmtp,portaSmtp:dados.portaSmtp,usarSsl:dados.usarSsl,usarTls:dados.usarTls,assinatura:dados.assinatura,senha:''}); }
+  salvarSmtp(): void { this.erroSmtp='';this.sucessoSmtp='';if(this.formularioSmtp.invalid){this.formularioSmtp.markAllAsTouched();return;}const dados=this.formularioSmtp.getRawValue();if(dados.usarSsl&&dados.usarTls){this.erroSmtp='Escolha SSL ou TLS, não ambos.';return;}if(!this.temSenhaSmtp&&!dados.senha){this.erroSmtp='Informe a senha do servidor SMTP.';return;}this.salvandoSmtp=true;this.configuracoesSeguras.salvarSmtp(this.escopoSmtp,dados).pipe(take(1)).subscribe({next:resposta=>{this.aplicarSmtp(resposta);this.sucessoSmtp='Configuração de e-mail salva.';this.salvandoSmtp=false;},error:falha=>{console.error('Falha ao salvar configuração SMTP.',{status:falha?.status});this.erroSmtp=falha?.status===403?'Você não tem permissão para alterar esta configuração.':'Não foi possível salvar. Confira os campos e tente novamente.';this.salvandoSmtp=false;}}); }
+  verificarSmtp(): void { this.erroSmtp='';this.sucessoSmtp='';const dados=this.formularioSmtp.getRawValue();if(!dados.email||!dados.servidorSmtp||!dados.portaSmtp||(!this.temSenhaSmtp&&!dados.senha)){this.erroSmtp='Preencha e-mail, senha, SMTP e porta para verificar.';this.formularioSmtp.markAllAsTouched();return;}if(dados.usarSsl&&dados.usarTls){this.erroSmtp='Escolha SSL ou TLS, não ambos.';return;}this.verificandoSmtp=true;this.configuracoesSeguras.verificarSmtp(this.escopoSmtp,dados).pipe(take(1)).subscribe({next:()=>{this.sucessoSmtp='E-mail de verificação enviado. Confira a caixa de entrada.';this.verificandoSmtp=false;},error:falha=>{console.error('Falha na verificação SMTP.',{status:falha?.status});this.erroSmtp=falha?.status===502?'Não foi possível autenticar no servidor SMTP. Revise servidor, porta e credenciais.':'Salve a configuração antes de verificar o e-mail.';this.verificandoSmtp=false;}}); }
+  formatarAssinatura(formato: 'b'|'i'|'u'): void { const campo=document.querySelector<HTMLTextAreaElement>('.editor-assinatura textarea');if(!campo)return;const inicio=campo.selectionStart,fim=campo.selectionEnd,valor=campo.value,selecionado=valor.slice(inicio,fim)||'texto';const novo=`${valor.slice(0,inicio)}<${formato}>${selecionado}</${formato}>${valor.slice(fim)}`;this.formularioSmtp.controls.assinatura.setValue(novo);campo.focus();campo.setSelectionRange(inicio+formato.length+2,inicio+formato.length+2+selecionado.length);}
+  carregarCertificados(): void {this.carregandoCertificados=true;this.erroCertificado='';this.configuracoesSeguras.listarCertificados().pipe(take(1)).subscribe({next:lista=>{this.certificadosProtegidos=lista;this.carregandoCertificados=false;},error:falha=>{console.error('Falha ao listar certificados digitais.',{status:falha?.status});this.erroCertificado=falha?.status===403?'Você não tem permissão para consultar certificados.':'Não foi possível carregar os certificados desta empresa.';this.carregandoCertificados=false;}});}
+  abrirCertificado(): void {this.nomeCertificado='';this.emailCertificado='';this.senhaCertificado='';this.arquivoCertificado=undefined;this.erroCertificado='';this.modalCertificado=true;}
+  selecionarArquivoCertificado(evento: Event): void {const entrada=evento.target as HTMLInputElement;this.arquivoCertificado=entrada.files?.[0];if(this.arquivoCertificado){this.nomeCertificado=this.arquivoCertificado.name;if(!/\.(pfx|p12)$/i.test(this.arquivoCertificado.name))this.erroCertificado='Selecione um arquivo .pfx ou .p12.';else this.erroCertificado='';}}
+  salvarCertificado(): void {if(!this.nomeCertificado.trim()||!this.senhaCertificado||!this.arquivoCertificado){this.erroCertificado='Informe o arquivo A1, a senha e o nome do certificado.';return;}if(this.arquivoCertificado.size>5242880){this.erroCertificado='O arquivo deve ter até 5 MB.';return;}const dados=new FormData();dados.append('nomeArquivo',this.nomeCertificado.trim());dados.append('email',this.emailCertificado.trim());dados.append('senha',this.senhaCertificado);dados.append('arquivo',this.arquivoCertificado);this.salvandoCertificado=true;this.erroCertificado='';this.configuracoesSeguras.criarCertificado(dados).pipe(take(1)).subscribe({next:()=>{this.modalCertificado=false;this.salvandoCertificado=false;this.carregarCertificados();},error:falha=>{console.error('Falha ao cadastrar certificado A1.',{status:falha?.status});this.erroCertificado=falha?.status===422?'Arquivo ou senha inválidos. Selecione um certificado A1 válido.':'Não foi possível cadastrar o certificado.';this.salvandoCertificado=false;}});}
   carregarPoliticasMatriz(): void {
     this.carregandoMatriz = true; this.erroMatriz = '';
     this.preferencias.listar('', '', undefined, 0, 100).pipe(take(1)).subscribe({
