@@ -149,7 +149,12 @@ export class PreferenciasGeraisComponent implements OnInit {
       case 'codigoPadraoPecas': return [{ value: 'FABRICANTE', label: 'Cód. fabricante' }, { value: 'BARRAS', label: 'Cód. barras' }, { value: 'INTERNO', label: 'Cód. interno' }, { value: 'EMPRESA', label: 'Cód. empresa' }];
       case 'ordemSelecaoAvaria': return [{ value: 'LOCAL_AVARIA', label: 'Local da avaria primeiro e depois a avaria' }, { value: 'AVARIA_LOCAL', label: 'Avaria primeiro e depois o local da avaria' }];
       case 'periodoExpiracaoSenhas': return [{ value: 'NAO_EXPIRA', label: 'Não expira' }, { value: '3_MESES', label: '3 meses' }, { value: '6_MESES', label: '6 meses' }, { value: '12_MESES', label: '12 meses' }];
-      case 'kmObrigatorio': case 'atualizarKmAutomaticamente': case 'categoriaEmContasReceber': case 'categoriaEmVendaDireta': case 'categoriaEmNotaFiscal': case 'categoriaEmOrdemServico': case 'categoriaEmListagem': return [{ value: 'true', label: 'Sim' }, { value: 'false', label: 'Não' }];
+      case 'alterarPrecoCompra': return [{ value: 'NUNCA', label: 'Nunca alterar' }, { value: 'PERGUNTAR', label: 'Perguntar antes' }, { value: 'SEMPRE', label: 'Sempre alterar' }];
+      case 'orientacaoImpressaoBoleto': return [{ value: 'PAISAGEM', label: 'Paisagem' }, { value: 'RETRATO', label: 'Retrato' }];
+      case 'calculoRevisaoCrm': return [{ value: 'KM_VIDA_UTIL', label: 'KM/Vida útil' }, { value: 'MESES', label: 'Meses' }];
+      case 'ordenacaoRelatorio': return [{ value: 'CODIGO', label: 'Código padrão' }, { value: 'DESCRICAO', label: 'Descrição do item' }, { value: 'INSERCAO', label: 'Por inserção' }, { value: 'PRECO', label: 'Preço do item' }];
+      case 'baseCalculoComissao': return [{ value: 'BASE', label: 'Valor base' }, { value: 'LIQUIDO', label: 'Valor líquido' }];
+      case 'kmObrigatorio': case 'atualizarKmAutomaticamente': case 'categoriaEmContasReceber': case 'categoriaEmVendaDireta': case 'categoriaEmNotaFiscal': case 'categoriaEmOrdemServico': case 'categoriaEmListagem': case 'enviarCustoCompraOs': case 'atualizarFabricanteCompra': case 'atualizarOrigemCompra': case 'atualizarNcmImportacao': case 'liquidarBoletoNoVencimento': case 'liquidacaoAutomaticaBoleto': case 'estoqueTodasEmpresasVenda': case 'crmAniversario': case 'crmServicosFuturos': case 'crmProximasRevisoes': case 'crmClientesSemMovimento': case 'crmPesquisaSatisfacao': case 'crmCobrancaDividas': case 'crmViaSmtp': case 'relatorioQuadroAnotacoes': case 'relatorioSepararAreas': case 'relatorioDadosCliente': case 'notaFiscalOutraEmpresa': return [{ value: 'true', label: 'Sim' }, { value: 'false', label: 'Não' }];
       default: return null;
     }
   }

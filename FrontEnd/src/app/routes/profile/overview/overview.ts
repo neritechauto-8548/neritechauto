@@ -8,6 +8,7 @@ import { environment } from '@env/environment';
 import { UsuarioResponse } from '../../configuracoes/permissoes/usuario.models';
 import { MinhaContaService } from '../minha-conta.service';
 import { Chave, Politica, PreferenciasService } from '../../configuracoes/preferencias/preferencias.service';
+import { AlteracaoItemConfiguracao, GrupoItemConfiguracao, ItemConfiguracao, ItensConfiguracaoService } from '../../configuracoes/preferencias/itens-configuracao.service';
 
 @Component({ selector: 'app-profile-overview', templateUrl: './overview.html', styleUrl: './overview.scss', imports: [CommonModule, ReactiveFormsModule, RouterLink] })
 export class ProfileOverview implements OnInit {
@@ -19,6 +20,7 @@ export class ProfileOverview implements OnInit {
   private readonly roteador = inject(Router);
   private readonly autenticacao = inject(AuthService);
   private readonly preferencias = inject(PreferenciasService);
+  private readonly itensConfiguracao = inject(ItensConfiguracaoService);
   readonly preVisualizacao = environment.uxPreview;
   usuario?: UsuarioResponse;
   secao: 'geral' | 'email' | 'vinculos' = 'geral';
@@ -31,6 +33,52 @@ export class ProfileOverview implements OnInit {
   salvandoMatriz = false;
   erroMatriz = '';
   sucessoMatriz = '';
+  itensMatriz: ItemConfiguracao[] = [];
+  buscaItensMatriz = '';
+  carregandoItensMatriz = false;
+  modalItemMatriz = false;
+  salvandoItemMatriz = false;
+  descricaoItemMatriz = '';
+  corItemMatriz = '#899198';
+  itemEditandoMatriz?: ItemConfiguracao;
+  erroItemMatriz = '';
+  readonly coresItensMatriz = ['#2D2D2D','#899198','#FF4D55','#E83E7A','#BA42D2','#7544E8','#4367E8','#2585DA','#16A7B9','#12B886','#3BB956','#7EC51D','#F3A900','#FF7A00','#FFFFFF00'];
+  readonly camposCompraMatriz = [
+    { chave: 'alterarPrecoCompra' as Chave, rotulo: 'Alterar o preço do produto ao autorizar uma compra', tipo: 'opcao' },
+    { chave: 'enviarCustoCompraOs' as Chave, rotulo: 'Enviar o preço de custo dos itens da OS ao vincular na compra', tipo: 'booleano' },
+    { chave: 'atualizarFabricanteCompra' as Chave, rotulo: 'Atualizar o fabricante do item da ordem de serviço conforme o item da compra vinculada', tipo: 'booleano' },
+    { chave: 'atualizarOrigemCompra' as Chave, rotulo: 'Atualizar automaticamente o campo origem no cadastro da peça ao autorizar compra', tipo: 'booleano' },
+    { chave: 'atualizarNcmImportacao' as Chave, rotulo: 'Atualiza NCM na importação de XML de compra', tipo: 'booleano' },
+  ];
+  readonly camposFinanceiroMatriz = [
+    { chave: 'liquidarBoletoNoVencimento' as Chave, rotulo: 'Parcelas serão liquidadas apenas se os boletos forem pagos antes da data de vencimento.', tipo: 'booleano' },
+    { chave: 'liquidacaoAutomaticaBoleto' as Chave, rotulo: 'Habilitar liquidação automática de parcelas após pagamento do boleto', tipo: 'booleano' },
+    { chave: 'orientacaoImpressaoBoleto' as Chave, rotulo: 'Orientação da impressão', tipo: 'opcao' },
+  ];
+  readonly camposVendaMatriz = [{ chave: 'estoqueTodasEmpresasVenda' as Chave, rotulo: 'Visualizar o estoque de todas as empresas na seleção de peça', tipo: 'booleano' }];
+  readonly camposCrmMatriz = [
+    { chave: 'calculoRevisaoCrm' as Chave, rotulo: 'Cálculo para envio de próximas revisões será feito por', tipo: 'opcao' },
+    { chave: 'nomeRemetenteCrm' as Chave, rotulo: 'Nome do remetente', tipo: 'texto' },
+    { chave: 'emailRespostaCrm' as Chave, rotulo: 'E-mail de resposta', tipo: 'texto' },
+    { chave: 'crmAniversario' as Chave, rotulo: 'Aniversário', tipo: 'booleano' },
+    { chave: 'crmServicosFuturos' as Chave, rotulo: 'Serviços futuros', tipo: 'booleano' },
+    { chave: 'crmProximasRevisoes' as Chave, rotulo: 'Próximas revisões', tipo: 'booleano' },
+    { chave: 'crmClientesSemMovimento' as Chave, rotulo: 'Clientes sem movimento', tipo: 'booleano' },
+    { chave: 'crmPesquisaSatisfacao' as Chave, rotulo: 'Pesquisa de satisfação', tipo: 'booleano' },
+    { chave: 'crmCobrancaDividas' as Chave, rotulo: 'Cobrança de dívidas', tipo: 'booleano' },
+    { chave: 'crmViaSmtp' as Chave, rotulo: 'Enviar e-mails de CRM via SMTP', tipo: 'booleano' },
+  ];
+  readonly camposRelatorioMatriz = [
+    { chave: 'relatorioQuadroAnotacoes' as Chave, rotulo: 'Exibir quadro de anotações em relatório de oficina', tipo: 'booleano' },
+    { chave: 'relatorioSepararAreas' as Chave, rotulo: 'Separar itens da listagem de serviços e peças do relatório administrativo por área', tipo: 'booleano' },
+    { chave: 'relatorioDadosCliente' as Chave, rotulo: 'Exibir informações do cliente em relatório de oficina', tipo: 'booleano' },
+    { chave: 'ordenacaoRelatorio' as Chave, rotulo: 'Ordenar relatórios administrativos por', tipo: 'opcao' },
+    { chave: 'baseCalculoComissao' as Chave, rotulo: 'Selecione o valor a ser utilizado no cálculo da comissão', tipo: 'opcao' },
+  ];
+  readonly camposFiscalMatriz = [{ chave: 'notaFiscalOutraEmpresa' as Chave, rotulo: 'Permitir gerar nota fiscal para empresa diferente', tipo: 'booleano' }];
+  readonly chavesCompraMatriz: Chave[] = this.camposCompraMatriz.map(campo => campo.chave);
+  readonly chavesCrmMatriz: Chave[] = this.camposCrmMatriz.map(campo => campo.chave);
+  readonly chavesRelatorioMatriz: Chave[] = this.camposRelatorioMatriz.map(campo => campo.chave);
   telaCheia = false;
   carregando = false;
   erro = '';
@@ -68,7 +116,7 @@ export class ProfileOverview implements OnInit {
     });
   }
   alternarVisibilidadeSenha(campo: 'atual' | 'nova' | 'confirmacao'): void { this.visibilidadeSenhas[campo] = !this.visibilidadeSenhas[campo]; }
-  selecionarSecaoMatriz(secao: string, grupo: string): void { this.secaoMatriz = secao; this.grupoMatriz = grupo; if (['configGeral','configSenha','clienteGeral'].includes(secao) && !Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); }
+  selecionarSecaoMatriz(secao: string, grupo: string): void { this.secaoMatriz = secao; this.grupoMatriz = grupo; this.sucessoMatriz = ''; if (!Object.keys(this.politicasMatriz).length) this.carregarPoliticasMatriz(); if (['categorias','etiquetasFinanceiro','etiquetasVenda'].includes(secao)) this.carregarItensMatriz(); }
   carregarPoliticasMatriz(): void {
     this.carregandoMatriz = true; this.erroMatriz = '';
     this.preferencias.listar('', '', undefined, 0, 100).pipe(take(1)).subscribe({
@@ -96,6 +144,28 @@ export class ProfileOverview implements OnInit {
   algumaPoliticaAlterada(chaves: Chave[]): boolean { return chaves.some(chave => this.valoresMatriz[chave] !== undefined && this.valoresMatriz[chave] !== (this.politicasMatriz[chave]?.valorAplicado ?? '')); }
   cancelarPoliticasMatriz(chaves: Chave[]): void { for (const chave of chaves) this.valoresMatriz[chave] = this.politicasMatriz[chave]?.valorAplicado ?? this.valorPadraoPolitica(chave); this.erroMatriz = ''; this.sucessoMatriz = ''; }
   private valorPadraoPolitica(chave: Chave): string { return ({ codigoPadraoPecas: 'INTERNO', kmObrigatorio: 'false', atualizarKmAutomaticamente: 'true', ordemSelecaoAvaria: 'LOCAL_AVARIA', periodoExpiracaoSenhas: 'NAO_EXPIRA', categoriaEmContasReceber: 'false', categoriaEmVendaDireta: 'false', categoriaEmNotaFiscal: 'false', categoriaEmOrdemServico: 'false', categoriaEmListagem: 'false' } as Partial<Record<Chave, string>>)[chave] ?? ''; }
+  valorPolitica(chave: Chave): string { return this.valoresMatriz[chave] ?? this.politicasMatriz[chave]?.valorAplicado ?? this.valorPadraoPolitica(chave); }
+  carregarItensMatriz(): void {
+    const grupo = this.grupoItemAtual(); if (!grupo) return;
+    this.carregandoItensMatriz = true; this.erroItemMatriz = '';
+    this.itensConfiguracao.listar(grupo, this.buscaItensMatriz).pipe(take(1)).subscribe({ next: itens => { this.itensMatriz = itens; this.carregandoItensMatriz = false; }, error: falha => { this.itensMatriz = []; this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para consultar esta configuração.' : 'Não foi possível carregar os itens desta empresa.'; this.carregandoItensMatriz = false; } });
+  }
+  grupoItemAtual(): GrupoItemConfiguracao | null { return this.secaoMatriz === 'categorias' ? 'CLIENTE_CATEGORIA' : this.secaoMatriz === 'etiquetasFinanceiro' ? 'FINANCEIRO_ETIQUETA' : this.secaoMatriz === 'etiquetasVenda' ? 'VENDA_DIRETA_ETIQUETA' : null; }
+  abrirItemMatriz(item?: ItemConfiguracao): void { this.itemEditandoMatriz = item; this.descricaoItemMatriz = item?.descricao ?? ''; this.corItemMatriz = item?.cor ?? '#899198'; this.erroItemMatriz = ''; this.modalItemMatriz = true; }
+  fecharItemMatriz(): void { if (!this.salvandoItemMatriz) this.modalItemMatriz = false; }
+  salvarItemMatriz(): void {
+    const grupo = this.grupoItemAtual(); const descricao = this.descricaoItemMatriz.trim();
+    if (!grupo || descricao.length < 2 || descricao.length > 100 || this.salvandoItemMatriz) { this.erroItemMatriz = 'Informe uma descrição de 2 a 100 caracteres.'; return; }
+    const alteracao: AlteracaoItemConfiguracao = { grupo, descricao, cor: this.corItemMatriz };
+    this.salvandoItemMatriz = true; this.erroItemMatriz = '';
+    const requisicao = this.itemEditandoMatriz ? this.itensConfiguracao.editar(this.itemEditandoMatriz.id, alteracao) : this.itensConfiguracao.criar(alteracao);
+    requisicao.pipe(take(1)).subscribe({ next: () => { this.salvandoItemMatriz = false; this.modalItemMatriz = false; this.carregarItensMatriz(); }, error: falha => { this.salvandoItemMatriz = false; this.erroItemMatriz = falha?.status === 409 ? 'Já existe um item com essa descrição.' : falha?.status === 403 ? 'Você não tem permissão para salvar este item.' : 'Não foi possível salvar o item.'; } });
+  }
+  excluirItemMatriz(item: ItemConfiguracao): void {
+    this.itensConfiguracao.excluir(item.id).pipe(take(1)).subscribe({ next: () => this.carregarItensMatriz(), error: falha => { this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para excluir este item.' : 'Não foi possível excluir o item.'; } });
+  }
+  camposAtualizados(campos: {chave: Chave}[]): void { this.salvarPoliticasMatriz(campos.map(campo => campo.chave)); }
+  atualizarBuscaItensMatriz(valor: string): void { this.buscaItensMatriz = valor; this.carregarItensMatriz(); }
   salvarSenha(): void {
     this.sucesso = ''; this.erro = '';
     if (this.formularioSenha.invalid) { this.formularioSenha.markAllAsTouched(); return; }

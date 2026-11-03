@@ -40,7 +40,32 @@ public class PoliticasGeraisService {
         Map.entry("categoriaEmVendaDireta", new Definicao("Cliente", "Exibir categoria em Venda direta", "false")),
         Map.entry("categoriaEmNotaFiscal", new Definicao("Cliente", "Exibir categoria em Nota fiscal", "false")),
         Map.entry("categoriaEmOrdemServico", new Definicao("Cliente", "Exibir categoria em Ordem de serviço", "false")),
-        Map.entry("categoriaEmListagem", new Definicao("Cliente", "Exibir categoria na listagem de cliente", "false"))
+        Map.entry("categoriaEmListagem", new Definicao("Cliente", "Exibir categoria na listagem de cliente", "false")),
+        Map.entry("alterarPrecoCompra", new Definicao("Compras", "Alterar preço ao autorizar compra", "PERGUNTAR")),
+        Map.entry("enviarCustoCompraOs", new Definicao("Compras", "Enviar custo dos itens da OS à compra", "true")),
+        Map.entry("atualizarFabricanteCompra", new Definicao("Compras", "Atualizar fabricante pela compra", "true")),
+        Map.entry("atualizarOrigemCompra", new Definicao("Compras", "Atualizar origem da peça pela compra", "true")),
+        Map.entry("atualizarNcmImportacao", new Definicao("Compras", "Atualizar NCM na importação", "true")),
+        Map.entry("liquidarBoletoNoVencimento", new Definicao("Financeiro", "Liquidar parcelas somente antes do vencimento", "true")),
+        Map.entry("liquidacaoAutomaticaBoleto", new Definicao("Financeiro", "Liquidar parcelas automaticamente após pagamento do boleto", "true")),
+        Map.entry("orientacaoImpressaoBoleto", new Definicao("Financeiro", "Orientação da impressão de boleto", "RETRATO")),
+        Map.entry("estoqueTodasEmpresasVenda", new Definicao("Venda direta", "Visualizar estoque de todas as empresas", "true")),
+        Map.entry("calculoRevisaoCrm", new Definicao("CRM", "Cálculo para envio de próximas revisões", "KM_VIDA_UTIL")),
+        Map.entry("nomeRemetenteCrm", new Definicao("CRM", "Nome do remetente CRM", "")),
+        Map.entry("emailRespostaCrm", new Definicao("CRM", "E-mail de resposta CRM", "")),
+        Map.entry("crmAniversario", new Definicao("CRM", "Enviar comunicação de aniversário", "false")),
+        Map.entry("crmServicosFuturos", new Definicao("CRM", "Enviar comunicação de serviços futuros", "false")),
+        Map.entry("crmProximasRevisoes", new Definicao("CRM", "Enviar comunicação de próximas revisões", "false")),
+        Map.entry("crmClientesSemMovimento", new Definicao("CRM", "Enviar comunicação a clientes sem movimento", "false")),
+        Map.entry("crmPesquisaSatisfacao", new Definicao("CRM", "Enviar pesquisa de satisfação", "false")),
+        Map.entry("crmCobrancaDividas", new Definicao("CRM", "Enviar cobrança de dívidas", "false")),
+        Map.entry("crmViaSmtp", new Definicao("CRM", "Enviar e-mails CRM via SMTP", "false")),
+        Map.entry("relatorioQuadroAnotacoes", new Definicao("Relatório", "Exibir quadro de anotações", "false")),
+        Map.entry("relatorioSepararAreas", new Definicao("Relatório", "Separar itens por área no relatório", "false")),
+        Map.entry("relatorioDadosCliente", new Definicao("Relatório", "Exibir dados do cliente no relatório", "false")),
+        Map.entry("ordenacaoRelatorio", new Definicao("Relatório", "Ordenação de relatórios administrativos", "DESCRICAO")),
+        Map.entry("baseCalculoComissao", new Definicao("Relatório", "Base de cálculo da comissão", "LIQUIDO")),
+        Map.entry("notaFiscalOutraEmpresa", new Definicao("Fiscal", "Permitir emitir nota por outra empresa", "false"))
     );
     public record Alteracao(String campo, String anterior, String novo, Long autor,
                            LocalDateTime data, Integer versao) {}
@@ -265,7 +290,8 @@ public class PoliticasGeraisService {
     }
     private void validarValor(String chave, String valor) {
         validarChave(chave);
-        if (valor == null || valor.isBlank() || valor.length() > 160
+        boolean textoCrm = List.of("nomeRemetenteCrm", "emailRespostaCrm").contains(chave);
+        if (valor == null || (!textoCrm && valor.isBlank()) || valor.length() > ("emailRespostaCrm".equals(chave) ? 254 : 160)
             || valor.toLowerCase(Locale.ROOT).matches(".*(token|password|senha|secret|apikey).*")) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Valor inválido ou credencial proibida");
         }
@@ -281,6 +307,18 @@ public class PoliticasGeraisService {
                     "categoriaEmListagem" -> List.of("true", "false").contains(valor);
             case "ordemSelecaoAvaria" -> List.of("LOCAL_AVARIA", "AVARIA_LOCAL").contains(valor);
             case "periodoExpiracaoSenhas" -> List.of("NAO_EXPIRA", "3_MESES", "6_MESES", "12_MESES").contains(valor);
+            case "alterarPrecoCompra" -> List.of("NUNCA", "PERGUNTAR", "SEMPRE").contains(valor);
+            case "orientacaoImpressaoBoleto" -> List.of("PAISAGEM", "RETRATO").contains(valor);
+            case "calculoRevisaoCrm" -> List.of("KM_VIDA_UTIL", "MESES").contains(valor);
+            case "ordenacaoRelatorio" -> List.of("CODIGO", "DESCRICAO", "INSERCAO", "PRECO").contains(valor);
+            case "baseCalculoComissao" -> List.of("BASE", "LIQUIDO").contains(valor);
+            case "nomeRemetenteCrm" -> valor.isBlank() || valor.trim().length() <= 120;
+            case "emailRespostaCrm" -> valor.isBlank() || valor.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+            case "enviarCustoCompraOs", "atualizarFabricanteCompra", "atualizarOrigemCompra", "atualizarNcmImportacao",
+                    "liquidarBoletoNoVencimento", "liquidacaoAutomaticaBoleto", "estoqueTodasEmpresasVenda",
+                    "crmAniversario", "crmServicosFuturos", "crmProximasRevisoes", "crmClientesSemMovimento",
+                    "crmPesquisaSatisfacao", "crmCobrancaDividas", "crmViaSmtp", "relatorioQuadroAnotacoes",
+                    "relatorioSepararAreas", "relatorioDadosCliente", "notaFiscalOutraEmpresa" -> List.of("true", "false").contains(valor);
             default -> false;
         };
         if (!valid) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Valor fora dos limites da política");

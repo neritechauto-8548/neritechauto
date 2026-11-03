@@ -7,7 +7,14 @@ export type Chave = 'locale' | 'precisaoQuantidades' | 'validadeOrcamentoDias'
   | 'avisosAtivos' | 'retencaoHistoricoDias' | 'codigoPadraoPecas' | 'kmObrigatorio'
   | 'atualizarKmAutomaticamente' | 'ordemSelecaoAvaria' | 'periodoExpiracaoSenhas'
   | 'categoriaEmContasReceber' | 'categoriaEmVendaDireta' | 'categoriaEmNotaFiscal'
-  | 'categoriaEmOrdemServico' | 'categoriaEmListagem';
+  | 'categoriaEmOrdemServico' | 'categoriaEmListagem' | 'alterarPrecoCompra'
+  | 'enviarCustoCompraOs' | 'atualizarFabricanteCompra' | 'atualizarOrigemCompra' | 'atualizarNcmImportacao'
+  | 'liquidarBoletoNoVencimento' | 'liquidacaoAutomaticaBoleto' | 'orientacaoImpressaoBoleto'
+  | 'estoqueTodasEmpresasVenda' | 'calculoRevisaoCrm' | 'nomeRemetenteCrm' | 'emailRespostaCrm'
+  | 'crmAniversario' | 'crmServicosFuturos' | 'crmProximasRevisoes' | 'crmClientesSemMovimento'
+  | 'crmPesquisaSatisfacao' | 'crmCobrancaDividas' | 'crmViaSmtp' | 'relatorioQuadroAnotacoes'
+  | 'relatorioSepararAreas' | 'relatorioDadosCliente' | 'ordenacaoRelatorio' | 'baseCalculoComissao'
+  | 'notaFiscalOutraEmpresa';
 export interface Politica {
   chave: Chave;
   secao: string;
