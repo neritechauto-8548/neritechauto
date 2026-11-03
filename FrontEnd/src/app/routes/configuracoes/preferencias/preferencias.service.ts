@@ -4,7 +4,10 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 export type Chave = 'locale' | 'precisaoQuantidades' | 'validadeOrcamentoDias'
-  | 'avisosAtivos' | 'retencaoHistoricoDias';
+  | 'avisosAtivos' | 'retencaoHistoricoDias' | 'codigoPadraoPecas' | 'kmObrigatorio'
+  | 'atualizarKmAutomaticamente' | 'ordemSelecaoAvaria' | 'periodoExpiracaoSenhas'
+  | 'categoriaEmContasReceber' | 'categoriaEmVendaDireta' | 'categoriaEmNotaFiscal'
+  | 'categoriaEmOrdemServico' | 'categoriaEmListagem';
 export interface Politica {
   chave: Chave;
   secao: string;

@@ -1,8 +1,8 @@
 <div class="camada-conta" (click)="fechar()" role="presentation">
-  <section class="janela-conta" [class.janela-conta-cheia]="telaCheia" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Configurações">
+  <section class="janela-conta" [class.janela-conta-cheia]="telaCheia" [class.janela-conta-configuracoes]="aba === 'matriz'" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-label="Configurações">
     <header class="topo-conta"><h1><span aria-hidden="true">⚙</span> Configurações</h1><div><button type="button" (click)="alternarTelaCheia()" [attr.aria-label]="telaCheia ? 'Restaurar janela' : 'Expandir janela'">⛶</button><button type="button" (click)="fechar()" aria-label="Fechar configurações">×</button></div></header>
-    <label class="busca-config"><span aria-hidden="true">⌕</span><input placeholder="Buscar configuração..." aria-label="Buscar configuração" disabled></label>
-    <nav class="abas-conta" aria-label="Categoria de configurações"><button type="button" [class.selecionada]="aba==='perfil'" (click)="aba='perfil'">◎ &nbsp; Perfil</button><button type="button" [class.selecionada]="aba==='matriz'" (click)="aba='matriz'">▦ &nbsp; Matriz</button></nav>
+    <label class="busca-config"><span aria-hidden="true">⌕</span><input placeholder="Buscar configuração..." aria-label="Buscar configuração"></label>
+    <nav class="abas-conta" aria-label="Categoria de configurações"><button type="button" [class.selecionada]="aba==='perfil'" (click)="selecionarAba('perfil')">◎ &nbsp; Perfil</button><button type="button" [class.selecionada]="aba==='matriz'" (click)="selecionarAba('matriz')">▦ &nbsp; Matriz</button></nav>
     @if (aba === 'perfil') {
       <div class="conteudo-conta">
         <aside class="menu-conta"><button type="button" [class.selecionada]="secao==='geral'" (click)="secao='geral'">⚙ &nbsp; Geral</button><button type="button" [class.selecionada]="secao==='email'" (click)="secao='email'">✉ &nbsp; Config. e-mail</button><button type="button" [class.selecionada]="secao==='vinculos'" (click)="secao='vinculos'">↗ &nbsp; Vinculação de contas</button></aside>
@@ -21,7 +21,66 @@
         </main>
       </div>
     } @else {
-      <div class="conteudo-conta"><aside class="menu-conta"><button class="selecionada" type="button">▦ &nbsp; Matriz</button></aside><main class="painel-conta"><header class="titulo-secao"><h2>▦ &nbsp; Matriz</h2><p>Configurações da empresa matriz.</p></header><section class="cartao-conta"><p>As configurações da matriz são gerenciadas em Configurações da empresa, conforme as permissões da sua conta.</p></section></main></div>
+      <div class="conteudo-conta">
+        <aside class="menu-conta menu-matriz" aria-label="Seções de configuração">
+          <button type="button" [class.grupo-selecionado]="grupoMatriz==='geral'" (click)="grupoMatriz=grupoMatriz==='geral'?'':'geral'">⚙ &nbsp; Geral <span>⌄</span></button>
+          @if (grupoMatriz === 'geral') {
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='configGeral'" (click)="selecionarSecaoMatriz('configGeral','geral')">⬡ &nbsp; Config. geral</button>
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='configEmail'" (click)="selecionarSecaoMatriz('configEmail','geral')">✉ &nbsp; Config. e-mail</button>
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='configSenha'" (click)="selecionarSecaoMatriz('configSenha','geral')">♙ &nbsp; Config. senha</button>
+          }
+          <button type="button" [class.grupo-selecionado]="grupoMatriz==='ordem'" (click)="grupoMatriz=grupoMatriz==='ordem'?'':'ordem'">▤ &nbsp; Ordem de serviço <span>›</span></button>
+          @if (grupoMatriz === 'ordem') {
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='templates'" (click)="selecionarSecaoMatriz('templates','ordem')">▤ &nbsp; Templates whatsapp</button>
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='etiquetas'" (click)="selecionarSecaoMatriz('etiquetas','ordem')">◇ &nbsp; Etiquetas</button>
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='status'" (click)="selecionarSecaoMatriz('status','ordem')">› &nbsp; Status</button>
+          }
+          <button type="button" [class.grupo-selecionado]="grupoMatriz==='cliente'" (click)="grupoMatriz=grupoMatriz==='cliente'?'':'cliente'">♧ &nbsp; Cliente <span>›</span></button>
+          @if (grupoMatriz === 'cliente') {
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='clienteGeral'" (click)="selecionarSecaoMatriz('clienteGeral','cliente')">⬡ &nbsp; Config. geral</button>
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='recomendacoes'" (click)="selecionarSecaoMatriz('recomendacoes','cliente')">♧ &nbsp; Recomendações</button>
+            <button class="item-filho" type="button" [class.selecionada]="secaoMatriz==='categorias'" (click)="selecionarSecaoMatriz('categorias','cliente')">◇ &nbsp; Categorias</button>
+          }
+          <button type="button" class="grupo-indisponivel" title="Capturas desta seção não recebidas">♧ &nbsp; Compras <span>›</span></button>
+          <button type="button" class="grupo-indisponivel" title="Capturas desta seção não recebidas">▣ &nbsp; Financeiro <span>›</span></button>
+          <button type="button" class="grupo-indisponivel" title="Capturas desta seção não recebidas">🛒 &nbsp; Venda direta <span>›</span></button>
+          <button type="button" class="grupo-indisponivel" title="Capturas desta seção não recebidas">▦ &nbsp; CRM <span>›</span></button>
+          <button type="button" class="grupo-indisponivel" title="Capturas desta seção não recebidas">▧ &nbsp; Relatório</button>
+          <button type="button" class="grupo-indisponivel" title="Capturas desta seção não recebidas">▤ &nbsp; Fiscal <span>›</span></button>
+        </aside>
+        <main class="painel-conta painel-matriz">
+          @if (erroMatriz) { <p class="aviso-conta erro" role="alert">{{ erroMatriz }}</p> }
+          @if (sucessoMatriz) { <p class="aviso-conta sucesso" role="status">{{ sucessoMatriz }}</p> }
+          @if (carregandoMatriz) { <p class="estado-conta" role="status">Carregando configurações...</p> }
+          @if (secaoMatriz === 'configGeral') {
+            <header class="titulo-secao"><h2>⬡ &nbsp; Config. geral</h2><p>Configurações gerais da matriz</p></header>
+            <section class="cartao-conta matriz-cartao">
+              <strong>Código padrão para peças e insumos</strong>
+              <div class="opcoes-segmentadas quatro">
+                @for (opcao of [{valor:'FABRICANTE',rotulo:'Cód. fabricante'},{valor:'BARRAS',rotulo:'Cód. barras'},{valor:'INTERNO',rotulo:'Cód. interno'},{valor:'EMPRESA',rotulo:'Cód. empresa'}]; track opcao.valor) { <button type="button" [class.ativo]="valoresMatriz['codigoPadraoPecas']===opcao.valor" (click)="atualizarPolitica('codigoPadraoPecas',opcao.valor)">{{ opcao.rotulo }}</button> }
+              </div>
+              <h3 class="subtitulo-linha">Veículo</h3>
+              <label class="linha-preferencia"><input type="checkbox" [checked]="valoresMatriz['kmObrigatorio']==='true'" (change)="atualizarPolitica('kmObrigatorio',$any($event.target).checked?'true':'false')"> KM é obrigatório no cadastro de veículo?</label>
+              <label class="linha-preferencia"><input type="checkbox" [checked]="valoresMatriz['atualizarKmAutomaticamente']==='true'" (change)="atualizarPolitica('atualizarKmAutomaticamente',$any($event.target).checked?'true':'false')"> Atualizar automaticamente o campo 'KM' do veículo usando o valor do campo 'KM de entrada' da ordem de serviço. <span title="Atualiza o KM cadastral quando uma ordem de serviço informa a entrada do veículo.">ⓘ</span></label>
+              <h3 class="subtitulo-linha">Checklist</h3><strong>Ordem de seleção da avaria</strong>
+              <div class="opcoes-segmentadas duas"><button type="button" [class.ativo]="valoresMatriz['ordemSelecaoAvaria']==='LOCAL_AVARIA'" (click)="atualizarPolitica('ordemSelecaoAvaria','LOCAL_AVARIA')">Local da avaria primeiro e depois a avaria</button><button type="button" [class.ativo]="valoresMatriz['ordemSelecaoAvaria']==='AVARIA_LOCAL'" (click)="atualizarPolitica('ordemSelecaoAvaria','AVARIA_LOCAL')">Avaria primeiro e depois o local da avaria</button></div>
+              <footer class="acoes-preferencia"><button type="button" [disabled]="salvandoMatriz || !algumaPoliticaAlterada(['codigoPadraoPecas','kmObrigatorio','atualizarKmAutomaticamente','ordemSelecaoAvaria'])" (click)="salvarPoliticasMatriz(['codigoPadraoPecas','kmObrigatorio','atualizarKmAutomaticamente','ordemSelecaoAvaria'])">▣ &nbsp; Salvar</button></footer>
+            </section>
+          } @else if (secaoMatriz === 'configSenha') {
+            <header class="titulo-secao"><h2>♙ &nbsp; Config. senha</h2><p>Período de expiração de senhas</p></header><section class="cartao-conta matriz-cartao"><strong>Período de expiração de senhas</strong><div class="opcoes-radio">@for (opcao of [{valor:'NAO_EXPIRA',rotulo:'Não expira'},{valor:'3_MESES',rotulo:'3 meses'},{valor:'6_MESES',rotulo:'6 meses'},{valor:'12_MESES',rotulo:'12 meses'}]; track opcao.valor) { <label><input type="radio" name="periodoExpiracao" [checked]="valoresMatriz['periodoExpiracaoSenhas']===opcao.valor" (change)="atualizarPolitica('periodoExpiracaoSenhas',opcao.valor)">{{ opcao.rotulo }}</label> }</div><footer class="acoes-preferencia"><button type="button" [disabled]="salvandoMatriz || !algumaPoliticaAlterada(['periodoExpiracaoSenhas'])" (click)="salvarPoliticasMatriz(['periodoExpiracaoSenhas'])">▣ &nbsp; Salvar</button></footer></section>
+          } @else if (secaoMatriz === 'clienteGeral') {
+            <header class="titulo-secao"><h2>⬡ &nbsp; Config. geral</h2><p>Preferências de categoria do cliente</p></header><section class="cartao-conta matriz-cartao"><h3>Categoria</h3>@for (opcao of opcoesCategoriaMatriz; track opcao.chave) { <div class="linha-alternancia"><span>{{ opcao.rotulo }}</span><span class="opcoes-segmentadas sim-nao"><button type="button" [class.ativo]="valorCategoriaMatriz(opcao.chave)==='true'" (click)="atualizarCategoriaMatriz(opcao.chave,'true')">Sim</button><button type="button" [class.ativo]="valorCategoriaMatriz(opcao.chave)==='false'" (click)="atualizarCategoriaMatriz(opcao.chave,'false')">Não</button></span></div> }<footer class="acoes-preferencia"><button type="button" [disabled]="salvandoMatriz || !algumaPoliticaAlterada(['categoriaEmContasReceber','categoriaEmVendaDireta','categoriaEmNotaFiscal','categoriaEmOrdemServico','categoriaEmListagem'])" (click)="salvarPoliticasMatriz(['categoriaEmContasReceber','categoriaEmVendaDireta','categoriaEmNotaFiscal','categoriaEmOrdemServico','categoriaEmListagem'])">▣ &nbsp; Salvar</button></footer></section>
+          } @else if (secaoMatriz === 'configEmail') {
+            <header class="titulo-secao"><h2>✉ &nbsp; Config. e-mail</h2><p>Servidor de e-mail usado para envios da matriz.</p></header><section class="cartao-conta matriz-cartao"><p class="estado-conta">O formulário de e-mail requer persistência segura das credenciais. A tela e o salvamento estão pendentes de revisão do armazenamento de segredos no backend.</p></section>
+          } @else if (secaoMatriz === 'templates') {
+            <header class="titulo-secao"><h2>▤ &nbsp; Templates whatsapp</h2></header><section class="cartao-conta matriz-cartao"><p class="estado-conta">Os modelos existentes são gerenciados no módulo de comunicação. A integração nesta janela depende das capturas restantes (06.11–06.23).</p><a routerLink="/configuracoes/opcoes-envio" (click)="fechar()">Abrir gerenciamento de modelos</a></section>
+          } @else if (secaoMatriz === 'status') {
+            <header class="titulo-secao"><h2>› &nbsp; Status</h2></header><section class="cartao-conta matriz-cartao"><p class="estado-conta">Os status têm cadastro persistido no módulo de ordens de serviço.</p><a routerLink="/configuracoes/situacao" (click)="fechar()">Abrir gerenciamento de status</a></section>
+          } @else if (secaoMatriz === 'etiquetas' || secaoMatriz === 'recomendacoes' || secaoMatriz === 'categorias') {
+            <header class="titulo-secao"><h2>{{ secaoMatriz === 'etiquetas' ? '◇ &nbsp; Etiquetas' : secaoMatriz === 'recomendacoes' ? '♧ &nbsp; Recomendações' : '◇ &nbsp; Categorias' }}</h2></header><section class="cartao-conta matriz-cartao"><p class="estado-conta">A captura mostra esta seção, mas o repositório não contém um serviço persistente correspondente. Não exibo registros fictícios.</p></section>
+          }
+        </main>
+      </div>
     }
   </section>
 </div>

@@ -27,7 +27,7 @@
     <div class="nt-profile-section">
       <span class="nt-profile-section-title">Matriz</span>
       <button mat-menu-item class="nt-profile-action" disabled title="Informações contratuais não estão disponíveis nesta sessão"><span class="nt-menu-symbol">▧</span><span>Informações do contrato</span></button>
-      <button mat-menu-item class="nt-profile-action" routerLink="/configuracoes/empresa"><span class="nt-menu-symbol">⬡</span><span>Configuração</span></button>
+      <button mat-menu-item class="nt-profile-action" (click)="openDialog('settings')"><span class="nt-menu-symbol">⬡</span><span>Configuração</span></button>
     </div>
     <div class="nt-profile-section">
       <span class="nt-profile-section-title">Sistema</span>
@@ -44,7 +44,7 @@
   </section>
 </mat-menu>
 
-@if (activeDialog && activeDialog !== 'account') {
+@if (activeDialog && activeDialog !== 'account' && activeDialog !== 'settings') {
   <div class="nt-shell-modal-backdrop" (click)="closeDialog()" role="presentation">
     <section class="nt-shell-modal" [class.nt-about-modal]="activeDialog === 'about'" role="dialog" aria-modal="true"
       [attr.aria-label]="activeDialog === 'shortcuts' ? 'Atalhos de comandos' : 'Sobre a plataforma'"
@@ -93,6 +93,6 @@
     </section>
   </div>
 }
-@if (activeDialog === 'account') {
-  <app-profile-overview [modal]="true" (fecharConta)="closeDialog()" />
+@if (activeDialog === 'account' || activeDialog === 'settings') {
+  <app-profile-overview [modal]="true" [abaInicial]="activeDialog === 'settings' ? 'matriz' : 'perfil'" (fecharConta)="closeDialog()" />
 }

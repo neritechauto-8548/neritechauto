@@ -25,12 +25,22 @@ public class PoliticasGeraisService {
     // Política geral não duplica fuso/moeda/horários de configuracoes_oficina,
     // fiscal, empresa, modelos de mensagem ou credenciais de outros owners.
     private record Definicao(String secao, String titulo, String padrao) {}
-    private static final Map<String, Definicao> PERMITIDAS = Map.of(
-        "locale", new Definicao("Empresa", "Idioma e formato", "pt-BR"),
-        "precisaoQuantidades", new Definicao("Operação", "Casas decimais em quantidades", "2"),
-        "validadeOrcamentoDias", new Definicao("Orçamentos", "Validade padrão (dias)", "15"),
-        "avisosAtivos", new Definicao("Comunicação", "Exibir avisos internos", "true"),
-        "retencaoHistoricoDias", new Definicao("Operação", "Retenção planejada (dias)", "365")
+    private static final Map<String, Definicao> PERMITIDAS = Map.ofEntries(
+        Map.entry("locale", new Definicao("Empresa", "Idioma e formato", "pt-BR")),
+        Map.entry("precisaoQuantidades", new Definicao("Operação", "Casas decimais em quantidades", "2")),
+        Map.entry("validadeOrcamentoDias", new Definicao("Orçamentos", "Validade padrão (dias)", "15")),
+        Map.entry("avisosAtivos", new Definicao("Comunicação", "Exibir avisos internos", "true")),
+        Map.entry("retencaoHistoricoDias", new Definicao("Operação", "Retenção planejada (dias)", "365")),
+        Map.entry("codigoPadraoPecas", new Definicao("Matriz", "Código padrão para peças e insumos", "INTERNO")),
+        Map.entry("kmObrigatorio", new Definicao("Matriz", "KM obrigatório no cadastro de veículo", "false")),
+        Map.entry("atualizarKmAutomaticamente", new Definicao("Matriz", "Atualizar KM pela ordem de serviço", "true")),
+        Map.entry("ordemSelecaoAvaria", new Definicao("Matriz", "Ordem de seleção da avaria", "LOCAL_AVARIA")),
+        Map.entry("periodoExpiracaoSenhas", new Definicao("Matriz", "Período de expiração de senhas", "NAO_EXPIRA")),
+        Map.entry("categoriaEmContasReceber", new Definicao("Cliente", "Exibir categoria em Contas a receber", "false")),
+        Map.entry("categoriaEmVendaDireta", new Definicao("Cliente", "Exibir categoria em Venda direta", "false")),
+        Map.entry("categoriaEmNotaFiscal", new Definicao("Cliente", "Exibir categoria em Nota fiscal", "false")),
+        Map.entry("categoriaEmOrdemServico", new Definicao("Cliente", "Exibir categoria em Ordem de serviço", "false")),
+        Map.entry("categoriaEmListagem", new Definicao("Cliente", "Exibir categoria na listagem de cliente", "false"))
     );
     public record Alteracao(String campo, String anterior, String novo, Long autor,
                            LocalDateTime data, Integer versao) {}
@@ -265,6 +275,12 @@ public class PoliticasGeraisService {
             case "validadeOrcamentoDias" -> validoEntre(valor, 1, 365);
             case "retencaoHistoricoDias" -> validoEntre(valor, 30, 3650);
             case "avisosAtivos" -> List.of("true", "false").contains(valor);
+            case "codigoPadraoPecas" -> List.of("FABRICANTE", "BARRAS", "INTERNO", "EMPRESA").contains(valor);
+            case "kmObrigatorio", "atualizarKmAutomaticamente", "categoriaEmContasReceber",
+                    "categoriaEmVendaDireta", "categoriaEmNotaFiscal", "categoriaEmOrdemServico",
+                    "categoriaEmListagem" -> List.of("true", "false").contains(valor);
+            case "ordemSelecaoAvaria" -> List.of("LOCAL_AVARIA", "AVARIA_LOCAL").contains(valor);
+            case "periodoExpiracaoSenhas" -> List.of("NAO_EXPIRA", "3_MESES", "6_MESES", "12_MESES").contains(valor);
             default -> false;
         };
         if (!valid) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Valor fora dos limites da política");

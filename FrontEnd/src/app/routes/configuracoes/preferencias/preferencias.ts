@@ -146,6 +146,10 @@ export class PreferenciasGeraisComponent implements OnInit {
       case 'precisaoQuantidades': return Array.from({length: 5}, (_, i) =>
         ({ value: String(i), label: String(i) }));
       case 'avisosAtivos': return [{ value: 'true', label: 'Sim' }, { value: 'false', label: 'Não' }];
+      case 'codigoPadraoPecas': return [{ value: 'FABRICANTE', label: 'Cód. fabricante' }, { value: 'BARRAS', label: 'Cód. barras' }, { value: 'INTERNO', label: 'Cód. interno' }, { value: 'EMPRESA', label: 'Cód. empresa' }];
+      case 'ordemSelecaoAvaria': return [{ value: 'LOCAL_AVARIA', label: 'Local da avaria primeiro e depois a avaria' }, { value: 'AVARIA_LOCAL', label: 'Avaria primeiro e depois o local da avaria' }];
+      case 'periodoExpiracaoSenhas': return [{ value: 'NAO_EXPIRA', label: 'Não expira' }, { value: '3_MESES', label: '3 meses' }, { value: '6_MESES', label: '6 meses' }, { value: '12_MESES', label: '12 meses' }];
+      case 'kmObrigatorio': case 'atualizarKmAutomaticamente': case 'categoriaEmContasReceber': case 'categoriaEmVendaDireta': case 'categoriaEmNotaFiscal': case 'categoriaEmOrdemServico': case 'categoriaEmListagem': return [{ value: 'true', label: 'Sim' }, { value: 'false', label: 'Não' }];
       default: return null;
     }
   }

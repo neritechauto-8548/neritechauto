@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, DestroyRef, HostListener, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatMenuModule } from '@angular/material/menu';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService, User, TokenService, SettingsService } from '@core';
 import { LocalStorageService } from '@shared/services/storage.service';
 import { environment } from '@env/environment';
@@ -13,18 +13,18 @@ import { ProfileOverview } from '../../routes/profile/overview/overview';
   standalone: true,
   templateUrl: './user-button.html',
   styleUrl: './user-button.scss',
-  imports: [RouterLink, MatMenuModule, ProfileOverview],
+  imports: [MatMenuModule, ProfileOverview],
   encapsulation: ViewEncapsulation.None,
 })
 export class UserButton implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly settings = inject(SettingsService);
   readonly siteUrl = 'https://neritechauto.com.br';
-  activeDialog: 'shortcuts' | 'about' | 'account' | null = null;
+  activeDialog: 'shortcuts' | 'about' | 'account' | 'settings' | null = null;
   get theme(): string { return this.settings.options.theme; }
   changeTheme(value: 'light' | 'auto' | 'dark'): void { this.settings.setTheme(value); }
   get initials(): string { return this.displayName.trim().slice(0, 2).toUpperCase(); }
-  openDialog(kind: 'shortcuts' | 'about' | 'account'): void { this.activeDialog = kind; }
+  openDialog(kind: 'shortcuts' | 'about' | 'account' | 'settings'): void { this.activeDialog = kind; }
   closeDialog(): void { this.activeDialog = null; }
 
   @HostListener('document:keydown', ['$event'])
