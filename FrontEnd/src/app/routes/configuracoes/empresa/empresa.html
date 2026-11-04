@@ -23,7 +23,7 @@
           <button type="button" [class.selecionado]="empresa.ativo !== false" (click)="empresa.ativo = true">Ativo</button>
           <button type="button" [class.selecionado]="empresa.ativo === false" (click)="empresa.ativo = false">Inativo</button>
         </div>
-        <button class="nt-empresa-botao" type="button" (click)="configuracoesAbertas = true"><i class="pi pi-cog"></i> Configurações</button>
+        <button class="nt-empresa-botao" type="button" (click)="abrirConfiguracoes()"><i class="pi pi-cog"></i> Configurações</button>
         <button class="nt-empresa-botao nt-empresa-botao--perigo" type="button" (click)="removerEmpresa()"><i class="pi pi-trash"></i> Remover</button>
       </div>
     </header>
@@ -991,8 +991,5 @@
         <p-button label="Salvar" icon="pi pi-save" [loading]="loading" [disabled]="loading || !empresaCarregada || !!erroCarregamento" (onClick)="salvar()" id="btn-salvar-empresa" />
       </div>
     </div>
-  }
-  @if (configuracoesAbertas) {
-    <nt-configuracoes-empresa [nomeEmpresa]="empresa.nomeFantasia || empresa.razaoSocial || ''" [cnpjEmpresa]="empresa.cnpj || ''" (fechar)="configuracoesAbertas = false" />
   }
 </div><!-- /nt-empresa -->

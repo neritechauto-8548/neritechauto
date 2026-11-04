@@ -25,6 +25,19 @@ import java.util.*;
 
 @Service
 public class ConfiguracaoComplementarEmpresaService {
+    private static final Map<String, String> TABELAS = Map.ofEntries(
+            Map.entry("ATENDIMENTO", "configuracoes_atendimento_empresa"), Map.entry("COMERCIAL", "configuracoes_comerciais_empresa"),
+            Map.entry("ESTOQUE_FINANCEIRO", "configuracoes_estoque_financeiro_empresa"), Map.entry("INTEGRACOES", "configuracoes_integracoes_empresa"),
+            Map.entry("GESTAO_PATIO", "configuracoes_gestao_patio_empresa"), Map.entry("FERIADOS_LOCAIS", "configuracoes_feriados_locais_empresa"),
+            Map.entry("PRODUTO_COMPOSICAO", "configuracoes_composicao_produto_empresa"), Map.entry("PRODUTO_CUSTO_LUCRO", "configuracoes_custo_lucro_produto_empresa"),
+            Map.entry("COMPRAS", "configuracoes_compras_empresa"), Map.entry("AGENDAMENTO", "configuracoes_agendamento_empresa"),
+            Map.entry("FINANCEIRO", "configuracoes_financeiras_empresa"), Map.entry("TERMOS", "termos_empresa"),
+            Map.entry("FISCAL_GERAL", "configuracoes_fiscais_gerais_empresa"), Map.entry("FISCAL_NFE", "configuracoes_nfe_empresa"),
+            Map.entry("FISCAL_NFCE", "configuracoes_nfce_empresa"), Map.entry("FISCAL_NFSE", "configuracoes_nfse_empresa"),
+            Map.entry("FISCAL_FCP", "aliquotas_fcp_empresa"), Map.entry("FISCAL_SINTEGRA", "configuracoes_sintegra_empresa"),
+            Map.entry("FISCAL_SPED", "configuracoes_sped_empresa")
+    );
+    private static final Set<String> CAMPOS_LISTA = Set.of("feriados", "indisponibilidades", "contatos", "autorizacoes", "series");
     private static final Map<String, Set<String>> CAMPOS = Map.ofEntries(
             Map.entry("ATENDIMENTO", Set.of("campoKmObrigatorio", "campoPrismaObrigatorio", "campoNivelTanqueObrigatorio", "exibirCamposIndicacaoCorretor", "vincularObservacoesOrdensAtividades", "preencherFolhaMecanicoAutomaticamente")),
             Map.entry("COMERCIAL", Set.of("margemReferencia", "descontoMaximoPeca", "descontoMaximoServico", "aplicarAcrescimoOs")),
@@ -75,8 +88,13 @@ public class ConfiguracaoComplementarEmpresaService {
     @Transactional(readOnly = true)
     public List<Configuracao> listar() {
         Long empresa = TenantAccess.requireCurrent();
-        return jdbc.query("SELECT id, empresa_id, secao, dados::text, versao, atualizado_em FROM configuracoes_complementares_empresa WHERE empresa_id=? ORDER BY secao",
-                (rs, linha) -> montar(rs), empresa);
+        List<Configuracao> configuracoes = new ArrayList<>();
+        for (String secao : TABELAS.keySet()) {
+            Configuracao configuracao = buscar(empresa, secao);
+            if (configuracao != null) configuracoes.add(configuracao);
+        }
+        configuracoes.sort(Comparator.comparing(Configuracao::secao));
+        return configuracoes;
     }
 
     @Transactional
@@ -90,19 +108,34 @@ public class ConfiguracaoComplementarEmpresaService {
         validarDados(secao, alteracao.dados());
         Long autor = usuario(empresa);
         Configuracao atual = buscar(empresa, secao);
+        String tabela = TABELAS.get(secao);
+        List<String> camposEscalares = camposPermitidos.stream().filter(campo -> !CAMPOS_LISTA.contains(campo)).sorted().toList();
+        List<Object> parametros = new ArrayList<>();
+        camposEscalares.forEach(campo -> parametros.add(alteracao.dados().get(campo)));
         if (atual == null) {
-            Long id = jdbc.queryForObject("INSERT INTO configuracoes_complementares_empresa (empresa_id, secao, dados, atualizado_por) VALUES (?, ?, ?::jsonb, ?) RETURNING id",
-                    Long.class, empresa, secao, serializar(alteracao.dados()), autor);
-            auditar(empresa, id, secao, Map.of(), alteracao.dados(), autor, "INSERT");
+            List<String> colunas = new ArrayList<>(List.of("empresa_id", "versao", "atualizado_por"));
+            colunas.addAll(camposEscalares.stream().map(ConfiguracaoComplementarEmpresaService::coluna).toList());
+            String marcadores = String.join(",", Collections.nCopies(colunas.size(), "?"));
+            parametros.add(0, 0);
+            parametros.add(0, empresa);
+            parametros.add(2, autor);
+            jdbc.update("INSERT INTO " + tabela + " (" + String.join(",", colunas) + ") VALUES (" + marcadores + ")", parametros.toArray());
+            sincronizarListas(empresa, secao, alteracao.dados());
+            auditar(empresa, empresa, secao, Map.of(), alteracao.dados(), autor, "INSERT");
             return buscar(empresa, secao);
         }
         if (alteracao.versao() == null || !Objects.equals(atual.versao(), alteracao.versao())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Configuração alterada em outra sessão. Recarregue e tente novamente.");
         }
-        int linhas = jdbc.update("UPDATE configuracoes_complementares_empresa SET dados=?::jsonb, versao=versao+1, atualizado_por=?, atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND empresa_id=? AND versao=?",
-                serializar(alteracao.dados()), autor, atual.id(), empresa, atual.versao());
+        List<String> atribuicoes = camposEscalares.stream().map(campo -> coluna(campo) + "=?").toList();
+        parametros.add(autor);
+        parametros.add(empresa);
+        parametros.add(atual.versao());
+        int linhas = jdbc.update("UPDATE " + tabela + " SET " + String.join(",", atribuicoes)
+                + (atribuicoes.isEmpty() ? "" : ",") + "versao=versao+1, atualizado_por=?, atualizado_em=CURRENT_TIMESTAMP WHERE empresa_id=? AND versao=?", parametros.toArray());
         if (linhas == 0) throw new ResponseStatusException(HttpStatus.CONFLICT, "Configuração alterada em outra sessão.");
-        auditar(empresa, atual.id(), secao, atual.dados(), alteracao.dados(), autor, "UPDATE");
+        sincronizarListas(empresa, secao, alteracao.dados());
+        auditar(empresa, empresa, secao, atual.dados(), alteracao.dados(), autor, "UPDATE");
         return buscar(empresa, secao);
     }
 
@@ -221,16 +254,55 @@ public class ConfiguracaoComplementarEmpresaService {
     }
 
     private Configuracao buscar(Long empresa, String secao) {
-        return jdbc.query("SELECT id, empresa_id, secao, dados::text, versao, atualizado_em FROM configuracoes_complementares_empresa WHERE empresa_id=? AND secao=?",
-                rs -> rs.next() ? montar(rs) : null, empresa, secao);
+        String tabela = TABELAS.get(secao);
+        if (tabela == null) return null;
+        return jdbc.query("SELECT * FROM " + tabela + " WHERE empresa_id=?", rs -> {
+            if (!rs.next()) return null;
+            Map<String, Object> dados = new LinkedHashMap<>();
+            var metadados = rs.getMetaData();
+            for (int indice = 1; indice <= metadados.getColumnCount(); indice++) {
+                String campo = metadados.getColumnLabel(indice);
+                if (Set.of("empresa_id", "versao", "atualizado_por", "atualizado_em").contains(campo)) continue;
+                Object valor = rs.getObject(indice);
+                if (valor != null) dados.put(camel(campo), valor);
+            }
+            carregarListas(empresa, secao, dados);
+            return new Configuracao(empresa, empresa, secao, dados, rs.getInt("versao"), rs.getTimestamp("atualizado_em").toLocalDateTime());
+        }, empresa);
     }
-    private Configuracao montar(ResultSet rs) throws SQLException {
-        try {
-            return new Configuracao(rs.getLong("id"), rs.getLong("empresa_id"), rs.getString("secao"),
-                    json.readValue(rs.getString("dados"), new TypeReference<>() {}), rs.getInt("versao"),
-                    rs.getTimestamp("atualizado_em").toLocalDateTime());
-        } catch (JsonProcessingException erro) { throw new IllegalStateException("Configuração persistida inválida", erro); }
+
+    private void carregarListas(Long empresa, String secao, Map<String, Object> dados) {
+        switch (secao) {
+            case "FERIADOS_LOCAIS" -> dados.put("feriados", jdbc.query("SELECT data_referencia FROM configuracoes_feriados_locais_itens WHERE empresa_id=? ORDER BY ordem", (rs,n) -> rs.getString(1), empresa));
+            case "AGENDAMENTO" -> dados.put("indisponibilidades", jdbc.query("SELECT descricao,data_indisponibilidade,horario_inicio,horario_fim,todos_recursos,quantidade_recursos FROM configuracoes_agendamento_indisponibilidades WHERE empresa_id=? ORDER BY ordem,id", (rs,n) -> Map.of("descricao",rs.getString(1),"data",rs.getDate(2).toLocalDate().toString(),"inicio",rs.getTime(3).toLocalTime().toString(),"fim",rs.getTime(4).toLocalTime().toString(),"todosRecursos",rs.getBoolean(5),"recursos",rs.getInt(6)), empresa));
+            case "FISCAL_GERAL" -> {
+                dados.put("contatos", jdbc.query("SELECT tipo_contato,valor FROM contatos_fiscais_empresa WHERE empresa_id=? ORDER BY ordem,id", (rs,n) -> Map.of("tipo",rs.getString(1),"valor",rs.getString(2)), empresa));
+                dados.put("autorizacoes", jdbc.query("SELECT documento,email FROM autorizacoes_fiscais_empresa WHERE empresa_id=? ORDER BY ordem,id", (rs,n) -> Map.of("documento",rs.getString(1),"email",rs.getString(2)), empresa));
+            }
+            case "FISCAL_NFE", "FISCAL_NFCE", "FISCAL_NFSE" -> {
+                String tipo = secao.substring("FISCAL_".length());
+                dados.put("series", jdbc.query("SELECT serie,numero_inicial,principal FROM series_documentos_fiscais_empresa WHERE empresa_id=? AND tipo_documento=? ORDER BY ordem,id", (rs,n) -> Map.of("serie",rs.getString(1),"numeroInicial",rs.getLong(2),"principal",rs.getBoolean(3)), empresa, tipo));
+            }
+        }
     }
+
+    private void sincronizarListas(Long empresa, String secao, Map<String, Object> dados) {
+        if (secao.equals("FERIADOS_LOCAIS") && dados.containsKey("feriados")) {
+            jdbc.update("DELETE FROM configuracoes_feriados_locais_itens WHERE empresa_id=?", empresa);
+            int ordem=0; for (Object data : (List<?>)dados.get("feriados")) jdbc.update("INSERT INTO configuracoes_feriados_locais_itens(empresa_id,data_referencia,ordem) VALUES(?,?,?)",empresa,data,ordem++);
+        } else if (secao.equals("AGENDAMENTO") && dados.containsKey("indisponibilidades")) {
+            jdbc.update("DELETE FROM configuracoes_agendamento_indisponibilidades WHERE empresa_id=?", empresa);
+            int ordem=0; for (Object item : (List<?>)dados.get("indisponibilidades")) { Map<?,?> v=(Map<?,?>)item; jdbc.update("INSERT INTO configuracoes_agendamento_indisponibilidades(empresa_id,descricao,data_indisponibilidade,horario_inicio,horario_fim,todos_recursos,quantidade_recursos,ordem) VALUES(?,?,?,?,?,?,?,?)",empresa,v.get("descricao"),LocalDate.parse(String.valueOf(v.get("data"))),LocalTime.parse(String.valueOf(v.get("inicio"))),LocalTime.parse(String.valueOf(v.get("fim"))),v.get("todosRecursos"),v.get("recursos"),ordem++); }
+        } else if (secao.equals("FISCAL_GERAL")) {
+            if (dados.containsKey("contatos")) { jdbc.update("DELETE FROM contatos_fiscais_empresa WHERE empresa_id=?",empresa); int ordem=0; for(Object item:(List<?>)dados.get("contatos")){Map<?,?>v=(Map<?,?>)item;jdbc.update("INSERT INTO contatos_fiscais_empresa(empresa_id,tipo_contato,valor,ordem) VALUES(?,?,?,?)",empresa,v.get("tipo"),v.get("valor"),ordem++);} }
+            if (dados.containsKey("autorizacoes")) { jdbc.update("DELETE FROM autorizacoes_fiscais_empresa WHERE empresa_id=?",empresa); int ordem=0; for(Object item:(List<?>)dados.get("autorizacoes")){Map<?,?>v=(Map<?,?>)item;jdbc.update("INSERT INTO autorizacoes_fiscais_empresa(empresa_id,documento,email,ordem) VALUES(?,?,?,?)",empresa,v.get("documento"),v.get("email"),ordem++);} }
+        } else if (Set.of("FISCAL_NFE","FISCAL_NFCE","FISCAL_NFSE").contains(secao) && dados.containsKey("series")) {
+            String tipo=secao.substring("FISCAL_".length()); jdbc.update("DELETE FROM series_documentos_fiscais_empresa WHERE empresa_id=? AND tipo_documento=?",empresa,tipo); int ordem=0; for(Object item:(List<?>)dados.get("series")){Map<?,?>v=(Map<?,?>)item;jdbc.update("INSERT INTO series_documentos_fiscais_empresa(empresa_id,tipo_documento,serie,numero_inicial,principal,ordem) VALUES(?,?,?,?,?,?)",empresa,tipo,v.get("serie"),v.get("numeroInicial"),v.get("principal"),ordem++);}
+        }
+    }
+
+    private static String coluna(String campo) { return campo.replaceAll("([A-Z])", "_$1").toLowerCase(Locale.ROOT); }
+    private static String camel(String coluna) { StringBuilder resultado=new StringBuilder(); boolean proximaMaiuscula=false; for(char caractere:coluna.toCharArray()){if(caractere=='_'){proximaMaiuscula=true;}else{resultado.append(proximaMaiuscula?Character.toUpperCase(caractere):caractere);proximaMaiuscula=false;}} return resultado.toString(); }
     private Long usuario(Long empresa) {
         var autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao == null || !autenticacao.isAuthenticated()) throw new AccessDeniedException("Sessão não autenticada.");
@@ -245,8 +317,8 @@ public class ConfiguracaoComplementarEmpresaService {
         jdbc.update("""
                 INSERT INTO logs_alteracoes (empresa_id, tabela_afetada, registro_id, operacao, campos_alterados,
                     valores_antigos, valores_novos, usuario_responsavel, contexto_operacao, dados_adicionais, data_alteracao)
-                VALUES (?, 'configuracoes_complementares_empresa', ?, ?, ?, ?, ?, ?, 'ADM-013', ?::jsonb, CURRENT_TIMESTAMP)
-                """, empresa, id, operacao, serializar(List.of(secao)), serializar(Collections.singletonMap(secao, anterior)),
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ADM-013', ?::jsonb, CURRENT_TIMESTAMP)
+                """, empresa, TABELAS.get(secao), id, operacao, serializar(List.of(secao)), serializar(Collections.singletonMap(secao, anterior)),
                 serializar(Collections.singletonMap(secao, novo)), autor, serializar(Map.of("secao", secao)));
     }
 }

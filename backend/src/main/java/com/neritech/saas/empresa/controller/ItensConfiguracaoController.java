@@ -15,5 +15,5 @@ public class ItensConfiguracaoController {
     @GetMapping public List<ItensConfiguracaoService.Item> listar(@RequestParam String grupo, @RequestParam(required = false) String busca) { return servico.listar(grupo, busca); }
     @PostMapping @ResponseStatus(HttpStatus.CREATED) public ItensConfiguracaoService.Item criar(@RequestBody ItensConfiguracaoService.Alteracao alteracao) { return servico.criar(alteracao); }
     @PutMapping("/{id}") public ItensConfiguracaoService.Item editar(@PathVariable Long id, @RequestBody ItensConfiguracaoService.Alteracao alteracao) { return servico.editar(id, alteracao); }
-    @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void excluir(@PathVariable Long id) { servico.excluir(id); }
+    @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void excluir(@PathVariable Long id, @RequestParam String grupo) { servico.excluir(id, grupo); }
 }

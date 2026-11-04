@@ -16,6 +16,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* O diálogo de configurações da empresa é montado no overlay global para escapar
+   dos recortes e contextos de empilhamento do conteúdo da rota. */
+.cdk-overlay-container:has(.nt-configuracoes-empresa-painel) {
+  z-index: 20000 !important;
+}
+.nt-configuracoes-empresa-painel {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+.nt-configuracoes-empresa-painel .p-toast {
+  z-index: 30001 !important;
+}
+
 // Global Styles for NeriTech V2 (Stripe-like)
 html, body {
   font-family: 'Inter', system-ui, sans-serif;

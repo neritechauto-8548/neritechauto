@@ -272,7 +272,7 @@ export class ProfileOverview implements OnInit {
     requisicao.pipe(take(1)).subscribe({ next: () => { this.salvandoItemMatriz = false; this.modalItemMatriz = false; this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000}); this.carregarItensMatriz(); }, error: falha => { this.salvandoItemMatriz = false; this.erroItemMatriz = falha?.status === 409 ? 'Já existe um item com essa descrição.' : falha?.status === 403 ? 'Você não tem permissão para salvar este item.' : 'Não foi possível salvar o item.'; } });
   }
   excluirItemMatriz(item: ItemConfiguracao): void {
-    this.itensConfiguracao.excluir(item.id).pipe(take(1)).subscribe({ next: () => { this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000}); this.carregarItensMatriz(); }, error: falha => { this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para excluir este item.' : 'Não foi possível excluir o item.'; } });
+    this.itensConfiguracao.excluir(item.id, item.grupo).pipe(take(1)).subscribe({ next: () => { this.mensagens.add({severity:'success',summary:'Alteração de configuração',detail:'Configuração alterada com sucesso!',life:5000}); this.carregarItensMatriz(); }, error: falha => { this.erroItemMatriz = falha?.status === 403 ? 'Você não tem permissão para excluir este item.' : 'Não foi possível excluir o item.'; } });
   }
   camposAtualizados(campos: {chave: Chave}[]): void { this.salvarPoliticasMatriz(campos.map(campo => campo.chave)); }
   atualizarBuscaItensMatriz(valor: string): void { this.buscaItensMatriz = valor; this.carregarItensMatriz(); }

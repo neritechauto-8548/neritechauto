@@ -2,9 +2,10 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs';
-import { GrupoItemConfiguracao, ItemConfiguracao, ItensConfiguracaoService } from '../preferencias/itens-configuracao.service';
+import { ItemConfiguracao, ItensConfiguracaoService } from '../preferencias/itens-configuracao.service';
 import { ConfiguracaoComplementarEmpresaService } from './services/configuracao-complementar-empresa.service';
 import { AreaRecurso, RecursosApi } from '../../produtos-servicos/servicos/recursos-api.service';
 import { ConfiguracoesFiscaisEmpresaComponent } from './fiscal/configuracoes-fiscais-empresa';
@@ -34,7 +35,7 @@ const PADROES: Record<string, Record<string, any>> = {
 @Component({
   selector: 'nt-configuracoes-empresa',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, ConfiguracoesFiscaisEmpresaComponent],
+  imports: [CommonModule, FormsModule, ButtonModule, ToastModule, ConfiguracoesFiscaisEmpresaComponent],
   templateUrl: './configuracoes-empresa.html',
   styleUrl: './configuracoes-empresa.scss'
 })
@@ -197,18 +198,18 @@ export class ConfiguracoesEmpresaComponent implements OnInit {
   }
   itensFiltrados(): ItemConfiguracao[] { const q = this.buscaTag.trim().toLocaleLowerCase('pt-BR'); return this.itens.filter(item => item.descricao.toLocaleLowerCase('pt-BR').includes(q)); }
   abrirCriacaoTag(): void { this.descricaoTag = ''; this.corTag = '#899198'; this.modalTag = true; }
-  carregarTags(): void { this.itensApi.listar('ORDEM_SERVICO_ETIQUETA' as GrupoItemConfiguracao, this.buscaTag).subscribe({ next: itens => this.itens = itens || [], error: () => this.itens = [] }); }
+  carregarTags(): void { this.itensApi.listar('ORDEM_SERVICO_TAG_ITEM', this.buscaTag).subscribe({ next: itens => this.itens = itens || [], error: () => this.itens = [] }); }
   salvarTag(): void {
     const descricao = this.descricaoTag.trim();
     if (descricao.length < 2 || this.saving) return;
     this.saving = true;
-    this.itensApi.criar({ grupo: 'ORDEM_SERVICO_ETIQUETA' as GrupoItemConfiguracao, descricao, cor: this.corTag }).pipe(finalize(() => this.saving = false)).subscribe({
+    this.itensApi.criar({ grupo: 'ORDEM_SERVICO_TAG_ITEM', descricao, cor: this.corTag }).pipe(finalize(() => this.saving = false)).subscribe({
       next: () => { this.modalTag = false; this.carregarTags(); this.mensagens.add({ severity: 'success', summary: 'Tag criada', detail: 'Tag adicionada com sucesso.' }); },
       error: erro => this.mensagens.add({ severity: 'error', summary: 'Erro ao salvar tag', detail: erro?.error?.message || 'Não foi possível salvar.' })
     });
   }
   excluirTag(item: ItemConfiguracao): void {
-    this.itensApi.excluir(item.id).subscribe({ next: () => { this.itens = this.itens.filter(atual => atual.id !== item.id); this.mensagens.add({ severity: 'success', summary: 'Tag removida', detail: 'Tag removida com sucesso.' }); }, error: erro => this.mensagens.add({ severity: 'error', summary: 'Erro ao remover tag', detail: erro?.error?.message || 'Não foi possível remover.' }) });
+    this.itensApi.excluir(item.id, item.grupo).subscribe({ next: () => { this.itens = this.itens.filter(atual => atual.id !== item.id); this.mensagens.add({ severity: 'success', summary: 'Tag removida', detail: 'Tag removida com sucesso.' }); }, error: erro => this.mensagens.add({ severity: 'error', summary: 'Erro ao remover tag', detail: erro?.error?.message || 'Não foi possível remover.' }) });
   }
   adicionarFeriado(): void {
     const valor = this.feriadoEntrada.trim();

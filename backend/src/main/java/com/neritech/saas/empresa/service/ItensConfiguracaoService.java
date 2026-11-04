@@ -18,7 +18,12 @@ import java.util.Set;
 
 @Service
 public class ItensConfiguracaoService {
-    private static final Set<String> GRUPOS = Set.of("CLIENTE_CATEGORIA", "CLIENTE_RECOMENDACAO", "FINANCEIRO_ETIQUETA", "VENDA_DIRETA_ETIQUETA", "ORDEM_SERVICO_ETIQUETA");
+    private static final Set<String> GRUPOS = Set.of("CLIENTE_CATEGORIA", "CLIENTE_RECOMENDACAO", "FINANCEIRO_ETIQUETA", "VENDA_DIRETA_ETIQUETA", "ORDEM_SERVICO_ETIQUETA", "ORDEM_SERVICO_TAG_ITEM");
+    private static final java.util.Map<String, String> TABELAS = java.util.Map.of(
+        "CLIENTE_CATEGORIA", "categorias_cliente", "CLIENTE_RECOMENDACAO", "recomendacoes_cliente",
+        "FINANCEIRO_ETIQUETA", "etiquetas_financeiras", "VENDA_DIRETA_ETIQUETA", "etiquetas_venda_direta",
+        "ORDEM_SERVICO_ETIQUETA", "etiquetas_ordem_servico",
+        "ORDEM_SERVICO_TAG_ITEM", "tags_itens_ordem_servico_empresa");
     private static final Set<String> CORES = Set.of("#2D2D2D", "#899198", "#FF4D55", "#E83E7A", "#BA42D2", "#7544E8", "#4367E8", "#2585DA", "#16A7B9", "#12B886", "#3BB956", "#7EC51D", "#F3A900", "#FF7A00", "#FFFFFF00");
     public record Item(Long id, String grupo, String descricao, String cor, java.time.LocalDateTime atualizadoEm) {}
     public record Alteracao(String grupo, String descricao, String cor) {}
@@ -36,13 +41,14 @@ public class ItensConfiguracaoService {
     public List<Item> listar(String grupo, String busca) {
         Long empresa = TenantAccess.requireCurrent();
         validarGrupo(grupo);
+        String tabela = TABELAS.get(grupo);
         String termo = busca == null ? "" : busca.trim();
         return jdbc.query("""
-            SELECT id, grupo, descricao, cor, atualizado_em
-            FROM itens_configuracao_empresa
-            WHERE empresa_id = ? AND grupo = ? AND descricao ILIKE ?
+            SELECT id, descricao, cor, atualizado_em
+            FROM %s
+            WHERE empresa_id = ? AND descricao ILIKE ?
             ORDER BY descricao, id
-            """, (rs, n) -> new Item(rs.getLong("id"), rs.getString("grupo"), rs.getString("descricao"), rs.getString("cor"), rs.getTimestamp("atualizado_em").toLocalDateTime()), empresa, grupo, "%" + termo + "%");
+            """.formatted(tabela), (rs, n) -> new Item(rs.getLong("id"), grupo, rs.getString("descricao"), rs.getString("cor"), rs.getTimestamp("atualizado_em").toLocalDateTime()), empresa, "%" + termo + "%");
     }
 
     @Transactional
@@ -50,13 +56,12 @@ public class ItensConfiguracaoService {
         Long empresa = TenantAccess.requireCurrent();
         validar(alteracao);
         Long autor = usuario(empresa);
+        String tabela = TABELAS.get(alteracao.grupo());
         try {
-            Long id = jdbc.queryForObject("""
-                INSERT INTO itens_configuracao_empresa (empresa_id, grupo, descricao, cor, criado_por)
-                VALUES (?, ?, ?, ?, ?) RETURNING id
-                """, Long.class, empresa, alteracao.grupo(), alteracao.descricao().trim(), normalizarCor(alteracao.cor()), autor);
-            auditar(empresa, id, "INSERT", null, alteracao, autor);
-            return obter(empresa, id);
+            Long id = jdbc.queryForObject("INSERT INTO " + tabela + " (empresa_id, descricao, cor, criado_por) VALUES (?, ?, ?, ?) RETURNING id",
+                Long.class, empresa, alteracao.descricao().trim(), normalizarCor(alteracao.cor()), autor);
+            auditar(empresa, id, alteracao.grupo(), "INSERT", null, alteracao, autor);
+            return obter(empresa, id, alteracao.grupo());
         } catch (DataIntegrityViolationException repetido) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um item com essa descrição neste grupo.");
         }
@@ -66,34 +71,33 @@ public class ItensConfiguracaoService {
     public Item editar(Long id, Alteracao alteracao) {
         Long empresa = TenantAccess.requireCurrent();
         validar(alteracao);
-        Item anterior = obter(empresa, id);
+        Item anterior = obter(empresa, id, alteracao.grupo());
         Long autor = usuario(empresa);
+        String tabela = TABELAS.get(alteracao.grupo());
         try {
-            int linhas = jdbc.update("""
-                UPDATE itens_configuracao_empresa SET grupo = ?, descricao = ?, cor = ?, atualizado_em = CURRENT_TIMESTAMP
-                WHERE id = ? AND empresa_id = ?
-                """, alteracao.grupo(), alteracao.descricao().trim(), normalizarCor(alteracao.cor()), id, empresa);
+            int linhas = jdbc.update("UPDATE " + tabela + " SET descricao=?, cor=?, atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND empresa_id=?",
+                alteracao.descricao().trim(), normalizarCor(alteracao.cor()), id, empresa);
             if (linhas == 0) throw naoEncontrado();
-            auditar(empresa, id, "UPDATE", anterior, alteracao, autor);
-            return obter(empresa, id);
+            auditar(empresa, id, alteracao.grupo(), "UPDATE", anterior, alteracao, autor);
+            return obter(empresa, id, alteracao.grupo());
         } catch (DataIntegrityViolationException repetido) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um item com essa descrição neste grupo.");
         }
     }
 
     @Transactional
-    public void excluir(Long id) {
+    public void excluir(Long id, String grupo) {
         Long empresa = TenantAccess.requireCurrent();
-        Item anterior = obter(empresa, id);
+        validarGrupo(grupo);
+        Item anterior = obter(empresa, id, grupo);
         Long autor = usuario(empresa);
-        jdbc.update("DELETE FROM itens_configuracao_empresa WHERE id = ? AND empresa_id = ?", id, empresa);
-        auditar(empresa, id, "DELETE", anterior, null, autor);
+        jdbc.update("DELETE FROM " + TABELAS.get(grupo) + " WHERE id = ? AND empresa_id = ?", id, empresa);
+        auditar(empresa, id, grupo, "DELETE", anterior, null, autor);
     }
 
-    private Item obter(Long empresa, Long id) {
-        Item item = jdbc.query("""
-            SELECT id, grupo, descricao, cor, atualizado_em FROM itens_configuracao_empresa WHERE id = ? AND empresa_id = ?
-            """, rs -> rs.next() ? new Item(rs.getLong("id"), rs.getString("grupo"), rs.getString("descricao"), rs.getString("cor"), rs.getTimestamp("atualizado_em").toLocalDateTime()) : null, id, empresa);
+    private Item obter(Long empresa, Long id, String grupo) {
+        Item item = jdbc.query("SELECT id, descricao, cor, atualizado_em FROM " + TABELAS.get(grupo) + " WHERE id=? AND empresa_id=?",
+            rs -> rs.next() ? new Item(rs.getLong("id"), grupo, rs.getString("descricao"), rs.getString("cor"), rs.getTimestamp("atualizado_em").toLocalDateTime()) : null, id, empresa);
         if (item == null) throw naoEncontrado();
         return item;
     }
@@ -115,13 +119,13 @@ public class ItensConfiguracaoService {
         return usuarios.findByEmailIgnoreCaseAndEmpresaId(autenticacao.getName(), empresa)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário fora da empresa.")).getId();
     }
-    private void auditar(Long empresa, Long id, String operacao, Object anterior, Object novo, Long autor) {
+    private void auditar(Long empresa, Long id, String grupo, String operacao, Object anterior, Object novo, Long autor) {
         jdbc.update("""
             INSERT INTO logs_alteracoes (empresa_id, tabela_afetada, registro_id, operacao, campos_alterados,
               valores_antigos, valores_novos, usuario_responsavel, contexto_operacao, dados_adicionais, data_alteracao)
-            VALUES (?, 'itens_configuracao_empresa', ?, ?, '[\"grupo\",\"descricao\",\"cor\"]', ?, ?,
+            VALUES (?, ?, ?, ?, '[\"descricao\",\"cor\"]', ?, ?,
               ?, 'ADM-012', '{}', CURRENT_TIMESTAMP)
-            """, empresa, id, operacao, serializar(anterior), serializar(novo), autor);
+            """, empresa, TABELAS.get(grupo), id, operacao, serializar(anterior), serializar(novo), autor);
     }
     private String serializar(Object valor) {
         try { return valor == null ? "{}" : json.writeValueAsString(valor); }

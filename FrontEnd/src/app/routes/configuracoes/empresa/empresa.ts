@@ -1,5 +1,8 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { DatePipe, Location } from '@angular/common';
+import { ComponentPortal } from '@angular/cdk/portal';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { ViewContainerRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -66,11 +69,13 @@ import { catchError, finalize, forkJoin, of, tap, throwError } from 'rxjs';
     TooltipModule,
     AccordionModule,
     FieldsetModule,
-    ConfiguracoesEmpresaComponent
   ],
   providers: [MessageService]
 })
 export class EmpresaConfig implements OnInit, OnDestroy {
+  private readonly sobreposicao = inject(Overlay);
+  private readonly localVisualizacao = inject(ViewContainerRef);
+  private painelConfiguracoes?: OverlayRef;
   private service             = inject(EmpresaService);
   private settings            = inject(SettingsService);
   private toast               = inject(MessageService);
@@ -93,6 +98,31 @@ export class EmpresaConfig implements OnInit, OnDestroy {
   historicoPage = 0;
   historicoSize = 20;
   historicoTotal = 0;
+
+  abrirConfiguracoes(): void {
+    if (this.painelConfiguracoes?.hasAttached()) return;
+
+    this.configuracoesAbertas = true;
+    this.painelConfiguracoes = this.sobreposicao.create({
+      hasBackdrop: false,
+      panelClass: 'nt-configuracoes-empresa-painel',
+      positionStrategy: this.sobreposicao.position().global().top('0').left('0'),
+      scrollStrategy: this.sobreposicao.scrollStrategies.block()
+    });
+
+    const referencia = this.painelConfiguracoes.attach(
+      new ComponentPortal(ConfiguracoesEmpresaComponent, this.localVisualizacao)
+    );
+    referencia.setInput('nomeEmpresa', this.empresa.nomeFantasia || this.empresa.razaoSocial || '');
+    referencia.setInput('cnpjEmpresa', this.empresa.cnpj || '');
+    referencia.instance.fechar.subscribe(() => this.fecharConfiguracoes());
+  }
+
+  private fecharConfiguracoes(): void {
+    this.painelConfiguracoes?.dispose();
+    this.painelConfiguracoes = undefined;
+    this.configuracoesAbertas = false;
+  }
 
   // ── Models ──────────────────────────────────────────────────────
   empresa: Empresa = { nomeFantasia: '', razaoSocial: '', cnpj: '' };
@@ -972,6 +1002,7 @@ export class EmpresaConfig implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.painelConfiguracoes?.dispose();
     if (this.logoObjectUrl) URL.revokeObjectURL(this.logoObjectUrl);
   }
 

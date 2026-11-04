@@ -1,7 +1,7 @@
-:host { position: relative; z-index: 12000; }
-.nt-ce-backdrop { position: fixed; inset: 0; z-index: 12000; display: grid; place-items: center; padding: 12px; background: rgb(0 0 0 / 78%); font-family: inherit; color: #101828; }
-.nt-ce-modal { display: flex; flex-direction: column; width: min(98vw, 1800px); height: min(96vh, 1200px); overflow: hidden; border-radius: 8px; background: #f7f8fa; box-shadow: 0 16px 48px rgb(0 0 0 / 28%); transition: width .18s ease, height .18s ease; }
-.nt-ce-modal--maximizada { width: 100vw; height: 100vh; border-radius: 0; }
+:host { position: relative; display: block; width: 100vw; height: 100dvh; }
+.nt-ce-backdrop { position: fixed; inset: 0; z-index: 12000; display: grid; place-items: center; padding: 16px; background: rgb(0 0 0 / 78%); font-family: inherit; color: #101828; }
+.nt-ce-modal { display: flex; flex-direction: column; width: min(1200px, calc(100vw - 32px)); height: min(640px, calc(100dvh - 32px)); overflow: hidden; border-radius: 7px; background: #f7f8fa; box-shadow: 0 16px 48px rgb(0 0 0 / 28%); transition: width .18s ease, height .18s ease; }
+.nt-ce-modal--maximizada { width: calc(100vw - 16px); height: calc(100dvh - 16px); }
 .nt-ce-header { flex: 0 0 62px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 20px; border-bottom: 1px solid #d0d7df; background: #fff; }
 .nt-ce-identidade { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .nt-ce-identidade > i { font-size: 18px; }
@@ -128,11 +128,13 @@
 .nt-ce-dialog--indisponibilidade > .nt-ce-grade-dois { margin-top: 18px; }
 
 @media (max-width: 900px) {
-  .nt-ce-modal { width: 100vw; height: 100dvh; border-radius: 0; }
-  .nt-ce-backdrop { padding: 0; }
   .nt-ce-menu { flex-basis: 220px; }
   .nt-ce-conteudo { padding: 16px; }
   .nt-ce-grade-tres { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .nt-ce-backdrop { padding: 0; }
+  .nt-ce-modal { width: 100vw; height: 100dvh; border-radius: 0; }
 }
 @media (max-width: 640px) {
   .nt-ce-header { flex-basis: 58px; padding: 0 12px; }

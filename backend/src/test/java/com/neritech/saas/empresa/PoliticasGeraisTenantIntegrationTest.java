@@ -20,7 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 // application-test.properties desabilita Flyway; executa a migração real apenas nesta suíte.
-@Sql(scripts = "classpath:db/migration/V276__adm011_politicas_gerais.sql",
+@Sql(scripts = {"classpath:db/migration/V276__adm011_politicas_gerais.sql",
+                "classpath:db/migration/V317__normalizar_politicas_gerais_empresa.sql"},
      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class PoliticasGeraisTenantIntegrationTest extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;
@@ -77,10 +78,10 @@ class PoliticasGeraisTenantIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isConflict());
 
         assertThat(jdbc.queryForObject("""
-            SELECT COUNT(*) FROM politicas_gerais_empresa WHERE empresa_id=? AND chave='locale'
+            SELECT COUNT(*) FROM preferencias_operacionais_empresa WHERE empresa_id=? AND locale IS NOT NULL
             """, Long.class, a)).isEqualTo(1L);
         assertThat(jdbc.queryForObject("""
-            SELECT COUNT(*) FROM politicas_gerais_empresa WHERE empresa_id=? AND chave='locale'
+            SELECT COUNT(*) FROM preferencias_operacionais_empresa WHERE empresa_id=? AND locale IS NOT NULL
             """, Long.class, b)).isZero();
         assertThat(jdbc.queryForObject("""
             SELECT COUNT(*) FROM logs_alteracoes WHERE empresa_id=? AND contexto_operacao='ADM-011'

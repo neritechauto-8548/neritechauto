@@ -129,7 +129,7 @@ public class ConfiguracoesSegurasService {
     @Transactional(readOnly = true)
     public Map<String,Object> obterSenhaPrefeituraNfse() {
         Long empresa = TenantAccess.requireCurrent();
-        boolean cadastrada = banco.queryForObject("select exists(select 1 from configuracoes_complementares_empresa where empresa_id=? and secao='FISCAL_NFSE' and senha_nfse_cifrada is not null)", Boolean.class, empresa);
+        boolean cadastrada = banco.queryForObject("select exists(select 1 from credenciais_fiscais_empresa where empresa_id=? and senha_prefeitura_nfse_cifrada is not null)", Boolean.class, empresa);
         return Map.of("temSenha", cadastrada);
     }
 
@@ -139,7 +139,7 @@ public class ConfiguracoesSegurasService {
         if (senha == null || senha.isBlank() || senha.length() > 255) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Informe uma senha válida para o acesso à prefeitura.");
         Long usuario = usuarioAtualId();
         byte[] protegida = cifrar(senha.getBytes(StandardCharsets.UTF_8));
-        banco.update("insert into configuracoes_complementares_empresa(empresa_id,secao,dados,versao,atualizado_por,senha_nfse_cifrada) values(?,'FISCAL_NFSE','{}'::jsonb,0,?,?) on conflict(empresa_id,secao) do update set senha_nfse_cifrada=excluded.senha_nfse_cifrada,atualizado_por=excluded.atualizado_por,atualizado_em=current_timestamp", empresa, usuario, protegida);
+        banco.update("insert into credenciais_fiscais_empresa(empresa_id,senha_prefeitura_nfse_cifrada,atualizado_por) values(?,?,?) on conflict(empresa_id) do update set senha_prefeitura_nfse_cifrada=excluded.senha_prefeitura_nfse_cifrada,atualizado_por=excluded.atualizado_por,atualizado_em=current_timestamp", empresa, protegida, usuario);
         auditarSegredoFiscal(empresa, "FISCAL_NFSE", "senhaPrefeitura", usuario);
         return Map.of("temSenha", true);
     }
@@ -147,7 +147,7 @@ public class ConfiguracoesSegurasService {
     @Transactional(readOnly = true)
     public Map<String,Object> obterCredenciaisNfce() {
         Long empresa = TenantAccess.requireCurrent();
-        return banco.query("select csc_nfce_cifrada is not null tem_csc, token_nfce_cifrado is not null tem_token from configuracoes_complementares_empresa where empresa_id=? and secao='FISCAL_NFCE'", rs -> rs.next() ? Map.of("temCsc",rs.getBoolean("tem_csc"),"temToken",rs.getBoolean("tem_token")) : Map.of("temCsc",false,"temToken",false), empresa);
+        return banco.query("select codigo_seguranca_nfce_cifrado is not null tem_csc, token_nfce_cifrado is not null tem_token from credenciais_fiscais_empresa where empresa_id=?", rs -> rs.next() ? Map.of("temCsc",rs.getBoolean("tem_csc"),"temToken",rs.getBoolean("tem_token")) : Map.of("temCsc",false,"temToken",false), empresa);
     }
 
     @Transactional
@@ -155,16 +155,16 @@ public class ConfiguracoesSegurasService {
         Long empresa = TenantAccess.requireCurrent();
         if (csc == null || csc.isBlank() || csc.length() > 255 || token == null || token.isBlank() || token.length() > 255) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Informe o CSC e o token CLD da NFC-e.");
         Long usuario = usuarioAtualId();
-        banco.update("insert into configuracoes_complementares_empresa(empresa_id,secao,dados,versao,atualizado_por,csc_nfce_cifrada,token_nfce_cifrado) values(?,'FISCAL_NFCE','{}'::jsonb,0,?,?,?) on conflict(empresa_id,secao) do update set csc_nfce_cifrada=excluded.csc_nfce_cifrada,token_nfce_cifrado=excluded.token_nfce_cifrado,atualizado_por=excluded.atualizado_por,atualizado_em=current_timestamp", empresa, usuario, cifrar(csc.getBytes(StandardCharsets.UTF_8)), cifrar(token.getBytes(StandardCharsets.UTF_8)));
+        banco.update("insert into credenciais_fiscais_empresa(empresa_id,codigo_seguranca_nfce_cifrado,token_nfce_cifrado,atualizado_por) values(?,?,?,?) on conflict(empresa_id) do update set codigo_seguranca_nfce_cifrado=excluded.codigo_seguranca_nfce_cifrado,token_nfce_cifrado=excluded.token_nfce_cifrado,atualizado_por=excluded.atualizado_por,atualizado_em=current_timestamp", empresa, cifrar(csc.getBytes(StandardCharsets.UTF_8)), cifrar(token.getBytes(StandardCharsets.UTF_8)), usuario);
         auditarSegredoFiscal(empresa, "FISCAL_NFCE", "credenciaisNfce", usuario);
         return Map.of("temCsc",true,"temToken",true);
     }
 
     private void auditarSegredoFiscal(Long empresa, String secao, String campo, Long usuario) {
-        Long registro = banco.queryForObject("select id from configuracoes_complementares_empresa where empresa_id=? and secao=?", Long.class, empresa, secao);
+        Long registro = banco.queryForObject("select empresa_id from credenciais_fiscais_empresa where empresa_id=?", Long.class, empresa);
         banco.update("""
                 insert into logs_alteracoes (empresa_id,tabela_afetada,registro_id,operacao,campos_alterados,valores_antigos,valores_novos,usuario_responsavel,contexto_operacao,dados_adicionais,data_alteracao)
-                values (?,'configuracoes_complementares_empresa',?,'UPDATE',?,'{}','{\"atualizado\":true}',?,'ADM-013',?::jsonb,current_timestamp)
+                values (?,'credenciais_fiscais_empresa',?,'UPDATE',?,'{}','{\"atualizado\":true}',?,'ADM-013',?::jsonb,current_timestamp)
                 """, empresa, registro, "[\"" + campo + "\"]", usuario, "{\"secao\":\"" + secao + "\"}");
     }
 
